@@ -21,7 +21,8 @@
     { "word": "potion", "value": 107 },
     { "word": "coin", "value": 108 },
     { "word": "lock", "value": 109 },
-    { "word": "table", "value": 110 }
+    { "word": "table", "value": 110 },
+    { "word": "book", "value": 111 }
   ],
   "adjectives": [
     { "word": "red", "value": 201 },

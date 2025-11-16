@@ -43,14 +43,14 @@ class TestVocabularyLoading(unittest.TestCase):
 
         # Verify all types are present
         self.assertEqual(len(verbs), 10)
-        self.assertEqual(len(nouns), 10)
+        self.assertEqual(len(nouns), 11)  # Updated: added "book"
         self.assertEqual(len(adjectives), 10)
         self.assertEqual(len(prepositions), 8)
         self.assertEqual(len(directions), 10)
         self.assertEqual(len(articles), 3)
 
         # Verify total count
-        self.assertEqual(len(parser.word_table), 51)
+        self.assertEqual(len(parser.word_table), 52)  # Updated: 51 + 1 new noun
 
     def test_load_minimal_vocabulary(self):
         """
@@ -313,7 +313,7 @@ class TestVocabularyLoading(unittest.TestCase):
 
         # Verify word table size matches
         self.assertEqual(len(parser.word_table), expected_count)
-        self.assertEqual(len(parser.word_table), 51)
+        self.assertEqual(len(parser.word_table), 52)  # Updated: 51 + 1 new noun
 
 
 class TestVocabularyDetails(unittest.TestCase):

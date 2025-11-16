@@ -334,5 +334,215 @@ class TestArticleFiltering(unittest.TestCase):
         self.assertEqual(result.direct_object.word, "sword")
 
 
+class TestParserIntegration(unittest.TestCase):
+    """Integration tests for full game scenarios."""
+
+    def setUp(self):
+        """Set up test fixtures path and parser."""
+        self.fixtures_path = os.path.join('tests', 'fixtures')
+        vocab_file = os.path.join(self.fixtures_path, 'test_vocabulary.json')
+        self.parser = Parser(vocab_file)
+
+    def test_full_game_scenario_1(self):
+        """
+        Test IT-001: Complete game scenario.
+
+        Test a series of commands that might occur in a real game.
+        """
+        commands = [
+            ("north", lambda r: r.direction and r.direction.word == "north"),
+            ("take sword", lambda r: r.verb.word == "take" and r.direct_object.word == "sword"),
+            ("examine the sword", lambda r: r.verb.word == "examine" and r.direct_object.word == "sword"),
+            ("go west", lambda r: r.verb.word == "go" and r.direction.word == "west"),
+            ("unlock door with key", lambda r: r.verb.word == "unlock" and r.direct_object.word == "door" and r.indirect_object.word == "key"),
+        ]
+
+        for command_str, validator in commands:
+            result = self.parser.parse_command(command_str)
+            self.assertIsNotNone(result, f"Failed to parse: {command_str}")
+            self.assertTrue(validator(result), f"Validation failed for: {command_str}")
+
+    def test_full_game_scenario_2(self):
+        """
+        Test IT-002: Combat scenario.
+
+        Test combat-related commands.
+        """
+        commands = [
+            "attack goblin",
+            "hit the goblin",
+            "strike goblin with sword",
+            "kill goblin",
+        ]
+
+        for command_str in commands:
+            result = self.parser.parse_command(command_str)
+            self.assertIsNotNone(result, f"Failed to parse: {command_str}")
+            # All should have attack verb (or synonym)
+            self.assertIsNotNone(result.verb)
+            self.assertEqual(result.verb.word, "attack")
+
+    def test_exploration_scenario(self):
+        """
+        Test IT-003: Exploration commands.
+
+        Test movement and examination commands.
+        """
+        commands = [
+            ("north", "direction"),
+            ("n", "direction"),
+            ("go south", "verb_direction"),
+            ("examine door", "verb_noun"),
+            ("look in chest", "verb_prep_noun"),
+            ("examine the red potion", "verb_adj_noun"),
+        ]
+
+        for command_str, expected_type in commands:
+            result = self.parser.parse_command(command_str)
+            self.assertIsNotNone(result, f"Failed to parse: {command_str}")
+            self.assertEqual(result.raw, command_str)
+
+    def test_inventory_scenario(self):
+        """
+        Test IT-004: Inventory management.
+
+        Test taking, dropping, and using items.
+        """
+        # Take various items
+        take_commands = [
+            "take key",
+            "get the sword",
+            "grab potion",
+            "pick rusty key",
+            "take the golden coin",
+        ]
+
+        for command_str in take_commands:
+            result = self.parser.parse_command(command_str)
+            self.assertIsNotNone(result, f"Failed to parse: {command_str}")
+            self.assertEqual(result.verb.word, "take")
+            self.assertIsNotNone(result.direct_object)
+
+        # Drop items
+        drop_result = self.parser.parse_command("drop sword")
+        self.assertIsNotNone(drop_result)
+        self.assertEqual(drop_result.verb.word, "drop")
+
+        # Use items
+        use_result = self.parser.parse_command("use key")
+        self.assertIsNotNone(use_result)
+        self.assertEqual(use_result.verb.word, "use")
+
+    def test_puzzle_scenario(self):
+        """
+        Test IT-005: Puzzle solving.
+
+        Test complex multi-word commands for puzzles.
+        """
+        complex_commands = [
+            "unlock rusty door with iron key",
+            "put the red potion on table",
+            "examine ancient book",
+            "open wooden chest",
+            "look under small table",
+            "take golden key from chest",
+        ]
+
+        for command_str in complex_commands:
+            result = self.parser.parse_command(command_str)
+            self.assertIsNotNone(result, f"Failed to parse: {command_str}")
+            self.assertIsNotNone(result.verb)
+
+    def test_parser_reuse(self):
+        """
+        Test IT-006: Reuse parser instance.
+
+        Verify that the same parser can be used for multiple
+        parse calls without state corruption.
+        """
+        # Parse same command multiple times
+        for _ in range(10):
+            result = self.parser.parse_command("take sword")
+            self.assertIsNotNone(result)
+            self.assertEqual(result.verb.word, "take")
+            self.assertEqual(result.direct_object.word, "sword")
+
+        # Parse different commands
+        commands = [
+            "north",
+            "take key",
+            "examine door",
+            "unlock door with key",
+            "go south",
+        ]
+
+        for command_str in commands:
+            result = self.parser.parse_command(command_str)
+            self.assertIsNotNone(result, f"Failed to parse: {command_str}")
+
+        # Verify word table hasn't changed size
+        original_size = len(self.parser.word_table)
+        for _ in range(5):
+            self.parser.parse_command("take sword")
+        self.assertEqual(len(self.parser.word_table), original_size)
+
+    def test_synonym_consistency(self):
+        """
+        Test IT-007: Synonym consistency.
+
+        Verify that synonyms produce consistent results with
+        their main words.
+        """
+        # Test verb synonyms
+        synonym_pairs = [
+            ("take sword", "grab sword"),
+            ("take sword", "get sword"),
+            ("take sword", "pick sword"),
+            ("examine door", "look door"),
+            ("examine door", "inspect door"),
+            ("attack goblin", "hit goblin"),
+            ("attack goblin", "strike goblin"),
+            ("attack goblin", "kill goblin"),
+            ("drop key", "put key"),
+            ("drop key", "place key"),
+            ("eat flask", "consume flask"),
+        ]
+
+        for main_cmd, synonym_cmd in synonym_pairs:
+            result_main = self.parser.parse_command(main_cmd)
+            result_synonym = self.parser.parse_command(synonym_cmd)
+
+            self.assertIsNotNone(result_main, f"Failed to parse: {main_cmd}")
+            self.assertIsNotNone(result_synonym, f"Failed to parse: {synonym_cmd}")
+
+            # Both should resolve to the same verb
+            self.assertEqual(result_main.verb.word, result_synonym.verb.word,
+                           f"{main_cmd} and {synonym_cmd} should have same verb")
+
+            # Both should have same direct object
+            if result_main.direct_object:
+                self.assertEqual(result_main.direct_object.word,
+                               result_synonym.direct_object.word,
+                               f"{main_cmd} and {synonym_cmd} should have same object")
+
+        # Test direction synonyms
+        direction_pairs = [
+            ("north", "n"),
+            ("south", "s"),
+            ("east", "e"),
+            ("west", "w"),
+            ("up", "u"),
+            ("down", "d"),
+        ]
+
+        for main_cmd, synonym_cmd in direction_pairs:
+            result_main = self.parser.parse_command(main_cmd)
+            result_synonym = self.parser.parse_command(synonym_cmd)
+
+            self.assertIsNotNone(result_main)
+            self.assertIsNotNone(result_synonym)
+            self.assertEqual(result_main.direction.word, result_synonym.direction.word)
+
+
 if __name__ == '__main__':
     unittest.main()
