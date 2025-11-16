@@ -1,0 +1,1 @@
+Table based parser for a simple text adventure game UI, in Python. To my surprise searching for this did not find any existing libraries that fit the bill.
