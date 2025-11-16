@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the design for a simple, configurable parser for a text adventure game written in Python that handles 2-4 word commands. The parser is table-driven with vocabulary stored in a JSON file, allowing for easy configuration and extension of recognized words without modifying code.
+This document describes the design for a simple, configurable parser for a text adventure game written in Python that handles 1-6 word commands. The parser is table-driven with vocabulary stored in a JSON file, allowing for easy configuration and extension of recognized words without modifying code.
 
 ## Core Components
 
@@ -235,9 +235,17 @@ class Parser:
             )
             self.word_table.append(entry)
 
-        # Process prepositions (simple strings)
+        # Process prepositions (can be simple strings or dicts)
         for prep in vocab.get('prepositions', []):
-            entry = WordEntry(word=prep, word_type=WordType.PREPOSITION)
+            if isinstance(prep, str):
+                entry = WordEntry(word=prep, word_type=WordType.PREPOSITION)
+            else:
+                entry = WordEntry(
+                    word=prep['word'],
+                    word_type=WordType.PREPOSITION,
+                    synonyms=prep.get('synonyms', []),
+                    value=prep.get('value')
+                )
             self.word_table.append(entry)
 
         # Process directions
@@ -250,9 +258,17 @@ class Parser:
             )
             self.word_table.append(entry)
 
-        # Process articles (simple strings)
+        # Process articles (can be simple strings or dicts)
         for article in vocab.get('articles', []):
-            entry = WordEntry(word=article, word_type=WordType.ARTICLE)
+            if isinstance(article, str):
+                entry = WordEntry(word=article, word_type=WordType.ARTICLE)
+            else:
+                entry = WordEntry(
+                    word=article['word'],
+                    word_type=WordType.ARTICLE,
+                    synonyms=article.get('synonyms', []),
+                    value=article.get('value')
+                )
             self.word_table.append(entry)
 
     def parse_command(self, input_text: str) -> Union[ParsedCommand, str]:
@@ -265,8 +281,12 @@ class Parser:
         Returns:
             ParsedCommand object on success, error string on failure
         """
-        # 1. Tokenize
+        # 1. Tokenize - split on whitespace and convert to lowercase
         tokens = input_text.lower().split()
+
+        # Handle empty input
+        if not tokens:
+            return "I don't understand that command"
 
         # 2. Look up each word
         word_entries = []
@@ -279,11 +299,16 @@ class Parser:
         # 3. Filter articles
         filtered_entries = [e for e in word_entries if e.word_type != WordType.ARTICLE]
 
+        # Handle case where only articles remain
+        if not filtered_entries:
+            return "I don't understand that command"
+
         # 4. Match pattern and build command
         command = self._match_pattern(filtered_entries)
         if command is None:
             return "I don't understand that command"
 
+        # 5. Preserve original input
         command.raw = input_text
         return command
 
