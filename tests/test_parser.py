@@ -231,5 +231,108 @@ class TestLookupTableOptimization(unittest.TestCase):
         self.assertEqual(len(self.parser.word_lookup), expected_count)
 
 
+class TestArticleFiltering(unittest.TestCase):
+    """Test article filtering functionality."""
+
+    def setUp(self):
+        """Set up test fixtures path and parser."""
+        self.fixtures_path = os.path.join('tests', 'fixtures')
+        vocab_file = os.path.join(self.fixtures_path, 'test_vocabulary.json')
+        self.parser = Parser(vocab_file)
+
+    def test_filter_the(self):
+        """
+        Test AF-001: Filter "the".
+
+        Verify that "the" is filtered from commands and the result
+        is the same as without "the".
+        """
+        result = self.parser.parse_command("take the sword")
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.verb.word, "take")
+        self.assertEqual(result.direct_object.word, "sword")
+        self.assertEqual(result.raw, "take the sword")
+
+    def test_filter_a(self):
+        """
+        Test AF-002: Filter "a".
+
+        Verify that "a" is filtered from commands.
+        """
+        result = self.parser.parse_command("take a sword")
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.verb.word, "take")
+        self.assertEqual(result.direct_object.word, "sword")
+
+    def test_filter_an(self):
+        """
+        Test AF-003: Filter "an".
+
+        Verify that "an" is filtered from commands.
+        """
+        result = self.parser.parse_command("take an sword")
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.verb.word, "take")
+        self.assertEqual(result.direct_object.word, "sword")
+
+    def test_multiple_articles(self):
+        """
+        Test AF-004: Multiple articles.
+
+        Verify that multiple articles are all filtered.
+        """
+        result = self.parser.parse_command("take the a sword")
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.verb.word, "take")
+        self.assertEqual(result.direct_object.word, "sword")
+
+    def test_article_with_adjective(self):
+        """
+        Test AF-005: Article before adjective.
+
+        Verify that articles are filtered correctly when
+        adjectives are present.
+        """
+        result = self.parser.parse_command("take the rusty key")
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.verb.word, "take")
+        self.assertEqual(result.direct_adjective.word, "rusty")
+        self.assertEqual(result.direct_object.word, "key")
+
+    def test_article_complex(self):
+        """
+        Test AF-006: Article in complex command.
+
+        Verify that multiple articles are filtered from
+        complex 6-word commands.
+        """
+        result = self.parser.parse_command("unlock the rusty door with the iron key")
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.verb.word, "unlock")
+        self.assertEqual(result.direct_adjective.word, "rusty")
+        self.assertEqual(result.direct_object.word, "door")
+        self.assertEqual(result.preposition.word, "with")
+        self.assertEqual(result.indirect_adjective.word, "iron")
+        self.assertEqual(result.indirect_object.word, "key")
+
+    def test_no_article(self):
+        """
+        Test AF-007: No article present.
+
+        Verify that commands without articles work correctly.
+        """
+        result = self.parser.parse_command("take sword")
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.verb.word, "take")
+        self.assertEqual(result.direct_object.word, "sword")
+
+
 if __name__ == '__main__':
     unittest.main()

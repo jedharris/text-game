@@ -1,8 +1,7 @@
 """Main parser implementation."""
 
-from typing import List, Optional, Dict, Union
+from typing import List, Optional, Dict
 import json
-from pathlib import Path
 
 from src.word_entry import WordEntry, WordType
 from src.parsed_command import ParsedCommand
@@ -137,6 +136,47 @@ class Parser:
             WordEntry if found, None otherwise
         """
         return self.word_lookup.get(word)
+
+    def parse_command(self, command: str) -> Optional[ParsedCommand]:
+        """
+        Parse a raw input string into a structured ParsedCommand.
+
+        Args:
+            command: Raw user input string
+
+        Returns:
+            ParsedCommand if parsing succeeds, None otherwise
+        """
+        if command is None:
+            return None
+
+        raw_input = command
+        normalized = command.strip()
+        if not normalized:
+            return None
+
+        tokens = normalized.lower().split()
+        if not tokens:
+            return None
+
+        entries: List[WordEntry] = []
+        for token in tokens:
+            entry = self._lookup_word(token)
+            if entry is None:
+                return None
+            if entry.word_type == WordType.ARTICLE:
+                continue
+            entries.append(entry)
+
+        if not entries or len(entries) > 6:
+            return None
+
+        parsed = self._match_pattern(entries)
+        if parsed is None:
+            return None
+
+        parsed.raw = raw_input
+        return parsed
 
     def _match_pattern(self, entries: List[WordEntry]) -> Optional[ParsedCommand]:
         """
