@@ -53,44 +53,54 @@ Quick reference for all test IDs defined in test-plan.md.
 **Additional Tests**: 4 extra tests implemented - ALL PASSING
 **Total Tests**: 13/13 passing in 0.001s
 
-## Category 4: Pattern Matching 1-2 Words (PM-001 to PM-006)
+## Category 4: Pattern Matching 1-2 Words (PM-001 to PM-006) ✅ COMPLETE
 
 | Test ID | Test Name | Status |
 |---------|-----------|--------|
-| PM-001 | test_single_direction | ⏳ Pending |
-| PM-002 | test_direction_synonym | ⏳ Pending |
-| PM-003 | test_verb_noun | ⏳ Pending |
-| PM-004 | test_verb_direction | ⏳ Pending |
-| PM-005 | test_verb_direction_synonym | ⏳ Pending |
-| PM-006 | test_synonym_verb_noun | ⏳ Pending |
+| PM-001 | test_single_direction | ✅ PASSING |
+| PM-002 | test_direction_synonym | ✅ PASSING |
+| PM-003 | test_verb_noun | ✅ PASSING |
+| PM-004 | test_verb_direction | ✅ PASSING |
+| PM-005 | test_verb_direction_synonym | ✅ PASSING |
+| PM-006 | test_synonym_verb_noun | ✅ PASSING |
 
-## Category 5: Pattern Matching 3 Words (PM-101 to PM-105)
+**Total Tests**: 6/6 passing
 
-| Test ID | Test Name | Status |
-|---------|-----------|--------|
-| PM-101 | test_verb_adjective_noun | ⏳ Pending |
-| PM-102 | test_verb_noun_noun | ⏳ Pending |
-| PM-103 | test_verb_prep_noun | ⏳ Pending |
-| PM-104 | test_verb_adj_noun_colors | ⏳ Pending |
-| PM-105 | test_verb_adj_noun_size | ⏳ Pending |
-
-## Category 6: Pattern Matching 4 Words (PM-201 to PM-203)
+## Category 5: Pattern Matching 3 Words (PM-101 to PM-105) ✅ COMPLETE
 
 | Test ID | Test Name | Status |
 |---------|-----------|--------|
-| PM-201 | test_verb_adj_noun_noun | ⏳ Pending |
-| PM-202 | test_verb_noun_prep_noun | ⏳ Pending |
-| PM-203 | test_verb_prep_adj_noun | ⏳ Pending |
+| PM-101 | test_verb_adjective_noun | ✅ PASSING |
+| PM-102 | test_verb_noun_noun | ✅ PASSING |
+| PM-103 | test_verb_prep_noun | ✅ PASSING |
+| PM-104 | test_verb_adj_noun_colors | ✅ PASSING |
+| PM-105 | test_verb_adj_noun_size | ✅ PASSING |
 
-## Category 7: Pattern Matching 5-6 Words (PM-301 to PM-305)
+**Total Tests**: 5/5 passing
+
+## Category 6: Pattern Matching 4 Words (PM-201 to PM-203) ✅ COMPLETE
 
 | Test ID | Test Name | Status |
 |---------|-----------|--------|
-| PM-301 | test_verb_adj_noun_prep_noun | ⏳ Pending |
-| PM-302 | test_verb_noun_prep_adj_noun | ⏳ Pending |
-| PM-303 | test_verb_adj_noun_prep_adj_noun | ⏳ Pending |
-| PM-304 | test_complex_color_adjectives | ⏳ Pending |
-| PM-305 | test_complex_size_adjectives | ⏳ Pending |
+| PM-201 | test_verb_adj_noun_noun | ✅ PASSING |
+| PM-202 | test_verb_noun_prep_noun | ✅ PASSING |
+| PM-203 | test_verb_prep_adj_noun | ✅ PASSING |
+
+**Total Tests**: 3/3 passing
+
+## Category 7: Pattern Matching 5-6 Words (PM-301 to PM-305) ✅ COMPLETE
+
+| Test ID | Test Name | Status |
+|---------|-----------|--------|
+| PM-301 | test_verb_adj_noun_prep_noun | ✅ PASSING |
+| PM-302 | test_verb_noun_prep_adj_noun | ✅ PASSING |
+| PM-303 | test_verb_adj_noun_prep_adj_noun | ✅ PASSING |
+| PM-304 | test_complex_color_adjectives | ✅ PASSING |
+| PM-305 | test_complex_size_adjectives | ✅ PASSING |
+
+**Total Tests**: 5/5 passing
+
+**Pattern Matching Combined**: 19/19 tests passing in 0.002s
 
 ## Category 8: Article Filtering (AF-*)
 
@@ -170,11 +180,11 @@ Quick reference for all test IDs defined in test-plan.md.
 ## Summary
 
 - **Total Tests Planned**: 100+
-- **Tests Implemented**: 34 (Categories 1-2 complete + extras)
-- **Tests Passing**: 34/34 (100%)
-- **Tests Pending**: 66+
-- **Categories Complete**: 2/13
-- **Overall Progress**: ~34%
+- **Tests Implemented**: 66 (Categories 1-7 complete + extras)
+- **Tests Passing**: 66/66 (100%)
+- **Tests Pending**: 34+
+- **Categories Complete**: 7/13
+- **Overall Progress**: ~66%
 
 ## Legend
 

@@ -65,7 +65,24 @@ This document tracks the implementation progress of the text adventure game pars
 
 **Test Results**: ✅ ALL 13 TESTS PASSING (0.001s)
 
-### Phase 4: Pattern Matching ⏳ PENDING
+### Phase 4: Pattern Matching ✅ COMPLETE
+
+- [x] Create ParsedCommand dataclass
+- [x] Implement `_match_pattern()` method
+- [x] Implement 1-2 word patterns
+- [x] Implement 3 word patterns
+- [x] Implement 4 word patterns
+- [x] Implement 5-6 word patterns
+- [x] Create pattern matching tests
+
+**Files Created**:
+- `src/parsed_command.py` - ParsedCommand dataclass
+- `tests/test_pattern_matching.py` - 19 tests for pattern matching
+
+**Files Modified**:
+- `src/parser.py` - Added _match_pattern() method
+
+**Test Results**: ✅ ALL 19 TESTS PASSING (0.002s)
 
 ### Phase 5: Main Parser Logic ⏳ PENDING
 
@@ -148,9 +165,36 @@ This document tracks the implementation progress of the text adventure game pars
 - [x] test_lookup_table_contains_all_synonyms
 - [x] test_lookup_table_size
 
-### Test Category 4-7: Pattern Matching ⏳ PENDING
+### Test Category 4-7: Pattern Matching ✅ COMPLETE
 
-**Status**: 0/24 tests implemented
+**Status**: 19/19 tests implemented and passing
+
+**Test Category 4: 1-2 Word Patterns** (PM-001 to PM-006):
+- [x] PM-001: test_single_direction
+- [x] PM-002: test_direction_synonym
+- [x] PM-003: test_verb_noun
+- [x] PM-004: test_verb_direction
+- [x] PM-005: test_verb_direction_synonym
+- [x] PM-006: test_synonym_verb_noun
+
+**Test Category 5: 3 Word Patterns** (PM-101 to PM-105):
+- [x] PM-101: test_verb_adjective_noun
+- [x] PM-102: test_verb_noun_noun
+- [x] PM-103: test_verb_prep_noun
+- [x] PM-104: test_verb_adj_noun_colors
+- [x] PM-105: test_verb_adj_noun_size
+
+**Test Category 6: 4 Word Patterns** (PM-201 to PM-203):
+- [x] PM-201: test_verb_adj_noun_noun
+- [x] PM-202: test_verb_noun_prep_noun
+- [x] PM-203: test_verb_prep_adj_noun
+
+**Test Category 7: 5-6 Word Patterns** (PM-301 to PM-305):
+- [x] PM-301: test_verb_adj_noun_prep_noun
+- [x] PM-302: test_verb_noun_prep_adj_noun
+- [x] PM-303: test_verb_adj_noun_prep_adj_noun
+- [x] PM-304: test_complex_color_adjectives
+- [x] PM-305: test_complex_size_adjectives
 
 ### Test Category 8: Article Filtering ⏳ PENDING
 
@@ -178,10 +222,10 @@ This document tracks the implementation progress of the text adventure game pars
 
 ## Total Progress
 
-- **Tests Implemented**: 47/100+ (47%)
-- **Tests Passing**: 47/47 (100%)
-- **Implementation Phases**: 3/8 (37.5%)
-- **Core Functionality**: WordEntry complete, Parser vocabulary loading complete, Word lookup complete
+- **Tests Implemented**: 66/100+ (66%)
+- **Tests Passing**: 66/66 (100%)
+- **Implementation Phases**: 4/8 (50%)
+- **Core Functionality**: WordEntry complete, Vocabulary loading complete, Word lookup complete, Pattern matching complete
 
 ## Files Created
 
@@ -230,21 +274,23 @@ python -m unittest discover tests -v
 
 ## Next Immediate Steps
 
-1. **Implement ParsedCommand** (Phase 4)
-   - Create `src/parsed_command.py`
-   - Add ParsedCommand dataclass
-   - Support for 1-6 word command patterns
+1. **Implement Tokenization** (Phase 5)
+   - Add `_tokenize()` method to Parser
+   - Lowercase conversion
+   - Split on whitespace
 
-2. **Implement Pattern Matching** (Phase 4)
-   - Add `_match_pattern()` method to Parser
-   - Implement 1-2 word patterns
-   - Implement 3 word patterns
-   - Implement 4 word patterns
-   - Implement 5-6 word patterns
+2. **Implement Article Filtering** (Phase 5)
+   - Add `_filter_articles()` method to Parser
+   - Remove "the", "a", "an" from token list
 
-3. **Create Pattern Matching Tests** (Phase 4)
-   - Create `tests/test_pattern_matching.py`
-   - Implement PM-001 through PM-305 tests (24 tests)
+3. **Implement Main Parse Pipeline** (Phase 5)
+   - Add `parse_command()` public method
+   - Integrate: tokenize → lookup → filter → match pattern
+   - Error handling and validation
+
+4. **Create Article Filtering Tests** (Phase 5)
+   - Extend `tests/test_parser.py`
+   - Implement AF-001 through AF-007 tests (7 tests)
 
 ## Test Execution Commands
 
@@ -290,5 +336,5 @@ coverage report
 ---
 
 Last Updated: 2025-11-16
-Status: Phase 3 Complete, Phase 4 Ready to Begin
-Tests: 47/47 passing (0.008s)
+Status: Phase 4 Complete, Phase 5 Ready to Begin
+Tests: 66/66 passing (0.031s)

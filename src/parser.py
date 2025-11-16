@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from src.word_entry import WordEntry, WordType
+from src.parsed_command import ParsedCommand
 
 
 class Parser:
@@ -136,3 +137,136 @@ class Parser:
             WordEntry if found, None otherwise
         """
         return self.word_lookup.get(word)
+
+    def _match_pattern(self, entries: List[WordEntry]) -> Optional[ParsedCommand]:
+        """
+        Match a list of WordEntry objects to a command pattern.
+
+        Args:
+            entries: List of WordEntry objects (no articles)
+
+        Returns:
+            ParsedCommand if pattern matches, None otherwise
+        """
+        if not entries:
+            return None
+
+        length = len(entries)
+        types = [e.word_type for e in entries]
+
+        # Single word patterns
+        if length == 1:
+            # DIRECTION
+            if types == [WordType.DIRECTION]:
+                return ParsedCommand(direction=entries[0])
+
+        # Two word patterns
+        if length == 2:
+            # VERB + NOUN
+            if types == [WordType.VERB, WordType.NOUN]:
+                return ParsedCommand(
+                    verb=entries[0],
+                    direct_object=entries[1]
+                )
+
+            # VERB + DIRECTION
+            if types == [WordType.VERB, WordType.DIRECTION]:
+                return ParsedCommand(
+                    verb=entries[0],
+                    direction=entries[1]
+                )
+
+        # Three word patterns
+        if length == 3:
+            # VERB + ADJECTIVE + NOUN
+            if types == [WordType.VERB, WordType.ADJECTIVE, WordType.NOUN]:
+                return ParsedCommand(
+                    verb=entries[0],
+                    direct_adjective=entries[1],
+                    direct_object=entries[2]
+                )
+
+            # VERB + NOUN + NOUN (implicit preposition)
+            if types == [WordType.VERB, WordType.NOUN, WordType.NOUN]:
+                return ParsedCommand(
+                    verb=entries[0],
+                    direct_object=entries[1],
+                    indirect_object=entries[2]
+                )
+
+            # VERB + PREPOSITION + NOUN
+            if types == [WordType.VERB, WordType.PREPOSITION, WordType.NOUN]:
+                return ParsedCommand(
+                    verb=entries[0],
+                    preposition=entries[1],
+                    direct_object=entries[2]
+                )
+
+        # Four word patterns
+        if length == 4:
+            # VERB + ADJECTIVE + NOUN + NOUN
+            if types == [WordType.VERB, WordType.ADJECTIVE, WordType.NOUN, WordType.NOUN]:
+                return ParsedCommand(
+                    verb=entries[0],
+                    direct_adjective=entries[1],
+                    direct_object=entries[2],
+                    indirect_object=entries[3]
+                )
+
+            # VERB + NOUN + PREPOSITION + NOUN
+            if types == [WordType.VERB, WordType.NOUN, WordType.PREPOSITION, WordType.NOUN]:
+                return ParsedCommand(
+                    verb=entries[0],
+                    direct_object=entries[1],
+                    preposition=entries[2],
+                    indirect_object=entries[3]
+                )
+
+            # VERB + PREPOSITION + ADJECTIVE + NOUN
+            if types == [WordType.VERB, WordType.PREPOSITION, WordType.ADJECTIVE, WordType.NOUN]:
+                return ParsedCommand(
+                    verb=entries[0],
+                    preposition=entries[1],
+                    direct_adjective=entries[2],
+                    direct_object=entries[3]
+                )
+
+        # Five word patterns
+        if length == 5:
+            # VERB + ADJECTIVE + NOUN + PREPOSITION + NOUN
+            if types == [WordType.VERB, WordType.ADJECTIVE, WordType.NOUN,
+                        WordType.PREPOSITION, WordType.NOUN]:
+                return ParsedCommand(
+                    verb=entries[0],
+                    direct_adjective=entries[1],
+                    direct_object=entries[2],
+                    preposition=entries[3],
+                    indirect_object=entries[4]
+                )
+
+            # VERB + NOUN + PREPOSITION + ADJECTIVE + NOUN
+            if types == [WordType.VERB, WordType.NOUN, WordType.PREPOSITION,
+                        WordType.ADJECTIVE, WordType.NOUN]:
+                return ParsedCommand(
+                    verb=entries[0],
+                    direct_object=entries[1],
+                    preposition=entries[2],
+                    indirect_adjective=entries[3],
+                    indirect_object=entries[4]
+                )
+
+        # Six word patterns
+        if length == 6:
+            # VERB + ADJECTIVE + NOUN + PREPOSITION + ADJECTIVE + NOUN
+            if types == [WordType.VERB, WordType.ADJECTIVE, WordType.NOUN,
+                        WordType.PREPOSITION, WordType.ADJECTIVE, WordType.NOUN]:
+                return ParsedCommand(
+                    verb=entries[0],
+                    direct_adjective=entries[1],
+                    direct_object=entries[2],
+                    preposition=entries[3],
+                    indirect_adjective=entries[4],
+                    indirect_object=entries[5]
+                )
+
+        return None

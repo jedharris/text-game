@@ -1,0 +1,30 @@
+"""Parsed command data structure."""
+
+from dataclasses import dataclass
+from typing import Optional
+from src.word_entry import WordEntry
+
+
+@dataclass
+class ParsedCommand:
+    """
+    Represents a parsed user command.
+
+    Attributes:
+        verb: The action verb (if present)
+        direct_object: Primary noun being acted upon
+        direct_adjective: Adjective modifying direct_object
+        preposition: Relational word (with, to, in, etc.)
+        indirect_object: Secondary noun
+        indirect_adjective: Adjective modifying indirect_object
+        direction: Movement direction (if present)
+        raw: Original input string (preserved exactly as entered)
+    """
+    verb: Optional[WordEntry] = None
+    direct_object: Optional[WordEntry] = None
+    direct_adjective: Optional[WordEntry] = None
+    preposition: Optional[WordEntry] = None
+    indirect_object: Optional[WordEntry] = None
+    indirect_adjective: Optional[WordEntry] = None
+    direction: Optional[WordEntry] = None
+    raw: str = ""
