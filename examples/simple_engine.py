@@ -1,3 +1,4 @@
+
 """Simple game demonstrating state_manager usage."""
 
 import os
@@ -313,45 +314,37 @@ def main():
             continue
 
         # Process command based on type
+        match result:
+            # Handle movement (direction only, no verb)
+            case _ if result.direction and not result.verb:
+                move_player(state, result.direction.word)
 
-        # Handle movement
-        if result.direction:
-            direction = result.direction.word
-            move_player(state, direction)
-
-        # Handle taking items
-        elif result.verb and result.verb.word == "take":
-            if result.direct_object:
+            # Handle "take" command
+            case _ if result.verb and result.verb.word == "take" and result.direct_object:
                 obj_name = result.direct_object.word
                 adjective = result.direct_adjective.word if result.direct_adjective else None
                 take_item(state, obj_name, adjective)
 
-        # Handle dropping items
-        elif result.verb and result.verb.word == "drop":
-            if result.direct_object:
-                obj_name = result.direct_object.word
-                drop_item(state, obj_name)
+            # Handle "drop" command
+            case _ if result.verb and result.verb.word == "drop" and result.direct_object:
+                drop_item(state, result.direct_object.word)
 
-        # Handle examining
-        elif result.verb and result.verb.word == "examine":
-            if result.direct_object:
-                obj_name = result.direct_object.word
-                examine_item(state, obj_name)
+            # Handle "examine" command
+            case _ if result.verb and result.verb.word == "examine" and result.direct_object:
+                examine_item(state, result.direct_object.word)
 
-        # Handle opening
-        elif result.verb and result.verb.word == "open":
-            if result.direct_object:
-                obj_name = result.direct_object.word
-                if open_item(state, obj_name):
+            # Handle "open" command
+            case _ if result.verb and result.verb.word == "open" and result.direct_object:
+                if open_item(state, result.direct_object.word):
                     break  # Win condition
 
-        # Handle going with direction
-        elif result.verb and result.verb.word == "go" and result.direction:
-            direction = result.direction.word
-            move_player(state, direction)
+            # Handle "go" with direction
+            case _ if result.verb and result.verb.word == "go" and result.direction:
+                move_player(state, result.direction.word)
 
-        else:
-            print("I don't know how to do that.")
+            # Fallback for unhandled commands
+            case _:
+                print("I don't know how to do that.")
 
 
 if __name__ == '__main__':
