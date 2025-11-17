@@ -1,0 +1,135 @@
+{
+  "metadata": {
+    "title": "Simple Adventure",
+    "author": "Text Game Example",
+    "version": "1.0",
+    "description": "A simple adventure game demonstrating the state manager.",
+    "start_location": "loc_start"
+  },
+  "locations": [
+    {
+      "id": "loc_start",
+      "name": "Small Room",
+      "description": "You are in a small room. There is a rusty sword on the ground and a wooden door to the north.",
+      "exits": {
+        "north": {
+          "type": "open",
+          "to": "loc_hallway"
+        }
+      },
+      "tags": [],
+      "items": ["item_sword"],
+      "npcs": []
+    },
+    {
+      "id": "loc_hallway",
+      "name": "Long Hallway",
+      "description": "You are in a long hallway. There is a locked door to the east and stairs going up.",
+      "exits": {
+        "south": {
+          "type": "open",
+          "to": "loc_start"
+        },
+        "up": {
+          "type": "open",
+          "to": "loc_tower"
+        },
+        "east": {
+          "type": "door",
+          "to": "loc_locked_room",
+          "door_id": "door_treasure"
+        }
+      },
+      "tags": [],
+      "items": ["item_key"],
+      "npcs": []
+    },
+    {
+      "id": "loc_tower",
+      "name": "Tower Top",
+      "description": "You are at the top of a tower. You can see for miles. Stairs lead down.",
+      "exits": {
+        "down": {
+          "type": "open",
+          "to": "loc_hallway"
+        }
+      },
+      "tags": [],
+      "items": ["item_potion"],
+      "npcs": []
+    },
+    {
+      "id": "loc_locked_room",
+      "name": "Treasure Room",
+      "description": "You are in a treasure room. There is a golden chest here.",
+      "exits": {
+        "west": {
+          "type": "door",
+          "to": "loc_hallway",
+          "door_id": "door_treasure"
+        }
+      },
+      "tags": [],
+      "items": ["item_chest"],
+      "npcs": []
+    }
+  ],
+  "doors": [
+    {
+      "id": "door_treasure",
+      "locations": ["loc_hallway", "loc_locked_room"],
+      "description": "A locked door.",
+      "locked": true,
+      "open": false,
+      "lock_id": "lock_treasure"
+    }
+  ],
+  "items": [
+    {
+      "id": "item_sword",
+      "name": "sword",
+      "description": "A rusty but serviceable sword.",
+      "type": "object",
+      "portable": true,
+      "location": "loc_start"
+    },
+    {
+      "id": "item_key",
+      "name": "key",
+      "description": "An iron key.",
+      "type": "object",
+      "portable": true,
+      "location": "loc_hallway"
+    },
+    {
+      "id": "item_potion",
+      "name": "potion",
+      "description": "A red potion that glows faintly.",
+      "type": "object",
+      "portable": true,
+      "location": "loc_tower"
+    },
+    {
+      "id": "item_chest",
+      "name": "chest",
+      "description": "A large golden chest. It looks valuable!",
+      "type": "object",
+      "portable": false,
+      "location": "loc_locked_room"
+    }
+  ],
+  "locks": [
+    {
+      "id": "lock_treasure",
+      "opens_with": ["item_key"],
+      "auto_unlock": true,
+      "description": "A sturdy lock."
+    }
+  ],
+  "player_state": {
+    "location": "loc_start",
+    "inventory": [],
+    "flags": {},
+    "stats": {}
+  }
+}

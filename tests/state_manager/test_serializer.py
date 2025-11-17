@@ -38,8 +38,8 @@ class TestSerializer(unittest.TestCase):
         json_str = json.dumps(serialized_dict, indent=2, sort_keys=True)
 
         # Verify formatting
-        self.assertIn('\n', json_str)  # Has newlines
-        self.assertTrue(json_str.endswith('\n'))  # Trailing newline
+        self.assertIn('\n', json_str)  # Has newlines between elements
+        self.assertTrue(json_str.endswith('}'))  # Ends with closing brace (no trailing newline from json.dumps)
 
         # Verify parseable
         reparsed = json.loads(json_str)
