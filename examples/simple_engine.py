@@ -126,28 +126,28 @@ def move_player(state: GameState, direction: str):
         # Handle door interactions using pattern matching
         has_key, auto_unlock = player_has_key_for_door(state, door)
 
-        match (door.open, door.locked, has_key, auto_unlock):
+        match (not door.open, door.locked, has_key, auto_unlock):
             # Case 1: Door is open
-            case (True, _, _, _):
+            case (False, _, _, _):
                 print("You pass through the open door.")
 
             # Case 2: Door is closed but not locked
-            case (False, False, _, _):
+            case (True, False, _, _):
                 print("The door is closed. You need to open it first. Try 'open door'.")
                 return False
 
             # Case 3: Door is closed and locked, no key
-            case (False, True, False, _):
+            case (True, True, False, _):
                 print("The door is locked. You need a key.")
                 return False
 
             # Case 4: Door is closed and locked, have key, no auto-unlock
-            case (False, True, True, False):
+            case (True, True, True, False):
                 print("The door is locked. You have the key but need to unlock it first. Try 'open door'.")
                 return False
 
             # Case 5: Door is closed and locked, have key with auto-unlock
-            case (False, True, True, True):
+            case (True, True, True, True):
                 print("You unlock the door with your key and pass through.")
                 door.locked = False
                 door.open = True
