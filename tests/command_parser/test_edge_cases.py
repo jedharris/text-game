@@ -16,7 +16,7 @@ class TestErrorHandling(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures path and parser."""
-        self.fixtures_path = os.path.join('tests', 'fixtures')
+        self.fixtures_path = os.path.join(os.path.dirname(__file__), 'fixtures')
         vocab_file = os.path.join(self.fixtures_path, 'test_vocabulary.json')
         self.parser = Parser(vocab_file)
 
@@ -147,7 +147,7 @@ class TestEdgeCases(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures path and parser."""
-        self.fixtures_path = os.path.join('tests', 'fixtures')
+        self.fixtures_path = os.path.join(os.path.dirname(__file__), 'fixtures')
         vocab_file = os.path.join(self.fixtures_path, 'test_vocabulary.json')
         self.parser = Parser(vocab_file)
 

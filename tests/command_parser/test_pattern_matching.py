@@ -17,7 +17,7 @@ class TestPatternMatching12Words(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures path and parser."""
-        self.fixtures_path = os.path.join('tests', 'fixtures')
+        self.fixtures_path = os.path.join(os.path.dirname(__file__), 'fixtures')
         vocab_file = os.path.join(self.fixtures_path, 'test_vocabulary.json')
         self.parser = Parser(vocab_file)
 
@@ -163,7 +163,7 @@ class TestPatternMatching3Words(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures path and parser."""
-        self.fixtures_path = os.path.join('tests', 'fixtures')
+        self.fixtures_path = os.path.join(os.path.dirname(__file__), 'fixtures')
         vocab_file = os.path.join(self.fixtures_path, 'test_vocabulary.json')
         self.parser = Parser(vocab_file)
 
@@ -294,7 +294,7 @@ class TestPatternMatching4Words(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures path and parser."""
-        self.fixtures_path = os.path.join('tests', 'fixtures')
+        self.fixtures_path = os.path.join(os.path.dirname(__file__), 'fixtures')
         vocab_file = os.path.join(self.fixtures_path, 'test_vocabulary.json')
         self.parser = Parser(vocab_file)
 
@@ -382,7 +382,7 @@ class TestPatternMatching56Words(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures path and parser."""
-        self.fixtures_path = os.path.join('tests', 'fixtures')
+        self.fixtures_path = os.path.join(os.path.dirname(__file__), 'fixtures')
         vocab_file = os.path.join(self.fixtures_path, 'test_vocabulary.json')
         self.parser = Parser(vocab_file)
 

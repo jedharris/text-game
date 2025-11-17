@@ -13,12 +13,13 @@ import unittest
 
 # Test suites organized by category
 TEST_SUITES = {
-    'word_entry': 'tests.test_word_entry',
-    'vocabulary': 'tests.test_vocabulary_loading',
-    'parser': 'tests.test_parser',
-    'patterns': 'tests.test_pattern_matching',
-    'edge_cases': 'tests.test_edge_cases',
-    'performance': 'tests.test_performance',
+    'word_entry': 'tests.command_parser.test_word_entry',
+    'vocabulary': 'tests.command_parser.test_vocabulary_loading',
+    'parser': 'tests.command_parser.test_parser',
+    'patterns': 'tests.command_parser.test_pattern_matching',
+    'edge_cases': 'tests.command_parser.test_edge_cases',
+    'performance': 'tests.command_parser.test_performance',
+    'regression': 'tests.command_parser.test_regression',
 }
 
 

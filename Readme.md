@@ -111,9 +111,14 @@ This tool lets you:
 python -m unittest discover tests
 
 # Run specific test category
-python -m unittest tests.test_parser -v
-python -m unittest tests.test_pattern_matching -v
-python -m unittest tests.test_performance -v
+python -m unittest tests.command_parser.test_parser -v
+python -m unittest tests.command_parser.test_pattern_matching -v
+python -m unittest tests.command_parser.test_performance -v
+
+# Or use the test runner script
+python run_tests.py              # Run all tests
+python run_tests.py parser -v    # Run parser tests with verbose output
+python run_tests.py performance  # Run performance tests
 
 # Run with coverage
 pip install coverage
@@ -127,7 +132,7 @@ open htmlcov/index.html
 
 - [Design Document](docs/initial-design.md) - Architecture and design decisions
 - [Implementation Plan](docs/implementation-plan.md) - Step-by-step implementation guide
-- [Test Plan](tests/test-plan.md) - Comprehensive test specifications
+- [Test Plan](tests/command_parser/test-plan.md) - Comprehensive test specifications
 - [Quick Start Guide](QUICKSTART.md) - Getting started quickly
 - [Project Status](PROJECT_COMPLETE.md) - Complete feature list and status
 
@@ -215,14 +220,15 @@ text-game/
 │   ├── parsed_command.py     # ParsedCommand dataclass
 │   └── parser.py             # Main Parser implementation
 ├── tests/
-│   ├── test_word_entry.py    # WordEntry tests
-│   ├── test_vocabulary_loading.py  # Vocabulary loading tests
-│   ├── test_parser.py        # Parser and integration tests
-│   ├── test_pattern_matching.py    # Pattern matching tests
-│   ├── test_edge_cases.py    # Error handling and edge cases
-│   ├── test_performance.py   # Performance benchmarks
-│   ├── test_regression.py    # Regression tests
-│   └── fixtures/             # Test vocabulary files
+│   └── command_parser/       # Command parser tests
+│       ├── test_word_entry.py    # WordEntry tests
+│       ├── test_vocabulary_loading.py  # Vocabulary loading tests
+│       ├── test_parser.py        # Parser and integration tests
+│       ├── test_pattern_matching.py    # Pattern matching tests
+│       ├── test_edge_cases.py    # Error handling and edge cases
+│       ├── test_performance.py   # Performance benchmarks
+│       ├── test_regression.py    # Regression tests
+│       └── fixtures/             # Test vocabulary files
 ├── data/
 │   └── vocabulary.json       # Production vocabulary
 ├── examples/

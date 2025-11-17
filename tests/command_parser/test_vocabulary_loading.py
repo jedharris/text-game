@@ -17,7 +17,7 @@ class TestVocabularyLoading(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures path."""
-        self.fixtures_path = os.path.join('tests', 'fixtures')
+        self.fixtures_path = os.path.join(os.path.dirname(__file__), 'fixtures')
 
     def test_load_complete_vocabulary(self):
         """
@@ -321,7 +321,7 @@ class TestVocabularyDetails(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures path."""
-        self.fixtures_path = os.path.join('tests', 'fixtures')
+        self.fixtures_path = os.path.join(os.path.dirname(__file__), 'fixtures')
 
     def test_all_word_types_are_word_entries(self):
         """Verify all loaded items are WordEntry instances."""

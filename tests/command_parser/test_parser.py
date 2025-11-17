@@ -16,7 +16,7 @@ class TestWordLookup(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures path and parser."""
-        self.fixtures_path = os.path.join('tests', 'fixtures')
+        self.fixtures_path = os.path.join(os.path.dirname(__file__), 'fixtures')
         vocab_file = os.path.join(self.fixtures_path, 'test_vocabulary.json')
         self.parser = Parser(vocab_file)
 
@@ -198,7 +198,7 @@ class TestLookupTableOptimization(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures path and parser."""
-        self.fixtures_path = os.path.join('tests', 'fixtures')
+        self.fixtures_path = os.path.join(os.path.dirname(__file__), 'fixtures')
         vocab_file = os.path.join(self.fixtures_path, 'test_vocabulary.json')
         self.parser = Parser(vocab_file)
 
@@ -236,7 +236,7 @@ class TestArticleFiltering(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures path and parser."""
-        self.fixtures_path = os.path.join('tests', 'fixtures')
+        self.fixtures_path = os.path.join(os.path.dirname(__file__), 'fixtures')
         vocab_file = os.path.join(self.fixtures_path, 'test_vocabulary.json')
         self.parser = Parser(vocab_file)
 
@@ -339,7 +339,7 @@ class TestParserIntegration(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures path and parser."""
-        self.fixtures_path = os.path.join('tests', 'fixtures')
+        self.fixtures_path = os.path.join(os.path.dirname(__file__), 'fixtures')
         vocab_file = os.path.join(self.fixtures_path, 'test_vocabulary.json')
         self.parser = Parser(vocab_file)
 
