@@ -19,7 +19,8 @@ def main():
         'hallway': {
             'description': "You are in a long hallway. There is a locked door to the east and stairs going up.",
             'items': ['key'],
-            'exits': {'south': 'start', 'up': 'tower', 'east': 'locked_room'}
+            'exits': {'south': 'start', 'up': 'tower', 'east': 'locked_room'},
+            'locked': False
         },
         'tower': {
             'description': "You are at the top of a tower. You can see for miles. Stairs lead down.",
@@ -78,7 +79,7 @@ def main():
             if direction in current_room.get('exits', {}):
                 new_location = current_room['exits'][direction]
                 # Check if door is locked
-                if game_state[new_location].get('locked', False):
+                if game_state[new_location].get('locked', True):
                     if 'key' in inventory:
                         print("You unlock the door with the key and enter.")
                         game_state[new_location]['locked'] = False
