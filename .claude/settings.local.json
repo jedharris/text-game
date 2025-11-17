@@ -7,7 +7,11 @@
       "Bash(python -m py_compile:*)",
       "Bash(cat:*)",
       "Bash(python -c:*)",
-      "Bash(python debug_serialization.py:*)"
+      "Bash(python debug_serialization.py:*)",
+      "Bash(pip install:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(python test_integration.py:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []

@@ -19,6 +19,7 @@ class ParsedCommand:
         indirect_adjective: Adjective modifying indirect_object
         direction: Movement direction (if present)
         raw: Original input string (preserved exactly as entered)
+        object_missing: True if verb accepts optional object but none provided
     """
     verb: Optional[WordEntry] = None
     direct_object: Optional[WordEntry] = None
@@ -28,3 +29,4 @@ class ParsedCommand:
     indirect_adjective: Optional[WordEntry] = None
     direction: Optional[WordEntry] = None
     raw: str = ""
+    object_missing: bool = False

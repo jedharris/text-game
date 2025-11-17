@@ -248,8 +248,8 @@ class TestWordEntry(unittest.TestCase):
         # Get all word types
         all_types = list(WordType)
 
-        # Verify we have exactly 6 types
-        self.assertEqual(len(all_types), 6)
+        # Verify we have exactly 7 types (added FILENAME)
+        self.assertEqual(len(all_types), 7)
 
         # Verify specific types are present
         self.assertIn(WordType.VERB, all_types)
@@ -257,6 +257,7 @@ class TestWordEntry(unittest.TestCase):
         self.assertIn(WordType.ADJECTIVE, all_types)
         self.assertIn(WordType.PREPOSITION, all_types)
         self.assertIn(WordType.DIRECTION, all_types)
+        self.assertIn(WordType.FILENAME, all_types)
         self.assertIn(WordType.ARTICLE, all_types)
 
     def test_word_entry_different_word_types(self):

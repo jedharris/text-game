@@ -13,8 +13,9 @@
       "description": "You are in a small room. There is a rusty sword on the ground and a wooden door to the north.",
       "exits": {
         "north": {
-          "type": "open",
-          "to": "loc_hallway"
+          "type": "door",
+          "to": "loc_hallway",
+          "door_id": "door_wooden"
         }
       },
       "tags": [],
@@ -27,8 +28,9 @@
       "description": "You are in a long hallway. There is a locked door to the east and stairs going up.",
       "exits": {
         "south": {
-          "type": "open",
-          "to": "loc_start"
+          "type": "door",
+          "to": "loc_start",
+          "door_id": "door_wooden"
         },
         "up": {
           "type": "open",
@@ -76,9 +78,16 @@
   ],
   "doors": [
     {
+      "id": "door_wooden",
+      "locations": ["loc_start", "loc_hallway"],
+      "description": "A simple wooden door.",
+      "locked": false,
+      "open": true
+    },
+    {
       "id": "door_treasure",
       "locations": ["loc_hallway", "loc_locked_room"],
-      "description": "A locked door.",
+      "description": "A heavy iron door with a sturdy lock.",
       "locked": true,
       "open": false,
       "lock_id": "lock_treasure"

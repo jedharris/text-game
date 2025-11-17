@@ -13,6 +13,7 @@ class WordType(Enum):
     PREPOSITION = "PREPOSITION"
     DIRECTION = "DIRECTION"
     ARTICLE = "ARTICLE"
+    FILENAME = "FILENAME"
 
 
 @dataclass
@@ -25,11 +26,13 @@ class WordEntry:
         word_type: The grammatical type of the word
         synonyms: List of alternative words with same meaning
         value: Optional numeric ID for game logic
+        object_required: For verbs, whether direct object is required (True/False/"optional")
     """
     word: str
     word_type: WordType
     synonyms: List[str] = field(default_factory=list)
     value: Optional[int] = None
+    object_required: bool | str = True  # True, False, or "optional"
 
     def __post_init__(self):
         """Initialize default values after dataclass construction."""

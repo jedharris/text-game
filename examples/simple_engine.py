@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 from src.parser import Parser
 from src.state_manager import load_game_state, save_game_state, GameState
+from src.file_dialogs import get_save_filename, get_load_filename
 
 
 def get_current_location(state: GameState):
@@ -37,6 +38,19 @@ def get_door_by_id(state: GameState, door_id: str):
         if door.id == door_id:
             return door
     return None
+
+
+def get_door_in_current_room(state: GameState):
+    """Get all doors in the current location."""
+    loc = get_current_location(state)
+    if not loc:
+        return []
+
+    doors_here = []
+    for door in state.doors:
+        if loc.id in door.locations:
+            doors_here.append(door)
+    return doors_here
 
 
 def get_lock_by_id(state: GameState, lock_id: str):
@@ -89,31 +103,40 @@ def move_player(state: GameState, direction: str):
             print("Error: door not found!")
             return False
 
-        # Check if door is locked
-        if door.locked:
-            # Check if player has the key
-            if door.lock_id:
-                lock = get_lock_by_id(state, door.lock_id)
-                if lock:
-                    # Check if player has any of the items that open this lock
-                    has_key = any(key_id in state.player.inventory for key_id in lock.opens_with)
-                    if has_key:
-                        if lock.auto_unlock:
-                            print("You unlock the door with the key and enter.")
-                            door.locked = False
-                            door.open = True
+        # Check if door is closed
+        if not door.open:
+            # Check if door is locked
+            if door.locked:
+                # Check if player has the key
+                if door.lock_id:
+                    lock = get_lock_by_id(state, door.lock_id)
+                    if lock:
+                        # Check if player has any of the items that open this lock
+                        has_key = any(key_id in state.player.inventory for key_id in lock.opens_with)
+                        if has_key:
+                            if lock.auto_unlock:
+                                print("You unlock the door with your key and pass through.")
+                                door.locked = False
+                                door.open = True
+                            else:
+                                print("The door is locked. You have the key but need to unlock it first. Try 'open door'.")
+                                return False
                         else:
-                            print("The door is locked. You need to unlock it first.")
+                            print("The door is locked. You need a key.")
                             return False
                     else:
-                        print("The door is locked. You need a key.")
+                        print("The door is locked.")
                         return False
                 else:
                     print("The door is locked.")
                     return False
             else:
-                print("The door is locked.")
+                # Door is closed but not locked
+                print("The door is closed. You need to open it first. Try 'open door'.")
                 return False
+        else:
+            # Door is open - just pass through
+            print("You pass through the open door.")
 
     # Move to new location
     if exit_desc.to:
@@ -190,10 +213,10 @@ def drop_item(state: GameState, item_name: str):
 
 
 def examine_item(state: GameState, item_name: str):
-    """Examine an item."""
+    """Examine an item, door, or current location."""
     loc = get_current_location(state)
 
-    # Check current location
+    # Check current location for items
     for item in state.items:
         if item.name == item_name and item.location == loc.id:
             print(item.description)
@@ -206,26 +229,117 @@ def examine_item(state: GameState, item_name: str):
             print(item.description)
             return True
 
+    # Check for doors (accept "door" as the name)
+    if item_name == "door":
+        doors = get_door_in_current_room(state)
+        if doors:
+            # Show all doors in the room
+            for door in doors:
+                print(door.description)
+                if door.locked:
+                    print("  The door is locked.")
+                elif door.open:
+                    print("  The door is open.")
+                else:
+                    print("  The door is closed.")
+            return True
+
     print(f"You don't see a {item_name} here.")
     return False
 
 
 def open_item(state: GameState, item_name: str):
-    """Open an item (e.g., chest)."""
+    """Open an item (e.g., chest) or door.
+
+    Returns:
+        "win" - Player won the game (opened chest)
+        True - Successfully opened something
+        False - Failed to open
+    """
     loc = get_current_location(state)
+
+    # Check if trying to open a door
+    if item_name == "door":
+        doors = get_door_in_current_room(state)
+        if not doors:
+            print("There is no door here.")
+            return False
+
+        # Prioritize closed/locked doors over open ones
+        door = None
+        for d in doors:
+            if not d.open:
+                door = d
+                break
+        if not door:
+            door = doors[0]  # All doors are open, just pick the first
+
+        if door.locked:
+            # Check if player has a key
+            if door.lock_id:
+                lock = get_lock_by_id(state, door.lock_id)
+                if lock:
+                    has_key = any(key_id in state.player.inventory for key_id in lock.opens_with)
+                    if has_key:
+                        print("You unlock the door with your key.")
+                        door.locked = False
+                        door.open = True
+                        return True
+                    else:
+                        print("The door is locked. You need a key.")
+                        return False
+            print("The door is locked.")
+            return False
+
+        if door.open:
+            print("The door is already open.")
+            return False
+
+        door.open = True
+        print("You open the door.")
+        return True
 
     # Find item in current location
     for item in state.items:
         if item.name == item_name and item.location == loc.id:
             if item_name == "chest":
                 print("You open the chest and find treasure! You win!")
-                return True
+                return "win"  # Special return value for winning
             else:
                 print(f"You can't open the {item_name}.")
                 return False
 
     print(f"There is no {item_name} here.")
     return False
+
+
+def close_door(state: GameState, item_name: str):
+    """Close a door."""
+    if item_name != "door":
+        print(f"You can't close the {item_name}.")
+        return False
+
+    doors = get_door_in_current_room(state)
+    if not doors:
+        print("There is no door here.")
+        return False
+
+    # Prioritize open doors over closed ones
+    door = None
+    for d in doors:
+        if d.open:
+            door = d
+            break
+    if not door:
+        door = doors[0]  # All doors are closed, just pick the first
+
+    if not door.open:
+        print("The door is already closed.")
+        return False
+
+    door.open = False
+    print("You close the door.")
+    return True
 
 
 def save_game(state: GameState, filename: str):
@@ -272,40 +386,7 @@ def main():
         # Get user input
         command_text = input("> ").strip()
 
-        if command_text.lower() == 'quit':
-            print("Thanks for playing!")
-            break
-
-        if command_text.lower() == 'inventory':
-            show_inventory(state)
-            continue
-
-        if command_text.lower() == 'look':
-            describe_location(state)
-            continue
-
-        # Handle save command
-        if command_text.lower().startswith('save '):
-            filename = command_text[5:].strip()
-            if filename:
-                save_game(state, filename)
-            else:
-                print("Please specify a filename: save <filename>")
-            continue
-
-        # Handle load command
-        if command_text.lower().startswith('load '):
-            filename = command_text[5:].strip()
-            if filename:
-                loaded_state = load_game(filename)
-                if loaded_state:
-                    state = loaded_state
-                    describe_location(state)
-            else:
-                print("Please specify a filename: load <filename>")
-            continue
-
-        # Parse command
+        # Parse command - now handles all verbs including quit, save, load, inventory
         result = parser.parse_command(command_text)
 
         # Handle errors
@@ -319,24 +400,89 @@ def main():
             case _ if result.direction and not result.verb:
                 move_player(state, result.direction.word)
 
-            # Handle "take" command
+            # Handle "quit" command (no object required)
+            case _ if result.verb and result.verb.word == "quit":
+                print("Thanks for playing!")
+                break
+
+            # Handle "inventory" command (no object required)
+            case _ if result.verb and result.verb.word == "inventory":
+                show_inventory(state)
+
+            # Handle "examine" / "look" without object (examine room)
+            case _ if result.verb and result.verb.word == "examine" and result.object_missing:
+                describe_location(state)
+
+            # Handle "examine" with object
+            case _ if result.verb and result.verb.word == "examine" and result.direct_object:
+                examine_item(state, result.direct_object.word)
+
+            # Handle "save" command (optional object)
+            case _ if result.verb and result.verb.word == "save":
+                if result.direct_object:
+                    # User provided filename as a noun (e.g., treating it like an object)
+                    save_game(state, result.direct_object.word)
+                elif result.object_missing:
+                    # "save" alone - extract filename from raw input after the verb
+                    parts = result.raw.split(maxsplit=1)
+                    if len(parts) > 1:
+                        filename = parts[1].strip()
+                        save_game(state, filename)
+                    else:
+                        # No filename provided - open file dialog
+                        filename = get_save_filename(default_dir=".", default_filename="savegame.json")
+                        if filename:
+                            save_game(state, filename)
+                        else:
+                            print("Save canceled.")
+
+            # Handle "load" command (optional object)
+            case _ if result.verb and result.verb.word == "load":
+                if result.direct_object:
+                    # User provided filename as a noun
+                    loaded_state = load_game(result.direct_object.word)
+                    if loaded_state:
+                        state = loaded_state
+                        describe_location(state)
+                elif result.object_missing:
+                    # "load" alone - extract filename from raw input after the verb
+                    parts = result.raw.split(maxsplit=1)
+                    if len(parts) > 1:
+                        filename = parts[1].strip()
+                        loaded_state = load_game(filename)
+                        if loaded_state:
+                            state = loaded_state
+                            describe_location(state)
+                    else:
+                        # No filename provided - open file dialog
+                        filename = get_load_filename(default_dir=".")
+                        if filename:
+                            loaded_state = load_game(filename)
+                            if loaded_state:
+                                state = loaded_state
+                                describe_location(state)
+                        else:
+                            print("Load canceled.")
+
+            # Handle "take" command (object required)
             case _ if result.verb and result.verb.word == "take" and result.direct_object:
                 obj_name = result.direct_object.word
                 adjective = result.direct_adjective.word if result.direct_adjective else None
                 take_item(state, obj_name, adjective)
 
-            # Handle "drop" command
+            # Handle "drop" command (object required)
             case _ if result.verb and result.verb.word == "drop" and result.direct_object:
                 drop_item(state, result.direct_object.word)
 
-            # Handle "examine" command
-            case _ if result.verb and result.verb.word == "examine" and result.direct_object:
-                examine_item(state, result.direct_object.word)
-
-            # Handle "open" command
+            # Handle "open" command (object required)
             case _ if result.verb and result.verb.word == "open" and result.direct_object:
-                if open_item(state, result.direct_object.word):
-                    break  # Win condition
+                open_result = open_item(state, result.direct_object.word)
+                if open_result == "win":
+                    break  # Win condition - opened the chest!
+
+            # Handle "close" command (object required)
+            case _ if result.verb and result.verb.word == "close" and result.direct_object:
+                close_door(state, result.direct_object.word)
 
             # Handle "go" with direction
             case _ if result.verb and result.verb.word == "go" and result.direction:

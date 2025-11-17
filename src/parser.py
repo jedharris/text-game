@@ -51,7 +51,8 @@ class Parser:
                 word=verb_data['word'],
                 word_type=WordType.VERB,
                 synonyms=verb_data.get('synonyms', []),
-                value=verb_data.get('value')
+                value=verb_data.get('value'),
+                object_required=verb_data.get('object_required', True)
             )
             self.word_table.append(entry)
 
@@ -199,6 +200,15 @@ class Parser:
             # DIRECTION
             if types == [WordType.DIRECTION]:
                 return ParsedCommand(direction=entries[0])
+
+            # VERB (only if object not required)
+            if types == [WordType.VERB]:
+                verb = entries[0]
+                if verb.object_required == False:
+                    return ParsedCommand(verb=verb)
+                elif verb.object_required == "optional":
+                    return ParsedCommand(verb=verb, object_missing=True)
+                # If object_required == True, return None (current behavior)
 
         # Two word patterns
         if length == 2:
