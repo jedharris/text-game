@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(python -m unittest:*)",
-      "Bash(python run_tests.py:*)"
+      "Bash(python run_tests.py:*)",
+      "Bash(python3:*)",
+      "Bash(python -m py_compile:*)"
     ],
     "deny": [],
     "ask": []

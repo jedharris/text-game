@@ -108,7 +108,7 @@ class Item:
     description: str
     type: ItemType
     portable: bool
-    location: str  # location id, container item id, or "inventory:player" / "inventory:<npc_id>"
+    location: str  # location id, container item id, "player", or npc id
     states: Dict[str, Any]
     container: Optional[ContainerInfo]
 
@@ -116,13 +116,13 @@ class Item:
     def add_state(self, key: str, value: Any) -> None: ...
 ```
 
-**Item Location Field Format:**
-- Location ID (string): `"loc_1"` - item is in that location
-- Container Item ID (string): `"item_5"` - item is inside that container item
-- Player inventory: `"player"` - item is in player's inventory
-- NPC inventory: `<npc_id>` (string): `"npc_3"` - item is held by that NPC
+**Item Location Field Format (V2.0 ID Design):**
+- Location ID: `"loc_1"` - item is in that location
+- Container item ID: `"item_5"` - item is inside that container item
+- Player inventory: `"player"` - item is in player's inventory (reserved ID)
+- NPC inventory: `"npc_3"` - item is held by that NPC (NPC ID directly, no prefix!)
 
-All IDs are globally unique, so no special prefixes are needed. The validator checks that the referenced ID exists and is an appropriate entity type.
+All entity IDs are globally unique (including `"player"` which is reserved). **No prefixes like `"inventory:"` are used.** The validator checks that the referenced ID exists in the global ID registry and is an appropriate entity type (location, item, NPC, or the special `"player"` ID).
 
 `ContainerInfo` exposes methods to add/remove contents, lock/unlock, etc.
 
@@ -147,10 +147,10 @@ Holds location reference, dialogue, states, and optional behavior hooks.
 
 ```python
 class PlayerState:
-    location_id: str
-    inventory: List[str]
-    flags: Dict[str, Any]
-    stats: Dict[str, int]
+    location: str  # Current location ID (matches Item.location field naming)
+    inventory: List[str]  # List of item IDs in player's inventory
+    flags: Dict[str, Any]  # Arbitrary game state flags
+    stats: Dict[str, int]  # Player statistics (health, score, etc.)
 ```
 
 Expose helpers for inventory management, stats adjustments, etc.

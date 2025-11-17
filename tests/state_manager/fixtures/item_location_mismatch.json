@@ -1,0 +1,34 @@
+{
+  "metadata": {
+    "title": "Item Location Consistency Test",
+    "author": "Test",
+    "version": "1.0",
+    "start_location": "loc_1"
+  },
+  "locations": [
+    {
+      "id": "loc_1",
+      "name": "Room One",
+      "description": "First room.",
+      "exits": {},
+      "items": ["item_1"]
+    },
+    {
+      "id": "loc_2",
+      "name": "Room Two",
+      "description": "Second room.",
+      "exits": {},
+      "items": []
+    }
+  ],
+  "items": [
+    {
+      "id": "item_1",
+      "name": "Mismatched Item",
+      "description": "This item's location field doesn't match where it's listed.",
+      "type": "tool",
+      "portable": true,
+      "location": "loc_2"
+    }
+  ]
+}

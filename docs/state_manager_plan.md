@@ -76,6 +76,20 @@ inside `Item`) to keep types clean.
      typed objects, each with unique `id` field.
    * Build global ID registry and validate all IDs are globally unique.
 
+**V2.0 ID Design Principles:**
+
+This implementation follows the V2.0 ID namespace design:
+* All entity IDs are globally unique across ALL entity types (locations, items, doors, locks, npcs, scripts)
+* IDs are internal identifiers separate from user-visible names
+* The special ID `"player"` is reserved and cannot be used by any entity
+* Item locations use simple ID references with no prefixes:
+  * `"loc_1"` - item in that location
+  * `"item_5"` - item inside that container
+  * `"player"` - item in player inventory (no `"inventory:player"` prefix!)
+  * `"npc_3"` - item held by that NPC (no `"inventory:npc_3"` prefix!)
+* Locations and locks are stored as arrays (not keyed objects)
+* Global ID registry maps all IDs to entity types for validation
+
 ## 5. Serialization Flow (serializer.py)
 
 1. `game_state_to_dict(state: GameState) -> Dict[str, Any]`

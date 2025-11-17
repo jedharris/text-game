@@ -25,7 +25,8 @@ def main():
         'tower': {
             'description': "You are at the top of a tower. You can see for miles. Stairs lead down.",
             'items': ['potion'],
-            'exits': {'down': 'hallway'}
+            'exits': {'down': 'hallway'},
+            'locked': False
         },
         'locked_room': {
             'description': "You are in a treasure room. There is a golden chest here.",
