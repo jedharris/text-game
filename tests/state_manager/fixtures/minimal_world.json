@@ -1,0 +1,16 @@
+{
+  "metadata": {
+    "title": "Minimal World",
+    "author": "Test",
+    "version": "1.0",
+    "start_location": "loc_1"
+  },
+  "locations": [
+    {
+      "id": "loc_1",
+      "name": "Only Room",
+      "description": "The only room in this world.",
+      "exits": {}
+    }
+  ]
+}

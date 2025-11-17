@@ -1,0 +1,26 @@
+{
+  "metadata": {
+    "title": "Invalid Item Location Test",
+    "author": "Test",
+    "version": "1.0",
+    "start_location": "loc_1"
+  },
+  "locations": [
+    {
+      "id": "loc_1",
+      "name": "Room",
+      "description": "A room.",
+      "exits": {}
+    }
+  ],
+  "items": [
+    {
+      "id": "item_1",
+      "name": "Lost Item",
+      "description": "An item with invalid location.",
+      "type": "tool",
+      "portable": true,
+      "location": "invalid_999"
+    }
+  ]
+}

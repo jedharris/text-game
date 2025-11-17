@@ -1,0 +1,212 @@
+{
+  "doors": [
+    {
+      "description": "An iron-bound door.",
+      "id": "door_1",
+      "locations": [
+        "loc_1",
+        "loc_2"
+      ],
+      "lock_id": "lock_1",
+      "locked": true,
+      "open": false
+    }
+  ],
+  "items": [
+    {
+      "description": "A wooden torch.",
+      "id": "item_1",
+      "location": "loc_1",
+      "name": "Torch",
+      "portable": true,
+      "states": {
+        "lit": false
+      },
+      "type": "tool"
+    },
+    {
+      "container": {
+        "capacity": 10,
+        "contents": [
+          "item_3"
+        ],
+        "lock_id": "lock_2",
+        "locked": true
+      },
+      "description": "A heavy stone chest.",
+      "id": "item_2",
+      "location": "loc_2",
+      "name": "Stone Chest",
+      "portable": false,
+      "type": "container"
+    },
+    {
+      "description": "A key with a raven design.",
+      "id": "item_3",
+      "location": "item_2",
+      "name": "Silver Key",
+      "portable": true,
+      "type": "key"
+    },
+    {
+      "description": "An old iron sword.",
+      "id": "item_4",
+      "location": "player",
+      "name": "Rusty Sword",
+      "portable": true,
+      "type": "weapon"
+    },
+    {
+      "description": "A mysterious amulet.",
+      "id": "item_5",
+      "location": "npc_1",
+      "name": "Amulet",
+      "portable": true,
+      "type": "jewelry"
+    }
+  ],
+  "locations": [
+    {
+      "description": "A grand entrance with marble floors.",
+      "exits": {
+        "east": {
+          "to": "loc_3",
+          "type": "open"
+        },
+        "north": {
+          "door_id": "door_1",
+          "type": "door"
+        }
+      },
+      "id": "loc_1",
+      "items": [
+        "item_1"
+      ],
+      "name": "Entrance Hall",
+      "npcs": [],
+      "tags": [
+        "indoor",
+        "lit"
+      ]
+    },
+    {
+      "description": "A dimly lit chamber with ancient tapestries.",
+      "exits": {
+        "south": {
+          "door_id": "door_1",
+          "type": "door"
+        }
+      },
+      "id": "loc_2",
+      "items": [
+        "item_2"
+      ],
+      "name": "Inner Chamber",
+      "npcs": [
+        "npc_1"
+      ],
+      "tags": [
+        "dark",
+        "indoor"
+      ]
+    },
+    {
+      "description": "A small storage room.",
+      "exits": {
+        "west": {
+          "to": "loc_1",
+          "type": "open"
+        }
+      },
+      "id": "loc_3",
+      "items": [],
+      "name": "Side Room",
+      "npcs": [],
+      "tags": [
+        "indoor"
+      ]
+    }
+  ],
+  "locks": [
+    {
+      "auto_unlock": false,
+      "description": "A raven-shaped lock.",
+      "fail_message": "The door remains locked.",
+      "id": "lock_1",
+      "opens_with": [
+        "item_3"
+      ]
+    },
+    {
+      "auto_unlock": false,
+      "description": "A sturdy lock.",
+      "id": "lock_2",
+      "opens_with": [
+        "item_3"
+      ]
+    }
+  ],
+  "metadata": {
+    "author": "Test Author",
+    "start_location": "loc_1",
+    "title": "Test Adventure",
+    "version": "1.0"
+  },
+  "npcs": [
+    {
+      "description": "A spectral guardian.",
+      "dialogue": [
+        "Who dares enter?",
+        "Turn back now."
+      ],
+      "id": "npc_1",
+      "location": "loc_2",
+      "name": "Guardian",
+      "states": {
+        "hostile": false
+      }
+    }
+  ],
+  "player_state": {
+    "flags": {
+      "started": true
+    },
+    "inventory": [
+      "item_4"
+    ],
+    "location": "loc_1",
+    "stats": {
+      "health": 100,
+      "max_health": 100
+    }
+  },
+  "scripts": [
+    {
+      "effects": [
+        {
+          "text": "You feel a chill.",
+          "type": "message"
+        }
+      ],
+      "id": "script_1",
+      "triggers": [
+        {
+          "location": "loc_2",
+          "type": "enter_location"
+        }
+      ]
+    }
+  ],
+  "vocabulary": {
+    "aliases": {
+      "key": [
+        "silver_key",
+        "raven_key"
+      ],
+      "torch": [
+        "light",
+        "lantern"
+      ]
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "title": "Duplicate IDs Test",
+    "author": "Test",
+    "version": "1.0",
+    "start_location": "loc_1"
+  },
+  "locations": [
+    {
+      "id": "loc_1",
+      "name": "Room One",
+      "description": "First room.",
+      "exits": {}
+    },
+    {
+      "id": "loc_1",
+      "name": "Room Two",
+      "description": "Second room with duplicate ID.",
+      "exits": {}
+    }
+  ]
+}

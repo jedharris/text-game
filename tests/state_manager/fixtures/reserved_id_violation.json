@@ -1,0 +1,26 @@
+{
+  "metadata": {
+    "title": "Reserved ID Test",
+    "author": "Test",
+    "version": "1.0",
+    "start_location": "loc_1"
+  },
+  "locations": [
+    {
+      "id": "loc_1",
+      "name": "Room",
+      "description": "A room.",
+      "exits": {}
+    }
+  ],
+  "items": [
+    {
+      "id": "player",
+      "name": "Item with Reserved ID",
+      "description": "This item uses reserved ID 'player'.",
+      "type": "tool",
+      "portable": true,
+      "location": "loc_1"
+    }
+  ]
+}

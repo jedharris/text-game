@@ -1,0 +1,42 @@
+{
+  "metadata": {
+    "title": "Invalid Locks Test",
+    "author": "Test",
+    "version": "1.0",
+    "start_location": "loc_1"
+  },
+  "locations": [
+    {
+      "id": "loc_1",
+      "name": "Room One",
+      "description": "First room.",
+      "exits": {
+        "north": {
+          "type": "door",
+          "door_id": "door_1"
+        }
+      }
+    },
+    {
+      "id": "loc_2",
+      "name": "Room Two",
+      "description": "Second room.",
+      "exits": {
+        "south": {
+          "type": "door",
+          "door_id": "door_1"
+        }
+      }
+    }
+  ],
+  "doors": [
+    {
+      "id": "door_1",
+      "locations": ["loc_1", "loc_2"],
+      "description": "A locked door.",
+      "locked": true,
+      "lock_id": "lock_999",
+      "open": false
+    }
+  ]
+}

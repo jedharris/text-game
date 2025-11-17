@@ -1,0 +1,26 @@
+{
+  "metadata": {
+    "title": "ID Collision Test",
+    "author": "Test",
+    "version": "1.0",
+    "start_location": "loc_1"
+  },
+  "locations": [
+    {
+      "id": "loc_1",
+      "name": "Room",
+      "description": "A room.",
+      "exits": {}
+    }
+  ],
+  "items": [
+    {
+      "id": "loc_1",
+      "name": "Duplicate ID Item",
+      "description": "This item has same ID as location.",
+      "type": "tool",
+      "portable": true,
+      "location": "loc_1"
+    }
+  ]
+}

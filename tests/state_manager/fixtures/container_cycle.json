@@ -1,0 +1,42 @@
+{
+  "metadata": {
+    "title": "Container Cycle Test",
+    "author": "Test",
+    "version": "1.0",
+    "start_location": "loc_1"
+  },
+  "locations": [
+    {
+      "id": "loc_1",
+      "name": "Room",
+      "description": "A room.",
+      "exits": {}
+    }
+  ],
+  "items": [
+    {
+      "id": "item_1",
+      "name": "Box A",
+      "description": "A box.",
+      "type": "container",
+      "portable": false,
+      "location": "loc_1",
+      "container": {
+        "locked": false,
+        "contents": ["item_2"]
+      }
+    },
+    {
+      "id": "item_2",
+      "name": "Box B",
+      "description": "Another box.",
+      "type": "container",
+      "portable": true,
+      "location": "item_1",
+      "container": {
+        "locked": false,
+        "contents": ["item_1"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,178 @@
+{
+  "metadata": {
+    "title": "Test Adventure",
+    "author": "Test Author",
+    "version": "1.0",
+    "start_location": "loc_1"
+  },
+  "vocabulary": {
+    "aliases": {
+      "torch": ["light", "lantern"],
+      "key": ["silver_key", "raven_key"]
+    }
+  },
+  "locations": [
+    {
+      "id": "loc_1",
+      "name": "Entrance Hall",
+      "description": "A grand entrance with marble floors.",
+      "tags": ["indoor", "lit"],
+      "items": ["item_1"],
+      "npcs": [],
+      "exits": {
+        "north": {
+          "type": "door",
+          "door_id": "door_1"
+        },
+        "east": {
+          "type": "open",
+          "to": "loc_3"
+        }
+      }
+    },
+    {
+      "id": "loc_2",
+      "name": "Inner Chamber",
+      "description": "A dimly lit chamber with ancient tapestries.",
+      "tags": ["indoor", "dark"],
+      "items": ["item_2"],
+      "npcs": ["npc_1"],
+      "exits": {
+        "south": {
+          "type": "door",
+          "door_id": "door_1"
+        }
+      }
+    },
+    {
+      "id": "loc_3",
+      "name": "Side Room",
+      "description": "A small storage room.",
+      "tags": ["indoor"],
+      "items": [],
+      "npcs": [],
+      "exits": {
+        "west": {
+          "type": "open",
+          "to": "loc_1"
+        }
+      }
+    }
+  ],
+  "doors": [
+    {
+      "id": "door_1",
+      "locations": ["loc_1", "loc_2"],
+      "description": "An iron-bound door.",
+      "locked": true,
+      "lock_id": "lock_1",
+      "open": false
+    }
+  ],
+  "items": [
+    {
+      "id": "item_1",
+      "name": "Torch",
+      "description": "A wooden torch.",
+      "type": "tool",
+      "portable": true,
+      "location": "loc_1",
+      "states": {
+        "lit": false
+      }
+    },
+    {
+      "id": "item_2",
+      "name": "Stone Chest",
+      "description": "A heavy stone chest.",
+      "type": "container",
+      "portable": false,
+      "location": "loc_2",
+      "container": {
+        "locked": true,
+        "lock_id": "lock_2",
+        "contents": ["item_3"],
+        "capacity": 10
+      }
+    },
+    {
+      "id": "item_3",
+      "name": "Silver Key",
+      "description": "A key with a raven design.",
+      "type": "key",
+      "portable": true,
+      "location": "item_2"
+    },
+    {
+      "id": "item_4",
+      "name": "Rusty Sword",
+      "description": "An old iron sword.",
+      "type": "weapon",
+      "portable": true,
+      "location": "player"
+    },
+    {
+      "id": "item_5",
+      "name": "Amulet",
+      "description": "A mysterious amulet.",
+      "type": "jewelry",
+      "portable": true,
+      "location": "npc_1"
+    }
+  ],
+  "locks": [
+    {
+      "id": "lock_1",
+      "opens_with": ["item_3"],
+      "auto_unlock": false,
+      "description": "A raven-shaped lock.",
+      "fail_message": "The door remains locked."
+    },
+    {
+      "id": "lock_2",
+      "opens_with": ["item_3"],
+      "auto_unlock": false,
+      "description": "A sturdy lock."
+    }
+  ],
+  "npcs": [
+    {
+      "id": "npc_1",
+      "name": "Guardian",
+      "description": "A spectral guardian.",
+      "location": "loc_2",
+      "dialogue": ["Who dares enter?", "Turn back now."],
+      "states": {
+        "hostile": false
+      }
+    }
+  ],
+  "scripts": [
+    {
+      "id": "script_1",
+      "triggers": [
+        {
+          "type": "enter_location",
+          "location": "loc_2"
+        }
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "text": "You feel a chill."
+        }
+      ]
+    }
+  ],
+  "player_state": {
+    "location": "loc_1",
+    "inventory": ["item_4"],
+    "flags": {
+      "started": true
+    },
+    "stats": {
+      "health": 100,
+      "max_health": 100
+    }
+  }
+}

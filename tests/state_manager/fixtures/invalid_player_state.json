@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "title": "Invalid Player State Test",
+    "author": "Test",
+    "version": "1.0",
+    "start_location": "loc_1"
+  },
+  "locations": [
+    {
+      "id": "loc_1",
+      "name": "Room",
+      "description": "A room.",
+      "exits": {}
+    }
+  ],
+  "player_state": {
+    "location": "loc_999",
+    "inventory": ["item_999"],
+    "flags": {},
+    "stats": {}
+  }
+}

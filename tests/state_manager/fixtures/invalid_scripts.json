@@ -1,0 +1,28 @@
+{
+  "metadata": {
+    "title": "Invalid Scripts Test",
+    "author": "Test",
+    "version": "1.0",
+    "start_location": "loc_1"
+  },
+  "locations": [
+    {
+      "id": "loc_1",
+      "name": "Room",
+      "description": "A room.",
+      "exits": {}
+    }
+  ],
+  "scripts": [
+    {
+      "id": "script_1",
+      "triggers": [
+        {
+          "type": "enter_location",
+          "location": "loc_999"
+        }
+      ],
+      "effects": []
+    }
+  ]
+}
