@@ -61,6 +61,26 @@ def get_lock_by_id(state: GameState, lock_id: str):
     return None
 
 
+def player_has_key_for_door(state: GameState, door) -> tuple[bool, bool]:
+    """
+    Check if player has a key that fits the door's lock.
+
+    Returns:
+        (has_key, auto_unlock): Tuple where has_key is True if player has
+        the correct key, and auto_unlock is True if the lock auto-unlocks.
+    """
+    if not door.lock_id:
+        return (False, False)
+
+    lock = get_lock_by_id(state, door.lock_id)
+    if not lock:
+        return (False, False)
+
+    # Check if player has any key that opens this lock
+    has_key = any(key_id in state.player.inventory for key_id in lock.opens_with)
+    return (has_key, lock.auto_unlock)
+
+
 def describe_location(state: GameState):
     """Describe the current location."""
     loc = get_current_location(state)
@@ -103,40 +123,39 @@ def move_player(state: GameState, direction: str):
             print("Error: door not found!")
             return False
 
-        # Check if door is closed
-        if not door.open:
-            # Check if door is locked
-            if door.locked:
-                # Check if player has the key
-                if door.lock_id:
-                    lock = get_lock_by_id(state, door.lock_id)
-                    if lock:
-                        # Check if player has any of the items that open this lock
-                        has_key = any(key_id in state.player.inventory for key_id in lock.opens_with)
-                        if has_key:
-                            if lock.auto_unlock:
-                                print("You unlock the door with your key and pass through.")
-                                door.locked = False
-                                door.open = True
-                            else:
-                                print("The door is locked. You have the key but need to unlock it first. Try 'open door'.")
-                                return False
-                        else:
-                            print("The door is locked. You need a key.")
-                            return False
-                    else:
-                        print("The door is locked.")
-                        return False
-                else:
-                    print("The door is locked.")
-                    return False
-            else:
-                # Door is closed but not locked
+        # Handle door interactions using pattern matching
+        has_key, auto_unlock = player_has_key_for_door(state, door)
+
+        match (door.open, door.locked, has_key, auto_unlock):
+            # Case 1: Door is open
+            case (True, _, _, _):
+                print("You pass through the open door.")
+
+            # Case 2: Door is closed but not locked
+            case (False, False, _, _):
                 print("The door is closed. You need to open it first. Try 'open door'.")
                 return False
-        else:
-            # Door is open - just pass through
-            print("You pass through the open door.")
+
+            # Case 3: Door is closed and locked, no key
+            case (False, True, False, _):
+                print("The door is locked. You need a key.")
+                return False
+
+            # Case 4: Door is closed and locked, have key, no auto-unlock
+            case (False, True, True, False):
+                print("The door is locked. You have the key but need to unlock it first. Try 'open door'.")
+                return False
+
+            # Case 5: Door is closed and locked, have key with auto-unlock
+            case (False, True, True, True):
+                print("You unlock the door with your key and pass through.")
+                door.locked = False
+                door.open = True
+
+            # Case 6: Unexpected state
+            case _:
+                print("Error: Unexpected door state!")
+                return False
 
     # Move to new location
     if exit_desc.to:
@@ -276,20 +295,15 @@ def open_item(state: GameState, item_name: str):
 
         if door.locked:
             # Check if player has a key
-            if door.lock_id:
-                lock = get_lock_by_id(state, door.lock_id)
-                if lock:
-                    has_key = any(key_id in state.player.inventory for key_id in lock.opens_with)
-                    if has_key:
-                        print("You unlock the door with your key.")
-                        door.locked = False
-                        door.open = True
-                        return True
-                    else:
-                        print("The door is locked. You need a key.")
-                        return False
-            print("The door is locked.")
-            return False
+            has_key, _ = player_has_key_for_door(state, door)
+            if has_key:
+                print("You unlock the door with your key.")
+                door.locked = False
+                door.open = True
+                return True
+            else:
+                print("The door is locked. You need a key.")
+                return False
 
         if door.open:
             print("The door is already open.")
