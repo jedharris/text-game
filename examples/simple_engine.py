@@ -2,7 +2,13 @@
 """Simple game demonstrating state_manager usage."""
 
 import os
+import sys
 from pathlib import Path
+
+# Add project root to path so we can import from src
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 from src.parser import Parser
 from src.state_manager import load_game_state, save_game_state, GameState
 from src.file_dialogs import get_save_filename, get_load_filename
