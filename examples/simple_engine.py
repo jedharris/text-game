@@ -384,9 +384,20 @@ def load_game(filename: str):
         return None
 
 
-def main():
+def main(save_load_dir=None):
+    """
+    Run the game.
+
+    Args:
+        save_load_dir: Default directory for save/load file dialogs.
+                      If None, uses current directory.
+    """
     # Get the directory of this script
     script_dir = Path(__file__).parent
+
+    # Set default directory for save/load operations
+    if save_load_dir is None:
+        save_load_dir = "."
 
     # Initialize parser
     parser = Parser('data/vocabulary.json')
@@ -450,7 +461,7 @@ def main():
                         save_game(state, filename)
                     else:
                         # No filename provided - open file dialog
-                        filename = get_save_filename(default_dir=".", default_filename="savegame.json")
+                        filename = get_save_filename(default_dir=save_load_dir, default_filename="savegame.json")
                         if filename:
                             save_game(state, filename)
                         else:
@@ -475,7 +486,7 @@ def main():
                             describe_location(state)
                     else:
                         # No filename provided - open file dialog
-                        filename = get_load_filename(default_dir=".")
+                        filename = get_load_filename(default_dir=save_load_dir)
                         if filename:
                             loaded_state = load_game(filename)
                             if loaded_state:
