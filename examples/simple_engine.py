@@ -99,6 +99,41 @@ def describe_location(state: GameState):
             item_names = [item.name for item in items_here]
             print("You see:", ", ".join(item_names))
 
+        # List exits (including doors)
+        if loc.exits:
+            exit_descriptions = []
+            for direction, exit_desc in loc.exits.items():
+                if exit_desc.type == "door" and exit_desc.door_id:
+                    # Find the door and include its state
+                    door = get_door_by_id(state, exit_desc.door_id)
+                    if door:
+                        # Get a brief description from the door's description
+                        # Extract first adjective or distinctive word
+                        desc_words = door.description.lower().split()
+                        adjective = next((word for word in desc_words
+                                        if word in ["wooden", "iron", "heavy", "simple", "golden", "ancient"]),
+                                       "door")
+
+                        # Add state info
+                        state_info = []
+                        if door.locked:
+                            state_info.append("locked")
+                        if door.open:
+                            state_info.append("open")
+                        else:
+                            state_info.append("closed")
+
+                        if state_info:
+                            exit_descriptions.append(f"{adjective} door ({', '.join(state_info)}) to the {direction}")
+                        else:
+                            exit_descriptions.append(f"{adjective} door to the {direction}")
+                else:
+                    # Regular open exit
+                    exit_descriptions.append(f"passage to the {direction}")
+
+            if exit_descriptions:
+                print("Exits:", ", ".join(exit_descriptions))
+
 
 def show_inventory(state: GameState):
     """Show player's inventory."""
@@ -362,6 +397,52 @@ def close_door(state: GameState, item_name: str):
     return True
 
 
+def drink_item(state: GameState, item_name: str):
+    """
+    Drink an item (e.g., potion).
+
+    Returns:
+        True if item was drunk successfully, False otherwise
+    """
+    loc = get_current_location(state)
+
+    # Check if item is in inventory
+    item_in_inventory = None
+    for item_id in state.player.inventory:
+        item = next((i for i in state.items if i.id == item_id), None)
+        if item and item.name == item_name:
+            item_in_inventory = item
+            break
+
+    if item_in_inventory:
+        # Handle specific drinkable items
+        if item_name == "potion":
+            print("You drink the glowing red potion.")
+            print("You feel refreshed and energized!")
+            # Remove potion from inventory
+            state.player.inventory.remove(item_in_inventory.id)
+            # Could add health restoration or other effects here
+            # state.player.stats["health"] = state.player.stats.get("health", 100) + 20
+            return True
+        else:
+            print(f"You can't drink the {item_name}.")
+            return False
+    else:
+        # Check if item is in the room
+        item_in_room = None
+        for item in state.items:
+            if item.name == item_name and item.location == loc.id:
+                item_in_room = item
+                break
+
+        if item_in_room:
+            print(f"You need to take the {item_name} first.")
+            return False
+        else:
+            print(f"You don't see a {item_name} here.")
+            return False
+
+
 def save_game(state: GameState, filename: str):
     """Save the game state to a file."""
     try:
@@ -514,6 +595,10 @@ def main(save_load_dir=None):
             # Handle "close" command (object required)
             case _ if result.verb and result.verb.word == "close" and result.direct_object:
                 close_door(state, result.direct_object.word)
+
+            # Handle "drink" command (object required)
+            case _ if result.verb and result.verb.word == "drink" and result.direct_object:
+                drink_item(state, result.direct_object.word)
 
             # Handle "go" with direction
             case _ if result.verb and result.verb.word == "go" and result.direction:
