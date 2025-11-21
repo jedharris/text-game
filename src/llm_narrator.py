@@ -27,7 +27,7 @@ class LLMNarrator:
     """Translates between natural language and the JSON protocol."""
 
     def __init__(self, api_key: str, json_handler: JSONProtocolHandler,
-                 model: str = "claude-sonnet-4-20250514",
+                 model: str = "claude-3-5-haiku-20241022",
                  prompt_file: Optional[Path] = None):
         """Initialize the narrator.
 

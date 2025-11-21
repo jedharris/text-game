@@ -195,6 +195,7 @@ class JSONProtocolHandler:
     def _cmd_examine(self, action: Dict) -> Dict:
         """Handle examine command."""
         obj_name = action.get("object")
+        adjective = action.get("adjective")
 
         # Examine room if no object specified
         if not obj_name:
@@ -220,12 +221,12 @@ class JSONProtocolHandler:
         if obj_name == "door":
             doors = self._get_doors_in_location()
             if doors:
-                # Return first door for now
+                door = self._select_door(doors, adjective)
                 return {
                     "type": "result",
                     "success": True,
                     "action": "examine",
-                    "entity": self._door_to_dict(doors[0])
+                    "entity": self._door_to_dict(door)
                 }
 
         # Check for NPCs
