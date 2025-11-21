@@ -21,6 +21,8 @@ from src.json_protocol import JSONProtocolHandler
 
 # Default system prompt location
 DEFAULT_PROMPT_FILE = Path(__file__).parent.parent / "examples" / "narrator_prompt.txt"
+# Default vocabulary file location
+DEFAULT_VOCABULARY_FILE = Path(__file__).parent.parent / "data" / "vocabulary.json"
 
 
 class LLMNarrator:
@@ -145,30 +147,101 @@ class LLMNarrator:
         Returns:
             System prompt string
         """
+        # Load base prompt
+        base_prompt = None
+
         # Try custom file first
         if prompt_file and prompt_file.exists():
-            return prompt_file.read_text()
-
+            base_prompt = prompt_file.read_text()
         # Try default file
-        if DEFAULT_PROMPT_FILE.exists():
-            return DEFAULT_PROMPT_FILE.read_text()
-
-        # Fall back to minimal embedded prompt
-        return """You are the narrator for an interactive text adventure game.
+        elif DEFAULT_PROMPT_FILE.exists():
+            base_prompt = DEFAULT_PROMPT_FILE.read_text()
+        else:
+            # Fall back to minimal embedded prompt
+            base_prompt = """You are the narrator for an interactive text adventure game.
 
 When asked to generate a command, respond with ONLY a JSON block:
 ```json
 {"type": "command", "action": {"verb": "take", "object": "sword"}}
 ```
 
-Available verbs: take, drop, examine, go, open, close, unlock, lock, look, inventory
-For movement: {"type": "command", "action": {"verb": "go", "direction": "north"}}
+{{VOCABULARY}}
 
 When asked to narrate a result, use the llm_context to create 2-4 sentences of
 atmospheric prose. Use traits for physical details and state_variants for
 context-specific phrasing.
 
 Keep the tone consistent with a classic text adventure - evocative but concise."""
+
+        # Load vocabulary and inject into prompt
+        vocab_section = self._build_vocabulary_section()
+        if "{{VOCABULARY}}" in base_prompt:
+            return base_prompt.replace("{{VOCABULARY}}", vocab_section)
+        else:
+            # Append vocabulary section if no placeholder found
+            return base_prompt + "\n\n" + vocab_section
+
+    def _build_vocabulary_section(self) -> str:
+        """Build the vocabulary section for the system prompt from vocabulary.json.
+
+        Returns:
+            Formatted string describing available verbs and directions
+        """
+        if not DEFAULT_VOCABULARY_FILE.exists():
+            return "Available verbs: take, drop, examine, go, open, close, unlock, lock, look, inventory"
+
+        try:
+            vocab = json.loads(DEFAULT_VOCABULARY_FILE.read_text())
+        except (json.JSONDecodeError, IOError):
+            return "Available verbs: take, drop, examine, go, open, close, unlock, lock, look, inventory"
+
+        lines = ["## Available Commands (from vocabulary.json)", ""]
+
+        # Build verb list with formats
+        lines.append("### Verbs")
+        for verb_data in vocab.get("verbs", []):
+            word = verb_data["word"]
+            synonyms = verb_data.get("synonyms", [])
+            obj_required = verb_data.get("object_required", False)
+
+            # Build synonym string
+            syn_str = f" (aliases: {', '.join(synonyms)})" if synonyms else ""
+
+            # Build format based on object requirement
+            if word == "go":
+                format_str = f'{{"verb": "{word}", "direction": "north|south|east|west|up|down"}}'
+            elif word == "inventory" or word == "look":
+                format_str = f'{{"verb": "{word}"}}'
+            elif obj_required == "optional":
+                format_str = f'{{"verb": "{word}"}} or {{"verb": "{word}", "object": "item_name"}}'
+            elif obj_required:
+                format_str = f'{{"verb": "{word}", "object": "item_name"}}'
+            else:
+                format_str = f'{{"verb": "{word}"}}'
+
+            lines.append(f"- **{word}**{syn_str}: {format_str}")
+
+        lines.append("")
+
+        # Build directions list
+        lines.append("### Directions")
+        directions = []
+        for dir_data in vocab.get("directions", []):
+            word = dir_data["word"]
+            synonyms = dir_data.get("synonyms", [])
+            if synonyms:
+                directions.append(f"{word} ({', '.join(synonyms)})")
+            else:
+                directions.append(word)
+        lines.append(", ".join(directions))
+
+        lines.append("")
+        lines.append("If an adjective helps identify the object, include it:")
+        lines.append('```json')
+        lines.append('{"type": "command", "action": {"verb": "examine", "object": "door", "adjective": "iron"}}')
+        lines.append('```')
+
+        return "\n".join(lines)
 
 
 class MockLLMNarrator(LLMNarrator):

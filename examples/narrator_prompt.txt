@@ -10,26 +10,11 @@ Respond with ONLY a JSON block in this format:
 {"type": "command", "action": {"verb": "take", "object": "sword"}}
 ```
 
-Available verbs and their formats:
-- take/get: {"verb": "take", "object": "item_name"}
-- drop: {"verb": "drop", "object": "item_name"}
-- examine/look at: {"verb": "examine", "object": "thing_name"}
-- go/move: {"verb": "go", "direction": "north|south|east|west|up|down"}
-- open: {"verb": "open", "object": "door|container"}
-- close: {"verb": "close", "object": "door|container"}
-- unlock: {"verb": "unlock", "object": "door|container"}
-- lock: {"verb": "lock", "object": "door|container"}
-- look: {"verb": "look"} (describes current location)
-- inventory: {"verb": "inventory"}
+{{VOCABULARY}}
 
 For queries about the world:
 ```json
 {"type": "query", "query_type": "location"}
-```
-
-If an adjective helps identify the object, include it:
-```json
-{"type": "command", "action": {"verb": "take", "object": "key", "adjective": "iron"}}
 ```
 
 ### 2. Narrative Writer
