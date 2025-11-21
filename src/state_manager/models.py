@@ -75,6 +75,7 @@ class Location:
     tags: List[str] = field(default_factory=list)
     items: List[str] = field(default_factory=list)
     npcs: List[str] = field(default_factory=list)
+    llm_context: Optional[Dict[str, Any]] = None
 
     def has_exit(self, direction: str) -> bool:
         """Check if location has an exit in the given direction."""
@@ -95,6 +96,7 @@ class Door:
     lock_id: Optional[str] = None
     open: bool = True
     one_way: bool = False
+    llm_context: Optional[Dict[str, Any]] = None
 
     def unlock(self, key_item_id: Optional[str], state: 'GameState') -> bool:
         """Attempt to unlock the door."""
@@ -155,6 +157,7 @@ class Lock:
     auto_unlock: bool = False
     description: str = ""
     fail_message: str = ""
+    llm_context: Optional[Dict[str, Any]] = None
 
     def can_unlock(self, state: 'GameState', key_id: Optional[str] = None) -> bool:
         """Check if lock can be unlocked with given key."""

@@ -1,6 +1,7 @@
 
 """Simple game demonstrating state_manager usage."""
 
+import json
 import os
 import sys
 from pathlib import Path
@@ -12,6 +13,7 @@ sys.path.insert(0, str(project_root))
 from src.parser import Parser
 from src.state_manager import load_game_state, save_game_state, GameState
 from src.file_dialogs import get_save_filename, get_load_filename
+from src.json_protocol import JSONProtocolHandler
 
 
 def get_current_location(state: GameState):
@@ -487,9 +489,13 @@ def main(save_load_dir=None):
     state_file = script_dir / "simple_game_state.json"
     state = load_game_state(str(state_file))
 
+    # Initialize JSON protocol handler
+    json_handler = JSONProtocolHandler(state)
+
     print(f"Welcome to {state.metadata.title}!")
     print("Type 'quit' to exit, 'inventory' to see your items, 'look' to examine your surroundings.")
     print("Type 'save <filename>' to save your game, 'load <filename>' to load a saved game.")
+    print("JSON commands are also supported (input starting with '{').")
     print()
     describe_location(state)
     print()
@@ -498,7 +504,29 @@ def main(save_load_dir=None):
         # Get user input
         command_text = input("> ").strip()
 
-        # Parse command - now handles all verbs including quit, save, load, inventory
+        # Check if input is JSON (per spec: starts with '{')
+        if command_text.startswith("{"):
+            try:
+                message = json.loads(command_text)
+                result_json = json_handler.handle_message(message)
+                print(json.dumps(result_json, indent=2))
+
+                # Check for win condition in JSON result
+                if (result_json.get("type") == "result" and
+                    result_json.get("success") and
+                    result_json.get("action") == "open" and
+                    result_json.get("entity", {}).get("name") == "chest"):
+                    print("\nYou win!")
+                    break
+                continue
+            except json.JSONDecodeError as e:
+                print(json.dumps({
+                    "type": "error",
+                    "message": f"Invalid JSON: {e}"
+                }, indent=2))
+                continue
+
+        # Parse text command - handles all verbs including quit, save, load, inventory
         result = parser.parse_command(command_text)
 
         # Handle errors

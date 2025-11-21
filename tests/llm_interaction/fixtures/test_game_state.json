@@ -1,16 +1,16 @@
 {
   "metadata": {
-    "title": "Simple Adventure",
-    "author": "Text Game Example",
+    "title": "LLM Test Game",
+    "author": "Test Suite",
     "version": "1.0",
-    "description": "A simple adventure game demonstrating the state manager.",
+    "description": "Test game for LLM interaction protocol",
     "start_location": "loc_start"
   },
   "locations": [
     {
       "id": "loc_start",
       "name": "Small Room",
-      "description": "You are in a small room. There is a rusty sword on the ground and a wooden door to the north.",
+      "description": "You are in a small room.",
       "exits": {
         "north": {
           "type": "door",
@@ -19,71 +19,39 @@
         }
       },
       "tags": [],
-      "items": ["item_sword"],
+      "items": ["item_sword", "item_key"],
       "npcs": [],
       "llm_context": {
         "traits": [
           "cramped stone walls",
           "dim torchlight",
-          "dusty floor",
-          "musty air",
-          "cobwebs in corners"
+          "dusty floor"
         ],
-        "atmosphere": "confined, neglected, starting point",
+        "atmosphere": "confined, neglected",
         "state_variants": {
-          "first_visit": "The room feels forgotten, as if no one has entered in years.",
-          "revisit": "The familiar small room, unchanged.",
-          "sword_taken": "The room feels emptier now."
+          "first_visit": "The room feels forgotten.",
+          "revisit": "The familiar small room."
         }
       }
     },
     {
       "id": "loc_hallway",
       "name": "Long Hallway",
-      "description": "You are in a long hallway. There is a locked door to the east and stairs going up.",
+      "description": "You are in a long hallway.",
       "exits": {
         "south": {
           "type": "door",
           "to": "loc_start",
           "door_id": "door_wooden"
         },
+        "east": {
+          "type": "door",
+          "to": "loc_treasure",
+          "door_id": "door_iron"
+        },
         "up": {
           "type": "open",
           "to": "loc_tower"
-        },
-        "east": {
-          "type": "door",
-          "to": "loc_locked_room",
-          "door_id": "door_treasure"
-        }
-      },
-      "tags": [],
-      "items": ["item_key"],
-      "npcs": [],
-      "llm_context": {
-        "traits": [
-          "high vaulted ceiling",
-          "stone floor worn smooth",
-          "echoing footsteps",
-          "draft from above",
-          "faded tapestries on walls"
-        ],
-        "atmosphere": "transitional, mysterious, ancient",
-        "state_variants": {
-          "first_visit": "The hallway stretches before you, promising discoveries.",
-          "revisit": "The familiar corridor, still echoing your steps.",
-          "key_taken": "The hallway feels less mysterious now."
-        }
-      }
-    },
-    {
-      "id": "loc_tower",
-      "name": "Tower Top",
-      "description": "You are at the top of a tower. You can see for miles. Stairs lead down.",
-      "exits": {
-        "down": {
-          "type": "open",
-          "to": "loc_hallway"
         }
       },
       "tags": [],
@@ -91,29 +59,52 @@
       "npcs": [],
       "llm_context": {
         "traits": [
-          "open to sky",
-          "wind whipping past",
-          "panoramic view",
-          "weathered stone parapet",
-          "dizzying height"
+          "high vaulted ceiling",
+          "stone floor worn smooth",
+          "echoing footsteps"
         ],
-        "atmosphere": "exposed, exhilarating, isolated",
+        "atmosphere": "transitional, mysterious",
         "state_variants": {
-          "first_visit": "The view takes your breath away.",
-          "revisit": "The tower top, as windswept as before.",
-          "potion_taken": "The pedestal stands empty now."
+          "first_visit": "The hallway stretches before you.",
+          "revisit": "The familiar corridor."
         }
       }
     },
     {
-      "id": "loc_locked_room",
+      "id": "loc_tower",
+      "name": "Tower Top",
+      "description": "You are at the top of a tower.",
+      "exits": {
+        "down": {
+          "type": "open",
+          "to": "loc_hallway"
+        }
+      },
+      "tags": [],
+      "items": [],
+      "npcs": ["npc_guard"],
+      "llm_context": {
+        "traits": [
+          "open to sky",
+          "wind whipping past",
+          "panoramic view"
+        ],
+        "atmosphere": "exposed, exhilarating",
+        "state_variants": {
+          "first_visit": "The view takes your breath away.",
+          "revisit": "The tower top, as windswept as before."
+        }
+      }
+    },
+    {
+      "id": "loc_treasure",
       "name": "Treasure Room",
-      "description": "You are in a treasure room. There is a golden chest here.",
+      "description": "You are in a treasure room.",
       "exits": {
         "west": {
           "type": "door",
           "to": "loc_hallway",
-          "door_id": "door_treasure"
+          "door_id": "door_iron"
         }
       },
       "tags": [],
@@ -123,15 +114,12 @@
         "traits": [
           "glittering walls",
           "smell of old gold",
-          "surprisingly small",
-          "dust motes in shafts of light",
-          "undisturbed for ages"
+          "surprisingly small"
         ],
-        "atmosphere": "rewarding, secretive, climactic",
+        "atmosphere": "rewarding, climactic",
         "state_variants": {
           "first_visit": "You've found it - the treasure room!",
-          "revisit": "The treasure room, still glittering.",
-          "chest_opened": "The room feels less magical with the chest open."
+          "chest_opened": "The room feels less magical."
         }
       }
     }
@@ -147,21 +135,17 @@
         "traits": [
           "rough-hewn planks",
           "iron hinges",
-          "creaks when moved",
-          "worn handle",
-          "gaps between boards"
+          "creaks when moved"
         ],
         "state_variants": {
-          "open": "stands ajar, revealing the passage beyond",
-          "closed": "blocks the way with its weathered planks",
-          "from_start": "leads north to the hallway",
-          "from_hallway": "leads south to the small room"
+          "open": "stands ajar",
+          "closed": "blocks the way"
         }
       }
     },
     {
-      "id": "door_treasure",
-      "locations": ["loc_hallway", "loc_locked_room"],
+      "id": "door_iron",
+      "locations": ["loc_hallway", "loc_treasure"],
       "description": "A heavy iron door with a sturdy lock.",
       "locked": true,
       "open": false,
@@ -170,15 +154,12 @@
         "traits": [
           "thick iron plates",
           "riveted construction",
-          "imposing presence",
-          "cold to touch",
-          "faint runes etched near lock"
+          "imposing presence"
         ],
         "state_variants": {
-          "locked": "sealed tight, the lock gleaming with purpose",
-          "unlocked": "the lock hangs open, defeated",
-          "open": "swung wide, revealing treasures beyond",
-          "closed": "stands as an iron barrier"
+          "locked": "sealed tight",
+          "unlocked": "the lock hangs open",
+          "open": "swung wide"
         }
       }
     }
@@ -195,14 +176,11 @@
         "traits": [
           "pitted blade",
           "leather-wrapped hilt",
-          "still holds an edge",
-          "balanced for combat",
-          "rust flakes when gripped"
+          "still holds an edge"
         ],
         "state_variants": {
-          "in_location": "lies forgotten on the dusty floor",
-          "in_inventory": "a reassuring weight at your side",
-          "examined": "despite the rust, still deadly"
+          "in_location": "lies forgotten on the floor",
+          "in_inventory": "a reassuring weight at your side"
         }
       }
     },
@@ -212,19 +190,16 @@
       "description": "An iron key.",
       "type": "object",
       "portable": true,
-      "location": "loc_hallway",
+      "location": "loc_start",
       "llm_context": {
         "traits": [
           "solid iron",
           "intricate teeth",
-          "cold and heavy",
-          "no rust despite age",
-          "fits in palm"
+          "cold and heavy"
         ],
         "state_variants": {
           "in_location": "glints on the stone floor",
-          "in_inventory": "cold weight in your pocket",
-          "examined": "clearly made for an important lock"
+          "in_inventory": "cold weight in your pocket"
         }
       }
     },
@@ -234,41 +209,35 @@
       "description": "A red potion that glows faintly.",
       "type": "object",
       "portable": true,
-      "location": "loc_tower",
+      "location": "loc_hallway",
       "llm_context": {
         "traits": [
           "crimson liquid",
           "glass vial",
-          "warm to touch",
-          "swirls when shaken",
-          "faint inner glow"
+          "warm to touch"
         ],
         "state_variants": {
-          "in_location": "rests on a stone pedestal, pulsing softly",
-          "in_inventory": "warm glow through your pack",
-          "examined": "healing magic swirls within"
+          "in_location": "rests on a stone pedestal",
+          "in_inventory": "warm glow through your pack"
         }
       }
     },
     {
       "id": "item_chest",
       "name": "chest",
-      "description": "A large golden chest. It looks valuable!",
+      "description": "A large golden chest.",
       "type": "object",
       "portable": false,
-      "location": "loc_locked_room",
+      "location": "loc_treasure",
       "llm_context": {
         "traits": [
           "ornate gold filigree",
           "heavy oak construction",
-          "brass fittings",
-          "domed lid",
           "gemstone inlays"
         ],
         "state_variants": {
-          "closed": "sits mysteriously, contents unknown",
-          "open": "reveals glittering treasures within",
-          "examined": "master craftsmanship evident in every detail"
+          "closed": "sits mysteriously",
+          "open": "reveals treasures within"
         }
       }
     }
@@ -282,13 +251,31 @@
       "llm_context": {
         "traits": [
           "heavy iron mechanism",
-          "complex tumblers",
-          "recently oiled",
-          "rune-marked keyhole"
+          "complex tumblers"
         ],
         "state_variants": {
-          "locked": "clicks firmly, resisting all force",
-          "unlocked": "mechanism disengaged with a satisfying click"
+          "locked": "clicks firmly",
+          "unlocked": "mechanism disengaged"
+        }
+      }
+    }
+  ],
+  "npcs": [
+    {
+      "id": "npc_guard",
+      "name": "Ghostly Guard",
+      "description": "A translucent guard in ancient armor.",
+      "location": "loc_tower",
+      "llm_context": {
+        "traits": [
+          "translucent armor",
+          "hollow eyes",
+          "stern but not hostile"
+        ],
+        "speech_style": "archaic, formal",
+        "state_variants": {
+          "default": "watching, waiting",
+          "approached": "alert, questioning"
         }
       }
     }

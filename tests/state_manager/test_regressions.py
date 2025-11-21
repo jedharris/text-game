@@ -7,7 +7,7 @@ import unittest
 import tempfile
 from pathlib import Path
 
-from test_helpers import load_fixture, json_equal, get_fixture_path
+from .test_helpers import load_fixture, json_equal, get_fixture_path
 
 
 class TestRegressions(unittest.TestCase):

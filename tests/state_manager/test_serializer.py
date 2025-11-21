@@ -8,7 +8,7 @@ import json
 import tempfile
 from pathlib import Path
 
-from test_helpers import load_fixture, json_equal, normalize_json, get_fixture_path
+from .test_helpers import load_fixture, json_equal, normalize_json, get_fixture_path
 
 
 class TestSerializer(unittest.TestCase):

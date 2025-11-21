@@ -26,69 +26,73 @@ Rich Description (to player)
 
 ## Extended Game State Schema
 
-Add new fields to existing entities:
+Add new fields to existing entities. The schema is intentionally simplified to reduce redundancy:
+
+- **`traits`**: All facts about the entity (physical, sensory, historical) - the LLM must respect these
+- **`atmosphere`**: (locations only) Tone/mood hint for the narrator
+- **`state_variants`**: Context-specific phrasing for different situations
 
 ```json
 {
   "locations": [{
     "id": "loc_1",
     "name": "Crypt Entrance",
-    "description": "A marble archway...",  // Existing base description
-    
+    "description": "A marble archway...",  // Existing base description, fallback when LLM unavailable
+
     // NEW: LLM context resources
     "llm_context": {
-      "canonical_traits": [
+      "traits": [
         "marble archway",
         "darkness beyond",
-        "weathered stone"
+        "weathered stone",
+        "dust motes in dim light",
+        "distant water dripping",
+        "damp stone smell"
       ],
       "atmosphere": "foreboding, ancient, abandoned",
-      "sensory_details": {
-        "sight": "dust motes in dim light",
-        "sound": "distant water dripping",
-        "smell": "damp stone and earth"
-      },
-      "variation_seeds": [
-        "mention ravens circling overhead",
-        "note cold draft from within",
-        "describe moss on stones"
-      ]
+      "state_variants": {
+        "first_visit": "The archway looms before you, untouched for ages.",
+        "revisit": "The familiar archway stands as before.",
+        "after_event": "The archway now feels less threatening."
+      }
     }
   }],
-  
+
   "items": [{
     "id": "item_1",
     "name": "Silver Key",
     "description": "A key with a raven-shaped bow.",
-    
+
     "llm_context": {
-      "canonical_traits": [
+      "traits": [
         "raven-shaped bow",
         "tarnished silver",
-        "surprisingly heavy"
+        "surprisingly heavy",
+        "cold to the touch",
+        "forged in the old kingdom"
       ],
-      "history_hints": "ancient, ceremonial, important",
       "state_variants": {
         "in_location": "gleams dully in the shadows",
         "in_inventory": "cold weight in your pocket",
-        "being_examined": "intricate engravings visible up close"
+        "examined": "intricate engravings visible up close"
       }
     }
   }],
-  
+
   "npcs": [{
     "id": "npc_1",
     "name": "Ghostly Guard",
-    
+
     "llm_context": {
-      "canonical_traits": [
+      "traits": [
         "translucent armor",
         "hollow eyes",
-        "silent vigil"
+        "silent vigil",
+        "stern but not hostile",
+        "bound by duty"
       ],
-      "personality": "stern but not hostile, bound by duty",
       "speech_style": "archaic, formal, cryptic",
-      "emotional_states": {
+      "state_variants": {
         "default": "watching, waiting",
         "approached": "alert, questioning",
         "given_key": "relieved, grateful"
@@ -97,6 +101,8 @@ Add new fields to existing entities:
   }]
 }
 ```
+
+**Narrator Instructions**: Use at least 2-3 traits in each description. Vary which traits you emphasize, but never contradict them. This provides variation while maintaining recognizability for players.
 
 ## LLM Resource Augmentation System
 
@@ -132,10 +138,9 @@ When LLM wants to add descriptive resources, it generates a proposal:
     "type": "item",
     "id": "item_1"
   },
-  "augmentation_type": "add_canonical_trait",
+  "augmentation_type": "add_trait",
   "proposed_content": {
-    "canonical_trait": "bears maker's mark: three intertwined circles",
-    "category": "detail",
+    "trait": "bears maker's mark: three intertwined circles",
     "context": "revealed upon close examination"
   },
   "justification": "Player examined key 3 times, warrants additional detail",
@@ -158,7 +163,7 @@ class ConsistencyValidator:
     def validate_proposal(self, proposal, entity, game_state):
         """
         Checks:
-        1. No direct contradictions with canonical_traits
+        1. No direct contradictions with existing traits
         2. Compatible with atmosphere/personality
         3. Doesn't invalidate previous descriptions
         4. Fits within game world logic
@@ -182,21 +187,21 @@ class ConsistencyValidator:
 ### Validation Examples
 
 #### ✅ Valid Augmentation
-**Existing traits:** `["raven-shaped bow", "tarnished silver"]`  
-**Proposal:** `"three small scratches on the shaft"`  
-**Validation:** Compatible - adds detail without contradicting  
+**Existing traits:** `["raven-shaped bow", "tarnished silver"]`
+**Proposed trait:** `"three small scratches on the shaft"`
+**Validation:** Compatible - adds detail without contradicting
 **Result:** APPROVED
 
 #### ❌ Invalid Augmentation - Contradiction
-**Existing traits:** `["tarnished silver", "surprisingly heavy"]`  
-**Proposal:** `"lightweight aluminum construction"`  
-**Validation:** Contradicts "tarnished silver" (aluminum doesn't tarnish the same way) and "surprisingly heavy"  
+**Existing traits:** `["tarnished silver", "surprisingly heavy"]`
+**Proposed trait:** `"lightweight aluminum construction"`
+**Validation:** Contradicts "tarnished silver" (aluminum doesn't tarnish the same way) and "surprisingly heavy"
 **Result:** REJECTED - Material contradiction
 
 #### ⚠️ Questionable Augmentation - Review
-**Existing traits:** `["ancient", "ceremonial"]`  
-**Proposal:** `"battery-powered LED embedded in handle"`  
-**Validation:** Anachronistic for setting  
+**Existing traits:** `["ancient", "ceremonial"]`
+**Proposed trait:** `"battery-powered LED embedded in handle"`
+**Validation:** Anachronistic for setting
 **Result:** FLAG FOR REVIEW - Violates world logic
 
 ### Augmentation Categories
@@ -206,25 +211,21 @@ Proposals are categorized by type and impact:
 ```json
 {
   "augmentation_categories": {
-    "canonical_trait": {
+    "trait": {
       "impact": "high",
       "requires_approval": true,
-      "examples": ["physical features", "material properties"]
+      "examples": ["physical features", "sensory details", "historical facts"]
     },
-    "sensory_detail": {
-      "impact": "medium", 
+    "state_variant": {
+      "impact": "medium",
       "requires_approval": "authoring_only",
-      "examples": ["sounds", "smells", "textures"]
+      "examples": ["context-specific phrasings", "situational descriptions"]
     },
-    "variation_seed": {
-      "impact": "low",
-      "requires_approval": false,
-      "examples": ["alternate phrasings", "contextual mentions"]
-    },
-    "history_hint": {
+    "atmosphere": {
       "impact": "medium",
       "requires_approval": true,
-      "examples": ["background story", "origin clues"]
+      "applies_to": "locations only",
+      "examples": ["mood descriptors", "tone hints"]
     }
   }
 }
@@ -243,9 +244,9 @@ class AuthoringAssistant:
         Generate comprehensive enrichments for entity.
         
         depth options:
-        - "minimal": Just fill missing canonical_traits
-        - "standard": Add sensory details and variations
-        - "full": Complete LLM context with history/personality
+        - "minimal": Just fill missing traits
+        - "standard": Add traits and state_variants
+        - "full": Complete LLM context including atmosphere (for locations)
         """
         
         # Get entity and existing context
@@ -276,13 +277,13 @@ Author: enrich item_1 --depth=full
 
 LLM Analysis:
 Current traits: ["raven-shaped bow", "tarnished silver"]
-Gaps identified: sensory details, history, state variants
+Gaps identified: sensory details, historical context, state variants
 
 Proposals:
-✅ Canonical trait: "cold to the touch" [APPROVED]
-✅ Sensory (touch): "smooth despite age" [APPROVED]
-✅ History hint: "forged in the old kingdom" [APPROVED]
-⚠️  Canonical trait: "glows faintly in moonlight" [REVIEW - magical property]
+✅ Trait: "cold to the touch" [APPROVED]
+✅ Trait: "smooth despite age" [APPROVED]
+✅ Trait: "forged in the old kingdom" [APPROVED]
+⚠️ Trait: "glows faintly in moonlight" [REVIEW - magical property]
 
 Review required for 1 proposal. Accept? (y/n/edit)
 ```
@@ -360,15 +361,15 @@ Track when and why resources were added:
 ```json
 {
   "llm_context": {
-    "canonical_traits": [
+    "traits": [
       {
-        "trait": "raven-shaped bow",
+        "value": "raven-shaped bow",
         "source": "authored",
         "added": "2024-01-15T10:00:00Z",
         "author": "game_designer"
       },
       {
-        "trait": "intricate feather details",
+        "value": "intricate feather details",
         "source": "llm_enrichment",
         "added": "2024-01-20T15:30:00Z",
         "trigger": "player_repeated_examination",
@@ -473,11 +474,12 @@ You are the narrator for a text adventure game.
 Generate rich, immersive descriptions based on game state and context.
 
 RULES:
-1. Use ONLY information from canonical_traits - never invent details
+1. Use ONLY information from traits - never invent details
 2. Vary language but keep facts consistent
 3. Reflect current game state in descriptions
-4. Use atmosphere/sensory details to enrich output
+4. Use atmosphere and state_variants to enrich output
 5. Never contradict previous descriptions
+6. Include at least 2-3 traits in each description
 ```
 
 **Input Context:**
@@ -488,7 +490,7 @@ RULES:
     "success": true,
     "item": {
       "name": "Silver Key",
-      "canonical_traits": ["raven-shaped bow", "tarnished silver"],
+      "traits": ["raven-shaped bow", "tarnished silver", "surprisingly heavy"],
       "state_variants": {"in_inventory": "cold weight in your pocket"}
     }
   },
@@ -586,10 +588,10 @@ class LLMGameController:
 class ConsistencyValidator:
     """Validates LLM output doesn't contradict canonical facts."""
     
-    def validate_narration(self, llm_output, canonical_context):
+    def validate_narration(self, llm_output, context):
         """
         Check that LLM description:
-        - Uses only canonical_traits
+        - Uses only traits from context
         - Doesn't introduce new facts
         - Reflects current game state correctly
         """
@@ -656,10 +658,10 @@ result = {
   "action": "use_item_on_door",
   "success": true,
   "item_context": {
-    "canonical_traits": ["raven-shaped bow", "fits lock perfectly"]
+    "traits": ["raven-shaped bow", "tarnished silver", "fits lock perfectly"]
   },
   "door_context": {
-    "canonical_traits": ["raven sigil on lock", "heavy iron gate"],
+    "traits": ["raven sigil on lock", "heavy iron gate"],
     "state_change": "locked → unlocked"
   }
 }
@@ -878,7 +880,7 @@ AI: Checking consistency across 87 entities...
 - Can add validation between phases
 - Can log and analyze each phase independently
 
-### Why Canonical Traits?
+### Why Traits?
 
 **Consistency Problem:**
 Without constraints, LLMs will describe the "silver key" differently each time:
@@ -887,14 +889,16 @@ Without constraints, LLMs will describe the "silver key" differently each time:
 - Third time: "heavy iron key shaped like a bird"
 
 **Solution:**
-Canonical traits in game state ensure the LLM always has the same facts:
+Traits in game state ensure the LLM always has the same facts:
 ```json
-"canonical_traits": ["raven-shaped bow", "tarnished silver", "surprisingly heavy"]
+"traits": ["raven-shaped bow", "tarnished silver", "surprisingly heavy", "cold to the touch"]
 ```
 
 LLM can vary *language* but not *facts*:
 - "The tarnished silver key feels heavy in your hand, its raven-shaped bow gleaming..."
-- "You examine the heavy key, noting the raven design on its silver surface..."
+- "You examine the heavy key, noting the raven design on its cold silver surface..."
+
+The narrator instructions require using at least 2-3 traits per description, ensuring players consistently recognize entities while experiencing varied language.
 
 ### Why Not Let LLM Manage State?
 
@@ -1002,9 +1006,9 @@ Optimizations:
    - Player: "use it" - which item?
    - LLM clarifies or game engine requires explicit reference?
 
-3. **How to version canonical traits?**
+3. **How to version traits?**
    - Player discovers new information about item
-   - Add to canonical_traits or separate "known_facts"?
+   - Add to traits or separate "known_facts"?
 
 4. **How to handle player creativity?**
    - Player: "I light the torch using the magic ring"

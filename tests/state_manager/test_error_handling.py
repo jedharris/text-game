@@ -5,7 +5,7 @@ Covers: TE-001 through TE-005 from state_manager_testing.md
 """
 import unittest
 import logging
-from test_helpers import load_fixture, get_fixture_path
+from .test_helpers import load_fixture, get_fixture_path
 
 
 class TestErrorHandling(unittest.TestCase):

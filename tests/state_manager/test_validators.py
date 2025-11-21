@@ -4,7 +4,7 @@ Tests for state manager validation functionality.
 Covers: TV-001 through TV-018 from state_manager_testing.md
 """
 import unittest
-from test_helpers import load_fixture, assert_validation_error_contains, get_fixture_path
+from .test_helpers import load_fixture, assert_validation_error_contains, get_fixture_path
 
 
 class TestValidators(unittest.TestCase):

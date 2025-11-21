@@ -201,7 +201,8 @@ def parse_locations(raw: Any) -> List[Location]:
             exits=exits,
             tags=loc_data.get('tags', []),
             items=loc_data.get('items', []),
-            npcs=loc_data.get('npcs', [])
+            npcs=loc_data.get('npcs', []),
+            llm_context=loc_data.get('llm_context')
         )
         locations.append(location)
 
@@ -236,7 +237,8 @@ def parse_doors(raw: Any) -> List[Door]:
             locked=door_data.get('locked', False),
             lock_id=door_data.get('lock_id'),
             open=door_data.get('open', True),
-            one_way=door_data.get('one_way', False)
+            one_way=door_data.get('one_way', False),
+            llm_context=door_data.get('llm_context')
         )
         doors.append(door)
 
@@ -270,6 +272,11 @@ def parse_items(raw: Any) -> List[Item]:
                 capacity=container_data.get('capacity', 0)
             )
 
+        # Get states and merge in llm_context if present
+        states = item_data.get('states', {})
+        if 'llm_context' in item_data:
+            states['llm_context'] = item_data['llm_context']
+
         item = Item(
             id=item_data['id'],
             name=item_data.get('name', ''),
@@ -277,7 +284,7 @@ def parse_items(raw: Any) -> List[Item]:
             type=item_data.get('type', 'scenery'),
             portable=item_data.get('portable', False),
             location=item_data.get('location', ''),
-            states=item_data.get('states', {}),
+            states=states,
             container=container
         )
         items.append(item)
@@ -306,7 +313,8 @@ def parse_locks(raw: Any) -> List[Lock]:
             opens_with=lock_data.get('opens_with', []),
             auto_unlock=lock_data.get('auto_unlock', False),
             description=lock_data.get('description', ''),
-            fail_message=lock_data.get('fail_message', '')
+            fail_message=lock_data.get('fail_message', ''),
+            llm_context=lock_data.get('llm_context')
         )
         locks.append(lock)
 
@@ -329,13 +337,18 @@ def parse_npcs(raw: Any) -> List[NPC]:
         if not isinstance(npc_data['id'], str):
             raise SchemaError(f"NPC ID must be a string, got {type(npc_data['id'])}")
 
+        # Get states and merge in llm_context if present
+        states = npc_data.get('states', {})
+        if 'llm_context' in npc_data:
+            states['llm_context'] = npc_data['llm_context']
+
         npc = NPC(
             id=npc_data['id'],
             name=npc_data.get('name', ''),
             description=npc_data.get('description', ''),
             location=npc_data.get('location', ''),
             dialogue=npc_data.get('dialogue', {}),
-            states=npc_data.get('states', {}),
+            states=states,
             inventory=npc_data.get('inventory', [])
         )
         npcs.append(npc)

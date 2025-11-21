@@ -8,7 +8,7 @@ import json
 from io import StringIO
 from pathlib import Path
 
-from test_helpers import load_fixture, get_fixture_path
+from .test_helpers import load_fixture, get_fixture_path
 
 
 class TestLoader(unittest.TestCase):

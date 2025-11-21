@@ -1,7 +1,17 @@
-"""Interactive parser testing tool."""
+"""Interactive parser testing tool with JSON protocol support."""
+
+import json
+import sys
+from pathlib import Path
+
+# Add project root to path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
 from src.parser import Parser
 from src.parsed_command import ParsedCommand
+from src.state_manager import load_game_state
+from src.json_protocol import JSONProtocolHandler
 
 
 def format_command(cmd: ParsedCommand) -> str:
@@ -54,11 +64,18 @@ def print_word_types(parser: Parser):
 def main():
     parser = Parser('data/vocabulary.json')
 
+    # Load game state for JSON protocol testing
+    script_dir = Path(__file__).parent
+    state_file = script_dir / "simple_game_state.json"
+    state = load_game_state(str(state_file))
+    json_handler = JSONProtocolHandler(state)
+
     print("=" * 60)
     print("Interactive Parser Testing Tool")
     print("=" * 60)
     print("\nCommands:")
-    print("  <command>  - Parse a command")
+    print("  <command>  - Parse a text command")
+    print("  {json}     - Process JSON protocol message")
     print("  stats      - Show vocabulary statistics")
     print("  help       - Show this help message")
     print("  quit       - Exit the tool")
@@ -84,13 +101,25 @@ def main():
 
             if command_text.lower() == 'help':
                 print("\nCommands:")
-                print("  <command>  - Parse a command (e.g., 'take sword')")
+                print("  <command>  - Parse a text command (e.g., 'take sword')")
+                print("  {json}     - Process JSON protocol message")
                 print("  stats      - Show vocabulary statistics")
                 print("  help       - Show this help message")
                 print("  quit       - Exit the tool")
                 continue
 
-            # Parse the command
+            # Check if input is JSON (per spec: starts with '{')
+            if command_text.startswith("{"):
+                try:
+                    message = json.loads(command_text)
+                    result_json = json_handler.handle_message(message)
+                    print("\nJSON Response:")
+                    print(json.dumps(result_json, indent=2))
+                except json.JSONDecodeError as e:
+                    print(f"\nJSON ERROR: {e}")
+                continue
+
+            # Parse the text command
             result = parser.parse_command(command_text)
 
             if result is None:

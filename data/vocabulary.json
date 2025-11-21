@@ -1,68 +1,582 @@
 {
   "verbs": [
-    { "word": "take", "synonyms": ["get", "grab", "pick"], "value": 1, "object_required": true },
-    { "word": "drop", "synonyms": ["put", "place"], "value": 2, "object_required": true },
-    { "word": "examine", "synonyms": ["look", "inspect", "x"], "value": 3, "object_required": "optional" },
-    { "word": "go", "synonyms": ["walk", "move"], "value": 4, "object_required": false },
-    { "word": "open", "synonyms": [], "value": 5, "object_required": true },
-    { "word": "close", "synonyms": ["shut"], "value": 6, "object_required": true },
-    { "word": "unlock", "synonyms": [], "value": 7, "object_required": true },
-    { "word": "lock", "synonyms": [], "value": 8, "object_required": true },
-    { "word": "attack", "synonyms": ["hit", "strike", "fight", "kill"], "value": 9, "object_required": true },
-    { "word": "use", "synonyms": [], "value": 10, "object_required": true },
-    { "word": "eat", "synonyms": ["consume"], "value": 11, "object_required": true },
-    { "word": "drink", "synonyms": [], "value": 12, "object_required": true },
-    { "word": "read", "synonyms": [], "value": 13, "object_required": true },
-    { "word": "climb", "synonyms": [], "value": 14, "object_required": true },
-    { "word": "pull", "synonyms": ["yank"], "value": 15, "object_required": true },
-    { "word": "push", "synonyms": ["press"], "value": 16, "object_required": true },
-    { "word": "quit", "synonyms": ["exit"], "value": 17, "object_required": false },
-    { "word": "load", "synonyms": ["restore"], "value": 18, "object_required": "optional" },
-    { "word": "save", "synonyms": [], "value": 19, "object_required": "optional" },
-    { "word": "inventory", "synonyms": ["inv", "i"], "value": 20, "object_required": false }
+    {
+      "word": "take",
+      "synonyms": ["get", "grab", "pick"],
+      "value": 1,
+      "object_required": true,
+      "llm_context": {
+        "traits": ["physical action", "transfers possession", "requires reachable object"],
+        "failure_narration": {
+          "not_found": "cannot find the object",
+          "too_heavy": "too heavy to lift",
+          "fixed": "firmly attached"
+        }
+      }
+    },
+    {
+      "word": "drop",
+      "synonyms": ["put", "place"],
+      "value": 2,
+      "object_required": true,
+      "llm_context": {
+        "traits": ["releases held object", "places in current location"],
+        "failure_narration": {
+          "not_holding": "not carrying that"
+        }
+      }
+    },
+    {
+      "word": "examine",
+      "synonyms": ["look", "inspect", "x"],
+      "value": 3,
+      "object_required": "optional",
+      "llm_context": {
+        "traits": ["reveals details", "non-destructive", "provides information"],
+        "without_object": "describes current surroundings",
+        "state_variants": {
+          "detailed": "close inspection reveals hidden details",
+          "quick": "brief glance"
+        }
+      }
+    },
+    {
+      "word": "go",
+      "synonyms": ["walk", "move"],
+      "value": 4,
+      "object_required": false,
+      "llm_context": {
+        "traits": ["movement between locations", "requires valid exit"],
+        "failure_narration": {
+          "blocked": "path is blocked",
+          "no_exit": "cannot go that way"
+        }
+      }
+    },
+    {
+      "word": "open",
+      "synonyms": [],
+      "value": 5,
+      "object_required": true,
+      "llm_context": {
+        "traits": ["reveals contents", "changes state to open"],
+        "failure_narration": {
+          "locked": "locked and won't budge",
+          "already_open": "already open",
+          "cannot_open": "cannot be opened"
+        }
+      }
+    },
+    {
+      "word": "close",
+      "synonyms": ["shut"],
+      "value": 6,
+      "object_required": true,
+      "llm_context": {
+        "traits": ["conceals contents", "changes state to closed"],
+        "failure_narration": {
+          "already_closed": "already closed",
+          "cannot_close": "cannot be closed"
+        }
+      }
+    },
+    {
+      "word": "unlock",
+      "synonyms": [],
+      "value": 7,
+      "object_required": true,
+      "llm_context": {
+        "traits": ["requires correct key", "changes locked state"],
+        "failure_narration": {
+          "no_key": "need the right key",
+          "wrong_key": "key doesn't fit",
+          "not_locked": "not locked"
+        }
+      }
+    },
+    {
+      "word": "lock",
+      "synonyms": [],
+      "value": 8,
+      "object_required": true,
+      "llm_context": {
+        "traits": ["secures object", "requires correct key"],
+        "failure_narration": {
+          "no_key": "need the right key",
+          "already_locked": "already locked",
+          "must_close_first": "must close it first"
+        }
+      }
+    },
+    {
+      "word": "attack",
+      "synonyms": ["hit", "strike", "fight", "kill"],
+      "value": 9,
+      "object_required": true,
+      "llm_context": {
+        "traits": ["combat action", "potentially destructive", "may have consequences"],
+        "atmosphere": "violent, aggressive",
+        "failure_narration": {
+          "no_weapon": "need a weapon",
+          "cannot_attack": "cannot attack that"
+        }
+      }
+    },
+    {
+      "word": "use",
+      "synonyms": [],
+      "value": 10,
+      "object_required": true,
+      "llm_context": {
+        "traits": ["activates object function", "context-dependent"],
+        "failure_narration": {
+          "no_effect": "nothing happens",
+          "cannot_use": "cannot use that"
+        }
+      }
+    },
+    {
+      "word": "eat",
+      "synonyms": ["consume"],
+      "value": 11,
+      "object_required": true,
+      "llm_context": {
+        "traits": ["consumes food", "may restore health", "destroys item"],
+        "failure_narration": {
+          "not_edible": "cannot eat that",
+          "not_hungry": "not hungry"
+        }
+      }
+    },
+    {
+      "word": "drink",
+      "synonyms": [],
+      "value": 12,
+      "object_required": true,
+      "llm_context": {
+        "traits": ["consumes liquid", "may have effects", "usually destroys item"],
+        "failure_narration": {
+          "not_drinkable": "cannot drink that",
+          "empty": "nothing left to drink"
+        }
+      }
+    },
+    {
+      "word": "read",
+      "synonyms": [],
+      "value": 13,
+      "object_required": true,
+      "llm_context": {
+        "traits": ["reveals written content", "requires readable object"],
+        "failure_narration": {
+          "not_readable": "nothing to read",
+          "too_dark": "too dark to read"
+        }
+      }
+    },
+    {
+      "word": "climb",
+      "synonyms": [],
+      "value": 14,
+      "object_required": true,
+      "llm_context": {
+        "traits": ["vertical movement", "requires climbable surface"],
+        "failure_narration": {
+          "cannot_climb": "cannot climb that",
+          "too_slippery": "too slippery to climb"
+        }
+      }
+    },
+    {
+      "word": "pull",
+      "synonyms": ["yank"],
+      "value": 15,
+      "object_required": true,
+      "llm_context": {
+        "traits": ["applies force toward self", "may trigger mechanisms"],
+        "failure_narration": {
+          "stuck": "won't budge",
+          "nothing_happens": "nothing happens"
+        }
+      }
+    },
+    {
+      "word": "push",
+      "synonyms": ["press"],
+      "value": 16,
+      "object_required": true,
+      "llm_context": {
+        "traits": ["applies force away from self", "may trigger mechanisms"],
+        "failure_narration": {
+          "stuck": "won't move",
+          "nothing_happens": "nothing happens"
+        }
+      }
+    },
+    {
+      "word": "quit",
+      "synonyms": ["exit"],
+      "value": 17,
+      "object_required": false,
+      "llm_context": {
+        "traits": ["ends game session", "meta-command"]
+      }
+    },
+    {
+      "word": "load",
+      "synonyms": ["restore"],
+      "value": 18,
+      "object_required": "optional",
+      "llm_context": {
+        "traits": ["restores saved game", "meta-command"]
+      }
+    },
+    {
+      "word": "save",
+      "synonyms": [],
+      "value": 19,
+      "object_required": "optional",
+      "llm_context": {
+        "traits": ["saves current progress", "meta-command"]
+      }
+    },
+    {
+      "word": "inventory",
+      "synonyms": ["inv", "i"],
+      "value": 20,
+      "object_required": false,
+      "llm_context": {
+        "traits": ["lists carried items", "meta-command"]
+      }
+    }
   ],
   "nouns": [
-    { "word": "door", "value": 101 },
-    { "word": "key", "value": 102 },
-    { "word": "sword", "value": 103 },
-    { "word": "chest", "value": 104 },
-    { "word": "goblin", "value": 105 },
-    { "word": "flask", "value": 106 },
-    { "word": "potion", "value": 107 },
-    { "word": "coin", "value": 108 },
-    { "word": "lock", "value": 109 },
-    { "word": "table", "value": 110 },
-    { "word": "book", "value": 111 },
-    { "word": "ladder", "value": 112 },
-    { "word": "lever", "value": 113 },
-    { "word": "button", "value": 114 }
+    {
+      "word": "door",
+      "value": 101,
+      "llm_context": {
+        "traits": ["passage between areas", "can be opened/closed", "may be locked"],
+        "state_variants": {
+          "open": "stands open",
+          "closed": "blocks passage",
+          "locked": "secured against entry"
+        }
+      }
+    },
+    {
+      "word": "key",
+      "value": 102,
+      "llm_context": {
+        "traits": ["unlocks specific locks", "small and portable", "metal"],
+        "state_variants": {
+          "in_inventory": "ready for use",
+          "in_location": "waiting to be found"
+        }
+      }
+    },
+    {
+      "word": "sword",
+      "value": 103,
+      "llm_context": {
+        "traits": ["weapon", "metal blade", "can attack", "sharp edge"],
+        "state_variants": {
+          "wielded": "ready to strike",
+          "sheathed": "at rest"
+        }
+      }
+    },
+    {
+      "word": "chest",
+      "value": 104,
+      "llm_context": {
+        "traits": ["container", "can hold items", "may be locked", "wooden or metal"],
+        "state_variants": {
+          "open": "contents visible",
+          "closed": "contents hidden",
+          "locked": "secured shut"
+        }
+      }
+    },
+    {
+      "word": "goblin",
+      "value": 105,
+      "llm_context": {
+        "traits": ["hostile creature", "small and wiry", "cunning", "dangerous"],
+        "speech_style": "crude, threatening",
+        "state_variants": {
+          "alive": "menacing",
+          "defeated": "no longer a threat"
+        }
+      }
+    },
+    {
+      "word": "flask",
+      "value": 106,
+      "llm_context": {
+        "traits": ["liquid container", "glass or metal", "portable", "may contain potion"],
+        "state_variants": {
+          "full": "sloshing with liquid",
+          "empty": "dry inside"
+        }
+      }
+    },
+    {
+      "word": "potion",
+      "value": 107,
+      "llm_context": {
+        "traits": ["magical liquid", "consumable", "has effect when drunk", "colored liquid"],
+        "state_variants": {
+          "identified": "effect known",
+          "unidentified": "unknown properties"
+        }
+      }
+    },
+    {
+      "word": "coin",
+      "value": 108,
+      "llm_context": {
+        "traits": ["currency", "metal disc", "valuable", "stackable"],
+        "state_variants": {
+          "single": "a lone coin",
+          "pile": "scattered coins"
+        }
+      }
+    },
+    {
+      "word": "lock",
+      "value": 109,
+      "llm_context": {
+        "traits": ["security mechanism", "requires key", "metal", "part of door or chest"],
+        "state_variants": {
+          "locked": "firmly secured",
+          "unlocked": "mechanism disengaged"
+        }
+      }
+    },
+    {
+      "word": "table",
+      "value": 110,
+      "llm_context": {
+        "traits": ["furniture", "flat surface", "can hold items", "wooden"],
+        "state_variants": {
+          "empty": "bare surface",
+          "with_items": "items rest upon it"
+        }
+      }
+    },
+    {
+      "word": "book",
+      "value": 111,
+      "llm_context": {
+        "traits": ["readable", "contains text", "bound pages", "may hold knowledge"],
+        "state_variants": {
+          "closed": "contents hidden",
+          "open": "pages exposed"
+        }
+      }
+    },
+    {
+      "word": "ladder",
+      "value": 112,
+      "llm_context": {
+        "traits": ["climbable", "vertical movement", "wooden rungs", "connects levels"],
+        "state_variants": {
+          "stable": "firmly placed",
+          "rickety": "creaks under weight"
+        }
+      }
+    },
+    {
+      "word": "lever",
+      "value": 113,
+      "llm_context": {
+        "traits": ["mechanism", "can be pulled or pushed", "triggers action", "metal or wood"],
+        "state_variants": {
+          "up": "in raised position",
+          "down": "in lowered position"
+        }
+      }
+    },
+    {
+      "word": "button",
+      "value": 114,
+      "llm_context": {
+        "traits": ["mechanism", "can be pushed", "triggers action", "small and round"],
+        "state_variants": {
+          "pressed": "depressed",
+          "released": "protruding"
+        }
+      }
+    }
   ],
   "adjectives": [
-    { "word": "red", "value": 201 },
-    { "word": "blue", "value": 202 },
-    { "word": "rusty", "value": 203 },
-    { "word": "wooden", "value": 204 },
-    { "word": "iron", "value": 205 },
-    { "word": "small", "value": 206 },
-    { "word": "large", "value": 207 },
-    { "word": "golden", "value": 208 },
-    { "word": "silver", "value": 209 },
-    { "word": "ancient", "value": 210 },
-    { "word": "heavy", "value": 211 },
-    { "word": "light", "value": 212 }
+    {
+      "word": "red",
+      "value": 201,
+      "llm_context": {
+        "traits": ["warm color", "associated with danger or blood", "vivid"]
+      }
+    },
+    {
+      "word": "blue",
+      "value": 202,
+      "llm_context": {
+        "traits": ["cool color", "associated with water or sky", "calming"]
+      }
+    },
+    {
+      "word": "rusty",
+      "value": 203,
+      "llm_context": {
+        "traits": ["corroded metal", "aged", "rough texture", "reddish-brown"]
+      }
+    },
+    {
+      "word": "wooden",
+      "value": 204,
+      "llm_context": {
+        "traits": ["made of wood", "natural material", "can burn", "grain texture"]
+      }
+    },
+    {
+      "word": "iron",
+      "value": 205,
+      "llm_context": {
+        "traits": ["heavy metal", "strong", "cold to touch", "dark gray"]
+      }
+    },
+    {
+      "word": "small",
+      "value": 206,
+      "llm_context": {
+        "traits": ["compact size", "easy to carry", "fits in hand"]
+      }
+    },
+    {
+      "word": "large",
+      "value": 207,
+      "llm_context": {
+        "traits": ["substantial size", "may be heavy", "prominent"]
+      }
+    },
+    {
+      "word": "golden",
+      "value": 208,
+      "llm_context": {
+        "traits": ["gold material", "valuable", "warm metallic color", "shiny"]
+      }
+    },
+    {
+      "word": "silver",
+      "value": 209,
+      "llm_context": {
+        "traits": ["silver material", "valuable", "cool metallic color", "reflective"]
+      }
+    },
+    {
+      "word": "ancient",
+      "value": 210,
+      "llm_context": {
+        "traits": ["very old", "historical significance", "weathered", "mysterious"]
+      }
+    },
+    {
+      "word": "heavy",
+      "value": 211,
+      "llm_context": {
+        "traits": ["substantial weight", "difficult to carry", "solid"]
+      }
+    },
+    {
+      "word": "light",
+      "value": 212,
+      "llm_context": {
+        "traits": ["minimal weight", "easy to carry", "may feel flimsy"]
+      }
+    }
   ],
   "prepositions": ["with", "to", "in", "on", "under", "behind", "from", "into", "onto"],
   "directions": [
-    { "word": "north", "synonyms": ["n"], "value": 1 },
-    { "word": "south", "synonyms": ["s"], "value": 2 },
-    { "word": "east", "synonyms": ["e"], "value": 3 },
-    { "word": "west", "synonyms": ["w"], "value": 4 },
-    { "word": "up", "synonyms": ["u"], "value": 5 },
-    { "word": "down", "synonyms": ["d"], "value": 6 },
-    { "word": "northeast", "synonyms": ["ne"], "value": 7 },
-    { "word": "northwest", "synonyms": ["nw"], "value": 8 },
-    { "word": "southeast", "synonyms": ["se"], "value": 9 },
-    { "word": "southwest", "synonyms": ["sw"], "value": 10 }
+    {
+      "word": "north",
+      "synonyms": ["n"],
+      "value": 1,
+      "llm_context": {
+        "traits": ["cardinal direction", "toward the top of maps"]
+      }
+    },
+    {
+      "word": "south",
+      "synonyms": ["s"],
+      "value": 2,
+      "llm_context": {
+        "traits": ["cardinal direction", "toward the bottom of maps"]
+      }
+    },
+    {
+      "word": "east",
+      "synonyms": ["e"],
+      "value": 3,
+      "llm_context": {
+        "traits": ["cardinal direction", "toward the right of maps"]
+      }
+    },
+    {
+      "word": "west",
+      "synonyms": ["w"],
+      "value": 4,
+      "llm_context": {
+        "traits": ["cardinal direction", "toward the left of maps"]
+      }
+    },
+    {
+      "word": "up",
+      "synonyms": ["u"],
+      "value": 5,
+      "llm_context": {
+        "traits": ["vertical direction", "ascend", "may require climbing"]
+      }
+    },
+    {
+      "word": "down",
+      "synonyms": ["d"],
+      "value": 6,
+      "llm_context": {
+        "traits": ["vertical direction", "descend"]
+      }
+    },
+    {
+      "word": "northeast",
+      "synonyms": ["ne"],
+      "value": 7,
+      "llm_context": {
+        "traits": ["intercardinal direction", "between north and east"]
+      }
+    },
+    {
+      "word": "northwest",
+      "synonyms": ["nw"],
+      "value": 8,
+      "llm_context": {
+        "traits": ["intercardinal direction", "between north and west"]
+      }
+    },
+    {
+      "word": "southeast",
+      "synonyms": ["se"],
+      "value": 9,
+      "llm_context": {
+        "traits": ["intercardinal direction", "between south and east"]
+      }
+    },
+    {
+      "word": "southwest",
+      "synonyms": ["sw"],
+      "value": 10,
+      "llm_context": {
+        "traits": ["intercardinal direction", "between south and west"]
+      }
+    }
   ],
   "articles": ["the", "a", "an"]
 }
