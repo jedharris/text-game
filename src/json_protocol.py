@@ -200,11 +200,17 @@ class JSONProtocolHandler:
         # Examine room if no object specified
         if not obj_name:
             loc = self._get_current_location()
+            # Get items in location
+            items = []
+            for item in self.state.items:
+                if item.location == loc.id:
+                    items.append(self._entity_to_dict(item))
             return {
                 "type": "result",
                 "success": True,
                 "action": "examine",
-                "entity": self._location_to_dict(loc)
+                "entity": self._location_to_dict(loc),
+                "items": items
             }
 
         # Find item in location or inventory
@@ -298,11 +304,18 @@ class JSONProtocolHandler:
         self.state.player.location = new_loc_id
         new_loc = self._get_location_by_id(new_loc_id)
 
+        # Get items in new location
+        items = []
+        for item in self.state.items:
+            if item.location == new_loc_id:
+                items.append(self._entity_to_dict(item))
+
         return {
             "type": "result",
             "success": True,
             "action": "go",
-            "entity": self._location_to_dict(new_loc)
+            "entity": self._location_to_dict(new_loc),
+            "items": items
         }
 
     def _cmd_open(self, action: Dict) -> Dict:
@@ -571,6 +584,270 @@ class JSONProtocolHandler:
     def _cmd_look(self, action: Dict) -> Dict:
         """Handle look command (alias for examine room)."""
         return self._cmd_examine(action)
+
+    def _cmd_drink(self, action: Dict) -> Dict:
+        """Handle drink command."""
+        obj_name = action.get("object")
+
+        if not obj_name:
+            return {
+                "type": "result",
+                "success": False,
+                "action": "drink",
+                "error": {"message": "Drink what?"}
+            }
+
+        # Find item in inventory
+        item = None
+        for item_id in self.state.player.inventory:
+            i = self._get_item_by_id(item_id)
+            if i and i.name == obj_name:
+                item = i
+                break
+
+        if not item:
+            return {
+                "type": "result",
+                "success": False,
+                "action": "drink",
+                "error": {"message": "You're not carrying that."}
+            }
+
+        # Remove item from inventory (consumed)
+        self.state.player.inventory.remove(item.id)
+        item.location = None  # Item is consumed
+
+        return {
+            "type": "result",
+            "success": True,
+            "action": "drink",
+            "entity": self._entity_to_dict(item)
+        }
+
+    def _cmd_eat(self, action: Dict) -> Dict:
+        """Handle eat command."""
+        obj_name = action.get("object")
+
+        if not obj_name:
+            return {
+                "type": "result",
+                "success": False,
+                "action": "eat",
+                "error": {"message": "Eat what?"}
+            }
+
+        # Find item in inventory
+        item = None
+        for item_id in self.state.player.inventory:
+            i = self._get_item_by_id(item_id)
+            if i and i.name == obj_name:
+                item = i
+                break
+
+        if not item:
+            return {
+                "type": "result",
+                "success": False,
+                "action": "eat",
+                "error": {"message": "You're not carrying that."}
+            }
+
+        # Remove item from inventory (consumed)
+        self.state.player.inventory.remove(item.id)
+        item.location = None  # Item is consumed
+
+        return {
+            "type": "result",
+            "success": True,
+            "action": "eat",
+            "entity": self._entity_to_dict(item)
+        }
+
+    def _cmd_attack(self, action: Dict) -> Dict:
+        """Handle attack command."""
+        obj_name = action.get("object")
+
+        if not obj_name:
+            return {
+                "type": "result",
+                "success": False,
+                "action": "attack",
+                "error": {"message": "Attack what?"}
+            }
+
+        # Check for NPCs in location
+        loc = self._get_current_location()
+        for npc in self.state.npcs:
+            if npc.location == loc.id and npc.name.lower() == obj_name.lower():
+                return {
+                    "type": "result",
+                    "success": True,
+                    "action": "attack",
+                    "entity": self._npc_to_dict(npc)
+                }
+
+        # Check for items in location or inventory
+        item = self._find_accessible_item(obj_name)
+        if item:
+            return {
+                "type": "result",
+                "success": False,
+                "action": "attack",
+                "entity": self._entity_to_dict(item),
+                "error": {"message": f"You can't attack the {obj_name}."}
+            }
+
+        return {
+            "type": "result",
+            "success": False,
+            "action": "attack",
+            "error": {"message": "You don't see that here."}
+        }
+
+    def _cmd_use(self, action: Dict) -> Dict:
+        """Handle use command."""
+        obj_name = action.get("object")
+
+        if not obj_name:
+            return {
+                "type": "result",
+                "success": False,
+                "action": "use",
+                "error": {"message": "Use what?"}
+            }
+
+        # Find item in inventory or location
+        item = self._find_accessible_item(obj_name)
+        if not item:
+            return {
+                "type": "result",
+                "success": False,
+                "action": "use",
+                "error": {"message": "You don't see that here."}
+            }
+
+        return {
+            "type": "result",
+            "success": True,
+            "action": "use",
+            "entity": self._entity_to_dict(item)
+        }
+
+    def _cmd_read(self, action: Dict) -> Dict:
+        """Handle read command."""
+        obj_name = action.get("object")
+
+        if not obj_name:
+            return {
+                "type": "result",
+                "success": False,
+                "action": "read",
+                "error": {"message": "Read what?"}
+            }
+
+        # Find item in inventory or location
+        item = self._find_accessible_item(obj_name)
+        if not item:
+            return {
+                "type": "result",
+                "success": False,
+                "action": "read",
+                "error": {"message": "You don't see that here."}
+            }
+
+        return {
+            "type": "result",
+            "success": True,
+            "action": "read",
+            "entity": self._entity_to_dict(item)
+        }
+
+    def _cmd_climb(self, action: Dict) -> Dict:
+        """Handle climb command."""
+        obj_name = action.get("object")
+
+        if not obj_name:
+            return {
+                "type": "result",
+                "success": False,
+                "action": "climb",
+                "error": {"message": "Climb what?"}
+            }
+
+        # Find item in location
+        item = self._find_accessible_item(obj_name)
+        if not item:
+            return {
+                "type": "result",
+                "success": False,
+                "action": "climb",
+                "error": {"message": "You don't see that here."}
+            }
+
+        return {
+            "type": "result",
+            "success": True,
+            "action": "climb",
+            "entity": self._entity_to_dict(item)
+        }
+
+    def _cmd_pull(self, action: Dict) -> Dict:
+        """Handle pull command."""
+        obj_name = action.get("object")
+
+        if not obj_name:
+            return {
+                "type": "result",
+                "success": False,
+                "action": "pull",
+                "error": {"message": "Pull what?"}
+            }
+
+        # Find item in location
+        item = self._find_accessible_item(obj_name)
+        if not item:
+            return {
+                "type": "result",
+                "success": False,
+                "action": "pull",
+                "error": {"message": "You don't see that here."}
+            }
+
+        return {
+            "type": "result",
+            "success": True,
+            "action": "pull",
+            "entity": self._entity_to_dict(item)
+        }
+
+    def _cmd_push(self, action: Dict) -> Dict:
+        """Handle push command."""
+        obj_name = action.get("object")
+
+        if not obj_name:
+            return {
+                "type": "result",
+                "success": False,
+                "action": "push",
+                "error": {"message": "Push what?"}
+            }
+
+        # Find item in location
+        item = self._find_accessible_item(obj_name)
+        if not item:
+            return {
+                "type": "result",
+                "success": False,
+                "action": "push",
+                "error": {"message": "You don't see that here."}
+            }
+
+        return {
+            "type": "result",
+            "success": True,
+            "action": "push",
+            "entity": self._entity_to_dict(item)
+        }
 
     # Query handlers
 
