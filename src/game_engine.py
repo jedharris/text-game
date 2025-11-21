@@ -1,5 +1,4 @@
-
-"""Simple game demonstrating state_manager usage."""
+"""Text adventure game engine with state management."""
 
 import json
 import os
@@ -14,6 +13,9 @@ from src.parser import Parser
 from src.state_manager import load_game_state, save_game_state, GameState
 from src.file_dialogs import get_save_filename, get_load_filename
 from src.json_protocol import JSONProtocolHandler
+
+# Default game state file location
+DEFAULT_STATE_FILE = Path(__file__).parent.parent / "examples" / "simple_game_state.json"
 
 
 def get_current_location(state: GameState):
@@ -475,9 +477,6 @@ def main(save_load_dir=None):
         save_load_dir: Default directory for save/load file dialogs.
                       If None, uses current directory.
     """
-    # Get the directory of this script
-    script_dir = Path(__file__).parent
-
     # Set default directory for save/load operations
     if save_load_dir is None:
         save_load_dir = "."
@@ -485,9 +484,8 @@ def main(save_load_dir=None):
     # Initialize parser
     parser = Parser('data/vocabulary.json')
 
-    # Load initial game state
-    state_file = script_dir / "simple_game_state.json"
-    state = load_game_state(str(state_file))
+    # Load initial game state from examples directory
+    state = load_game_state(str(DEFAULT_STATE_FILE))
 
     # Initialize JSON protocol handler
     json_handler = JSONProtocolHandler(state)

@@ -32,12 +32,12 @@ def find_game_project():
     if symlink_path.exists():
         resolved = symlink_path.resolve()
         # Verify it's actually the game project
-        if (resolved / "examples" / "simple_engine.py").exists():
+        if (resolved / "src" / "game_engine.py").exists():
             return resolved
 
     # Option 2: Hardcoded path (assumes script is in project)
     hardcoded_path = Path("/Users/jed/Development/text-game")
-    if (hardcoded_path / "examples" / "simple_engine.py").exists():
+    if (hardcoded_path / "src" / "game_engine.py").exists():
         return hardcoded_path
 
     return None
@@ -75,19 +75,19 @@ os.chdir(project_root)
 # Import and run the game
 if __name__ == "__main__":
     try:
-        # Import the simple_engine module and run it
+        # Import the game_engine module and run it
         import importlib.util
 
-        game_path = project_root / "examples" / "simple_engine.py"
+        game_path = project_root / "src" / "game_engine.py"
 
         # Load the game module
-        spec = importlib.util.spec_from_file_location("simple_engine", game_path)
+        spec = importlib.util.spec_from_file_location("game_engine", game_path)
         if spec is None or spec.loader is None:
             print(f"Error: Could not load game from {game_path}")
             sys.exit(1)
 
         game_module = importlib.util.module_from_spec(spec)
-        sys.modules["simple_engine"] = game_module
+        sys.modules["game_engine"] = game_module
         spec.loader.exec_module(game_module)
 
         # Call the main function, passing launch directory for save/load dialogs
