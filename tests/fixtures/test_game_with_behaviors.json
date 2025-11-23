@@ -1,0 +1,43 @@
+{
+  "metadata": {
+    "title": "Test Game with Behaviors",
+    "author": "Test",
+    "version": "1.0",
+    "description": "A test game for behavior system",
+    "start_location": "room1"
+  },
+  "locations": [
+    {
+      "id": "room1",
+      "name": "Test Room",
+      "description": "A simple test room with various items."
+    }
+  ],
+  "items": [
+    {
+      "id": "rubber_duck",
+      "name": "rubber duck",
+      "description": "A yellow rubber duck. It looks squeezable.",
+      "type": "tool",
+      "portable": true,
+      "location": "room1",
+      "states": {
+        "squeaks": 0
+      },
+      "behaviors": {
+        "on_squeeze": "behaviors.items.rubber_duck:on_squeeze"
+      }
+    },
+    {
+      "id": "plain_rock",
+      "name": "rock",
+      "description": "A plain gray rock.",
+      "type": "scenery",
+      "portable": true,
+      "location": "room1"
+    }
+  ],
+  "doors": [],
+  "npcs": [],
+  "locks": []
+}

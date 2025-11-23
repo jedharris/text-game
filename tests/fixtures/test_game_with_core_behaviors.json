@@ -1,0 +1,100 @@
+{
+  "metadata": {
+    "title": "Test Game with Core Behaviors",
+    "author": "Test",
+    "version": "1.0",
+    "description": "A test game for core behavior modules",
+    "start_location": "room1"
+  },
+  "locations": [
+    {
+      "id": "room1",
+      "name": "Test Room",
+      "description": "A simple test room with various items."
+    },
+    {
+      "id": "room2",
+      "name": "Treasure Room",
+      "description": "A room with a golden chest."
+    }
+  ],
+  "items": [
+    {
+      "id": "health_potion",
+      "name": "potion",
+      "description": "A glowing red potion.",
+      "type": "tool",
+      "portable": true,
+      "location": "room1",
+      "behaviors": {
+        "on_drink": "behaviors.core.consumables:on_drink_health_potion"
+      }
+    },
+    {
+      "id": "bread",
+      "name": "bread",
+      "description": "A loaf of fresh bread.",
+      "type": "tool",
+      "portable": true,
+      "location": "room1",
+      "behaviors": {
+        "on_eat": "behaviors.core.consumables:on_eat_food"
+      }
+    },
+    {
+      "id": "magic_lantern",
+      "name": "lantern",
+      "description": "A copper lantern with glowing runes.",
+      "type": "tool",
+      "portable": true,
+      "location": "room1",
+      "provides_light": true,
+      "states": {
+        "lit": false
+      },
+      "behaviors": {
+        "on_take": "behaviors.core.light_sources:on_take",
+        "on_drop": "behaviors.core.light_sources:on_drop"
+      }
+    },
+    {
+      "id": "treasure_chest",
+      "name": "chest",
+      "description": "A large golden chest with ornate decorations.",
+      "type": "container",
+      "portable": false,
+      "location": "room2",
+      "behaviors": {
+        "on_open": "behaviors.core.containers:on_open_treasure_chest"
+      }
+    },
+    {
+      "id": "plain_rock",
+      "name": "rock",
+      "description": "A plain gray rock.",
+      "type": "scenery",
+      "portable": true,
+      "location": "room1"
+    },
+    {
+      "id": "water",
+      "name": "water",
+      "description": "A cup of water.",
+      "type": "tool",
+      "portable": true,
+      "location": "room1"
+    }
+  ],
+  "doors": [],
+  "npcs": [],
+  "locks": [],
+  "player": {
+    "location": "room1",
+    "inventory": [],
+    "flags": {},
+    "stats": {
+      "health": 50,
+      "max_health": 100
+    }
+  }
+}

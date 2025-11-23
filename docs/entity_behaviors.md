@@ -1108,6 +1108,27 @@ All entity-specific logic lives in behavior modules.
 3. **Preserve messages**: Include in result for LLM
 4. **Handle errors gracefully**: Don't crash on behavior errors
 
+## Future Work: Behavior Override System
+
+**Status**: Not yet designed or implemented
+
+Game developers should be able to override behaviors defined in core modules with their own implementations. This would allow game-specific behavior modules to intercept and handle commands before they reach core handlers.
+
+### Use Cases
+
+1. **Custom movement handling**: A game might want "walk widdershins around statue" to trigger special behavior instead of normal movement processing
+2. **Modified core verbs**: Override "take" to add weight limits or cursed item checks
+3. **Context-sensitive commands**: Make "open" behave differently for magical containers
+
+### Design Considerations
+
+- Module loading order determines override priority (game modules loaded after core)
+- May need explicit priority/ordering mechanism
+- Should support partial override (call through to original behavior)
+- Handler chains vs. replacement semantics
+
+This feature will be designed when specific requirements are better understood.
+
 ## Summary
 
 This behavior system provides:

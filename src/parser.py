@@ -164,7 +164,11 @@ class Parser:
         for token in tokens:
             entry = self._lookup_word(token)
             if entry is None:
-                return None
+                # Treat unknown words as potential adjectives
+                entry = WordEntry(
+                    word=token,
+                    word_type=WordType.ADJECTIVE
+                )
             if entry.word_type == WordType.ARTICLE:
                 continue
             entries.append(entry)
@@ -191,6 +195,9 @@ class Parser:
         """
         if not entries:
             return None
+
+        # Collapse consecutive adjectives into single entries
+        entries = self._collapse_adjectives(entries)
 
         length = len(entries)
         types = [e.word_type for e in entries]
@@ -320,3 +327,44 @@ class Parser:
                 )
 
         return None
+
+    def _collapse_adjectives(self, entries: List[WordEntry]) -> List[WordEntry]:
+        """
+        Collapse consecutive adjectives into single WordEntry objects.
+
+        E.g., [ADJ, ADJ, NOUN] becomes [ADJ, NOUN] where the first ADJ
+        contains combined words like "rough wooden".
+
+        Args:
+            entries: List of WordEntry objects
+
+        Returns:
+            List with consecutive adjectives collapsed
+        """
+        if not entries:
+            return entries
+
+        result = []
+        i = 0
+
+        while i < len(entries):
+            if entries[i].word_type == WordType.ADJECTIVE:
+                # Collect consecutive adjectives
+                adj_words = [entries[i].word]
+                j = i + 1
+                while j < len(entries) and entries[j].word_type == WordType.ADJECTIVE:
+                    adj_words.append(entries[j].word)
+                    j += 1
+
+                # Create combined adjective entry
+                combined = WordEntry(
+                    word=" ".join(adj_words),
+                    word_type=WordType.ADJECTIVE
+                )
+                result.append(combined)
+                i = j
+            else:
+                result.append(entries[i])
+                i += 1
+
+        return result

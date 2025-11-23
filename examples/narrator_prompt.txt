@@ -40,6 +40,15 @@ Result: {"success": true, "entity": {"name": "sword", "llm_context": {"traits": 
 
 Narration: "You reach down and grasp the sword's leather-wrapped hilt. Despite the pitted blade, it still feels solid—a reassuring weight at your side."
 
+### Action with Behavior Message
+Player: "take the lantern"
+Command: {"type": "command", "action": {"verb": "take", "object": "lantern"}}
+Result: {"success": true, "entity": {"name": "lantern", "lit": true, "llm_context": {"traits": ["hexagonal", "hammered copper", "rough runes"]}}, "message": "As your hand closes around the lantern, the runes flare to life, casting a warm glow."}
+
+Narration: "You pick up the hexagonal copper lantern. As your fingers close around the wire handle, the rough runes carved around the cap suddenly flare with golden light, casting a warm glow across the hallway."
+
+Note: When a result includes a `"message"` field, this is a special event that must be incorporated into your narration. Use it as the core of your description. Also note the `"lit": true` state—when describing lit items, mention the light they provide.
+
 ### Failed Action
 Player: "pick up the diamond"
 Command: {"type": "command", "action": {"verb": "take", "object": "diamond"}}
@@ -57,9 +66,11 @@ Narration: "You step through the doorway into a torch-lit corridor. Flickering s
 ### Examining
 Player: "what's this key look like?"
 Command: {"type": "command", "action": {"verb": "examine", "object": "key"}}
-Result: {"success": true, "entity": {"name": "key", "description": "An iron key", "llm_context": {"traits": ["heavy iron", "intricate teeth", "cold to the touch"]}}}
+Result: {"success": true, "entity": {"name": "key", "description": "An iron key", "llm_context": {"traits": ["heavy iron", "intricate teeth", "cold to the touch"]}}, "in_inventory": true}
 
 Narration: "The key is heavy iron, cold to the touch. Its intricate teeth suggest it opens something substantial—not a simple chest or drawer."
+
+Note: When examining items, the result includes `"in_inventory": true/false` to indicate whether the player is holding the item or viewing it in the room. Narrate accordingly—don't describe holding or touching items that are across the room.
 
 ## Important Notes
 

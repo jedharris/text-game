@@ -1,8 +1,8 @@
 """Text adventure game engine with state management."""
 
 import json
-import os
 import sys
+import tempfile
 from pathlib import Path
 
 # Add project root to path so we can import from src
@@ -13,6 +13,8 @@ from src.parser import Parser
 from src.state_manager import load_game_state, save_game_state, GameState
 from src.file_dialogs import get_save_filename, get_load_filename
 from src.json_protocol import JSONProtocolHandler
+from src.vocabulary_generator import extract_nouns_from_state, merge_vocabulary
+from src.behavior_manager import BehaviorManager
 
 # Default game state file location
 DEFAULT_STATE_FILE = Path(__file__).parent.parent / "examples" / "simple_game_state.json"
@@ -212,8 +214,30 @@ def move_player(state: GameState, direction: str):
         return False
 
 
-def take_item(state: GameState, item_name: str, adjective: str = None):
+def take_item(state: GameState, item_name: str, adjective: str = None, json_handler=None):
     """Take an item from current location."""
+    if json_handler:
+        # Use JSON protocol handler (supports behaviors)
+        action = {"verb": "take", "object": item_name}
+        if adjective:
+            action["adjective"] = adjective
+        result = json_handler.handle_command({"type": "command", "action": action})
+
+        if result.get("success"):
+            if adjective:
+                print(f"You take the {adjective} {item_name}.")
+            else:
+                print(f"You take the {item_name}.")
+            # Display behavior message if present
+            if "message" in result:
+                print(result["message"])
+            return True
+        else:
+            error_msg = result.get("error", {}).get("message", f"You can't take the {item_name}.")
+            print(error_msg)
+            return False
+
+    # Fallback: direct state manipulation (no behaviors)
     loc = get_current_location(state)
     if not loc:
         return False
@@ -249,8 +273,27 @@ def take_item(state: GameState, item_name: str, adjective: str = None):
     return True
 
 
-def drop_item(state: GameState, item_name: str):
+def drop_item(state: GameState, item_name: str, json_handler=None):
     """Drop an item from inventory."""
+    if json_handler:
+        # Use JSON protocol handler (supports behaviors)
+        result = json_handler.handle_command({
+            "type": "command",
+            "action": {"verb": "drop", "object": item_name}
+        })
+
+        if result.get("success"):
+            print(f"You drop the {item_name}.")
+            # Display behavior message if present
+            if "message" in result:
+                print(result["message"])
+            return True
+        else:
+            error_msg = result.get("error", {}).get("message", f"You can't drop the {item_name}.")
+            print(error_msg)
+            return False
+
+    # Fallback: direct state manipulation (no behaviors)
     loc = get_current_location(state)
     if not loc:
         return False
@@ -284,6 +327,12 @@ def examine_item(state: GameState, item_name: str):
     for item in state.items:
         if item.name == item_name and item.location == loc.id:
             print(item.description)
+            # Show lit state for light sources
+            if hasattr(item, 'provides_light') and item.provides_light:
+                if item.states.get('lit'):
+                    print("It is currently lit, casting a warm glow.")
+                else:
+                    print("It is currently unlit.")
             return True
 
     # Check inventory
@@ -291,6 +340,12 @@ def examine_item(state: GameState, item_name: str):
         item = get_item_by_id(state, item_id)
         if item and item.name == item_name:
             print(item.description)
+            # Show lit state for light sources
+            if hasattr(item, 'provides_light') and item.provides_light:
+                if item.states.get('lit'):
+                    print("It is currently lit, casting a warm glow.")
+                else:
+                    print("It is currently unlit.")
             return True
 
     # Check for doors (accept "door" as the name)
@@ -481,14 +536,41 @@ def main(save_load_dir=None):
     if save_load_dir is None:
         save_load_dir = "."
 
-    # Initialize parser
-    parser = Parser('data/vocabulary.json')
-
     # Load initial game state from examples directory
     state = load_game_state(str(DEFAULT_STATE_FILE))
 
-    # Initialize JSON protocol handler
-    json_handler = JSONProtocolHandler(state)
+    # Initialize behavior manager and load behavior modules first
+    # (needed for vocabulary extensions)
+    behavior_manager = BehaviorManager()
+    behaviors_dir = Path(__file__).parent.parent / "behaviors"
+    modules = behavior_manager.discover_modules(str(behaviors_dir))
+    behavior_manager.load_modules(modules)
+
+    # Load base vocabulary
+    vocab_path = Path(__file__).parent.parent / 'data' / 'vocabulary.json'
+    with open(vocab_path, 'r') as f:
+        base_vocab = json.load(f)
+
+    # Merge nouns from game state
+    extracted_nouns = extract_nouns_from_state(state)
+    vocab_with_nouns = merge_vocabulary(base_vocab, extracted_nouns)
+
+    # Merge verbs and other vocabulary from behavior modules
+    merged_vocab = behavior_manager.get_merged_vocabulary(vocab_with_nouns)
+
+    # Write merged vocabulary to temp file for parser
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        json.dump(merged_vocab, f)
+        merged_vocab_path = f.name
+
+    # Initialize parser with merged vocabulary
+    parser = Parser(merged_vocab_path)
+
+    # Clean up temp file
+    Path(merged_vocab_path).unlink()
+
+    # Initialize JSON protocol handler with behavior manager
+    json_handler = JSONProtocolHandler(state, behavior_manager=behavior_manager)
 
     print(f"Welcome to {state.metadata.title}!")
     print("Type 'quit' to exit, 'inventory' to see your items, 'look' to examine your surroundings.")
@@ -606,11 +688,11 @@ def main(save_load_dir=None):
             case _ if result.verb and result.verb.word == "take" and result.direct_object:
                 obj_name = result.direct_object.word
                 adjective = result.direct_adjective.word if result.direct_adjective else None
-                take_item(state, obj_name, adjective)
+                take_item(state, obj_name, adjective, json_handler)
 
             # Handle "drop" command (object required)
             case _ if result.verb and result.verb.word == "drop" and result.direct_object:
-                drop_item(state, result.direct_object.word)
+                drop_item(state, result.direct_object.word, json_handler)
 
             # Handle "open" command (object required)
             case _ if result.verb and result.verb.word == "open" and result.direct_object:

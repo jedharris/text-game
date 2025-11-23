@@ -16,6 +16,7 @@ sys.path.insert(0, str(project_root))
 from src.state_manager import load_game_state
 from src.json_protocol import JSONProtocolHandler
 from src.llm_narrator import LLMNarrator
+from src.behavior_manager import BehaviorManager
 
 # Default game state file location
 DEFAULT_STATE_FILE = Path(__file__).parent.parent / "examples" / "simple_game_state.json"
@@ -36,7 +37,15 @@ def main():
         return 1
 
     state = load_game_state(str(DEFAULT_STATE_FILE))
-    json_handler = JSONProtocolHandler(state)
+
+    # Create behavior manager and load modules
+    behavior_manager = BehaviorManager()
+    behaviors_dir = project_root / "behaviors"
+    modules = behavior_manager.discover_modules(str(behaviors_dir))
+    behavior_manager.load_modules(modules)
+
+    # Create JSON handler with behavior manager
+    json_handler = JSONProtocolHandler(state, behavior_manager=behavior_manager)
 
     # Create narrator
     narrator = LLMNarrator(api_key, json_handler)

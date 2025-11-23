@@ -202,7 +202,8 @@ def parse_locations(raw: Any) -> List[Location]:
             tags=loc_data.get('tags', []),
             items=loc_data.get('items', []),
             npcs=loc_data.get('npcs', []),
-            llm_context=loc_data.get('llm_context')
+            llm_context=loc_data.get('llm_context'),
+            behaviors=loc_data.get('behaviors', {})
         )
         locations.append(location)
 
@@ -238,7 +239,8 @@ def parse_doors(raw: Any) -> List[Door]:
             lock_id=door_data.get('lock_id'),
             open=door_data.get('open', True),
             one_way=door_data.get('one_way', False),
-            llm_context=door_data.get('llm_context')
+            llm_context=door_data.get('llm_context'),
+            behaviors=door_data.get('behaviors', {})
         )
         doors.append(door)
 
@@ -286,7 +288,8 @@ def parse_items(raw: Any) -> List[Item]:
             location=item_data.get('location', ''),
             states=states,
             container=container,
-            provides_light=item_data.get('provides_light', False)
+            provides_light=item_data.get('provides_light', False),
+            behaviors=item_data.get('behaviors', {})
         )
         items.append(item)
 
@@ -350,7 +353,8 @@ def parse_npcs(raw: Any) -> List[NPC]:
             location=npc_data.get('location', ''),
             dialogue=npc_data.get('dialogue', {}),
             states=states,
-            inventory=npc_data.get('inventory', [])
+            inventory=npc_data.get('inventory', []),
+            behaviors=npc_data.get('behaviors', {})
         )
         npcs.append(npc)
 

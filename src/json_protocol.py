@@ -9,6 +9,7 @@ import json
 from typing import Any, Dict, List, Optional
 
 from .state_manager import GameState
+from .behavior_manager import BehaviorManager
 
 
 class JSONProtocolHandler:
@@ -19,8 +20,9 @@ class JSONProtocolHandler:
     conforming to the specification.
     """
 
-    def __init__(self, state: GameState):
+    def __init__(self, state: GameState, behavior_manager: Optional[BehaviorManager] = None):
         self.state = state
+        self.behavior_manager = behavior_manager
 
     def is_json_input(self, text: str) -> bool:
         """Check if input is JSON (starts with '{' after stripping whitespace)."""
@@ -62,10 +64,29 @@ class JSONProtocolHandler:
                 "message": "Missing required field: action"
             }
 
-        # Route to verb handler
+        # Check for registered handler first
+        if self.behavior_manager and self.behavior_manager.has_handler(verb):
+            registered_handler = self.behavior_manager.get_handler(verb)
+            context = {
+                "location": self.state.player.location,
+                "verb": verb
+            }
+            result = registered_handler(self.state, action, context)
+            return result
+
+        # Route to builtin verb handler
         handler = getattr(self, f"_cmd_{verb}", None)
         if handler:
-            return handler(action)
+            result = handler(action)
+
+            # Apply behavior if command succeeded and we have a behavior manager
+            if result.get("success") and self.behavior_manager:
+                result = self._apply_behavior(verb, result)
+            else:
+                # Remove entity_obj if present (internal reference, not JSON serializable)
+                result = {k: v for k, v in result.items() if k != "entity_obj"}
+
+            return result
         else:
             return {
                 "type": "result",
@@ -75,6 +96,52 @@ class JSONProtocolHandler:
                     "message": f"I don't understand '{verb}'. Try actions like go, take, open, or examine."
                 }
             }
+
+    def _apply_behavior(self, verb: str, result: Dict) -> Dict:
+        """
+        Apply entity behavior after a successful command.
+
+        Args:
+            verb: The command verb
+            result: The command result (must contain entity_obj for behavior invocation)
+
+        Returns:
+            Modified result with behavior applied
+        """
+        entity_obj = result.get("entity_obj")
+        if not entity_obj:
+            return result
+
+        # Build event name and context
+        event_name = f"on_{verb}"
+        context = {
+            "location": self.state.player.location,
+            "verb": verb
+        }
+
+        # Invoke behavior
+        behavior_result = self.behavior_manager.invoke_behavior(
+            entity_obj, event_name, self.state, context
+        )
+
+        # Remove entity_obj from result before returning
+        result = {k: v for k, v in result.items() if k != "entity_obj"}
+
+        if behavior_result:
+            if behavior_result.message:
+                result["message"] = behavior_result.message
+
+            if not behavior_result.allow:
+                # Behavior prevented the action - revert changes
+                result["success"] = False
+                # Note: The actual state reversion would need to be handled
+                # by the specific command or behavior
+
+            # Rebuild entity dict to reflect state changes made by behavior
+            if "entity" in result:
+                result["entity"] = self._entity_to_dict(entity_obj)
+
+        return result
 
     def handle_query(self, message: Dict) -> Dict:
         """Process a query message and return response."""
@@ -103,7 +170,7 @@ class JSONProtocolHandler:
     def _cmd_take(self, action: Dict) -> Dict:
         """Handle take command."""
         obj_name = action.get("object")
-        adjective = action.get("adjective")
+        adjectives = self._get_adjectives(action)
 
         if not obj_name:
             return {
@@ -116,10 +183,21 @@ class JSONProtocolHandler:
         # Find item in current location
         current_loc = self._get_current_location()
         item = None
-        for i in self.state.items:
-            if i.name == obj_name and i.location == current_loc.id:
-                item = i
-                break
+
+        # First try to find item matching all adjectives
+        if adjectives:
+            for i in self.state.items:
+                if i.name == obj_name and i.location == current_loc.id:
+                    if self._matches_adjectives(i.description, adjectives):
+                        item = i
+                        break
+
+        # Fall back to first matching name if no adjective match
+        if not item:
+            for i in self.state.items:
+                if i.name == obj_name and i.location == current_loc.id:
+                    item = i
+                    break
 
         if not item:
             return {
@@ -144,15 +222,12 @@ class JSONProtocolHandler:
         if item.id in current_loc.items:
             current_loc.items.remove(item.id)
 
-        # Auto-light items that provide light (magical runes activate on touch)
-        if item.provides_light:
-            item.states['lit'] = True
-
         return {
             "type": "result",
             "success": True,
             "action": "take",
-            "entity": self._entity_to_dict(item)
+            "entity": self._entity_to_dict(item),
+            "entity_obj": item
         }
 
     def _cmd_drop(self, action: Dict) -> Dict:
@@ -189,15 +264,12 @@ class JSONProtocolHandler:
         self.state.player.inventory.remove(item.id)
         current_loc.items.append(item.id)
 
-        # Extinguish light sources when dropped (magical runes deactivate)
-        if item.provides_light:
-            item.states['lit'] = False
-
         return {
             "type": "result",
             "success": True,
             "action": "drop",
-            "entity": self._entity_to_dict(item)
+            "entity": self._entity_to_dict(item),
+            "entity_obj": item
         }
 
     def _cmd_examine(self, action: Dict) -> Dict:
@@ -224,11 +296,15 @@ class JSONProtocolHandler:
         # Find item in location or inventory
         item = self._find_accessible_item(obj_name)
         if item:
+            # Determine if item is in inventory or in room
+            in_inventory = item.id in self.state.player.inventory
             return {
                 "type": "result",
                 "success": True,
                 "action": "examine",
-                "entity": self._entity_to_dict(item)
+                "entity": self._entity_to_dict(item),
+                "entity_obj": item,
+                "in_inventory": in_inventory
             }
 
         # Check for doors
@@ -329,7 +405,7 @@ class JSONProtocolHandler:
     def _cmd_open(self, action: Dict) -> Dict:
         """Handle open command."""
         obj_name = action.get("object")
-        adjective = action.get("adjective")
+        adjectives = self._get_adjectives(action)
 
         if not obj_name:
             return {
@@ -350,8 +426,8 @@ class JSONProtocolHandler:
                     "error": {"message": "There is no door here."}
                 }
 
-            # Select door by adjective/direction if provided
-            door = self._select_door(doors, adjective)
+            # Select door by adjectives/direction if provided
+            door = self._select_door(doors, adjectives)
 
             if door.open:
                 return {
@@ -393,12 +469,17 @@ class JSONProtocolHandler:
         # Check for chest or other openable items
         item = self._find_accessible_item(obj_name)
         if item:
-            if item.name == "chest":
+            # Check if item has an on_open behavior or is a known openable type
+            has_open_behavior = hasattr(item, 'behaviors') and item.behaviors.get('on_open')
+            is_openable = item.name == "chest" or (hasattr(item, 'container') and item.container)
+
+            if has_open_behavior or is_openable:
                 return {
                     "type": "result",
                     "success": True,
                     "action": "open",
-                    "entity": self._entity_to_dict(item)
+                    "entity": self._entity_to_dict(item),
+                    "entity_obj": item
                 }
             else:
                 return {
@@ -625,7 +706,8 @@ class JSONProtocolHandler:
             "type": "result",
             "success": True,
             "action": "drink",
-            "entity": self._entity_to_dict(item)
+            "entity": self._entity_to_dict(item),
+            "entity_obj": item
         }
 
     def _cmd_eat(self, action: Dict) -> Dict:
@@ -660,7 +742,8 @@ class JSONProtocolHandler:
             "type": "result",
             "success": True,
             "action": "eat",
-            "entity": self._entity_to_dict(item)
+            "entity": self._entity_to_dict(item),
+            "entity_obj": item
         }
 
     def _cmd_attack(self, action: Dict) -> Dict:
@@ -730,7 +813,8 @@ class JSONProtocolHandler:
             "type": "result",
             "success": True,
             "action": "use",
-            "entity": self._entity_to_dict(item)
+            "entity": self._entity_to_dict(item),
+            "entity_obj": item
         }
 
     def _cmd_read(self, action: Dict) -> Dict:
@@ -759,7 +843,8 @@ class JSONProtocolHandler:
             "type": "result",
             "success": True,
             "action": "read",
-            "entity": self._entity_to_dict(item)
+            "entity": self._entity_to_dict(item),
+            "entity_obj": item
         }
 
     def _cmd_climb(self, action: Dict) -> Dict:
@@ -788,7 +873,8 @@ class JSONProtocolHandler:
             "type": "result",
             "success": True,
             "action": "climb",
-            "entity": self._entity_to_dict(item)
+            "entity": self._entity_to_dict(item),
+            "entity_obj": item
         }
 
     def _cmd_pull(self, action: Dict) -> Dict:
@@ -817,7 +903,8 @@ class JSONProtocolHandler:
             "type": "result",
             "success": True,
             "action": "pull",
-            "entity": self._entity_to_dict(item)
+            "entity": self._entity_to_dict(item),
+            "entity_obj": item
         }
 
     def _cmd_push(self, action: Dict) -> Dict:
@@ -846,7 +933,8 @@ class JSONProtocolHandler:
             "type": "result",
             "success": True,
             "action": "push",
-            "entity": self._entity_to_dict(item)
+            "entity": self._entity_to_dict(item),
+            "entity_obj": item
         }
 
     # Query handlers
@@ -1087,17 +1175,43 @@ class JSONProtocolHandler:
 
         return None
 
+    def _get_adjectives(self, action: Dict):
+        """Extract adjectives from action, supporting both single and multiple."""
+        # Support both 'adjective' (string) and 'adjectives' (list)
+        adjectives = action.get("adjectives", [])
+        if not adjectives:
+            adj = action.get("adjective")
+            if adj:
+                # Handle space-separated adjectives (from parser)
+                adjectives = adj.split()
+        return [a.lower() for a in adjectives if a]
+
+    def _matches_adjectives(self, description: str, adjectives: list) -> bool:
+        """Check if all adjectives appear in description."""
+        if not adjectives:
+            return True
+        desc_lower = description.lower()
+        return all(adj in desc_lower for adj in adjectives)
+
     def _select_door(self, doors, adjective):
         """Select a door based on adjective or default to first closed/locked."""
-        if adjective:
-            # Try to match by adjective (iron, wooden, etc.) or direction
+        # Convert single adjective to list for unified handling
+        if isinstance(adjective, str) and adjective:
+            adjectives = adjective.lower().split()
+        elif isinstance(adjective, list):
+            adjectives = [a.lower() for a in adjective if a]
+        else:
+            adjectives = []
+
+        if adjectives:
+            # Try to match by adjectives in description
             for door in doors:
-                if adjective.lower() in door.description.lower():
+                if self._matches_adjectives(door.description, adjectives):
                     return door
-                # Check if adjective is a direction
+                # Check if any adjective is a direction
                 loc = self._get_current_location()
                 for direction, exit_desc in loc.exits.items():
-                    if exit_desc.door_id == door.id and direction == adjective.lower():
+                    if exit_desc.door_id == door.id and direction in adjectives:
                         return door
 
         # Default: prioritize locked/closed doors

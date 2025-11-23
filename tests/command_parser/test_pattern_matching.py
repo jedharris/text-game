@@ -174,22 +174,14 @@ class TestPatternMatching3Words(unittest.TestCase):
         Verify that "take rusty key" parses with adjective
         modifying the direct object.
         """
-        # Look up words
-        take = self.parser._lookup_word("take")
-        rusty = self.parser._lookup_word("rusty")
-        key = self.parser._lookup_word("key")
-
-        # Create list of entries
-        entries = [take, rusty, key]
-
-        # Match pattern
-        result = self.parser._match_pattern(entries)
+        # Parse command directly (adjectives are now dynamic)
+        result = self.parser.parse_command("take rusty key")
 
         # Verify result
         self.assertIsNotNone(result)
-        self.assertEqual(result.verb, take)
-        self.assertEqual(result.direct_adjective, rusty)
-        self.assertEqual(result.direct_object, key)
+        self.assertEqual(result.verb.word, "take")
+        self.assertEqual(result.direct_adjective.word, "rusty")
+        self.assertEqual(result.direct_object.word, "key")
 
     def test_verb_noun_noun(self):
         """
@@ -247,22 +239,14 @@ class TestPatternMatching3Words(unittest.TestCase):
         Verify that color adjectives work correctly.
         "take red key" should parse with adjective.
         """
-        # Look up words
-        take = self.parser._lookup_word("take")
-        red = self.parser._lookup_word("red")
-        key = self.parser._lookup_word("key")
-
-        # Create list of entries
-        entries = [take, red, key]
-
-        # Match pattern
-        result = self.parser._match_pattern(entries)
+        # Parse command directly (adjectives are now dynamic)
+        result = self.parser.parse_command("take red key")
 
         # Verify result
         self.assertIsNotNone(result)
-        self.assertEqual(result.verb, take)
-        self.assertEqual(result.direct_adjective, red)
-        self.assertEqual(result.direct_object, key)
+        self.assertEqual(result.verb.word, "take")
+        self.assertEqual(result.direct_adjective.word, "red")
+        self.assertEqual(result.direct_object.word, "key")
 
     def test_verb_adj_noun_size(self):
         """
@@ -271,22 +255,14 @@ class TestPatternMatching3Words(unittest.TestCase):
         Verify that size adjectives work correctly.
         "examine large door" should parse with adjective.
         """
-        # Look up words
-        examine = self.parser._lookup_word("examine")
-        large = self.parser._lookup_word("large")
-        door = self.parser._lookup_word("door")
-
-        # Create list of entries
-        entries = [examine, large, door]
-
-        # Match pattern
-        result = self.parser._match_pattern(entries)
+        # Parse command directly (adjectives are now dynamic)
+        result = self.parser.parse_command("examine large door")
 
         # Verify result
         self.assertIsNotNone(result)
-        self.assertEqual(result.verb, examine)
-        self.assertEqual(result.direct_adjective, large)
-        self.assertEqual(result.direct_object, door)
+        self.assertEqual(result.verb.word, "examine")
+        self.assertEqual(result.direct_adjective.word, "large")
+        self.assertEqual(result.direct_object.word, "door")
 
 
 class TestPatternMatching4Words(unittest.TestCase):
@@ -305,24 +281,15 @@ class TestPatternMatching4Words(unittest.TestCase):
         Verify that "unlock rusty door key" parses with
         adjective on direct object and implicit preposition.
         """
-        # Look up words
-        unlock = self.parser._lookup_word("unlock")
-        rusty = self.parser._lookup_word("rusty")
-        door = self.parser._lookup_word("door")
-        key = self.parser._lookup_word("key")
-
-        # Create list of entries
-        entries = [unlock, rusty, door, key]
-
-        # Match pattern
-        result = self.parser._match_pattern(entries)
+        # Parse command directly (adjectives are now dynamic)
+        result = self.parser.parse_command("unlock rusty door key")
 
         # Verify result
         self.assertIsNotNone(result)
-        self.assertEqual(result.verb, unlock)
-        self.assertEqual(result.direct_adjective, rusty)
-        self.assertEqual(result.direct_object, door)
-        self.assertEqual(result.indirect_object, key)
+        self.assertEqual(result.verb.word, "unlock")
+        self.assertEqual(result.direct_adjective.word, "rusty")
+        self.assertEqual(result.direct_object.word, "door")
+        self.assertEqual(result.indirect_object.word, "key")
 
     def test_verb_noun_prep_noun(self):
         """
@@ -357,24 +324,16 @@ class TestPatternMatching4Words(unittest.TestCase):
         Verify that "look in wooden chest" parses correctly
         with adjective on direct object after preposition.
         """
-        # Look up words
-        look = self.parser._lookup_word("look")
-        in_prep = self.parser._lookup_word("in")
-        wooden = self.parser._lookup_word("wooden")
-        chest = self.parser._lookup_word("chest")
-
-        # Create list of entries
-        entries = [look, in_prep, wooden, chest]
-
-        # Match pattern
-        result = self.parser._match_pattern(entries)
+        # Parse command directly (adjectives are now dynamic)
+        result = self.parser.parse_command("look in wooden chest")
 
         # Verify result
         self.assertIsNotNone(result)
-        self.assertEqual(result.verb, look)
-        self.assertEqual(result.preposition, in_prep)
-        self.assertEqual(result.direct_adjective, wooden)
-        self.assertEqual(result.direct_object, chest)
+        # "look" is a synonym for "examine"
+        self.assertEqual(result.verb.word, "examine")
+        self.assertEqual(result.preposition.word, "in")
+        self.assertEqual(result.direct_adjective.word, "wooden")
+        self.assertEqual(result.direct_object.word, "chest")
 
 
 class TestPatternMatching56Words(unittest.TestCase):
@@ -393,26 +352,16 @@ class TestPatternMatching56Words(unittest.TestCase):
         Verify that "unlock rusty door with key" parses with
         adjective on the direct object.
         """
-        # Look up words
-        unlock = self.parser._lookup_word("unlock")
-        rusty = self.parser._lookup_word("rusty")
-        door = self.parser._lookup_word("door")
-        with_prep = self.parser._lookup_word("with")
-        key = self.parser._lookup_word("key")
-
-        # Create list of entries
-        entries = [unlock, rusty, door, with_prep, key]
-
-        # Match pattern
-        result = self.parser._match_pattern(entries)
+        # Parse command directly (adjectives are now dynamic)
+        result = self.parser.parse_command("unlock rusty door with key")
 
         # Verify result
         self.assertIsNotNone(result)
-        self.assertEqual(result.verb, unlock)
-        self.assertEqual(result.direct_adjective, rusty)
-        self.assertEqual(result.direct_object, door)
-        self.assertEqual(result.preposition, with_prep)
-        self.assertEqual(result.indirect_object, key)
+        self.assertEqual(result.verb.word, "unlock")
+        self.assertEqual(result.direct_adjective.word, "rusty")
+        self.assertEqual(result.direct_object.word, "door")
+        self.assertEqual(result.preposition.word, "with")
+        self.assertEqual(result.indirect_object.word, "key")
 
     def test_verb_noun_prep_adj_noun(self):
         """
@@ -421,26 +370,16 @@ class TestPatternMatching56Words(unittest.TestCase):
         Verify that "unlock door with rusty key" parses with
         adjective on the indirect object.
         """
-        # Look up words
-        unlock = self.parser._lookup_word("unlock")
-        door = self.parser._lookup_word("door")
-        with_prep = self.parser._lookup_word("with")
-        rusty = self.parser._lookup_word("rusty")
-        key = self.parser._lookup_word("key")
-
-        # Create list of entries
-        entries = [unlock, door, with_prep, rusty, key]
-
-        # Match pattern
-        result = self.parser._match_pattern(entries)
+        # Parse command directly (adjectives are now dynamic)
+        result = self.parser.parse_command("unlock door with rusty key")
 
         # Verify result
         self.assertIsNotNone(result)
-        self.assertEqual(result.verb, unlock)
-        self.assertEqual(result.direct_object, door)
-        self.assertEqual(result.preposition, with_prep)
-        self.assertEqual(result.indirect_adjective, rusty)
-        self.assertEqual(result.indirect_object, key)
+        self.assertEqual(result.verb.word, "unlock")
+        self.assertEqual(result.direct_object.word, "door")
+        self.assertEqual(result.preposition.word, "with")
+        self.assertEqual(result.indirect_adjective.word, "rusty")
+        self.assertEqual(result.indirect_object.word, "key")
 
     def test_verb_adj_noun_prep_adj_noun(self):
         """
@@ -449,28 +388,17 @@ class TestPatternMatching56Words(unittest.TestCase):
         Verify that "unlock rusty door with iron key" parses
         with adjectives on both objects.
         """
-        # Look up words
-        unlock = self.parser._lookup_word("unlock")
-        rusty = self.parser._lookup_word("rusty")
-        door = self.parser._lookup_word("door")
-        with_prep = self.parser._lookup_word("with")
-        iron = self.parser._lookup_word("iron")
-        key = self.parser._lookup_word("key")
-
-        # Create list of entries
-        entries = [unlock, rusty, door, with_prep, iron, key]
-
-        # Match pattern
-        result = self.parser._match_pattern(entries)
+        # Parse command directly (adjectives are now dynamic)
+        result = self.parser.parse_command("unlock rusty door with iron key")
 
         # Verify result
         self.assertIsNotNone(result)
-        self.assertEqual(result.verb, unlock)
-        self.assertEqual(result.direct_adjective, rusty)
-        self.assertEqual(result.direct_object, door)
-        self.assertEqual(result.preposition, with_prep)
-        self.assertEqual(result.indirect_adjective, iron)
-        self.assertEqual(result.indirect_object, key)
+        self.assertEqual(result.verb.word, "unlock")
+        self.assertEqual(result.direct_adjective.word, "rusty")
+        self.assertEqual(result.direct_object.word, "door")
+        self.assertEqual(result.preposition.word, "with")
+        self.assertEqual(result.indirect_adjective.word, "iron")
+        self.assertEqual(result.indirect_object.word, "key")
 
     def test_complex_color_adjectives(self):
         """
@@ -479,28 +407,17 @@ class TestPatternMatching56Words(unittest.TestCase):
         Verify that "take red potion with blue flask" parses
         correctly with color adjectives on both objects.
         """
-        # Look up words
-        take = self.parser._lookup_word("take")
-        red = self.parser._lookup_word("red")
-        potion = self.parser._lookup_word("potion")
-        with_prep = self.parser._lookup_word("with")
-        blue = self.parser._lookup_word("blue")
-        flask = self.parser._lookup_word("flask")
-
-        # Create list of entries
-        entries = [take, red, potion, with_prep, blue, flask]
-
-        # Match pattern
-        result = self.parser._match_pattern(entries)
+        # Parse command directly (adjectives are now dynamic)
+        result = self.parser.parse_command("take red potion with blue flask")
 
         # Verify result
         self.assertIsNotNone(result)
-        self.assertEqual(result.verb, take)
-        self.assertEqual(result.direct_adjective, red)
-        self.assertEqual(result.direct_object, potion)
-        self.assertEqual(result.preposition, with_prep)
-        self.assertEqual(result.indirect_adjective, blue)
-        self.assertEqual(result.indirect_object, flask)
+        self.assertEqual(result.verb.word, "take")
+        self.assertEqual(result.direct_adjective.word, "red")
+        self.assertEqual(result.direct_object.word, "potion")
+        self.assertEqual(result.preposition.word, "with")
+        self.assertEqual(result.indirect_adjective.word, "blue")
+        self.assertEqual(result.indirect_object.word, "flask")
 
     def test_complex_size_adjectives(self):
         """
@@ -509,28 +426,17 @@ class TestPatternMatching56Words(unittest.TestCase):
         Verify that "open large chest with small key" parses
         correctly with size adjectives on both objects.
         """
-        # Look up words
-        open_verb = self.parser._lookup_word("open")
-        large = self.parser._lookup_word("large")
-        chest = self.parser._lookup_word("chest")
-        with_prep = self.parser._lookup_word("with")
-        small = self.parser._lookup_word("small")
-        key = self.parser._lookup_word("key")
-
-        # Create list of entries
-        entries = [open_verb, large, chest, with_prep, small, key]
-
-        # Match pattern
-        result = self.parser._match_pattern(entries)
+        # Parse command directly (adjectives are now dynamic)
+        result = self.parser.parse_command("open large chest with small key")
 
         # Verify result
         self.assertIsNotNone(result)
-        self.assertEqual(result.verb, open_verb)
-        self.assertEqual(result.direct_adjective, large)
-        self.assertEqual(result.direct_object, chest)
-        self.assertEqual(result.preposition, with_prep)
-        self.assertEqual(result.indirect_adjective, small)
-        self.assertEqual(result.indirect_object, key)
+        self.assertEqual(result.verb.word, "open")
+        self.assertEqual(result.direct_adjective.word, "large")
+        self.assertEqual(result.direct_object.word, "chest")
+        self.assertEqual(result.preposition.word, "with")
+        self.assertEqual(result.indirect_adjective.word, "small")
+        self.assertEqual(result.indirect_object.word, "key")
 
 
 if __name__ == '__main__':

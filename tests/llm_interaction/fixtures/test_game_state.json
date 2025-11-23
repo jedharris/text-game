@@ -249,6 +249,13 @@
       "portable": true,
       "provides_light": true,
       "location": "loc_start",
+      "states": {
+        "lit": false
+      },
+      "behaviors": {
+        "on_take": "behaviors.core.light_sources:on_take",
+        "on_drop": "behaviors.core.light_sources:on_drop"
+      },
       "llm_context": {
         "traits": [
           "hexagonal",

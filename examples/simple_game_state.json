@@ -282,6 +282,13 @@
       "portable": true,
       "provides_light": true,
       "location": "loc_hallway",
+      "states": {
+        "lit": false
+      },
+      "behaviors": {
+        "on_take": "behaviors.core.light_sources:on_take",
+        "on_drop": "behaviors.core.light_sources:on_drop"
+      },
       "llm_context": {
         "traits": [
           "hexagonal",
@@ -292,7 +299,7 @@
         ],
         "state_variants": {
           "unlit": "dark and silent",
-          "lit": "sheds a helpful light", 
+          "lit": "sheds a helpful light",
           "examined": "crudely made but functional"
         }
       }

@@ -1519,10 +1519,19 @@ class TestLightSourceFunctionality(unittest.TestCase):
     """Test light source auto-lighting functionality."""
 
     def setUp(self):
-        """Load test game state."""
+        """Load test game state with behavior manager."""
+        from src.behavior_manager import BehaviorManager
+
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.state = load_game_state(str(fixtures_path))
-        self.handler = JSONProtocolHandler(self.state)
+
+        # Create behavior manager and load core modules
+        self.manager = BehaviorManager()
+        behaviors_dir = Path(__file__).parent.parent.parent / "behaviors"
+        modules = self.manager.discover_modules(str(behaviors_dir))
+        self.manager.load_modules(modules)
+
+        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.manager)
 
     def test_take_light_source_auto_lights(self):
         """Test that taking an item with provides_light sets lit state."""

@@ -76,6 +76,7 @@ class Location:
     items: List[str] = field(default_factory=list)
     npcs: List[str] = field(default_factory=list)
     llm_context: Optional[Dict[str, Any]] = None
+    behaviors: Dict[str, str] = field(default_factory=dict)
 
     def has_exit(self, direction: str) -> bool:
         """Check if location has an exit in the given direction."""
@@ -97,6 +98,7 @@ class Door:
     open: bool = True
     one_way: bool = False
     llm_context: Optional[Dict[str, Any]] = None
+    behaviors: Dict[str, str] = field(default_factory=dict)
 
     def unlock(self, key_item_id: Optional[str], state: 'GameState') -> bool:
         """Attempt to unlock the door."""
@@ -139,6 +141,7 @@ class Item:
     states: Dict[str, Any] = field(default_factory=dict)
     container: Optional[ContainerInfo] = None
     provides_light: bool = False
+    behaviors: Dict[str, str] = field(default_factory=dict)
 
     def is_accessible(self, state: 'GameState') -> bool:
         """Check if item is accessible to player."""
@@ -179,6 +182,7 @@ class NPC:
     dialogue: Any = field(default_factory=list)  # Can be list or dict
     states: Dict[str, Any] = field(default_factory=dict)
     inventory: List[str] = field(default_factory=list)
+    behaviors: Dict[str, str] = field(default_factory=dict)
 
 
 @dataclass

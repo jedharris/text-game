@@ -91,8 +91,9 @@ class TestPerformance(unittest.TestCase):
         self.assertLess(load_time_ms, 500.0,
                        f"Vocabulary load took {load_time_ms:.3f}ms, should be < 500ms")
 
-        # Verify parser works
-        result = parser.parse_command("take sword")
+        # Verify parser works with a command from base vocabulary
+        # (nouns and action verbs including "go" are now in behavior modules)
+        result = parser.parse_command("north")
         self.assertIsNotNone(result)
 
     def test_worst_case_lookup(self):
