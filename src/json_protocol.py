@@ -171,6 +171,7 @@ class JSONProtocolHandler:
         """Handle take command."""
         obj_name = action.get("object")
         adjectives = self._get_adjectives(action)
+        indirect_object = action.get("indirect_object")  # "from container"
 
         if not obj_name:
             return {
@@ -180,24 +181,74 @@ class JSONProtocolHandler:
                 "error": {"message": "Take what?"}
             }
 
-        # Find item in current location
         current_loc = self._get_current_location()
         item = None
 
-        # First try to find item matching all adjectives
-        if adjectives:
+        # If taking from specific container
+        if indirect_object:
+            container = self._find_container_by_name(indirect_object, current_loc.id)
+            if not container:
+                return {
+                    "type": "result",
+                    "success": False,
+                    "action": "take",
+                    "error": {"message": f"You don't see any {indirect_object} here."}
+                }
+
+            # Find item in container
             for i in self.state.items:
-                if i.name == obj_name and i.location == current_loc.id:
-                    if self._matches_adjectives(i.description, adjectives):
+                if i.name == obj_name and i.location == container.id:
+                    item = i
+                    break
+
+            if not item:
+                return {
+                    "type": "result",
+                    "success": False,
+                    "action": "take",
+                    "error": {"message": f"You don't see that in the {indirect_object}."}
+                }
+
+            # Check if container is accessible
+            if not container.container.is_surface and not container.container.open:
+                return {
+                    "type": "result",
+                    "success": False,
+                    "action": "take",
+                    "error": {"message": f"The {container.name} is closed."}
+                }
+        else:
+            # First try to find item directly in location matching adjectives
+            if adjectives:
+                for i in self.state.items:
+                    if i.name == obj_name and i.location == current_loc.id:
+                        if self._matches_adjectives(i.description, adjectives):
+                            item = i
+                            break
+
+            # Fall back to first matching name in location
+            if not item:
+                for i in self.state.items:
+                    if i.name == obj_name and i.location == current_loc.id:
                         item = i
                         break
 
-        # Fall back to first matching name if no adjective match
-        if not item:
-            for i in self.state.items:
-                if i.name == obj_name and i.location == current_loc.id:
-                    item = i
-                    break
+            # If not in location directly, search containers
+            if not item:
+                item = self._find_accessible_item(obj_name)
+
+                # If found in a container, check accessibility
+                if item and self._is_item_in_container(item):
+                    container = self._get_container_for_item(item)
+                    if container:
+                        # Check if enclosed container is open
+                        if not container.container.is_surface and not container.container.open:
+                            return {
+                                "type": "result",
+                                "success": False,
+                                "action": "take",
+                                "error": {"message": "You don't see that here."}
+                            }
 
         if not item:
             return {
@@ -217,9 +268,12 @@ class JSONProtocolHandler:
             }
 
         # Move item to inventory
+        old_location = item.location
         item.location = "player"
         self.state.player.inventory.append(item.id)
-        if item.id in current_loc.items:
+
+        # Remove from old location's items list if it was there
+        if old_location == current_loc.id and item.id in current_loc.items:
             current_loc.items.remove(item.id)
 
         return {
@@ -280,11 +334,24 @@ class JSONProtocolHandler:
         # Examine room if no object specified
         if not obj_name:
             loc = self._get_current_location()
-            # Get items in location
+            # Get items in location and on surface containers
             items = []
             for item in self.state.items:
                 if item.location == loc.id:
                     items.append(self._entity_to_dict(item))
+
+            # Include items on surface containers and in open enclosed containers
+            for container in self.state.items:
+                if container.location == loc.id and container.container:
+                    if container.container.is_surface:
+                        for item in self.state.items:
+                            if item.location == container.id:
+                                items.append(self._entity_to_dict(item))
+                    elif container.container.open:
+                        for item in self.state.items:
+                            if item.location == container.id:
+                                items.append(self._entity_to_dict(item))
+
             return {
                 "type": "result",
                 "success": True,
@@ -298,7 +365,7 @@ class JSONProtocolHandler:
         if item:
             # Determine if item is in inventory or in room
             in_inventory = item.id in self.state.player.inventory
-            return {
+            result = {
                 "type": "result",
                 "success": True,
                 "action": "examine",
@@ -306,6 +373,19 @@ class JSONProtocolHandler:
                 "entity_obj": item,
                 "in_inventory": in_inventory
             }
+
+            # If examining a container, include its contents
+            if hasattr(item, 'container') and item.container:
+                items = []
+                # For surface containers, always show items
+                # For enclosed containers, only show if open
+                if item.container.is_surface or item.container.open:
+                    for contained_item in self.state.items:
+                        if contained_item.location == item.id:
+                            items.append(self._entity_to_dict(contained_item))
+                result["items"] = items
+
+            return result
 
         # Check for doors
         if obj_name == "door":
@@ -919,8 +999,14 @@ class JSONProtocolHandler:
                 "error": {"message": "Push what?"}
             }
 
-        # Find item in location
-        item = self._find_accessible_item(obj_name)
+        # Find item in location (not inventory - can't push what you're carrying)
+        loc = self._get_current_location()
+        item = None
+        for i in self.state.items:
+            if i.name == obj_name and i.location == loc.id:
+                item = i
+                break
+
         if not item:
             return {
                 "type": "result",
@@ -929,11 +1015,123 @@ class JSONProtocolHandler:
                 "error": {"message": "You don't see that here."}
             }
 
+        # Check if item is portable (should take instead of push)
+        if item.portable:
+            return {
+                "type": "result",
+                "success": False,
+                "action": "push",
+                "entity": self._entity_to_dict(item),
+                "error": {"message": f"You could just take the {obj_name}."}
+            }
+
+        # Check if item is pushable
+        if not getattr(item, 'pushable', False):
+            return {
+                "type": "result",
+                "success": False,
+                "action": "push",
+                "entity": self._entity_to_dict(item),
+                "error": {"message": f"The {obj_name} won't budge."}
+            }
+
         return {
             "type": "result",
             "success": True,
             "action": "push",
             "entity": self._entity_to_dict(item),
+            "entity_obj": item
+        }
+
+    def _cmd_put(self, action: Dict) -> Dict:
+        """Handle put command for placing items in/on containers."""
+        obj_name = action.get("object")
+        container_name = action.get("indirect_object")
+
+        if not obj_name:
+            return {
+                "type": "result",
+                "success": False,
+                "action": "put",
+                "error": {"message": "Put what?"}
+            }
+
+        if not container_name:
+            return {
+                "type": "result",
+                "success": False,
+                "action": "put",
+                "error": {"message": "Put it where?"}
+            }
+
+        # Find item in inventory
+        item = None
+        for item_id in self.state.player.inventory:
+            i = self._get_item_by_id(item_id)
+            if i and i.name == obj_name:
+                item = i
+                break
+
+        if not item:
+            return {
+                "type": "result",
+                "success": False,
+                "action": "put",
+                "error": {"message": f"You don't have the {obj_name}."}
+            }
+
+        # Find container in location
+        loc = self._get_current_location()
+        container = self._find_container_by_name(container_name, loc.id)
+
+        if not container:
+            # Check if the target exists but isn't a container
+            for i in self.state.items:
+                if i.name == container_name and i.location == loc.id:
+                    return {
+                        "type": "result",
+                        "success": False,
+                        "action": "put",
+                        "error": {"message": f"You can't put things on the {container_name}."}
+                    }
+            return {
+                "type": "result",
+                "success": False,
+                "action": "put",
+                "error": {"message": f"You don't see any {container_name} here."}
+            }
+
+        # Check if enclosed container is open
+        if not container.container.is_surface and not container.container.open:
+            return {
+                "type": "result",
+                "success": False,
+                "action": "put",
+                "error": {"message": f"The {container_name} is closed."}
+            }
+
+        # Check capacity
+        if container.container.capacity > 0:
+            current_count = sum(1 for i in self.state.items
+                              if i.location == container.id)
+            if current_count >= container.container.capacity:
+                return {
+                    "type": "result",
+                    "success": False,
+                    "action": "put",
+                    "error": {"message": f"The {container_name} is full."}
+                }
+
+        # Move item from inventory to container
+        self.state.player.inventory.remove(item.id)
+        item.location = container.id
+
+        return {
+            "type": "result",
+            "success": True,
+            "action": "put",
+            "entity": self._entity_to_dict(item),
+            "container": self._entity_to_dict(container),
             "entity_obj": item
         }
 
@@ -950,9 +1148,25 @@ class JSONProtocolHandler:
 
         if "items" in include or not include:
             items = []
+            # Get items directly in location
             for item in self.state.items:
                 if item.location == loc.id:
                     items.append(self._entity_to_dict(item))
+
+            # Get items on surface containers and in open enclosed containers
+            for container in self.state.items:
+                if container.location == loc.id and container.container:
+                    # Surface containers: always show items
+                    if container.container.is_surface:
+                        for item in self.state.items:
+                            if item.location == container.id:
+                                items.append(self._entity_to_dict(item))
+                    # Enclosed containers: only show if open
+                    elif container.container.open:
+                        for item in self.state.items:
+                            if item.location == container.id:
+                                items.append(self._entity_to_dict(item))
+
             data["items"] = items
 
         if "doors" in include or not include:
@@ -1158,11 +1372,28 @@ class JSONProtocolHandler:
                 doors.append(door)
         return doors
 
-    def _find_accessible_item(self, name: str):
-        """Find item in location or inventory by name."""
+    def _find_accessible_item(self, name: str, from_container: str = None):
+        """Find item in location, inventory, or surface containers by name.
+
+        Args:
+            name: Item name to find
+            from_container: Optional container name to search in specifically
+
+        Returns:
+            Item if found, None otherwise
+        """
         loc = self._get_current_location()
 
-        # Check location
+        # If specific container requested, search only there
+        if from_container:
+            container = self._find_container_by_name(from_container, loc.id)
+            if container:
+                for item in self.state.items:
+                    if item.name == name and item.location == container.id:
+                        return item
+            return None
+
+        # Check location directly first
         for item in self.state.items:
             if item.name == name and item.location == loc.id:
                 return item
@@ -1173,6 +1404,50 @@ class JSONProtocolHandler:
             if item and item.name == name:
                 return item
 
+        # Check surface containers in current location
+        for container in self.state.items:
+            if (container.location == loc.id and
+                hasattr(container, 'container') and container.container and
+                container.container.is_surface):
+                # Search items on this surface
+                for item in self.state.items:
+                    if item.name == name and item.location == container.id:
+                        return item
+
+        # Check open enclosed containers
+        for container in self.state.items:
+            if (container.location == loc.id and
+                hasattr(container, 'container') and container.container and
+                not container.container.is_surface and
+                container.container.open):
+                # Search items in this open container
+                for item in self.state.items:
+                    if item.name == name and item.location == container.id:
+                        return item
+
+        return None
+
+    def _find_container_by_name(self, name: str, location_id: str):
+        """Find a container item by name in the specified location."""
+        for item in self.state.items:
+            if item.name == name and item.location == location_id and item.container:
+                return item
+        return None
+
+    def _is_item_in_container(self, item):
+        """Check if an item is located inside a container."""
+        # Item location that starts with "item_" is in a container
+        if item.location.startswith("item_"):
+            container = self._get_item_by_id(item.location)
+            return container is not None and container.container is not None
+        return False
+
+    def _get_container_for_item(self, item):
+        """Get the container that holds this item, if any."""
+        if item.location.startswith("item_"):
+            container = self._get_item_by_id(item.location)
+            if container and container.container:
+                return container
         return None
 
     def _get_adjectives(self, action: Dict):

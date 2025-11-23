@@ -58,7 +58,7 @@
         }
       },
       "tags": [],
-      "items": ["item_key"],
+      "items": ["item_key", "item_table"],
       "npcs": [],
       "llm_context": {
         "traits": [
@@ -88,7 +88,7 @@
         }
       },
       "tags": [],
-      "items": ["item_potion"],
+      "items": ["item_pedestal"],
       "npcs": [],
       "llm_context": {
         "traits": [
@@ -236,7 +236,7 @@
       "description": "A red potion that glows faintly.",
       "type": "object",
       "portable": true,
-      "location": "loc_tower",
+      "location": "item_pedestal",
       "llm_context": {
         "traits": [
           "crimson liquid",
@@ -281,7 +281,7 @@
       "type": "object",
       "portable": true,
       "provides_light": true,
-      "location": "loc_hallway",
+      "location": "item_table",
       "states": {
         "lit": false
       },
@@ -301,6 +301,54 @@
           "unlit": "dark and silent",
           "lit": "sheds a helpful light",
           "examined": "crudely made but functional"
+        }
+      }
+    },
+    {
+      "id": "item_pedestal",
+      "name": "pedestal",
+      "description": "A weathered stone pedestal with a shallow depression on top.",
+      "type": "furniture",
+      "portable": false,
+      "location": "loc_tower",
+      "container": {
+        "is_container": true,
+        "is_surface": true,
+        "capacity": 1
+      },
+      "llm_context": {
+        "traits": [
+          "ancient stone",
+          "waist-high",
+          "flat top with shallow depression"
+        ],
+        "state_variants": {
+          "empty": "stands empty, waiting",
+          "holding_item": "holds something on its surface"
+        }
+      }
+    },
+    {
+      "id": "item_table",
+      "name": "table",
+      "description": "A sturdy wooden table against the wall.",
+      "type": "furniture",
+      "portable": false,
+      "location": "loc_hallway",
+      "container": {
+        "is_container": true,
+        "is_surface": true,
+        "capacity": 5
+      },
+      "llm_context": {
+        "traits": [
+          "oak wood",
+          "worn surface",
+          "sturdy legs"
+        ],
+        "state_variants": {
+          "empty": "its surface bare",
+          "holding_items": "holds various items"
         }
       }
     }

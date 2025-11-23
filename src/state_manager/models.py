@@ -123,10 +123,13 @@ class Door:
 @dataclass
 class ContainerInfo:
     """Container information for items."""
+    is_container: bool = True
+    is_surface: bool = False  # True = items visible on top, False = hidden inside
+    open: bool = False  # For enclosed containers
     locked: bool = False
     lock_id: Optional[str] = None
     contents: List[str] = field(default_factory=list)
-    capacity: int = 0
+    capacity: int = 0  # 0 = unlimited
 
 
 @dataclass
@@ -142,6 +145,7 @@ class Item:
     container: Optional[ContainerInfo] = None
     provides_light: bool = False
     behaviors: Dict[str, str] = field(default_factory=dict)
+    pushable: bool = False  # Can be pushed to move it
 
     def is_accessible(self, state: 'GameState') -> bool:
         """Check if item is accessible to player."""

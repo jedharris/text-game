@@ -268,6 +268,9 @@ def parse_items(raw: Any) -> List[Item]:
         if 'container' in item_data and item_data['container']:
             container_data = item_data['container']
             container = ContainerInfo(
+                is_container=container_data.get('is_container', True),
+                is_surface=container_data.get('is_surface', False),
+                open=container_data.get('open', False),
                 locked=container_data.get('locked', False),
                 lock_id=container_data.get('lock_id'),
                 contents=container_data.get('contents', []),
@@ -289,7 +292,8 @@ def parse_items(raw: Any) -> List[Item]:
             states=states,
             container=container,
             provides_light=item_data.get('provides_light', False),
-            behaviors=item_data.get('behaviors', {})
+            behaviors=item_data.get('behaviors', {}),
+            pushable=item_data.get('pushable', False)
         )
         items.append(item)
 
