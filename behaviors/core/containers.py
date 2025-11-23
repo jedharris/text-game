@@ -44,7 +44,6 @@ vocabulary = {
             "indirect_object_required": True,
             "llm_context": {
                 "traits": ["places item in/on container", "requires indirect_object"],
-                "format": "{\"verb\": \"put\", \"object\": \"item_name\", \"indirect_object\": \"container_name\"}",
                 "failure_narration": {
                     "no_capacity": "won't fit",
                     "not_container": "can't put things there",
