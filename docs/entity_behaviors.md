@@ -2,182 +2,123 @@
 
 ## Overview
 
-This document explores approaches for attaching custom Python behavior to game entities (items, NPCs, doors, locations) and mechanisms for invoking that behavior during gameplay.
+This document describes the system for attaching custom Python behavior to game entities and extending the game engine through external behavior modules. The design allows new functionality to be added by loading information from behavior modules and augmenting the game's internal data structures—without modifying core engine code.
 
 ## Problem Statement
 
 Game authors need to:
 1. Define custom behavior for specific entities (e.g., a talking parrot NPC, a trapped chest, a magical door)
-2. Write this behavior in Python for maximum flexibility
-3. Attach behavior to entities without modifying core engine code
-4. Have behavior invoked at appropriate game events (examine, use, enter room, etc.)
+2. Add new verbs and commands without modifying core engine code
+3. Write this behavior in Python for maximum flexibility
+4. Have behavior invoked at appropriate game events
+5. Package complete features (vocabulary, handlers, behaviors) in self-contained modules
 
 ## Design Goals
 
-1. **Flexibility**: Support arbitrary Python code for complex behaviors
-2. **Safety**: Isolate custom code from core engine (sandboxing, error handling)
-3. **Discoverability**: Easy for authors to find what behaviors are available
-4. **Maintainability**: Clear separation between data, engine, and custom behavior
+1. **Extensibility**: New verbs, handlers, and behaviors load from external modules
+2. **Simplicity**: Minimal boilerplate to add new functionality
+3. **Safety**: Isolate custom code from core engine (error handling)
+4. **Discoverability**: Clear module structure for finding behaviors
 5. **Testability**: Behaviors can be unit tested independently
-6. **Performance**: Minimal overhead for entities without custom behavior
-7. **JSON-friendly**: Behavior attachment should be expressible in game state JSON
+6. **Data-driven**: Behavior attachment expressible in game state JSON
 
-## Use Cases
+## Terminology
 
-### Use Case 1: Interactive NPC
-**Scenario**: A parrot that responds differently based on what the player is carrying
+To avoid confusion, this document uses these terms consistently:
 
-```python
-# When player examines the parrot
-if "cracker" in player.inventory:
-    print("The parrot squawks: 'CRACKER! CRACKER!'")
-    # Take the cracker
-    player.inventory.remove("cracker")
-else:
-    print("The parrot ignores you.")
+- **JSONProtocolHandler**: The main protocol class that processes commands and manages game state
+- **Command handler** (or `handle_*` function): A function that processes a specific verb and returns a result dict
+- **Entity behavior** (or `on_*` function): A function attached to an entity that responds to events and returns EventResult
+- **Behavior module**: A Python file that can export vocabulary, command handlers, and entity behaviors
+
+## Architecture Overview
+
+The behavior system has three extension points:
+
+1. **Vocabulary Extensions**: New verbs and their properties
+2. **Command Handlers**: Functions that process commands for those verbs
+3. **Entity Behaviors**: Custom responses to events on specific entities
+
+All three can be provided by behavior modules and loaded at startup.
+
+```
+┌─────────────────┐     ┌──────────────────┐
+│ Behavior Module │────▶│ BehaviorManager  │
+│  - vocabulary   │     │  - load modules  │
+│  - handle_*     │     │  - merge vocab   │
+│  - on_*         │     │  - register      │
+└─────────────────┘     └────────┬─────────┘
+                                 │
+              ┌──────────────────┼──────────────────┐
+              ▼                  ▼                  ▼
+     ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+     │  Vocabulary │    │   Command   │    │   Entity    │
+     │   (merged)  │    │  Handlers   │    │  Behaviors  │
+     └─────────────┘    └─────────────┘    └─────────────┘
 ```
 
-### Use Case 2: Trapped Chest
-**Scenario**: Opening a chest triggers a trap unless player has specific item
+## Behavior Module Structure
+
+### Module Exports
+
+A behavior module can export any combination of:
 
 ```python
-# When player opens the chest
-if "gloves" in player.inventory:
-    print("Your gloves protect you from the poison needle!")
-    return True  # Allow opening
-else:
-    print("A poison needle pricks your finger! You feel dizzy...")
-    player.stats["health"] -= 10
-    return False  # Prevent opening
-```
+# behaviors/items/rubber_duck.py
 
-### Use Case 3: Magical Door
-**Scenario**: Door only opens at certain times or with certain items
+# 1. Vocabulary extensions (optional) - only for NEW verbs not in base vocabulary
+vocabulary = {
+    "verbs": [
+        {
+            "word": "squeeze",
+            "synonyms": ["squish", "honk"],
+            "object_required": True
+        }
+    ]
+}
 
-```python
-# When player tries to open the door
-import datetime
-hour = datetime.datetime.now().hour
-
-if hour >= 18 or hour < 6:  # Night time
-    print("The door glows and swings open. It only opens at night.")
-    return True
-else:
-    print("The door remains firmly shut. Ancient runes glow faintly.")
-    return False
-```
-
-### Use Case 4: Location Entry Trigger
-**Scenario**: When player enters a location, something happens
-
-```python
-# When player enters the throne room
-if not state.player.flags.get("king_greeted"):
-    print("\nThe king looks up from his throne.")
-    print("'Welcome, traveler,' he says warmly.")
-    state.player.flags["king_greeted"] = True
-```
-
-### Use Case 5: Custom Command Handler
-**Scenario**: Item responds to custom verb (e.g., "play harp")
-
-```python
-# When player uses "play" command on harp
-melodies = ["a sad tune", "a joyful song", "an eerie melody"]
-import random
-melody = random.choice(melodies)
-print(f"You pluck the harp strings. It plays {melody}.")
-
-# Side effect: nearby NPC reacts
-if "bard" in current_location.npcs:
-    print("The bard nods approvingly.")
-```
-
-## Event System
-
-### Core Events
-
-Behaviors are triggered by game events. Each entity type supports different events:
-
-#### Item Events
-- `on_examine` - When player examines the item
-- `on_take` - When player tries to take the item
-- `on_drop` - When player drops the item
-- `on_use` - When player uses the item
-- `on_use_with` - When player uses item with another item/entity
-- `on_open` - When player opens the item (chests, containers)
-- `on_close` - When player closes the item
-
-#### NPC Events
-- `on_examine` - When player examines the NPC
-- `on_talk` - When player talks to the NPC
-- `on_attack` - When player attacks the NPC
-- `on_give` - When player gives item to NPC
-- `on_tick` - Called periodically (NPC AI)
-
-#### Door Events
-- `on_examine` - When player examines the door
-- `on_open` - When player tries to open the door
-- `on_close` - When player tries to close the door
-- `on_unlock` - When player tries to unlock the door
-- `on_pass_through` - When player moves through the door
-
-#### Location Events
-- `on_enter` - When player enters the location
-- `on_exit` - When player leaves the location
-- `on_examine` - When player looks around (examine/look command)
-- `on_tick` - Called periodically (ambient effects)
-
-### Event Handler Signature
-
-All event handlers follow a consistent signature:
-
-```python
-def event_handler(
-    entity,      # The entity this behavior is attached to
-    state,       # Current GameState
-    context      # Event-specific context (command, target, etc.)
-) -> EventResult:
-    """
-    Handle an event for this entity.
+# 2. Command handler (optional)
+def handle_squeeze(handler, action):
+    """Handle the squeeze command.
 
     Args:
-        entity: The entity object (Item, NPC, Door, Location)
-        state: Current game state
-        context: Dict with event-specific data:
-            - "command": ParsedCommand object
-            - "player": Player object (shortcut)
-            - "location": Current Location object
-            - "target": Target of action (for use_with, give, etc.)
+        handler: JSONProtocolHandler instance
+        action: Action dict with verb, object, etc.
 
     Returns:
-        EventResult object with:
-            - allow: bool (allow default behavior to proceed?)
-            - message: Optional[str] (override default message)
-            - side_effects: Optional[callable] (function to call after)
+        Result dict with entity_obj for behavior invocation
     """
-    pass
+    obj_name = action.get("object")
+    item = handler._find_accessible_item(obj_name)
+
+    if not item:
+        return {
+            "type": "result",
+            "success": False,
+            "action": "squeeze",
+            "error": {"message": "You don't see that here."}
+        }
+
+    return {
+        "type": "result",
+        "success": True,
+        "action": "squeeze",
+        "entity": handler._entity_to_dict(item),
+        "entity_obj": item  # Required for behavior invocation
+    }
+
+# 3. Entity behaviors (optional)
+def on_squeeze(entity, state, context):
+    """Called when this entity is squeezed."""
+    return EventResult(
+        allow=True,
+        message="The rubber duck lets out a satisfying squeak!"
+    )
 ```
 
-### EventResult Object
+**Note**: The `entity_obj` field is an internal reference used by `_apply_behavior()` to invoke entity behaviors. It's removed before the result is returned to the caller.
 
-```python
-@dataclass
-class EventResult:
-    """Result of an event handler."""
-    allow: bool = True           # Allow default behavior?
-    message: Optional[str] = None  # Override default message
-    abort: bool = False           # Completely abort action
-
-    # Optional callback for side effects after main action
-    side_effects: Optional[Callable[[GameState], None]] = None
-```
-
-## Approach 1: Behavior Modules (Recommended)
-
-### Concept
-
-Store behaviors as Python modules in a `behaviors/` directory. Reference them in JSON by module path.
+**Important**: Both registered handlers (from behavior modules) and built-in handlers must include `entity_obj` in successful results for behaviors to be invoked. When migrating to this system, existing built-in handlers in `json_protocol.py` need to be updated to include this field.
 
 ### Directory Structure
 
@@ -185,35 +126,361 @@ Store behaviors as Python modules in a `behaviors/` directory. Reference them in
 text-game/
 ├── behaviors/
 │   ├── __init__.py
-│   ├── items/
+│   ├── core/                    # Core behaviors (shipped with engine)
+│   │   ├── __init__.py
+│   │   ├── consumables.py       # drink, eat handlers + potion/food behaviors
+│   │   ├── light_sources.py     # lantern auto-light behavior
+│   │   └── containers.py        # chest open/win behaviors
+│   ├── items/                   # Game-specific item behaviors
 │   │   ├── __init__.py
 │   │   ├── trapped_chest.py
-│   │   ├── magical_harp.py
-│   │   └── talking_scroll.py
+│   │   └── magical_harp.py
 │   ├── npcs/
 │   │   ├── __init__.py
 │   │   ├── parrot.py
-│   │   ├── guard.py
 │   │   └── merchant.py
 │   ├── doors/
 │   │   ├── __init__.py
-│   │   ├── time_locked_door.py
-│   │   └── riddle_door.py
+│   │   └── time_locked_door.py
 │   └── locations/
 │       ├── __init__.py
-│       ├── throne_room.py
-│       └── haunted_corridor.py
-├── examples/
-│   └── simple_game_state.json
-└── src/
-    └── behavior_manager.py (new)
+│       └── throne_room.py
+├── src/
+│   ├── behavior_manager.py
+│   └── json_protocol.py
+└── data/
+    ├── vocabulary.json          # Base vocabulary
+    └── game_state.json
 ```
 
-### JSON Attachment
+## Dynamic Event Naming
+
+Events are derived from verbs automatically using the `on_<verb>` convention:
+
+| Verb | Event Name | Entity Types |
+|------|------------|--------------|
+| examine | on_examine | item, npc, door, location |
+| take | on_take | item |
+| drop | on_drop | item |
+| use | on_use | item |
+| open | on_open | item, door |
+| close | on_close | item, door |
+| unlock | on_unlock | door |
+| lock | on_lock | door |
+| talk | on_talk | npc |
+| attack | on_attack | npc, item |
+| give | on_give | npc |
+| drink | on_drink | item |
+| eat | on_eat | item |
+| squeeze | on_squeeze | item |
+| *any verb* | on_*verb* | *depends on handler* |
+
+**Special events** not derived from verbs:
+- `on_enter` - When player enters a location
+- `on_exit` - When player leaves a location
+- `on_pass_through` - When player moves through a door
+- `on_use_with` - When using one item with another (see below)
+- `on_tick` - Periodic updates (see below)
+
+This means adding a new verb automatically creates the corresponding event—no predefined event list needed.
+
+### Advanced Events (May Be Deferred)
+
+These events add complexity and may be omitted from the initial implementation:
+
+#### on_use_with Event
+
+Triggered when a player uses one item with another, such as "use key with door" or "use matches with candle".
+
+**Vocabulary support required**: The JSON protocol would need to support a `target` field:
+```json
+{"verb": "use", "object": "key", "target": "door"}
+```
+
+**Handler invocation**: The event is invoked on the primary object (key), with the target in context:
+```python
+def on_use_with(entity, state, context):
+    target = context["target"]  # The door
+    if target.locked:
+        target.locked = False
+        return EventResult(
+            allow=True,
+            message="You unlock the door with the key."
+        )
+    return EventResult(
+        allow=False,
+        message="The door is already unlocked."
+    )
+```
+
+**Complexity**: Requires changes to vocabulary, LLM prompt, and protocol handler. Consider implementing as a separate "unlock" verb instead for simpler cases.
+
+#### on_tick Event
+
+Periodic event for time-based behaviors like NPC wandering, torch burning out, or ambient effects.
+
+**Game loop integration**: The engine must call tick handlers at regular intervals:
+```python
+# In game loop
+tick_count += 1
+if tick_count % TICKS_PER_TURN == 0:
+    behavior_manager.invoke_tick_events(state)
+```
+
+**Entity context**: Tick handlers receive minimal context since they're not triggered by player action:
+```python
+def on_tick(entity, state, context):
+    # context contains only {"location": entity_location}
+
+    # Example: NPC wanders randomly
+    if random.random() < 0.3:
+        new_loc = random.choice(adjacent_locations)
+        entity.location = new_loc
+        return EventResult(
+            allow=True,
+            message=f"The {entity.name} wanders away."
+        )
+    return EventResult(allow=True)
+```
+
+**Complexity**: Requires game loop changes, decisions about tick frequency, and handling of tick messages (should they be shown to player?). Consider deferring until core behavior system is stable.
+
+## Event Handler Signature
+
+All event handlers follow a consistent signature:
+
+```python
+def on_verb(entity, state, context) -> EventResult:
+    """
+    Handle an event for this entity.
+
+    Args:
+        entity: The entity object (Item, NPC, Door, Location)
+        state: Current GameState
+        context: Dict with event-specific data
+
+    Returns:
+        EventResult object
+    """
+    pass
+```
+
+### Event Context
+
+Standard fields present in all contexts:
+
+```python
+context = {
+    "location": current_location,     # Location object (current player location)
+}
+```
+
+**Note**: Behaviors access the player via `state.player` rather than through context, since state is always passed to handlers.
+
+Event-specific additional fields:
+
+```python
+# on_give: When giving item to NPC
+context["item"] = item_being_given
+
+# on_pass_through: When moving through door
+context["direction"] = "north"
+context["from_location"] = origin_loc
+context["to_location"] = dest_loc
+
+# For door events involving locks
+context["lock"] = lock_object
+context["has_key"] = True/False
+```
+
+### EventResult Object
+
+```python
+@dataclass
+class EventResult:
+    """Result from an event handler."""
+    allow: bool = True                # Allow default behavior to proceed?
+    message: Optional[str] = None     # Message for LLM narrator
+```
+
+Behaviors modify state directly rather than using callbacks. This is simpler and matches the pattern used by command handlers.
+
+## Core Behavior Modules
+
+These modules ship with the engine and provide standard functionality that's been moved out of the hardcoded engine:
+
+### behaviors/core/consumables.py
+
+Handles drink and eat commands, plus potion/food behaviors.
+
+**Note**: The `drink` and `eat` verbs should be defined in the base `vocabulary.json`, not in this module. Only NEW verbs need vocabulary extensions.
+
+```python
+"""Consumable items - drink and eat functionality."""
+
+from src.behavior_manager import EventResult
+
+# Helper for consume commands (drink/eat share same pattern)
+def _handle_consume(handler, action, verb):
+    """Common handler for drink/eat commands."""
+    obj_name = action.get("object")
+
+    if not obj_name:
+        return {
+            "type": "result",
+            "success": False,
+            "action": verb,
+            "error": {"message": f"{verb.capitalize()} what?"}
+        }
+
+    # Find item in inventory
+    item = None
+    for item_id in handler.state.player.inventory:
+        i = handler._get_item_by_id(item_id)
+        if i and i.name == obj_name:
+            item = i
+            break
+
+    if not item:
+        return {
+            "type": "result",
+            "success": False,
+            "action": verb,
+            "error": {"message": "You're not carrying that."}
+        }
+
+    return {
+        "type": "result",
+        "success": True,
+        "action": verb,
+        "entity": handler._entity_to_dict(item),
+        "entity_obj": item
+    }
+
+# Command handlers
+def handle_drink(handler, action):
+    """Handle drink command."""
+    return _handle_consume(handler, action, "drink")
+
+def handle_eat(handler, action):
+    """Handle eat command."""
+    return _handle_consume(handler, action, "eat")
+
+# Entity behaviors for specific items
+
+def on_drink_health_potion(entity, state, context):
+    """Health potion drinking behavior."""
+    # Remove from inventory
+    state.player.inventory.remove(entity.id)
+    entity.location = ""  # Consumed
+    # Heal player
+    state.player.stats["health"] = min(
+        state.player.stats.get("health", 100) + 20,
+        100
+    )
+
+    return EventResult(
+        allow=True,
+        message="You drink the glowing red potion. Warmth spreads through your body as your wounds heal."
+    )
+```
+
+### behaviors/core/light_sources.py
+
+Handles lantern and other light source behaviors:
+
+```python
+"""Light source behaviors - lanterns, torches, etc."""
+
+from src.behavior_manager import EventResult
+
+def on_take(entity, state, context):
+    """Auto-light when taken (magical runes activate on touch)."""
+    entity.states['lit'] = True
+
+    return EventResult(
+        allow=True,
+        message="As your hand closes around the lantern, the runes flare to life, casting a warm glow."
+    )
+
+
+def on_drop(entity, state, context):
+    """Extinguish when dropped (magical runes deactivate)."""
+    entity.states['lit'] = False
+
+    return EventResult(
+        allow=True,
+        message="The lantern's runes fade as you set it down, leaving it dark and cold."
+    )
+```
+
+### behaviors/core/containers.py
+
+Handles chest and container behaviors:
+
+```python
+"""Container behaviors - chests, boxes, etc."""
+
+from src.behavior_manager import EventResult
+
+def on_open_treasure_chest(entity, state, context):
+    """Win condition when opening treasure chest."""
+    state.player.flags["won"] = True
+
+    return EventResult(
+        allow=True,
+        message="You open the chest and find glittering treasure! You win!"
+    )
+```
+
+## Data Model
+
+### Behaviors Field
+
+All entity types support a `behaviors` dict mapping event names to module paths:
+
+```python
+@dataclass
+class Item:
+    id: str
+    name: str
+    description: str
+    type: str
+    portable: bool
+    location: str
+    states: Dict[str, Any] = field(default_factory=dict)
+    container: Optional[ContainerInfo] = None
+    provides_light: bool = False
+    behaviors: Dict[str, str] = field(default_factory=dict)  # event -> module:function
+```
+
+### JSON Schema
 
 ```json
 {
   "items": [
+    {
+      "id": "item_potion",
+      "name": "potion",
+      "description": "A glowing red potion.",
+      "portable": true,
+      "location": "loc_tower",
+      "behaviors": {
+        "on_drink": "behaviors.core.consumables:on_drink_health_potion"
+      }
+    },
+    {
+      "id": "item_lantern",
+      "name": "lantern",
+      "description": "A copper lantern with runes.",
+      "portable": true,
+      "provides_light": true,
+      "location": "loc_hallway",
+      "behaviors": {
+        "on_take": "behaviors.core.light_sources:on_take",
+        "on_drop": "behaviors.core.light_sources:on_drop"
+      }
+    },
     {
       "id": "item_chest",
       "name": "chest",
@@ -221,176 +488,134 @@ text-game/
       "portable": false,
       "location": "loc_treasure_room",
       "behaviors": {
-        "on_open": "behaviors.items.trapped_chest:on_open",
-        "on_examine": "behaviors.items.trapped_chest:on_examine"
-      }
-    }
-  ],
-  "npcs": [
-    {
-      "id": "npc_parrot",
-      "name": "parrot",
-      "description": "A colorful parrot perched on a stand.",
-      "location": "loc_start",
-      "behaviors": {
-        "on_examine": "behaviors.npcs.parrot:on_examine",
-        "on_talk": "behaviors.npcs.parrot:on_talk"
-      }
-    }
-  ],
-  "doors": [
-    {
-      "id": "door_magical",
-      "description": "A shimmering magical door.",
-      "locations": ["loc_tower", "loc_secret"],
-      "locked": true,
-      "open": false,
-      "behaviors": {
-        "on_open": "behaviors.doors.time_locked_door:on_open"
-      }
-    }
-  ],
-  "locations": [
-    {
-      "id": "loc_throne_room",
-      "name": "Throne Room",
-      "description": "A grand throne room.",
-      "behaviors": {
-        "on_enter": "behaviors.locations.throne_room:on_enter"
+        "on_open": "behaviors.core.containers:on_open_treasure_chest"
       }
     }
   ]
 }
 ```
 
-### Behavior Module Example
+## Behavior Manager Implementation
 
-**File**: `behaviors/items/trapped_chest.py`
+The BehaviorManager loads modules, merges vocabulary, and registers handlers.
 
-```python
-"""Trapped chest behavior - requires gloves to open safely."""
+### Two Loading Mechanisms
 
-from src.behavior_manager import EventResult
+The BehaviorManager uses two different mechanisms for loading code:
 
-def on_examine(entity, state, context):
-    """Enhanced examine - hint at the trap."""
-    # Let default examine happen, but add extra detail
-    result = EventResult(allow=True)
+1. **`load_module()`** - Called at startup to register command handlers and vocabulary extensions. Scans a module for `handle_*` functions and `vocabulary` dict.
 
-    def show_hint(state):
-        print("You notice a tiny hole in the lock. Suspicious...")
+2. **`load_behavior()`** - Called during gameplay to load entity-specific behaviors referenced in game state JSON (e.g., `"behaviors.core.light_sources:on_take"`). Uses `module:function` string format.
 
-    result.side_effects = show_hint
-    return result
-
-
-def on_open(entity, state, context):
-    """Check for gloves before allowing open."""
-    player = context["player"]
-
-    # Check if player has protective gloves
-    has_gloves = any(
-        item_id for item_id in player.inventory
-        if state.get_item_by_id(item_id).name == "gloves"
-    )
-
-    if has_gloves:
-        result = EventResult(
-            allow=True,
-            message="Your gloves protect you from the poison needle!"
-        )
-    else:
-        result = EventResult(
-            allow=False,  # Prevent opening
-            message="A poison needle pricks your finger! You feel dizzy..."
-        )
-
-        def apply_damage(state):
-            state.player.stats["health"] = state.player.stats.get("health", 100) - 10
-            print(f"Health: {state.player.stats['health']}")
-
-        result.side_effects = apply_damage
-
-    return result
-```
-
-**File**: `behaviors/npcs/parrot.py`
-
-```python
-"""Parrot NPC - reacts to crackers."""
-
-from src.behavior_manager import EventResult
-
-def on_examine(entity, state, context):
-    """Parrot reacts differently based on inventory."""
-    player = context["player"]
-
-    # Check if player has cracker
-    has_cracker = any(
-        item_id for item_id in player.inventory
-        if state.get_item_by_id(item_id).name == "cracker"
-    )
-
-    if has_cracker:
-        message = (
-            "A colorful parrot perched on a stand.\n"
-            "The parrot's eyes light up when it sees your cracker.\n"
-            "'CRACKER! CRACKER!' it squawks loudly."
-        )
-    else:
-        message = (
-            "A colorful parrot perched on a stand.\n"
-            "It looks at you with disinterest."
-        )
-
-    return EventResult(allow=False, message=message)
-
-
-def on_talk(entity, state, context):
-    """Parrot talks back."""
-    import random
-
-    phrases = [
-        "The parrot squawks: 'HELLO!'",
-        "The parrot tilts its head: 'PRETTY BIRD!'",
-        "The parrot ruffles its feathers: 'CRACKER!'",
-    ]
-
-    return EventResult(
-        allow=False,
-        message=random.choice(phrases)
-    )
-```
-
-### Behavior Manager Implementation
-
-**File**: `src/behavior_manager.py`
+This separation allows:
+- Core handlers to be registered once at startup
+- Entity behaviors to be loaded on-demand when first invoked
+- Hot reload of behaviors during development (clear cache, re-invoke)
 
 ```python
 """Behavior management system for entity events."""
 
-from typing import Optional, Dict, Callable, Any
+from typing import Optional, Dict, Any, List, Callable
 from dataclasses import dataclass
 import importlib
+import json
+from pathlib import Path
 
 @dataclass
 class EventResult:
     """Result from an event handler."""
     allow: bool = True
     message: Optional[str] = None
-    abort: bool = False
-    side_effects: Optional[Callable] = None
 
 
 class BehaviorManager:
     """
     Manages loading and invoking entity behaviors.
 
-    Behaviors are Python functions loaded from module paths.
+    Also handles vocabulary extensions and protocol handler registration.
     """
 
     def __init__(self):
-        self._cache: Dict[str, Callable] = {}
+        self._behavior_cache: Dict[str, Callable] = {}
+        self._handlers: Dict[str, Callable] = {}  # verb -> handler function
+        self._vocabulary_extensions: List[Dict] = []
+
+    def load_module(self, module_path: str) -> None:
+        """
+        Load a behavior module and register its extensions.
+
+        Args:
+            module_path: Python module path (e.g., "behaviors.core.consumables")
+        """
+        try:
+            module = importlib.import_module(module_path)
+        except ImportError as e:
+            print(f"Warning: Could not load behavior module {module_path}: {e}")
+            return
+
+        # Register vocabulary extensions
+        if hasattr(module, 'vocabulary'):
+            self._vocabulary_extensions.append(module.vocabulary)
+
+        # Register protocol handlers
+        for name in dir(module):
+            if name.startswith('handle_'):
+                verb = name[7:]  # Remove 'handle_' prefix
+                handler = getattr(module, name)
+                self._handlers[verb] = handler
+
+    def load_modules(self, module_paths: List[str]) -> None:
+        """Load multiple behavior modules."""
+        for path in module_paths:
+            self.load_module(path)
+
+    def get_merged_vocabulary(self, base_vocab: Dict) -> Dict:
+        """
+        Merge base vocabulary with all extensions.
+
+        Args:
+            base_vocab: Base vocabulary dict from vocabulary.json
+
+        Returns:
+            Merged vocabulary dict
+        """
+        result = {
+            "verbs": list(base_vocab.get("verbs", [])),
+            "directions": list(base_vocab.get("directions", []))
+        }
+
+        for ext in self._vocabulary_extensions:
+            # Merge verbs (avoid duplicates by word)
+            existing_words = {v["word"] for v in result["verbs"]}
+            for verb in ext.get("verbs", []):
+                if verb["word"] not in existing_words:
+                    result["verbs"].append(verb)
+                    existing_words.add(verb["word"])
+
+            # Merge directions
+            existing_dirs = {d["word"] for d in result["directions"]}
+            for direction in ext.get("directions", []):
+                if direction["word"] not in existing_dirs:
+                    result["directions"].append(direction)
+                    existing_dirs.add(direction["word"])
+
+        return result
+
+    def get_handler(self, verb: str) -> Optional[Callable]:
+        """
+        Get registered handler for a verb.
+
+        Args:
+            verb: The verb to handle
+
+        Returns:
+            Handler function or None
+        """
+        return self._handlers.get(verb)
+
+    def has_handler(self, verb: str) -> bool:
+        """Check if a handler is registered for this verb."""
+        return verb in self._handlers
 
     def load_behavior(self, behavior_path: str) -> Optional[Callable]:
         """
@@ -400,29 +625,20 @@ class BehaviorManager:
             behavior_path: "module.path:function_name"
 
         Returns:
-            Callable behavior function or None if not found
+            Callable behavior function or None
         """
-        # Check cache first
-        if behavior_path in self._cache:
-            return self._cache[behavior_path]
+        if behavior_path in self._behavior_cache:
+            return self._behavior_cache[behavior_path]
 
         try:
-            # Split module path and function name
             module_path, function_name = behavior_path.split(':')
-
-            # Import the module
             module = importlib.import_module(module_path)
-
-            # Get the function
             behavior_func = getattr(module, function_name)
-
-            # Cache it
-            self._cache[behavior_path] = behavior_func
-
+            self._behavior_cache[behavior_path] = behavior_func
             return behavior_func
 
         except (ValueError, ImportError, AttributeError) as e:
-            print(f"Warning: Could not load behavior '{behavior_path}': {e}")
+            print(f"Warning: Could not load behavior {behavior_path}: {e}")
             return None
 
     def invoke_behavior(
@@ -437,43 +653,40 @@ class BehaviorManager:
 
         Args:
             entity: Entity object with 'behaviors' dict
-            event_name: Event name (e.g., "on_open")
+            event_name: Event name (e.g., "on_drink")
             state: Current GameState
             context: Event context dict
 
         Returns:
             EventResult or None if no behavior attached
         """
-        # Check if entity has behaviors
         if not hasattr(entity, 'behaviors') or not entity.behaviors:
             return None
 
-        # Check if this event has a behavior
         behavior_path = entity.behaviors.get(event_name)
         if not behavior_path:
             return None
 
-        # Load the behavior function
         behavior_func = self.load_behavior(behavior_path)
         if not behavior_func:
             return None
 
-        # Invoke it
         try:
             result = behavior_func(entity, state, context)
 
-            # Ensure result is EventResult
             if not isinstance(result, EventResult):
-                print(f"Warning: Behavior {behavior_path} didn't return EventResult")
                 return None
 
             return result
 
         except Exception as e:
-            print(f"Error in behavior {behavior_path}: {e}")
             import traceback
             traceback.print_exc()
             return None
+
+    def clear_cache(self):
+        """Clear behavior cache (useful for hot reload)."""
+        self._behavior_cache.clear()
 
 
 # Global instance
@@ -484,364 +697,284 @@ def get_behavior_manager() -> BehaviorManager:
     return _behavior_manager
 ```
 
-### Integration with Game Engine
+## Protocol Handler Integration
 
-Modify entity interaction functions to check for behaviors:
-
-**Example**: Modified `open_item()` function
+The JSON protocol handler checks for registered handlers before built-in ones:
 
 ```python
-def open_item(state: GameState, command: ParsedCommand):
-    """Open an item or door, with behavior support."""
-    from src.behavior_manager import get_behavior_manager
+class JSONProtocolHandler:
+    def __init__(self, state, behavior_manager=None):
+        self.state = state
+        self.behavior_manager = behavior_manager or get_behavior_manager()
 
-    # ... existing door/item finding logic ...
-
-    if item_name == "chest":
-        # Get the chest entity
-        chest = # ... find chest ...
-
-        # Prepare event context
-        context = {
-            "command": command,
-            "player": state.player,
-            "location": get_current_location(state)
+        # Built-in command handlers
+        self._builtin_handlers = {
+            "go": self._cmd_go,
+            "take": self._cmd_take,
+            "drop": self._cmd_drop,
+            "examine": self._cmd_examine,
+            "open": self._cmd_open,
+            "close": self._cmd_close,
+            "unlock": self._cmd_unlock,
+            "lock": self._cmd_lock,
+            "inventory": self._cmd_inventory,
+            "look": self._cmd_look,
         }
 
-        # Check for custom behavior
-        behavior_mgr = get_behavior_manager()
-        result = behavior_mgr.invoke_behavior(chest, "on_open", state, context)
+    def _process_command(self, message: Dict) -> Dict:
+        """Process a command message."""
+        action = message.get("action", {})
+        verb = action.get("verb")
 
-        if result:
-            # Custom behavior handled it
-            if result.message:
-                print(result.message)
+        if not verb:
+            return self._error_result("unknown", "No verb specified")
 
-            if result.abort:
-                return False
+        # Check for registered handler first (from behavior modules)
+        handler = self.behavior_manager.get_handler(verb)
+        if handler:
+            result = handler(self, action)
+            return self._apply_behavior(result, action)
 
-            if not result.allow:
-                # Behavior prevented opening
-                if result.side_effects:
-                    result.side_effects(state)
-                return False
+        # Fall back to built-in handler
+        # Note: Built-in handlers must also include entity_obj for behaviors to be invoked
+        builtin = self._builtin_handlers.get(verb)
+        if builtin:
+            result = builtin(action)
+            return self._apply_behavior(result, action)
 
-        # Either no behavior or behavior allowed default
-        # ... existing chest opening logic ...
+        return self._error_result(verb, f"Unknown command: {verb}")
 
-        if result and result.side_effects:
-            result.side_effects(state)
+    def _apply_behavior(self, result: Dict, action: Dict) -> Dict:
+        """Apply entity behavior to command result."""
+        if not result.get("success"):
+            return result
 
-        return "win"
-```
+        entity = result.get("entity_obj")  # Internal reference
+        if not entity:
+            return result
 
-### Advantages
+        # Build event name from verb
+        verb = action.get("verb")
+        event_name = f"on_{verb}"
 
-✅ **Clean separation**: Behaviors live in separate files
-✅ **Easy to add**: Just create new Python file and reference in JSON
-✅ **Testable**: Each behavior module can be unit tested
-✅ **Version control friendly**: Behaviors are code files, not embedded strings
-✅ **IDE support**: Full syntax highlighting, autocomplete, debugging
-✅ **Reusable**: Same behavior can be attached to multiple entities
-✅ **Hot reload**: Can reload behaviors without restarting game (in development)
+        # Build context
+        context = {
+            "location": self._get_current_location()
+        }
 
-### Disadvantages
-
-❌ **More files**: Each behavior needs its own file
-❌ **No true sandboxing**: Behaviors have full Python access
-❌ **Import overhead**: First load of each behavior requires import
-
-## Approach 2: Inline Python Strings
-
-### Concept
-
-Embed Python code directly in JSON as strings. Execute with `exec()`.
-
-### JSON Example
-
-```json
-{
-  "items": [
-    {
-      "id": "item_chest",
-      "name": "chest",
-      "behaviors": {
-        "on_open": "if 'gloves' not in [state.get_item_by_id(i).name for i in player.inventory]:\n    print('Poison needle!')\n    player.stats['health'] -= 10\n    return False"
-      }
-    }
-  ]
-}
-```
-
-### Advantages
-
-✅ **Simple**: Everything in one file
-✅ **No imports**: No module loading needed
-
-### Disadvantages
-
-❌ **Unreadable**: Multiline code in JSON strings is terrible
-❌ **No syntax checking**: Errors only found at runtime
-❌ **No IDE support**: No highlighting, autocomplete
-❌ **Hard to test**: Can't unit test inline strings easily
-❌ **Security risk**: `exec()` is dangerous
-❌ **Version control**: Diffs are messy
-
-**Verdict**: ❌ Not recommended
-
-## Approach 3: External Script Files
-
-### Concept
-
-Store behaviors as standalone `.py` files. Reference by filename in JSON.
-
-### Directory Structure
-
-```
-game_data/
-├── game_state.json
-└── scripts/
-    ├── trapped_chest_open.py
-    ├── parrot_examine.py
-    └── throne_room_enter.py
-```
-
-### JSON Example
-
-```json
-{
-  "items": [
-    {
-      "id": "item_chest",
-      "behaviors": {
-        "on_open": "scripts/trapped_chest_open.py"
-      }
-    }
-  ]
-}
-```
-
-### Script Example
-
-**File**: `scripts/trapped_chest_open.py`
-
-```python
-# Trapped chest open behavior
-# Available: entity, state, context
-
-player = context["player"]
-has_gloves = any(
-    state.get_item_by_id(item_id).name == "gloves"
-    for item_id in player.inventory
-)
-
-if has_gloves:
-    result.allow = True
-    result.message = "Your gloves protect you!"
-else:
-    result.allow = False
-    result.message = "A poison needle pricks you!"
-
-    def damage():
-        state.player.stats["health"] -= 10
-
-    result.side_effects = damage
-```
-
-### Advantages
-
-✅ **One script per behavior**: Simple organization
-✅ **Editable**: Game authors can edit scripts directly
-✅ **Syntax highlighting**: IDEs recognize `.py` files
-
-### Disadvantages
-
-❌ **Global namespace pollution**: Scripts execute in shared namespace
-❌ **No structure**: Scripts are free-form
-❌ **Hard to debug**: Stack traces don't work well
-❌ **Coupling**: Scripts need to know about result object structure
-
-**Verdict**: ⚠️ Workable but not ideal
-
-## Approach 4: Behavior Classes
-
-### Concept
-
-Define behaviors as classes inheriting from base `Behavior` class.
-
-### Example
-
-```python
-# behaviors/items/trapped_chest.py
-
-from src.behavior import ItemBehavior, EventResult
-
-class TrappedChestBehavior(ItemBehavior):
-    """Chest that poisons player without gloves."""
-
-    def on_open(self, entity, state, context):
-        player = context["player"]
-
-        if self.player_has_item(player, state, "gloves"):
-            return EventResult(
-                allow=True,
-                message="Your gloves protect you from the poison needle!"
-            )
-        else:
-            return EventResult(
-                allow=False,
-                message="A poison needle pricks your finger!",
-                side_effects=lambda s: self.damage_player(s, 10)
-            )
-
-    def on_examine(self, entity, state, context):
-        return EventResult(
-            allow=True,
-            side_effects=lambda s: print("You notice a tiny hole in the lock...")
+        # Invoke behavior
+        behavior_result = self.behavior_manager.invoke_behavior(
+            entity, event_name, self.state, context
         )
 
-    # Helper methods
-    def player_has_item(self, player, state, item_name):
-        return any(
-            state.get_item_by_id(i).name == item_name
-            for i in player.inventory
-        )
+        if behavior_result:
+            if not behavior_result.allow:
+                # Behavior prevented action
+                result["success"] = False
+                result["error"] = {
+                    "message": behavior_result.message or "Action prevented.",
+                    "reason": "behavior_prevented"
+                }
+            elif behavior_result.message:
+                # Add behavior message
+                result["message"] = behavior_result.message
 
-    def damage_player(self, state, amount):
-        state.player.stats["health"] -= amount
-        print(f"Health: {state.player.stats['health']}")
+        # Remove internal reference before returning
+        result.pop("entity_obj", None)
+        return result
 ```
 
-### JSON Reference
+## Initialization Flow
+
+At game startup:
+
+```python
+from src.behavior_manager import get_behavior_manager
+from src.json_protocol import JSONProtocolHandler
+from src.loader import load_game_state
+import json
+
+def initialize_game(game_state_path: str, behavior_modules: list = None):
+    """Initialize game with behaviors loaded."""
+
+    # Default core modules
+    if behavior_modules is None:
+        behavior_modules = [
+            "behaviors.core.consumables",
+            "behaviors.core.light_sources",
+            "behaviors.core.containers",
+        ]
+
+    # Load behavior modules
+    manager = get_behavior_manager()
+    manager.load_modules(behavior_modules)
+
+    # Load and merge vocabulary
+    with open("data/vocabulary.json") as f:
+        base_vocab = json.load(f)
+    merged_vocab = manager.get_merged_vocabulary(base_vocab)
+
+    # Load game state
+    state = load_game_state(game_state_path)
+
+    # Create protocol handler
+    handler = JSONProtocolHandler(state, manager)
+
+    return handler, merged_vocab
+```
+
+## Custom Behavior Module Example
+
+A complete custom module adding a new verb:
+
+```python
+# behaviors/items/rubber_duck.py
+"""Rubber duck - squeezable toy with custom verb."""
+
+from src.behavior_manager import EventResult
+
+# Vocabulary extension - adds 'squeeze' verb
+vocabulary = {
+    "verbs": [
+        {
+            "word": "squeeze",
+            "synonyms": ["squish", "honk", "squash"],
+            "object_required": True
+        }
+    ]
+}
+
+# Protocol handler for squeeze command
+def handle_squeeze(handler, action):
+    """Handle squeeze command - find item and invoke behavior."""
+    obj_name = action.get("object")
+
+    if not obj_name:
+        return {
+            "type": "result",
+            "success": False,
+            "action": "squeeze",
+            "error": {"message": "Squeeze what?"}
+        }
+
+    # Find item in inventory or location
+    item = handler._find_accessible_item(obj_name)
+    if not item:
+        return {
+            "type": "result",
+            "success": False,
+            "action": "squeeze",
+            "error": {"message": "You don't see that here."}
+        }
+
+    return {
+        "type": "result",
+        "success": True,
+        "action": "squeeze",
+        "entity": handler._entity_to_dict(item),
+        "entity_obj": item  # For behavior invocation
+    }
+
+
+# Entity behavior - specific to rubber duck
+def on_squeeze(entity, state, context):
+    """Rubber duck squeaking behavior."""
+    squeeze_count = entity.states.get("squeeze_count", 0) + 1
+    entity.states["squeeze_count"] = squeeze_count
+
+    if squeeze_count == 1:
+        message = "The rubber duck lets out a satisfying squeak!"
+    elif squeeze_count < 5:
+        message = "Squeak! The duck seems to enjoy the attention."
+    elif squeeze_count == 5:
+        message = "SQUEAK! The duck produces an unusually loud noise. Something falls from a nearby shelf..."
+        # Could trigger a puzzle effect here
+    else:
+        message = "The duck squeaks contentedly."
+
+    return EventResult(
+        allow=True,
+        message=message
+    )
+```
+
+To use this module, just add it to the load list and attach the behavior to an entity:
 
 ```json
 {
-  "items": [
-    {
-      "id": "item_chest",
-      "behavior_class": "behaviors.items.trapped_chest:TrappedChestBehavior"
-    }
-  ]
+  "id": "item_duck",
+  "name": "rubber duck",
+  "description": "A yellow rubber duck.",
+  "portable": true,
+  "location": "loc_bathroom",
+  "behaviors": {
+    "on_squeeze": "behaviors.items.rubber_duck:on_squeeze"
+  }
 }
 ```
 
-### Advantages
+## LLM Narrator Integration
 
-✅ **Structured**: Clear methods for each event
-✅ **Inheritance**: Can share common functionality in base class
-✅ **Helper methods**: Easy to add reusable utilities
-✅ **Type hints**: Full IDE support
+The protocol returns behavior messages for the LLM narrator to render:
 
-### Disadvantages
-
-❌ **Boilerplate**: Need full class for simple behaviors
-❌ **Overhead**: Creating class instances for each entity
-
-**Verdict**: ✅ Good for complex behaviors, overkill for simple ones
-
-## Hybrid Approach (Recommended)
-
-Combine **Approach 1** (modules) with **Approach 4** (classes) for flexibility:
-
-- **Simple behaviors**: Use module functions (Approach 1)
-- **Complex behaviors**: Use behavior classes (Approach 4)
-
-### JSON Syntax
-
-```json
+```python
+# Result with behavior message
 {
-  "items": [
-    {
-      "id": "item_simple",
-      "behaviors": {
-        "on_examine": "behaviors.items.simple:on_examine"
-      }
+    "type": "result",
+    "success": True,
+    "action": "squeeze",
+    "entity": {
+        "id": "item_duck",
+        "name": "rubber duck",
+        "description": "A yellow rubber duck.",
+        "llm_context": {...}
     },
-    {
-      "id": "item_complex",
-      "behavior_class": "behaviors.items.complex:ComplexBehavior"
+    "message": "The rubber duck lets out a satisfying squeak!"
+}
+```
+
+The LLM narrator incorporates this message into its narrative.
+
+### Error Reasons
+
+When behaviors prevent actions:
+
+```python
+{
+    "type": "result",
+    "success": False,
+    "action": "open",
+    "entity": {...},
+    "error": {
+        "message": "A poison needle pricks your finger!",
+        "reason": "behavior_prevented"
     }
-  ]
 }
 ```
 
-### Behavior Manager Enhancement
+Error reason codes:
+- `behavior_prevented`: Custom behavior blocked the action
+- `not_found`: Entity not in location
+- `locked`: Door/container is locked
+- `no_light`: Too dark to perform action
+
+## Win Condition Checking
+
+After processing any command, check for game-ending conditions:
 
 ```python
-def invoke_behavior(self, entity, event_name, state, context):
-    """Invoke behavior - supports both functions and classes."""
+# In game loop
+result = handler.process_message(command)
 
-    # Check for behavior class first
-    if hasattr(entity, 'behavior_class'):
-        behavior_instance = self.load_behavior_class(entity.behavior_class)
-        if behavior_instance and hasattr(behavior_instance, event_name):
-            method = getattr(behavior_instance, event_name)
-            return method(entity, state, context)
+# Check win condition
+if state.player.flags.get("won"):
+    print("\nCongratulations! You win!")
+    break
 
-    # Fall back to event-specific function behaviors
-    if hasattr(entity, 'behaviors') and entity.behaviors:
-        behavior_path = entity.behaviors.get(event_name)
-        if behavior_path:
-            behavior_func = self.load_behavior(behavior_path)
-            if behavior_func:
-                return behavior_func(entity, state, context)
-
-    return None
-```
-
-## Safety and Sandboxing
-
-### Execution Context
-
-Provide limited context to behaviors:
-
-```python
-# Safe context - only expose what's needed
-safe_context = {
-    "player": state.player,
-    "location": get_current_location(state),
-    "command": context["command"],
-    "state": state,  # Provide whole state but trust behavior code
-}
-
-# Don't expose:
-# - File system access
-# - Network access
-# - Other sensitive modules
-```
-
-### Error Handling
-
-Wrap all behavior invocations in try/except:
-
-```python
-try:
-    result = behavior_func(entity, state, context)
-except Exception as e:
-    print(f"⚠️  Behavior error: {e}")
-    # Log error but don't crash game
-    # Optionally: disable this behavior for remainder of session
-    return None
-```
-
-### Timeout Protection
-
-For behaviors that might infinite loop:
-
-```python
-import signal
-
-def timeout_handler(signum, frame):
-    raise TimeoutError("Behavior took too long")
-
-# Set 1-second timeout
-signal.signal(signal.SIGALRM, timeout_handler)
-signal.alarm(1)
-
-try:
-    result = behavior_func(entity, state, context)
-finally:
-    signal.alarm(0)  # Cancel alarm
+# Check lose condition
+if state.player.stats.get("health", 100) <= 0:
+    print("\nGame Over!")
+    break
 ```
 
 ## Testing Strategy
@@ -849,221 +982,141 @@ finally:
 ### Unit Testing Behaviors
 
 ```python
-# tests/behaviors/test_trapped_chest.py
+# tests/behaviors/test_rubber_duck.py
 
-from behaviors.items.trapped_chest import on_open
+from behaviors.items.rubber_duck import on_squeeze
 from src.behavior_manager import EventResult
+from unittest.mock import Mock
 
-def test_trapped_chest_with_gloves():
-    """Test chest opens safely with gloves."""
-    # Create mock state
-    state = create_mock_state()
-    state.player.inventory = ["item_gloves"]
+def test_squeeze_first_time():
+    """Test first squeeze."""
+    entity = Mock()
+    entity.states = {}
 
-    entity = Mock(name="chest")
-    context = {"player": state.player}
+    state = Mock()
+    context = {"location": Mock()}
 
-    result = on_open(entity, state, context)
+    result = on_squeeze(entity, state, context)
 
     assert result.allow == True
-    assert "protect" in result.message.lower()
+    assert "squeak" in result.message.lower()
+    assert entity.states["squeeze_count"] == 1
 
 
-def test_trapped_chest_without_gloves():
-    """Test chest poisons player without gloves."""
-    state = create_mock_state()
-    state.player.inventory = []
-    state.player.stats["health"] = 100
+def test_squeeze_fifth_time():
+    """Test fifth squeeze triggers special event."""
+    entity = Mock()
+    entity.states = {"squeeze_count": 4}
 
-    entity = Mock(name="chest")
-    context = {"player": state.player}
+    state = Mock()
+    context = {"location": Mock()}
 
-    result = on_open(entity, state, context)
+    result = on_squeeze(entity, state, context)
 
-    assert result.allow == False
-    assert "poison" in result.message.lower()
-
-    # Execute side effect
-    result.side_effects(state)
-    assert state.player.stats["health"] == 90
+    assert "loud" in result.message.lower()
+    assert entity.states["squeeze_count"] == 5
 ```
 
-### Integration Testing
+### Testing Handler Registration
 
 ```python
-# tests/integration/test_behavior_system.py
+# tests/test_behavior_manager.py
 
-def test_behavior_invoked_on_open():
-    """Test that opening chest triggers behavior."""
-    game_state = load_game_state("test_game_with_behaviors.json")
+def test_handler_registration():
+    """Test that handlers are registered from modules."""
+    manager = BehaviorManager()
+    manager.load_module("behaviors.items.rubber_duck")
 
-    # Player doesn't have gloves
-    assert "item_gloves" not in game_state.player.inventory
+    assert manager.has_handler("squeeze")
 
-    # Try to open trapped chest
-    result = open_item(game_state, "chest")
+    handler = manager.get_handler("squeeze")
+    assert callable(handler)
 
-    # Should fail due to behavior
-    assert result == False
 
-    # Player should be damaged
-    assert game_state.player.stats["health"] < 100
-```
+def test_vocabulary_merge():
+    """Test vocabulary extensions are merged."""
+    manager = BehaviorManager()
+    manager.load_module("behaviors.items.rubber_duck")
 
-## Documentation for Game Authors
+    base_vocab = {"verbs": [{"word": "take"}], "directions": []}
+    merged = manager.get_merged_vocabulary(base_vocab)
 
-### Behavior Authoring Guide
-
-Create `docs/behavior_authoring.md`:
-
-```markdown
-# Writing Custom Behaviors
-
-## Quick Start
-
-1. Create a new file in `behaviors/items/` (or npcs/, doors/, locations/)
-2. Define event handler functions
-3. Reference in your game JSON
-
-## Example: Simple Behavior
-
-**File**: behaviors/items/magic_sword.py
-
-```python
-from src.behavior_manager import EventResult
-
-def on_examine(entity, state, context):
-    """Sword glows when examined."""
-    return EventResult(
-        allow=True,  # Show normal description too
-        side_effects=lambda s: print("✨ The sword glows with magical energy!")
-    )
-
-def on_take(entity, state, context):
-    """Sword can only be taken by worthy players."""
-    player = context["player"]
-
-    if player.stats.get("strength", 0) >= 10:
-        return EventResult(
-            allow=True,
-            message="The sword accepts you as its wielder!"
-        )
-    else:
-        return EventResult(
-            allow=False,
-            message="The sword is too heavy for you to lift."
-        )
-```
-
-**JSON**:
-```json
-{
-  "id": "item_magic_sword",
-  "name": "sword",
-  "behaviors": {
-    "on_examine": "behaviors.items.magic_sword:on_examine",
-    "on_take": "behaviors.items.magic_sword:on_take"
-  }
-}
-```
-
-## Available Events
-
-[List all events for each entity type]
-
-## EventResult Object
-
-[Document EventResult fields and their effects]
-
-## Helper Functions
-
-[Document utility functions available to behaviors]
-
-## Best Practices
-
-1. Keep behaviors focused (one file per item/NPC)
-2. Return EventResult from all handlers
-3. Use side_effects for actions after main behavior
-4. Test your behaviors!
-```
-
-## Performance Considerations
-
-### Lazy Loading
-
-Only load behaviors when first needed:
-
-```python
-def load_behavior(self, behavior_path):
-    # Check cache first
-    if behavior_path in self._cache:
-        return self._cache[behavior_path]
-
-    # Load on demand
-    behavior = self._import_behavior(behavior_path)
-    self._cache[behavior_path] = behavior
-    return behavior
-```
-
-### Behavior Pre-compilation
-
-For frequently-used behaviors, pre-compile:
-
-```python
-def preload_common_behaviors(self):
-    """Load common behaviors at startup."""
-    common = [
-        "behaviors.items.chest:on_open",
-        "behaviors.npcs.merchant:on_talk",
-        # ... other common behaviors
-    ]
-    for behavior_path in common:
-        self.load_behavior(behavior_path)
-```
-
-### Entity Behavior Caching
-
-Cache behavior references on entities:
-
-```python
-class Item:
-    def __init__(self, ...):
-        self.behaviors = {}
-        self._behavior_cache = {}  # Cached callable references
+    words = [v["word"] for v in merged["verbs"]]
+    assert "take" in words
+    assert "squeeze" in words
 ```
 
 ## Migration Path
 
 ### Phase 1: Infrastructure
-1. Implement BehaviorManager
-2. Add EventResult dataclass
-3. Create behaviors/ directory structure
-4. Add behavior support to entity models
+1. Implement BehaviorManager with module loading
+2. Add vocabulary merging
+3. Add handler registration
 
-### Phase 2: Integration
-1. Modify entity interaction functions to check behaviors
-2. Add behavior invocation before/after default actions
-3. Implement error handling and logging
+### Phase 2: Move Core Behaviors
+1. Create behaviors/core/consumables.py (drink, eat)
+2. Create behaviors/core/light_sources.py (lantern)
+3. Create behaviors/core/containers.py (chest win)
+4. Remove hardcoded handlers from json_protocol.py
 
-### Phase 3: Examples
-1. Create example behaviors for common patterns
-2. Write behavior authoring documentation
-3. Convert some existing special-case code to behaviors
+### Phase 3: Protocol Integration
+1. Modify protocol handler to check registered handlers
+2. Add behavior invocation after command processing
+3. Update result format with behavior messages
 
-### Phase 4: Advanced Features
-1. Add behavior inheritance/composition
-2. Implement behavior state persistence
-3. Add behavior debugging tools
-4. Create behavior testing utilities
+### Phase 4: Documentation
+1. Write behavior authoring guide
+2. Create example modules
+3. Add test fixtures
 
-## Recommended Implementation
+## Benefits of This Design
 
-**Use Hybrid Approach**:
-- Module functions for simple behaviors (80% of cases)
-- Behavior classes for complex multi-event behaviors (20% of cases)
-- BehaviorManager to handle both
-- EventResult for consistent return values
-- Comprehensive error handling
-- Good documentation for game authors
+1. **No engine modifications**: New verbs/behaviors just require loading modules
+2. **Self-contained packages**: Vocabulary + handler + behavior in one file
+3. **Gradual migration**: Move existing functionality module by module
+4. **Clear ownership**: Each module owns its complete functionality
+5. **Easy testing**: Test vocabulary, handlers, and behaviors independently
+6. **Hot reload support**: Clear cache and reload modules during development
 
-This provides maximum flexibility while keeping simple cases simple.
+## What Remains in Core Engine
+
+After migration, the core engine contains only:
+
+- **State management**: Moving items, updating locations
+- **Command routing**: Parse → find handler → invoke → apply behavior
+- **Default handlers**: Basic take/drop/examine/go that most games need
+- **Meta-commands**: Save/load/quit/inventory
+- **Condition checking**: Win/lose flags after commands
+
+All entity-specific logic lives in behavior modules.
+
+## Best Practices
+
+### For Behavior Authors
+
+1. **Return EventResult from behaviors**: Every `on_*` entity behavior must return EventResult
+2. **Return result dict from handlers**: Every `handle_*` command handler must return a result dict
+3. **Modify state directly**: Behaviors modify state directly before returning EventResult
+4. **Include vocabulary for new verbs only**: Export vocabulary dict only for verbs not in base vocabulary
+5. **Keep modules focused**: One feature per module
+6. **Test thoroughly**: Unit test each function
+
+### For Engine Integration
+
+1. **Check registered handlers first**: Before built-in handlers
+2. **Respect allow=False**: Don't proceed if behavior denies
+3. **Preserve messages**: Include in result for LLM
+4. **Handle errors gracefully**: Don't crash on behavior errors
+
+## Summary
+
+This behavior system provides:
+
+- **Dynamic event naming**: `on_<verb>` derived from any verb
+- **Module-based extensions**: Vocabulary + handlers + behaviors in one file
+- **Automatic registration**: Load module → get everything registered
+- **Clean separation**: Core engine vs. game-specific logic
+- **LLM integration**: Messages flow through to narrator
+- **Testability**: Each piece testable in isolation
+
+The design allows the game engine to remain simple while supporting unlimited extension through behavior modules.
