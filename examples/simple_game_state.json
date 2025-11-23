@@ -24,7 +24,7 @@
       "llm_context": {
         "traits": [
           "cramped stone walls",
-          "dim torchlight",
+          "dim light from narrow embrasure",
           "dusty floor",
           "musty air",
           "cobwebs in corners"
@@ -66,7 +66,8 @@
           "stone floor worn smooth",
           "echoing footsteps",
           "draft from above",
-          "faded tapestries on walls"
+          "faded tapestries on walls",
+          "a shaft of light from openings high on the north wall"
         ],
         "atmosphere": "transitional, mysterious, ancient",
         "state_variants": {
@@ -95,7 +96,8 @@
           "wind whipping past",
           "panoramic view",
           "weathered stone parapet",
-          "dizzying height"
+          "dizzying height",
+          "sunlight filtered through high clouds"
         ],
         "atmosphere": "exposed, exhilarating, isolated",
         "state_variants": {
@@ -269,6 +271,29 @@
           "closed": "sits mysteriously, contents unknown",
           "open": "reveals glittering treasures within",
           "examined": "master craftsmanship evident in every detail"
+        }
+      }
+    },
+    {
+      "id": "item_lantern",
+      "name": "lantern",
+      "description": "A small lantern, slightly dusty",
+      "type": "object",
+      "portable": true,
+      "provides_light": true,
+      "location": "loc_hallway",
+      "llm_context": {
+        "traits": [
+          "hexagonal",
+          "hammered copper",
+          "rough runes around cap",
+          "door on side",
+          "wire loop handle"
+        ],
+        "state_variants": {
+          "unlit": "dark and silent",
+          "lit": "sheds a helpful light", 
+          "examined": "crudely made but functional"
         }
       }
     }

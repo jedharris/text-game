@@ -285,7 +285,8 @@ def parse_items(raw: Any) -> List[Item]:
             portable=item_data.get('portable', False),
             location=item_data.get('location', ''),
             states=states,
-            container=container
+            container=container,
+            provides_light=item_data.get('provides_light', False)
         )
         items.append(item)
 

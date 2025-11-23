@@ -144,6 +144,10 @@ class JSONProtocolHandler:
         if item.id in current_loc.items:
             current_loc.items.remove(item.id)
 
+        # Auto-light items that provide light (magical runes activate on touch)
+        if item.provides_light:
+            item.states['lit'] = True
+
         return {
             "type": "result",
             "success": True,
@@ -184,6 +188,10 @@ class JSONProtocolHandler:
         item.location = current_loc.id
         self.state.player.inventory.remove(item.id)
         current_loc.items.append(item.id)
+
+        # Extinguish light sources when dropped (magical runes deactivate)
+        if item.provides_light:
+            item.states['lit'] = False
 
         return {
             "type": "result",
@@ -613,10 +621,6 @@ class JSONProtocolHandler:
                 "error": {"message": "You're not carrying that."}
             }
 
-        # Remove item from inventory (consumed)
-        self.state.player.inventory.remove(item.id)
-        item.location = None  # Item is consumed
-
         return {
             "type": "result",
             "success": True,
@@ -651,10 +655,6 @@ class JSONProtocolHandler:
                 "action": "eat",
                 "error": {"message": "You're not carrying that."}
             }
-
-        # Remove item from inventory (consumed)
-        self.state.player.inventory.remove(item.id)
-        item.location = None  # Item is consumed
 
         return {
             "type": "result",
@@ -1129,6 +1129,14 @@ class JSONProtocolHandler:
         # Add llm_context if available (stored in states dict)
         if hasattr(item, 'states') and item.states.get('llm_context'):
             result["llm_context"] = item.states['llm_context']
+
+        # Add lit state if present
+        if hasattr(item, 'states') and item.states.get('lit'):
+            result["lit"] = item.states['lit']
+
+        # Add provides_light property if present
+        if hasattr(item, 'provides_light') and item.provides_light:
+            result["provides_light"] = item.provides_light
 
         return result
 

@@ -1515,5 +1515,235 @@ class TestJSONDetection(unittest.TestCase):
             self.assertFalse(stripped.startswith("{"), f"Failed for: {inp}")
 
 
+class TestLightSourceFunctionality(unittest.TestCase):
+    """Test light source auto-lighting functionality."""
+
+    def setUp(self):
+        """Load test game state."""
+        fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
+        self.state = load_game_state(str(fixtures_path))
+        self.handler = JSONProtocolHandler(self.state)
+
+    def test_take_light_source_auto_lights(self):
+        """Test that taking an item with provides_light sets lit state."""
+        message = {
+            "type": "command",
+            "action": {"verb": "take", "object": "lantern"}
+        }
+
+        result = self.handler.handle_message(message)
+
+        self.assertTrue(result["success"])
+        self.assertEqual(result["action"], "take")
+        self.assertEqual(result["entity"]["name"], "lantern")
+
+        # Verify item is in inventory
+        self.assertIn("item_lantern", self.state.player.inventory)
+
+        # Verify item is marked as lit
+        lantern = None
+        for item in self.state.items:
+            if item.id == "item_lantern":
+                lantern = item
+                break
+
+        self.assertIsNotNone(lantern)
+        self.assertTrue(lantern.states.get('lit'))
+
+    def test_take_light_source_returns_lit_in_entity(self):
+        """Test that entity dict includes lit state after taking light source."""
+        message = {
+            "type": "command",
+            "action": {"verb": "take", "object": "lantern"}
+        }
+
+        result = self.handler.handle_message(message)
+
+        self.assertTrue(result["success"])
+        self.assertIn("lit", result["entity"])
+        self.assertTrue(result["entity"]["lit"])
+
+    def test_take_light_source_returns_provides_light(self):
+        """Test that entity dict includes provides_light property."""
+        message = {
+            "type": "command",
+            "action": {"verb": "take", "object": "lantern"}
+        }
+
+        result = self.handler.handle_message(message)
+
+        self.assertTrue(result["success"])
+        self.assertIn("provides_light", result["entity"])
+        self.assertTrue(result["entity"]["provides_light"])
+
+    def test_take_normal_item_not_lit(self):
+        """Test that taking normal items doesn't set lit state."""
+        message = {
+            "type": "command",
+            "action": {"verb": "take", "object": "sword"}
+        }
+
+        result = self.handler.handle_message(message)
+
+        self.assertTrue(result["success"])
+
+        # Find sword and verify no lit state
+        sword = None
+        for item in self.state.items:
+            if item.id == "item_sword":
+                sword = item
+                break
+
+        self.assertIsNotNone(sword)
+        self.assertFalse(sword.states.get('lit', False))
+
+    def test_examine_lit_lantern_shows_lit_state(self):
+        """Test that examining a lit lantern shows the lit state."""
+        # First take the lantern to light it
+        take_msg = {
+            "type": "command",
+            "action": {"verb": "take", "object": "lantern"}
+        }
+        self.handler.handle_message(take_msg)
+
+        # Now examine it
+        examine_msg = {
+            "type": "command",
+            "action": {"verb": "examine", "object": "lantern"}
+        }
+        result = self.handler.handle_message(examine_msg)
+
+        self.assertTrue(result["success"])
+        self.assertIn("lit", result["entity"])
+        self.assertTrue(result["entity"]["lit"])
+
+    def test_provides_light_property_loaded(self):
+        """Test that provides_light property is loaded from game state."""
+        lantern = None
+        for item in self.state.items:
+            if item.id == "item_lantern":
+                lantern = item
+                break
+
+        self.assertIsNotNone(lantern)
+        self.assertTrue(lantern.provides_light)
+
+    def test_normal_item_no_provides_light(self):
+        """Test that normal items don't have provides_light."""
+        sword = None
+        for item in self.state.items:
+            if item.id == "item_sword":
+                sword = item
+                break
+
+        self.assertIsNotNone(sword)
+        self.assertFalse(sword.provides_light)
+
+    def test_drop_light_source_extinguishes(self):
+        """Test that dropping a light source sets lit to False."""
+        # First take the lantern to light it
+        take_msg = {
+            "type": "command",
+            "action": {"verb": "take", "object": "lantern"}
+        }
+        self.handler.handle_message(take_msg)
+
+        # Verify it's lit
+        lantern = None
+        for item in self.state.items:
+            if item.id == "item_lantern":
+                lantern = item
+                break
+        self.assertTrue(lantern.states.get('lit'))
+
+        # Now drop it
+        drop_msg = {
+            "type": "command",
+            "action": {"verb": "drop", "object": "lantern"}
+        }
+        result = self.handler.handle_message(drop_msg)
+
+        self.assertTrue(result["success"])
+        self.assertEqual(result["action"], "drop")
+
+        # Verify it's no longer lit
+        self.assertFalse(lantern.states.get('lit'))
+
+    def test_drop_light_source_returns_unlit_in_entity(self):
+        """Test that entity dict shows lit=False after dropping light source."""
+        # Take and then drop the lantern
+        take_msg = {
+            "type": "command",
+            "action": {"verb": "take", "object": "lantern"}
+        }
+        self.handler.handle_message(take_msg)
+
+        drop_msg = {
+            "type": "command",
+            "action": {"verb": "drop", "object": "lantern"}
+        }
+        result = self.handler.handle_message(drop_msg)
+
+        self.assertTrue(result["success"])
+        # lit should be False (which means it won't be included in entity since we only include truthy lit)
+        self.assertNotIn("lit", result["entity"])
+
+    def test_retake_light_source_relights(self):
+        """Test that retaking a dropped light source lights it again."""
+        # Take, drop, then take again
+        take_msg = {
+            "type": "command",
+            "action": {"verb": "take", "object": "lantern"}
+        }
+        self.handler.handle_message(take_msg)
+
+        drop_msg = {
+            "type": "command",
+            "action": {"verb": "drop", "object": "lantern"}
+        }
+        self.handler.handle_message(drop_msg)
+
+        # Take it again
+        result = self.handler.handle_message(take_msg)
+
+        self.assertTrue(result["success"])
+        self.assertIn("lit", result["entity"])
+        self.assertTrue(result["entity"]["lit"])
+
+        # Verify in state
+        lantern = None
+        for item in self.state.items:
+            if item.id == "item_lantern":
+                lantern = item
+                break
+        self.assertTrue(lantern.states.get('lit'))
+
+    def test_drop_normal_item_no_lit_change(self):
+        """Test that dropping normal items doesn't affect lit state."""
+        # Take and drop the sword
+        take_msg = {
+            "type": "command",
+            "action": {"verb": "take", "object": "sword"}
+        }
+        self.handler.handle_message(take_msg)
+
+        drop_msg = {
+            "type": "command",
+            "action": {"verb": "drop", "object": "sword"}
+        }
+        result = self.handler.handle_message(drop_msg)
+
+        self.assertTrue(result["success"])
+
+        # Find sword and verify no lit state was set
+        sword = None
+        for item in self.state.items:
+            if item.id == "item_sword":
+                sword = item
+                break
+
+        self.assertFalse(sword.states.get('lit', False))
+
+
 if __name__ == "__main__":
     unittest.main()

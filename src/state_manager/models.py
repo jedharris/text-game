@@ -138,6 +138,7 @@ class Item:
     location: str
     states: Dict[str, Any] = field(default_factory=dict)
     container: Optional[ContainerInfo] = None
+    provides_light: bool = False
 
     def is_accessible(self, state: 'GameState') -> bool:
         """Check if item is accessible to player."""

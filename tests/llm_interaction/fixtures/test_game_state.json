@@ -240,6 +240,26 @@
           "open": "reveals treasures within"
         }
       }
+    },
+    {
+      "id": "item_lantern",
+      "name": "lantern",
+      "description": "A copper lantern with runes.",
+      "type": "object",
+      "portable": true,
+      "provides_light": true,
+      "location": "loc_start",
+      "llm_context": {
+        "traits": [
+          "hexagonal",
+          "hammered copper",
+          "rough runes around cap"
+        ],
+        "state_variants": {
+          "unlit": "dark and silent",
+          "lit": "sheds a helpful light"
+        }
+      }
     }
   ],
   "locks": [
