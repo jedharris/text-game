@@ -14,7 +14,8 @@ sys.path.insert(0, str(project_root))
 
 from src.state_manager import load_game_state
 from src.json_protocol import JSONProtocolHandler
-from src.llm_narrator import MockLLMNarrator
+from src.llm_narrator import MockLLMNarrator, LLMNarrator
+from src.behavior_manager import BehaviorManager
 
 
 class TestJSONExtraction(unittest.TestCase):
@@ -504,6 +505,104 @@ class TestSystemPrompt(unittest.TestCase):
         """Test that mock narrator has empty system prompt."""
         narrator = MockLLMNarrator(self.handler, ["response"])
         self.assertEqual(narrator.system_prompt, "")
+
+
+class TestMergedVocabulary(unittest.TestCase):
+    """Test that narrator uses merged vocabulary from behavior modules."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
+        self.state = load_game_state(str(fixture_path))
+        self.handler = JSONProtocolHandler(self.state)
+
+    def test_vocabulary_section_includes_base_verbs(self):
+        """Test that vocabulary section includes base verbs from vocabulary.json."""
+        narrator = MockLLMNarrator(self.handler, ["response"])
+
+        # Build vocabulary section directly
+        vocab_section = narrator._build_vocabulary_section()
+
+        # Should include base verbs from vocabulary.json
+        self.assertIn("inventory", vocab_section.lower())
+        self.assertIn("quit", vocab_section.lower())
+        self.assertIn("save", vocab_section.lower())
+
+    def test_vocabulary_section_includes_behavior_verbs_when_manager_provided(self):
+        """Test that vocabulary includes verbs from behavior modules."""
+        # Create a behavior manager and load container behaviors
+        behavior_manager = BehaviorManager()
+        behavior_manager.load_module("behaviors.core.containers")
+
+        # Create narrator with behavior manager
+        narrator = MockLLMNarrator(self.handler, ["response"],
+                                   behavior_manager=behavior_manager)
+
+        vocab_section = narrator._build_vocabulary_section()
+
+        # Should include verbs from containers.py (open, close)
+        self.assertIn("open", vocab_section.lower())
+        self.assertIn("close", vocab_section.lower())
+
+    def test_vocabulary_section_without_behavior_manager_uses_base_only(self):
+        """Test that without behavior manager, only base vocabulary is used."""
+        narrator = MockLLMNarrator(self.handler, ["response"])
+
+        vocab_section = narrator._build_vocabulary_section()
+
+        # Should have base verbs from vocabulary.json
+        self.assertIn("inventory", vocab_section.lower())
+        self.assertIn("quit", vocab_section.lower())
+        # But not behavior-defined verbs (open/close are only in containers.py)
+        # unless they're also in vocabulary.json
+
+    def test_merged_vocabulary_combines_all_sources(self):
+        """Test that merged vocabulary includes verbs from all sources."""
+        behavior_manager = BehaviorManager()
+        behavior_manager.load_module("behaviors.core.containers")
+
+        narrator = MockLLMNarrator(self.handler, ["response"],
+                                   behavior_manager=behavior_manager)
+
+        vocab_section = narrator._build_vocabulary_section()
+
+        # Should include both base verbs and behavior verbs
+        self.assertIn("inventory", vocab_section.lower())  # Base
+        self.assertIn("quit", vocab_section.lower())  # Base
+        self.assertIn("open", vocab_section.lower())  # Behavior
+        self.assertIn("close", vocab_section.lower())  # Behavior
+
+    def test_behavior_verb_includes_llm_context(self):
+        """Test that behavior verbs include their llm_context."""
+        behavior_manager = BehaviorManager()
+        behavior_manager.load_module("behaviors.core.containers")
+
+        narrator = MockLLMNarrator(self.handler, ["response"],
+                                   behavior_manager=behavior_manager)
+
+        vocab_section = narrator._build_vocabulary_section()
+
+        # The open verb should be included with its format
+        self.assertIn("open", vocab_section.lower())
+
+    def test_duplicate_verbs_not_added_twice(self):
+        """Test that verbs aren't duplicated if in both base and behavior."""
+        behavior_manager = BehaviorManager()
+        behavior_manager.load_module("behaviors.core.containers")
+
+        narrator = MockLLMNarrator(self.handler, ["response"],
+                                   behavior_manager=behavior_manager)
+
+        vocab_section = narrator._build_vocabulary_section()
+
+        # Count occurrences of "open" in the verbs section
+        # Should only appear once in the verb list
+        lines = vocab_section.split('\n')
+        verb_lines = [l for l in lines if l.startswith('- **')]
+        open_lines = [l for l in verb_lines if '**open**' in l]
+
+        self.assertLessEqual(len(open_lines), 1,
+                            "Verb 'open' should not be duplicated")
 
 
 if __name__ == "__main__":

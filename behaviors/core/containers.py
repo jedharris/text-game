@@ -36,6 +36,33 @@ vocabulary = {
                     "cannot_close": "cannot be closed"
                 }
             }
+        },
+        {
+            "word": "put",
+            "synonyms": ["place", "set"],
+            "object_required": True,
+            "indirect_object_required": True,
+            "llm_context": {
+                "traits": ["places item in/on container", "requires indirect_object"],
+                "format": "{\"verb\": \"put\", \"object\": \"item_name\", \"indirect_object\": \"container_name\"}",
+                "failure_narration": {
+                    "no_capacity": "won't fit",
+                    "not_container": "can't put things there",
+                    "container_closed": "it's closed"
+                }
+            }
+        },
+        {
+            "word": "push",
+            "synonyms": ["shove", "move"],
+            "object_required": True,
+            "llm_context": {
+                "traits": ["moves heavy objects", "may reveal hidden areas"],
+                "failure_narration": {
+                    "not_pushable": "won't budge",
+                    "portable": "could just pick it up"
+                }
+            }
         }
     ],
     "nouns": [],

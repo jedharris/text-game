@@ -17,6 +17,7 @@ except ImportError:
     HAS_ANTHROPIC = False
 
 from src.json_protocol import JSONProtocolHandler
+from src.behavior_manager import BehaviorManager
 
 
 # Default system prompt location
@@ -30,7 +31,8 @@ class LLMNarrator:
 
     def __init__(self, api_key: str, json_handler: JSONProtocolHandler,
                  model: str = "claude-3-5-haiku-20241022",
-                 prompt_file: Optional[Path] = None):
+                 prompt_file: Optional[Path] = None,
+                 behavior_manager: Optional[BehaviorManager] = None):
         """Initialize the narrator.
 
         Args:
@@ -38,6 +40,7 @@ class LLMNarrator:
             json_handler: JSONProtocolHandler for game engine communication
             model: Model to use for generation
             prompt_file: Optional path to custom system prompt file
+            behavior_manager: Optional BehaviorManager to get merged vocabulary
         """
         if not HAS_ANTHROPIC:
             raise ImportError("anthropic library is required. Install with: pip install anthropic")
@@ -45,6 +48,7 @@ class LLMNarrator:
         self.client = anthropic.Anthropic(api_key=api_key)
         self.handler = json_handler
         self.model = model
+        self.behavior_manager = behavior_manager
         self.system_prompt = self._load_system_prompt(prompt_file)
 
     def process_turn(self, player_input: str) -> str:
@@ -182,7 +186,10 @@ Keep the tone consistent with a classic text adventure - evocative but concise."
             return base_prompt + "\n\n" + vocab_section
 
     def _build_vocabulary_section(self) -> str:
-        """Build the vocabulary section for the system prompt from vocabulary.json.
+        """Build the vocabulary section for the system prompt.
+
+        Uses merged vocabulary from behavior manager if available,
+        otherwise falls back to vocabulary.json.
 
         Returns:
             Formatted string describing available verbs and directions
@@ -191,9 +198,15 @@ Keep the tone consistent with a classic text adventure - evocative but concise."
             return "Available verbs: take, drop, examine, go, open, close, unlock, lock, look, inventory"
 
         try:
-            vocab = json.loads(DEFAULT_VOCABULARY_FILE.read_text())
+            base_vocab = json.loads(DEFAULT_VOCABULARY_FILE.read_text())
         except (json.JSONDecodeError, IOError):
             return "Available verbs: take, drop, examine, go, open, close, unlock, lock, look, inventory"
+
+        # Merge with behavior module vocabulary if available
+        if self.behavior_manager:
+            vocab = self.behavior_manager.get_merged_vocabulary(base_vocab)
+        else:
+            vocab = base_vocab
 
         lines = ["## Available Commands (from vocabulary.json)", ""]
 
@@ -251,18 +264,21 @@ class MockLLMNarrator(LLMNarrator):
     useful for testing the narrator logic without API calls.
     """
 
-    def __init__(self, json_handler: JSONProtocolHandler, responses: list):
+    def __init__(self, json_handler: JSONProtocolHandler, responses: list,
+                 behavior_manager: Optional[BehaviorManager] = None):
         """Initialize mock narrator.
 
         Args:
             json_handler: JSONProtocolHandler for game engine communication
             responses: List of responses to return in sequence
+            behavior_manager: Optional BehaviorManager to get merged vocabulary
         """
         self.handler = json_handler
         self.responses = responses
         self.call_count = 0
         self.system_prompt = ""  # Not used in mock
         self.calls = []  # Track calls for testing
+        self.behavior_manager = behavior_manager
 
     def _call_llm(self, user_message: str) -> str:
         """Return mock response instead of calling API.
