@@ -25,7 +25,6 @@ class TestRegressions(unittest.TestCase):
         self.assertEqual(len(game_state.npcs), 1)
         self.assertEqual(len(game_state.doors), 1)
         self.assertEqual(len(game_state.locks), 2)
-        self.assertEqual(len(game_state.scripts), 1)
 
         # Verify specific IDs are present
         location_ids = {loc.id for loc in game_state.locations}

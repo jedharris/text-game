@@ -24,9 +24,11 @@ class TestModels(unittest.TestCase):
         from src.state_manager.models import Item, ContainerInfo
 
         container = ContainerInfo(
+            is_container=True,
+            is_surface=False,
+            open=False,
             locked=True,
             lock_id="lock_1",
-            contents=["item_1", "item_2"],
             capacity=10
         )
 
@@ -42,7 +44,7 @@ class TestModels(unittest.TestCase):
 
         self.assertIsNotNone(item.container)
         self.assertTrue(item.container.locked)
-        self.assertEqual(len(item.container.contents), 2)
+        self.assertEqual(item.container.capacity, 10)
 
     def test_TM003_enum_string_conversion(self):
         """TM-003: Enum string conversion (if implemented)."""

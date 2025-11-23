@@ -1292,17 +1292,16 @@ class JSONProtocolHandler:
 
     def _query_vocabulary(self, message: Dict) -> Dict:
         """Query game vocabulary."""
-        # Build vocabulary from state
-        vocab = self.state.vocabulary
-
+        # Vocabulary is now loaded from vocabulary.json and behavior modules,
+        # not stored in game state
         return {
             "type": "query_response",
             "query_type": "vocabulary",
             "data": {
-                "aliases": vocab.aliases,
-                "verbs": vocab.verbs,
-                "nouns": vocab.nouns,
-                "adjectives": vocab.adjectives
+                "aliases": {},
+                "verbs": {},
+                "nouns": {},
+                "adjectives": {}
             }
         }
 

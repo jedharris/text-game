@@ -5,25 +5,7 @@ Defines dataclasses mirroring the JSON schema structure.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set, Tuple, Any
-from enum import Enum
-
-
-class ExitType(str, Enum):
-    """Exit type enumeration."""
-    DOOR = "door"
-    OPEN = "open"
-    PORTAL = "portal"
-    SCRIPTED = "scripted"
-
-
-class ItemType(str, Enum):
-    """Item type enumeration."""
-    TOOL = "tool"
-    KEY = "key"
-    CONTAINER = "container"
-    SCENERY = "scenery"
-    READABLE = "readable"
+from typing import Dict, List, Optional, Tuple, Any
 
 
 @dataclass
@@ -37,16 +19,6 @@ class Metadata:
 
 
 @dataclass
-class Vocabulary:
-    """Vocabulary with word aliases."""
-    aliases: Dict[str, List[str]] = field(default_factory=dict)
-    # Legacy support for separate categories
-    verbs: Dict[str, List[str]] = field(default_factory=dict)
-    nouns: Dict[str, List[str]] = field(default_factory=dict)
-    adjectives: Dict[str, List[str]] = field(default_factory=dict)
-
-
-@dataclass
 class ExitDescriptor:
     """Exit descriptor for location connections."""
     type: str
@@ -56,13 +28,6 @@ class ExitDescriptor:
     hidden: bool = False
     conditions: Optional[List[str]] = None
     on_fail: Optional[str] = None
-
-    def is_available(self, state: 'GameState') -> bool:
-        """Check if exit is available based on conditions."""
-        if not self.conditions:
-            return True
-        # TODO: Implement condition evaluation
-        return True
 
 
 @dataclass
@@ -100,25 +65,6 @@ class Door:
     llm_context: Optional[Dict[str, Any]] = None
     behaviors: Dict[str, str] = field(default_factory=dict)
 
-    def unlock(self, key_item_id: Optional[str], state: 'GameState') -> bool:
-        """Attempt to unlock the door."""
-        if not self.locked:
-            return True
-        # TODO: Implement unlock logic with lock validation
-        return False
-
-    def lock(self) -> None:
-        """Lock the door."""
-        self.locked = True
-
-    def open_door(self) -> None:
-        """Open the door."""
-        self.open = True
-
-    def close_door(self) -> None:
-        """Close the door."""
-        self.open = False
-
 
 @dataclass
 class ContainerInfo:
@@ -128,7 +74,6 @@ class ContainerInfo:
     open: bool = False  # For enclosed containers
     locked: bool = False
     lock_id: Optional[str] = None
-    contents: List[str] = field(default_factory=list)
     capacity: int = 0  # 0 = unlimited
 
 
@@ -146,11 +91,6 @@ class Item:
     provides_light: bool = False
     behaviors: Dict[str, str] = field(default_factory=dict)
     pushable: bool = False  # Can be pushed to move it
-
-    def is_accessible(self, state: 'GameState') -> bool:
-        """Check if item is accessible to player."""
-        # TODO: Implement accessibility logic
-        return True
 
     def add_state(self, key: str, value: Any) -> None:
         """Add or update item state."""
@@ -190,30 +130,6 @@ class NPC:
 
 
 @dataclass
-class ScriptTrigger:
-    """Script trigger condition."""
-    type: str
-    conditions: List[str] = field(default_factory=list)
-    params: Dict[str, Any] = field(default_factory=dict)  # Store all other fields
-
-
-@dataclass
-class ScriptEffect:
-    """Script effect action."""
-    type: str
-    params: Dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class Script:
-    """Scripted event or action."""
-    id: str
-    name: str = ""
-    triggers: List[ScriptTrigger] = field(default_factory=list)
-    effects: List[ScriptEffect] = field(default_factory=list)
-
-
-@dataclass
 class PlayerState:
     """Player state information."""
     location: str
@@ -231,9 +147,7 @@ class GameState:
     items: List[Item] = field(default_factory=list)
     locks: List[Lock] = field(default_factory=list)
     npcs: List[NPC] = field(default_factory=list)
-    scripts: List[Script] = field(default_factory=list)
     player: Optional[PlayerState] = None
-    vocabulary: Vocabulary = field(default_factory=Vocabulary)
     extra: Dict[str, Any] = field(default_factory=dict)
 
     def get_location(self, location_id: str) -> Location:
@@ -304,9 +218,6 @@ class GameState:
                 loc.items.append(item_id)
         elif to_container:
             item.location = to_container
-            container = self.get_item(to_container)
-            if container.container and item_id not in container.container.contents:
-                container.container.contents.append(item_id)
         elif to_npc:
             item.location = to_npc
             npc = self.get_npc(to_npc)
@@ -356,7 +267,5 @@ class GameState:
             registry[lock.id] = "lock"
         for npc in self.npcs:
             registry[npc.id] = "npc"
-        for script in self.scripts:
-            registry[script.id] = "script"
 
         return registry

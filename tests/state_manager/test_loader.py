@@ -27,7 +27,6 @@ class TestLoader(unittest.TestCase):
         self.assertEqual(len(game_state.npcs), 1)
         self.assertEqual(len(game_state.doors), 1)
         self.assertEqual(len(game_state.locks), 2)
-        self.assertEqual(len(game_state.scripts), 1)
 
         # Verify metadata
         self.assertEqual(game_state.metadata.title, "Test Adventure")
@@ -56,7 +55,6 @@ class TestLoader(unittest.TestCase):
         self.assertEqual(len(game_state.items), 0)
         self.assertEqual(len(game_state.npcs), 0)
         self.assertEqual(len(game_state.locks), 0)
-        self.assertEqual(len(game_state.scripts), 0)
 
         # Player state should be initialized from metadata
         self.assertEqual(game_state.player.location, "loc_1")

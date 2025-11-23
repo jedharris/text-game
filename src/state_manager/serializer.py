@@ -36,18 +36,6 @@ def game_state_to_dict(state: GameState) -> Dict[str, Any]:
     if state.metadata.description:
         result['metadata']['description'] = state.metadata.description
 
-    # Serialize vocabulary
-    if state.vocabulary.aliases or state.vocabulary.verbs or state.vocabulary.nouns or state.vocabulary.adjectives:
-        result['vocabulary'] = {}
-        if state.vocabulary.aliases:
-            result['vocabulary']['aliases'] = state.vocabulary.aliases
-        if state.vocabulary.verbs:
-            result['vocabulary']['verbs'] = state.vocabulary.verbs
-        if state.vocabulary.nouns:
-            result['vocabulary']['nouns'] = state.vocabulary.nouns
-        if state.vocabulary.adjectives:
-            result['vocabulary']['adjectives'] = state.vocabulary.adjectives
-
     # Serialize locations
     result['locations'] = []
     for loc in state.locations:
@@ -119,8 +107,10 @@ def game_state_to_dict(state: GameState) -> Dict[str, Any]:
 
             if item.container:
                 item_dict['container'] = {
+                    'is_container': item.container.is_container,
+                    'is_surface': item.container.is_surface,
+                    'open': item.container.open,
                     'locked': item.container.locked,
-                    'contents': item.container.contents,
                     'capacity': item.container.capacity,
                 }
                 if item.container.lock_id:
@@ -161,38 +151,6 @@ def game_state_to_dict(state: GameState) -> Dict[str, Any]:
                 npc_dict['inventory'] = npc.inventory
 
             result['npcs'].append(npc_dict)
-
-    # Serialize scripts
-    if state.scripts:
-        result['scripts'] = []
-        for script in state.scripts:
-            script_dict = {
-                'id': script.id,
-                'triggers': [],
-                'effects': [],
-            }
-            if script.name:
-                script_dict['name'] = script.name
-
-            for trigger in script.triggers:
-                trigger_dict = {
-                    'type': trigger.type,
-                }
-                # Add conditions if present
-                if trigger.conditions:
-                    trigger_dict['conditions'] = trigger.conditions
-                # Add all other params
-                trigger_dict.update(trigger.params)
-
-                script_dict['triggers'].append(trigger_dict)
-
-            for effect in script.effects:
-                # Flatten effect - start with type, then add all params directly
-                effect_dict = {'type': effect.type}
-                effect_dict.update(effect.params)
-                script_dict['effects'].append(effect_dict)
-
-            result['scripts'].append(script_dict)
 
     # Serialize player state
     if state.player:

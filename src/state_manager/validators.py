@@ -32,7 +32,6 @@ def build_global_id_registry(game_state: GameState) -> Dict[str, str]:
         (game_state.items, "item"),
         (game_state.locks, "lock"),
         (game_state.npcs, "npc"),
-        (game_state.scripts, "script"),
     ]
 
     for entity_list, entity_type in entities:
@@ -139,14 +138,6 @@ def validate_references(game_state: GameState, registry: Dict[str, str]) -> None
                     f"[item:{item.id}] Container lock '{item.container.lock_id}' not found"
                 )
 
-        # Check container contents
-        if item.container:
-            for content_id in item.container.contents:
-                if content_id not in registry:
-                    errors.append(
-                        f"[item:{item.id}] Container content '{content_id}' not found"
-                    )
-
     # Validate lock references
     for lock in game_state.locks:
         for key_id in lock.opens_with:
@@ -154,27 +145,6 @@ def validate_references(game_state: GameState, registry: Dict[str, str]) -> None
                 errors.append(
                     f"[lock:{lock.id}] Key '{key_id}' not found in items"
                 )
-
-    # Validate script references
-    for script in game_state.scripts:
-        # Check trigger params for ID references
-        for trigger in script.triggers:
-            # Check trigger params for entity ID references
-            for key, value in trigger.params.items():
-                if isinstance(value, str) and value.startswith(("loc_", "item_", "npc_", "door_", "script_")):
-                    if value not in registry:
-                        errors.append(
-                            f"[script:{script.id}] Trigger references unknown ID '{value}' in field '{key}'"
-                        )
-
-        # Check effect params for ID references
-        for effect in script.effects:
-            for key, value in effect.params.items():
-                if isinstance(value, str) and value.startswith(("loc_", "item_", "npc_", "door_", "script_")):
-                    if value not in registry:
-                        errors.append(
-                            f"[script:{script.id}] Effect references unknown ID '{value}'"
-                        )
 
     if errors:
         raise ValidationError(
@@ -302,13 +272,15 @@ def validate_container_cycles(game_state: GameState) -> None:
         visited.add(item_id)
         path.append(item_id)
 
-        # Check if this item contains other items (and if those create a cycle)
-        if item.container and item.container.contents:
-            for content_id in item.container.contents:
-                if find_cycle(content_id, visited, path):
-                    path.pop()
-                    visited.remove(item_id)
-                    return True
+        # Check if this item is a container that contains other items
+        if item.container:
+            # Find items located in this container
+            for other_item in game_state.items:
+                if other_item.location == item_id:
+                    if find_cycle(other_item.id, visited, path):
+                        path.pop()
+                        visited.remove(item_id)
+                        return True
 
         path.pop()
         visited.remove(item_id)

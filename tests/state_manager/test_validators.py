@@ -121,16 +121,6 @@ class TestValidators(unittest.TestCase):
         # Skipping for now - fixture needs to be created
         pass
 
-    def test_TV011_script_references_validation(self):
-        """TV-011: Scripts referencing nonexistent ids produce errors."""
-        from src.state_manager.loader import load_game_state
-        from src.state_manager.exceptions import ValidationError
-
-        with self.assertRaises(ValidationError) as ctx:
-            load_game_state(get_fixture_path("invalid_scripts.json"))
-
-        assert_validation_error_contains(ctx.exception, "loc_999")
-
     def test_TV012_door_one_way_conditions(self):
         """TV-012: Doors with one location specify direction-specific metadata."""
         # Test one-way doors have proper configuration

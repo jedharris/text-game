@@ -20,10 +20,10 @@
       "description": "A box.",
       "type": "container",
       "portable": false,
-      "location": "loc_1",
+      "location": "item_2",
       "container": {
-        "locked": false,
-        "contents": ["item_2"]
+        "is_container": true,
+        "locked": false
       }
     },
     {
@@ -34,8 +34,8 @@
       "portable": true,
       "location": "item_1",
       "container": {
-        "locked": false,
-        "contents": ["item_1"]
+        "is_container": true,
+        "locked": false
       }
     }
   ]

@@ -99,7 +99,6 @@ class TestSerializer(unittest.TestCase):
             items=[],
             locks=[],
             npcs=[],
-            scripts=[],
             player=None
         )
 

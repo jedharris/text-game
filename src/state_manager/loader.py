@@ -10,9 +10,8 @@ from typing import Union, Dict, Any, List, IO
 from io import StringIO
 
 from .models import (
-    GameState, Metadata, Vocabulary, Location, ExitDescriptor,
-    Door, Item, ContainerInfo, Lock, NPC, Script, ScriptTrigger,
-    ScriptEffect, PlayerState
+    GameState, Metadata, Location, ExitDescriptor,
+    Door, Item, ContainerInfo, Lock, NPC, PlayerState
 )
 from .exceptions import SchemaError, FileLoadError
 from .validators import validate_game_state
@@ -82,8 +81,8 @@ def parse_game_state(raw: Dict[str, Any]) -> GameState:
     """
     # Extract known sections (accept both 'player' and 'player_state')
     known_keys = {
-        'metadata', 'vocabulary', 'locations', 'doors', 'items',
-        'locks', 'npcs', 'scripts', 'player', 'player_state'
+        'metadata', 'locations', 'doors', 'items',
+        'locks', 'npcs', 'player', 'player_state'
     }
 
     # Collect extra fields for forward compatibility
@@ -96,13 +95,11 @@ def parse_game_state(raw: Dict[str, Any]) -> GameState:
     metadata = parse_metadata(raw['metadata'])
 
     # Parse optional sections with defaults
-    vocabulary = parse_vocabulary(raw.get('vocabulary', {}))
     locations = parse_locations(raw.get('locations', []))
     doors = parse_doors(raw.get('doors', []))
     items = parse_items(raw.get('items', []))
     locks = parse_locks(raw.get('locks', []))
     npcs = parse_npcs(raw.get('npcs', []))
-    scripts = parse_scripts(raw.get('scripts', []))
 
     # Parse or initialize player state (accept both keys)
     player_data = raw.get('player') or raw.get('player_state')
@@ -120,13 +117,11 @@ def parse_game_state(raw: Dict[str, Any]) -> GameState:
     # Build game state
     game_state = GameState(
         metadata=metadata,
-        vocabulary=vocabulary,
         locations=locations,
         doors=doors,
         items=items,
         locks=locks,
         npcs=npcs,
-        scripts=scripts,
         player=player,
         extra=extra
     )
@@ -148,19 +143,6 @@ def parse_metadata(raw: Dict[str, Any]) -> Metadata:
         version=raw.get('version', '1.0'),
         description=raw.get('description', ''),
         start_location=raw.get('start_location', '')
-    )
-
-
-def parse_vocabulary(raw: Dict[str, Any]) -> Vocabulary:
-    """Parse vocabulary section."""
-    if not isinstance(raw, dict):
-        return Vocabulary()
-
-    return Vocabulary(
-        aliases=raw.get('aliases', {}),
-        verbs=raw.get('verbs', {}),
-        nouns=raw.get('nouns', {}),
-        adjectives=raw.get('adjectives', {})
     )
 
 
@@ -273,7 +255,6 @@ def parse_items(raw: Any) -> List[Item]:
                 open=container_data.get('open', False),
                 locked=container_data.get('locked', False),
                 lock_id=container_data.get('lock_id'),
-                contents=container_data.get('contents', []),
                 capacity=container_data.get('capacity', 0)
             )
 
@@ -363,64 +344,6 @@ def parse_npcs(raw: Any) -> List[NPC]:
         npcs.append(npc)
 
     return npcs
-
-
-def parse_scripts(raw: Any) -> List[Script]:
-    """Parse scripts array."""
-    if not isinstance(raw, list):
-        raise SchemaError("scripts must be an array")
-
-    scripts = []
-    for script_data in raw:
-        if not isinstance(script_data, dict):
-            raise SchemaError("Each script must be an object")
-
-        # Validate ID
-        if 'id' not in script_data:
-            raise SchemaError("Script missing required field: id")
-        if not isinstance(script_data['id'], str):
-            raise SchemaError(f"Script ID must be a string, got {type(script_data['id'])}")
-
-        # Parse triggers
-        triggers = []
-        for trigger_data in script_data.get('triggers', []):
-            # Extract type and conditions, store everything else as params
-            trig_type = trigger_data.get('type', '')
-            conditions = trigger_data.get('conditions', [])
-            # Store all other fields in params
-            params = {k: v for k, v in trigger_data.items() if k not in ['type', 'conditions']}
-
-            triggers.append(ScriptTrigger(
-                type=trig_type,
-                conditions=conditions,
-                params=params
-            ))
-
-        # Parse effects
-        effects = []
-        for effect_data in script_data.get('effects', []):
-            # Extract type and gather all other fields as params
-            effect_type = effect_data.get('type', '')
-            # Copy all fields except 'type' into params (or use params if provided)
-            if 'params' in effect_data:
-                params = effect_data['params']
-            else:
-                params = {k: v for k, v in effect_data.items() if k != 'type'}
-
-            effects.append(ScriptEffect(
-                type=effect_type,
-                params=params
-            ))
-
-        script = Script(
-            id=script_data['id'],
-            name=script_data.get('name', ''),
-            triggers=triggers,
-            effects=effects
-        )
-        scripts.append(script)
-
-    return scripts
 
 
 def parse_player_state(raw: Dict[str, Any]) -> PlayerState:

@@ -26,10 +26,10 @@
     },
     {
       "container": {
+        "is_container": true,
+        "is_surface": false,
+        "open": false,
         "capacity": 10,
-        "contents": [
-          "item_3"
-        ],
         "lock_id": "lock_2",
         "locked": true
       },
@@ -178,35 +178,6 @@
     "stats": {
       "health": 100,
       "max_health": 100
-    }
-  },
-  "scripts": [
-    {
-      "effects": [
-        {
-          "text": "You feel a chill.",
-          "type": "message"
-        }
-      ],
-      "id": "script_1",
-      "triggers": [
-        {
-          "location": "loc_2",
-          "type": "enter_location"
-        }
-      ]
-    }
-  ],
-  "vocabulary": {
-    "aliases": {
-      "key": [
-        "silver_key",
-        "raven_key"
-      ],
-      "torch": [
-        "light",
-        "lantern"
-      ]
     }
   }
 }
