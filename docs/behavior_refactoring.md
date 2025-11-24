@@ -11,15 +11,42 @@ The entity behaviors system (Phase 1) provides:
 - Behavior modules with vocabulary extensions
 - BehaviorManager for loading and invoking behaviors
 
-However, command logic remains in `json_protocol.py`:
-- `_cmd_take`, `_cmd_drop`, `_cmd_put` in json_protocol.py
-- `_cmd_go`, `_cmd_open`, `_cmd_close` in json_protocol.py
-- `_cmd_unlock`, `_cmd_lock` in json_protocol.py
-- `_cmd_examine`, `_cmd_inventory`, `_cmd_look` in json_protocol.py
-- `_cmd_drink`, `_cmd_eat`, `_cmd_attack`, `_cmd_use` in json_protocol.py
-- `_cmd_read`, `_cmd_climb`, `_cmd_pull`, `_cmd_push` in json_protocol.py
+However, game-specific logic is spread across multiple files:
+
+**json_protocol.py** contains:
+- `_cmd_take`, `_cmd_drop`, `_cmd_put`
+- `_cmd_go`, `_cmd_open`, `_cmd_close`
+- `_cmd_unlock`, `_cmd_lock`
+- `_cmd_examine`, `_cmd_inventory`, `_cmd_look`
+- `_cmd_drink`, `_cmd_eat`, `_cmd_attack`, `_cmd_use`
+- `_cmd_read`, `_cmd_climb`, `_cmd_pull`, `_cmd_push`
+- Helper methods: `_find_accessible_item()`, `_player_has_key_for_door()`, etc.
+
+**game_engine.py** contains parallel implementations:
+- `move_player()`, `take_item()`, `drop_item()`, `put_item()`
+- `examine_item()`, `open_item()`, `close_door()`, `drink_item()`
+- `describe_location()`, `show_inventory()`
+- Helper functions: `get_current_location()`, `get_item_by_id()`, `get_door_by_id()`, `player_has_key_for_door()`, etc.
+
+**validators.py** contains game entity knowledge:
+- Entity type validation (locations, items, doors, locks, NPCs)
+- Valid location types for items (location, item, npc, player)
+- Exit references and door_id validation
+- Lock/key relationships
+- Container cycle detection
+
+**vocabulary_generator.py** contains game semantics:
+- Extracts item and NPC names as nouns
+- Knows entity structure for vocabulary generation
+
+**state_manager.py** contains game entity definitions:
+- Entity dataclasses (Item, Location, Door, Lock, NPC, PlayerState)
+- Convenience methods like `move_item()`, `set_player_location()`
+- Property accessors for game concepts (portable, container, locked, etc.)
 
 The behavior modules (e.g., `manipulation.py`, `movement.py`, `locks.py`) only define vocabulary, not handlers.
+
+This dispersion of game knowledge is a maintenance burden and source of bugs when changes are made to one file but not the others.
 
 ## Goals
 
@@ -39,7 +66,6 @@ The StateAccessor pattern adds complexity but provides two key capabilities:
 
 **b) Incremental operation with feedback**: StateAccessor lets behaviors carry out multi-step actions, getting feedback at each step. This enables:
 - Rich progress reporting for extended procedures
-- Partial rollback on failure
 - Dynamic decision-making based on intermediate results
 
 **c) Automatic behavior invocation**: StateAccessor ties state updates to behavior events, ensuring entity behaviors are always invoked correctly without handlers needing to remember to call them.
@@ -55,145 +81,103 @@ The StateAccessor pattern adds complexity but provides two key capabilities:
 ### Error Reporting with Context
 
 **Locked container with hints**:
+
+Entity behaviors can return either a simple string or a dict with structured information. This lets the command handler provide context-aware responses:
+
 ```python
-def handle_open(accessor, actor_id, target_id):
-    container = accessor.get_item(target_id)
+# Entity behavior (on_open for a lockable container)
+def on_open_locked(entity, state, context):
+    if entity.properties.get("container", {}).get("locked"):
+        return EventResult(
+            allow=False,
+            message={
+                "text": "It's locked.",
+                "reason": "locked",
+                "lock_id": entity.properties.get("container", {}).get("lock_id")
+            }
+        )
+    return EventResult(allow=True)
+
+# Command handler
+def handle_open(accessor, action):
+    target_name = action.get("object")
+    container = find_accessible_item(accessor, target_name)
+    if not container:
+        return (False, "You don't see that here.")
 
     result = accessor.update(
         entity=container,
-        changes={"properties.open": True},
-        event="on_open",
-        context={"actor_id": actor_id}
+        changes={"properties.container.open": True},
+        event="on_open"
     )
 
     if not result.success:
-        if result.error_code == "locked":
-            lock_id = container.properties.get("lock_id")
-            lock = accessor.get_lock(lock_id)
-            key_hint = lock.properties.get("hint", "a key")
-            return f"The {container.name} is locked. Perhaps {key_hint} would help."
-        return f"You can't open the {container.name}."
+        msg = result.message
+        if isinstance(msg, dict):
+            if msg.get("reason") == "locked":
+                lock = accessor.get_lock(msg.get("lock_id"))
+                key_hint = lock.properties.get("hint", "a key")
+                return (False, f"The {container.name} is locked. Perhaps {key_hint} would help.")
+            return (False, msg.get("text", f"You can't open the {container.name}."))
+        return (False, msg or f"You can't open the {container.name}.")
 
-    return result.message or f"You open the {container.name}."
+    return (True, result.message or f"You open the {container.name}.")
 ```
 
-**Take with weight check and suggestion**:
+Most entity behaviors just return a string message. Use structured messages when the command handler needs additional context to provide a better player experience.
+
+See `weight_example.md` for an example of extending `handle_take` with weight limits.
+
+### Advanced: Multi-step Operations
+
+These examples show more complex patterns. They're not required for basic refactoring but demonstrate the system's capabilities.
+
+**Alchemical brewing** (multi-ingredient consumption):
 ```python
-def handle_take(accessor, actor_id, item_id):
-    item = accessor.get_item(item_id)
-    if not item:
-        return "You don't see that here."
-
-    actor = accessor.get_actor(actor_id)
-    weight = item.properties.get("weight", 1)
-    current_weight = actor.properties.get("carried_weight", 0)
-    max_weight = actor.properties.get("max_carry", 100)
-
-    if current_weight + weight > max_weight:
-        lightest = find_lightest_carried_item(accessor, actor_id)
-        return f"The {item.name} is too heavy. You could drop the {lightest.name} first."
-
-    # Update with automatic on_take behavior invocation
-    result = accessor.update(
-        entity=item,
-        changes={"location": actor_id},
-        event="on_take",
-        context={"actor_id": actor_id}
-    )
-
-    # Also update actor's inventory
-    accessor.append_to_list(actor, "inventory", item.id)
-
-    return result.message or f"You take the {item.name}."
-```
-
-### Incremental Progress Reporting
-
-**Alchemical brewing**:
-```python
-def handle_brew(accessor, actor_id, recipe_id):
-    recipe = accessor.get_item(recipe_id)  # or get_recipe if separate
-    actor = accessor.get_actor(actor_id)
+def handle_brew(accessor, action):
+    recipe_name = action.get("object")
+    recipe = find_accessible_item(accessor, recipe_name)
+    actor = accessor.get_actor()
     messages = []
 
-    # Check each ingredient
     for ingredient_id in recipe.properties.get("ingredients", []):
         if ingredient_id not in actor.inventory:
             ingredient = accessor.get_item(ingredient_id)
             messages.append(f"Missing ingredient: {ingredient.name}")
             continue
 
-        # Remove ingredient from inventory
         ingredient = accessor.get_item(ingredient_id)
-        result = accessor.update(
+        accessor.update(
             entity=ingredient,
             changes={"location": "consumed"},
-            event="on_consume",
-            context={"actor_id": actor_id, "recipe_id": recipe_id}
+            event="on_consume"
         )
         accessor.remove_from_list(actor, "inventory", ingredient_id)
         messages.append(f"Added {ingredient.name} to the cauldron.")
 
-    if accessor.has_errors():
-        return "\n".join(messages) + "\nThe brewing fails! Some ingredients are lost."
+    if any("Missing" in m for m in messages):
+        return (False, "\n".join(messages))
 
-    # Create result item
     result_id = recipe.properties.get("creates")
-    result_item = accessor.get_item(result_id)
     accessor.append_to_list(actor, "inventory", result_id)
+    result_item = accessor.get_item(result_id)
     messages.append(f"Success! You created a {result_item.name}.")
 
-    return "\n".join(messages)
-```
-
-**Combat with multiple attacks**:
-```python
-def handle_attack(accessor, actor_id, target_id):
-    messages = []
-    actor = accessor.get_actor(actor_id)
-    target = accessor.get_actor(target_id)
-
-    weapon_id = actor.properties.get("equipped_weapon")
-    weapon = accessor.get_item(weapon_id) if weapon_id else None
-
-    num_hits = weapon.properties.get("hits", 1) if weapon else 1
-
-    for i in range(num_hits):
-        damage = calculate_damage(accessor, actor_id, weapon_id)
-
-        current_health = target.properties.get("health", 100)
-        new_health = current_health - damage
-
-        result = accessor.update(
-            entity=target,
-            changes={"properties.health": new_health},
-            event="on_damage",
-            context={"actor_id": actor_id, "damage": damage}
-        )
-
-        if not result.success:
-            messages.append(f"Strike {i+1}: Miss!")
-            continue
-
-        messages.append(f"Strike {i+1}: {damage} damage!")
-
-        if new_health <= 0:
-            messages.append(f"The {target.name} is defeated!")
-            break
-
-    return "\n".join(messages)
+    return (True, "\n".join(messages))
 ```
 
 ## StateAccessor
 
-The StateAccessor provides generic state operations with error feedback and automatic behavior invocation.
+The StateAccessor provides generic state operations with automatic behavior invocation. A new accessor is created for each command with the acting entity baked in.
 
 ### Design Principles
 
 1. **Generic API**: StateAccessor has no game-specific knowledge
-2. **Handlers specify events**: The handler tells StateAccessor which behavior event to invoke
-3. **Atomic updates**: State change + behavior invocation happen together
-4. **Direct entity access**: Behaviors get entity objects directly, use existing dataclass properties
+2. **Actor-scoped**: Each accessor knows its actor; `get_actor()` and `get_current_location()` work without arguments
+3. **Handlers specify events**: The handler tells StateAccessor which behavior event to invoke
+4. **Atomic updates**: Behavior is checked before changes are applied
+5. **Direct entity access**: Behaviors get entity objects directly, use existing dataclass properties
+6. **Simple returns**: Handlers return `(success: bool, message: str)` tuples
 
 ### Core API
 
@@ -202,8 +186,7 @@ The StateAccessor provides generic state operations with error feedback and auto
 class UpdateResult:
     """Result from a state update operation."""
     success: bool = True
-    message: Optional[str] = None
-    error_code: str = ""
+    message: Any = None  # String or dict with structured info from entity behavior
 
 @dataclass
 class StateAccessor:
@@ -211,8 +194,7 @@ class StateAccessor:
 
     game_state: GameState
     behavior_manager: BehaviorManager
-    errors: List[str] = field(default_factory=list)
-    last_error: str = ""
+    actor_id: str = "player"  # The entity performing the action
 
     # Entity retrieval - returns dataclass objects directly
 
@@ -220,9 +202,13 @@ class StateAccessor:
         """Get item by ID."""
         pass
 
-    def get_actor(self, actor_id: str) -> Optional[Union[PlayerState, NPC]]:
-        """Get player or NPC by ID. 'player' returns PlayerState, others search NPCs."""
-        pass
+    def get_actor(self, actor_id: str = None) -> Optional[Union[PlayerState, NPC]]:
+        """Get actor by ID. If no ID given, returns the current actor."""
+        if actor_id is None:
+            actor_id = self.actor_id
+        if actor_id == "player":
+            return self.game_state.player
+        return self.game_state.get_npc(actor_id)
 
     def get_location(self, location_id: str) -> Optional[Location]:
         """Get location by ID."""
@@ -237,46 +223,56 @@ class StateAccessor:
         pass
 
     def get_current_location(self) -> Location:
-        """Get player's current location."""
+        """Get the current actor's location."""
+        actor = self.get_actor()
+        return self.game_state.get_location(actor.location)
+
+    def get_items_in_location(self, location_id: str) -> List[Item]:
+        """Get all items directly in a location (or container)."""
+        pass
+
+    def get_npcs_in_location(self, location_id: str) -> List[NPC]:
+        """Get all NPCs in a location."""
         pass
 
     # State modification with behavior invocation
 
     def update(self, entity, changes: Dict[str, Any],
-               event: str = None, context: Dict = None) -> UpdateResult:
+               event: str = None) -> UpdateResult:
         """
-        Apply changes to entity and optionally invoke behavior event.
+        Invoke behavior event (if any) then apply changes to entity.
 
         Args:
             entity: The entity object to update
             changes: Dict of property paths to new values
             event: Optional behavior event name (e.g., "on_take")
-            context: Optional context dict for behavior
 
         Returns:
-            UpdateResult with success, message, and error_code
+            UpdateResult with success and message (string or dict)
         """
-        # Apply changes
-        for path, value in changes.items():
-            self._set_path(entity, path, value)
-
-        # Invoke behavior if specified
+        # Invoke behavior first to check if action is allowed
         if event and hasattr(entity, 'behaviors'):
+            context = {"actor_id": self.actor_id, "changes": changes}
             behavior_result = self.behavior_manager.invoke_behavior(
-                entity, event, self.game_state, context or {}
+                entity, event, self.game_state, context
             )
             if behavior_result:
                 if not behavior_result.allow:
                     return UpdateResult(
                         success=False,
-                        message=behavior_result.message,
-                        error_code="behavior_prevented"
+                        message=behavior_result.message
                     )
+                # Behavior allowed; apply changes and return behavior's message
+                for path, value in changes.items():
+                    self._set_path(entity, path, value)
                 return UpdateResult(
                     success=True,
                     message=behavior_result.message
                 )
 
+        # No behavior or no behavior attached; just apply changes
+        for path, value in changes.items():
+            self._set_path(entity, path, value)
         return UpdateResult(success=True)
 
     # List operations
@@ -288,40 +284,6 @@ class StateAccessor:
     def remove_from_list(self, entity, list_path: str, value: Any) -> bool:
         """Remove value from a list property."""
         pass
-
-    # Query helpers (moved from json_protocol.py)
-
-    def find_accessible_item(self, name: str, adjectives: List[str] = None) -> Optional[Item]:
-        """Find item by name in current location, on surfaces, or in inventory."""
-        pass
-
-    def find_container_by_name(self, name: str, location_id: str) -> Optional[Item]:
-        """Find a container item by name in the specified location."""
-        pass
-
-    def get_doors_in_location(self, location_id: str = None) -> List[Door]:
-        """Get all doors in a location (defaults to current)."""
-        pass
-
-    def actor_has_key_for_door(self, actor_id: str, door) -> bool:
-        """Check if actor has a key that fits the door's lock."""
-        pass
-
-    # Error handling
-
-    def error(self, message: str, code: str = "") -> None:
-        """Record an error with optional code for programmatic handling."""
-        self.errors.append(message)
-        self.last_error = code or message
-
-    def has_errors(self) -> bool:
-        """Check if any operations failed."""
-        return len(self.errors) > 0
-
-    def clear_errors(self) -> None:
-        """Clear error state for new operation sequence."""
-        self.errors.clear()
-        self.last_error = ""
 
     # Internal helpers
 
@@ -342,6 +304,21 @@ class StateAccessor:
             obj[final] = value
 ```
 
+### Handler Registration
+
+Handlers are discovered automatically when behavior modules are loaded. Any function named `handle_<verb>` in a behavior module is registered:
+
+```python
+# In behavior_manager.py load_module():
+for name in dir(module):
+    if name.startswith('handle_'):
+        verb = name[7:]  # Remove 'handle_' prefix
+        handler = getattr(module, name)
+        self._handlers[verb] = handler
+```
+
+To override a core behavior, load your module after the core modules. The later registration wins.
+
 ## Module Organization
 
 After refactoring, command handlers are organized by domain:
@@ -356,6 +333,129 @@ After refactoring, command handlers are organized by domain:
 
 Additional modules as needed for: `handle_use`, `handle_read`, `handle_climb`, `handle_pull`, `handle_push`
 
+## Shared Utilities
+
+Game-specific helper functions live in `behaviors/core/utils.py`, not in StateAccessor. This keeps StateAccessor generic and allows game authors to override helpers.
+
+```python
+# behaviors/core/utils.py
+"""Shared utility functions for behavior modules."""
+
+from typing import List, Optional
+
+def find_accessible_item(accessor, name: str, adjectives: List[str] = None):
+    """
+    Find item by name in current location, on surfaces, or in inventory.
+    Matching is case-insensitive.
+
+    Args:
+        accessor: StateAccessor instance
+        name: Item name to find
+        adjectives: Optional adjectives to filter by
+
+    Returns:
+        Item or None
+    """
+    name_lower = name.lower()
+    location = accessor.get_current_location()
+
+    # Check items in location
+    for item in accessor.get_items_in_location(location.id):
+        if item.name.lower() == name_lower:
+            if not adjectives or matches_adjectives(item, adjectives):
+                return item
+
+    # Check items on surface containers
+    for container in accessor.get_items_in_location(location.id):
+        if container.properties.get("container", {}).get("is_surface"):
+            for item in accessor.get_items_in_location(container.id):
+                if item.name.lower() == name_lower:
+                    if not adjectives or matches_adjectives(item, adjectives):
+                        return item
+
+    # Check inventory
+    actor = accessor.get_actor()
+    for item_id in actor.inventory:
+        item = accessor.get_item(item_id)
+        if item and item.name.lower() == name_lower:
+            if not adjectives or matches_adjectives(item, adjectives):
+                return item
+
+    return None
+
+def find_item_in_inventory(accessor, name: str):
+    """
+    Find item by name in the current actor's inventory.
+    Matching is case-insensitive.
+
+    Args:
+        accessor: StateAccessor instance
+        name: Item name to find
+
+    Returns:
+        Item or None
+    """
+    name_lower = name.lower()
+    actor = accessor.get_actor()
+    for item_id in actor.inventory:
+        item = accessor.get_item(item_id)
+        if item and item.name.lower() == name_lower:
+            return item
+    return None
+
+def find_container_by_name(accessor, name: str, location_id: str):
+    """Find a container item by name in the specified location. Case-insensitive."""
+    name_lower = name.lower()
+    for item in accessor.get_items_in_location(location_id):
+        if item.name.lower() == name_lower and item.properties.get("container"):
+            return item
+    return None
+
+def get_doors_in_location(accessor, location_id: str = None):
+    """Get all doors accessible from a location."""
+    if location_id is None:
+        location_id = accessor.get_current_location().id
+
+    location = accessor.get_location(location_id)
+    doors = []
+    for direction, exit_desc in location.exits.items():
+        if exit_desc.door_id:
+            door = accessor.get_door(exit_desc.door_id)
+            if door:
+                doors.append(door)
+    return doors
+
+def actor_has_key_for_door(accessor, actor_id: str, door) -> bool:
+    """Check if actor has a key that fits the door's lock."""
+    lock_id = door.properties.get("lock_id")
+    if not lock_id:
+        return False
+
+    lock = accessor.get_lock(lock_id)
+    if not lock:
+        return False
+
+    actor = accessor.get_actor(actor_id)
+    opens_with = lock.properties.get("opens_with", [])
+    return any(key_id in actor.inventory for key_id in opens_with)
+
+def matches_adjectives(item, adjectives: List[str]) -> bool:
+    """Check if item matches all given adjectives. Case-insensitive."""
+    item_adjs = [adj.lower() for adj in item.properties.get("adjectives", [])]
+    return all(adj.lower() in item_adjs for adj in adjectives)
+```
+
+Behavior modules import these helpers:
+
+```python
+# In manipulation.py
+from behaviors.core.utils import find_accessible_item, find_container_by_name
+
+def handle_take(accessor, action):
+    item = find_accessible_item(accessor, action.get("object"))
+    # ...
+```
+
 ## json_protocol.py After Refactoring
 
 The protocol becomes pure infrastructure with no game-specific knowledge:
@@ -365,7 +465,6 @@ class JSONProtocolHandler:
     def __init__(self, state, behavior_manager):
         self.state = state
         self.behavior_manager = behavior_manager
-        self.accessor = StateAccessor(state, behavior_manager)
 
     def handle_message(self, message: Dict) -> Dict:
         """Route message to appropriate handler."""
@@ -390,17 +489,19 @@ class JSONProtocolHandler:
             return {"type": "result", "success": False,
                     "error": {"message": f"Unknown command: {verb}"}}
 
-        # Call handler with accessor and action
-        # Handler returns a message string
-        result_message = handler(self.accessor, action)
+        # Create accessor for this command with actor baked in
+        actor_id = action.get("actor_id", "player")
+        accessor = StateAccessor(self.state, self.behavior_manager, actor_id)
 
-        # Convert to result dict
-        if self.accessor.has_errors():
+        # Call handler - returns (success, message) tuple
+        success, result_message = handler(accessor, action)
+
+        if not success:
             return {
                 "type": "result",
                 "success": False,
                 "action": verb,
-                "error": {"message": self.accessor.errors[0]}
+                "error": {"message": result_message}
             }
 
         return {
@@ -419,7 +520,11 @@ class JSONProtocolHandler:
 Vocabulary and handlers for item manipulation.
 """
 
-from typing import Dict, Any
+from behaviors.core.utils import (
+    find_accessible_item,
+    find_item_in_inventory,
+    find_container_by_name
+)
 
 # Vocabulary
 vocabulary = {
@@ -452,213 +557,172 @@ vocabulary = {
 def handle_take(accessor, action):
     """Handle take command."""
     obj_name = action.get("object")
-    actor_id = "player"  # For now; NPC AI would pass different actor_id
 
     if not obj_name:
-        accessor.error("Take what?")
-        return ""
+        return (False, "Take what?")
 
     # Find item
     adjectives = action.get("adjectives", [])
-    item = accessor.find_accessible_item(obj_name, adjectives)
+    item = find_accessible_item(accessor, obj_name, adjectives)
 
     if not item:
-        accessor.error("You don't see that here.")
-        return ""
+        return (False, "You don't see that here.")
 
     if not item.portable:
-        accessor.error("You can't take that.")
-        return ""
+        return (False, "You can't take that.")
 
     # Get actor
-    actor = accessor.get_actor(actor_id)
+    actor = accessor.get_actor()
 
     # Update item location and invoke on_take behavior
     result = accessor.update(
         entity=item,
-        changes={"location": actor_id},
-        event="on_take",
-        context={"actor_id": actor_id, "location": accessor.get_current_location()}
+        changes={"location": accessor.actor_id},
+        event="on_take"
     )
 
     if not result.success:
-        accessor.error(result.message or "You can't take that.")
-        return ""
+        return (False, result.message or "You can't take that.")
 
     # Add to inventory
     accessor.append_to_list(actor, "inventory", item.id)
 
-    return result.message or f"You take the {item.name}."
+    return (True, result.message or f"You take the {item.name}.")
 
 def handle_drop(accessor, action):
     """Handle drop command."""
     obj_name = action.get("object")
-    actor_id = "player"
 
     if not obj_name:
-        accessor.error("Drop what?")
-        return ""
+        return (False, "Drop what?")
 
-    actor = accessor.get_actor(actor_id)
-
-    # Find item in inventory
-    item = None
-    for item_id in actor.inventory:
-        i = accessor.get_item(item_id)
-        if i and i.name == obj_name:
-            item = i
-            break
-
+    item = find_item_in_inventory(accessor, obj_name)
     if not item:
-        accessor.error("You're not carrying that.")
-        return ""
+        return (False, "You're not carrying that.")
+
+    actor = accessor.get_actor()
 
     # Update item location and invoke on_drop behavior
     location = accessor.get_current_location()
     result = accessor.update(
         entity=item,
         changes={"location": location.id},
-        event="on_drop",
-        context={"actor_id": actor_id, "location": location}
+        event="on_drop"
     )
 
     if not result.success:
-        accessor.error(result.message or "You can't drop that.")
-        return ""
+        return (False, result.message or "You can't drop that.")
 
     # Remove from inventory
     accessor.remove_from_list(actor, "inventory", item.id)
 
-    return result.message or f"You drop the {item.name}."
+    return (True, result.message or f"You drop the {item.name}.")
 
 def handle_put(accessor, action):
     """Handle put command."""
     obj_name = action.get("object")
     container_name = action.get("indirect_object")
-    actor_id = "player"
 
     if not obj_name:
-        accessor.error("Put what?")
-        return ""
+        return (False, "Put what?")
 
     if not container_name:
-        accessor.error("Put it where?")
-        return ""
+        return (False, "Put it where?")
 
-    actor = accessor.get_actor(actor_id)
-
-    # Find item in inventory
-    item = None
-    for item_id in actor.inventory:
-        i = accessor.get_item(item_id)
-        if i and i.name == obj_name:
-            item = i
-            break
-
+    item = find_item_in_inventory(accessor, obj_name)
     if not item:
-        accessor.error("You're not carrying that.")
-        return ""
+        return (False, "You're not carrying that.")
+
+    actor = accessor.get_actor()
 
     # Find container
     location = accessor.get_current_location()
-    container = accessor.find_container_by_name(container_name, location.id)
+    container = find_container_by_name(accessor, container_name, location.id)
 
     if not container:
-        accessor.error(f"You don't see any {container_name} here.")
-        return ""
+        return (False, f"You don't see any {container_name} here.")
 
     # Check if container is accessible
     container_props = container.properties.get("container", {})
     if not container_props.get("is_surface", False) and not container_props.get("open", False):
-        accessor.error(f"The {container_name} is closed.")
-        return ""
+        return (False, f"The {container_name} is closed.")
 
     # Update item location and invoke on_drop behavior (putting is like dropping)
     result = accessor.update(
         entity=item,
         changes={"location": container.id},
-        event="on_drop",
-        context={"actor_id": actor_id, "location": location, "container": container}
+        event="on_drop"
     )
 
     if not result.success:
-        accessor.error(result.message or f"You can't put that there.")
-        return ""
+        return (False, result.message or "You can't put that there.")
 
     # Remove from inventory
     accessor.remove_from_list(actor, "inventory", item.id)
 
     preposition = "on" if container_props.get("is_surface", False) else "in"
-    return result.message or f"You put the {item.name} {preposition} the {container_name}."
+    return (True, result.message or f"You put the {item.name} {preposition} the {container_name}.")
 
 def handle_give(accessor, action):
     """Handle give command."""
     obj_name = action.get("object")
     recipient_name = action.get("indirect_object")
-    actor_id = "player"
 
     if not obj_name:
-        accessor.error("Give what?")
-        return ""
+        return (False, "Give what?")
 
     if not recipient_name:
-        accessor.error("Give it to whom?")
-        return ""
+        return (False, "Give it to whom?")
 
-    actor = accessor.get_actor(actor_id)
-
-    # Find item in inventory
-    item = None
-    for item_id in actor.inventory:
-        i = accessor.get_item(item_id)
-        if i and i.name == obj_name:
-            item = i
-            break
-
+    item = find_item_in_inventory(accessor, obj_name)
     if not item:
-        accessor.error("You're not carrying that.")
-        return ""
+        return (False, "You're not carrying that.")
 
-    # Find recipient NPC
+    # Find recipient NPC in current location
+    location = accessor.get_current_location()
     recipient = None
-    for npc in accessor.game_state.npcs:
+    for npc in accessor.get_npcs_in_location(location.id):
         if npc.name.lower() == recipient_name.lower():
             recipient = npc
             break
 
     if not recipient:
-        accessor.error(f"You don't see {recipient_name} here.")
-        return ""
+        return (False, f"You don't see {recipient_name} here.")
 
-    # Update item location and invoke on_give behavior on recipient
+    # Invoke on_give behavior on recipient to check if they accept
     result = accessor.update(
         entity=recipient,
         changes={},  # No direct changes to recipient
-        event="on_give",
-        context={"actor_id": actor_id, "item": item}
+        event="on_give"
     )
 
     if not result.success:
-        accessor.error(result.message or f"{recipient.name} doesn't want that.")
-        return ""
+        return (False, result.message or f"{recipient.name} doesn't want that.")
 
-    # Transfer item
-    item.location = recipient.id
+    # Transfer item location
+    accessor.update(
+        entity=item,
+        changes={"location": recipient.id}
+    )
+
+    # Update inventories
+    actor = accessor.get_actor()
     accessor.remove_from_list(actor, "inventory", item.id)
     accessor.append_to_list(recipient, "inventory", item.id)
 
-    return result.message or f"You give the {item.name} to {recipient.name}."
+    return (True, result.message or f"You give the {item.name} to {recipient.name}.")
 ```
 
 ## Migration Path
 
-### Phase 2a: Implement StateAccessor
+### Phase 2a: Implement StateAccessor and Utils
 
-1. Create `src/state_accessor.py` with core API
-2. Move helper methods from json_protocol.py to StateAccessor
-3. Add entity retrieval methods (`get_item`, `get_actor`, etc.)
-4. Implement `update()` with behavior invocation
-5. Write tests for StateAccessor
+1. Create `src/state_accessor.py` with core API (entity retrieval, update, list operations)
+2. Create `behaviors/core/utils.py` with shared helpers
+3. Move helper methods from json_protocol.py to utils.py
+4. Move helper functions from game_engine.py to utils.py
+5. Implement `update()` with behavior invocation
+6. Write tests for StateAccessor and utils
 
 ### Phase 2b: Move Command Handlers
 
@@ -672,12 +736,37 @@ def handle_give(accessor, action):
 8. Move `_cmd_unlock`, `_cmd_lock` to `locks.py`
 9. Move remaining commands to appropriate modules
 
-### Phase 2c: Simplify json_protocol.py
+### Phase 2c: Simplify Infrastructure
 
 1. Update json_protocol.py to route all commands through behavior_manager
-2. Remove all `_cmd_*` methods
-3. Remove game-specific helper methods (now in StateAccessor)
-4. json_protocol.py becomes pure routing infrastructure
+2. Remove all `_cmd_*` methods from json_protocol.py
+3. Remove game-specific helper methods from json_protocol.py
+4. Remove parallel implementations from game_engine.py
+5. game_engine.py keeps only: main loop, save/load, and calls to behavior handlers
+6. json_protocol.py becomes pure routing infrastructure
+
+### Modules with Game Knowledge: What to Keep
+
+Some modules will retain game entity knowledge because they define the core data model:
+
+**state_manager.py - Keep as infrastructure**
+- Entity dataclasses (Item, Location, Door, Lock, NPC, PlayerState) define the data model
+- Serialization/parsing is necessary infrastructure
+- GameState methods like `get_item()`, `get_location()` are used by StateAccessor
+- The convenience methods `move_item()`, `set_player_location()` should eventually be replaced by StateAccessor calls in behavior handlers
+
+**validators.py - Keep as infrastructure**
+- Structural validation ensures data integrity on load/save
+- Entity type knowledge is acceptable here as it validates the data model
+- Does not contain game behavior logic, only structural rules
+- Consider: could validators be made pluggable if game authors add new entity types?
+
+**vocabulary_generator.py - Keep but simplify**
+- Currently extracts nouns from items/NPCs by knowing their structure
+- This is acceptable infrastructure - it builds the parser vocabulary
+- Alternative: behavior modules could register their own nouns (more complex)
+
+**Summary**: These modules define what entities exist and how they're structured, not what happens when you interact with them. Game behavior belongs in behavior modules; game data model stays in infrastructure.
 
 ### Phase 2d: NPC AI (Future)
 
@@ -693,12 +782,12 @@ With StateAccessor, handlers are easily testable:
 def test_handle_take_success():
     state = create_test_state()
     behavior_manager = BehaviorManager()
-    accessor = StateAccessor(state, behavior_manager)
+    accessor = StateAccessor(state, behavior_manager, "player")
 
     action = {"object": "sword"}
-    message = handle_take(accessor, action)
+    success, message = handle_take(accessor, action)
 
-    assert not accessor.has_errors()
+    assert success
     assert "sword" in message
     assert state.get_item("item_sword").location == "player"
     assert "item_sword" in state.player.inventory
@@ -706,25 +795,25 @@ def test_handle_take_success():
 def test_handle_take_not_portable():
     state = create_test_state()
     behavior_manager = BehaviorManager()
-    accessor = StateAccessor(state, behavior_manager)
+    accessor = StateAccessor(state, behavior_manager, "player")
 
     action = {"object": "table"}
-    message = handle_take(accessor, action)
+    success, message = handle_take(accessor, action)
 
-    assert accessor.has_errors()
-    assert "can't take" in accessor.errors[0].lower()
+    assert not success
+    assert "can't take" in message.lower()
 
 def test_handle_take_with_behavior():
     state = create_test_state()
     behavior_manager = BehaviorManager()
     # Load light_sources behavior module
     behavior_manager.load_module("behaviors.core.light_sources")
-    accessor = StateAccessor(state, behavior_manager)
+    accessor = StateAccessor(state, behavior_manager, "player")
 
     action = {"object": "lantern"}
-    message = handle_take(accessor, action)
+    success, message = handle_take(accessor, action)
 
-    assert not accessor.has_errors()
+    assert success
     assert "runes flare to life" in message  # From on_take behavior
     assert state.get_item("item_lantern").states.get("lit") == True
 ```
@@ -735,9 +824,15 @@ def test_handle_take_with_behavior():
 2. **Organization**: Related code in one module (vocab + handler)
 3. **Testability**: Handlers tested with real StateAccessor, no mocks needed
 4. **Consistency**: All commands follow same pattern
-5. **No silent errors**: Behavior invocation tied to state updates
-6. **Clean separation**: json_protocol.py has no game knowledge
-7. **Future-proofing**: Ready for NPC AI with actor_id parameter
+5. **Clean separation**: json_protocol.py has no game knowledge
+6. **Future-proofing**: Ready for NPC AI with actor_id parameter
+7. **Simple error flow**: Handlers return (success, message) tuples, no separate error tracking
+
+## Out of Scope
+
+**Meta commands** (quit, save, load, help) remain in game_engine.py as they're not game behaviors.
+
+**Query handling** in json_protocol.py is not addressed by this refactoring. Queries return state information without modifying it, so they don't need the StateAccessor pattern.
 
 ## Deferred
 
@@ -745,4 +840,3 @@ def test_handle_take_with_behavior():
 - Transaction batching for complex operations
 - NPC AI using behavior handlers
 - Behavior override/priority system
-- `actors.py` module if needed for behaviors that don't fit elsewhere
