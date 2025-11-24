@@ -82,19 +82,20 @@ The StateAccessor pattern adds complexity but provides two key capabilities:
 
 **Locked container with hints**:
 
-Entity behaviors can return either a simple string or a dict with structured information. This lets the command handler provide context-aware responses:
+Entity behaviors can look up additional context and return rich messages:
 
 ```python
 # Entity behavior (on_open for a lockable container)
-def on_open_locked(entity, state, context):
-    if entity.properties.get("container", {}).get("locked"):
+def on_open_locked(entity, accessor, context):
+    container_props = entity.properties.get("container", {})
+    if container_props.get("locked"):
+        # Behavior looks up hint itself
+        lock_id = container_props.get("lock_id")
+        lock = accessor.get_lock(lock_id)
+        key_hint = lock.properties.get("hint", "a key") if lock else "a key"
         return EventResult(
             allow=False,
-            message={
-                "text": "It's locked.",
-                "reason": "locked",
-                "lock_id": entity.properties.get("container", {}).get("lock_id")
-            }
+            message=f"The {entity.name} is locked. Perhaps {key_hint} would help."
         )
     return EventResult(allow=True)
 
@@ -112,19 +113,12 @@ def handle_open(accessor, action):
     )
 
     if not result.success:
-        msg = result.message
-        if isinstance(msg, dict):
-            if msg.get("reason") == "locked":
-                lock = accessor.get_lock(msg.get("lock_id"))
-                key_hint = lock.properties.get("hint", "a key")
-                return (False, f"The {container.name} is locked. Perhaps {key_hint} would help.")
-            return (False, msg.get("text", f"You can't open the {container.name}."))
-        return (False, msg or f"You can't open the {container.name}.")
+        return (False, result.message or f"You can't open the {container.name}.")
 
     return (True, result.message or f"You open the {container.name}.")
 ```
 
-Most entity behaviors just return a string message. Use structured messages when the command handler needs additional context to provide a better player experience.
+The behavior has access to the accessor and can look up any information it needs to provide a helpful message. This keeps the command handler simple.
 
 See `weight_example.md` for an example of extending `handle_take` with weight limits.
 
@@ -147,20 +141,34 @@ def handle_brew(accessor, action):
             continue
 
         ingredient = accessor.get_item(ingredient_id)
+        # Update ingredient location
         accessor.update(
             entity=ingredient,
             changes={"location": "consumed"},
             event="on_consume"
         )
-        accessor.remove_from_list(actor, "inventory", ingredient_id)
+        # Update actor inventory
+        accessor.update(
+            entity=actor,
+            changes={"-inventory": ingredient_id}
+        )
         messages.append(f"Added {ingredient.name} to the cauldron.")
 
     if any("Missing" in m for m in messages):
         return (False, "\n".join(messages))
 
     result_id = recipe.properties.get("creates")
-    accessor.append_to_list(actor, "inventory", result_id)
     result_item = accessor.get_item(result_id)
+    # Update result item location
+    accessor.update(
+        entity=result_item,
+        changes={"location": actor.id}
+    )
+    # Update actor inventory
+    accessor.update(
+        entity=actor,
+        changes={"+inventory": result_id}
+    )
     messages.append(f"Success! You created a {result_item.name}.")
 
     return (True, "\n".join(messages))
@@ -183,10 +191,18 @@ The StateAccessor provides generic state operations with automatic behavior invo
 
 ```python
 @dataclass
+class EventResult:
+    """Result from an entity behavior event handler."""
+    allow: bool = True
+    message: Optional[str] = None  # Human-readable message
+    data: Optional[Dict[str, Any]] = None  # Structured info for handler
+
+@dataclass
 class UpdateResult:
     """Result from a state update operation."""
     success: bool = True
-    message: Any = None  # String or dict with structured info from entity behavior
+    message: Optional[str] = None  # Human-readable message from behavior
+    data: Optional[Dict[str, Any]] = None  # Structured info from behavior
 
 @dataclass
 class StateAccessor:
@@ -248,47 +264,64 @@ class StateAccessor:
             event: Optional behavior event name (e.g., "on_take")
 
         Returns:
-            UpdateResult with success and message (string or dict)
+            UpdateResult with success, message, and optional data
         """
         # Invoke behavior first to check if action is allowed
         if event and hasattr(entity, 'behaviors'):
             context = {"actor_id": self.actor_id, "changes": changes}
             behavior_result = self.behavior_manager.invoke_behavior(
-                entity, event, self.game_state, context
+                entity, event, self, context  # Pass accessor, not game_state
             )
             if behavior_result:
                 if not behavior_result.allow:
                     return UpdateResult(
                         success=False,
-                        message=behavior_result.message
+                        message=behavior_result.message,
+                        data=behavior_result.data
                     )
-                # Behavior allowed; apply changes and return behavior's message
+                # Behavior allowed; apply all changes
                 for path, value in changes.items():
-                    self._set_path(entity, path, value)
+                    error = self._set_path(entity, path, value)
+                    if error:
+                        return UpdateResult(success=False, message=error)
                 return UpdateResult(
                     success=True,
-                    message=behavior_result.message
+                    message=behavior_result.message,
+                    data=behavior_result.data
                 )
 
         # No behavior or no behavior attached; just apply changes
         for path, value in changes.items():
-            self._set_path(entity, path, value)
+            error = self._set_path(entity, path, value)
+            if error:
+                return UpdateResult(success=False, message=error)
         return UpdateResult(success=True)
-
-    # List operations
-
-    def append_to_list(self, entity, list_path: str, value: Any) -> bool:
-        """Append value to a list property."""
-        pass
-
-    def remove_from_list(self, entity, list_path: str, value: Any) -> bool:
-        """Remove value from a list property."""
-        pass
 
     # Internal helpers
 
-    def _set_path(self, entity, path: str, value: Any) -> None:
-        """Set a property value using dot-separated path."""
+    def _set_path(self, entity, path: str, value: Any) -> Optional[str]:
+        """
+        Set a property value using dot-separated path.
+
+        Supports list operations with prefix:
+        - "+field": append value to list
+        - "-field": remove value from list
+
+        Returns:
+            None on success, error message string on failure.
+            Errors include: path not found, remove from missing list,
+            value not in list for remove operation.
+        """
+        # Check for list operation prefix
+        if path.startswith("+"):
+            path = path[1:]
+            operation = "append"
+        elif path.startswith("-"):
+            path = path[1:]
+            operation = "remove"
+        else:
+            operation = "set"
+
         parts = path.split(".")
         obj = entity
         for part in parts[:-1]:
@@ -298,10 +331,22 @@ class StateAccessor:
                 obj = obj.setdefault(part, {})
 
         final = parts[-1]
-        if hasattr(obj, final):
-            setattr(obj, final, value)
-        elif isinstance(obj, dict):
-            obj[final] = value
+
+        if operation == "append":
+            if hasattr(obj, final):
+                getattr(obj, final).append(value)
+            elif isinstance(obj, dict):
+                obj.setdefault(final, []).append(value)
+        elif operation == "remove":
+            if hasattr(obj, final):
+                getattr(obj, final).remove(value)
+            elif isinstance(obj, dict) and final in obj:
+                obj[final].remove(value)
+        else:  # set
+            if hasattr(obj, final):
+                setattr(obj, final, value)
+            elif isinstance(obj, dict):
+                obj[final] = value
 ```
 
 ### Handler Registration
@@ -317,7 +362,45 @@ for name in dir(module):
         self._handlers[verb] = handler
 ```
 
-To override a core behavior, load your module after the core modules. The later registration wins.
+### Module Loading Order
+
+Modules are discovered by walking the behaviors directory tree. Loading order determines which handler wins when multiple modules define the same handler (last registration wins).
+
+**Loading order rules:**
+1. Directories are processed alphabetically
+2. Within each directory, modules are loaded alphabetically by filename
+3. Symlinks are followed last (after all regular files/directories)
+
+This allows game authors to ensure their custom modules load after core modules by:
+- Placing them in a symlinked directory (e.g., `behaviors/custom` -> `../my_game/behaviors`)
+- Or naming them to sort after core modules (e.g., `z_custom_take.py`)
+
+### Handler Override
+
+To override a core behavior, load your module after the core modules. The later registration wins. For example, to add weight limits to the take command:
+
+```python
+# In a custom behavior module
+from behaviors.core.manipulation import handle_take as core_take
+from behaviors.core.utils import find_accessible_item
+
+def handle_take(accessor, action):
+    """Extended take with weight limit checking."""
+    item = find_accessible_item(accessor, action.get("object"))
+    if item:
+        actor = accessor.get_actor()
+        current_weight = calculate_inventory_weight(accessor, actor)
+        item_weight = item.properties.get("weight", 0)
+        max_weight = actor.properties.get("max_carry_weight", 100)
+
+        if current_weight + item_weight > max_weight:
+            return (False, "That would be too heavy to carry.")
+
+    # Delegate to core handler
+    return core_take(accessor, action)
+```
+
+This explicit import makes the dependency clear and avoids runtime chain management complexity.
 
 ## Module Organization
 
@@ -343,7 +426,7 @@ Game-specific helper functions live in `behaviors/core/utils.py`, not in StateAc
 
 from typing import List, Optional
 
-def find_accessible_item(accessor, name: str, adjectives: List[str] = None):
+def find_accessible_item(accessor, name: str):
     """
     Find item by name in current location, on surfaces, or in inventory.
     Matching is case-insensitive.
@@ -351,7 +434,6 @@ def find_accessible_item(accessor, name: str, adjectives: List[str] = None):
     Args:
         accessor: StateAccessor instance
         name: Item name to find
-        adjectives: Optional adjectives to filter by
 
     Returns:
         Item or None
@@ -362,24 +444,21 @@ def find_accessible_item(accessor, name: str, adjectives: List[str] = None):
     # Check items in location
     for item in accessor.get_items_in_location(location.id):
         if item.name.lower() == name_lower:
-            if not adjectives or matches_adjectives(item, adjectives):
-                return item
+            return item
 
     # Check items on surface containers
     for container in accessor.get_items_in_location(location.id):
         if container.properties.get("container", {}).get("is_surface"):
             for item in accessor.get_items_in_location(container.id):
                 if item.name.lower() == name_lower:
-                    if not adjectives or matches_adjectives(item, adjectives):
-                        return item
+                    return item
 
     # Check inventory
     actor = accessor.get_actor()
     for item_id in actor.inventory:
         item = accessor.get_item(item_id)
         if item and item.name.lower() == name_lower:
-            if not adjectives or matches_adjectives(item, adjectives):
-                return item
+            return item
 
     return None
 
@@ -438,11 +517,6 @@ def actor_has_key_for_door(accessor, actor_id: str, door) -> bool:
     actor = accessor.get_actor(actor_id)
     opens_with = lock.properties.get("opens_with", [])
     return any(key_id in actor.inventory for key_id in opens_with)
-
-def matches_adjectives(item, adjectives: List[str]) -> bool:
-    """Check if item matches all given adjectives. Case-insensitive."""
-    item_adjs = [adj.lower() for adj in item.properties.get("adjectives", [])]
-    return all(adj.lower() in item_adjs for adj in adjectives)
 ```
 
 Behavior modules import these helpers:
@@ -456,12 +530,14 @@ def handle_take(accessor, action):
     # ...
 ```
 
-## json_protocol.py After Refactoring
+## llm_protocol.py After Refactoring
 
-The protocol becomes pure infrastructure with no game-specific knowledge:
+The file `json_protocol.py` is renamed to `llm_protocol.py` and reduced to query handling and JSON serialization. Command handling moves to behavior modules.
 
 ```python
-class JSONProtocolHandler:
+class LLMProtocolHandler:
+    """Handles queries and JSON serialization for LLM interface."""
+
     def __init__(self, state, behavior_manager):
         self.state = state
         self.behavior_manager = behavior_manager
@@ -510,7 +586,17 @@ class JSONProtocolHandler:
             "action": verb,
             "message": result_message
         }
+
+    # Query handlers (_query_location, _query_inventory, etc.) remain here
+    # JSON serialization helpers (_entity_to_dict, _door_to_dict, etc.) remain here
 ```
+
+The module retains:
+- Query handling (location, inventory, entity, entities, vocabulary, metadata)
+- JSON serialization helpers for converting entities to dicts
+- Command routing (thin layer that delegates to behavior handlers)
+
+All `_cmd_*` methods are removed - command logic lives in behavior modules.
 
 ## Example: Refactored manipulation.py
 
@@ -562,8 +648,7 @@ def handle_take(accessor, action):
         return (False, "Take what?")
 
     # Find item
-    adjectives = action.get("adjectives", [])
-    item = find_accessible_item(accessor, obj_name, adjectives)
+    item = find_accessible_item(accessor, obj_name)
 
     if not item:
         return (False, "You don't see that here.")
@@ -574,7 +659,7 @@ def handle_take(accessor, action):
     # Get actor
     actor = accessor.get_actor()
 
-    # Update item location and invoke on_take behavior
+    # Update item location (with behavior check)
     result = accessor.update(
         entity=item,
         changes={"location": accessor.actor_id},
@@ -584,8 +669,11 @@ def handle_take(accessor, action):
     if not result.success:
         return (False, result.message or "You can't take that.")
 
-    # Add to inventory
-    accessor.append_to_list(actor, "inventory", item.id)
+    # Update actor inventory
+    accessor.update(
+        entity=actor,
+        changes={"+inventory": item.id}
+    )
 
     return (True, result.message or f"You take the {item.name}.")
 
@@ -601,9 +689,9 @@ def handle_drop(accessor, action):
         return (False, "You're not carrying that.")
 
     actor = accessor.get_actor()
-
-    # Update item location and invoke on_drop behavior
     location = accessor.get_current_location()
+
+    # Update item location (with behavior check)
     result = accessor.update(
         entity=item,
         changes={"location": location.id},
@@ -613,8 +701,11 @@ def handle_drop(accessor, action):
     if not result.success:
         return (False, result.message or "You can't drop that.")
 
-    # Remove from inventory
-    accessor.remove_from_list(actor, "inventory", item.id)
+    # Update actor inventory
+    accessor.update(
+        entity=actor,
+        changes={"-inventory": item.id}
+    )
 
     return (True, result.message or f"You drop the {item.name}.")
 
@@ -647,18 +738,21 @@ def handle_put(accessor, action):
     if not container_props.get("is_surface", False) and not container_props.get("open", False):
         return (False, f"The {container_name} is closed.")
 
-    # Update item location and invoke on_drop behavior (putting is like dropping)
+    # Update item location (with behavior check)
     result = accessor.update(
         entity=item,
         changes={"location": container.id},
-        event="on_drop"
+        event="on_put"
     )
 
     if not result.success:
         return (False, result.message or "You can't put that there.")
 
-    # Remove from inventory
-    accessor.remove_from_list(actor, "inventory", item.id)
+    # Update actor inventory
+    accessor.update(
+        entity=actor,
+        changes={"-inventory": item.id}
+    )
 
     preposition = "on" if container_props.get("is_surface", False) else "in"
     return (True, result.message or f"You put the {item.name} {preposition} the {container_name}.")
@@ -689,26 +783,29 @@ def handle_give(accessor, action):
     if not recipient:
         return (False, f"You don't see {recipient_name} here.")
 
-    # Invoke on_give behavior on recipient to check if they accept
+    actor = accessor.get_actor()
+
+    # Update item location (with behavior check)
     result = accessor.update(
-        entity=recipient,
-        changes={},  # No direct changes to recipient
+        entity=item,
+        changes={"location": recipient.id},
         event="on_give"
     )
 
     if not result.success:
         return (False, result.message or f"{recipient.name} doesn't want that.")
 
-    # Transfer item location
+    # Update actor inventory
     accessor.update(
-        entity=item,
-        changes={"location": recipient.id}
+        entity=actor,
+        changes={"-inventory": item.id}
     )
 
-    # Update inventories
-    actor = accessor.get_actor()
-    accessor.remove_from_list(actor, "inventory", item.id)
-    accessor.append_to_list(recipient, "inventory", item.id)
+    # Update recipient inventory
+    accessor.update(
+        entity=recipient,
+        changes={"+inventory": item.id}
+    )
 
     return (True, result.message or f"You give the {item.name} to {recipient.name}.")
 ```
@@ -738,12 +835,14 @@ def handle_give(accessor, action):
 
 ### Phase 2c: Simplify Infrastructure
 
-1. Update json_protocol.py to route all commands through behavior_manager
-2. Remove all `_cmd_*` methods from json_protocol.py
-3. Remove game-specific helper methods from json_protocol.py
-4. Remove parallel implementations from game_engine.py
-5. game_engine.py keeps only: main loop, save/load, and calls to behavior handlers
-6. json_protocol.py becomes pure routing infrastructure
+1. Rename json_protocol.py to llm_protocol.py
+2. Update llm_protocol.py to route all commands through behavior_manager
+3. Remove all `_cmd_*` methods from llm_protocol.py
+4. Remove game-specific helper methods from llm_protocol.py (move to utils.py)
+5. Remove parallel implementations from game_engine.py
+6. Remove convenience methods from state_manager.py (`move_item()`, `set_player_location()`)
+7. game_engine.py keeps only: main loop, save/load, parser integration
+8. llm_protocol.py retains query handling and JSON serialization for LLM interface
 
 ### Modules with Game Knowledge: What to Keep
 
@@ -753,7 +852,7 @@ Some modules will retain game entity knowledge because they define the core data
 - Entity dataclasses (Item, Location, Door, Lock, NPC, PlayerState) define the data model
 - Serialization/parsing is necessary infrastructure
 - GameState methods like `get_item()`, `get_location()` are used by StateAccessor
-- The convenience methods `move_item()`, `set_player_location()` should eventually be replaced by StateAccessor calls in behavior handlers
+- Convenience methods `move_item()`, `set_player_location()` will be removed (replaced by StateAccessor calls in behavior handlers)
 
 **validators.py - Keep as infrastructure**
 - Structural validation ensures data integrity on load/save
@@ -832,11 +931,13 @@ def test_handle_take_with_behavior():
 
 **Meta commands** (quit, save, load, help) remain in game_engine.py as they're not game behaviors.
 
-**Query handling** in json_protocol.py is not addressed by this refactoring. Queries return state information without modifying it, so they don't need the StateAccessor pattern.
+**Query handling** in llm_protocol.py is not addressed by this refactoring. Queries return state information without modifying it, so they don't need the StateAccessor pattern.
 
 ## Deferred
 
+- **Handler chaining**: A mechanism for handlers to call through to previously registered handlers without knowing their identity. Use case: game developer B creates magic self-lighting candles and wants to defer all other behavior to developer A's candle module without coupling to it. The current explicit import pattern works but requires knowing the module name. Could add `invoke_next_handler()` if this becomes a common need.
 - Undo/rollback support in StateAccessor
 - Transaction batching for complex operations
 - NPC AI using behavior handlers
 - Behavior override/priority system
+- Multi-participant event invocation (e.g., notifying actor or location when item is taken). Currently only the primary entity's behavior is invoked. We are open to real use cases that would justify this complexity.
