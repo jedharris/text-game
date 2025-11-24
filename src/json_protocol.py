@@ -124,6 +124,13 @@ class JSONProtocolHandler:
             entity_obj, event_name, self.state, context
         )
 
+        # If no behavior found for "put", try "drop" as fallback
+        # (putting an item down is semantically similar to dropping it)
+        if not behavior_result and verb == "put":
+            behavior_result = self.behavior_manager.invoke_behavior(
+                entity_obj, "on_drop", self.state, context
+            )
+
         # Remove entity_obj from result before returning
         result = {k: v for k, v in result.items() if k != "entity_obj"}
 
@@ -210,7 +217,8 @@ class JSONProtocolHandler:
                 }
 
             # Check if container is accessible
-            if not container.container.is_surface and not container.container.open:
+            container_props = container.properties.get("container", {})
+            if not container_props.get("is_surface", False) and not container_props.get("open", False):
                 return {
                     "type": "result",
                     "success": False,
@@ -242,7 +250,8 @@ class JSONProtocolHandler:
                     container = self._get_container_for_item(item)
                     if container:
                         # Check if enclosed container is open
-                        if not container.container.is_surface and not container.container.open:
+                        container_props = container.properties.get("container", {})
+                        if not container_props.get("is_surface", False) and not container_props.get("open", False):
                             return {
                                 "type": "result",
                                 "success": False,
@@ -258,7 +267,7 @@ class JSONProtocolHandler:
                 "error": {"message": "You don't see that here."}
             }
 
-        if not item.portable:
+        if not item.properties.get("portable", False):
             return {
                 "type": "result",
                 "success": False,
@@ -342,12 +351,13 @@ class JSONProtocolHandler:
 
             # Include items on surface containers and in open enclosed containers
             for container in self.state.items:
-                if container.location == loc.id and container.container:
-                    if container.container.is_surface:
+                container_props = container.properties.get("container")
+                if container.location == loc.id and container_props:
+                    if container_props.get("is_surface", False):
                         for item in self.state.items:
                             if item.location == container.id:
                                 items.append(self._entity_to_dict(item))
-                    elif container.container.open:
+                    elif container_props.get("open", False):
                         for item in self.state.items:
                             if item.location == container.id:
                                 items.append(self._entity_to_dict(item))
@@ -375,11 +385,12 @@ class JSONProtocolHandler:
             }
 
             # If examining a container, include its contents
-            if hasattr(item, 'container') and item.container:
+            container_props = item.properties.get("container")
+            if container_props:
                 items = []
                 # For surface containers, always show items
                 # For enclosed containers, only show if open
-                if item.container.is_surface or item.container.open:
+                if container_props.get("is_surface", False) or container_props.get("open", False):
                     for contained_item in self.state.items:
                         if contained_item.location == item.id:
                             items.append(self._entity_to_dict(contained_item))
@@ -445,8 +456,8 @@ class JSONProtocolHandler:
         if exit_desc.type == "door" and exit_desc.door_id:
             door = self._get_door_by_id(exit_desc.door_id)
             if door:
-                if not door.open:
-                    if door.locked:
+                if not door.properties.get("open", False):
+                    if door.properties.get("locked", False):
                         return {
                             "type": "result",
                             "success": False,
@@ -473,6 +484,21 @@ class JSONProtocolHandler:
         for item in self.state.items:
             if item.location == new_loc_id:
                 items.append(self._entity_to_dict(item))
+
+        # Get items on surface containers and in open enclosed containers
+        for container in self.state.items:
+            container_props = container.properties.get("container")
+            if container.location == new_loc_id and container_props:
+                # Surface containers: always show items
+                if container_props.get("is_surface", False):
+                    for item in self.state.items:
+                        if item.location == container.id:
+                            items.append(self._entity_to_dict(item))
+                # Enclosed containers: only show if open
+                elif container_props.get("open", False):
+                    for item in self.state.items:
+                        if item.location == container.id:
+                            items.append(self._entity_to_dict(item))
 
         return {
             "type": "result",
@@ -509,7 +535,7 @@ class JSONProtocolHandler:
             # Select door by adjectives/direction if provided
             door = self._select_door(doors, adjectives)
 
-            if door.open:
+            if door.properties.get("open", False):
                 return {
                     "type": "result",
                     "success": False,
@@ -518,11 +544,11 @@ class JSONProtocolHandler:
                     "error": {"message": "The door is already open."}
                 }
 
-            if door.locked:
+            if door.properties.get("locked", False):
                 # Check for key
                 if self._player_has_key_for_door(door):
-                    door.locked = False
-                    door.open = True
+                    door.properties["locked"] = False
+                    door.properties["open"] = True
                     return {
                         "type": "result",
                         "success": True,
@@ -538,7 +564,7 @@ class JSONProtocolHandler:
                         "error": {"message": "The door is locked."}
                     }
 
-            door.open = True
+            door.properties["open"] = True
             return {
                 "type": "result",
                 "success": True,
@@ -550,8 +576,8 @@ class JSONProtocolHandler:
         item = self._find_accessible_item(obj_name)
         if item:
             # Check if item has an on_open behavior or is a known openable type
-            has_open_behavior = hasattr(item, 'behaviors') and item.behaviors.get('on_open')
-            is_openable = item.name == "chest" or (hasattr(item, 'container') and item.container)
+            has_open_behavior = item.behaviors.get('on_open')
+            is_openable = item.name == "chest" or item.properties.get("container")
 
             if has_open_behavior or is_openable:
                 return {
@@ -601,7 +627,7 @@ class JSONProtocolHandler:
         # Find an open door
         door = None
         for d in doors:
-            if d.open:
+            if d.properties.get("open", False):
                 door = d
                 break
 
@@ -615,7 +641,7 @@ class JSONProtocolHandler:
                 "error": {"message": "The door is already closed."}
             }
 
-        door.open = False
+        door.properties["open"] = False
         return {
             "type": "result",
             "success": True,
@@ -647,7 +673,7 @@ class JSONProtocolHandler:
 
         door = self._select_door(doors, adjective)
 
-        if not door.locked:
+        if not door.properties.get("locked", False):
             return {
                 "type": "result",
                 "success": False,
@@ -665,7 +691,7 @@ class JSONProtocolHandler:
                 "error": {"message": "You don't have the right key."}
             }
 
-        door.locked = False
+        door.properties["locked"] = False
         return {
             "type": "result",
             "success": True,
@@ -697,7 +723,7 @@ class JSONProtocolHandler:
 
         door = self._select_door(doors, adjective)
 
-        if door.locked:
+        if door.properties.get("locked", False):
             return {
                 "type": "result",
                 "success": False,
@@ -706,7 +732,7 @@ class JSONProtocolHandler:
                 "error": {"message": "The door is already locked."}
             }
 
-        if not door.lock_id:
+        if not door.properties.get("lock_id"):
             return {
                 "type": "result",
                 "success": False,
@@ -724,7 +750,7 @@ class JSONProtocolHandler:
                 "error": {"message": "You don't have the right key."}
             }
 
-        door.locked = True
+        door.properties["locked"] = True
         return {
             "type": "result",
             "success": True,
@@ -1016,7 +1042,7 @@ class JSONProtocolHandler:
             }
 
         # Check if item is portable (should take instead of push)
-        if item.portable:
+        if item.properties.get("portable", False):
             return {
                 "type": "result",
                 "success": False,
@@ -1026,7 +1052,7 @@ class JSONProtocolHandler:
             }
 
         # Check if item is pushable
-        if not getattr(item, 'pushable', False):
+        if not item.properties.get("pushable", False):
             return {
                 "type": "result",
                 "success": False,
@@ -1102,7 +1128,8 @@ class JSONProtocolHandler:
             }
 
         # Check if enclosed container is open
-        if not container.container.is_surface and not container.container.open:
+        container_props = container.properties.get("container", {})
+        if not container_props.get("is_surface", False) and not container_props.get("open", False):
             return {
                 "type": "result",
                 "success": False,
@@ -1111,10 +1138,11 @@ class JSONProtocolHandler:
             }
 
         # Check capacity
-        if container.container.capacity > 0:
+        capacity = container_props.get("capacity", 0)
+        if capacity > 0:
             current_count = sum(1 for i in self.state.items
                               if i.location == container.id)
-            if current_count >= container.container.capacity:
+            if current_count >= capacity:
                 return {
                     "type": "result",
                     "success": False,
@@ -1155,14 +1183,15 @@ class JSONProtocolHandler:
 
             # Get items on surface containers and in open enclosed containers
             for container in self.state.items:
-                if container.location == loc.id and container.container:
+                container_props = container.properties.get("container")
+                if container.location == loc.id and container_props:
                     # Surface containers: always show items
-                    if container.container.is_surface:
+                    if container_props.get("is_surface", False):
                         for item in self.state.items:
                             if item.location == container.id:
                                 items.append(self._entity_to_dict(item))
                     # Enclosed containers: only show if open
-                    elif container.container.open:
+                    elif container_props.get("open", False):
                         for item in self.state.items:
                             if item.location == container.id:
                                 items.append(self._entity_to_dict(item))
@@ -1405,9 +1434,10 @@ class JSONProtocolHandler:
 
         # Check surface containers in current location
         for container in self.state.items:
+            container_props = container.properties.get("container")
             if (container.location == loc.id and
-                hasattr(container, 'container') and container.container and
-                container.container.is_surface):
+                container_props and
+                container_props.get("is_surface", False)):
                 # Search items on this surface
                 for item in self.state.items:
                     if item.name == name and item.location == container.id:
@@ -1415,10 +1445,11 @@ class JSONProtocolHandler:
 
         # Check open enclosed containers
         for container in self.state.items:
+            container_props = container.properties.get("container")
             if (container.location == loc.id and
-                hasattr(container, 'container') and container.container and
-                not container.container.is_surface and
-                container.container.open):
+                container_props and
+                not container_props.get("is_surface", False) and
+                container_props.get("open", False)):
                 # Search items in this open container
                 for item in self.state.items:
                     if item.name == name and item.location == container.id:
@@ -1429,7 +1460,7 @@ class JSONProtocolHandler:
     def _find_container_by_name(self, name: str, location_id: str):
         """Find a container item by name in the specified location."""
         for item in self.state.items:
-            if item.name == name and item.location == location_id and item.container:
+            if item.name == name and item.location == location_id and item.properties.get("container"):
                 return item
         return None
 
@@ -1438,14 +1469,14 @@ class JSONProtocolHandler:
         # Item location that starts with "item_" is in a container
         if item.location.startswith("item_"):
             container = self._get_item_by_id(item.location)
-            return container is not None and container.container is not None
+            return container is not None and container.properties.get("container") is not None
         return False
 
     def _get_container_for_item(self, item):
         """Get the container that holds this item, if any."""
         if item.location.startswith("item_"):
             container = self._get_item_by_id(item.location)
-            if container and container.container:
+            if container and container.properties.get("container"):
                 return container
         return None
 
@@ -1490,20 +1521,22 @@ class JSONProtocolHandler:
 
         # Default: prioritize locked/closed doors
         for door in doors:
-            if door.locked or not door.open:
+            if door.properties.get("locked", False) or not door.properties.get("open", False):
                 return door
         return doors[0]
 
     def _player_has_key_for_door(self, door):
         """Check if player has key for door's lock."""
-        if not door.lock_id:
+        lock_id = door.properties.get("lock_id")
+        if not lock_id:
             return False
 
-        lock = self._get_lock_by_id(door.lock_id)
+        lock = self._get_lock_by_id(lock_id)
         if not lock:
             return False
 
-        return any(key_id in self.state.player.inventory for key_id in lock.opens_with)
+        opens_with = lock.properties.get("opens_with", [])
+        return any(key_id in self.state.player.inventory for key_id in opens_with)
 
     def _entity_to_dict(self, item) -> Dict:
         """Convert item to dict with llm_context."""
@@ -1514,40 +1547,51 @@ class JSONProtocolHandler:
             "description": item.description
         }
 
-        # Add llm_context if available (stored in states dict)
-        if hasattr(item, 'states') and item.states.get('llm_context'):
-            result["llm_context"] = item.states['llm_context']
+        # Add llm_context if available (stored in properties)
+        if item.properties.get('llm_context'):
+            result["llm_context"] = item.properties['llm_context']
 
-        # Add lit state if present
-        if hasattr(item, 'states') and item.states.get('lit'):
-            result["lit"] = item.states['lit']
+        # Add lit state if present (in states dict within properties)
+        states = item.properties.get('states', {})
+        if states.get('lit'):
+            result["lit"] = states['lit']
 
         # Add provides_light property if present
-        if hasattr(item, 'provides_light') and item.provides_light:
-            result["provides_light"] = item.provides_light
+        if item.properties.get('provides_light'):
+            result["provides_light"] = item.properties['provides_light']
+
+        # Add container location info if item is on a surface or in a container
+        container = self._get_container_for_item(item)
+        if container:
+            container_props = container.properties.get("container", {})
+            if container_props.get("is_surface", False):
+                result["on_surface"] = container.name
+            else:
+                result["in_container"] = container.name
 
         return result
 
     def _door_to_dict(self, door) -> Dict:
         """Convert door to dict with llm_context."""
+        description = door.properties.get("description", "")
         result = {
             "id": door.id,
-            "description": door.description,
-            "open": door.open,
-            "locked": door.locked
+            "description": description,
+            "open": door.properties.get("open", False),
+            "locked": door.properties.get("locked", False)
         }
 
         # Get door name from description for consistency
         # Extract adjective from description for name
-        desc_words = door.description.lower().split()
+        desc_words = description.lower().split()
         adjective = next((word for word in desc_words
                         if word in ["wooden", "iron", "heavy", "simple", "golden", "ancient"]),
                        "")
         result["name"] = f"{adjective} door" if adjective else "door"
 
         # Add llm_context if available
-        if hasattr(door, 'llm_context') and door.llm_context:
-            result["llm_context"] = door.llm_context
+        if door.properties.get('llm_context'):
+            result["llm_context"] = door.properties['llm_context']
 
         return result
 
@@ -1560,8 +1604,8 @@ class JSONProtocolHandler:
         }
 
         # Add llm_context if available
-        if hasattr(loc, 'llm_context') and loc.llm_context:
-            result["llm_context"] = loc.llm_context
+        if loc.properties.get('llm_context'):
+            result["llm_context"] = loc.properties['llm_context']
 
         return result
 
@@ -1573,8 +1617,8 @@ class JSONProtocolHandler:
             "description": npc.description
         }
 
-        # Add llm_context if stored in states
-        if hasattr(npc, 'states') and npc.states.get('llm_context'):
-            result["llm_context"] = npc.states['llm_context']
+        # Add llm_context if stored in properties
+        if npc.properties.get('llm_context'):
+            result["llm_context"] = npc.properties['llm_context']
 
         return result

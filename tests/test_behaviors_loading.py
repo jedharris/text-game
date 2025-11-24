@@ -5,8 +5,7 @@ import json
 import tempfile
 from pathlib import Path
 
-from src.state_manager import load_game_state
-from src.state_manager.models import Item, NPC, Door, Location
+from src.state_manager import load_game_state, Item, NPC, Door, Location
 
 
 class TestBehaviorsFieldInModels(unittest.TestCase):
@@ -18,9 +17,8 @@ class TestBehaviorsFieldInModels(unittest.TestCase):
             id="test_item",
             name="Test",
             description="A test item",
-            type="tool",
-            portable=True,
-            location="room1"
+            location="room1",
+            properties={"type": "tool", "portable": True}
         )
         self.assertEqual(item.behaviors, {})
 
@@ -30,9 +28,8 @@ class TestBehaviorsFieldInModels(unittest.TestCase):
             id="test_item",
             name="Test",
             description="A test item",
-            type="tool",
-            portable=True,
             location="room1",
+            properties={"type": "tool", "portable": True},
             behaviors={"on_take": "module:on_take", "on_drop": "module:on_drop"}
         )
         self.assertEqual(item.behaviors["on_take"], "module:on_take")
@@ -64,7 +61,7 @@ class TestBehaviorsFieldInModels(unittest.TestCase):
         door = Door(
             id="test_door",
             locations=("room1", "room2"),
-            description="A test door"
+            properties={"description": "A test door"}
         )
         self.assertEqual(door.behaviors, {})
 
@@ -73,7 +70,7 @@ class TestBehaviorsFieldInModels(unittest.TestCase):
         door = Door(
             id="test_door",
             locations=("room1", "room2"),
-            description="A test door",
+            properties={"description": "A test door"},
             behaviors={"on_open": "module:on_open", "on_close": "module:on_close"}
         )
         self.assertEqual(door.behaviors["on_open"], "module:on_open")
@@ -453,7 +450,7 @@ class TestBehaviorsAndOtherFields(unittest.TestCase):
         item = state.get_item("potion")
 
         self.assertEqual(item.behaviors["on_drink"], "behaviors:heal")
-        self.assertEqual(item.states["llm_context"], "This is a magical healing potion")
+        self.assertEqual(item.llm_context, "This is a magical healing potion")
 
 
 if __name__ == '__main__':

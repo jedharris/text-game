@@ -81,16 +81,18 @@ def player_has_key_for_door(state: GameState, door) -> tuple[bool, bool]:
         (has_key, auto_unlock): Tuple where has_key is True if player has
         the correct key, and auto_unlock is True if the lock auto-unlocks.
     """
-    if not door.lock_id:
+    lock_id = door.properties.get("lock_id")
+    if not lock_id:
         return (False, False)
 
-    lock = get_lock_by_id(state, door.lock_id)
+    lock = get_lock_by_id(state, lock_id)
     if not lock:
         return (False, False)
 
     # Check if player has any key that opens this lock
-    has_key = any(key_id in state.player.inventory for key_id in lock.opens_with)
-    return (has_key, lock.auto_unlock)
+    opens_with = lock.properties.get("opens_with", [])
+    has_key = any(key_id in state.player.inventory for key_id in opens_with)
+    return (has_key, lock.properties.get("auto_unlock", False))
 
 
 def describe_location(state: GameState):
@@ -115,16 +117,17 @@ def describe_location(state: GameState):
                     if door:
                         # Get a brief description from the door's description
                         # Extract first adjective or distinctive word
-                        desc_words = door.description.lower().split()
+                        door_desc = door.properties.get("description", "")
+                        desc_words = door_desc.lower().split()
                         adjective = next((word for word in desc_words
                                         if word in ["wooden", "iron", "heavy", "simple", "golden", "ancient"]),
                                        "door")
 
                         # Add state info
                         state_info = []
-                        if door.locked:
+                        if door.properties.get("locked", False):
                             state_info.append("locked")
-                        if door.open:
+                        if door.properties.get("open", False):
                             state_info.append("open")
                         else:
                             state_info.append("closed")
@@ -173,7 +176,9 @@ def move_player(state: GameState, direction: str):
         # Handle door interactions using pattern matching
         has_key, auto_unlock = player_has_key_for_door(state, door)
 
-        match (not door.open, door.locked, has_key, auto_unlock):
+        door_open = door.properties.get("open", False)
+        door_locked = door.properties.get("locked", False)
+        match (not door_open, door_locked, has_key, auto_unlock):
             # Case 1: Door is open
             case (False, _, _, _):
                 print("You pass through the open door.")
@@ -196,8 +201,8 @@ def move_player(state: GameState, direction: str):
             # Case 5: Door is closed and locked, have key with auto-unlock
             case (True, True, True, True):
                 print("You unlock the door with your key and pass through.")
-                door.locked = False
-                door.open = True
+                door.properties["locked"] = False
+                door.properties["open"] = True
 
             # Case 6: Unexpected state
             case _:
@@ -253,7 +258,7 @@ def take_item(state: GameState, item_name: str, adjective: str = None, json_hand
         print(f"There is no {item_name} here.")
         return False
 
-    if not item.portable:
+    if not item.properties.get("portable", False):
         print(f"You can't take the {item_name}.")
         return False
 
@@ -319,33 +324,71 @@ def drop_item(state: GameState, item_name: str, json_handler=None):
     return True
 
 
+def put_item(state: GameState, item_name: str, container_name: str, json_handler=None):
+    """Put an item on/in a container."""
+    if json_handler:
+        # Use JSON protocol handler (supports behaviors)
+        result = json_handler.handle_command({
+            "type": "command",
+            "action": {"verb": "put", "object": item_name, "indirect_object": container_name}
+        })
+
+        if result.get("success"):
+            container = result.get("container", {})
+            container_props = container.get("container", {})
+            preposition = "on" if container_props.get("is_surface", False) else "in"
+            print(f"You put the {item_name} {preposition} the {container_name}.")
+            # Display behavior message if present
+            if "message" in result:
+                print(result["message"])
+            return True
+        else:
+            error_msg = result.get("error", {}).get("message", f"You can't put the {item_name} there.")
+            print(error_msg)
+            return False
+
+    # Fallback: no json_handler provided
+    print("Put command requires json_handler.")
+    return False
+
+
 def examine_item(state: GameState, item_name: str):
     """Examine an item, door, or current location."""
     loc = get_current_location(state)
 
+    def _print_item_details(item):
+        """Print item description and lit state if applicable."""
+        print(item.description)
+        # Show lit state for light sources
+        if item.properties.get("provides_light", False):
+            states = item.properties.get("states", {})
+            if states.get('lit'):
+                print("It is currently lit, casting a warm glow.")
+            else:
+                print("It is currently unlit.")
+
     # Check current location for items
     for item in state.items:
         if item.name == item_name and item.location == loc.id:
-            print(item.description)
-            # Show lit state for light sources
-            if hasattr(item, 'provides_light') and item.provides_light:
-                if item.states.get('lit'):
-                    print("It is currently lit, casting a warm glow.")
-                else:
-                    print("It is currently unlit.")
+            _print_item_details(item)
             return True
+
+    # Check items on surface containers in current location
+    for container in state.items:
+        container_props = container.properties.get("container")
+        if container.location == loc.id and container_props:
+            if container_props.get("is_surface", False):
+                # Search items on this surface
+                for item in state.items:
+                    if item.name == item_name and item.location == container.id:
+                        _print_item_details(item)
+                        return True
 
     # Check inventory
     for item_id in state.player.inventory:
         item = get_item_by_id(state, item_id)
         if item and item.name == item_name:
-            print(item.description)
-            # Show lit state for light sources
-            if hasattr(item, 'provides_light') and item.provides_light:
-                if item.states.get('lit'):
-                    print("It is currently lit, casting a warm glow.")
-                else:
-                    print("It is currently unlit.")
+            _print_item_details(item)
             return True
 
     # Check for doors (accept "door" as the name)
@@ -354,10 +397,10 @@ def examine_item(state: GameState, item_name: str):
         if doors:
             # Show all doors in the room
             for door in doors:
-                print(door.description)
-                if door.locked:
+                print(door.properties.get("description", "A door."))
+                if door.properties.get("locked", False):
                     print("  The door is locked.")
-                elif door.open:
+                elif door.properties.get("open", False):
                     print("  The door is open.")
                 else:
                     print("  The door is closed.")
@@ -387,29 +430,29 @@ def open_item(state: GameState, item_name: str):
         # Prioritize closed/locked doors over open ones
         door = None
         for d in doors:
-            if not d.open:
+            if not d.properties.get("open", False):
                 door = d
                 break
         if not door:
             door = doors[0]  # All doors are open, just pick the first
 
-        if door.locked:
+        if door.properties.get("locked", False):
             # Check if player has a key
             has_key, _ = player_has_key_for_door(state, door)
             if has_key:
                 print("You unlock the door with your key.")
-                door.locked = False
-                door.open = True
+                door.properties["locked"] = False
+                door.properties["open"] = True
                 return True
             else:
                 print("The door is locked. You need a key.")
                 return False
 
-        if door.open:
+        if door.properties.get("open", False):
             print("The door is already open.")
             return False
 
-        door.open = True
+        door.properties["open"] = True
         print("You open the door.")
         return True
 
@@ -441,17 +484,17 @@ def close_door(state: GameState, item_name: str):
     # Prioritize open doors over closed ones
     door = None
     for d in doors:
-        if d.open:
+        if d.properties.get("open", False):
             door = d
             break
     if not door:
         door = doors[0]  # All doors are closed, just pick the first
 
-    if not door.open:
+    if not door.properties.get("open", False):
         print("The door is already closed.")
         return False
 
-    door.open = False
+    door.properties["open"] = False
     print("You close the door.")
     return True
 
@@ -693,6 +736,10 @@ def main(save_load_dir=None):
             # Handle "drop" command (object required)
             case _ if result.verb and result.verb.word == "drop" and result.direct_object:
                 drop_item(state, result.direct_object.word, json_handler)
+
+            # Handle "put" command (object and indirect object required)
+            case _ if result.verb and result.verb.word == "put" and result.direct_object and result.indirect_object:
+                put_item(state, result.direct_object.word, result.indirect_object.word, json_handler)
 
             # Handle "open" command (object required)
             case _ if result.verb and result.verb.word == "open" and result.direct_object:

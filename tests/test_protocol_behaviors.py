@@ -20,6 +20,16 @@ class TestItem:
     provides_light: bool = False
     states: Dict = field(default_factory=dict)
     behaviors: Dict = field(default_factory=dict)
+    properties: Dict = field(default_factory=dict)
+
+    def __post_init__(self):
+        # Sync properties with attributes for compatibility
+        if "portable" not in self.properties:
+            self.properties["portable"] = self.portable
+        if "provides_light" not in self.properties:
+            self.properties["provides_light"] = self.provides_light
+        if "states" not in self.properties:
+            self.properties["states"] = self.states
 
 
 @dataclass
@@ -30,6 +40,7 @@ class TestLocation:
     items: List[str] = field(default_factory=list)
     exits: Dict = field(default_factory=dict)
     llm_context: str = ""
+    properties: Dict = field(default_factory=dict)
 
 
 @dataclass

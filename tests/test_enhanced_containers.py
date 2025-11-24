@@ -8,8 +8,7 @@ import unittest
 import json
 from pathlib import Path
 
-from src.state_manager import load_game_state
-from src.state_manager.models import Item, ContainerInfo, GameState
+from src.state_manager import load_game_state, Item, GameState, ContainerInfo
 from src.json_protocol import JSONProtocolHandler
 from src.behavior_manager import BehaviorManager
 
@@ -23,9 +22,8 @@ class TestPhase1DataModel(unittest.TestCase):
             id="test_item",
             name="test",
             description="A test item",
-            type="object",
-            portable=True,
-            location="loc_test"
+            location="loc_test",
+            properties={"type": "object", "portable": True}
         )
         # Currently Item doesn't have pushable field - this tests that it will
         self.assertFalse(getattr(item, 'pushable', False))
@@ -74,10 +72,10 @@ class TestPhase1DataModel(unittest.TestCase):
 
     def test_container_info_is_surface_field(self):
         """Test ContainerInfo includes is_surface field."""
-        container = ContainerInfo(
-            is_surface=True,
-            capacity=5
-        )
+        container = ContainerInfo({
+            "is_surface": True,
+            "capacity": 5
+        })
         # Currently ContainerInfo doesn't have is_surface - this tests it will
         self.assertTrue(getattr(container, 'is_surface', False))
 
@@ -321,9 +319,8 @@ class TestPhase3EnhancedTake(unittest.TestCase):
             id="item_room_key",
             name="key",
             description="A silver key",
-            type="object",
-            portable=True,
-            location="loc_test"
+            location="loc_test",
+            properties={"type": "object", "portable": True}
         ))
 
         result = self.handler.handle_command({
@@ -848,9 +845,8 @@ class TestPhase2PutCommand(unittest.TestCase):
             id="item_sword",
             name="sword",
             description="A sword",
-            type="object",
-            portable=True,
-            location="loc_test"
+            location="loc_test",
+            properties={"type": "object", "portable": True}
         ))
 
         result = self.handler.handle_command({
