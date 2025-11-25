@@ -13,6 +13,12 @@ This document describes the implementation plan for the behavior system refactor
 - Tests should be written FIRST (TDD), then implementation makes them pass
 - This document is designed to be used by a fresh Claude session without additional context
 
+**Testing Framework:**
+- This project uses **unittest** (Python standard library), NOT pytest
+- Run tests with: `python -m unittest tests/test_phase*.py -v`
+- Run all phase tests: `python -m unittest discover tests -p "test_phase*.py" -v`
+- Test files are in `tests/test_phase*.py` following unittest conventions
+
 ## Implementation Status
 
 **Completed Phases:**
@@ -28,21 +34,23 @@ This document describes the implementation plan for the behavior system refactor
 - ✅ **Phase 9** - Entity Behaviors Infrastructure (invoke_behavior, update() integration, AND logic, message concatenation)
 - ✅ **Phase 10** - Complete Manipulation Handlers (handle_drop, handle_give with NPC tests) - **Slice 1 Complete!** 🎉
 - ✅ **Phase 11** - Movement and Perception Handlers (handle_go, handle_look, handle_examine, handle_inventory) - **Slice 2 Complete!** 🎉
+- ✅ **Phase 12** - Interaction and Lock Handlers (handle_open, handle_close, handle_unlock, handle_lock) - **Slice 3 Complete!** 🎉
 
-**Current Phase:** Phase 12 (next)
+**Current Phase:** Phase 13 (next)
 
 **Test Results:**
-- **Phase 11 tests:** 10/10 passing ✅
-- **All phase tests:** 125/125 passing (Phases 0-11) ✅
-- **Overall tests:** 630/626 passing (99.0% pass rate)
+- **Phase 12 tests:** 13/13 passing ✅
+- **All phase tests:** 138/138 passing (Phases 0-12) ✅
 - **Backward compatibility:** Legacy tests using Mocks skip new validation automatically
 
 **Milestone Achievements:**
 - ✅ **Slice 1 Complete:** Basic Manipulation Module (take, drop, give)
 - ✅ **Slice 2 Complete:** Movement & Perception (go, look, examine, inventory)
+- ✅ **Slice 3 Complete:** Interaction & Locks (open, close, unlock, lock)
 - ✅ Full NPC support validated across all command types
 - ✅ Entity behaviors working end-to-end
 - ✅ Infrastructure proven to generalize to different command types
+- ✅ Lock system integrated with Door and Lock entities
 
 **Game State Conversion:**
 - ✅ `examples/simple_game_state.json` converted to Phase 3 format (unified actors dict)
