@@ -1,10 +1,10 @@
 {
   "metadata": {
     "title": "Simple Adventure",
-    "author": "Text Game Example",
     "version": "1.0",
     "description": "A simple adventure game demonstrating the state manager.",
-    "start_location": "loc_start"
+    "start_location": "loc_start",
+    "author": "Text Game Example"
   },
   "locations": [
     {
@@ -18,9 +18,11 @@
           "door_id": "door_wooden"
         }
       },
-      "tags": [],
-      "items": ["item_sword"],
+      "items": [
+        "item_sword"
+      ],
       "npcs": [],
+      "tags": [],
       "llm_context": {
         "traits": [
           "cramped stone walls",
@@ -57,9 +59,12 @@
           "door_id": "door_treasure"
         }
       },
-      "tags": [],
-      "items": ["item_key", "item_table"],
+      "items": [
+        "item_key",
+        "item_table"
+      ],
       "npcs": [],
+      "tags": [],
       "llm_context": {
         "traits": [
           "high vaulted ceiling",
@@ -87,9 +92,11 @@
           "to": "loc_hallway"
         }
       },
-      "tags": [],
-      "items": ["item_pedestal"],
+      "items": [
+        "item_pedestal"
+      ],
       "npcs": [],
+      "tags": [],
       "llm_context": {
         "traits": [
           "open to sky",
@@ -118,9 +125,11 @@
           "door_id": "door_treasure"
         }
       },
-      "tags": [],
-      "items": ["item_chest"],
+      "items": [
+        "item_chest"
+      ],
       "npcs": [],
+      "tags": [],
       "llm_context": {
         "traits": [
           "glittering walls",
@@ -138,61 +147,14 @@
       }
     }
   ],
-  "doors": [
-    {
-      "id": "door_wooden",
-      "locations": ["loc_start", "loc_hallway"],
-      "description": "A simple wooden door.",
-      "locked": false,
-      "open": true,
-      "llm_context": {
-        "traits": [
-          "rough-hewn planks",
-          "iron hinges",
-          "creaks when moved",
-          "worn handle",
-          "gaps between boards"
-        ],
-        "state_variants": {
-          "open": "stands ajar, revealing the passage beyond",
-          "closed": "blocks the way with its weathered planks",
-          "from_start": "leads north to the hallway",
-          "from_hallway": "leads south to the small room"
-        }
-      }
-    },
-    {
-      "id": "door_treasure",
-      "locations": ["loc_hallway", "loc_locked_room"],
-      "description": "A heavy iron door with a sturdy lock.",
-      "locked": true,
-      "open": false,
-      "lock_id": "lock_treasure",
-      "llm_context": {
-        "traits": [
-          "thick iron plates",
-          "riveted construction",
-          "imposing presence",
-          "cold to touch",
-          "faint runes etched near lock"
-        ],
-        "state_variants": {
-          "locked": "sealed tight, the lock gleaming with purpose",
-          "unlocked": "the lock hangs open, defeated",
-          "open": "swung wide, revealing treasures beyond",
-          "closed": "stands as an iron barrier"
-        }
-      }
-    }
-  ],
   "items": [
     {
       "id": "item_sword",
       "name": "sword",
       "description": "A rusty but serviceable sword.",
+      "location": "loc_start",
       "type": "object",
       "portable": true,
-      "location": "loc_start",
       "llm_context": {
         "traits": [
           "pitted blade",
@@ -212,9 +174,9 @@
       "id": "item_key",
       "name": "key",
       "description": "An iron key.",
+      "location": "loc_hallway",
       "type": "object",
       "portable": true,
-      "location": "loc_hallway",
       "llm_context": {
         "traits": [
           "solid iron",
@@ -234,9 +196,9 @@
       "id": "item_potion",
       "name": "potion",
       "description": "A red potion that glows faintly.",
+      "location": "item_pedestal",
       "type": "object",
       "portable": true,
-      "location": "item_pedestal",
       "llm_context": {
         "traits": [
           "crimson liquid",
@@ -256,9 +218,9 @@
       "id": "item_chest",
       "name": "chest",
       "description": "A large golden chest. It looks valuable!",
+      "location": "loc_locked_room",
       "type": "object",
       "portable": false,
-      "location": "loc_locked_room",
       "llm_context": {
         "traits": [
           "ornate gold filigree",
@@ -278,16 +240,12 @@
       "id": "item_lantern",
       "name": "lantern",
       "description": "A small lantern, slightly dusty",
+      "location": "item_table",
       "type": "object",
       "portable": true,
       "provides_light": true,
-      "location": "item_table",
       "states": {
         "lit": false
-      },
-      "behaviors": {
-        "on_take": "behaviors.core.light_sources:on_take",
-        "on_drop": "behaviors.core.light_sources:on_drop"
       },
       "llm_context": {
         "traits": [
@@ -302,15 +260,19 @@
           "lit": "sheds a helpful light",
           "examined": "crudely made but functional"
         }
+      },
+      "behaviors": {
+        "on_take": "behaviors.core.light_sources:on_take",
+        "on_drop": "behaviors.core.light_sources:on_drop"
       }
     },
     {
       "id": "item_pedestal",
       "name": "pedestal",
       "description": "A weathered stone pedestal with a shallow depression on top.",
+      "location": "loc_tower",
       "type": "furniture",
       "portable": false,
-      "location": "loc_tower",
       "container": {
         "is_container": true,
         "is_surface": true,
@@ -332,9 +294,9 @@
       "id": "item_table",
       "name": "table",
       "description": "A sturdy wooden table against the wall.",
+      "location": "loc_hallway",
       "type": "furniture",
       "portable": false,
-      "location": "loc_hallway",
       "container": {
         "is_container": true,
         "is_surface": true,
@@ -353,10 +315,65 @@
       }
     }
   ],
+  "doors": [
+    {
+      "id": "door_wooden",
+      "locations": [
+        "loc_start",
+        "loc_hallway"
+      ],
+      "description": "A simple wooden door.",
+      "locked": false,
+      "open": true,
+      "llm_context": {
+        "traits": [
+          "rough-hewn planks",
+          "iron hinges",
+          "creaks when moved",
+          "worn handle",
+          "gaps between boards"
+        ],
+        "state_variants": {
+          "open": "stands ajar, revealing the passage beyond",
+          "closed": "blocks the way with its weathered planks",
+          "from_start": "leads north to the hallway",
+          "from_hallway": "leads south to the small room"
+        }
+      }
+    },
+    {
+      "id": "door_treasure",
+      "locations": [
+        "loc_hallway",
+        "loc_locked_room"
+      ],
+      "description": "A heavy iron door with a sturdy lock.",
+      "locked": true,
+      "open": false,
+      "lock_id": "lock_treasure",
+      "llm_context": {
+        "traits": [
+          "thick iron plates",
+          "riveted construction",
+          "imposing presence",
+          "cold to touch",
+          "faint runes etched near lock"
+        ],
+        "state_variants": {
+          "locked": "sealed tight, the lock gleaming with purpose",
+          "unlocked": "the lock hangs open, defeated",
+          "open": "swung wide, revealing treasures beyond",
+          "closed": "stands as an iron barrier"
+        }
+      }
+    }
+  ],
   "locks": [
     {
       "id": "lock_treasure",
-      "opens_with": ["item_key"],
+      "opens_with": [
+        "item_key"
+      ],
       "auto_unlock": true,
       "description": "A sturdy lock.",
       "llm_context": {
@@ -373,10 +390,15 @@
       }
     }
   ],
-  "player_state": {
-    "location": "loc_start",
-    "inventory": [],
-    "flags": {},
-    "stats": {}
+  "actors": {
+    "player": {
+      "id": "player",
+      "name": "player",
+      "description": "",
+      "location": "loc_start",
+      "inventory": [],
+      "flags": {},
+      "stats": {}
+    }
   }
 }
