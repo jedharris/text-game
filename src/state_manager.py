@@ -79,7 +79,7 @@ class Location:
     items: List[str] = field(default_factory=list)
     npcs: List[str] = field(default_factory=list)
     properties: Dict[str, Any] = field(default_factory=dict)
-    behaviors: Dict[str, str] = field(default_factory=dict)
+    behaviors: Union[List[str], Dict[str, str]] = field(default_factory=list)
 
     @property
     def llm_context(self) -> Optional[Dict[str, Any]]:
@@ -100,7 +100,7 @@ class Item:
     description: str
     location: str
     properties: Dict[str, Any] = field(default_factory=dict)
-    behaviors: Dict[str, str] = field(default_factory=dict)
+    behaviors: Union[List[str], Dict[str, str]] = field(default_factory=list)
 
     @property
     def states(self) -> Dict[str, Any]:
@@ -172,7 +172,7 @@ class Door:
     id: str
     locations: Tuple[str, ...]
     properties: Dict[str, Any] = field(default_factory=dict)
-    behaviors: Dict[str, str] = field(default_factory=dict)
+    behaviors: Union[List[str], Dict[str, str]] = field(default_factory=list)
 
     @property
     def description(self) -> str:
@@ -243,23 +243,15 @@ class Lock:
 
 
 @dataclass
-class NPC:
-    """Non-player character."""
+class Actor:
+    """Unified actor (player or NPC)."""
     id: str
     name: str
     description: str
     location: str
     inventory: List[str] = field(default_factory=list)
     properties: Dict[str, Any] = field(default_factory=dict)
-    behaviors: Dict[str, str] = field(default_factory=dict)
-
-
-@dataclass
-class PlayerState:
-    """Player state information."""
-    location: str
-    inventory: List[str] = field(default_factory=list)
-    properties: Dict[str, Any] = field(default_factory=dict)
+    behaviors: Union[List[str], Dict[str, str]] = field(default_factory=list)
 
     @property
     def stats(self) -> Dict[str, Any]:
@@ -286,6 +278,11 @@ class PlayerState:
         self.properties["flags"] = value
 
 
+# Backward compatibility aliases
+NPC = Actor
+PlayerState = Actor
+
+
 @dataclass
 class GameState:
     """Complete game state."""
@@ -294,9 +291,38 @@ class GameState:
     doors: List[Door] = field(default_factory=list)
     items: List[Item] = field(default_factory=list)
     locks: List[Lock] = field(default_factory=list)
-    npcs: List[NPC] = field(default_factory=list)
-    player: Optional[PlayerState] = None
+    actors: Dict[str, Actor] = field(default_factory=dict)
     extra: Dict[str, Any] = field(default_factory=dict)
+
+    # Backward compatibility properties
+    @property
+    def player(self) -> Optional[Actor]:
+        """Access player actor for backward compatibility."""
+        return self.actors.get("player")
+
+    @player.setter
+    def player(self, value: Optional[Actor]) -> None:
+        """Set player actor for backward compatibility."""
+        if value is not None:
+            self.actors["player"] = value
+        elif "player" in self.actors:
+            del self.actors["player"]
+
+    @property
+    def npcs(self) -> List[Actor]:
+        """Access NPCs for backward compatibility."""
+        return [actor for actor_id, actor in self.actors.items() if actor_id != "player"]
+
+    @npcs.setter
+    def npcs(self, value: List[Actor]) -> None:
+        """Set NPCs for backward compatibility."""
+        # Remove old NPCs
+        npc_ids = [actor_id for actor_id in self.actors.keys() if actor_id != "player"]
+        for npc_id in npc_ids:
+            del self.actors[npc_id]
+        # Add new NPCs
+        for npc in value:
+            self.actors[npc.id] = npc
 
     def get_item(self, item_id: str) -> Item:
         """Get item by ID."""
@@ -326,11 +352,11 @@ class GameState:
                 return lock
         raise KeyError(f"Lock not found: {lock_id}")
 
-    def get_npc(self, npc_id: str) -> NPC:
-        """Get NPC by ID."""
-        for npc in self.npcs:
-            if npc.id == npc_id:
-                return npc
+    def get_npc(self, npc_id: str) -> Actor:
+        """Get NPC by ID (backward compatibility - use actors dict instead)."""
+        actor = self.actors.get(npc_id)
+        if actor and actor.id != "player":
+            return actor
         raise KeyError(f"NPC not found: {npc_id}")
 
     def move_item(self, item_id: str, to_player: bool = False,
@@ -422,6 +448,9 @@ def _parse_location(raw: Dict[str, Any]) -> Location:
     for direction, exit_data in raw.get('exits', {}).items():
         exits[direction] = _parse_exit(direction, exit_data)
 
+    # Parse behaviors - keep as-is (supports both dict and list)
+    behaviors = raw.get('behaviors', [])
+
     return Location(
         id=raw['id'],
         name=raw.get('name', ''),
@@ -430,7 +459,7 @@ def _parse_location(raw: Dict[str, Any]) -> Location:
         items=raw.get('items', []),
         npcs=raw.get('npcs', []),
         properties={k: v for k, v in raw.items() if k not in core_fields},
-        behaviors=raw.get('behaviors', {})
+        behaviors=behaviors
     )
 
 
@@ -438,13 +467,16 @@ def _parse_item(raw: Dict[str, Any]) -> Item:
     """Parse item from JSON dict."""
     core_fields = {'id', 'name', 'description', 'location', 'behaviors'}
 
+    # Parse behaviors - keep as-is (supports both dict and list)
+    behaviors = raw.get('behaviors', [])
+
     return Item(
         id=raw['id'],
         name=raw.get('name', ''),
         description=raw.get('description', ''),
         location=raw.get('location', ''),
         properties={k: v for k, v in raw.items() if k not in core_fields},
-        behaviors=raw.get('behaviors', {})
+        behaviors=behaviors
     )
 
 
@@ -456,11 +488,14 @@ def _parse_door(raw: Dict[str, Any]) -> Door:
     if isinstance(locations, list):
         locations = tuple(locations)
 
+    # Parse behaviors - keep as-is (supports both dict and list)
+    behaviors = raw.get('behaviors', [])
+
     return Door(
         id=raw['id'],
         locations=locations,
         properties={k: v for k, v in raw.items() if k not in core_fields},
-        behaviors=raw.get('behaviors', {})
+        behaviors=behaviors
     )
 
 
@@ -474,30 +509,35 @@ def _parse_lock(raw: Dict[str, Any]) -> Lock:
     )
 
 
-def _parse_npc(raw: Dict[str, Any]) -> NPC:
-    """Parse NPC from JSON dict."""
+def _parse_actor(raw: Dict[str, Any], actor_id: str = None) -> Actor:
+    """Parse Actor from JSON dict."""
     core_fields = {'id', 'name', 'description', 'location', 'inventory', 'behaviors'}
 
-    return NPC(
-        id=raw['id'],
-        name=raw.get('name', ''),
+    # Handle backward compatibility - old saves may have player_state without id/name/description
+    if 'id' not in raw and actor_id:
+        raw = dict(raw)  # Make a copy
+        raw['id'] = actor_id
+
+    return Actor(
+        id=raw.get('id', actor_id or 'unknown'),
+        name=raw.get('name', raw.get('id', 'unknown')),
         description=raw.get('description', ''),
         location=raw.get('location', ''),
         inventory=raw.get('inventory', []),
         properties={k: v for k, v in raw.items() if k not in core_fields},
-        behaviors=raw.get('behaviors', {})
+        behaviors=raw.get('behaviors', [])  # Keep as-is (supports both dict and list)
     )
 
 
-def _parse_player_state(raw: Dict[str, Any]) -> PlayerState:
-    """Parse player state from JSON dict."""
-    core_fields = {'location', 'inventory'}
+# Backward compatibility aliases
+def _parse_npc(raw: Dict[str, Any]) -> Actor:
+    """Parse NPC from JSON dict (backward compatibility)."""
+    return _parse_actor(raw)
 
-    return PlayerState(
-        location=raw.get('location', ''),
-        inventory=raw.get('inventory', []),
-        properties={k: v for k, v in raw.items() if k not in core_fields}
-    )
+
+def _parse_player_state(raw: Dict[str, Any]) -> Actor:
+    """Parse player state from JSON dict (backward compatibility)."""
+    return _parse_actor(raw, actor_id='player')
 
 
 def _parse_metadata(raw: Dict[str, Any]) -> Metadata:
@@ -512,7 +552,10 @@ def _parse_metadata(raw: Dict[str, Any]) -> Metadata:
 
 
 def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
-    """Load game state from file path or dict."""
+    """Load game state from file path or dict.
+
+    Supports both old format (player/npcs fields) and new format (actors dict).
+    """
     if isinstance(source, dict):
         data = source
     else:
@@ -535,18 +578,36 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
     # Parse locks
     locks = [_parse_lock(lock) for lock in data.get('locks', [])]
 
-    # Parse NPCs
-    npcs = [_parse_npc(npc) for npc in data.get('npcs', [])]
+    # Parse actors - support both old and new formats
+    actors = {}
 
-    # Parse player state (support both 'player_state' and 'player' keys)
-    player = None
-    if 'player_state' in data:
-        player = _parse_player_state(data['player_state'])
-    elif 'player' in data:
-        player = _parse_player_state(data['player'])
-    elif metadata.start_location:
-        # Create default player state from metadata.start_location
-        player = PlayerState(location=metadata.start_location)
+    # New format: actors dict
+    if 'actors' in data:
+        for actor_id, actor_data in data['actors'].items():
+            actors[actor_id] = _parse_actor(actor_data, actor_id=actor_id)
+    else:
+        # Old format: separate player and npcs fields
+        # Parse player state (support both 'player_state' and 'player' keys)
+        if 'player_state' in data:
+            actors['player'] = _parse_player_state(data['player_state'])
+        elif 'player' in data:
+            actors['player'] = _parse_player_state(data['player'])
+        elif metadata.start_location:
+            # Create default player state from metadata.start_location
+            actors['player'] = Actor(
+                id='player',
+                name='player',
+                description='The player character',
+                location=metadata.start_location,
+                inventory=[],
+                properties={},
+                behaviors=[]
+            )
+
+        # Parse NPCs
+        for npc_data in data.get('npcs', []):
+            npc = _parse_npc(npc_data)
+            actors[npc.id] = npc
 
     state = GameState(
         metadata=metadata,
@@ -554,8 +615,7 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
         items=items,
         doors=doors,
         locks=locks,
-        npcs=npcs,
-        player=player
+        actors=actors
     )
 
     # Validate after loading
@@ -648,28 +708,34 @@ def _serialize_lock(lock: Lock) -> Dict[str, Any]:
     return result
 
 
-def _serialize_npc(npc: NPC) -> Dict[str, Any]:
-    """Serialize NPC to dict."""
+def _serialize_actor(actor: Actor) -> Dict[str, Any]:
+    """Serialize Actor to dict."""
     result = {
-        'id': npc.id,
-        'name': npc.name,
-        'description': npc.description,
-        'location': npc.location,
-        'inventory': npc.inventory
+        'id': actor.id,
+        'name': actor.name,
+        'description': actor.description,
+        'location': actor.location,
+        'inventory': actor.inventory
     }
 
     # Merge properties
-    result.update(npc.properties)
+    result.update(actor.properties)
 
     # Add behaviors if present
-    if npc.behaviors:
-        result['behaviors'] = npc.behaviors
+    if actor.behaviors:
+        result['behaviors'] = actor.behaviors
 
     return result
 
 
-def _serialize_player_state(player: PlayerState) -> Dict[str, Any]:
-    """Serialize player state to dict."""
+# Backward compatibility aliases
+def _serialize_npc(npc: Actor) -> Dict[str, Any]:
+    """Serialize NPC to dict (backward compatibility)."""
+    return _serialize_actor(npc)
+
+
+def _serialize_player_state(player: Actor) -> Dict[str, Any]:
+    """Serialize player state to dict (backward compatibility)."""
     result = {
         'location': player.location,
         'inventory': player.inventory
@@ -699,18 +765,15 @@ def _serialize_metadata(metadata: Metadata) -> Dict[str, Any]:
 
 
 def game_state_to_dict(state: GameState) -> Dict[str, Any]:
-    """Serialize game state to dict."""
+    """Serialize game state to dict using new unified actor format."""
     result = {
         'metadata': _serialize_metadata(state.metadata),
         'locations': [_serialize_location(loc) for loc in state.locations],
         'items': [_serialize_item(item) for item in state.items],
         'doors': [_serialize_door(door) for door in state.doors],
         'locks': [_serialize_lock(lock) for lock in state.locks],
-        'npcs': [_serialize_npc(npc) for npc in state.npcs]
+        'actors': {actor_id: _serialize_actor(actor) for actor_id, actor in state.actors.items()}
     }
-
-    if state.player:
-        result['player_state'] = _serialize_player_state(state.player)
 
     return result
 

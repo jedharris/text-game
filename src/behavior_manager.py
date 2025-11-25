@@ -194,8 +194,19 @@ class BehaviorManager:
         if not hasattr(entity, 'behaviors') or not entity.behaviors:
             return None
 
-        behavior_path = entity.behaviors.get(event_name)
-        if not behavior_path:
+        # Handle both old (dict) and new (list) behaviors formats
+        if isinstance(entity.behaviors, dict):
+            # Old format: behaviors = {"on_event": "module:function"}
+            behavior_path = entity.behaviors.get(event_name)
+            if not behavior_path:
+                return None
+        elif isinstance(entity.behaviors, list):
+            # New format: behaviors = ["module1", "module2"]
+            # For now, we can't map events to specific modules in list format
+            # This is handled by the new BehaviorManager (not yet implemented)
+            # Return None for now - the new system will handle this
+            return None
+        else:
             return None
 
         behavior_func = self.load_behavior(behavior_path)

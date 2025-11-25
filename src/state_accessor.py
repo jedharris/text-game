@@ -82,24 +82,13 @@ class StateAccessor:
         """
         Get actor by ID.
 
-        Note: Currently works with player (PlayerState) and npcs (NPC list).
-        Will be unified to actors dict in Phase 3.
-
         Args:
             actor_id: The actor ID to look up ("player" or NPC id)
 
         Returns:
-            Actor/PlayerState or None if not found
+            Actor or None if not found
         """
-        if actor_id == "player":
-            return self.game_state.player
-
-        # Check NPCs
-        for npc in self.game_state.npcs:
-            if npc.id == actor_id:
-                return npc
-
-        return None
+        return self.game_state.actors.get(actor_id)
 
     def get_location(self, location_id: str):
         """
@@ -184,21 +173,18 @@ class StateAccessor:
         """
         Get all actors in a location.
 
-        Note: Currently returns only NPCs. In Phase 3 unified model,
-        this will include player when present.
-
         Args:
             location_id: The location ID
 
         Returns:
-            List of Actors/NPCs in the location
+            List of Actors in the location (including player if present)
         """
         actors = []
 
-        # Check NPCs
-        for npc in self.game_state.npcs:
-            if npc.location == location_id:
-                actors.append(npc)
+        # Check all actors (including player)
+        for actor in self.game_state.actors.values():
+            if actor.location == location_id:
+                actors.append(actor)
 
         return actors
 

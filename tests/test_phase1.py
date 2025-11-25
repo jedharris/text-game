@@ -146,16 +146,18 @@ class TestStateAccessorCollections(unittest.TestCase):
         state = create_test_state()
         accessor = StateAccessor(state, None)
 
-        # Add an NPC
-        from src.state_manager import NPC
-        npc = NPC(
+        # Add an NPC using unified model
+        from src.state_manager import Actor
+        npc = Actor(
             id="npc_guard",
             name="guard",
             description="A guard",
             location="location_room",
-            inventory=[]
+            inventory=[],
+            properties={},
+            behaviors=[]
         )
-        state.npcs.append(npc)
+        state.actors["npc_guard"] = npc
 
         actors = accessor.get_actors_in_location("location_room")
         self.assertGreater(len(actors), 0)

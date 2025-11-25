@@ -5,7 +5,7 @@ Based on behavior_refactoring_testing.md lines 14-106
 """
 from dataclasses import field
 from typing import Dict, List, Any
-from src.state_manager import GameState, Item, Location, NPC, PlayerState, Metadata
+from src.state_manager import GameState, Item, Location, Actor, Metadata
 
 
 def create_test_state() -> GameState:
@@ -21,8 +21,7 @@ def create_test_state() -> GameState:
         - An anvil (item_anvil) with weight=150 in the room
         - A feather (item_feather) with weight=1 in the room
 
-    NOTE: Uses CURRENT data model (lists, not dicts). Will be refactored to
-    unified actor model in Phase 3.
+    Uses unified actor model (Phase 3).
     """
     # Create metadata
     metadata = Metadata(
@@ -33,10 +32,14 @@ def create_test_state() -> GameState:
     )
 
     # Create player
-    player = PlayerState(
+    player = Actor(
+        id="player",
+        name="player",
+        description="The player character",
         location="location_room",
         inventory=[],
-        properties={"max_carry_weight": 100}
+        properties={"max_carry_weight": 100},
+        behaviors=[]
     )
 
     # Create location
@@ -48,7 +51,7 @@ def create_test_state() -> GameState:
         items=["item_sword", "item_table", "item_lantern", "item_anvil", "item_feather"],
         npcs=[],
         properties={},
-        behaviors={}
+        behaviors=[]
     )
 
     # Create test items
@@ -58,7 +61,7 @@ def create_test_state() -> GameState:
         description="A test sword",
         location="location_room",
         properties={"portable": True},
-        behaviors={}
+        behaviors=[]
     )
 
     table = Item(
@@ -67,7 +70,7 @@ def create_test_state() -> GameState:
         description="A heavy table",
         location="location_room",
         properties={"portable": False},
-        behaviors={}
+        behaviors=[]
     )
 
     lantern = Item(
@@ -79,7 +82,7 @@ def create_test_state() -> GameState:
             "portable": True,
             "states": {"lit": False}
         },
-        behaviors={"on_take": "light_sources"}  # Will become list in Phase 3
+        behaviors=["light_sources"]
     )
 
     anvil = Item(
@@ -91,7 +94,7 @@ def create_test_state() -> GameState:
             "portable": True,
             "weight": 150
         },
-        behaviors={}
+        behaviors=[]
     )
 
     feather = Item(
@@ -103,7 +106,7 @@ def create_test_state() -> GameState:
             "portable": True,
             "weight": 1
         },
-        behaviors={}
+        behaviors=[]
     )
 
     # Create and return game state
@@ -113,8 +116,7 @@ def create_test_state() -> GameState:
         items=[sword, table, lantern, anvil, feather],
         doors=[],
         locks=[],
-        npcs=[],
-        player=player,
+        actors={"player": player},
         extra={}
     )
 
