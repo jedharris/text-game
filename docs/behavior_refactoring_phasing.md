@@ -24,13 +24,14 @@ This document describes the implementation plan for the behavior system refactor
 - ✅ **Phase 5** - StateAccessor.update() (state mutation without behaviors)
 - ✅ **Phase 6** - Utility Functions (search/lookup, visibility helpers with strict actor_id threading)
 - ✅ **Phase 7** - First Command Handler (handle_take with full actor_id threading, NPC test passing)
+- ✅ **Phase 8** - Handler Chaining Infrastructure (invoke_handler, invoke_previous_handler, position list management)
 
-**Current Phase:** Phase 8 (next)
+**Current Phase:** Phase 9 (next)
 
 **Test Results:**
-- **Phase 7 tests:** 7/7 passing ✅
-- **All phase tests:** 92/92 passing (Phases 0-7) ✅
-- **Overall tests:** 597/610 passing (13 legacy test errors remain from older phases)
+- **Phase 8 tests:** 8/8 passing ✅
+- **All phase tests:** 100/100 passing (Phases 0-8) ✅
+- **Overall tests:** 605/618 passing (13 legacy test errors remain from older phases)
 - **Backward compatibility:** Legacy tests using Mocks skip new validation automatically
 
 **Game State Conversion:**
@@ -1421,11 +1422,13 @@ def test_handle_take_with_missing_actor():
 
 ---
 
-## Phase 8: Handler Chaining Infrastructure
+## Phase 8: Handler Chaining Infrastructure ✅
+
+**Status:** ✅ COMPLETED
 
 **Goal:** Implement invoke_handler() and invoke_previous_handler() with position list
 
-**Duration:** ~3-4 hours
+**Duration:** ~3-4 hours (Actual: ~30 minutes)
 
 **KEY INSIGHT:** BehaviorManager owns the position list lifecycle. It initializes on invoke_handler(), cleans up in finally.
 
@@ -1603,6 +1606,60 @@ def test_invoke_previous_handler_runtime_error():
 - All handler chaining tests pass
 - Position list properly managed
 - Can create custom handlers that delegate to core
+
+### ✅ Implementation Notes (Phase 8 Complete)
+
+**Status:** ✅ COMPLETED
+
+**Key Changes Made:**
+
+1. **Implemented `invoke_handler()` in [src/behavior_manager.py](../src/behavior_manager.py) (lines 442-480):**
+   - Initializes position list: `self._handler_position_list = [0]`
+   - Calls first handler from `self._handlers[verb][0]`
+   - Cleans up position list in finally block (ensures cleanup even on exception)
+   - Returns HandlerResult or None
+
+2. **Implemented `invoke_previous_handler()` in [src/behavior_manager.py](../src/behavior_manager.py) (lines 482-538):**
+   - Validates position list initialized (raises RuntimeError if not)
+   - Gets current position: `current_pos = self._handler_position_list[-1]`
+   - Calculates and appends next position
+   - Calls handler at next position
+   - Pops position in finally block
+   - Returns None if at end of chain
+
+3. **Added `invoke_previous_handler()` to [src/state_accessor.py](../src/state_accessor.py) (lines 365-383):**
+   - Convenience method that delegates to `behavior_manager.invoke_previous_handler()`
+   - Allows handlers to call `accessor.invoke_previous_handler()` naturally
+
+4. **Created comprehensive test suite in [tests/test_phase8_handler_chaining.py](../tests/test_phase8_handler_chaining.py):**
+   - 8 tests covering all scenarios
+   - Tests position list initialization and cleanup
+   - Tests cleanup on exception (critical for robustness)
+   - Tests two-layer delegation (game -> core)
+   - Tests RuntimeError when called incorrectly
+   - Tests behavior at end of chain (returns None)
+
+**Position List Lifecycle:**
+- ✅ Initialized in `invoke_handler()` before calling first handler
+- ✅ Cleaned up in finally block (even if handler raises exception)
+- ✅ Each `invoke_previous_handler()` appends next position, pops in finally
+- ✅ Stack-like behavior allows nested delegation
+
+**Test Results:**
+- All 8 Phase 8 tests passing ✅
+- All 100 phase tests passing (Phases 0-8) ✅
+- Overall: 605/618 tests passing (13 legacy errors remain)
+
+**Issues Encountered:**
+- Initial test tried to load 3 handlers with conflicting source types
+- Fix: Changed to 2-layer test (game -> core) with different source types
+
+**Duration:** ~30 minutes (estimated 3-4 hours) - **6-8x faster** than planned!
+
+**Key Success Factors:**
+- Position list design is straightforward (stack-based)
+- Finally blocks ensure cleanup in all cases
+- Tests validate critical error paths (exception handling, RuntimeError)
 
 ---
 

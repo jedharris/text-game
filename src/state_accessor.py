@@ -361,3 +361,23 @@ class StateAccessor:
 
         # All changes applied successfully
         return UpdateResult(success=True, message=None)
+
+    def invoke_previous_handler(self, verb: str, action: dict):
+        """
+        Delegate to the next handler in the chain.
+
+        This is a convenience method that allows handlers to call
+        accessor.invoke_previous_handler() naturally, instead of having
+        to reference the behavior_manager directly.
+
+        Args:
+            verb: The verb being handled
+            action: Action dict
+
+        Returns:
+            HandlerResult from next handler, or None if at end of chain
+
+        Raises:
+            RuntimeError: If not called from within a handler chain
+        """
+        return self.behavior_manager.invoke_previous_handler(verb, self, action)

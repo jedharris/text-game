@@ -439,6 +439,104 @@ class BehaviorManager:
             traceback.print_exc()
             return None
 
+    def invoke_handler(self, verb: str, accessor, action: Dict[str, Any]):
+        """
+        Invoke a registered command handler.
+
+        Manages position list lifecycle for handler chaining support.
+
+        Args:
+            verb: The verb to handle (e.g., "take", "drop")
+            accessor: StateAccessor instance
+            action: Action dict with actor_id and other parameters
+
+        Returns:
+            HandlerResult from handler, or None if no handler registered
+        """
+        handlers = self._handlers.get(verb)
+        if not handlers:
+            return None
+
+        # Initialize position list
+        self._handler_position_list = [0]
+
+        try:
+            # Get first handler
+            if isinstance(handlers, list) and len(handlers) > 0:
+                first = handlers[0]
+                if isinstance(first, tuple):
+                    handler, module_name = first
+                else:
+                    # Legacy format
+                    handler = first
+            else:
+                return None
+
+            # Call first handler
+            return handler(accessor, action)
+
+        finally:
+            # Always clean up position list
+            self._handler_position_list = []
+
+    def invoke_previous_handler(self, verb: str, accessor, action: Dict[str, Any]):
+        """
+        Invoke the next handler in the chain (delegation).
+
+        Called by handlers to delegate to the next handler in load order.
+        Manages position list to track current position in handler chain.
+
+        Args:
+            verb: The verb being handled
+            accessor: StateAccessor instance
+            action: Action dict
+
+        Returns:
+            HandlerResult from next handler, or None if at end of chain
+
+        Raises:
+            RuntimeError: If position list not initialized (not called from invoke_handler)
+        """
+        # Check position list is initialized
+        if not self._handler_position_list:
+            raise RuntimeError(
+                "Handler position list not initialized. "
+                "invoke_previous_handler() can only be called from within a handler "
+                "invoked via invoke_handler()."
+            )
+
+        # Get handlers list
+        handlers = self._handlers.get(verb)
+        if not handlers or not isinstance(handlers, list):
+            return None
+
+        # Get current position and calculate next
+        current_pos = self._handler_position_list[-1]
+        next_pos = current_pos + 1
+
+        # Check if we're at end of chain
+        if next_pos >= len(handlers):
+            return None
+
+        # Append next position to list
+        self._handler_position_list.append(next_pos)
+
+        try:
+            # Get next handler
+            next_handler_entry = handlers[next_pos]
+            if isinstance(next_handler_entry, tuple):
+                next_handler, module_name = next_handler_entry
+            else:
+                # Legacy format
+                next_handler = next_handler_entry
+
+            # Call next handler
+            return next_handler(accessor, action)
+
+        finally:
+            # Pop position from list
+            self._handler_position_list.pop()
+
     def clear_cache(self):
         """Clear behavior cache (useful for hot reload)."""
         self._behavior_cache.clear()
