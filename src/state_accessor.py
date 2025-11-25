@@ -201,3 +201,143 @@ class StateAccessor:
                 actors.append(npc)
 
         return actors
+
+    # Mutation methods
+
+    def _set_path(self, entity, path: str, value):
+        """
+        Low-level state mutation primitive.
+
+        Supports:
+        - Simple field access: "location"
+        - Nested dict access with dots: "properties.container.open"
+        - List append with + prefix: "+inventory"
+        - List remove with - prefix: "-inventory"
+
+        Args:
+            entity: The entity to modify (Item, Actor, Location, etc.)
+            path: The path to the field to modify
+            value: The value to set/append/remove
+
+        Returns:
+            None on success, error string on failure
+        """
+        # Check for list operations
+        if path.startswith('+'):
+            # Append operation
+            return self._append_to_list(entity, path[1:], value)
+        elif path.startswith('-'):
+            # Remove operation
+            return self._remove_from_list(entity, path[1:], value)
+        else:
+            # Set operation
+            return self._set_field(entity, path, value)
+
+    def _set_field(self, entity, path: str, value):
+        """Set a field value, handling nested paths with dots."""
+        parts = path.split('.')
+
+        # Navigate to the parent container
+        current = entity
+        for i, part in enumerate(parts[:-1]):
+            # Check if it's a dataclass field or dict key
+            if hasattr(current, part):
+                current = getattr(current, part)
+            elif isinstance(current, dict):
+                # Create intermediate dicts if needed
+                if part not in current:
+                    current[part] = {}
+                current = current[part]
+            else:
+                return f"Path component '{part}' not found in {type(current).__name__}"
+
+        # Set the final field
+        final_field = parts[-1]
+
+        if hasattr(current, final_field):
+            # Dataclass field
+            try:
+                setattr(current, final_field, value)
+                return None
+            except AttributeError as e:
+                return f"Cannot set field '{final_field}': {e}"
+        elif isinstance(current, dict):
+            # Dict key
+            current[final_field] = value
+            return None
+        else:
+            return f"Field '{final_field}' not found on {type(current).__name__}"
+
+    def _append_to_list(self, entity, path: str, value):
+        """Append a value to a list field."""
+        parts = path.split('.')
+
+        # Navigate to the container
+        current = entity
+        for part in parts[:-1]:
+            if hasattr(current, part):
+                current = getattr(current, part)
+            elif isinstance(current, dict):
+                if part not in current:
+                    return f"Path component '{part}' not found"
+                current = current[part]
+            else:
+                return f"Path component '{part}' not found"
+
+        # Get the list field
+        final_field = parts[-1]
+
+        if hasattr(current, final_field):
+            target = getattr(current, final_field)
+        elif isinstance(current, dict):
+            if final_field not in current:
+                return f"Field '{final_field}' not found"
+            target = current[final_field]
+        else:
+            return f"Field '{final_field}' not found"
+
+        # Verify it's a list
+        if not isinstance(target, list):
+            return f"Cannot append to non-list field '{final_field}' (type: {type(target).__name__})"
+
+        target.append(value)
+        return None
+
+    def _remove_from_list(self, entity, path: str, value):
+        """Remove a value from a list field."""
+        parts = path.split('.')
+
+        # Navigate to the container
+        current = entity
+        for part in parts[:-1]:
+            if hasattr(current, part):
+                current = getattr(current, part)
+            elif isinstance(current, dict):
+                if part not in current:
+                    return f"Path component '{part}' not found"
+                current = current[part]
+            else:
+                return f"Path component '{part}' not found"
+
+        # Get the list field
+        final_field = parts[-1]
+
+        if hasattr(current, final_field):
+            target = getattr(current, final_field)
+        elif isinstance(current, dict):
+            if final_field not in current:
+                return f"Field '{final_field}' not found"
+            target = current[final_field]
+        else:
+            return f"Field '{final_field}' not found"
+
+        # Verify it's a list
+        if not isinstance(target, list):
+            return f"Cannot remove from non-list field '{final_field}' (type: {type(target).__name__})"
+
+        # Try to remove the value
+        try:
+            target.remove(value)
+            return None
+        except ValueError:
+            return f"Value not in list '{final_field}'"
