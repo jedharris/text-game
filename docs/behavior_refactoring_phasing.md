@@ -2257,6 +2257,39 @@ def test_handle_unlock_npc():
 - Different from item behaviors (tests behavior flexibility)
 - End of Slice 3
 
+### ✅ COMPLETED
+
+**Duration:** ~10 minutes (estimated 6-8 hours)
+
+**Tests:** 13 tests created, all passing
+- Total phase tests: 138 (Phases 0-12)
+
+**Implementation:**
+1. Added `handle_open()` and `handle_close()` to [behaviors/core/interaction.py](../behaviors/core/interaction.py:110-304)
+   - Handles both containers (items) and doors
+   - Checks for already open/closed state
+   - Validates locked state for doors
+   - Full actor_id support with NPC tests
+
+2. Added `handle_unlock()` and `handle_lock()` to [behaviors/core/locks.py](../behaviors/core/locks.py:51-368)
+   - Verifies actor has correct key in inventory
+   - Checks lock compatibility with Lock entities
+   - Prevents locking open doors/containers
+   - Full actor_id support with NPC tests
+
+3. Added vocabulary with event mappings:
+   - "open" → "on_open", "close"/"shut" → "on_close"
+   - "unlock" → "on_unlock", "lock" → "on_lock"
+
+**Key Success Factors:**
+- Door lookup searches by id and description
+- Lock system uses Lock entities with `opens_with` key lists
+- Actor inventory checked for correct keys
+- Container manipulation uses `container._data` for locked state
+- All handlers follow actor_id threading pattern
+
+**Slice 3 (Interaction & Locks) COMPLETE**
+
 ---
 
 ## Infrastructure & Cleanup
