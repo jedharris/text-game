@@ -22,12 +22,13 @@ This document describes the implementation plan for the behavior system refactor
 - ✅ **Phase 3** - Unified Actor Model (actors dict, backward compatibility)
 - ✅ **Phase 4** - BehaviorManager module loading & vocabulary (vocabulary validation, conflict detection, verb-to-event mapping)
 - ✅ **Phase 5** - StateAccessor.update() (state mutation without behaviors)
+- ✅ **Phase 6** - Utility Functions (search/lookup, visibility helpers with strict actor_id threading)
 
-**Current Phase:** Phase 6 (next)
+**Current Phase:** Phase 7 (next)
 
 **Test Results:**
-- **Phase 5 tests:** 11/11 passing ✅
-- **Overall tests:** 575/588 passing (13 legacy test errors remain from older phases)
+- **Phase 6 tests:** 15/15 passing ✅
+- **Overall tests:** 590/603 passing (13 legacy test errors remain from older phases)
 - **Backward compatibility:** Legacy tests using Mocks skip new validation automatically
 
 **Game State Conversion:**
@@ -971,11 +972,13 @@ The `update()` method was implemented as a simple wrapper around `_set_path()`:
 
 ---
 
-## Phase 6: Utility Functions
+## Phase 6: Utility Functions ✅
+
+**Status:** ✅ COMPLETED
 
 **Goal:** Build the search/lookup and visibility helpers
 
-**Duration:** ~4-5 hours
+**Duration:** ~4-5 hours (Actual: ~2 hours)
 
 **CRITICAL:** Every utility function MUST accept `actor_id` parameter and use it correctly. NPC tests validate this.
 
@@ -1181,6 +1184,59 @@ def test_utilities_handle_missing_entities():
 - All utility tests pass
 - Utilities work correctly for both player and NPCs
 - Missing entities handled gracefully
+
+### ✅ Implementation Notes (Phase 6 Complete)
+
+**Status:** ✅ COMPLETED
+
+**Key Changes Made:**
+
+1. **Created 7 utility functions in [utilities/utils.py](../utilities/utils.py):**
+   - `find_accessible_item(accessor, name: str, actor_id: str)` - Lines 13-50
+   - `find_item_in_inventory(accessor, name: str, actor_id: str)` - Lines 53-76
+   - `find_container_by_name(accessor, name: str, location_id: str)` - Lines 79-102
+   - `actor_has_key_for_door(accessor, actor_id: str, door) -> bool` - Lines 105-144
+   - `get_visible_items_in_location(accessor, location_id: str, actor_id: str)` - Lines 147-162
+   - `get_visible_actors_in_location(accessor, location_id: str, actor_id: str)` - Lines 165-182
+   - `get_doors_in_location(accessor, location_id: str, actor_id: str)` - Lines 185-204
+
+2. **Actor_id threading strictly enforced:**
+   - All functions accept `actor_id` parameter
+   - Docstrings include explicit warnings: "IMPORTANT: Do not hardcode 'player' - use the actor_id parameter"
+   - `get_visible_actors_in_location()` filters out the viewing actor
+
+3. **Created comprehensive test suite in [tests/test_phase6_utility_functions.py](../tests/test_phase6_utility_functions.py):**
+   - 15 tests validating all utility functions
+   - Critical NPC tests validate actor_id threading (e.g., NPC finds item in their location, not player's)
+   - Tests validate both player and NPC perspectives
+
+**Issues Encountered:**
+
+1. **Test constructor signatures mismatch:**
+   - Problem: Tests initially used invalid parameters like `Item(type=..., portable=...)`
+   - Actual signatures: `Item(id, name, description, location, properties={}, behaviors=[])`
+   - Fix: Moved fields like `portable`, `is_container` into `properties` dict
+
+2. **Door/Lock constructors:**
+   - Problem: Tests used `Door(description=..., locked=..., open=...)` and `Lock(locked=...)`
+   - Actual signatures: `Door(id, locations, properties={})`, `Lock(id, properties={})`
+   - Fix: Moved all state into `properties` dict
+
+3. **Missing location for NPC test:**
+   - Problem: Test created NPC in "other_room" but location didn't exist, causing None return from `get_current_location()`
+   - Fix: Created Location object for "other_room" before creating NPC
+
+**Test Results:**
+- All 15 Phase 6 tests passing ✅
+- Tests validate:
+  - Finding items in location vs inventory
+  - Actor_id perspective (NPC sees their items, not player's)
+  - Container detection
+  - Key/door relationship checking
+  - Visibility functions excluding viewing actor
+  - Graceful handling of missing entities
+
+**Duration:** ~2 hours (estimated 4-5 hours)
 
 ---
 
