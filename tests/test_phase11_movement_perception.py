@@ -1,0 +1,289 @@
+"""
+Phase 11: Movement and Perception Handlers
+
+Tests for handle_go, handle_look, handle_examine, and handle_inventory.
+Critical: Movement and perception must work from NPC perspective.
+"""
+
+import unittest
+import sys
+from pathlib import Path
+
+# Add project root to path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
+from src.state_accessor import StateAccessor, HandlerResult
+from src.behavior_manager import BehaviorManager
+from src.state_manager import Actor, Location
+from tests.conftest import create_test_state
+
+
+class TestPhase11MovementPerception(unittest.TestCase):
+    """Tests for movement and perception handlers."""
+
+    # ========== MOVEMENT TESTS ==========
+
+    def test_handle_go_success(self):
+        """Test player moving to adjacent location."""
+        state = create_test_state()
+        behavior_manager = BehaviorManager()
+
+        # Add a second room
+        hall = Location(
+            id="location_hall",
+            name="Hall",
+            description="A hallway",
+            exits={"west": "location_room"},
+            items=[],
+            npcs=[]
+        )
+        state.locations.append(hall)
+
+        # Connect rooms
+        room = state.get_location("location_room")
+        room.exits["east"] = "location_hall"
+
+        import behaviors.core.movement
+        behavior_manager.load_module(behaviors.core.movement)
+        accessor = StateAccessor(state, behavior_manager)
+
+        from behaviors.core.movement import handle_go
+        action = {"actor_id": "player", "direction": "east"}
+        result = handle_go(accessor, action)
+
+        self.assertTrue(result.success)
+
+        # Verify player moved
+        player = state.actors["player"]
+        self.assertEqual(player.location, "location_hall")
+
+    def test_handle_go_invalid_exit(self):
+        """Test that going in invalid direction fails."""
+        state = create_test_state()
+        behavior_manager = BehaviorManager()
+        import behaviors.core.movement
+        behavior_manager.load_module(behaviors.core.movement)
+        accessor = StateAccessor(state, behavior_manager)
+
+        from behaviors.core.movement import handle_go
+        action = {"actor_id": "player", "direction": "north"}
+        result = handle_go(accessor, action)
+
+        self.assertFalse(result.success)
+        self.assertIn("can't go", result.message.lower())
+
+    def test_handle_go_npc(self):
+        """Test NPC movement (critical for actor_id threading)."""
+        state = create_test_state()
+        behavior_manager = BehaviorManager()
+
+        # Add a second room
+        hall = Location(
+            id="location_hall",
+            name="Hall",
+            description="A hallway",
+            exits={"west": "location_room"},
+            items=[],
+            npcs=[]
+        )
+        state.locations.append(hall)
+
+        # Connect rooms
+        room = state.get_location("location_room")
+        room.exits["east"] = "location_hall"
+
+        # Add NPC
+        guard = Actor(
+            id="npc_guard",
+            name="guard",
+            description="A guard",
+            location="location_room",
+            inventory=[]
+        )
+        state.actors["npc_guard"] = guard
+
+        import behaviors.core.movement
+        behavior_manager.load_module(behaviors.core.movement)
+        accessor = StateAccessor(state, behavior_manager)
+
+        from behaviors.core.movement import handle_go
+        action = {"actor_id": "npc_guard", "direction": "east"}
+        result = handle_go(accessor, action)
+
+        self.assertTrue(result.success, f"NPC movement failed: {result.message}")
+
+        # Verify NPC moved (not player)
+        self.assertEqual(guard.location, "location_hall")
+        player = state.actors["player"]
+        self.assertEqual(player.location, "location_room", "Player should not have moved")
+
+    # ========== PERCEPTION TESTS ==========
+
+    def test_handle_look_lists_items(self):
+        """Test that look shows visible items in location."""
+        state = create_test_state()
+        behavior_manager = BehaviorManager()
+        import behaviors.core.perception
+        behavior_manager.load_module(behaviors.core.perception)
+        accessor = StateAccessor(state, behavior_manager)
+
+        from behaviors.core.perception import handle_look
+        action = {"actor_id": "player"}
+        result = handle_look(accessor, action)
+
+        self.assertTrue(result.success)
+        # Should mention items in room
+        self.assertIn("sword", result.message.lower())
+
+    def test_handle_look_npc_perspective(self):
+        """Test look from NPC perspective in different location."""
+        state = create_test_state()
+        behavior_manager = BehaviorManager()
+
+        # Add a second room with different items
+        hall = Location(
+            id="location_hall",
+            name="Hall",
+            description="A hallway",
+            exits={},
+            items=["item_table"],  # Only table in hall
+            npcs=[]
+        )
+        state.locations.append(hall)
+
+        # Move table to hall
+        table = state.get_item("item_table")
+        table.location = "location_hall"
+
+        # Add NPC in hall
+        guard = Actor(
+            id="npc_guard",
+            name="guard",
+            description="A guard",
+            location="location_hall",
+            inventory=[]
+        )
+        state.actors["npc_guard"] = guard
+
+        import behaviors.core.perception
+        behavior_manager.load_module(behaviors.core.perception)
+        accessor = StateAccessor(state, behavior_manager)
+
+        from behaviors.core.perception import handle_look
+        action = {"actor_id": "npc_guard"}
+        result = handle_look(accessor, action)
+
+        self.assertTrue(result.success, f"NPC look failed: {result.message}")
+        # Should see table (in hall), not sword (in room)
+        self.assertIn("table", result.message.lower())
+        self.assertNotIn("sword", result.message.lower())
+
+    def test_handle_examine_item(self):
+        """Test examining an item."""
+        state = create_test_state()
+        behavior_manager = BehaviorManager()
+        import behaviors.core.perception
+        behavior_manager.load_module(behaviors.core.perception)
+        accessor = StateAccessor(state, behavior_manager)
+
+        from behaviors.core.perception import handle_examine
+        action = {"actor_id": "player", "object": "sword"}
+        result = handle_examine(accessor, action)
+
+        self.assertTrue(result.success)
+        # Should show item description
+        self.assertIn("sword", result.message.lower())
+
+    def test_handle_examine_not_found(self):
+        """Test examining non-existent item fails."""
+        state = create_test_state()
+        behavior_manager = BehaviorManager()
+        import behaviors.core.perception
+        behavior_manager.load_module(behaviors.core.perception)
+        accessor = StateAccessor(state, behavior_manager)
+
+        from behaviors.core.perception import handle_examine
+        action = {"actor_id": "player", "object": "dragon"}
+        result = handle_examine(accessor, action)
+
+        self.assertFalse(result.success)
+
+    def test_handle_inventory_player(self):
+        """Test player inventory command."""
+        state = create_test_state()
+        behavior_manager = BehaviorManager()
+
+        # Give player an item
+        player = state.actors["player"]
+        sword = state.get_item("item_sword")
+        sword.location = "player"
+        player.inventory.append("item_sword")
+
+        import behaviors.core.perception
+        behavior_manager.load_module(behaviors.core.perception)
+        accessor = StateAccessor(state, behavior_manager)
+
+        from behaviors.core.perception import handle_inventory
+        action = {"actor_id": "player"}
+        result = handle_inventory(accessor, action)
+
+        self.assertTrue(result.success)
+        self.assertIn("sword", result.message.lower())
+
+    def test_handle_inventory_npc(self):
+        """Test NPC inventory command (critical for actor_id threading)."""
+        state = create_test_state()
+        behavior_manager = BehaviorManager()
+
+        # Give player an item
+        player = state.actors["player"]
+        sword = state.get_item("item_sword")
+        sword.location = "player"
+        player.inventory.append("item_sword")
+
+        # Add NPC with different item
+        guard = Actor(
+            id="npc_guard",
+            name="guard",
+            description="A guard",
+            location="location_room",
+            inventory=["item_lantern"]
+        )
+        state.actors["npc_guard"] = guard
+
+        lantern = state.get_item("item_lantern")
+        lantern.location = "npc_guard"
+
+        import behaviors.core.perception
+        behavior_manager.load_module(behaviors.core.perception)
+        accessor = StateAccessor(state, behavior_manager)
+
+        from behaviors.core.perception import handle_inventory
+        action = {"actor_id": "npc_guard"}
+        result = handle_inventory(accessor, action)
+
+        self.assertTrue(result.success, f"NPC inventory failed: {result.message}")
+        # Should show NPC's items, not player's
+        self.assertIn("lantern", result.message.lower())
+        self.assertNotIn("sword", result.message.lower())
+
+    def test_handle_inventory_empty(self):
+        """Test inventory when empty."""
+        state = create_test_state()
+        behavior_manager = BehaviorManager()
+        import behaviors.core.perception
+        behavior_manager.load_module(behaviors.core.perception)
+        accessor = StateAccessor(state, behavior_manager)
+
+        from behaviors.core.perception import handle_inventory
+        action = {"actor_id": "player"}
+        result = handle_inventory(accessor, action)
+
+        self.assertTrue(result.success)
+        # Should indicate empty inventory (either "nothing" or "empty")
+        self.assertTrue("nothing" in result.message.lower() or "empty" in result.message.lower())
+
+
+if __name__ == '__main__':
+    unittest.main()
