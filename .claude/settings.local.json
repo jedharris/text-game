@@ -1,6 +1,7 @@
 {
   "permissions": {
     "allow": [
+      "Edit",
       "Bash(python -m unittest:*)",
       "Bash(python run_tests.py:*)",
       "Bash(python3:*)",
@@ -12,7 +13,14 @@
       "Bash(python -m pytest:*)",
       "Bash(python test_integration.py:*)",
       "Bash(python:*)",
-      "Bash(ln:*)"
+      "Bash(ln:*)",
+      "Bash(/tmp/before_testing.txt)",
+      "Bash(/tmp/after_testing.txt)",
+      "Bash(/tmp/behavior_refactoring_implementation.md)",
+      "Bash(/Users/jed/Development/text-game/docs/behavior_refactoring_implementation.md)",
+      "Bash(/tmp/design_before_impl.txt)",
+      "Bash(/tmp/design_after_impl.txt)",
+      "Bash(/tmp/new_design_doc.md)"
     ],
     "deny": [],
     "ask": []
