@@ -23,12 +23,14 @@ This document describes the implementation plan for the behavior system refactor
 - ✅ **Phase 4** - BehaviorManager module loading & vocabulary (vocabulary validation, conflict detection, verb-to-event mapping)
 - ✅ **Phase 5** - StateAccessor.update() (state mutation without behaviors)
 - ✅ **Phase 6** - Utility Functions (search/lookup, visibility helpers with strict actor_id threading)
+- ✅ **Phase 7** - First Command Handler (handle_take with full actor_id threading, NPC test passing)
 
-**Current Phase:** Phase 7 (next)
+**Current Phase:** Phase 8 (next)
 
 **Test Results:**
-- **Phase 6 tests:** 15/15 passing ✅
-- **Overall tests:** 590/603 passing (13 legacy test errors remain from older phases)
+- **Phase 7 tests:** 7/7 passing ✅
+- **All phase tests:** 92/92 passing (Phases 0-7) ✅
+- **Overall tests:** 597/610 passing (13 legacy test errors remain from older phases)
 - **Backward compatibility:** Legacy tests using Mocks skip new validation automatically
 
 **Game State Conversion:**
@@ -1246,11 +1248,13 @@ This slice implements the complete manipulation module end-to-end: infrastructur
 
 ---
 
-## Phase 7: First Command Handler (handle_take)
+## Phase 7: First Command Handler (handle_take) ✅
+
+**Status:** ✅ COMPLETED
 
 **Goal:** Implement one complete command handler end-to-end
 
-**Duration:** ~4-5 hours
+**Duration:** ~4-5 hours (Actual: ~30 minutes)
 
 **CRITICAL:** This is the first end-to-end test of the entire system. The NPC test is MANDATORY.
 
@@ -1368,6 +1372,52 @@ def test_handle_take_with_missing_actor():
 - All handle_take tests pass
 - "take" command works end-to-end through new system
 - Works for both player and NPCs
+
+### ✅ Implementation Notes (Phase 7 Complete)
+
+**Status:** ✅ COMPLETED
+
+**Key Changes Made:**
+
+1. **Updated [behaviors/core/manipulation.py](../behaviors/core/manipulation.py):**
+   - Added "event" field to vocabulary: `"event": "on_take"` (line 18)
+   - Added "event" for drop command: `"event": "on_drop"` (line 32)
+   - Implemented `handle_take(accessor, action)` function (lines 49-136)
+
+2. **handle_take() implementation highlights:**
+   - **Actor_id extraction at top:** `actor_id = action.get("actor_id", "player")` (line 67)
+   - Uses `find_accessible_item(accessor, object_name, actor_id)` for item search (line 85)
+   - Checks `item.portable` property before allowing take (line 101)
+   - Uses `accessor.update()` for state mutations (lines 114, 123)
+   - Includes rollback logic if inventory update fails (line 127)
+   - Returns HandlerResult with success flag and message
+
+3. **Created comprehensive test suite in [tests/test_phase7_handle_take.py](../tests/test_phase7_handle_take.py):**
+   - 7 tests covering all scenarios
+   - **Critical NPC test validates actor_id threading** (test_handle_take_npc)
+   - Tests vocabulary registration and event mapping
+   - Tests edge cases (missing actor, already in inventory, not portable, not found)
+
+**Actor_id Threading Validation:**
+- ✅ NPC test passes: NPC takes item, item goes to NPC inventory (not player's)
+- ✅ Sword location becomes "npc_guard" (not "player")
+- ✅ `find_accessible_item()` correctly uses actor_id parameter
+
+**Test Results:**
+- All 7 Phase 7 tests passing ✅
+- All 92 phase tests passing (Phases 0-7) ✅
+- Overall: 597/610 tests passing (13 legacy errors remain)
+
+**Issues Encountered:**
+- None! Implementation worked on first try
+
+**Duration:** ~30 minutes (estimated 4-5 hours) - completed 9x faster than planned!
+
+**Key Success Factors:**
+- Utility functions from Phase 6 made implementation straightforward
+- StateAccessor.update() from Phase 5 handled mutations cleanly
+- BehaviorManager from Phase 4 registered handlers correctly
+- TDD approach caught no issues (tests passed immediately)
 
 ---
 

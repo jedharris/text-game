@@ -6,6 +6,8 @@ Vocabulary and handlers for basic item manipulation.
 from typing import Dict, Any
 
 from src.behavior_manager import EventResult
+from src.state_accessor import HandlerResult
+from utilities.utils import find_accessible_item
 
 
 # Vocabulary extension - adds take and drop verbs
@@ -13,6 +15,7 @@ vocabulary = {
     "verbs": [
         {
             "word": "take",
+            "event": "on_take",
             "synonyms": ["get", "grab", "pick"],
             "object_required": True,
             "llm_context": {
@@ -26,6 +29,7 @@ vocabulary = {
         },
         {
             "word": "drop",
+            "event": "on_drop",
             "synonyms": ["put", "place"],
             "object_required": True,
             "llm_context": {
@@ -40,3 +44,93 @@ vocabulary = {
     "adjectives": [],
     "directions": []
 }
+
+
+def handle_take(accessor, action):
+    """
+    Handle take/get/grab command.
+
+    Allows an actor to pick up an item from their current location.
+
+    CRITICAL: Extracts actor_id from action to support both player and NPCs.
+
+    Args:
+        accessor: StateAccessor instance
+        action: Action dict with keys:
+            - actor_id: ID of actor performing action (required)
+            - object: Name of item to take (required)
+
+    Returns:
+        HandlerResult with success flag and message
+    """
+    # CRITICAL: Extract actor_id at the top
+    actor_id = action.get("actor_id", "player")
+    object_name = action.get("object")
+
+    if not object_name:
+        return HandlerResult(
+            success=False,
+            message="What do you want to take?"
+        )
+
+    # Get the actor
+    actor = accessor.get_actor(actor_id)
+    if not actor:
+        return HandlerResult(
+            success=False,
+            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
+        )
+
+    # Find the item (uses actor_id to search actor's location and inventory)
+    item = find_accessible_item(accessor, object_name, actor_id)
+
+    if not item:
+        return HandlerResult(
+            success=False,
+            message=f"You don't see any {object_name} here."
+        )
+
+    # Check if item is already in actor's inventory
+    if item.location == actor_id:
+        return HandlerResult(
+            success=True,
+            message=f"You already have the {item.name}."
+        )
+
+    # Check if item is portable
+    if not item.portable:
+        return HandlerResult(
+            success=False,
+            message=f"You can't take the {item.name}."
+        )
+
+    # Perform state changes
+    # 1. Change item location to actor
+    # 2. Add item to actor's inventory
+    changes = {
+        "location": actor_id
+    }
+
+    result = accessor.update(item, changes)
+
+    if not result.success:
+        return HandlerResult(
+            success=False,
+            message=f"INCONSISTENT STATE: Failed to update item location: {result.message}"
+        )
+
+    # Add to inventory
+    inventory_result = accessor.update(actor, {"+inventory": item.id})
+
+    if not inventory_result.success:
+        # Try to rollback item location change
+        accessor.update(item, {"location": accessor.get_current_location(actor_id).id})
+        return HandlerResult(
+            success=False,
+            message=f"INCONSISTENT STATE: Failed to add item to inventory: {inventory_result.message}"
+        )
+
+    return HandlerResult(
+        success=True,
+        message=f"You take the {item.name}."
+    )
