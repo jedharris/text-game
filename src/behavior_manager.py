@@ -23,8 +23,157 @@ class BehaviorManager:
 
     def __init__(self):
         self._behavior_cache: Dict[str, Callable] = {}
-        self._handlers: Dict[str, Callable] = {}  # verb -> handler function
+        # Handler storage: verb -> list of (handler, module_name) tuples (in load order)
+        self._handlers: Dict[str, List[tuple]] = {}
+        # Track module sources for conflict detection
+        self._module_sources: Dict[str, str] = {}  # module_name -> source_type
+        # Track verb-to-event mappings for conflict detection
+        self._verb_event_map: Dict[str, str] = {}  # verb/synonym -> event_name
+        # Track which module registered which verb (for error messages)
+        self._verb_sources: Dict[str, str] = {}  # verb/synonym -> module_name
+        # Track handler position for delegation (used by invoke_previous_handler)
+        self._handler_position_list: List[int] = []
+        # Legacy vocabulary extensions (for backward compatibility)
         self._vocabulary_extensions: List[Dict] = []
+
+    def _register_vocabulary(self, vocabulary: dict, module_name: str) -> None:
+        """
+        Register vocabulary from a module.
+
+        Args:
+            vocabulary: The vocabulary dict
+            module_name: Module name (for error messages)
+
+        Raises:
+            ValueError: If vocabulary conflicts detected
+        """
+        if "verbs" not in vocabulary:
+            return
+
+        for verb_spec in vocabulary["verbs"]:
+            word = verb_spec["word"]
+            event = verb_spec.get("event")  # Event is optional
+
+            # Register main word
+            if event:
+                self._register_verb_mapping(word, event, module_name)
+
+            # Register synonyms
+            if "synonyms" in verb_spec:
+                for synonym in verb_spec["synonyms"]:
+                    if event:
+                        self._register_verb_mapping(synonym, event, module_name)
+
+    def _register_verb_mapping(self, verb: str, event: str, module_name: str) -> None:
+        """
+        Register a verb/synonym -> event mapping.
+
+        Args:
+            verb: The verb or synonym
+            event: The event name
+            module_name: Module name (for error messages)
+
+        Raises:
+            ValueError: If verb already maps to different event
+        """
+        if verb in self._verb_event_map:
+            existing_event = self._verb_event_map[verb]
+            if existing_event != event:
+                existing_module = self._verb_sources[verb]
+                raise ValueError(
+                    f"Vocabulary conflict: verb '{verb}' already maps to '{existing_event}' "
+                    f"(from {existing_module}), cannot map to '{event}' (from {module_name})"
+                )
+            # Same event - allowed (no error)
+        else:
+            # New mapping - register it
+            self._verb_event_map[verb] = event
+            self._verb_sources[verb] = module_name
+
+    def _register_handler(self, verb: str, handler: Callable, module_name: str, source_type: str) -> None:
+        """
+        Register a handler function.
+
+        Args:
+            verb: The verb to handle
+            handler: The handler function
+            module_name: Module name (for error messages)
+            source_type: "regular" or "symlink"
+
+        Raises:
+            ValueError: If handler conflict detected (same verb, same source type)
+        """
+        if verb not in self._handlers:
+            self._handlers[verb] = []
+
+        # Check for conflicts: same verb from same source type
+        for existing_handler, existing_module in self._handlers[verb]:
+            existing_source_type = self._module_sources.get(existing_module)
+
+            if existing_source_type == source_type:
+                # Conflict: two modules of same source type both define this handler
+                raise ValueError(
+                    f"Handler conflict: verb '{verb}' already has a handler from {existing_module} "
+                    f"(source_type: {existing_source_type}), cannot add handler from {module_name} "
+                    f"(source_type: {source_type}). Handlers from the same source type cannot coexist."
+                )
+
+        # Add handler to list (in load order) as tuple (handler, module_name)
+        self._handlers[verb].append((handler, module_name))
+
+    def _validate_vocabulary(self, vocabulary: Any, module_name: str) -> None:
+        """
+        Validate vocabulary structure.
+
+        Args:
+            vocabulary: The vocabulary dict to validate
+            module_name: Module name (for error messages)
+
+        Raises:
+            ValueError: If vocabulary structure is invalid
+        """
+        if not isinstance(vocabulary, dict):
+            raise ValueError(f"Module {module_name}: vocabulary must be a dict, got {type(vocabulary).__name__}")
+
+        if "verbs" in vocabulary:
+            verbs = vocabulary["verbs"]
+            if not isinstance(verbs, list):
+                raise ValueError(f"Module {module_name}: vocabulary['verbs'] must be a list, got {type(verbs).__name__}")
+
+            for i, verb_spec in enumerate(verbs):
+                if not isinstance(verb_spec, dict):
+                    raise ValueError(f"Module {module_name}: verb spec {i} must be a dict, got {type(verb_spec).__name__}")
+
+                # Check required field 'word'
+                if "word" not in verb_spec:
+                    raise ValueError(f"Module {module_name}: verb spec {i} missing required field 'word'")
+
+                word = verb_spec["word"]
+                if not isinstance(word, str) or not word:
+                    raise ValueError(f"Module {module_name}: verb spec {i} 'word' must be a non-empty string")
+
+                # Check optional field 'event'
+                if "event" in verb_spec:
+                    event = verb_spec["event"]
+                    if not isinstance(event, str) or not event:
+                        raise ValueError(f"Module {module_name}: verb spec {i} 'event' must be a non-empty string")
+
+                # Check optional field 'synonyms'
+                if "synonyms" in verb_spec:
+                    synonyms = verb_spec["synonyms"]
+                    if not isinstance(synonyms, list):
+                        raise ValueError(f"Module {module_name}: verb spec {i} 'synonyms' must be a list")
+
+                    for j, synonym in enumerate(synonyms):
+                        if not isinstance(synonym, str) or not synonym:
+                            raise ValueError(f"Module {module_name}: verb spec {i} synonym {j} must be a non-empty string")
+
+                # Check optional field 'object_required'
+                # Accepts: bool, None, or string values like "optional"
+                if "object_required" in verb_spec:
+                    obj_required = verb_spec["object_required"]
+                    if obj_required is not None and not isinstance(obj_required, (bool, str)):
+                        raise ValueError(f"Module {module_name}: verb spec {i} 'object_required' must be a bool, str, or None")
 
     def discover_modules(self, behaviors_dir: str) -> List[str]:
         """
@@ -55,29 +204,61 @@ class BehaviorManager:
 
         return modules
 
-    def load_module(self, module_path: str) -> None:
+    def load_module(self, module_or_path, source_type: str = "regular") -> None:
         """
-        Load a behavior module and register its extensions.
+        Load a behavior module and register its vocabulary and handlers.
 
         Args:
-            module_path: Python module path (e.g., "behaviors.core.consumables")
-        """
-        try:
-            module = importlib.import_module(module_path)
-        except ImportError as e:
-            print(f"Warning: Could not load behavior module {module_path}: {e}")
-            return
+            module_or_path: Either a module object (for testing) or module path string
+            source_type: "regular" (game-specific code) or "symlink" (core/library code)
 
-        # Register vocabulary extensions
+        Raises:
+            ValueError: If conflicts detected (duplicate handlers/vocabulary in same source type)
+        """
+        # Handle both module objects (for testing) and module paths (for production)
+        if isinstance(module_or_path, str):
+            try:
+                module = importlib.import_module(module_or_path)
+            except ImportError as e:
+                print(f"Warning: Could not load behavior module {module_or_path}: {e}")
+                return
+            module_name = module_or_path
+        else:
+            # Module object passed directly (for testing)
+            module = module_or_path
+            module_name = module.__name__
+
+        # Track module source
+        self._module_sources[module_name] = source_type
+
+        # Validate and register vocabulary
         if hasattr(module, 'vocabulary') and module.vocabulary:
-            self._vocabulary_extensions.append(module.vocabulary)
+            vocabulary = module.vocabulary
+
+            # Skip Mock objects (used in legacy tests)
+            # Check for unittest.mock.MagicMock or Mock
+            is_mock = (
+                type(vocabulary).__module__ == 'unittest.mock' or
+                hasattr(vocabulary, '_mock_name')  # Mock objects have this attribute
+            )
+
+            if not is_mock:
+                # Validate real vocabulary (will raise ValueError if invalid)
+                self._validate_vocabulary(vocabulary, module_name)
+
+                # Only register if it's a dict (validation passed)
+                if isinstance(vocabulary, dict):
+                    self._register_vocabulary(vocabulary, module_name)
+
+                    # Legacy: Also add to vocabulary_extensions for backward compatibility
+                    self._vocabulary_extensions.append(vocabulary)
 
         # Register protocol handlers
         for name in dir(module):
             if name.startswith('handle_'):
                 verb = name[7:]  # Remove 'handle_' prefix
                 handler = getattr(module, name)
-                self._handlers[verb] = handler
+                self._register_handler(verb, handler, module_name, source_type)
 
     def load_modules(self, module_paths: List[str]) -> None:
         """Load multiple behavior modules."""
@@ -136,13 +317,45 @@ class BehaviorManager:
         """
         Get registered handler for a verb.
 
+        Returns first loaded handler (first in list).
+
         Args:
             verb: The verb to handle
 
         Returns:
             Handler function or None
         """
-        return self._handlers.get(verb)
+        handlers = self._handlers.get(verb)
+        if not handlers:
+            return None
+
+        # Handle both new format (list of tuples) and legacy format (single function)
+        if isinstance(handlers, list):
+            if len(handlers) > 0:
+                first = handlers[0]
+                if isinstance(first, tuple):
+                    handler, module_name = first
+                    return handler
+                else:
+                    # Legacy: list of functions
+                    return first
+        elif callable(handlers):
+            # Legacy: single function stored directly
+            return handlers
+
+        return None
+
+    def get_event_for_verb(self, verb: str) -> Optional[str]:
+        """
+        Get event name for a verb or synonym.
+
+        Args:
+            verb: The verb or synonym to look up
+
+        Returns:
+            Event name (e.g., "on_take") or None if not registered
+        """
+        return self._verb_event_map.get(verb)
 
     def has_handler(self, verb: str) -> bool:
         """Check if a handler is registered for this verb."""

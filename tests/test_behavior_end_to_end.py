@@ -162,13 +162,13 @@ class TestLoadingGameWithBehaviors(unittest.TestCase):
         duck = state.get_item("rubber_duck")
         self.assertEqual(duck.behaviors["on_squeeze"], "behaviors.items.rubber_duck:on_squeeze")
 
-    def test_item_without_behaviors_has_empty_dict(self):
-        """Test that items without behaviors have empty dict."""
+    def test_item_without_behaviors_has_empty_list(self):
+        """Test that items without behaviors have empty list."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_with_behaviors.json"
         state = load_game_state(fixture_path)
 
         rock = state.get_item("plain_rock")
-        self.assertEqual(rock.behaviors, {})
+        self.assertEqual(rock.behaviors, [])  # Phase 3: behaviors is now a list
 
     def test_discover_rubber_duck_module(self):
         """Test that rubber duck module is discovered."""

@@ -28,7 +28,7 @@ class TestSimplifiedItem(unittest.TestCase):
         self.assertEqual(item.name, "Torch")
         self.assertEqual(item.location, "loc_1")
         self.assertEqual(item.properties, {})
-        self.assertEqual(item.behaviors, {})
+        self.assertEqual(item.behaviors, [])  # Phase 3: behaviors is now a list
 
     def test_item_properties_from_json(self):
         """Item properties populated from JSON fields."""
