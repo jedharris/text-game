@@ -20,9 +20,13 @@ class JSONProtocolHandler:
     conforming to the specification.
     """
 
+    # Meta commands that should still work after state corruption
+    META_COMMANDS = {"save", "quit", "help", "load"}
+
     def __init__(self, state: GameState, behavior_manager: Optional[BehaviorManager] = None):
         self.state = state
         self.behavior_manager = behavior_manager
+        self.state_corrupted = False
 
     def is_json_input(self, text: str) -> bool:
         """Check if input is JSON (starts with '{' after stripping whitespace)."""
@@ -55,6 +59,8 @@ class JSONProtocolHandler:
 
     def handle_command(self, message: Dict) -> Dict:
         """Process a command message and return result."""
+        import sys
+
         action = message.get("action", {})
         verb = action.get("verb")
 
@@ -64,17 +70,59 @@ class JSONProtocolHandler:
                 "message": "Missing required field: action"
             }
 
-        # Check for registered handler first
-        if self.behavior_manager and self.behavior_manager.has_handler(verb):
-            registered_handler = self.behavior_manager.get_handler(verb)
-            context = {
-                "location": self.state.player.location,
-                "verb": verb
+        # Check for corrupted state - block non-meta commands
+        if self.state_corrupted and verb not in self.META_COMMANDS:
+            return {
+                "type": "result",
+                "success": False,
+                "action": verb,
+                "error": {
+                    "message": "Game state is corrupted. Please save and restart.",
+                    "fatal": True
+                }
             }
-            result = registered_handler(self.state, action, context)
-            return result
 
-        # Route to builtin verb handler
+        # Ensure action has actor_id
+        if "actor_id" not in action:
+            action["actor_id"] = "player"
+
+        # Try new behavior system first (using invoke_handler)
+        if self.behavior_manager and self.behavior_manager.has_handler(verb):
+            from src.state_accessor import StateAccessor
+            accessor = StateAccessor(self.state, self.behavior_manager)
+
+            result = self.behavior_manager.invoke_handler(verb, accessor, action)
+
+            # Check for inconsistent state errors
+            if not result.success and result.message.startswith("INCONSISTENT STATE:"):
+                self.state_corrupted = True
+                print(f"ERROR: {verb}: {result.message}", file=sys.stderr)
+                return {
+                    "type": "result",
+                    "success": False,
+                    "action": verb,
+                    "error": {
+                        "message": result.message,
+                        "fatal": True
+                    }
+                }
+
+            if result.success:
+                return {
+                    "type": "result",
+                    "success": True,
+                    "action": verb,
+                    "message": result.message
+                }
+            else:
+                return {
+                    "type": "result",
+                    "success": False,
+                    "action": verb,
+                    "error": {"message": result.message}
+                }
+
+        # Fall back to old _cmd_* methods for unimplemented verbs
         handler = getattr(self, f"_cmd_{verb}", None)
         if handler:
             result = handler(action)
@@ -1222,12 +1270,21 @@ class JSONProtocolHandler:
                     exits[direction]["door_id"] = exit_desc.door_id
             data["exits"] = exits
 
-        if "npcs" in include or not include:
-            npcs = []
-            for npc in self.state.npcs:
-                if npc.location == loc.id:
-                    npcs.append(self._npc_to_dict(npc))
-            data["npcs"] = npcs
+        if "actors" in include or "npcs" in include or not include:
+            # Use utility function for unified actor handling
+            from utilities.utils import get_visible_actors_in_location
+            from src.state_accessor import StateAccessor
+
+            # Get actor_id from message, default to player
+            actor_id = message.get("actor_id", "player")
+
+            accessor = StateAccessor(self.state, self.behavior_manager)
+            visible_actors = get_visible_actors_in_location(accessor, loc.id, actor_id)
+
+            actors = []
+            for actor in visible_actors:
+                actors.append(self._actor_to_dict(actor))
+            data["actors"] = actors
 
         return {
             "type": "query_response",
@@ -1236,9 +1293,24 @@ class JSONProtocolHandler:
         }
 
     def _query_inventory(self, message: Dict) -> Dict:
-        """Query player inventory."""
+        """Query actor inventory.
+
+        Supports actor_id parameter for NPC inventory queries.
+        Defaults to player if not specified.
+        """
+        # Get actor_id from message, default to player
+        actor_id = message.get("actor_id", "player")
+
+        # Get the actor from unified actors dict
+        actor = self.state.actors.get(actor_id)
+        if not actor:
+            return {
+                "type": "error",
+                "message": f"Actor not found: {actor_id}"
+            }
+
         items = []
-        for item_id in self.state.player.inventory:
+        for item_id in actor.inventory:
             item = self._get_item_by_id(item_id)
             if item:
                 items.append(self._entity_to_dict(item))
@@ -1611,14 +1683,18 @@ class JSONProtocolHandler:
 
     def _npc_to_dict(self, npc) -> Dict:
         """Convert NPC to dict with llm_context."""
+        return self._actor_to_dict(npc)
+
+    def _actor_to_dict(self, actor) -> Dict:
+        """Convert Actor to dict with llm_context."""
         result = {
-            "id": npc.id,
-            "name": npc.name,
-            "description": npc.description
+            "id": actor.id,
+            "name": actor.name,
+            "description": actor.description
         }
 
         # Add llm_context if stored in properties
-        if npc.properties.get('llm_context'):
-            result["llm_context"] = npc.properties['llm_context']
+        if actor.properties.get('llm_context'):
+            result["llm_context"] = actor.properties['llm_context']
 
         return result

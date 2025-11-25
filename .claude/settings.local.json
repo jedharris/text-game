@@ -22,7 +22,9 @@
       "Bash(/tmp/design_after_impl.txt)",
       "Bash(/tmp/new_design_doc.md)",
       "Bash(mv:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(git stash:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
