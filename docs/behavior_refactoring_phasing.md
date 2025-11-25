@@ -21,12 +21,13 @@ This document describes the implementation plan for the behavior system refactor
 - ✅ **Phase 2** - StateAccessor._set_path() (mutation primitive working)
 - ✅ **Phase 3** - Unified Actor Model (actors dict, backward compatibility)
 - ✅ **Phase 4** - BehaviorManager module loading & vocabulary (vocabulary validation, conflict detection, verb-to-event mapping)
+- ✅ **Phase 5** - StateAccessor.update() (state mutation without behaviors)
 
-**Current Phase:** Phase 5 (next)
+**Current Phase:** Phase 6 (next)
 
 **Test Results:**
-- **Phase 4 tests:** 15/15 passing ✅
-- **Overall tests:** 564/577 passing (13 legacy test errors remain from older phases)
+- **Phase 5 tests:** 11/11 passing ✅
+- **Overall tests:** 575/588 passing (13 legacy test errors remain from older phases)
 - **Backward compatibility:** Legacy tests using Mocks skip new validation automatically
 
 **Game State Conversion:**
@@ -830,11 +831,13 @@ def test_vocabulary_same_event_allowed():
 
 ---
 
-## Phase 5: StateAccessor.update() - Without Behaviors
+## Phase 5: StateAccessor.update() - Without Behaviors ✅
+
+**Status:** ✅ COMPLETED
 
 **Goal:** Wire up update() to _set_path, but skip behavior invocation initially
 
-**Duration:** ~2 hours
+**Duration:** ~2 hours (Actual: 15 minutes)
 
 ### Tasks
 
@@ -915,6 +918,56 @@ def test_update_with_actor_id():
 - All update tests pass
 - Can use accessor.update() to change state safely
 - Errors are reported properly
+
+### Completion Notes
+
+**Implementation:**
+
+The `update()` method was implemented as a simple wrapper around `_set_path()`:
+- Loops through the changes dict
+- Calls `_set_path()` for each path→value pair
+- Returns `UpdateResult(success=False, message=error)` on first error
+- Logs errors to stderr for debugging
+- Returns `UpdateResult(success=True)` if all changes succeed
+
+**Key Design Decisions:**
+
+1. **Fail-fast behavior**: Stops on first error rather than trying to apply all changes
+   - Prevents partial state updates that could leave entities in inconsistent states
+   - Error message reports which specific path failed
+
+2. **No behavior invocation**: This phase intentionally skips behaviors
+   - Behaviors will be added in Phase 6+
+   - The `verb` and `actor_id` parameters are accepted but not used yet
+   - This allows testing the core mutation logic independently
+
+3. **Reuses `_set_path()` infrastructure**:
+   - All the complex path parsing, list operations, and nested field handling from Phase 2 works immediately
+   - Support for `+field` (append), `-field` (remove), and nested paths `field.subfield` comes for free
+
+**Tests Written:**
+- Created `tests/test_phase5_state_accessor_update.py` with 11 tests
+- All Phase 5 tests passing (11/11) ✅
+- Coverage: simple changes, multiple changes, list operations, nested fields, error handling, empty changes
+
+**Test Coverage:**
+- Simple field changes: `{"location": "room1"}`
+- Multiple changes in one call
+- List append: `{"+inventory": "item1"}`
+- List remove: `{"-inventory": "item1"}`
+- Nested field paths: `{"properties.weight": 10}`
+- Error handling: nonexistent fields return proper errors
+- Empty changes dict: no-op that succeeds
+- Actor_id and verb parameters accepted (for future use)
+
+**Files Modified:**
+- `src/state_accessor.py` - Added `update()` method (33 lines)
+- `tests/test_phase5_state_accessor_update.py` - New test file (201 lines, 11 tests)
+
+**Performance:**
+- Phase completed in ~15 minutes (estimated: 2 hours)
+- Speed due to Phase 2's `_set_path()` doing all the heavy lifting
+- This validates the layered design: primitives first, then higher-level APIs
 
 ---
 

@@ -327,3 +327,37 @@ class StateAccessor:
             return None
         except ValueError:
             return f"Value not in list '{final_field}'"
+
+    def update(self, entity, changes: dict, verb: str = None, actor_id: str = "player") -> UpdateResult:
+        """
+        Apply state changes to an entity.
+
+        This is the main mutation interface. It applies a dict of changes
+        to an entity without invoking behaviors (behaviors come in later phases).
+
+        Args:
+            entity: The entity to modify (Item, Actor, Location, etc.)
+            changes: Dict mapping paths to values (e.g., {"location": "room1", "+inventory": "item1"})
+            verb: Optional verb that triggered this update (for future behavior invocation)
+            actor_id: The actor performing the action (default: "player")
+
+        Returns:
+            UpdateResult with success flag and optional error message
+
+        Examples:
+            >>> accessor.update(item, {"location": "room1"})
+            >>> accessor.update(actor, {"+inventory": "item1", "location": "room2"})
+            >>> accessor.update(item, {"properties.weight": 10})
+        """
+        import sys
+
+        # Apply each change
+        for path, value in changes.items():
+            error = self._set_path(entity, path, value)
+            if error:
+                # Log to stderr and return failure
+                print(f"Error updating {path}: {error}", file=sys.stderr)
+                return UpdateResult(success=False, message=error)
+
+        # All changes applied successfully
+        return UpdateResult(success=True, message=None)
