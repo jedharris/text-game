@@ -6,12 +6,8 @@ import importlib
 import os
 from pathlib import Path
 
-
-@dataclass
-class EventResult:
-    """Result from an event handler."""
-    allow: bool = True
-    message: Optional[str] = None
+# Import EventResult from state_accessor to avoid duplication
+from src.state_accessor import EventResult
 
 
 class BehaviorManager:
@@ -35,6 +31,8 @@ class BehaviorManager:
         self._handler_position_list: List[int] = []
         # Legacy vocabulary extensions (for backward compatibility)
         self._vocabulary_extensions: List[Dict] = []
+        # Store loaded modules for entity behavior invocation
+        self._modules: Dict[str, Any] = {}  # module_name -> module object
 
     def _register_vocabulary(self, vocabulary: dict, module_name: str) -> None:
         """
@@ -231,6 +229,9 @@ class BehaviorManager:
         # Track module source
         self._module_sources[module_name] = source_type
 
+        # Store module for entity behavior invocation
+        self._modules[module_name] = module
+
         # Validate and register vocabulary
         if hasattr(module, 'vocabulary') and module.vocabulary:
             vocabulary = module.vocabulary
@@ -389,20 +390,24 @@ class BehaviorManager:
         self,
         entity: Any,
         event_name: str,
-        state: Any,
+        accessor: Any,
         context: Dict[str, Any]
     ) -> Optional[EventResult]:
         """
-        Invoke a behavior for an entity event.
+        Invoke entity behaviors for an event.
+
+        Invokes all behaviors attached to the entity that define the event handler.
+        Multiple behaviors are combined with AND logic (all must allow) and
+        messages are concatenated.
 
         Args:
-            entity: Entity object with 'behaviors' dict
-            event_name: Event name (e.g., "on_drink")
-            state: Current GameState
-            context: Event context dict
+            entity: Entity object with 'behaviors' field (list or dict)
+            event_name: Event name (e.g., "on_take")
+            accessor: StateAccessor instance
+            context: Event context dict with actor_id, changes, verb
 
         Returns:
-            EventResult or None if no behavior attached
+            EventResult with combined allow/message, or None if no behaviors
         """
         if not hasattr(entity, 'behaviors') or not entity.behaviors:
             return None
@@ -413,30 +418,73 @@ class BehaviorManager:
             behavior_path = entity.behaviors.get(event_name)
             if not behavior_path:
                 return None
-        elif isinstance(entity.behaviors, list):
-            # New format: behaviors = ["module1", "module2"]
-            # For now, we can't map events to specific modules in list format
-            # This is handled by the new BehaviorManager (not yet implemented)
-            # Return None for now - the new system will handle this
-            return None
-        else:
-            return None
 
-        behavior_func = self.load_behavior(behavior_path)
-        if not behavior_func:
-            return None
-
-        try:
-            result = behavior_func(entity, state, context)
-
-            if not isinstance(result, EventResult):
+            behavior_func = self.load_behavior(behavior_path)
+            if not behavior_func:
                 return None
 
-            return result
+            try:
+                # Old format uses state parameter instead of accessor
+                # For backward compatibility, try to get state from accessor
+                state = accessor.game_state if hasattr(accessor, 'game_state') else accessor
+                result = behavior_func(entity, state, context)
 
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
+                if not isinstance(result, EventResult):
+                    return None
+
+                return result
+
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                return None
+
+        elif isinstance(entity.behaviors, list):
+            # New format: behaviors = ["module1", "module2"]
+            results = []
+
+            for behavior_module_name in entity.behaviors:
+                # Look up loaded module
+                module = self._modules.get(behavior_module_name)
+                if not module:
+                    # Module not loaded, skip
+                    continue
+
+                # Check if module has event handler function
+                if not hasattr(module, event_name):
+                    # This module doesn't handle this event, skip
+                    continue
+
+                # Get handler function
+                handler = getattr(module, event_name)
+
+                try:
+                    # Call handler with entity, accessor, context
+                    result = handler(entity, accessor, context)
+
+                    if isinstance(result, EventResult):
+                        results.append(result)
+
+                except Exception as e:
+                    import traceback
+                    import sys
+                    print(f"Error invoking behavior {behavior_module_name}.{event_name}:", file=sys.stderr)
+                    traceback.print_exc()
+                    # Continue with other behaviors
+
+            # If no behaviors were invoked, return None
+            if not results:
+                return None
+
+            # Combine results: AND logic for allow, concatenate messages
+            combined_allow = all(r.allow for r in results)
+            messages = [r.message for r in results if r.message]
+            combined_message = "\n".join(messages) if messages else None
+
+            return EventResult(allow=combined_allow, message=combined_message)
+
+        else:
+            # Unknown format
             return None
 
     def invoke_handler(self, verb: str, accessor, action: Dict[str, Any]):

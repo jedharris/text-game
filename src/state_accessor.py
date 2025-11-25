@@ -332,13 +332,13 @@ class StateAccessor:
         """
         Apply state changes to an entity.
 
-        This is the main mutation interface. It applies a dict of changes
-        to an entity without invoking behaviors (behaviors come in later phases).
+        This is the main mutation interface. It checks entity behaviors first,
+        then applies changes if allowed.
 
         Args:
             entity: The entity to modify (Item, Actor, Location, etc.)
             changes: Dict mapping paths to values (e.g., {"location": "room1", "+inventory": "item1"})
-            verb: Optional verb that triggered this update (for future behavior invocation)
+            verb: Optional verb that triggered this update (for behavior invocation)
             actor_id: The actor performing the action (default: "player")
 
         Returns:
@@ -351,6 +351,35 @@ class StateAccessor:
         """
         import sys
 
+        # Invoke entity behaviors if verb provided
+        if verb and self.behavior_manager:
+            # Look up event name from verb
+            event_name = self.behavior_manager.get_event_for_verb(verb)
+
+            if event_name:
+                # Build context dict
+                context = {
+                    "actor_id": actor_id,
+                    "changes": changes,
+                    "verb": verb
+                }
+
+                # Invoke behaviors
+                behavior_result = self.behavior_manager.invoke_behavior(
+                    entity, event_name, self, context
+                )
+
+                # If behavior denies, return failure
+                if behavior_result and not behavior_result.allow:
+                    return UpdateResult(success=False, message=behavior_result.message)
+
+                # If behavior allows but has a message, we'll return it after applying changes
+                behavior_message = behavior_result.message if behavior_result else None
+            else:
+                behavior_message = None
+        else:
+            behavior_message = None
+
         # Apply each change
         for path, value in changes.items():
             error = self._set_path(entity, path, value)
@@ -360,7 +389,8 @@ class StateAccessor:
                 return UpdateResult(success=False, message=error)
 
         # All changes applied successfully
-        return UpdateResult(success=True, message=None)
+        # Return behavior message if present, otherwise None
+        return UpdateResult(success=True, message=behavior_message)
 
     def invoke_previous_handler(self, verb: str, action: dict):
         """

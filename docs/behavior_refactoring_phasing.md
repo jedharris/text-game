@@ -25,13 +25,14 @@ This document describes the implementation plan for the behavior system refactor
 - ✅ **Phase 6** - Utility Functions (search/lookup, visibility helpers with strict actor_id threading)
 - ✅ **Phase 7** - First Command Handler (handle_take with full actor_id threading, NPC test passing)
 - ✅ **Phase 8** - Handler Chaining Infrastructure (invoke_handler, invoke_previous_handler, position list management)
+- ✅ **Phase 9** - Entity Behaviors Infrastructure (invoke_behavior, update() integration, AND logic, message concatenation)
 
-**Current Phase:** Phase 9 (next)
+**Current Phase:** Phase 10 (next)
 
 **Test Results:**
-- **Phase 8 tests:** 8/8 passing ✅
-- **All phase tests:** 100/100 passing (Phases 0-8) ✅
-- **Overall tests:** 605/618 passing (13 legacy test errors remain from older phases)
+- **Phase 9 tests:** 8/8 passing ✅
+- **All phase tests:** 108/108 passing (Phases 0-9) ✅
+- **Overall tests:** 613/626 passing (13 legacy test errors remain from older phases)
 - **Backward compatibility:** Legacy tests using Mocks skip new validation automatically
 
 **Game State Conversion:**
@@ -1663,11 +1664,13 @@ def test_invoke_previous_handler_runtime_error():
 
 ---
 
-## Phase 9: Entity Behaviors - Infrastructure
+## Phase 9: Entity Behaviors - Infrastructure ✅
+
+**Status:** ✅ COMPLETED
 
 **Goal:** Wire up behavior invocation in update()
 
-**Duration:** ~4-5 hours
+**Duration:** ~4-5 hours (Actual: ~30 minutes)
 
 **KEY DESIGN:** Multiple behaviors use AND logic (all must allow) and concatenate messages.
 
@@ -1897,6 +1900,59 @@ def test_entity_no_behaviors_allows():
 - All entity behavior tests pass
 - accessor.update() invokes behaviors correctly
 - Multiple behaviors work as designed (all invoked, AND logic)
+
+### ✅ Implementation Notes (Phase 9 Complete)
+
+**Status:** ✅ COMPLETED
+
+**Key Changes Made:**
+
+1. **Added `_modules` dict to BehaviorManager.__init__()** ([src/behavior_manager.py:39](../src/behavior_manager.py#L39))
+   - Stores loaded modules by name for entity behavior invocation
+   - Updated `load_module()` to store module in `_modules` dict ([line 237](../src/behavior_manager.py#L237))
+
+2. **Implemented `invoke_behavior()` in BehaviorManager** ([src/behavior_manager.py:393-492](../src/behavior_manager.py#L393-L492))
+   - Handles both old dict-based and new list-based behavior formats
+   - For list format: iterates through behavior module names, looks up modules, calls event handlers
+   - Combines multiple behavior results with AND logic (all must allow)
+   - Concatenates messages with newlines
+   - Returns None if no behaviors or no matching event handlers
+
+3. **Consolidated EventResult classes** ([src/behavior_manager.py:10](../src/behavior_manager.py#L10))
+   - Removed duplicate EventResult definition from behavior_manager.py
+   - Now imports EventResult from state_accessor to avoid type conflicts
+   - This was critical - tests were failing because isinstance() checks compared different classes
+
+4. **Updated `StateAccessor.update()` to invoke behaviors** ([src/state_accessor.py:331-393](../src/state_accessor.py#L331-L393))
+   - Checks if verb provided and behavior_manager exists
+   - Looks up event name from verb using `get_event_for_verb()`
+   - Builds context dict with actor_id, changes, and verb
+   - Invokes behaviors BEFORE applying changes
+   - If behavior denies (allow=False), returns UpdateResult with success=False
+   - If behavior allows, applies changes and returns behavior message if present
+
+5. **Created comprehensive test suite** ([tests/test_phase9_entity_behaviors.py](../tests/test_phase9_entity_behaviors.py))
+   - 8 tests covering all scenarios
+   - Tests single behavior, multiple behaviors, any-deny-wins logic
+   - Tests update() integration with behaviors
+   - Tests no behaviors, no matching event, no verb cases
+
+**Test Results:**
+- All 8 Phase 9 tests passing ✅
+- All 108 phase tests passing (Phases 0-9) ✅
+- Overall: 613/626 tests passing (13 legacy errors remain)
+
+**Issues Encountered:**
+1. **EventResult type conflict**: Two different EventResult classes existed (behavior_manager and state_accessor), causing isinstance() checks to fail. Fixed by consolidating to single definition in state_accessor.
+2. **GameState structure**: Items stored as list, not dict. Tests needed to use `state.items.append(item)` instead of `state.items["id"] = item`.
+
+**Duration:** ~30 minutes (estimated 4-5 hours) - **8-10x faster** than planned!
+
+**Key Success Factors:**
+- Clean layering from previous phases made integration straightforward
+- BehaviorManager already had module loading infrastructure from Phase 4
+- StateAccessor.update() already existed from Phase 5, just needed behavior check added
+- TDD approach caught the EventResult type conflict immediately
 
 ---
 
