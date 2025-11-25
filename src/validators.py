@@ -4,9 +4,10 @@ Structural validators for simplified state manager.
 Validates structural integrity: IDs, references, cycles.
 Does not validate behavior-specific properties.
 """
-from typing import Dict, List, Set, Any
+from typing import Dict, List, Set, Any, TYPE_CHECKING
 
-from .state_manager import GameState
+if TYPE_CHECKING:
+    from src.state_manager import GameState
 
 
 class ValidationError(Exception):
@@ -21,7 +22,7 @@ class ValidationError(Exception):
                            "\n".join(f"  - {e}" for e in self.errors))
 
 
-def validate_game_state(state: GameState) -> None:
+def validate_game_state(state: "GameState") -> None:
     """Validate structural integrity of game state."""
     errors: List[str] = []
 
@@ -42,7 +43,7 @@ def validate_game_state(state: GameState) -> None:
         raise ValidationError("Validation failed", errors)
 
 
-def _build_id_registry(state: GameState, errors: List[str]) -> Dict[str, str]:
+def _build_id_registry(state: "GameState", errors: List[str]) -> Dict[str, str]:
     """Build registry of all entity IDs and check for duplicates/reserved."""
     registry: Dict[str, str] = {}
     registry["player"] = "player"  # Reserved
@@ -69,7 +70,7 @@ def _build_id_registry(state: GameState, errors: List[str]) -> Dict[str, str]:
     return registry
 
 
-def _validate_exit_references(state: GameState, registry: Dict[str, str],
+def _validate_exit_references(state: "GameState", registry: Dict[str, str],
                               errors: List[str]) -> None:
     """Validate exit references to locations and doors."""
     for loc in state.locations:
@@ -106,7 +107,7 @@ def _validate_exit_references(state: GameState, registry: Dict[str, str],
                     )
 
 
-def _validate_item_locations(state: GameState, registry: Dict[str, str],
+def _validate_item_locations(state: "GameState", registry: Dict[str, str],
                              errors: List[str]) -> None:
     """Validate item location references."""
     valid_location_types = {"location", "item", "npc", "player"}
@@ -131,7 +132,7 @@ def _validate_item_locations(state: GameState, registry: Dict[str, str],
             )
 
 
-def _validate_door_references(state: GameState, registry: Dict[str, str],
+def _validate_door_references(state: "GameState", registry: Dict[str, str],
                               errors: List[str]) -> None:
     """Validate door location references."""
     for door in state.doors:
@@ -147,7 +148,7 @@ def _validate_door_references(state: GameState, registry: Dict[str, str],
                 )
 
 
-def _validate_lock_references(state: GameState, registry: Dict[str, str],
+def _validate_lock_references(state: "GameState", registry: Dict[str, str],
                               errors: List[str]) -> None:
     """Validate lock opens_with references and door lock_id references."""
     # Check lock opens_with references
@@ -176,7 +177,7 @@ def _validate_lock_references(state: GameState, registry: Dict[str, str],
                 )
 
 
-def _validate_container_lock_references(state: GameState, registry: Dict[str, str],
+def _validate_container_lock_references(state: "GameState", registry: Dict[str, str],
                                         errors: List[str]) -> None:
     """Validate container lock_id references."""
     lock_ids = {lock.id for lock in state.locks}
@@ -191,7 +192,7 @@ def _validate_container_lock_references(state: GameState, registry: Dict[str, st
                 )
 
 
-def _validate_metadata(state: GameState, registry: Dict[str, str],
+def _validate_metadata(state: "GameState", registry: Dict[str, str],
                        errors: List[str]) -> None:
     """Validate metadata references."""
     start = state.metadata.start_location
@@ -207,7 +208,7 @@ def _validate_metadata(state: GameState, registry: Dict[str, str],
             )
 
 
-def _validate_player_state(state: GameState, registry: Dict[str, str],
+def _validate_player_state(state: "GameState", registry: Dict[str, str],
                            errors: List[str]) -> None:
     """Validate player state references."""
     if not state.player:
@@ -239,7 +240,7 @@ def _validate_player_state(state: GameState, registry: Dict[str, str],
             )
 
 
-def _validate_container_cycles(state: GameState, errors: List[str]) -> None:
+def _validate_container_cycles(state: "GameState", errors: List[str]) -> None:
     """Detect circular containment in items."""
     # Build containment graph: item -> container
     item_ids = {item.id for item in state.items}

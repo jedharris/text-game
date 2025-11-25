@@ -559,7 +559,7 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
     )
 
     # Validate after loading
-    from .validators import validate_game_state
+    from src.validators import validate_game_state
     validate_game_state(state)
 
     return state

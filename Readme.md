@@ -35,7 +35,7 @@ pip install coverage
 from src.parser import Parser
 
 # Initialize parser with vocabulary
-parser = Parser('data/vocabulary.json')
+parser = Parser('src/vocabulary.json')
 
 # Parse a command
 command = parser.parse_command("take rusty key")
@@ -171,7 +171,7 @@ The parser uses a JSON vocabulary file with the following structure:
 from src.parser import Parser
 
 # Initialize
-parser = Parser('data/vocabulary.json')
+parser = Parser('src/vocabulary.json')
 
 # Parse a command
 result = parser.parse_command("take sword")
@@ -218,7 +218,8 @@ text-game/
 ├── src/
 │   ├── word_entry.py         # WordType enum & WordEntry dataclass
 │   ├── parsed_command.py     # ParsedCommand dataclass
-│   └── parser.py             # Main Parser implementation
+│   ├── parser.py             # Main Parser implementation
+│   └── vocabulary.json       # Production vocabulary
 ├── tests/
 │   └── command_parser/       # Command parser tests
 │       ├── test_word_entry.py    # WordEntry tests
@@ -229,8 +230,6 @@ text-game/
 │       ├── test_performance.py   # Performance benchmarks
 │       ├── test_regression.py    # Regression tests
 │       └── fixtures/             # Test vocabulary files
-├── data/
-│   └── vocabulary.json       # Production vocabulary
 ├── examples/
 │   ├── simple_game.py        # Example adventure game
 │   └── interactive_parser.py # Interactive testing tool

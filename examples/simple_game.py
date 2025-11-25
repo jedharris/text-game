@@ -5,7 +5,7 @@ from src.parser import Parser
 
 def main():
     # Initialize parser
-    parser = Parser('data/vocabulary.json')
+    parser = Parser('src/vocabulary.json')
 
     # Game state
     inventory = []

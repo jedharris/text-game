@@ -13,8 +13,8 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_duplicate_id_raises_error(self):
         """Duplicate IDs across entities raise ValidationError."""
-        from src.state_manager.state_manager import load_game_state
-        from src.state_manager.validators import ValidationError
+        from src.state_manager import load_game_state
+        from src.validators import ValidationError
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -39,8 +39,8 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_duplicate_id_same_type_raises_error(self):
         """Duplicate IDs within same entity type raise ValidationError."""
-        from src.state_manager.state_manager import load_game_state
-        from src.state_manager.validators import ValidationError
+        from src.state_manager import load_game_state
+        from src.validators import ValidationError
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -63,8 +63,8 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_reserved_player_id_raises_error(self):
         """Using 'player' as entity ID raises error."""
-        from src.state_manager.state_manager import load_game_state
-        from src.state_manager.validators import ValidationError
+        from src.state_manager import load_game_state
+        from src.validators import ValidationError
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -90,8 +90,8 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_reserved_player_id_in_location_raises_error(self):
         """Using 'player' as location ID raises error."""
-        from src.state_manager.state_manager import load_game_state
-        from src.state_manager.validators import ValidationError
+        from src.state_manager import load_game_state
+        from src.validators import ValidationError
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "player"},
@@ -114,8 +114,8 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_invalid_exit_reference_raises_error(self):
         """Exit referencing nonexistent location raises error."""
-        from src.state_manager.state_manager import load_game_state
-        from src.state_manager.validators import ValidationError
+        from src.state_manager import load_game_state
+        from src.validators import ValidationError
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -144,8 +144,8 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_invalid_door_reference_raises_error(self):
         """Exit referencing nonexistent door raises error."""
-        from src.state_manager.state_manager import load_game_state
-        from src.state_manager.validators import ValidationError
+        from src.state_manager import load_game_state
+        from src.validators import ValidationError
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -174,8 +174,8 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_door_type_exit_without_door_id_raises_error(self):
         """Door-type exit without door_id raises error."""
-        from src.state_manager.state_manager import load_game_state
-        from src.state_manager.validators import ValidationError
+        from src.state_manager import load_game_state
+        from src.validators import ValidationError
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -204,8 +204,8 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_invalid_item_location_raises_error(self):
         """Item location referencing nonexistent ID raises error."""
-        from src.state_manager.state_manager import load_game_state
-        from src.state_manager.validators import ValidationError
+        from src.state_manager import load_game_state
+        from src.validators import ValidationError
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -230,8 +230,8 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_item_location_wrong_type_raises_error(self):
         """Item location referencing non-container entity type raises error."""
-        from src.state_manager.state_manager import load_game_state
-        from src.state_manager.validators import ValidationError
+        from src.state_manager import load_game_state
+        from src.validators import ValidationError
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -261,7 +261,7 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_item_in_player_inventory_valid(self):
         """Item with location 'player' is valid."""
-        from src.state_manager.state_manager import load_game_state
+        from src.state_manager import load_game_state
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -286,7 +286,7 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_item_in_container_valid(self):
         """Item with location pointing to another item (container) is valid."""
-        from src.state_manager.state_manager import load_game_state
+        from src.state_manager import load_game_state
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -314,7 +314,7 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_item_in_npc_inventory_valid(self):
         """Item with location pointing to NPC is valid."""
-        from src.state_manager.state_manager import load_game_state
+        from src.state_manager import load_game_state
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -342,8 +342,8 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_container_cycle_raises_error(self):
         """Circular containment raises error."""
-        from src.state_manager.state_manager import load_game_state
-        from src.state_manager.validators import ValidationError
+        from src.state_manager import load_game_state
+        from src.validators import ValidationError
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -371,8 +371,8 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_container_chain_three_items_cycle_raises_error(self):
         """Circular containment with 3 items raises error."""
-        from src.state_manager.state_manager import load_game_state
-        from src.state_manager.validators import ValidationError
+        from src.state_manager import load_game_state
+        from src.validators import ValidationError
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -402,8 +402,8 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_invalid_metadata_start_location_raises_error(self):
         """Nonexistent start_location raises error."""
-        from src.state_manager.state_manager import load_game_state
-        from src.state_manager.validators import ValidationError
+        from src.state_manager import load_game_state
+        from src.validators import ValidationError
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_999"},
@@ -425,8 +425,8 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_invalid_player_location_raises_error(self):
         """Player location referencing nonexistent location raises error."""
-        from src.state_manager.state_manager import load_game_state
-        from src.state_manager.validators import ValidationError
+        from src.state_manager import load_game_state
+        from src.validators import ValidationError
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -449,8 +449,8 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_invalid_player_inventory_item_raises_error(self):
         """Player inventory referencing nonexistent item raises error."""
-        from src.state_manager.state_manager import load_game_state
-        from src.state_manager.validators import ValidationError
+        from src.state_manager import load_game_state
+        from src.validators import ValidationError
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -473,8 +473,8 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_player_inventory_non_item_raises_error(self):
         """Player inventory containing non-item entity raises error."""
-        from src.state_manager.state_manager import load_game_state
-        from src.state_manager.validators import ValidationError
+        from src.state_manager import load_game_state
+        from src.validators import ValidationError
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -500,8 +500,8 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_door_references_invalid_location_raises_error(self):
         """Door referencing nonexistent location raises error."""
-        from src.state_manager.state_manager import load_game_state
-        from src.state_manager.validators import ValidationError
+        from src.state_manager import load_game_state
+        from src.validators import ValidationError
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -526,8 +526,8 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_door_lock_references_invalid_lock_raises_error(self):
         """Door referencing nonexistent lock raises error."""
-        from src.state_manager.state_manager import load_game_state
-        from src.state_manager.validators import ValidationError
+        from src.state_manager import load_game_state
+        from src.validators import ValidationError
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -553,8 +553,8 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_lock_opens_with_invalid_key_raises_error(self):
         """Lock referencing nonexistent key item raises error."""
-        from src.state_manager.state_manager import load_game_state
-        from src.state_manager.validators import ValidationError
+        from src.state_manager import load_game_state
+        from src.validators import ValidationError
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -579,8 +579,8 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_container_lock_references_invalid_lock_raises_error(self):
         """Container referencing nonexistent lock raises error."""
-        from src.state_manager.state_manager import load_game_state
-        from src.state_manager.validators import ValidationError
+        from src.state_manager import load_game_state
+        from src.validators import ValidationError
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -607,7 +607,7 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_valid_state_passes(self):
         """Valid game state passes validation."""
-        from src.state_manager.state_manager import load_game_state
+        from src.state_manager import load_game_state
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -634,7 +634,7 @@ class TestStructuralValidation(unittest.TestCase):
 
     def test_valid_complex_state_passes(self):
         """Complex valid game state with all entity types passes validation."""
-        from src.state_manager.state_manager import load_game_state
+        from src.state_manager import load_game_state
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -722,8 +722,8 @@ class TestValidationErrorAggregation(unittest.TestCase):
 
     def test_multiple_errors_aggregated(self):
         """Multiple validation errors reported together."""
-        from src.state_manager.state_manager import load_game_state
-        from src.state_manager.validators import ValidationError
+        from src.state_manager import load_game_state
+        from src.validators import ValidationError
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_999"},
@@ -765,10 +765,10 @@ class TestValidateGameStateFunction(unittest.TestCase):
 
     def test_validate_existing_game_state(self):
         """validate_game_state works on already-loaded state."""
-        from src.state_manager.state_manager import (
+        from src.state_manager import (
             GameState, Metadata, Location, Item, PlayerState
         )
-        from src.state_manager.validators import validate_game_state
+        from src.validators import validate_game_state
 
         state = GameState(
             metadata=Metadata(title="Test", version="1.0", start_location="loc_1"),
@@ -786,10 +786,10 @@ class TestValidateGameStateFunction(unittest.TestCase):
 
     def test_validate_detects_invalid_reference(self):
         """validate_game_state detects invalid references in loaded state."""
-        from src.state_manager.state_manager import (
+        from src.state_manager import (
             GameState, Metadata, Location, Item, PlayerState
         )
-        from src.state_manager.validators import validate_game_state, ValidationError
+        from src.validators import validate_game_state, ValidationError
 
         state = GameState(
             metadata=Metadata(title="Test", version="1.0", start_location="loc_1"),

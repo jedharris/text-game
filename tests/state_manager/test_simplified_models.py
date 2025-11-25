@@ -15,7 +15,7 @@ class TestSimplifiedItem(unittest.TestCase):
 
     def test_item_core_fields_only(self):
         """Item has only core structural fields as attributes."""
-        from src.state_manager.state_manager import Item
+        from src.state_manager import Item
 
         item = Item(
             id="item_1",
@@ -32,7 +32,7 @@ class TestSimplifiedItem(unittest.TestCase):
 
     def test_item_properties_from_json(self):
         """Item properties populated from JSON fields."""
-        from src.state_manager.state_manager import Item
+        from src.state_manager import Item
 
         item = Item(
             id="item_1",
@@ -52,7 +52,7 @@ class TestSimplifiedItem(unittest.TestCase):
 
     def test_item_container_as_property(self):
         """Container info stored as nested property dict."""
-        from src.state_manager.state_manager import Item
+        from src.state_manager import Item
 
         item = Item(
             id="chest",
@@ -75,7 +75,7 @@ class TestSimplifiedItem(unittest.TestCase):
 
     def test_item_with_behaviors(self):
         """Item can have behavior handlers."""
-        from src.state_manager.state_manager import Item
+        from src.state_manager import Item
 
         item = Item(
             id="item_1",
@@ -93,7 +93,7 @@ class TestSimplifiedLocation(unittest.TestCase):
 
     def test_location_core_fields(self):
         """Location has structural fields plus properties."""
-        from src.state_manager.state_manager import Location
+        from src.state_manager import Location
 
         loc = Location(
             id="loc_1",
@@ -110,7 +110,7 @@ class TestSimplifiedLocation(unittest.TestCase):
 
     def test_location_tags_as_property(self):
         """Tags stored in properties."""
-        from src.state_manager.state_manager import Location
+        from src.state_manager import Location
 
         loc = Location(
             id="loc_1",
@@ -124,7 +124,7 @@ class TestSimplifiedLocation(unittest.TestCase):
 
     def test_location_with_exits(self):
         """Location with exit descriptors."""
-        from src.state_manager.state_manager import Location, ExitDescriptor
+        from src.state_manager import Location, ExitDescriptor
 
         loc = Location(
             id="loc_1",
@@ -141,7 +141,7 @@ class TestSimplifiedLocation(unittest.TestCase):
 
     def test_exit_descriptor_with_properties(self):
         """ExitDescriptor stores description, hidden, conditions in properties."""
-        from src.state_manager.state_manager import ExitDescriptor
+        from src.state_manager import ExitDescriptor
 
         exit_desc = ExitDescriptor(
             type="open",
@@ -167,7 +167,7 @@ class TestSimplifiedDoor(unittest.TestCase):
 
     def test_door_core_fields(self):
         """Door has only locations tuple as structural field."""
-        from src.state_manager.state_manager import Door
+        from src.state_manager import Door
 
         door = Door(
             id="door_1",
@@ -180,7 +180,7 @@ class TestSimplifiedDoor(unittest.TestCase):
 
     def test_door_state_as_properties(self):
         """Door open/locked state stored in properties."""
-        from src.state_manager.state_manager import Door
+        from src.state_manager import Door
 
         door = Door(
             id="door_1",
@@ -203,7 +203,7 @@ class TestSimplifiedNPC(unittest.TestCase):
 
     def test_npc_core_fields(self):
         """NPC has id, name, description, location, inventory as core."""
-        from src.state_manager.state_manager import NPC
+        from src.state_manager import NPC
 
         npc = NPC(
             id="npc_1",
@@ -220,7 +220,7 @@ class TestSimplifiedNPC(unittest.TestCase):
 
     def test_npc_dialogue_as_property(self):
         """Dialogue and states stored in properties."""
-        from src.state_manager.state_manager import NPC
+        from src.state_manager import NPC
 
         npc = NPC(
             id="npc_1",
@@ -244,7 +244,7 @@ class TestSimplifiedLock(unittest.TestCase):
 
     def test_lock_minimal_core(self):
         """Lock has only id as core field."""
-        from src.state_manager.state_manager import Lock
+        from src.state_manager import Lock
 
         lock = Lock(
             id="lock_1",
@@ -259,7 +259,7 @@ class TestSimplifiedLock(unittest.TestCase):
 
     def test_lock_with_fail_message(self):
         """Lock can have failure message."""
-        from src.state_manager.state_manager import Lock
+        from src.state_manager import Lock
 
         lock = Lock(
             id="lock_1",
@@ -277,7 +277,7 @@ class TestSimplifiedPlayerState(unittest.TestCase):
 
     def test_player_core_fields(self):
         """PlayerState has location and inventory as core."""
-        from src.state_manager.state_manager import PlayerState
+        from src.state_manager import PlayerState
 
         player = PlayerState(
             location="loc_1",
@@ -289,7 +289,7 @@ class TestSimplifiedPlayerState(unittest.TestCase):
 
     def test_player_flags_stats_as_properties(self):
         """Flags and stats stored in properties."""
-        from src.state_manager.state_manager import PlayerState
+        from src.state_manager import PlayerState
 
         player = PlayerState(
             location="loc_1",
@@ -309,7 +309,7 @@ class TestGenericLoader(unittest.TestCase):
 
     def test_load_item_properties_from_json(self):
         """Loader puts non-core fields into properties."""
-        from src.state_manager.state_manager import load_game_state
+        from src.state_manager import load_game_state
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -351,7 +351,7 @@ class TestGenericLoader(unittest.TestCase):
 
     def test_load_door_properties(self):
         """Door state fields go to properties."""
-        from src.state_manager.state_manager import load_game_state
+        from src.state_manager import load_game_state
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -390,7 +390,7 @@ class TestGenericLoader(unittest.TestCase):
 
     def test_load_nested_container_properties(self):
         """Nested container dict preserved in properties."""
-        from src.state_manager.state_manager import load_game_state
+        from src.state_manager import load_game_state
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -428,7 +428,7 @@ class TestGenericLoader(unittest.TestCase):
 
     def test_load_location_tags_as_property(self):
         """Location tags loaded into properties."""
-        from src.state_manager.state_manager import load_game_state
+        from src.state_manager import load_game_state
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -459,7 +459,7 @@ class TestGenericLoader(unittest.TestCase):
 
     def test_load_exit_properties(self):
         """Exit descriptor properties loaded correctly."""
-        from src.state_manager.state_manager import load_game_state
+        from src.state_manager import load_game_state
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -509,7 +509,7 @@ class TestGenericLoader(unittest.TestCase):
 
     def test_load_npc_properties(self):
         """NPC dialogue and states loaded into properties, inventory as core."""
-        from src.state_manager.state_manager import load_game_state
+        from src.state_manager import load_game_state
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -551,7 +551,7 @@ class TestGenericLoader(unittest.TestCase):
 
     def test_load_lock_properties(self):
         """Lock opens_with and messages loaded into properties."""
-        from src.state_manager.state_manager import load_game_state
+        from src.state_manager import load_game_state
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -587,7 +587,7 @@ class TestGenericLoader(unittest.TestCase):
 
     def test_load_player_state_properties(self):
         """Player flags and stats loaded into properties."""
-        from src.state_manager.state_manager import load_game_state
+        from src.state_manager import load_game_state
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -621,7 +621,7 @@ class TestGenericLoader(unittest.TestCase):
 
     def test_load_from_dict(self):
         """Loader accepts dict directly."""
-        from src.state_manager.state_manager import load_game_state
+        from src.state_manager import load_game_state
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -636,7 +636,7 @@ class TestGenericLoader(unittest.TestCase):
 
     def test_load_preserves_behaviors(self):
         """Behaviors field preserved on entities."""
-        from src.state_manager.state_manager import load_game_state
+        from src.state_manager import load_game_state
 
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -672,7 +672,7 @@ class TestGenericSerializer(unittest.TestCase):
 
     def test_serialize_item_merges_properties(self):
         """Serializer merges properties back to top level."""
-        from src.state_manager.state_manager import (
+        from src.state_manager import (
             Item, game_state_to_dict, GameState, Metadata, Location
         )
 
@@ -712,7 +712,7 @@ class TestGenericSerializer(unittest.TestCase):
 
     def test_serialize_door_merges_properties(self):
         """Door properties merged to top level."""
-        from src.state_manager.state_manager import (
+        from src.state_manager import (
             Door, game_state_to_dict, GameState, Metadata, Location
         )
 
@@ -745,7 +745,7 @@ class TestGenericSerializer(unittest.TestCase):
 
     def test_serialize_preserves_behaviors(self):
         """Behaviors preserved in serialized output."""
-        from src.state_manager.state_manager import (
+        from src.state_manager import (
             Item, game_state_to_dict, GameState, Metadata, Location
         )
 
@@ -770,7 +770,7 @@ class TestGenericSerializer(unittest.TestCase):
 
     def test_round_trip_preserves_all_data(self):
         """Load -> serialize -> reload preserves all data."""
-        from src.state_manager.state_manager import load_game_state, game_state_to_dict
+        from src.state_manager import load_game_state, game_state_to_dict
 
         original_data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
@@ -818,7 +818,7 @@ class TestGenericSerializer(unittest.TestCase):
 
     def test_serialize_player_state(self):
         """Player state properties serialized correctly."""
-        from src.state_manager.state_manager import (
+        from src.state_manager import (
             PlayerState, game_state_to_dict, GameState, Metadata, Location
         )
 
@@ -851,7 +851,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
 
     def test_get_item(self):
         """get_item finds item by id."""
-        from src.state_manager.state_manager import GameState, Metadata, Item
+        from src.state_manager import GameState, Metadata, Item
 
         state = GameState(
             metadata=Metadata(title="Test", version="1.0", start_location="loc_1"),
@@ -865,7 +865,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
 
     def test_get_item_not_found(self):
         """get_item raises KeyError for missing item."""
-        from src.state_manager.state_manager import GameState, Metadata
+        from src.state_manager import GameState, Metadata
 
         state = GameState(
             metadata=Metadata(title="Test", version="1.0", start_location="loc_1")
@@ -876,7 +876,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
 
     def test_get_location(self):
         """get_location finds location by id."""
-        from src.state_manager.state_manager import GameState, Metadata, Location
+        from src.state_manager import GameState, Metadata, Location
 
         state = GameState(
             metadata=Metadata(title="Test", version="1.0", start_location="loc_1"),
@@ -890,7 +890,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
 
     def test_get_door(self):
         """get_door finds door by id."""
-        from src.state_manager.state_manager import GameState, Metadata, Door
+        from src.state_manager import GameState, Metadata, Door
 
         state = GameState(
             metadata=Metadata(title="Test", version="1.0", start_location="loc_1"),
@@ -904,7 +904,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
 
     def test_get_lock(self):
         """get_lock finds lock by id."""
-        from src.state_manager.state_manager import GameState, Metadata, Lock
+        from src.state_manager import GameState, Metadata, Lock
 
         state = GameState(
             metadata=Metadata(title="Test", version="1.0", start_location="loc_1"),
@@ -918,7 +918,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
 
     def test_get_npc(self):
         """get_npc finds NPC by id."""
-        from src.state_manager.state_manager import GameState, Metadata, NPC
+        from src.state_manager import GameState, Metadata, NPC
 
         state = GameState(
             metadata=Metadata(title="Test", version="1.0", start_location="loc_1"),
@@ -932,7 +932,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
 
     def test_move_item_to_player(self):
         """move_item updates item location to player."""
-        from src.state_manager.state_manager import (
+        from src.state_manager import (
             GameState, Metadata, Item, Location, PlayerState
         )
 
@@ -957,7 +957,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
 
     def test_move_item_to_location(self):
         """move_item updates item location to another location."""
-        from src.state_manager.state_manager import (
+        from src.state_manager import (
             GameState, Metadata, Item, Location, PlayerState
         )
 
@@ -984,7 +984,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
 
     def test_set_player_location(self):
         """set_player_location updates player's location."""
-        from src.state_manager.state_manager import (
+        from src.state_manager import (
             GameState, Metadata, Location, PlayerState
         )
 
@@ -1002,7 +1002,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
 
     def test_set_flag_and_get_flag(self):
         """set_flag and get_flag work with properties."""
-        from src.state_manager.state_manager import (
+        from src.state_manager import (
             GameState, Metadata, PlayerState
         )
 
@@ -1018,7 +1018,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
 
     def test_build_id_registry(self):
         """build_id_registry returns all entity IDs."""
-        from src.state_manager.state_manager import (
+        from src.state_manager import (
             GameState, Metadata, Location, Item, Door, Lock, NPC
         )
 
@@ -1046,7 +1046,7 @@ class TestBackwardCompatibility(unittest.TestCase):
 
     def test_load_valid_world_fixture(self):
         """Load existing valid_world.json fixture."""
-        from src.state_manager.state_manager import load_game_state
+        from src.state_manager import load_game_state
 
         fixture_path = Path(__file__).parent / "fixtures" / "valid_world.json"
         state = load_game_state(fixture_path)
@@ -1064,7 +1064,7 @@ class TestBackwardCompatibility(unittest.TestCase):
 
     def test_serialized_output_matches_input(self):
         """Serialized output semantically matches input."""
-        from src.state_manager.state_manager import load_game_state, game_state_to_dict
+        from src.state_manager import load_game_state, game_state_to_dict
 
         fixture_path = Path(__file__).parent / "fixtures" / "valid_world.json"
 

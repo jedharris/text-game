@@ -590,7 +590,7 @@ def main(save_load_dir=None):
     behavior_manager.load_modules(modules)
 
     # Load base vocabulary
-    vocab_path = Path(__file__).parent.parent / 'data' / 'vocabulary.json'
+    vocab_path = Path(__file__).parent / 'vocabulary.json'
     with open(vocab_path, 'r') as f:
         base_vocab = json.load(f)
 

@@ -76,7 +76,7 @@ class TestPerformance(unittest.TestCase):
         which has more words than the test vocabulary.
         """
         # Use production vocabulary if available
-        prod_vocab = os.path.join('data', 'vocabulary.json')
+        prod_vocab = os.path.join('src', 'vocabulary.json')
 
         if not os.path.exists(prod_vocab):
             self.skipTest("Production vocabulary not found")

@@ -23,7 +23,7 @@ from src.behavior_manager import BehaviorManager
 # Default system prompt location
 DEFAULT_PROMPT_FILE = Path(__file__).parent.parent / "examples" / "narrator_prompt.txt"
 # Default vocabulary file location
-DEFAULT_VOCABULARY_FILE = Path(__file__).parent.parent / "data" / "vocabulary.json"
+DEFAULT_VOCABULARY_FILE = Path(__file__).parent / "vocabulary.json"
 
 
 class LLMNarrator:

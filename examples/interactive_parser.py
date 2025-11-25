@@ -62,7 +62,7 @@ def print_word_types(parser: Parser):
 
 
 def main():
-    parser = Parser('data/vocabulary.json')
+    parser = Parser('src/vocabulary.json')
 
     # Load game state for JSON protocol testing
     script_dir = Path(__file__).parent
