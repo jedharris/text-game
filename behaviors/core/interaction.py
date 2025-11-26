@@ -155,7 +155,10 @@ def handle_open(accessor, action):
     # Try to find as door first (use adjective for disambiguation)
     door = None
     if location_id:
-        door = find_door_with_adjective(accessor, object_name, adjective, location_id)
+        door = find_door_with_adjective(
+            accessor, object_name, adjective, location_id,
+            actor_id=actor_id, verb="open"
+        )
 
     if door:
         # Check if already open
@@ -279,7 +282,10 @@ def handle_close(accessor, action):
     # Try to find as door first (use adjective for disambiguation)
     door = None
     if location_id:
-        door = find_door_with_adjective(accessor, object_name, adjective, location_id)
+        door = find_door_with_adjective(
+            accessor, object_name, adjective, location_id,
+            actor_id=actor_id, verb="close"
+        )
 
     if door:
         # Check if already closed

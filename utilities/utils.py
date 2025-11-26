@@ -424,26 +424,34 @@ def find_item_in_container(accessor, item_name: str, container_id: str, adjectiv
 
 
 def find_door_with_adjective(
-    accessor, name: str, adjective: Optional[str], location_id: str
+    accessor, name: str, adjective: Optional[str], location_id: str,
+    actor_id: Optional[str] = None, verb: Optional[str] = None
 ):
     """
     Find a door in a location, optionally filtered by adjective.
 
     If adjective is provided, only returns doors whose id or description
-    contains the adjective. If no adjective or empty adjective, returns
-    first matching door.
+    contains the adjective. If no adjective, uses smart selection based on
+    the verb being performed:
+    - For "unlock": prefer locked doors that the actor has a key for
+    - For "open": prefer closed unlocked doors, then closed locked doors
+    - For "close": prefer open doors
+    - Otherwise: prefer closed/locked doors over open ones
 
     Args:
         accessor: StateAccessor instance
         name: Door name to search for (often just "door")
-        adjective: Optional adjective to filter by (or None/empty for first match)
+        adjective: Optional adjective to filter by (or None/empty for smart selection)
         location_id: ID of the location
+        actor_id: Optional actor ID for key checking (defaults to "player")
+        verb: Optional verb being performed for smart selection
 
     Returns:
         Door if found, None otherwise
     """
     name_lower = name.lower()
     has_adjective = adjective and adjective.strip()
+    actor_id = actor_id or "player"
 
     # Collect all doors in location matching name
     matching_doors = []
@@ -460,14 +468,58 @@ def find_door_with_adjective(
     if not matching_doors:
         return None
 
-    # If no adjective, return first match
-    if not has_adjective:
+    # If adjective provided, filter by it
+    if has_adjective:
+        for door in matching_doors:
+            if _matches_adjective(adjective, door):
+                return door
+        # No match with adjective
+        return None
+
+    # Smart selection when no adjective
+    if len(matching_doors) == 1:
         return matching_doors[0]
 
-    # Filter by adjective
+    # Multiple doors - apply smart selection based on verb
+    if verb == "unlock":
+        # Prefer locked doors that actor has key for
+        for door in matching_doors:
+            if door.locked and actor_has_key_for_door(accessor, actor_id, door):
+                return door
+        # Fall back to any locked door
+        for door in matching_doors:
+            if door.locked:
+                return door
+
+    elif verb == "open":
+        # Prefer closed unlocked doors (immediately actionable)
+        for door in matching_doors:
+            if not door.open and not door.locked:
+                return door
+        # Fall back to closed locked doors
+        for door in matching_doors:
+            if not door.open:
+                return door
+
+    elif verb == "close":
+        # Prefer open doors
+        for door in matching_doors:
+            if door.open:
+                return door
+
+    elif verb == "lock":
+        # Prefer closed unlocked doors that actor has key for
+        for door in matching_doors:
+            if not door.open and not door.locked and actor_has_key_for_door(accessor, actor_id, door):
+                return door
+        # Fall back to any closed unlocked door with a lock
+        for door in matching_doors:
+            if not door.open and not door.locked and hasattr(door, 'lock_id') and door.lock_id:
+                return door
+
+    # Default: prefer locked/closed doors over open ones
     for door in matching_doors:
-        if _matches_adjective(adjective, door):
+        if door.locked or not door.open:
             return door
 
-    # No match with adjective
-    return None
+    return matching_doors[0]

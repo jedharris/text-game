@@ -118,7 +118,34 @@ def handle_go(accessor, action):
             message=f"INCONSISTENT STATE: Failed to move actor: {result.message}"
         )
 
+    # Build message with movement and auto-look
+    message_parts = [f"You go {direction} to {destination.name}."]
+
+    # Add location description (auto-look)
+    message_parts.append(f"\n{destination.name}")
+    message_parts.append(destination.description)
+
+    # List items in new location
+    items_here = []
+    for item in accessor.game_state.items:
+        if item.location == destination_id:
+            items_here.append(item)
+
+    if items_here:
+        item_names = ", ".join([item.name for item in items_here])
+        message_parts.append(f"\nYou see: {item_names}")
+
+    # List other actors in new location
+    actors_here = []
+    for other_actor_id, other_actor in accessor.game_state.actors.items():
+        if other_actor.location == destination_id and other_actor_id != actor_id:
+            actors_here.append(other_actor)
+
+    if actors_here:
+        actor_names = ", ".join([a.name for a in actors_here])
+        message_parts.append(f"\nAlso here: {actor_names}")
+
     return HandlerResult(
         success=True,
-        message=f"You go {direction} to {destination.name}."
+        message="\n".join(message_parts)
     )
