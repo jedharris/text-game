@@ -315,6 +315,7 @@ class TestBehaviorDrivenApproach(unittest.TestCase):
                     "description": "A potion with drink behavior.",
                     "type": "tool",
                     "portable": True,
+                    "drinkable": True,
                     "location": "room1",
                     "behaviors": {
                         "on_drink": "behaviors.core.consumables:on_drink_health_potion"
@@ -326,8 +327,9 @@ class TestBehaviorDrivenApproach(unittest.TestCase):
                     "description": "Plain water without behavior.",
                     "type": "tool",
                     "portable": True,
+                    "drinkable": True,
                     "location": "room1"
-                    # No behavior
+                    # No behavior - but still drinkable
                 }
             ],
             "doors": [],

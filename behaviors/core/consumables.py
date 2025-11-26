@@ -83,6 +83,13 @@ def handle_drink(accessor, action):
             message=f"You're not carrying any {object_name}."
         )
 
+    # Check if item is drinkable
+    if not item.properties.get("drinkable", False):
+        return HandlerResult(
+            success=False,
+            message=f"You can't drink the {item.name}."
+        )
+
     # Invoke entity behaviors (on_drink) - behaviors decide what happens
     result = accessor.update(item, {}, verb="drink", actor_id=actor_id)
 
@@ -135,6 +142,13 @@ def handle_eat(accessor, action):
         return HandlerResult(
             success=False,
             message=f"You're not carrying any {object_name}."
+        )
+
+    # Check if item is edible
+    if not item.properties.get("edible", False):
+        return HandlerResult(
+            success=False,
+            message=f"You can't eat the {item.name}."
         )
 
     # Invoke entity behaviors (on_eat) - behaviors decide what happens

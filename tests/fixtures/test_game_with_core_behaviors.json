@@ -25,6 +25,7 @@
       "description": "A glowing red potion.",
       "type": "tool",
       "portable": true,
+      "drinkable": true,
       "location": "room1",
       "behaviors": {
         "on_drink": "behaviors.core.consumables:on_drink_health_potion"
@@ -36,6 +37,7 @@
       "description": "A loaf of fresh bread.",
       "type": "tool",
       "portable": true,
+      "edible": true,
       "location": "room1",
       "behaviors": {
         "on_eat": "behaviors.core.consumables:on_eat_food"
@@ -87,6 +89,7 @@
       "description": "A cup of water.",
       "type": "tool",
       "portable": true,
+      "drinkable": true,
       "location": "room1"
     }
   ],

@@ -455,7 +455,7 @@ class TestProtocolBehaviorCommands(unittest.TestCase):
                     name="potion",
                     description="A test potion",
                     location="room1",
-                    properties={"portable": True}
+                    properties={"portable": True, "drinkable": True}
                 ),
                 Item(
                     id="item2",
