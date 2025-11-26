@@ -7,7 +7,7 @@ from typing import Dict, Any
 
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
-from utilities.utils import find_accessible_item
+from utilities.utils import find_accessible_item, find_door_with_adjective
 
 
 # Vocabulary extension - adds interaction verbs
@@ -132,6 +132,7 @@ def handle_open(accessor, action):
     # CRITICAL: Extract actor_id at the top
     actor_id = action.get("actor_id", "player")
     object_name = action.get("object")
+    adjective = action.get("adjective")
 
     if not object_name:
         return HandlerResult(
@@ -147,12 +148,14 @@ def handle_open(accessor, action):
             message=f"INCONSISTENT STATE: Actor {actor_id} not found"
         )
 
-    # Try to find as door first
+    # Get actor's current location for door search
+    location = accessor.get_current_location(actor_id)
+    location_id = location.id if location else None
+
+    # Try to find as door first (use adjective for disambiguation)
     door = None
-    for d in accessor.game_state.doors:
-        if object_name.lower() in d.id.lower() or object_name.lower() in d.description.lower():
-            door = d
-            break
+    if location_id:
+        door = find_door_with_adjective(accessor, object_name, adjective, location_id)
 
     if door:
         # Check if already open
@@ -253,6 +256,7 @@ def handle_close(accessor, action):
     # CRITICAL: Extract actor_id at the top
     actor_id = action.get("actor_id", "player")
     object_name = action.get("object")
+    adjective = action.get("adjective")
 
     if not object_name:
         return HandlerResult(
@@ -268,12 +272,14 @@ def handle_close(accessor, action):
             message=f"INCONSISTENT STATE: Actor {actor_id} not found"
         )
 
-    # Try to find as door first
+    # Get actor's current location for door search
+    location = accessor.get_current_location(actor_id)
+    location_id = location.id if location else None
+
+    # Try to find as door first (use adjective for disambiguation)
     door = None
-    for d in accessor.game_state.doors:
-        if object_name.lower() in d.id.lower() or object_name.lower() in d.description.lower():
-            door = d
-            break
+    if location_id:
+        door = find_door_with_adjective(accessor, object_name, adjective, location_id)
 
     if door:
         # Check if already closed

@@ -7,7 +7,13 @@ from typing import Dict, Any
 
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
-from utilities.utils import find_accessible_item, find_item_in_inventory
+from utilities.utils import (
+    find_accessible_item,
+    find_accessible_item_with_adjective,
+    find_item_in_inventory,
+    find_container_with_adjective,
+    find_item_in_container
+)
 
 
 # Vocabulary extension - adds take and drop verbs
@@ -87,6 +93,9 @@ def handle_take(accessor, action):
         action: Action dict with keys:
             - actor_id: ID of actor performing action (required)
             - object: Name of item to take (required)
+            - adjective: Optional adjective for item disambiguation
+            - indirect_object: Optional container name ("take X from Y")
+            - indirect_adjective: Optional adjective for container
 
     Returns:
         HandlerResult with success flag and message
@@ -94,6 +103,9 @@ def handle_take(accessor, action):
     # CRITICAL: Extract actor_id at the top
     actor_id = action.get("actor_id", "player")
     object_name = action.get("object")
+    adjective = action.get("adjective")
+    container_name = action.get("indirect_object")
+    container_adjective = action.get("indirect_adjective")
 
     if not object_name:
         return HandlerResult(
@@ -109,8 +121,55 @@ def handle_take(accessor, action):
             message=f"INCONSISTENT STATE: Actor {actor_id} not found"
         )
 
-    # Find the item (uses actor_id to search actor's location and inventory)
-    item = find_accessible_item(accessor, object_name, actor_id)
+    # Get current location
+    location = accessor.get_current_location(actor_id)
+    if not location:
+        return HandlerResult(
+            success=False,
+            message=f"INCONSISTENT STATE: Cannot find location for actor {actor_id}"
+        )
+
+    # If container specified, validate it and search only within it
+    if container_name:
+        # Find the container in the location
+        container = find_container_with_adjective(
+            accessor, container_name, container_adjective, location.id
+        )
+
+        if not container:
+            # Check if item exists but isn't a container
+            for item in accessor.get_items_in_location(location.id):
+                if item.name.lower() == container_name.lower():
+                    return HandlerResult(
+                        success=False,
+                        message=f"The {item.name} is not a container."
+                    )
+            return HandlerResult(
+                success=False,
+                message=f"You don't see any {container_name} here."
+            )
+
+        # Check if enclosed container is open
+        container_info = container.properties.get("container", {})
+        is_surface = container_info.get("is_surface", False)
+        if not is_surface and not container_info.get("open", False):
+            return HandlerResult(
+                success=False,
+                message=f"The {container.name} is closed."
+            )
+
+        # Find item in this specific container
+        item = find_item_in_container(accessor, object_name, container.id, adjective)
+        if not item:
+            preposition = "on" if is_surface else "in"
+            return HandlerResult(
+                success=False,
+                message=f"You don't see any {object_name} {preposition} the {container.name}."
+            )
+    else:
+        # No container specified - find item anywhere accessible
+        # Use adjective if provided for disambiguation
+        item = find_accessible_item_with_adjective(accessor, object_name, adjective, actor_id)
 
     if not item:
         return HandlerResult(

@@ -1,0 +1,336 @@
+"""
+Tests for Phase 14: Adjective-Based Disambiguation
+
+Tests utility functions and handler integration for using adjectives
+to select specific entities when multiple match a name.
+"""
+
+import unittest
+from tests.conftest import create_test_state
+from src.state_accessor import StateAccessor
+from src.behavior_manager import BehaviorManager
+from src.state_manager import Item, Door, Location
+
+
+class TestFindItemWithAdjective(unittest.TestCase):
+    """Test find_accessible_item_with_adjective utility function."""
+
+    def setUp(self):
+        """Set up test state with multiple items of same name."""
+        self.state = create_test_state()
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.state, self.behavior_manager)
+
+        # Get player's location
+        player = self.state.actors["player"]
+        location_id = player.location
+
+        # Add two keys with different adjectives in their descriptions
+        iron_key = Item(
+            id="item_iron_key",
+            name="key",
+            description="A small iron key with rust spots.",
+            location=location_id,
+            properties={"portable": True}
+        )
+        brass_key = Item(
+            id="item_brass_key",
+            name="key",
+            description="A large brass key with ornate handle.",
+            location=location_id,
+            properties={"portable": True}
+        )
+        self.state.items.append(iron_key)
+        self.state.items.append(brass_key)
+
+    def test_find_item_with_matching_adjective(self):
+        """Test finding item when adjective matches description."""
+        from utilities.utils import find_accessible_item_with_adjective
+
+        item = find_accessible_item_with_adjective(
+            self.accessor, "key", "iron", "player"
+        )
+
+        self.assertIsNotNone(item)
+        self.assertEqual(item.id, "item_iron_key")
+
+    def test_find_item_with_different_adjective(self):
+        """Test finding different item with different adjective."""
+        from utilities.utils import find_accessible_item_with_adjective
+
+        item = find_accessible_item_with_adjective(
+            self.accessor, "key", "brass", "player"
+        )
+
+        self.assertIsNotNone(item)
+        self.assertEqual(item.id, "item_brass_key")
+
+    def test_find_item_no_adjective_returns_first(self):
+        """Test that no adjective returns first matching item."""
+        from utilities.utils import find_accessible_item_with_adjective
+
+        item = find_accessible_item_with_adjective(
+            self.accessor, "key", None, "player"
+        )
+
+        self.assertIsNotNone(item)
+        # Should return first match (iron key was added first)
+        self.assertEqual(item.id, "item_iron_key")
+
+    def test_find_item_empty_adjective_returns_first(self):
+        """Test that empty adjective returns first matching item."""
+        from utilities.utils import find_accessible_item_with_adjective
+
+        item = find_accessible_item_with_adjective(
+            self.accessor, "key", "", "player"
+        )
+
+        self.assertIsNotNone(item)
+        self.assertEqual(item.id, "item_iron_key")
+
+    def test_find_item_no_match_returns_none(self):
+        """Test that non-matching adjective returns None."""
+        from utilities.utils import find_accessible_item_with_adjective
+
+        item = find_accessible_item_with_adjective(
+            self.accessor, "key", "golden", "player"
+        )
+
+        self.assertIsNone(item)
+
+    def test_find_item_adjective_matches_id(self):
+        """Test that adjective can match against item ID."""
+        from utilities.utils import find_accessible_item_with_adjective
+
+        # "iron" appears in "item_iron_key"
+        item = find_accessible_item_with_adjective(
+            self.accessor, "key", "iron", "player"
+        )
+
+        self.assertIsNotNone(item)
+        self.assertEqual(item.id, "item_iron_key")
+
+
+class TestFindDoorWithAdjective(unittest.TestCase):
+    """Test find_door_with_adjective utility function."""
+
+    def setUp(self):
+        """Set up test state with multiple doors."""
+        self.state = create_test_state()
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.state, self.behavior_manager)
+
+        # Get player's location
+        player = self.state.actors["player"]
+        location_id = player.location
+
+        # Add two doors with different adjectives (description in properties)
+        iron_door = Door(
+            id="door_iron",
+            locations=(location_id, "other_room"),
+            properties={"open": False, "locked": False, "description": "A heavy iron door with rivets."}
+        )
+        wooden_door = Door(
+            id="door_wooden",
+            locations=(location_id, "another_room"),
+            properties={"open": False, "locked": False, "description": "A rough wooden door with brass hinges."}
+        )
+        self.state.doors.append(iron_door)
+        self.state.doors.append(wooden_door)
+
+    def test_find_door_with_matching_adjective(self):
+        """Test finding door when adjective matches description."""
+        from utilities.utils import find_door_with_adjective
+
+        player = self.state.actors["player"]
+        door = find_door_with_adjective(
+            self.accessor, "door", "iron", player.location
+        )
+
+        self.assertIsNotNone(door)
+        self.assertEqual(door.id, "door_iron")
+
+    def test_find_door_with_different_adjective(self):
+        """Test finding different door with different adjective."""
+        from utilities.utils import find_door_with_adjective
+
+        player = self.state.actors["player"]
+        door = find_door_with_adjective(
+            self.accessor, "door", "wooden", player.location
+        )
+
+        self.assertIsNotNone(door)
+        self.assertEqual(door.id, "door_wooden")
+
+    def test_find_door_no_adjective_returns_first(self):
+        """Test that no adjective returns first matching door."""
+        from utilities.utils import find_door_with_adjective
+
+        player = self.state.actors["player"]
+        door = find_door_with_adjective(
+            self.accessor, "door", None, player.location
+        )
+
+        self.assertIsNotNone(door)
+        # Should return first match
+
+    def test_find_door_no_match_returns_none(self):
+        """Test that non-matching adjective returns None."""
+        from utilities.utils import find_door_with_adjective
+
+        player = self.state.actors["player"]
+        door = find_door_with_adjective(
+            self.accessor, "door", "golden", player.location
+        )
+
+        self.assertIsNone(door)
+
+    def test_find_door_adjective_matches_id(self):
+        """Test that adjective can match against door ID."""
+        from utilities.utils import find_door_with_adjective
+
+        player = self.state.actors["player"]
+        # "iron" appears in "door_iron"
+        door = find_door_with_adjective(
+            self.accessor, "door", "iron", player.location
+        )
+
+        self.assertIsNotNone(door)
+        self.assertEqual(door.id, "door_iron")
+
+
+class TestHandleTakeWithAdjective(unittest.TestCase):
+    """Test handle_take uses adjective for disambiguation."""
+
+    def setUp(self):
+        """Set up test state with multiple items of same name."""
+        self.state = create_test_state()
+        self.behavior_manager = BehaviorManager()
+
+        # Load manipulation module
+        import behaviors.core.manipulation
+        self.behavior_manager.load_module(behaviors.core.manipulation)
+
+        self.accessor = StateAccessor(self.state, self.behavior_manager)
+
+        # Get player's location
+        player = self.state.actors["player"]
+        location_id = player.location
+
+        # Add two keys with different adjectives in their descriptions
+        iron_key = Item(
+            id="item_iron_key",
+            name="key",
+            description="A small iron key with rust spots.",
+            location=location_id,
+            properties={"portable": True}
+        )
+        brass_key = Item(
+            id="item_brass_key",
+            name="key",
+            description="A large brass key with ornate handle.",
+            location=location_id,
+            properties={"portable": True}
+        )
+        self.state.items.append(iron_key)
+        self.state.items.append(brass_key)
+
+    def test_take_with_adjective_selects_correct_item(self):
+        """Test that take with adjective selects correct item."""
+        from behaviors.core.manipulation import handle_take
+
+        action = {
+            "actor_id": "player",
+            "object": "key",
+            "adjective": "brass"
+        }
+        result = handle_take(self.accessor, action)
+
+        self.assertTrue(result.success)
+        # Verify correct key was taken
+        player = self.state.actors["player"]
+        self.assertIn("item_brass_key", player.inventory)
+        self.assertNotIn("item_iron_key", player.inventory)
+
+    def test_take_without_adjective_takes_first(self):
+        """Test that take without adjective takes first match."""
+        from behaviors.core.manipulation import handle_take
+
+        action = {
+            "actor_id": "player",
+            "object": "key"
+        }
+        result = handle_take(self.accessor, action)
+
+        self.assertTrue(result.success)
+        player = self.state.actors["player"]
+        # Should take first match (iron key)
+        self.assertIn("item_iron_key", player.inventory)
+
+
+class TestHandleOpenWithAdjective(unittest.TestCase):
+    """Test handle_open uses adjective for door disambiguation."""
+
+    def setUp(self):
+        """Set up test state with multiple doors."""
+        self.state = create_test_state()
+        self.behavior_manager = BehaviorManager()
+
+        # Load interaction module
+        import behaviors.core.interaction
+        self.behavior_manager.load_module(behaviors.core.interaction)
+
+        self.accessor = StateAccessor(self.state, self.behavior_manager)
+
+        # Get player's location
+        player = self.state.actors["player"]
+        location_id = player.location
+
+        # Add two doors with different adjectives (description in properties)
+        iron_door = Door(
+            id="door_iron",
+            locations=(location_id, "other_room"),
+            properties={"open": False, "locked": False, "description": "A heavy iron door with rivets."}
+        )
+        wooden_door = Door(
+            id="door_wooden",
+            locations=(location_id, "another_room"),
+            properties={"open": False, "locked": False, "description": "A rough wooden door with brass hinges."}
+        )
+        self.state.doors.append(iron_door)
+        self.state.doors.append(wooden_door)
+
+    def test_open_with_adjective_selects_correct_door(self):
+        """Test that open with adjective selects correct door."""
+        from behaviors.core.interaction import handle_open
+
+        action = {
+            "actor_id": "player",
+            "object": "door",
+            "adjective": "wooden"
+        }
+        result = handle_open(self.accessor, action)
+
+        self.assertTrue(result.success)
+        # Verify correct door was opened
+        wooden_door = next(d for d in self.state.doors if d.id == "door_wooden")
+        iron_door = next(d for d in self.state.doors if d.id == "door_iron")
+        self.assertTrue(wooden_door.open)
+        self.assertFalse(iron_door.open)
+
+    def test_open_without_adjective_opens_first(self):
+        """Test that open without adjective opens first match."""
+        from behaviors.core.interaction import handle_open
+
+        action = {
+            "actor_id": "player",
+            "object": "door"
+        }
+        result = handle_open(self.accessor, action)
+
+        self.assertTrue(result.success)
+        # Should open first match (iron door)
+
+
+if __name__ == '__main__':
+    unittest.main()

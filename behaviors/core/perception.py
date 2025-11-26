@@ -7,7 +7,10 @@ from typing import Dict, Any
 
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
-from utilities.utils import find_accessible_item
+from utilities.utils import (
+    find_accessible_item_with_adjective,
+    find_door_with_adjective
+)
 
 
 # Vocabulary extension - adds perception verbs
@@ -120,7 +123,7 @@ def handle_examine(accessor, action):
     """
     Handle examine command.
 
-    Shows detailed description of an item.
+    Shows detailed description of an item or door.
 
     CRITICAL: Extracts actor_id from action to support both player and NPCs.
 
@@ -128,7 +131,8 @@ def handle_examine(accessor, action):
         accessor: StateAccessor instance
         action: Action dict with keys:
             - actor_id: ID of actor performing action (required)
-            - object: Name of item to examine (required)
+            - object: Name of item/door to examine (required)
+            - adjective: Optional adjective for disambiguation
 
     Returns:
         HandlerResult with success flag and message
@@ -136,6 +140,7 @@ def handle_examine(accessor, action):
     # CRITICAL: Extract actor_id at the top
     actor_id = action.get("actor_id", "player")
     object_name = action.get("object")
+    adjective = action.get("adjective")
 
     if not object_name:
         return HandlerResult(
@@ -151,18 +156,35 @@ def handle_examine(accessor, action):
             message=f"INCONSISTENT STATE: Actor {actor_id} not found"
         )
 
-    # Find the item
-    item = find_accessible_item(accessor, object_name, actor_id)
-
-    if not item:
+    # Get current location
+    location = accessor.get_current_location(actor_id)
+    if not location:
         return HandlerResult(
             success=False,
-            message=f"You don't see any {object_name} here."
+            message=f"INCONSISTENT STATE: Cannot find location for actor {actor_id}"
+        )
+
+    # Try to find an item first
+    item = find_accessible_item_with_adjective(accessor, object_name, adjective, actor_id)
+
+    if item:
+        return HandlerResult(
+            success=True,
+            message=f"{item.name}: {item.description}"
+        )
+
+    # If no item found, try to find a door
+    door = find_door_with_adjective(accessor, object_name, adjective, location.id)
+
+    if door:
+        return HandlerResult(
+            success=True,
+            message=f"{door.description}"
         )
 
     return HandlerResult(
-        success=True,
-        message=f"{item.name}: {item.description}"
+        success=False,
+        message=f"You don't see any {object_name} here."
     )
 
 

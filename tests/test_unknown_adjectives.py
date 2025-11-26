@@ -273,7 +273,6 @@ class TestItemDisambiguation(unittest.TestCase):
         self.assertIn("key1", self.state.player.inventory)
         self.assertNotIn("key2", self.state.player.inventory)
 
-    @unittest.skip("Adjective-based item disambiguation not yet implemented in handlers")
     def test_different_adjective_selects_other_item(self):
         """Test that different adjective selects other item."""
         # Take the brass key

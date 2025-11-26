@@ -333,14 +333,8 @@ class TestPhase3EnhancedTake(unittest.TestCase):
         self.assertIn("item_room_key", self.state.player.inventory)
         self.assertNotIn("item_key", self.state.player.inventory)
 
-    @unittest.skip("handle_take doesn't validate indirect_object yet - feature not implemented")
     def test_take_from_nonexistent_container_fails(self):
-        """Test that take from nonexistent container fails gracefully.
-
-        Note: This test is skipped because handle_take doesn't currently
-        validate the indirect_object (container) parameter. The "take X from Y"
-        syntax works but doesn't verify Y exists - it finds X anywhere accessible.
-        """
+        """Test that take from nonexistent container fails gracefully."""
         result = self.handler.handle_command({
             "type": "command",
             "action": {

@@ -398,7 +398,6 @@ class TestIntegration(unittest.TestCase):
         # Verify player moved
         self.assertEqual(self.state.player.location, "loc_hallway")
 
-    @unittest.skip("Test needs adjective in action for door disambiguation; feature not yet implemented")
     def test_unlock_and_open_door(self):
         """Test unlocking and opening a door."""
         self.state.player.location = "loc_hallway"
@@ -413,20 +412,20 @@ class TestIntegration(unittest.TestCase):
                 break
 
         responses = [
-            # Unlock
-            '{"type": "command", "action": {"verb": "unlock", "object": "door"}}',
+            # Unlock (include adjective for disambiguation since hallway has 2 doors)
+            '{"type": "command", "action": {"verb": "unlock", "object": "door", "adjective": "iron"}}',
             "You unlock the iron door with the key.",
-            # Open
-            '{"type": "command", "action": {"verb": "open", "object": "door"}}',
+            # Open (include adjective for disambiguation)
+            '{"type": "command", "action": {"verb": "open", "object": "door", "adjective": "iron"}}',
             "The iron door swings open with a creak."
         ]
         narrator = MockLLMNarrator(self.handler, responses)
 
         # Unlock the door
-        narrator.process_turn("unlock the door")
+        narrator.process_turn("unlock the iron door")
 
         # Open the door
-        narrator.process_turn("open the door")
+        narrator.process_turn("open the iron door")
 
         # Verify door state
         for door in self.state.doors:

@@ -44,8 +44,8 @@ This document describes the remaining work to complete the behavior system refac
 - All stub commands migrated to behavior handlers
 
 **Test Status:**
-- 755 tests passing
-- 6 tests skipped (deferred features)
+- 778 tests passing
+- 0 tests skipped
 
 ### What Remains
 
@@ -59,8 +59,8 @@ From the original phasing plan (Phases 13-16), some items were completed during 
 | Phase 16: Example Entity Behaviors | Not started | Optional polish |
 
 **Deferred Features (from cleanup):**
-1. Adjective-based disambiguation (5 skipped tests)
-2. Take-from-container validation (1 skipped test)
+1. ~~Adjective-based disambiguation (5 skipped tests)~~ - **DONE (Phase 14)**
+2. ~~Take-from-container validation (1 skipped test)~~ - **DONE (Phase 15)**
 
 ---
 
@@ -349,6 +349,47 @@ After implementation, unskip these tests:
 - All previously skipped tests pass
 - Existing tests still pass
 
+#### Implementation Notes (Phase 14 Complete)
+
+**Date:** 2025-01-25
+
+**Work Done:**
+1. Created `tests/test_adjective_disambiguation.py` with 15 tests (TDD)
+2. Added utility functions in `utilities/utils.py`:
+   - `_matches_adjective()` - helper to check if adjective matches entity id/description
+   - `find_accessible_item_with_adjective()` - find item with optional adjective filter
+   - `find_door_with_adjective()` - find door with optional adjective filter
+3. Updated handlers to use adjective parameter:
+   - `handle_take` in `behaviors/core/manipulation.py`
+   - `handle_open` in `behaviors/core/interaction.py`
+   - `handle_close` in `behaviors/core/interaction.py`
+   - `handle_unlock` in `behaviors/core/locks.py`
+   - `handle_lock` in `behaviors/core/locks.py`
+4. Unskipped 5 previously skipped tests and fixed them:
+   - Fixed tests that tried to open locked doors without unlocking first
+   - Added adjective to mock LLM responses
+
+**Design Decision Implemented:**
+- Adjective matching is case-insensitive and checks both entity ID and description
+- If no adjective provided (or empty), returns first match (backward compatible)
+- If adjective provided but nothing matches, returns None (not first match)
+
+**Test Results:**
+- All 770 tests pass (1 skipped - Phase 15)
+- New tests: 15 added for adjective disambiguation
+
+**Duration:** ~1.5 hours
+
+**Files Modified:**
+- `utilities/utils.py` - Added adjective-aware finder functions
+- `behaviors/core/manipulation.py` - Updated handle_take
+- `behaviors/core/interaction.py` - Updated handle_open, handle_close
+- `behaviors/core/locks.py` - Updated handle_unlock, handle_lock
+- `tests/test_adjective_disambiguation.py` - New test file
+- `tests/test_unknown_adjectives.py` - Unskipped test
+- `tests/llm_interaction/test_json_protocol.py` - Unskipped and fixed tests
+- `tests/llm_interaction/test_llm_narrator.py` - Unskipped and fixed test
+
 ---
 
 ### Phase 15: Take-From-Container Validation
@@ -429,6 +470,45 @@ After implementation, unskip:
 - New tests pass
 - Previously skipped test passes
 - Existing container tests still pass
+
+#### Implementation Notes (Phase 15 Complete)
+
+**Date:** 2025-01-25
+
+**Work Done:**
+1. Created `tests/test_take_from_container_validation.py` with 8 tests (TDD)
+2. Added utility functions in `utilities/utils.py`:
+   - `find_container_with_adjective()` - find container in location with adjective filter
+   - `find_item_in_container()` - find item inside a specific container
+3. Updated `handle_take` in `behaviors/core/manipulation.py`:
+   - Extracts `indirect_object` and `indirect_adjective` from action
+   - When `indirect_object` provided:
+     - Validates container exists in location
+     - Validates container is actually a container (has container property)
+     - Validates enclosed containers are open
+     - Searches only within that specific container
+   - When no `indirect_object`, searches anywhere accessible (backward compatible)
+4. Unskipped `test_take_from_nonexistent_container_fails` in `test_enhanced_containers.py`
+
+**Design Decision Implemented:**
+- "take X from Y" now validates Y exists and is a container
+- If Y is not a container, returns "The Y is not a container."
+- If Y doesn't exist, returns "You don't see any Y here."
+- If enclosed container Y is closed, returns "The Y is closed."
+- If X not found in Y, returns "You don't see any X in/on the Y."
+- Supports `indirect_adjective` for container disambiguation
+
+**Test Results:**
+- All 778 tests pass (0 skipped)
+- New tests: 8 added for take-from-container validation
+
+**Duration:** ~30 minutes
+
+**Files Modified:**
+- `utilities/utils.py` - Added container/item finder functions
+- `behaviors/core/manipulation.py` - Updated handle_take with indirect_object validation
+- `tests/test_take_from_container_validation.py` - New test file
+- `tests/test_enhanced_containers.py` - Unskipped test
 
 ---
 
@@ -549,7 +629,7 @@ def test_behavior_composition():
 
 After completing all phases:
 
-- [x] All tests pass (749 tests, 0 skipped - currently 6 skipped)
+- [x] All tests pass (778 tests, 0 skipped)
 - [x] Game state uses new format (list behaviors, properties dict)
 - [x] No `_cmd_*` methods in llm_protocol.py
 - [x] No old helper methods
@@ -557,8 +637,8 @@ After completing all phases:
 - [x] File renamed to `llm_protocol.py`
 - [x] llm_protocol.py contains NO game logic (only routing and serialization)
 - [x] Consumable commands require edible/drinkable properties (Phase 13.5)
-- [ ] Adjective-based disambiguation works (Phase 14)
-- [ ] Take-from-container validation works (Phase 15)
+- [x] Adjective-based disambiguation works (Phase 14)
+- [x] Take-from-container validation works (Phase 15)
 - [ ] Example behaviors demonstrate extensibility (Phase 16, optional)
 - [ ] Full game playthrough works (manual verification)
 

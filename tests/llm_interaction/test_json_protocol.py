@@ -1375,7 +1375,6 @@ class TestEndToEndInteractions(unittest.TestCase):
         self.state = load_game_state(str(fixtures_path))
         self.handler = JSONProtocolHandler(self.state)
 
-    @unittest.skip("Adjective-based door disambiguation not yet implemented in handlers")
     def test_take_key_unlock_door_sequence(self):
         """Test sequence: take key, go north, unlock door, open door, go east."""
         # Take key
@@ -1446,7 +1445,6 @@ class TestEndToEndInteractions(unittest.TestCase):
         inv_names = [i["name"] for i in inv_items]
         self.assertIn("key", inv_names)
 
-    @unittest.skip("Adjective-based door disambiguation not yet implemented in handlers")
     def test_disambiguation_with_adjective(self):
         """Test using adjective to disambiguate doors."""
         # Move to hallway (has two doors)
@@ -1464,26 +1462,32 @@ class TestEndToEndInteractions(unittest.TestCase):
         doors = result["data"]["entities"]
         self.assertEqual(len(doors), 2)
 
+        # Unlock the iron door first (it's locked in the fixture)
+        result = self.handler.handle_message({
+            "type": "command",
+            "action": {"verb": "unlock", "object": "door", "adjective": "iron"}
+        })
+        self.assertTrue(result["success"], f"Unlock failed: {result}")
+
         # Open the iron door specifically using adjective
         result = self.handler.handle_message({
             "type": "command",
             "action": {"verb": "open", "object": "door", "adjective": "iron"}
         })
 
-        self.assertTrue(result["success"])
+        self.assertTrue(result["success"], f"Open failed: {result}")
         iron_door = self.handler._get_door_by_id("door_iron")
         self.assertTrue(iron_door.open)
 
-    @unittest.skip("Adjective-based door disambiguation not yet implemented in handlers")
     def test_failed_action_then_retry(self):
         """Test failed action, then success after getting requirements."""
         # Move to hallway
         self.state.player.location = "loc_hallway"
 
-        # Try to open iron door without key - should fail
+        # Try to unlock iron door without key - should fail
         result = self.handler.handle_message({
             "type": "command",
-            "action": {"verb": "open", "object": "door", "adjective": "iron"}
+            "action": {"verb": "unlock", "object": "door", "adjective": "iron"}
         })
         self.assertFalse(result["success"])
 
@@ -1505,12 +1509,19 @@ class TestEndToEndInteractions(unittest.TestCase):
             "action": {"verb": "go", "direction": "north"}
         })
 
+        # Now unlocking should succeed
+        result = self.handler.handle_message({
+            "type": "command",
+            "action": {"verb": "unlock", "object": "door", "adjective": "iron"}
+        })
+        self.assertTrue(result["success"], f"Unlock failed: {result}")
+
         # Now opening should succeed
         result = self.handler.handle_message({
             "type": "command",
             "action": {"verb": "open", "object": "door", "adjective": "iron"}
         })
-        self.assertTrue(result["success"])
+        self.assertTrue(result["success"], f"Open failed: {result}")
 
 
 class TestJSONDetection(unittest.TestCase):
