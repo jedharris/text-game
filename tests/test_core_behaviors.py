@@ -381,10 +381,11 @@ class TestCoreModulesLoading(unittest.TestCase):
         """Test that core behavior modules are discovered."""
         manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
+        # Returns list of (module_path, source_type) tuples
         modules = manager.discover_modules(str(behaviors_dir))
 
         # Should find core modules
-        module_names = [m.split(".")[-1] for m in modules]
+        module_names = [m[0].split(".")[-1] for m in modules]
         self.assertIn("consumables", module_names)
         self.assertIn("light_sources", module_names)
         self.assertIn("containers", module_names)

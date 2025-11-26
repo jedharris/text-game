@@ -22,8 +22,15 @@ class ValidationError(Exception):
                            "\n".join(f"  - {e}" for e in self.errors))
 
 
-def validate_game_state(state: "GameState") -> None:
-    """Validate structural integrity of game state."""
+def validate_game_state(state: "GameState", loaded_modules: Set[str] = None) -> None:
+    """Validate structural integrity of game state.
+
+    Args:
+        state: GameState to validate
+        loaded_modules: Optional set of loaded behavior module names. If provided,
+                       validates that all behavior references in entities point to
+                       loaded modules. Pass this after loading behavior modules.
+    """
     errors: List[str] = []
 
     # Build ID registry
@@ -38,6 +45,10 @@ def validate_game_state(state: "GameState") -> None:
     _validate_metadata(state, id_registry, errors)
     _validate_player_state(state, id_registry, errors)
     _validate_container_cycles(state, errors)
+
+    # Validate behavior module references if modules provided
+    if loaded_modules is not None:
+        _validate_behavior_references(state, loaded_modules, errors)
 
     if errors:
         raise ValidationError("Validation failed", errors)
@@ -59,7 +70,11 @@ def _build_id_registry(state: "GameState", errors: List[str]) -> Dict[str, str]:
     for loc in state.locations:
         add_id(loc.id, "location")
     for item in state.items:
-        add_id(item.id, "item")
+        # Items with properties.door are registered as "door_item" for unified model
+        if item.is_door:
+            add_id(item.id, "door_item")
+        else:
+            add_id(item.id, "item")
     for door in state.doors:
         add_id(door.id, "door")
     for lock in state.locks:
@@ -100,7 +115,8 @@ def _validate_exit_references(state: "GameState", registry: Dict[str, str],
                         f"Exit '{direction}' in '{loc.id}' references "
                         f"nonexistent door '{exit_desc.door_id}'"
                     )
-                elif registry[exit_desc.door_id] != "door":
+                elif registry[exit_desc.door_id] not in ("door", "door_item"):
+                    # Accept both old-style doors and unified door items
                     errors.append(
                         f"Exit '{direction}' in '{loc.id}' references "
                         f"'{exit_desc.door_id}' which is a {registry[exit_desc.door_id]}, not a door"
@@ -119,6 +135,35 @@ def _validate_item_locations(state: "GameState", registry: Dict[str, str],
 
         if loc == "player":
             continue  # Player is valid
+
+        # Handle exit:loc_id:direction format for door items
+        if loc.startswith("exit:"):
+            if not item.is_door:
+                errors.append(
+                    f"Item '{item.id}' uses exit location '{loc}' "
+                    f"but is not a door item"
+                )
+                continue
+            # Validate format: exit:location_id:direction
+            parts = loc.split(":")
+            if len(parts) != 3:
+                errors.append(
+                    f"Door item '{item.id}' has malformed exit location '{loc}' "
+                    f"(expected format: exit:location_id:direction)"
+                )
+                continue
+            exit_loc_id = parts[1]
+            if exit_loc_id not in registry:
+                errors.append(
+                    f"Door item '{item.id}' references nonexistent location "
+                    f"'{exit_loc_id}' in exit location '{loc}'"
+                )
+            elif registry[exit_loc_id] != "location":
+                errors.append(
+                    f"Door item '{item.id}' exit location references '{exit_loc_id}' "
+                    f"which is a {registry[exit_loc_id]}, not a location"
+                )
+            continue
 
         if loc not in registry:
             errors.append(
@@ -267,3 +312,39 @@ def _validate_container_cycles(state: "GameState", errors: List[str]) -> None:
                     current = current_item.location
                 else:
                     break
+
+
+def _validate_behavior_references(state: "GameState", loaded_modules: Set[str],
+                                   errors: List[str]) -> None:
+    """Validate that all behavior module references point to loaded modules."""
+
+    def check_behaviors(entity_id: str, entity_type: str, behaviors: Any) -> None:
+        if not behaviors:
+            return
+        if isinstance(behaviors, list):
+            for module_name in behaviors:
+                if module_name not in loaded_modules:
+                    errors.append(
+                        f"{entity_type} '{entity_id}' references unknown behavior "
+                        f"module '{module_name}'"
+                    )
+
+    # Check items
+    for item in state.items:
+        if hasattr(item, 'behaviors'):
+            check_behaviors(item.id, "Item", item.behaviors)
+
+    # Check actors
+    for actor_id, actor in state.actors.items():
+        if hasattr(actor, 'behaviors'):
+            check_behaviors(actor_id, "Actor", actor.behaviors)
+
+    # Check locations
+    for location in state.locations:
+        if hasattr(location, 'behaviors'):
+            check_behaviors(location.id, "Location", location.behaviors)
+
+    # Check doors
+    for door in state.doors:
+        if hasattr(door, 'behaviors'):
+            check_behaviors(door.id, "Door", door.behaviors)

@@ -8,7 +8,7 @@ from typing import Dict, Any
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
 from utilities.utils import (
-    find_accessible_item_with_adjective,
+    find_accessible_item,
     find_door_with_adjective,
     describe_location
 )
@@ -146,7 +146,7 @@ def handle_examine(accessor, action):
         )
 
     # Try to find an item first
-    item = find_accessible_item_with_adjective(accessor, object_name, adjective, actor_id)
+    item = find_accessible_item(accessor, object_name, actor_id, adjective)
 
     if item:
         message_parts = [f"{item.name}: {item.description}"]
@@ -171,6 +171,13 @@ def handle_examine(accessor, action):
                     message_parts.append(f"The {item.name} is empty.")
             elif not is_open and not is_surface:
                 message_parts.append(f"The {item.name} is closed.")
+
+        # Invoke entity behaviors (on_examine)
+        result = accessor.update(item, {}, verb="examine", actor_id=actor_id)
+
+        # Append behavior message if present
+        if result.message:
+            message_parts.append(result.message)
 
         return HandlerResult(
             success=True,

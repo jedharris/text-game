@@ -10,15 +10,22 @@ parameter and use it correctly. Never hardcode "player" - use the actor_id varia
 from typing import Optional, List
 
 
-def find_accessible_item(accessor, name: str, actor_id: str):
+def find_accessible_item(accessor, name: str, actor_id: str, adjective: Optional[str] = None):
     """
-    Find an item that is accessible to the actor.
+    Find an item that is accessible to the actor, optionally filtered by adjective.
 
     Search order (first match wins):
-    1. Items in actor's current location
+    1. Items in actor's current location (includes door items visible via exits)
     2. Items in actor's inventory
     3. Items on surface containers in location
     4. Items in open enclosed containers in location
+
+    Door items are included if they are visible in the location (via exit reference
+    or direct location). Hidden items are excluded.
+
+    If adjective is provided, only returns items whose id or description
+    contains the adjective. If no adjective or empty adjective, returns
+    first matching item by name.
 
     IMPORTANT: Do not hardcode 'player' - use the actor_id parameter.
 
@@ -26,6 +33,7 @@ def find_accessible_item(accessor, name: str, actor_id: str):
         accessor: StateAccessor instance
         name: Item name to search for
         actor_id: ID of the actor looking for the item
+        adjective: Optional adjective to filter by (or None/empty for first match)
 
     Returns:
         Item if found, None otherwise
@@ -40,20 +48,31 @@ def find_accessible_item(accessor, name: str, actor_id: str):
         return None
 
     name_lower = name.lower()
+    has_adjective = adjective and adjective.strip()
 
-    # Check items directly in location first
-    items_in_location = accessor.get_items_in_location(location.id)
-    for item in items_in_location:
-        if item.name.lower() == name_lower:
-            return item
+    # Collect all accessible items matching name
+    matching_items = []
 
-    # Check inventory
-    item = find_item_in_inventory(accessor, name, actor_id)
-    if item:
-        return item
+    # Check all visible items in location (uses _is_item_visible_in_location)
+    # This includes door items visible through exits and excludes hidden items
+    for item in accessor.game_state.items:
+        if _is_item_visible_in_location(item, location.id, accessor):
+            if item.name.lower() == name_lower:
+                matching_items.append(item)
+
+    # Check inventory (inventory items don't need visibility check)
+    for item_id in actor.inventory:
+        item = accessor.get_item(item_id)
+        if item and item.name.lower() == name_lower:
+            # Check not hidden even in inventory
+            if not item.properties.get("hidden", False):
+                matching_items.append(item)
 
     # Check containers in location
-    for container in items_in_location:
+    # Get visible items that are containers
+    visible_items = [item for item in accessor.game_state.items
+                     if _is_item_visible_in_location(item, location.id, accessor)]
+    for container in visible_items:
         container_info = container.properties.get("container", {})
         if not container_info:
             continue
@@ -64,12 +83,26 @@ def find_accessible_item(accessor, name: str, actor_id: str):
         # Surface containers are always accessible
         # Enclosed containers must be open
         if is_surface or is_open:
-            # Get items inside this container
-            items_in_container = accessor.get_items_in_location(container.id)
-            for item in items_in_container:
-                if item.name.lower() == name_lower:
-                    return item
+            # Get items inside this container (not hidden)
+            for item in accessor.game_state.items:
+                if item.location == container.id and item.name.lower() == name_lower:
+                    if not item.properties.get("hidden", False):
+                        matching_items.append(item)
 
+    # If no matches, return None
+    if not matching_items:
+        return None
+
+    # If no adjective, return first match
+    if not has_adjective:
+        return matching_items[0]
+
+    # Filter by adjective
+    for item in matching_items:
+        if _matches_adjective(adjective, item):
+            return item
+
+    # No match with adjective
     return None
 
 
@@ -129,21 +162,30 @@ def actor_has_key_for_door(accessor, actor_id: str, door) -> bool:
     """
     Check if actor has a key that can unlock the door.
 
+    Works with both old-style Door objects and unified door Item objects.
+
     IMPORTANT: Do not hardcode 'player' - use the actor_id parameter.
 
     Args:
         accessor: StateAccessor instance
         actor_id: ID of the actor to check
-        door: Door object to check
+        door: Door object or door Item to check
 
     Returns:
         True if actor has a key for the door, False otherwise
     """
-    # Get the lock for this door
-    if not hasattr(door, 'lock_id'):
+    # Handle door items (unified model) vs old-style Door objects
+    if hasattr(door, 'is_door') and door.is_door:
+        # Unified door item
+        lock_id = door.door_lock_id
+    else:
+        # Old-style Door object
+        lock_id = getattr(door, 'lock_id', None)
+
+    if not lock_id:
         return False
 
-    lock = accessor.get_lock(door.lock_id)
+    lock = accessor.get_lock(lock_id)
     if not lock:
         return False
 
@@ -207,7 +249,10 @@ def get_visible_actors_in_location(accessor, location_id: str, actor_id: str) ->
 
 def get_doors_in_location(accessor, location_id: str, actor_id: str) -> List:
     """
-    Get all doors in a location.
+    Get all doors visible in a location.
+
+    Returns door items that are visible in this location (via exit reference or
+    direct location). Falls back to old-style Door objects if any exist.
 
     Args:
         accessor: StateAccessor instance
@@ -215,14 +260,20 @@ def get_doors_in_location(accessor, location_id: str, actor_id: str) -> List:
         actor_id: ID of the actor viewing (for future visibility rules)
 
     Returns:
-        List of Door objects connected to this location
+        List of door Item objects (or old-style Door objects during migration)
     """
-    all_doors = accessor.game_state.doors
     doors_in_location = []
 
-    for door in all_doors:
-        if hasattr(door, 'locations') and location_id in door.locations:
-            doors_in_location.append(door)
+    # Get door items visible in this location
+    for item in accessor.game_state.items:
+        if item.is_door and _is_item_visible_in_location(item, location_id, accessor):
+            doors_in_location.append(item)
+
+    # Fall back to old-style doors if no door items found
+    if not doors_in_location:
+        for door in accessor.game_state.doors:
+            if hasattr(door, 'locations') and location_id in door.locations:
+                doors_in_location.append(door)
 
     return doors_in_location
 
@@ -259,80 +310,18 @@ def find_accessible_item_with_adjective(
     accessor, name: str, adjective: Optional[str], actor_id: str
 ):
     """
-    Find an item that is accessible to the actor, optionally filtered by adjective.
+    DEPRECATED: Use find_accessible_item(accessor, name, actor_id, adjective) instead.
 
-    If adjective is provided, only returns items whose id or description
-    contains the adjective. If no adjective or empty adjective, returns
-    first matching item by name.
-
-    IMPORTANT: Do not hardcode 'player' - use the actor_id parameter.
-
-    Args:
-        accessor: StateAccessor instance
-        name: Item name to search for
-        adjective: Optional adjective to filter by (or None/empty for first match)
-        actor_id: ID of the actor looking for the item
-
-    Returns:
-        Item if found, None otherwise
+    This function exists for backwards compatibility and will be removed in a future version.
     """
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return None
-
-    # Get current location
-    location = accessor.get_current_location(actor_id)
-    if not location:
-        return None
-
-    name_lower = name.lower()
-    has_adjective = adjective and adjective.strip()
-
-    # Collect all accessible items matching name
-    matching_items = []
-
-    # Check items directly in location first
-    items_in_location = accessor.get_items_in_location(location.id)
-    for item in items_in_location:
-        if item.name.lower() == name_lower:
-            matching_items.append(item)
-
-    # Check inventory
-    for item_id in actor.inventory:
-        item = accessor.get_item(item_id)
-        if item and item.name.lower() == name_lower:
-            matching_items.append(item)
-
-    # Check containers in location
-    for container in items_in_location:
-        container_info = container.properties.get("container", {})
-        if not container_info:
-            continue
-
-        is_surface = container_info.get("is_surface", False)
-        is_open = container_info.get("open", False)
-
-        if is_surface or is_open:
-            items_in_container = accessor.get_items_in_location(container.id)
-            for item in items_in_container:
-                if item.name.lower() == name_lower:
-                    matching_items.append(item)
-
-    # If no matches, return None
-    if not matching_items:
-        return None
-
-    # If no adjective, return first match
-    if not has_adjective:
-        return matching_items[0]
-
-    # Filter by adjective
-    for item in matching_items:
-        if _matches_adjective(adjective, item):
-            return item
-
-    # No match with adjective
-    return None
+    import warnings
+    warnings.warn(
+        "find_accessible_item_with_adjective() is deprecated. "
+        "Use find_accessible_item(accessor, name, actor_id, adjective) instead.",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    return find_accessible_item(accessor, name, actor_id, adjective)
 
 
 def find_container_with_adjective(
@@ -423,12 +412,31 @@ def find_item_in_container(accessor, item_name: str, container_id: str, adjectiv
     return None
 
 
+def _get_door_state(door):
+    """
+    Get door state (open, locked, lock_id) regardless of type.
+
+    Works with both unified door Items and old-style Door objects.
+
+    Returns:
+        tuple: (is_open, is_locked, lock_id)
+    """
+    if hasattr(door, 'is_door') and door.is_door:
+        # Unified door item
+        return (door.door_open, door.door_locked, door.door_lock_id)
+    else:
+        # Old-style Door object
+        return (door.open, door.locked, getattr(door, 'lock_id', None))
+
+
 def find_door_with_adjective(
     accessor, name: str, adjective: Optional[str], location_id: str,
     actor_id: Optional[str] = None, verb: Optional[str] = None
 ):
     """
     Find a door in a location, optionally filtered by adjective.
+
+    Works with both unified door Items and old-style Door objects.
 
     If adjective is provided, only returns doors whose id or description
     contains the adjective. If no adjective, uses smart selection based on
@@ -447,7 +455,7 @@ def find_door_with_adjective(
         verb: Optional verb being performed for smart selection
 
     Returns:
-        Door if found, None otherwise
+        Door item or Door object if found, None otherwise
     """
     name_lower = name.lower()
     has_adjective = adjective and adjective.strip()
@@ -456,13 +464,24 @@ def find_door_with_adjective(
     # Collect all doors in location matching name
     matching_doors = []
 
-    for door in accessor.game_state.doors:
-        if not hasattr(door, 'locations') or location_id not in door.locations:
+    # First check door items (unified model)
+    for item in accessor.game_state.items:
+        if not item.is_door:
             continue
+        if not _is_item_visible_in_location(item, location_id, accessor):
+            continue
+        # Check if name matches - for door items, check name and description
+        if name_lower in item.name.lower() or name_lower in item.description.lower():
+            matching_doors.append(item)
 
-        # Check if name matches id or description
-        if name_lower in door.id.lower() or name_lower in door.description.lower():
-            matching_doors.append(door)
+    # Fall back to old-style doors if no door items found
+    if not matching_doors:
+        for door in accessor.game_state.doors:
+            if not hasattr(door, 'locations') or location_id not in door.locations:
+                continue
+            # Check if name matches id or description
+            if name_lower in door.id.lower() or name_lower in door.description.lower():
+                matching_doors.append(door)
 
     # If no matches, return None
     if not matching_doors:
@@ -484,45 +503,90 @@ def find_door_with_adjective(
     if verb == "unlock":
         # Prefer locked doors that actor has key for
         for door in matching_doors:
-            if door.locked and actor_has_key_for_door(accessor, actor_id, door):
+            _, is_locked, _ = _get_door_state(door)
+            if is_locked and actor_has_key_for_door(accessor, actor_id, door):
                 return door
         # Fall back to any locked door
         for door in matching_doors:
-            if door.locked:
+            _, is_locked, _ = _get_door_state(door)
+            if is_locked:
                 return door
 
     elif verb == "open":
         # Prefer closed unlocked doors (immediately actionable)
         for door in matching_doors:
-            if not door.open and not door.locked:
+            is_open, is_locked, _ = _get_door_state(door)
+            if not is_open and not is_locked:
                 return door
         # Fall back to closed locked doors
         for door in matching_doors:
-            if not door.open:
+            is_open, _, _ = _get_door_state(door)
+            if not is_open:
                 return door
 
     elif verb == "close":
         # Prefer open doors
         for door in matching_doors:
-            if door.open:
+            is_open, _, _ = _get_door_state(door)
+            if is_open:
                 return door
 
     elif verb == "lock":
         # Prefer closed unlocked doors that actor has key for
         for door in matching_doors:
-            if not door.open and not door.locked and actor_has_key_for_door(accessor, actor_id, door):
+            is_open, is_locked, lock_id = _get_door_state(door)
+            if not is_open and not is_locked and actor_has_key_for_door(accessor, actor_id, door):
                 return door
         # Fall back to any closed unlocked door with a lock
         for door in matching_doors:
-            if not door.open and not door.locked and hasattr(door, 'lock_id') and door.lock_id:
+            is_open, is_locked, lock_id = _get_door_state(door)
+            if not is_open and not is_locked and lock_id:
                 return door
 
     # Default: prefer locked/closed doors over open ones
     for door in matching_doors:
-        if door.locked or not door.open:
+        is_open, is_locked, _ = _get_door_state(door)
+        if is_locked or not is_open:
             return door
 
     return matching_doors[0]
+
+
+def _is_item_visible_in_location(item, location_id: str, accessor) -> bool:
+    """
+    Check if item should be visible in a location.
+
+    An item is visible if:
+    1. It's not hidden (properties.hidden != True)
+    2. AND one of:
+       a. Its location is that room directly
+       b. For doors: any exit in that room references it via door_id
+
+    Args:
+        item: Item to check visibility for
+        location_id: ID of location to check visibility in
+        accessor: StateAccessor instance
+
+    Returns:
+        True if item should be visible, False otherwise
+    """
+    # Hidden items are not visible
+    if item.properties.get("hidden", False):
+        return False
+
+    # Direct location match
+    if item.location == location_id:
+        return True
+
+    # For doors: check if any exit in this location references the door
+    if item.is_door:
+        location = accessor.get_location(location_id)
+        if location:
+            for exit_desc in location.exits.values():
+                if exit_desc.door_id == item.id:
+                    return True
+
+    return False
 
 
 def gather_location_contents(accessor, location_id: str, actor_id: str) -> dict:
@@ -532,6 +596,12 @@ def gather_location_contents(accessor, location_id: str, actor_id: str) -> dict:
     This is the single source of truth for what's visible in a location.
     Used by both text formatting (describe_location) and JSON queries (_query_location).
 
+    Includes door items that are:
+    - Located directly in this room (decorative doors)
+    - Referenced by an exit in this room via door_id
+
+    Excludes hidden items (properties.hidden == True).
+
     Args:
         accessor: StateAccessor instance
         location_id: ID of location to gather contents for
@@ -539,15 +609,15 @@ def gather_location_contents(accessor, location_id: str, actor_id: str) -> dict:
 
     Returns:
         Dict with keys:
-            - items: List of items directly in location
+            - items: List of items directly in location (includes visible doors)
             - surface_items: Dict of container_name -> list of items on that surface
             - open_container_items: Dict of container_name -> list of items in open containers
             - actors: List of other actors in location
     """
-    # Collect items directly in location
+    # Collect all visible items in location
     items_here = []
     for item in accessor.game_state.items:
-        if item.location == location_id:
+        if _is_item_visible_in_location(item, location_id, accessor):
             items_here.append(item)
 
     # Collect items on surfaces and in open containers

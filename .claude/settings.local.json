@@ -24,7 +24,9 @@
       "Bash(mv:*)",
       "Bash(test:*)",
       "Bash(git stash:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(git -C /Users/jed/Development/text-game log --oneline -10)",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []

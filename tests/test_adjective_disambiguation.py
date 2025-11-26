@@ -13,7 +13,7 @@ from src.state_manager import Item, Door, Location
 
 
 class TestFindItemWithAdjective(unittest.TestCase):
-    """Test find_accessible_item_with_adjective utility function."""
+    """Test find_accessible_item utility function with adjective parameter."""
 
     def setUp(self):
         """Set up test state with multiple items of same name."""
@@ -45,10 +45,10 @@ class TestFindItemWithAdjective(unittest.TestCase):
 
     def test_find_item_with_matching_adjective(self):
         """Test finding item when adjective matches description."""
-        from utilities.utils import find_accessible_item_with_adjective
+        from utilities.utils import find_accessible_item
 
-        item = find_accessible_item_with_adjective(
-            self.accessor, "key", "iron", "player"
+        item = find_accessible_item(
+            self.accessor, "key", "player", adjective="iron"
         )
 
         self.assertIsNotNone(item)
@@ -56,10 +56,10 @@ class TestFindItemWithAdjective(unittest.TestCase):
 
     def test_find_item_with_different_adjective(self):
         """Test finding different item with different adjective."""
-        from utilities.utils import find_accessible_item_with_adjective
+        from utilities.utils import find_accessible_item
 
-        item = find_accessible_item_with_adjective(
-            self.accessor, "key", "brass", "player"
+        item = find_accessible_item(
+            self.accessor, "key", "player", adjective="brass"
         )
 
         self.assertIsNotNone(item)
@@ -67,10 +67,10 @@ class TestFindItemWithAdjective(unittest.TestCase):
 
     def test_find_item_no_adjective_returns_first(self):
         """Test that no adjective returns first matching item."""
-        from utilities.utils import find_accessible_item_with_adjective
+        from utilities.utils import find_accessible_item
 
-        item = find_accessible_item_with_adjective(
-            self.accessor, "key", None, "player"
+        item = find_accessible_item(
+            self.accessor, "key", "player", adjective=None
         )
 
         self.assertIsNotNone(item)
@@ -79,10 +79,10 @@ class TestFindItemWithAdjective(unittest.TestCase):
 
     def test_find_item_empty_adjective_returns_first(self):
         """Test that empty adjective returns first matching item."""
-        from utilities.utils import find_accessible_item_with_adjective
+        from utilities.utils import find_accessible_item
 
-        item = find_accessible_item_with_adjective(
-            self.accessor, "key", "", "player"
+        item = find_accessible_item(
+            self.accessor, "key", "player", adjective=""
         )
 
         self.assertIsNotNone(item)
@@ -90,21 +90,21 @@ class TestFindItemWithAdjective(unittest.TestCase):
 
     def test_find_item_no_match_returns_none(self):
         """Test that non-matching adjective returns None."""
-        from utilities.utils import find_accessible_item_with_adjective
+        from utilities.utils import find_accessible_item
 
-        item = find_accessible_item_with_adjective(
-            self.accessor, "key", "golden", "player"
+        item = find_accessible_item(
+            self.accessor, "key", "player", adjective="golden"
         )
 
         self.assertIsNone(item)
 
     def test_find_item_adjective_matches_id(self):
         """Test that adjective can match against item ID."""
-        from utilities.utils import find_accessible_item_with_adjective
+        from utilities.utils import find_accessible_item
 
         # "iron" appears in "item_iron_key"
-        item = find_accessible_item_with_adjective(
-            self.accessor, "key", "iron", "player"
+        item = find_accessible_item(
+            self.accessor, "key", "player", adjective="iron"
         )
 
         self.assertIsNotNone(item)

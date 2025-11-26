@@ -92,12 +92,22 @@ def handle_go(accessor, action):
         destination_id = exit_descriptor.to
         # Check for door blocking
         if exit_descriptor.type == 'door' and exit_descriptor.door_id:
-            door = accessor.get_door(exit_descriptor.door_id)
-            if door and not door.open:
-                return HandlerResult(
-                    success=False,
-                    message=f"The {door.description or 'door'} is closed."
-                )
+            # Try door item first (unified model)
+            door_item = accessor.get_door_item(exit_descriptor.door_id)
+            if door_item:
+                if not door_item.door_open:
+                    return HandlerResult(
+                        success=False,
+                        message=f"The {door_item.name} is closed."
+                    )
+            else:
+                # Fall back to old-style Door entity during migration
+                door = accessor.get_door(exit_descriptor.door_id)
+                if door and not door.open:
+                    return HandlerResult(
+                        success=False,
+                        message=f"The {door.description or 'door'} is closed."
+                    )
     else:
         # Plain string destination (backward compatibility)
         destination_id = exit_descriptor

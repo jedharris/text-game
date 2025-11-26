@@ -278,10 +278,20 @@ class LLMProtocolHandler:
 
         if "doors" in include or not include:
             doors = []
+            seen_door_ids = set()
+            # First check for door items through exits
+            for direction, exit_desc in loc.exits.items():
+                if exit_desc.door_id:
+                    door = self._get_door_by_id(exit_desc.door_id)
+                    if door and exit_desc.door_id not in seen_door_ids:
+                        seen_door_ids.add(exit_desc.door_id)
+                        door_dict = self._door_to_dict(door)
+                        door_dict["direction"] = direction
+                        doors.append(door_dict)
+            # Fallback: check old-style doors not already found
             for door in self.state.doors:
-                if loc.id in door.locations:
+                if loc.id in door.locations and door.id not in seen_door_ids:
                     door_dict = self._door_to_dict(door)
-                    # Add direction
                     for direction, exit_desc in loc.exits.items():
                         if exit_desc.door_id == door.id:
                             door_dict["direction"] = direction
@@ -385,10 +395,20 @@ class LLMProtocolHandler:
 
         if entity_type == "door":
             loc = self._get_location_by_id(location_id) if location_id else self._get_current_location()
+            seen_door_ids = set()
+            # First check for door items through exits
+            for direction, exit_desc in loc.exits.items():
+                if exit_desc.door_id:
+                    door = self._get_door_by_id(exit_desc.door_id)
+                    if door and exit_desc.door_id not in seen_door_ids:
+                        seen_door_ids.add(exit_desc.door_id)
+                        door_dict = self._door_to_dict(door)
+                        door_dict["direction"] = direction
+                        entities.append(door_dict)
+            # Fallback: check old-style doors not already found
             for door in self.state.doors:
-                if loc.id in door.locations:
+                if loc.id in door.locations and door.id not in seen_door_ids:
                     door_dict = self._door_to_dict(door)
-                    # Add direction
                     for direction, exit_desc in loc.exits.items():
                         if exit_desc.door_id == door.id:
                             door_dict["direction"] = direction
@@ -463,7 +483,12 @@ class LLMProtocolHandler:
         return None
 
     def _get_door_by_id(self, door_id: str):
-        """Get door by ID."""
+        """Get door by ID. Checks both door items and old-style doors."""
+        # First check door items (unified model)
+        for item in self.state.items:
+            if item.id == door_id and item.is_door:
+                return item
+        # Fallback to old-style doors
         for door in self.state.doors:
             if door.id == door_id:
                 return door
@@ -579,14 +604,25 @@ class LLMProtocolHandler:
         return result
 
     def _door_to_dict(self, door) -> Dict:
-        """Convert door to dict with llm_context."""
-        description = door.properties.get("description", "")
-        result = {
-            "id": door.id,
-            "description": description,
-            "open": door.properties.get("open", False),
-            "locked": door.properties.get("locked", False)
-        }
+        """Convert door to dict with llm_context. Handles both door items and old-style doors."""
+        # Handle door items (unified model)
+        if hasattr(door, 'is_door') and door.is_door:
+            description = door.description or ""
+            result = {
+                "id": door.id,
+                "description": description,
+                "open": door.door_open,
+                "locked": door.door_locked
+            }
+        else:
+            # Old-style Door object
+            description = door.properties.get("description", "") if hasattr(door, 'properties') else ""
+            result = {
+                "id": door.id,
+                "description": description,
+                "open": door.properties.get("open", False) if hasattr(door, 'properties') else getattr(door, 'open', False),
+                "locked": door.properties.get("locked", False) if hasattr(door, 'properties') else getattr(door, 'locked', False)
+            }
 
         # Get door name from description for consistency
         # Extract adjective from description for name
@@ -597,7 +633,7 @@ class LLMProtocolHandler:
         result["name"] = f"{adjective} door" if adjective else "door"
 
         # Add llm_context if available
-        if door.properties.get('llm_context'):
+        if hasattr(door, 'properties') and door.properties.get('llm_context'):
             result["llm_context"] = door.properties['llm_context']
 
         return result

@@ -135,6 +135,46 @@ class StateAccessor:
                 return lock
         return None
 
+    def get_door_item(self, door_id: str):
+        """
+        Get a door item by ID. Returns None if not found or not a door.
+
+        This is a convenience method for the unified Item/Door model where
+        doors are items with properties.door defined.
+
+        Args:
+            door_id: The door item ID to look up
+
+        Returns:
+            Item if found and is a door, None otherwise
+        """
+        item = self.get_item(door_id)
+        if item and item.is_door:
+            return item
+        return None
+
+    def get_door_for_exit(self, location_id: str, direction: str):
+        """
+        Get the door item for an exit, if any.
+
+        Looks up the exit descriptor for the given direction and returns
+        the door item referenced by door_id.
+
+        Args:
+            location_id: The location ID
+            direction: The exit direction (e.g., "north", "east")
+
+        Returns:
+            Item (door) if exit has a door, None otherwise
+        """
+        location = self.get_location(location_id)
+        if not location:
+            return None
+        exit_desc = location.exits.get(direction)
+        if not exit_desc or not exit_desc.door_id:
+            return None
+        return self.get_door_item(exit_desc.door_id)
+
     # Collection methods
 
     def get_current_location(self, actor_id: str):

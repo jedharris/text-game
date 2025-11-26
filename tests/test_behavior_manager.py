@@ -114,7 +114,8 @@ class TestBehaviorManagerLoadModule(unittest.TestCase):
         }
 
         with patch('importlib.import_module', side_effect=lambda name: modules[name]):
-            manager.load_modules(["module1", "module2"])
+            # load_modules expects list of (module_path, source_type) tuples
+            manager.load_modules([("module1", "regular"), ("module2", "regular")])
 
         self.assertTrue(manager.has_handler("action1"))
         self.assertTrue(manager.has_handler("action2"))
@@ -386,7 +387,8 @@ class TestBehaviorManagerVocabulary(unittest.TestCase):
         }
 
         with patch('importlib.import_module', side_effect=lambda name: modules[name]):
-            manager.load_modules(["module1", "module2"])
+            # load_modules expects list of (module_path, source_type) tuples
+            manager.load_modules([("module1", "regular"), ("module2", "regular")])
 
         base = {"verbs": [], "directions": []}
         merged = manager.get_merged_vocabulary(base)
@@ -483,14 +485,15 @@ class TestBehaviorManagerDiscovery(unittest.TestCase):
                 "def handle_test(handler, action): pass\n"
             )
 
-            # Test discovery
+            # Test discovery - returns list of (module_path, source_type) tuples
             modules = manager.discover_modules(str(behaviors_dir))
 
             # Should find the test_behavior module
-            self.assertTrue(any("test_behavior" in m for m in modules))
+            module_paths = [m[0] for m in modules]
+            self.assertTrue(any("test_behavior" in m for m in module_paths))
 
     def test_discover_modules_follows_symlinks(self):
-        """Test that discover_modules follows symlinks."""
+        """Test that discover_modules follows symlinks and marks them as symlink type."""
         manager = BehaviorManager()
 
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -513,12 +516,18 @@ class TestBehaviorManagerDiscovery(unittest.TestCase):
             symlink = behaviors_dir / "core"
             symlink.symlink_to(source_dir)
 
-            # Test discovery - rglob follows symlinks by default
+            # Test discovery - returns list of (module_path, source_type) tuples
             modules = manager.discover_modules(str(behaviors_dir))
 
             # Should find the shared module through symlink
             # The module path will include "core" since that's the symlink name
-            self.assertTrue(any("shared" in m for m in modules), f"Modules found: {modules}")
+            module_paths = [m[0] for m in modules]
+            self.assertTrue(any("shared" in m for m in module_paths), f"Modules found: {modules}")
+
+            # Modules found through symlink should have source_type "symlink"
+            for module_path, source_type in modules:
+                if "shared" in module_path:
+                    self.assertEqual(source_type, "symlink")
 
     def test_discover_modules_skips_init(self):
         """Test that discover_modules skips __init__.py files."""
@@ -531,10 +540,12 @@ class TestBehaviorManagerDiscovery(unittest.TestCase):
             behaviors_dir.mkdir()
             (behaviors_dir / "__init__.py").write_text("")
 
+            # Returns list of (module_path, source_type) tuples
             modules = manager.discover_modules(str(behaviors_dir))
 
             # Should not include __init__
-            self.assertFalse(any("__init__" in m for m in modules))
+            module_paths = [m[0] for m in modules]
+            self.assertFalse(any("__init__" in m for m in module_paths))
 
     def test_discover_modules_empty_directory(self):
         """Test discover_modules with empty directory."""

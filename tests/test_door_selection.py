@@ -67,8 +67,12 @@ class TestDoorSelection(unittest.TestCase):
     def test_open_prefers_closed_unlocked_door(self):
         """Test that 'open door' prefers a closed but unlocked door."""
         # Close the wooden door (it's unlocked)
-        wooden_door = self.accessor.get_door("door_wooden")
-        self.accessor.update(wooden_door, {"open": False})
+        # Use get_door_item for unified model, fallback to get_door for old model
+        wooden_door = self.accessor.get_door_item("door_wooden") or self.accessor.get_door("door_wooden")
+        if wooden_door and hasattr(wooden_door, 'door_open'):
+            wooden_door.door_open = False
+        elif wooden_door:
+            self.accessor.update(wooden_door, {"open": False})
 
         # Now we have:
         # - door_wooden: closed, unlocked (actionable!)
@@ -84,8 +88,12 @@ class TestDoorSelection(unittest.TestCase):
     def test_open_locked_door_fails_appropriately(self):
         """Test that 'open door' on locked door fails with locked message."""
         # Ensure wooden door is open, treasure door is locked
-        wooden_door = self.accessor.get_door("door_wooden")
-        self.accessor.update(wooden_door, {"open": True})
+        # Use get_door_item for unified model, fallback to get_door for old model
+        wooden_door = self.accessor.get_door_item("door_wooden") or self.accessor.get_door("door_wooden")
+        if wooden_door and hasattr(wooden_door, 'door_open'):
+            wooden_door.door_open = True
+        elif wooden_door:
+            self.accessor.update(wooden_door, {"open": True})
 
         # Now only door_treasure is closed (and locked)
         action = {"actor_id": "player", "object": "door"}
@@ -112,8 +120,12 @@ class TestDoorSelection(unittest.TestCase):
     def test_close_prefers_open_door(self):
         """Test that 'close door' prefers an open door."""
         # Ensure wooden door is open, treasure door is closed
-        wooden_door = self.accessor.get_door("door_wooden")
-        self.accessor.update(wooden_door, {"open": True})
+        # Use get_door_item for unified model, fallback to get_door for old model
+        wooden_door = self.accessor.get_door_item("door_wooden") or self.accessor.get_door("door_wooden")
+        if wooden_door and hasattr(wooden_door, 'door_open'):
+            wooden_door.door_open = True
+        elif wooden_door:
+            self.accessor.update(wooden_door, {"open": True})
 
         action = {"actor_id": "player", "object": "door"}
         result = self.behavior_manager.invoke_handler("close", self.accessor, action)
@@ -137,17 +149,18 @@ class TestDoorSelectionUtility(unittest.TestCase):
 
     def test_actor_has_key_for_door(self):
         """Test the actor_has_key_for_door utility."""
+        # Get door (unified model or old model)
+        door = self.accessor.get_door_item("door_treasure") or self.accessor.get_door("door_treasure")
+
         # Player without key
-        result = actor_has_key_for_door(self.accessor, "player",
-                                        self.accessor.get_door("door_treasure"))
+        result = actor_has_key_for_door(self.accessor, "player", door)
         self.assertFalse(result)
 
         # Give player the key
         player = self.accessor.get_actor("player")
         self.accessor.update(player, {"inventory": ["item_key"]})
 
-        result = actor_has_key_for_door(self.accessor, "player",
-                                        self.accessor.get_door("door_treasure"))
+        result = actor_has_key_for_door(self.accessor, "player", door)
         self.assertTrue(result)
 
     def test_find_door_with_adjective_iron(self):

@@ -983,8 +983,13 @@ class TestCommandMessages(unittest.TestCase):
         self.assertTrue(result["success"])
         # Door should now be open and unlocked
         iron_door = self.handler._get_door_by_id("door_iron")
-        self.assertTrue(iron_door.open)
-        self.assertFalse(iron_door.locked)
+        # Handle both door items and old-style doors
+        if hasattr(iron_door, 'is_door') and iron_door.is_door:
+            self.assertTrue(iron_door.door_open)
+            self.assertFalse(iron_door.door_locked)
+        else:
+            self.assertTrue(iron_door.open)
+            self.assertFalse(iron_door.locked)
 
     def test_open_locked_door_without_key(self):
         """Test opening locked door without key."""
@@ -1077,7 +1082,11 @@ class TestCommandMessages(unittest.TestCase):
 
         self.assertTrue(result["success"])
         iron_door = self.handler._get_door_by_id("door_iron")
-        self.assertFalse(iron_door.locked)
+        # Handle both door items and old-style doors
+        if hasattr(iron_door, 'is_door') and iron_door.is_door:
+            self.assertFalse(iron_door.door_locked)
+        else:
+            self.assertFalse(iron_door.locked)
 
     def test_unlock_door_without_key(self):
         """Test unlocking door without key."""
@@ -1477,7 +1486,11 @@ class TestEndToEndInteractions(unittest.TestCase):
 
         self.assertTrue(result["success"], f"Open failed: {result}")
         iron_door = self.handler._get_door_by_id("door_iron")
-        self.assertTrue(iron_door.open)
+        # Handle both door items and old-style doors
+        if hasattr(iron_door, 'is_door') and iron_door.is_door:
+            self.assertTrue(iron_door.door_open)
+        else:
+            self.assertTrue(iron_door.open)
 
     def test_failed_action_then_retry(self):
         """Test failed action, then success after getting requirements."""

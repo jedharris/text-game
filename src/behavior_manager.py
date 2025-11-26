@@ -173,19 +173,30 @@ class BehaviorManager:
                     if obj_required is not None and not isinstance(obj_required, (bool, str)):
                         raise ValueError(f"Module {module_name}: verb spec {i} 'object_required' must be a bool, str, or None")
 
-    def discover_modules(self, behaviors_dir: str) -> List[str]:
+    def discover_modules(self, behaviors_dir: str) -> List[tuple]:
         """
         Auto-discover behavior modules in a directory.
+
+        Detects symlinked directories and marks modules found within them
+        as source_type="symlink". This allows game-specific handlers to
+        override core handlers without conflict errors.
 
         Args:
             behaviors_dir: Path to behaviors directory
 
         Returns:
-            List of module paths (e.g., ["behaviors.core.consumables"])
+            List of (module_path, source_type) tuples where source_type is
+            "symlink" for modules found via symlinked directories, "regular" otherwise.
         """
         path = Path(behaviors_dir)
         if not path.exists():
             return []
+
+        # First, identify which immediate subdirectories are symlinks
+        symlinked_dirs = set()
+        for item in path.iterdir():
+            if item.is_symlink() and item.is_dir():
+                symlinked_dirs.add(item.name)
 
         modules = []
 
@@ -198,7 +209,14 @@ class BehaviorManager:
                     py_file = Path(root) / filename
                     relative = py_file.relative_to(path.parent)
                     module_path = str(relative.with_suffix("")).replace("/", ".").replace("\\", ".")
-                    modules.append(module_path)
+
+                    # Determine source_type based on whether path goes through a symlink
+                    # Check if any path component after behaviors_dir is a symlinked dir
+                    relative_to_behaviors = py_file.relative_to(path)
+                    first_component = relative_to_behaviors.parts[0] if relative_to_behaviors.parts else None
+                    source_type = "symlink" if first_component in symlinked_dirs else "regular"
+
+                    modules.append((module_path, source_type))
 
         return modules
 
@@ -261,10 +279,18 @@ class BehaviorManager:
                 handler = getattr(module, name)
                 self._register_handler(verb, handler, module_name, source_type)
 
-    def load_modules(self, module_paths: List[str]) -> None:
-        """Load multiple behavior modules."""
-        for path in module_paths:
-            self.load_module(path)
+    def load_modules(self, module_info: List[tuple]) -> None:
+        """Load multiple behavior modules.
+
+        Args:
+            module_info: List of (module_path, source_type) tuples from discover_modules()
+        """
+        for module_path, source_type in module_info:
+            self.load_module(module_path, source_type)
+
+    def get_loaded_modules(self) -> set:
+        """Return set of loaded module names for validation."""
+        return set(self._modules.keys())
 
     def get_merged_vocabulary(self, base_vocab: Dict) -> Dict:
         """

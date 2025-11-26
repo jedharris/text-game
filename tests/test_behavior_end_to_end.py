@@ -174,11 +174,13 @@ class TestLoadingGameWithBehaviors(unittest.TestCase):
         """Test that rubber duck module is discovered."""
         manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
+        # Returns list of (module_path, source_type) tuples
         modules = manager.discover_modules(str(behaviors_dir))
 
         # Should find the rubber duck module
+        module_paths = [m[0] for m in modules]
         self.assertTrue(
-            any("rubber_duck" in m for m in modules),
+            any("rubber_duck" in m for m in module_paths),
             f"rubber_duck not found in modules: {modules}"
         )
 

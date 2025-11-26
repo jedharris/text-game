@@ -324,19 +324,15 @@
           "holding_items": "holds various items"
         }
       }
-    }
-  ],
-  "doors": [
+    },
     {
       "id": "door_wooden",
-      "locations": [
-        "loc_start",
-        "loc_hallway"
-      ],
+      "name": "door",
       "description": "A simple wooden door.",
-      "properties": {
-        "locked": false,
-        "open": true
+      "location": "exit:loc_start:north",
+      "door": {
+        "open": true,
+        "locked": false
       },
       "llm_context": {
         "traits": [
@@ -356,14 +352,12 @@
     },
     {
       "id": "door_treasure",
-      "locations": [
-        "loc_hallway",
-        "loc_locked_room"
-      ],
+      "name": "door",
       "description": "A heavy iron door with a sturdy lock.",
-      "properties": {
-        "locked": true,
+      "location": "exit:loc_hallway:east",
+      "door": {
         "open": false,
+        "locked": true,
         "lock_id": "lock_treasure"
       },
       "llm_context": {

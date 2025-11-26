@@ -356,7 +356,7 @@ class TestGenericLoader(unittest.TestCase):
             os.unlink(temp_path)
 
     def test_load_door_properties(self):
-        """Door state fields go to properties."""
+        """Door state fields are migrated to door items."""
         from src.state_manager import load_game_state
 
         data = {
@@ -382,15 +382,19 @@ class TestGenericLoader(unittest.TestCase):
 
         try:
             state = load_game_state(temp_path)
-            door = state.doors[0]
+            # After migration, doors become items
+            # Old doors list should be empty
+            self.assertEqual(len(state.doors), 0)
 
-            # Core field
-            self.assertEqual(door.locations, ("loc_1", "loc_2"))
+            # Door should be migrated to an item
+            door_item = state.get_item("door_1")
+            self.assertIsNotNone(door_item)
+            self.assertTrue(door_item.is_door)
 
-            # Properties
-            self.assertEqual(door.properties["description"], "A door")
-            self.assertFalse(door.properties["open"])
-            self.assertTrue(door.properties["locked"])
+            # Check door state via item properties
+            self.assertEqual(door_item.description, "A door")
+            self.assertFalse(door_item.door_open)
+            self.assertTrue(door_item.door_locked)
         finally:
             os.unlink(temp_path)
 
@@ -1073,9 +1077,14 @@ class TestBackwardCompatibility(unittest.TestCase):
         state = load_game_state(fixture_path)
 
         self.assertEqual(len(state.locations), 3)
-        self.assertEqual(len(state.items), 5)
+        # Legacy doors are migrated to items: 5 original + 1 door = 6
+        self.assertEqual(len(state.items), 6)
         self.assertEqual(len(state.npcs), 1)
-        self.assertEqual(len(state.doors), 1)
+        # Doors list is empty after migration
+        self.assertEqual(len(state.doors), 0)
+        # But we have a door item
+        door_items = [i for i in state.items if i.is_door]
+        self.assertEqual(len(door_items), 1)
         self.assertEqual(len(state.locks), 2)
 
         # Check properties populated
@@ -1084,7 +1093,7 @@ class TestBackwardCompatibility(unittest.TestCase):
         self.assertTrue(chest.properties["container"]["locked"])
 
     def test_serialized_output_matches_input(self):
-        """Serialized output semantically matches input."""
+        """Serialized output semantically matches input (accounting for migration)."""
         from src.state_manager import load_game_state, game_state_to_dict
 
         fixture_path = Path(__file__).parent / "fixtures" / "valid_world.json"
@@ -1097,10 +1106,15 @@ class TestBackwardCompatibility(unittest.TestCase):
         state = load_game_state(fixture_path)
         serialized = game_state_to_dict(state)
 
-        # Compare item counts
-        self.assertEqual(len(serialized["items"]), len(original["items"]))
+        # Items: original + migrated doors
+        original_items = len(original.get("items", []))
+        original_doors = len(original.get("doors", []))
+        self.assertEqual(len(serialized["items"]), original_items + original_doors)
 
-        # Compare specific values
+        # Doors should be empty (migrated to items)
+        self.assertEqual(len(serialized.get("doors", [])), 0)
+
+        # Compare specific values for original items
         for orig_item in original["items"]:
             ser_item = next(i for i in serialized["items"] if i["id"] == orig_item["id"])
             self.assertEqual(ser_item.get("portable"), orig_item.get("portable"))

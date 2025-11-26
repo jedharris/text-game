@@ -116,7 +116,7 @@ def handle_open(accessor, action):
     """
     Handle open command.
 
-    Allows an actor to open a container or door.
+    Allows an actor to open a container or door item.
 
     CRITICAL: Extracts actor_id from action to support both player and NPCs.
 
@@ -125,6 +125,7 @@ def handle_open(accessor, action):
         action: Action dict with keys:
             - actor_id: ID of actor performing action (required)
             - object: Name of item/door to open (required)
+            - adjective: Optional adjective for disambiguation
 
     Returns:
         HandlerResult with success flag and message
@@ -148,53 +149,76 @@ def handle_open(accessor, action):
             message=f"INCONSISTENT STATE: Actor {actor_id} not found"
         )
 
-    # Get actor's current location for door search
+    # Get current location for door searches
     location = accessor.get_current_location(actor_id)
     location_id = location.id if location else None
 
-    # Try to find as door first (use adjective for disambiguation)
-    door = None
-    if location_id:
-        door = find_door_with_adjective(
+    # For door-related searches, use smart door selection
+    item = None
+    if object_name.lower() == "door" and location_id:
+        # Use find_door_with_adjective for smart selection
+        item = find_door_with_adjective(
             accessor, object_name, adjective, location_id,
             actor_id=actor_id, verb="open"
         )
 
-    if door:
-        # Check if already open
-        if door.open:
-            return HandlerResult(
-                success=True,
-                message=f"The {object_name} is already open."
+    # Fall back to general item search
+    if not item:
+        item = find_accessible_item(accessor, object_name, actor_id, adjective)
+
+    if not item:
+        # Try door lookup for backward compatibility during migration
+        if location_id:
+            door = find_door_with_adjective(
+                accessor, object_name, adjective, location_id,
+                actor_id=actor_id, verb="open"
             )
-
-        # Check if locked
-        if door.locked:
-            return HandlerResult(
-                success=False,
-                message=f"The {object_name} is locked."
-            )
-
-        # Open the door
-        result = accessor.update(door, {"open": True})
-        if not result.success:
-            return HandlerResult(
-                success=False,
-                message=f"INCONSISTENT STATE: Failed to open door: {result.message}"
-            )
-
-        return HandlerResult(
-            success=True,
-            message=f"You open the {object_name}."
-        )
-
-    # Try to find as item (container)
-    item = find_accessible_item(accessor, object_name, actor_id)
+            if door:
+                # Could be unified door Item or old-style Door
+                # Assign to item and let the unified handling below take over
+                item = door
 
     if not item:
         return HandlerResult(
             success=False,
             message=f"You don't see any {object_name} here."
+        )
+
+    # Check if it's a door item (unified model) or old-style Door
+    if hasattr(item, 'is_door') and item.is_door:
+        # Unified door item
+        if item.door_open:
+            return HandlerResult(
+                success=True,
+                message=f"The {object_name} is already open."
+            )
+        if item.door_locked:
+            return HandlerResult(
+                success=False,
+                message=f"The {object_name} is locked."
+            )
+        # Open the door item
+        item.door_open = True
+        return HandlerResult(
+            success=True,
+            message=f"You open the {object_name}."
+        )
+    elif hasattr(item, 'locations'):
+        # Old-style Door entity
+        if item.open:
+            return HandlerResult(
+                success=True,
+                message=f"The {object_name} is already open."
+            )
+        if item.locked:
+            return HandlerResult(
+                success=False,
+                message=f"The {object_name} is locked."
+            )
+        item.open = True
+        return HandlerResult(
+            success=True,
+            message=f"You open the {object_name}."
         )
 
     # Check if it's a container
@@ -243,7 +267,7 @@ def handle_close(accessor, action):
     """
     Handle close command.
 
-    Allows an actor to close a container or door.
+    Allows an actor to close a container or door item.
 
     CRITICAL: Extracts actor_id from action to support both player and NPCs.
 
@@ -252,6 +276,7 @@ def handle_close(accessor, action):
         action: Action dict with keys:
             - actor_id: ID of actor performing action (required)
             - object: Name of item/door to close (required)
+            - adjective: Optional adjective for disambiguation
 
     Returns:
         HandlerResult with success flag and message
@@ -275,46 +300,66 @@ def handle_close(accessor, action):
             message=f"INCONSISTENT STATE: Actor {actor_id} not found"
         )
 
-    # Get actor's current location for door search
+    # Get current location for door searches
     location = accessor.get_current_location(actor_id)
     location_id = location.id if location else None
 
-    # Try to find as door first (use adjective for disambiguation)
-    door = None
-    if location_id:
-        door = find_door_with_adjective(
+    # For door-related searches, use smart door selection
+    item = None
+    if object_name.lower() == "door" and location_id:
+        # Use find_door_with_adjective for smart selection
+        item = find_door_with_adjective(
             accessor, object_name, adjective, location_id,
             actor_id=actor_id, verb="close"
         )
 
-    if door:
-        # Check if already closed
-        if not door.open:
-            return HandlerResult(
-                success=True,
-                message=f"The {object_name} is already closed."
+    # Fall back to general item search
+    if not item:
+        item = find_accessible_item(accessor, object_name, actor_id, adjective)
+
+    if not item:
+        # Try door lookup for backward compatibility during migration
+        if location_id:
+            door = find_door_with_adjective(
+                accessor, object_name, adjective, location_id,
+                actor_id=actor_id, verb="close"
             )
-
-        # Close the door
-        result = accessor.update(door, {"open": False})
-        if not result.success:
-            return HandlerResult(
-                success=False,
-                message=f"INCONSISTENT STATE: Failed to close door: {result.message}"
-            )
-
-        return HandlerResult(
-            success=True,
-            message=f"You close the {object_name}."
-        )
-
-    # Try to find as item (container)
-    item = find_accessible_item(accessor, object_name, actor_id)
+            if door:
+                # Could be unified door Item or old-style Door
+                # Assign to item and let the unified handling below take over
+                item = door
 
     if not item:
         return HandlerResult(
             success=False,
             message=f"You don't see any {object_name} here."
+        )
+
+    # Check if it's a door item (unified model) or old-style Door
+    if hasattr(item, 'is_door') and item.is_door:
+        # Unified door item
+        if not item.door_open:
+            return HandlerResult(
+                success=True,
+                message=f"The {object_name} is already closed."
+            )
+        # Close the door item
+        item.door_open = False
+        return HandlerResult(
+            success=True,
+            message=f"You close the {object_name}."
+        )
+    elif hasattr(item, 'locations'):
+        # Old-style Door entity
+        if not item.open:
+            return HandlerResult(
+                success=True,
+                message=f"The {object_name} is already closed."
+            )
+        item.open = False
+        return HandlerResult(
+            success=True,
+            message=f"You close the {object_name}."
         )
 
     # Check if it's a container

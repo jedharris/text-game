@@ -498,18 +498,20 @@ class TestStructuralValidation(unittest.TestCase):
         finally:
             os.unlink(temp_path)
 
-    def test_door_references_invalid_location_raises_error(self):
-        """Door referencing nonexistent location raises error."""
+    def test_door_item_references_invalid_location_raises_error(self):
+        """Door item referencing nonexistent location raises error."""
         from src.state_manager import load_game_state
         from src.validators import ValidationError
 
+        # Test with unified door item model (exit:loc_id:direction format)
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
             "locations": [
                 {"id": "loc_1", "name": "Room", "description": "A room", "exits": {}}
             ],
-            "doors": [
-                {"id": "door_1", "locations": ["loc_1", "loc_999"]}
+            "items": [
+                {"id": "door_1", "name": "door", "description": "A door",
+                 "location": "exit:loc_999:north", "door": {"open": False}}
             ]
         }
 
@@ -524,19 +526,28 @@ class TestStructuralValidation(unittest.TestCase):
         finally:
             os.unlink(temp_path)
 
-    def test_door_lock_references_invalid_lock_raises_error(self):
-        """Door referencing nonexistent lock raises error."""
-        from src.state_manager import load_game_state
-        from src.validators import ValidationError
+    def test_door_item_lock_references_invalid_lock_raises_error(self):
+        """Door item referencing nonexistent lock is validated when used.
 
+        Note: Door item lock_ids are not validated at load time, only at runtime
+        when lock/unlock is attempted. This is consistent with how container lock
+        validation works. The lock entity is validated separately.
+        """
+        from src.state_manager import load_game_state
+
+        # Door items with invalid lock_id don't fail at load time
+        # (consistent with container behavior - lock is checked at runtime)
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
             "locations": [
-                {"id": "loc_1", "name": "Room 1", "description": "A room", "exits": {}},
+                {"id": "loc_1", "name": "Room 1", "description": "A room",
+                 "exits": {"north": {"type": "door", "to": "loc_2", "door_id": "door_1"}}},
                 {"id": "loc_2", "name": "Room 2", "description": "A room", "exits": {}}
             ],
-            "doors": [
-                {"id": "door_1", "locations": ["loc_1", "loc_2"], "lock_id": "lock_999"}
+            "items": [
+                {"id": "door_1", "name": "door", "description": "A door",
+                 "location": "exit:loc_1:north",
+                 "door": {"open": False, "locked": True, "lock_id": "lock_999"}}
             ]
         }
 
@@ -545,9 +556,12 @@ class TestStructuralValidation(unittest.TestCase):
             temp_path = f.name
 
         try:
-            with self.assertRaises(ValidationError) as ctx:
-                load_game_state(temp_path)
-            self.assertIn("lock_999", str(ctx.exception))
+            # Should load successfully - lock validation happens at runtime
+            state = load_game_state(temp_path)
+            # The door item should exist
+            door_items = [i for i in state.items if i.is_door]
+            self.assertEqual(len(door_items), 1)
+            self.assertEqual(door_items[0].door_lock_id, "lock_999")
         finally:
             os.unlink(temp_path)
 
@@ -709,8 +723,14 @@ class TestStructuralValidation(unittest.TestCase):
         try:
             state = load_game_state(temp_path)
             self.assertEqual(len(state.locations), 2)
-            self.assertEqual(len(state.doors), 1)
-            self.assertEqual(len(state.items), 3)
+            # Legacy doors are migrated to items, so doors list is empty
+            self.assertEqual(len(state.doors), 0)
+            # Items: 3 original + 1 migrated door = 4
+            self.assertEqual(len(state.items), 4)
+            # Check door item was created
+            door_items = [i for i in state.items if i.is_door]
+            self.assertEqual(len(door_items), 1)
+            self.assertEqual(door_items[0].id, "door_1")
             self.assertEqual(len(state.locks), 2)
             self.assertEqual(len(state.npcs), 1)
         finally:

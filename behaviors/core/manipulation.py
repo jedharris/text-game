@@ -9,7 +9,6 @@ from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
 from utilities.utils import (
     find_accessible_item,
-    find_accessible_item_with_adjective,
     find_item_in_inventory,
     find_container_with_adjective,
     find_item_in_container
@@ -169,7 +168,7 @@ def handle_take(accessor, action):
     else:
         # No container specified - find item anywhere accessible
         # Use adjective if provided for disambiguation
-        item = find_accessible_item_with_adjective(accessor, object_name, adjective, actor_id)
+        item = find_accessible_item(accessor, object_name, actor_id, adjective)
 
     if not item:
         return HandlerResult(

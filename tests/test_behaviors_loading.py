@@ -251,8 +251,10 @@ class TestBehaviorsLoading(unittest.TestCase):
 
         state = load_game_state(game_data)
 
-        door = state.get_door("door1")
-        self.assertIn("behaviors.doors:on_open_creaky", door.behaviors)
+        # After migration, doors become items
+        door_item = state.get_item("door1")
+        self.assertTrue(door_item.is_door)
+        self.assertIn("behaviors.doors:on_open_creaky", door_item.behaviors)
 
     def test_load_door_without_behaviors(self):
         """Test loading door without behaviors defaults to empty dict."""
@@ -283,8 +285,10 @@ class TestBehaviorsLoading(unittest.TestCase):
 
         state = load_game_state(game_data)
 
-        door = state.get_door("door1")
-        self.assertEqual(door.behaviors, [])
+        # After migration, doors become items
+        door_item = state.get_item("door1")
+        self.assertTrue(door_item.is_door)
+        self.assertEqual(door_item.behaviors, [])
 
     def test_load_location_with_behaviors(self):
         """Test loading location with behaviors field from JSON."""

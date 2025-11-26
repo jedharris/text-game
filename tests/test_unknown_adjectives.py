@@ -176,11 +176,11 @@ class TestMultipleAdjectiveDisambiguation(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        # Verify correct door was opened
-        door1 = next(d for d in self.state.doors if d.id == "door1")
-        door2 = next(d for d in self.state.doors if d.id == "door2")
-        self.assertTrue(door1.open)
-        self.assertFalse(door2.open)
+        # Verify correct door was opened (doors are migrated to items)
+        door1 = next(i for i in self.state.items if i.id == "door1")
+        door2 = next(i for i in self.state.items if i.id == "door2")
+        self.assertTrue(door1.door_open)
+        self.assertFalse(door2.door_open)
 
     def test_multiple_adjectives_disambiguate(self):
         """Test that multiple adjectives narrow down selection."""
@@ -191,8 +191,8 @@ class TestMultipleAdjectiveDisambiguation(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        door1 = next(d for d in self.state.doors if d.id == "door1")
-        self.assertTrue(door1.open)
+        door1 = next(i for i in self.state.items if i.id == "door1")
+        self.assertTrue(door1.door_open)
 
     def test_adjective_in_description_matches(self):
         """Test that adjectives match against description text."""
@@ -203,8 +203,8 @@ class TestMultipleAdjectiveDisambiguation(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        door1 = next(d for d in self.state.doors if d.id == "door1")
-        self.assertTrue(door1.open)
+        door1 = next(i for i in self.state.items if i.id == "door1")
+        self.assertTrue(door1.door_open)
 
     def test_no_matching_adjective_handled_gracefully(self):
         """Test that non-matching adjectives are handled gracefully."""
