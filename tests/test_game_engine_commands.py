@@ -1,7 +1,7 @@
 """Tests for game_engine.py command handling.
 
 These tests verify that commands like 'look', 'put X on Y', and 'examine'
-work correctly through the text parser interface.
+work correctly through the JSON protocol interface.
 """
 
 import unittest
@@ -17,7 +17,9 @@ sys.path.insert(0, str(project_root))
 from src.parser import Parser
 from src.state_manager import load_game_state
 from src.behavior_manager import BehaviorManager
+from src.llm_protocol import JSONProtocolHandler
 from src.vocabulary_generator import extract_nouns_from_state, merge_vocabulary
+from src.game_engine import format_location_query
 
 
 class TestVocabularyMerging(unittest.TestCase):
@@ -137,68 +139,75 @@ class TestGameEngineIntegration(unittest.TestCase):
         self.assertTrue(self.behavior_manager.has_handler("put"))
 
 
-class TestExamineContainer(unittest.TestCase):
-    """Test examine command for containers shows contents."""
+class TestLocationQuery(unittest.TestCase):
+    """Test location query shows items on surfaces."""
 
     def setUp(self):
         """Set up test fixtures."""
         self.state = load_game_state(str(project_root / "examples" / "simple_game_state.json"))
+        self.behavior_manager = BehaviorManager()
+        behaviors_dir = project_root / "behaviors"
+        modules = self.behavior_manager.discover_modules(str(behaviors_dir))
+        self.behavior_manager.load_modules(modules)
+        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.behavior_manager)
+
         # Move player to hallway where table with lantern is
         self.state.player.location = "loc_hallway"
 
-    def test_examine_surface_shows_items(self):
-        """Test that examining a surface container shows items on it."""
-        import io
+    def test_location_query_shows_items_on_surfaces(self):
+        """Test that location query shows items on surface containers."""
+        response = self.handler.handle_message({
+            "type": "query",
+            "query_type": "location",
+            "include": ["items", "doors"]
+        })
 
-        # Capture stdout
-        captured = io.StringIO()
-        old_stdout = sys.stdout
-        sys.stdout = captured
-
-        try:
-            # Import and call examine_item
-            from src.game_engine import examine_item
-            result = examine_item(self.state, "table")
-        finally:
-            sys.stdout = old_stdout
-
-        output = captured.getvalue()
-
-        self.assertTrue(result)
-        self.assertIn("table", output.lower())
-        # Should show the lantern on the table
-        self.assertIn("lantern", output.lower())
-
-
-class TestDescribeLocation(unittest.TestCase):
-    """Test describe_location shows items on surfaces."""
-
-    def setUp(self):
-        """Set up test fixtures."""
-        self.state = load_game_state(str(project_root / "examples" / "simple_game_state.json"))
-        # Move player to hallway where table with lantern is
-        self.state.player.location = "loc_hallway"
-
-    def test_describe_location_shows_items_on_surfaces(self):
-        """Test that describe_location shows items on surface containers."""
-        import io
-
-        captured = io.StringIO()
-        old_stdout = sys.stdout
-        sys.stdout = captured
-
-        try:
-            from src.game_engine import describe_location
-            describe_location(self.state)
-        finally:
-            sys.stdout = old_stdout
-
-        output = captured.getvalue()
+        output = format_location_query(response)
 
         # Should show the table
         self.assertIn("table", output.lower())
         # Should show the lantern on the table
         self.assertIn("lantern", output.lower())
+
+    def test_location_query_raw_data_has_on_surface(self):
+        """Test that location query raw data marks items on surfaces."""
+        response = self.handler.handle_message({
+            "type": "query",
+            "query_type": "location",
+            "include": ["items"]
+        })
+
+        items = response.get("data", {}).get("items", [])
+        lantern = next((i for i in items if i.get("name") == "lantern"), None)
+
+        self.assertIsNotNone(lantern)
+        self.assertEqual(lantern.get("on_surface"), "table")
+
+
+class TestExamineCommand(unittest.TestCase):
+    """Test examine command via JSON protocol."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        self.state = load_game_state(str(project_root / "examples" / "simple_game_state.json"))
+        self.behavior_manager = BehaviorManager()
+        behaviors_dir = project_root / "behaviors"
+        modules = self.behavior_manager.discover_modules(str(behaviors_dir))
+        self.behavior_manager.load_modules(modules)
+        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.behavior_manager)
+
+        # Move player to hallway where table with lantern is
+        self.state.player.location = "loc_hallway"
+
+    def test_examine_command_finds_item_by_name(self):
+        """Test that examine command finds items by name."""
+        response = self.handler.handle_message({
+            "type": "command",
+            "action": {"verb": "examine", "object": "table"}
+        })
+
+        self.assertTrue(response.get("success"))
+        self.assertIn("table", response.get("message", "").lower())
 
 
 if __name__ == "__main__":

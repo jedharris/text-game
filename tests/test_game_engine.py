@@ -1,19 +1,21 @@
-"""Tests for game_engine module."""
+"""Tests for game_engine module.
+
+These tests verify that game_engine.py correctly formats JSON protocol
+responses as text output, including behavior messages.
+"""
 
 import unittest
 import json
 from pathlib import Path
-from io import StringIO
-from unittest.mock import patch
 
-from src.game_engine import take_item, drop_item
+from src.game_engine import format_command_result, format_location_query, format_inventory_query
 from src.state_manager import load_game_state
 from src.llm_protocol import JSONProtocolHandler
 from src.behavior_manager import BehaviorManager
 
 
 class TestBehaviorMessageDisplay(unittest.TestCase):
-    """Test that behavior messages are displayed correctly."""
+    """Test that behavior messages are displayed correctly via JSON protocol."""
 
     def setUp(self):
         """Set up test fixtures with lantern that has on_take/on_drop behaviors."""
@@ -33,40 +35,50 @@ class TestBehaviorMessageDisplay(unittest.TestCase):
         # Move player to hallway where lantern is
         self.state.player.location = "loc_hallway"
 
-    def test_take_item_displays_behavior_message(self):
-        """Test that take_item displays behavior message from on_take."""
-        with patch('sys.stdout', new=StringIO()) as mock_stdout:
-            result = take_item(self.state, "lantern", json_handler=self.handler)
-            output = mock_stdout.getvalue()
+    def test_take_command_includes_behavior_message(self):
+        """Test that take command includes behavior message from on_take."""
+        result = self.handler.handle_message({
+            "type": "command",
+            "action": {"verb": "take", "object": "lantern"}
+        })
 
-        self.assertTrue(result)
-        # Check that the behavior message was printed
+        self.assertTrue(result.get("success"))
+        output = format_command_result(result)
+        # Check that the behavior message was included
         self.assertIn("runes", output.lower())
         self.assertIn("glow", output.lower())
 
-    def test_drop_item_displays_behavior_message(self):
-        """Test that drop_item displays behavior message from on_drop."""
+    def test_drop_command_includes_behavior_message(self):
+        """Test that drop command includes behavior message from on_drop."""
         # First take the lantern
-        take_item(self.state, "lantern", json_handler=self.handler)
+        self.handler.handle_message({
+            "type": "command",
+            "action": {"verb": "take", "object": "lantern"}
+        })
 
-        with patch('sys.stdout', new=StringIO()) as mock_stdout:
-            result = drop_item(self.state, "lantern", json_handler=self.handler)
-            output = mock_stdout.getvalue()
+        # Then drop it
+        result = self.handler.handle_message({
+            "type": "command",
+            "action": {"verb": "drop", "object": "lantern"}
+        })
 
-        self.assertTrue(result)
-        # Check that the behavior message was printed
+        self.assertTrue(result.get("success"))
+        output = format_command_result(result)
+        # Check that the behavior message was included
         self.assertIn("runes", output.lower())
         self.assertIn("fade", output.lower())
 
-    def test_take_item_without_behavior_no_extra_output(self):
-        """Test that items without behaviors don't print extra messages."""
+    def test_take_item_without_behavior_basic_message(self):
+        """Test that items without behaviors have basic message."""
         # Key is in loc_hallway and has no on_take behavior
-        with patch('sys.stdout', new=StringIO()) as mock_stdout:
-            result = take_item(self.state, "key", json_handler=self.handler)
-            output = mock_stdout.getvalue()
+        result = self.handler.handle_message({
+            "type": "command",
+            "action": {"verb": "take", "object": "key"}
+        })
 
-        self.assertTrue(result)
-        # Should just have the basic "You take the key" message
+        self.assertTrue(result.get("success"))
+        output = format_command_result(result)
+        # Should have the basic "You take the key" message
         self.assertIn("take", output.lower())
         self.assertIn("key", output.lower())
         # Should not have behavior-specific text (like lantern runes)
@@ -91,7 +103,7 @@ class TestMessageKeyConsistency(unittest.TestCase):
 
     def test_take_result_uses_message_key(self):
         """Test that take command result uses 'message' key, not 'behavior_message'."""
-        result = self.handler.handle_command({
+        result = self.handler.handle_message({
             "type": "command",
             "action": {"verb": "take", "object": "lantern"}
         })
@@ -105,13 +117,13 @@ class TestMessageKeyConsistency(unittest.TestCase):
     def test_drop_result_uses_message_key(self):
         """Test that drop command result uses 'message' key, not 'behavior_message'."""
         # First take
-        self.handler.handle_command({
+        self.handler.handle_message({
             "type": "command",
             "action": {"verb": "take", "object": "lantern"}
         })
 
         # Then drop
-        result = self.handler.handle_command({
+        result = self.handler.handle_message({
             "type": "command",
             "action": {"verb": "drop", "object": "lantern"}
         })
@@ -162,7 +174,7 @@ class TestLLMGameSetup(unittest.TestCase):
 
         # Move to hallway and take lantern
         state.player.location = "loc_hallway"
-        result = json_handler.handle_command({
+        result = json_handler.handle_message({
             "type": "command",
             "action": {"verb": "take", "object": "lantern"}
         })
@@ -178,6 +190,58 @@ class TestLLMGameSetup(unittest.TestCase):
             lantern.states.get("lit"),
             "Lantern not lit - behavior not invoked"
         )
+
+
+class TestFormatFunctions(unittest.TestCase):
+    """Test the format functions used to convert JSON responses to text."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        fixture_path = Path(__file__).parent.parent / "examples" / "simple_game_state.json"
+        self.state = load_game_state(fixture_path)
+
+        self.manager = BehaviorManager()
+        behaviors_dir = Path(__file__).parent.parent / "behaviors"
+        modules = self.manager.discover_modules(str(behaviors_dir))
+        self.manager.load_modules(modules)
+
+        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.manager)
+
+    def test_format_command_result_success(self):
+        """Test formatting successful command result."""
+        result = {"success": True, "message": "You did the thing."}
+        output = format_command_result(result)
+        self.assertEqual(output, "You did the thing.")
+
+    def test_format_command_result_failure(self):
+        """Test formatting failed command result."""
+        result = {"success": False, "error": {"code": "NOTFOUND", "message": "Item not found."}}
+        output = format_command_result(result)
+        self.assertEqual(output, "Item not found.")
+
+    def test_format_location_query_basic(self):
+        """Test formatting basic location query."""
+        self.state.player.location = "loc_hallway"
+        response = self.handler.handle_message({
+            "type": "query",
+            "query_type": "location",
+            "include": ["items", "doors"]
+        })
+        output = format_location_query(response)
+        self.assertIn("Hallway", output)
+
+    def test_format_inventory_query_empty(self):
+        """Test formatting empty inventory."""
+        response = {"success": True, "data": {"items": []}}
+        output = format_inventory_query(response)
+        self.assertIn("not carrying anything", output.lower())
+
+    def test_format_inventory_query_with_items(self):
+        """Test formatting inventory with items."""
+        response = {"success": True, "data": {"items": [{"name": "key"}, {"name": "sword"}]}}
+        output = format_inventory_query(response)
+        self.assertIn("key", output)
+        self.assertIn("sword", output)
 
 
 if __name__ == '__main__':
