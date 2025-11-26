@@ -234,35 +234,45 @@ class LLMProtocolHandler:
     # Query handlers
 
     def _query_location(self, message: Dict) -> Dict:
-        """Query current location."""
+        """Query current location.
+
+        Uses gather_location_contents utility for unified item/actor gathering.
+        """
+        from utilities.utils import gather_location_contents
+        from src.state_accessor import StateAccessor
+
         loc = self._get_current_location()
         include = message.get("include", [])
+        actor_id = message.get("actor_id", "player")
 
         data = {
             "location": self._location_to_dict(loc)
         }
 
+        # Use unified utility for gathering location contents
+        accessor = StateAccessor(self.state, self.behavior_manager)
+        contents = gather_location_contents(accessor, loc.id, actor_id)
+
         if "items" in include or not include:
             items = []
-            # Get items directly in location
-            for item in self.state.items:
-                if item.location == loc.id:
-                    items.append(self._entity_to_dict(item))
 
-            # Get items on surface containers and in open enclosed containers
-            for container in self.state.items:
-                container_props = container.properties.get("container")
-                if container.location == loc.id and container_props:
-                    # Surface containers: always show items
-                    if container_props.get("is_surface", False):
-                        for item in self.state.items:
-                            if item.location == container.id:
-                                items.append(self._entity_to_dict(item))
-                    # Enclosed containers: only show if open
-                    elif container_props.get("open", False):
-                        for item in self.state.items:
-                            if item.location == container.id:
-                                items.append(self._entity_to_dict(item))
+            # Items directly in location
+            for item in contents["items"]:
+                items.append(self._entity_to_dict(item))
+
+            # Items on surfaces - add with on_surface marker
+            for container_name, container_items in contents["surface_items"].items():
+                for item in container_items:
+                    item_dict = self._entity_to_dict(item)
+                    item_dict["on_surface"] = container_name
+                    items.append(item_dict)
+
+            # Items in open containers - add with in_container marker
+            for container_name, container_items in contents["open_container_items"].items():
+                for item in container_items:
+                    item_dict = self._entity_to_dict(item)
+                    item_dict["in_container"] = container_name
+                    items.append(item_dict)
 
             data["items"] = items
 
@@ -291,18 +301,8 @@ class LLMProtocolHandler:
             data["exits"] = exits
 
         if "actors" in include or "npcs" in include or not include:
-            # Use utility function for unified actor handling
-            from utilities.utils import get_visible_actors_in_location
-            from src.state_accessor import StateAccessor
-
-            # Get actor_id from message, default to player
-            actor_id = message.get("actor_id", "player")
-
-            accessor = StateAccessor(self.state, self.behavior_manager)
-            visible_actors = get_visible_actors_in_location(accessor, loc.id, actor_id)
-
             actors = []
-            for actor in visible_actors:
+            for actor in contents["actors"]:
                 actors.append(self._actor_to_dict(actor))
             data["actors"] = actors
 

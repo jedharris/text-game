@@ -523,3 +523,103 @@ def find_door_with_adjective(
             return door
 
     return matching_doors[0]
+
+
+def gather_location_contents(accessor, location_id: str, actor_id: str) -> dict:
+    """
+    Gather all visible contents of a location.
+
+    This is the single source of truth for what's visible in a location.
+    Used by both text formatting (describe_location) and JSON queries (_query_location).
+
+    Args:
+        accessor: StateAccessor instance
+        location_id: ID of location to gather contents for
+        actor_id: ID of the actor viewing (excluded from actor list)
+
+    Returns:
+        Dict with keys:
+            - items: List of items directly in location
+            - surface_items: Dict of container_name -> list of items on that surface
+            - open_container_items: Dict of container_name -> list of items in open containers
+            - actors: List of other actors in location
+    """
+    # Collect items directly in location
+    items_here = []
+    for item in accessor.game_state.items:
+        if item.location == location_id:
+            items_here.append(item)
+
+    # Collect items on surfaces and in open containers
+    surface_items = {}  # container_name -> [items]
+    open_container_items = {}  # container_name -> [items]
+
+    for container in items_here:
+        container_props = container.properties.get("container", {})
+        if not container_props:
+            continue
+
+        is_surface = container_props.get("is_surface", False)
+        is_open = container_props.get("open", False)
+
+        if is_surface or is_open:
+            items_in_container = []
+            for item in accessor.game_state.items:
+                if item.location == container.id:
+                    items_in_container.append(item)
+
+            if items_in_container:
+                if is_surface:
+                    surface_items[container.name] = items_in_container
+                else:
+                    open_container_items[container.name] = items_in_container
+
+    # Collect other actors
+    actors_here = []
+    for other_actor_id, other_actor in accessor.game_state.actors.items():
+        if other_actor.location == location_id and other_actor_id != actor_id:
+            actors_here.append(other_actor)
+
+    return {
+        "items": items_here,
+        "surface_items": surface_items,
+        "open_container_items": open_container_items,
+        "actors": actors_here
+    }
+
+
+def describe_location(accessor, location, actor_id: str) -> List[str]:
+    """
+    Build a text description of a location including items and actors.
+
+    Uses gather_location_contents for data, then formats as text.
+
+    Args:
+        accessor: StateAccessor instance
+        location: Location object to describe
+        actor_id: ID of the actor viewing (excluded from actor list)
+
+    Returns:
+        List of strings that can be joined to form the description
+    """
+    message_parts = [f"{location.name}\n{location.description}"]
+
+    contents = gather_location_contents(accessor, location.id, actor_id)
+
+    if contents["items"]:
+        item_names = ", ".join([item.name for item in contents["items"]])
+        message_parts.append(f"\nYou see: {item_names}")
+
+    for container_name, items in contents["surface_items"].items():
+        item_names = ", ".join([item.name for item in items])
+        message_parts.append(f"On the {container_name}: {item_names}")
+
+    for container_name, items in contents["open_container_items"].items():
+        item_names = ", ".join([item.name for item in items])
+        message_parts.append(f"In the {container_name}: {item_names}")
+
+    if contents["actors"]:
+        actor_names = ", ".join([a.name for a in contents["actors"]])
+        message_parts.append(f"\nAlso here: {actor_names}")
+
+    return message_parts

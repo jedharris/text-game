@@ -9,7 +9,8 @@ from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
 from utilities.utils import (
     find_accessible_item_with_adjective,
-    find_door_with_adjective
+    find_door_with_adjective,
+    describe_location
 )
 
 
@@ -90,28 +91,8 @@ def handle_look(accessor, action):
             message=f"INCONSISTENT STATE: Cannot find location for actor {actor_id}"
         )
 
-    # Build description
-    message_parts = [f"{location.name}\n{location.description}"]
-
-    # List items in location
-    items_here = []
-    for item in accessor.game_state.items:
-        if item.location == location.id:
-            items_here.append(item)
-
-    if items_here:
-        item_names = ", ".join([item.name for item in items_here])
-        message_parts.append(f"\nYou see: {item_names}")
-
-    # List other actors in location
-    actors_here = []
-    for other_actor_id, other_actor in accessor.game_state.actors.items():
-        if other_actor.location == location.id and other_actor_id != actor_id:
-            actors_here.append(other_actor)
-
-    if actors_here:
-        actor_names = ", ".join([a.name for a in actors_here])
-        message_parts.append(f"\nAlso here: {actor_names}")
+    # Use shared utility to build location description
+    message_parts = describe_location(accessor, location, actor_id)
 
     return HandlerResult(
         success=True,
@@ -168,9 +149,32 @@ def handle_examine(accessor, action):
     item = find_accessible_item_with_adjective(accessor, object_name, adjective, actor_id)
 
     if item:
+        message_parts = [f"{item.name}: {item.description}"]
+
+        # If item is a container, show its contents
+        container_props = item.properties.get("container", {})
+        if container_props:
+            is_surface = container_props.get("is_surface", False)
+            is_open = container_props.get("open", False)
+
+            # Surface containers always show contents, enclosed only if open
+            if is_surface or is_open:
+                contents = []
+                for other_item in accessor.game_state.items:
+                    if other_item.location == item.id:
+                        contents.append(other_item.name)
+
+                if contents:
+                    preposition = "On" if is_surface else "In"
+                    message_parts.append(f"{preposition} the {item.name}: {', '.join(contents)}")
+                elif is_surface:
+                    message_parts.append(f"The {item.name} is empty.")
+            elif not is_open and not is_surface:
+                message_parts.append(f"The {item.name} is closed.")
+
         return HandlerResult(
             success=True,
-            message=f"{item.name}: {item.description}"
+            message="\n".join(message_parts)
         )
 
     # If no item found, try to find a door

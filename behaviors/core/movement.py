@@ -7,6 +7,7 @@ from typing import Dict, Any
 
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
+from utilities.utils import describe_location
 
 
 # Vocabulary extension - adds movement verbs
@@ -119,31 +120,10 @@ def handle_go(accessor, action):
         )
 
     # Build message with movement and auto-look
-    message_parts = [f"You go {direction} to {destination.name}."]
+    message_parts = [f"You go {direction} to {destination.name}.\n"]
 
-    # Add location description (auto-look)
-    message_parts.append(f"\n{destination.name}")
-    message_parts.append(destination.description)
-
-    # List items in new location
-    items_here = []
-    for item in accessor.game_state.items:
-        if item.location == destination_id:
-            items_here.append(item)
-
-    if items_here:
-        item_names = ", ".join([item.name for item in items_here])
-        message_parts.append(f"\nYou see: {item_names}")
-
-    # List other actors in new location
-    actors_here = []
-    for other_actor_id, other_actor in accessor.game_state.actors.items():
-        if other_actor.location == destination_id and other_actor_id != actor_id:
-            actors_here.append(other_actor)
-
-    if actors_here:
-        actor_names = ", ".join([a.name for a in actors_here])
-        message_parts.append(f"\nAlso here: {actor_names}")
+    # Add location description using shared utility
+    message_parts.extend(describe_location(accessor, destination, actor_id))
 
     return HandlerResult(
         success=True,
