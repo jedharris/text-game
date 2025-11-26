@@ -443,6 +443,25 @@ class TestDoorStateAdjectives(unittest.TestCase):
         self.assertIsNotNone(item)
         self.assertTrue(item.door_locked)
 
+    @unittest.skip("Parser treats 'open' as verb, not adjective - needs parser fix")
+    def test_open_adjective_parsed_correctly(self):
+        """Test that 'examine open door' parses with 'open' as adjective.
+
+        Currently fails because 'open' is registered as a VERB in the vocabulary,
+        so the parser sees VERB + VERB + NOUN which doesn't match any pattern.
+        Fixing this requires the parser to handle words that can be both verbs
+        and adjectives based on context.
+        """
+        from src.parser import Parser
+
+        parser = Parser('tests/command_parser/fixtures/test_vocabulary.json')
+        result = parser.parse_command('examine open door')
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.verb.word, 'examine')
+        self.assertEqual(result.direct_adjective.word, 'open')
+        self.assertEqual(result.direct_object.word, 'door')
+
 
 if __name__ == '__main__':
     unittest.main()
