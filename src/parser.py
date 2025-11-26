@@ -161,14 +161,27 @@ class Parser:
             return None
 
         entries: List[WordEntry] = []
-        for token in tokens:
+        for i, token in enumerate(tokens):
             entry = self._lookup_word(token)
             if entry is None:
-                # Treat unknown words as potential adjectives
-                entry = WordEntry(
-                    word=token,
-                    word_type=WordType.ADJECTIVE
-                )
+                # Unknown word - determine type based on context
+                # If followed by another unknown word or known noun, treat as adjective
+                # Otherwise treat as noun (handler will resolve against game state)
+                next_token = tokens[i + 1] if i + 1 < len(tokens) else None
+                next_entry = self._lookup_word(next_token) if next_token else None
+
+                if next_token and (next_entry is None or next_entry.word_type == WordType.NOUN):
+                    # Unknown word before another potential noun -> adjective
+                    entry = WordEntry(
+                        word=token,
+                        word_type=WordType.ADJECTIVE
+                    )
+                else:
+                    # Unknown word at end or before non-noun -> noun
+                    entry = WordEntry(
+                        word=token,
+                        word_type=WordType.NOUN
+                    )
             if entry.word_type == WordType.ARTICLE:
                 continue
             entries.append(entry)

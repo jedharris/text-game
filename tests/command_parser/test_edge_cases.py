@@ -75,11 +75,14 @@ class TestErrorHandling(unittest.TestCase):
         """
         Test EH-006: Known + unknown words.
 
-        Verify that commands with some unknown words return None.
+        Unknown words are passed through as nouns for the handler to resolve.
         """
         result = self.parser.parse_command("take frobulate")
 
-        self.assertIsNone(result)
+        # Unknown words are treated as nouns and passed to handler
+        self.assertIsNotNone(result)
+        self.assertEqual(result.verb.word, "take")
+        self.assertEqual(result.direct_object.word, "frobulate")
 
     def test_all_articles(self):
         """
@@ -261,29 +264,37 @@ class TestEdgeCases(unittest.TestCase):
         # Punctuation is typically not in vocabulary
         result = self.parser.parse_command("take sword!")
 
-        # The "sword!" token won't match "sword" unless we strip punctuation
-        # For now, this should return None (unknown word)
-        self.assertIsNone(result)
+        # The "sword!" token won't match "sword" but is passed through as noun
+        # Handler will fail to find "sword!" in game state
+        self.assertIsNotNone(result)
+        self.assertEqual(result.verb.word, "take")
+        self.assertEqual(result.direct_object.word, "sword!")
 
     def test_numbers_in_input(self):
         """
         Test EC-010: Numbers in input.
 
-        Verify that numbers are treated as unknown words.
+        Numbers are treated as unknown words and passed through as nouns.
         """
         result = self.parser.parse_command("take 123")
 
-        self.assertIsNone(result)
+        # Unknown words (including numbers) are passed through as nouns
+        self.assertIsNotNone(result)
+        self.assertEqual(result.verb.word, "take")
+        self.assertEqual(result.direct_object.word, "123")
 
     def test_unicode_input(self):
         """
         Test EC-011: Unicode characters.
 
-        Verify that unicode characters result in unknown word error.
+        Unicode characters in unknown words are passed through as nouns.
         """
         result = self.parser.parse_command("take sẃord")
 
-        self.assertIsNone(result)
+        # Unknown words (including with unicode) are passed through as nouns
+        self.assertIsNotNone(result)
+        self.assertEqual(result.verb.word, "take")
+        self.assertEqual(result.direct_object.word, "sẃord")
 
     def test_raw_field_preserved(self):
         """

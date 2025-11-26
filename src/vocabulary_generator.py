@@ -13,7 +13,7 @@ def extract_nouns_from_state(state: GameState) -> List[Dict[str, Any]]:
     """
     Extract noun entries from game state entities.
 
-    Collects item names and NPC names from the game state
+    Collects item names, NPC names, and door-related nouns from the game state
     to be used as nouns in the parser vocabulary.
 
     Args:
@@ -38,6 +38,11 @@ def extract_nouns_from_state(state: GameState) -> List[Dict[str, Any]]:
         if name and name not in seen_words:
             nouns.append({"word": name})
             seen_words.add(name)
+
+    # Add "door" noun if there are any doors in the game
+    if state.doors and "door" not in seen_words:
+        nouns.append({"word": "door"})
+        seen_words.add("door")
 
     return nouns
 
