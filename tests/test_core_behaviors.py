@@ -11,7 +11,7 @@ from pathlib import Path
 from unittest.mock import Mock, MagicMock
 
 from src.state_manager import load_game_state
-from src.json_protocol import JSONProtocolHandler
+from src.llm_protocol import JSONProtocolHandler
 from src.behavior_manager import BehaviorManager, EventResult
 
 
@@ -196,15 +196,16 @@ class TestConsumablesBehaviors(unittest.TestCase):
             "action": {"verb": "take", "object": "water"}
         })
 
-        # Should succeed but no behavior message
+        # Should succeed with basic message (handler provides default)
         result = self.handler.handle_command({
             "type": "command",
             "action": {"verb": "drink", "object": "water"}
         })
 
         self.assertTrue(result.get("success"))
-        # No behavior message since water has no on_drink behavior
-        self.assertNotIn("message", result)
+        # Handler always provides a message
+        self.assertIn("message", result)
+        self.assertIn("drink", result.get("message", "").lower())
 
 
 class TestLightSourcesBehaviors(unittest.TestCase):
@@ -294,7 +295,7 @@ class TestLightSourcesBehaviors(unittest.TestCase):
         self.assertIn("message", result)
 
     def test_take_non_light_item_no_behavior(self):
-        """Test that taking non-light item has no light behavior."""
+        """Test that taking non-light item has no special light behavior."""
         # Take rock (no light source behavior)
         result = self.handler.handle_command({
             "type": "command",
@@ -302,8 +303,12 @@ class TestLightSourcesBehaviors(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        # No behavior message expected (rock has no on_take behavior)
-        self.assertNotIn("message", result)
+        # Message present (all commands return message now)
+        # but no light-specific behavior message
+        msg = result.get("message", "")
+        self.assertNotIn("rune", msg.lower())
+        self.assertNotIn("glow", msg.lower())
+        self.assertNotIn("lit", msg.lower())
 
 
 class TestContainersBehaviors(unittest.TestCase):

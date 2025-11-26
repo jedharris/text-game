@@ -6,7 +6,7 @@ still work through behavior handlers.
 """
 
 import unittest
-from src.json_protocol import JSONProtocolHandler
+from src.llm_protocol import JSONProtocolHandler
 from src.behavior_manager import BehaviorManager
 from tests.conftest import create_test_state
 
@@ -34,21 +34,18 @@ class TestOldMethodsRemoved(unittest.TestCase):
 
         self.handler = JSONProtocolHandler(self.state, self.behavior_manager)
 
-    def test_cmd_methods_bypassed_by_handlers(self):
-        """Test that old _cmd_* methods are bypassed by behavior handlers.
+    def test_cmd_methods_removed_handlers_active(self):
+        """Test that old _cmd_* methods have been removed and behavior handlers are active.
 
-        NOTE: Phase I-5 was deferred - old _cmd_* methods still exist but are
-        never called for migrated commands because behavior_manager.has_handler()
-        is checked first. This test verifies the routing works correctly.
-
-        The old methods can be safely deleted in a future cleanup phase.
+        NOTE: Old _cmd_* methods have been removed as part of cleanup.
+        All command handling now goes through the behavior system.
         """
-        # Old methods still exist (not deleted yet)
-        self.assertTrue(hasattr(self.handler, '_cmd_take'))
-        self.assertTrue(hasattr(self.handler, '_cmd_drop'))
-        self.assertTrue(hasattr(self.handler, '_cmd_go'))
+        # Old methods have been removed
+        self.assertFalse(hasattr(self.handler, '_cmd_take'))
+        self.assertFalse(hasattr(self.handler, '_cmd_drop'))
+        self.assertFalse(hasattr(self.handler, '_cmd_go'))
 
-        # But behavior handlers are registered and called first
+        # Behavior handlers are registered and handle all commands
         self.assertTrue(self.handler.behavior_manager.has_handler('take'))
         self.assertTrue(self.handler.behavior_manager.has_handler('drop'))
         self.assertTrue(self.handler.behavior_manager.has_handler('go'))
@@ -56,21 +53,20 @@ class TestOldMethodsRemoved(unittest.TestCase):
         self.assertTrue(self.handler.behavior_manager.has_handler('examine'))
         self.assertTrue(self.handler.behavior_manager.has_handler('inventory'))
 
-    def test_old_helper_methods_status(self):
-        """Test helper methods status.
+    def test_old_helper_methods_removed(self):
+        """Test that unused helper methods have been removed.
 
-        Note: Some helper methods are kept because they're still used by
-        unmigrated _cmd_* methods (drink, eat, attack, use, read, climb, pull, push, put).
+        After Phase C-4, all unused helper methods should be removed.
+        Only _get_container_for_item remains (used by _entity_to_dict).
         """
-        # These are kept because unmigrated methods still use them
-        self.assertTrue(hasattr(self.handler, '_find_accessible_item'))
-        self.assertTrue(hasattr(self.handler, '_find_container_by_name'))
-        self.assertTrue(hasattr(self.handler, '_get_container_for_item'))
+        # These were removed (no longer needed after full migration)
+        self.assertFalse(hasattr(self.handler, '_find_accessible_item'))
+        self.assertFalse(hasattr(self.handler, '_find_container_by_name'))
+        self.assertFalse(hasattr(self.handler, '_player_has_key_for_door'))
+        self.assertFalse(hasattr(self.handler, '_is_item_in_container'))
 
-        # These could potentially be removed but are still present
-        # for backward compatibility with put and unmigrated commands
-        self.assertTrue(hasattr(self.handler, '_player_has_key_for_door'))
-        self.assertTrue(hasattr(self.handler, '_is_item_in_container'))
+        # This is kept because _entity_to_dict uses it
+        self.assertTrue(hasattr(self.handler, '_get_container_for_item'))
 
     def test_commands_still_work_after_removal(self):
         """Test that commands still work through behavior handlers."""

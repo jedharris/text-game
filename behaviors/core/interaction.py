@@ -42,6 +42,7 @@ vocabulary = {
         },
         {
             "word": "use",
+            "event": "on_use",
             "synonyms": [],
             "object_required": True,
             "llm_context": {
@@ -54,6 +55,7 @@ vocabulary = {
         },
         {
             "word": "read",
+            "event": "on_read",
             "synonyms": [],
             "object_required": True,
             "llm_context": {
@@ -66,6 +68,7 @@ vocabulary = {
         },
         {
             "word": "climb",
+            "event": "on_climb",
             "synonyms": [],
             "object_required": True,
             "llm_context": {
@@ -78,6 +81,7 @@ vocabulary = {
         },
         {
             "word": "pull",
+            "event": "on_pull",
             "synonyms": ["yank"],
             "object_required": True,
             "llm_context": {
@@ -90,6 +94,7 @@ vocabulary = {
         },
         {
             "word": "push",
+            "event": "on_push",
             "synonyms": ["press"],
             "object_required": True,
             "llm_context": {
@@ -200,12 +205,31 @@ def handle_open(accessor, action):
             message=f"The {item.name} is already open."
         )
 
-    # Open the container
-    item.container.open = True
+    # Open the container using accessor.update() to invoke behaviors
+    result = accessor.update(
+        item,
+        {"container.open": True},
+        verb="open",
+        actor_id=actor_id
+    )
+
+    if not result.success:
+        return HandlerResult(
+            success=False,
+            message=result.message or f"You can't open the {item.name}."
+        )
+
+    # Build message - include behavior message if present
+    base_message = f"You open the {item.name}."
+    if result.message:
+        return HandlerResult(
+            success=True,
+            message=f"{base_message} {result.message}"
+        )
 
     return HandlerResult(
         success=True,
-        message=f"You open the {item.name}."
+        message=base_message
     )
 
 
@@ -302,3 +326,274 @@ def handle_close(accessor, action):
         success=True,
         message=f"You close the {item.name}."
     )
+
+
+def handle_use(accessor, action):
+    """
+    Handle use command.
+
+    Allows an actor to use an item in a generic way.
+    Entity behaviors (on_use) can provide specific functionality.
+
+    CRITICAL: Extracts actor_id from action to support both player and NPCs.
+
+    Args:
+        accessor: StateAccessor instance
+        action: Action dict with keys:
+            - actor_id: ID of actor performing action (default: "player")
+            - object: Name of item to use (required)
+
+    Returns:
+        HandlerResult with success flag and message
+    """
+    actor_id = action.get("actor_id", "player")
+    object_name = action.get("object")
+
+    if not object_name:
+        return HandlerResult(
+            success=False,
+            message="What do you want to use?"
+        )
+
+    actor = accessor.get_actor(actor_id)
+    if not actor:
+        return HandlerResult(
+            success=False,
+            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
+        )
+
+    item = find_accessible_item(accessor, object_name, actor_id)
+    if not item:
+        return HandlerResult(
+            success=False,
+            message=f"You don't see any {object_name} here."
+        )
+
+    # Invoke entity behaviors (on_use)
+    result = accessor.update(item, {}, verb="use", actor_id=actor_id)
+
+    base_message = f"You use the {item.name}."
+    if result.message:
+        return HandlerResult(success=True, message=f"{base_message} {result.message}")
+
+    return HandlerResult(success=True, message=base_message)
+
+
+def handle_read(accessor, action):
+    """
+    Handle read command.
+
+    Allows an actor to read a readable item.
+
+    CRITICAL: Extracts actor_id from action to support both player and NPCs.
+
+    Args:
+        accessor: StateAccessor instance
+        action: Action dict with keys:
+            - actor_id: ID of actor performing action (default: "player")
+            - object: Name of item to read (required)
+
+    Returns:
+        HandlerResult with success flag and message
+    """
+    actor_id = action.get("actor_id", "player")
+    object_name = action.get("object")
+
+    if not object_name:
+        return HandlerResult(
+            success=False,
+            message="What do you want to read?"
+        )
+
+    actor = accessor.get_actor(actor_id)
+    if not actor:
+        return HandlerResult(
+            success=False,
+            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
+        )
+
+    item = find_accessible_item(accessor, object_name, actor_id)
+    if not item:
+        return HandlerResult(
+            success=False,
+            message=f"You don't see any {object_name} here."
+        )
+
+    # Check if item is readable
+    if not item.properties.get("readable", False):
+        return HandlerResult(
+            success=False,
+            message=f"You can't read the {item.name}."
+        )
+
+    # Invoke entity behaviors (on_read)
+    result = accessor.update(item, {}, verb="read", actor_id=actor_id)
+
+    # Get text content if available
+    text = item.properties.get("text", "")
+    if text:
+        base_message = f"You read the {item.name}: {text}"
+    else:
+        base_message = f"You read the {item.name}."
+
+    if result.message:
+        return HandlerResult(success=True, message=f"{base_message} {result.message}")
+
+    return HandlerResult(success=True, message=base_message)
+
+
+def handle_climb(accessor, action):
+    """
+    Handle climb command.
+
+    Allows an actor to climb a climbable object.
+
+    CRITICAL: Extracts actor_id from action to support both player and NPCs.
+
+    Args:
+        accessor: StateAccessor instance
+        action: Action dict with keys:
+            - actor_id: ID of actor performing action (default: "player")
+            - object: Name of item to climb (required)
+
+    Returns:
+        HandlerResult with success flag and message
+    """
+    actor_id = action.get("actor_id", "player")
+    object_name = action.get("object")
+
+    if not object_name:
+        return HandlerResult(
+            success=False,
+            message="What do you want to climb?"
+        )
+
+    actor = accessor.get_actor(actor_id)
+    if not actor:
+        return HandlerResult(
+            success=False,
+            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
+        )
+
+    item = find_accessible_item(accessor, object_name, actor_id)
+    if not item:
+        return HandlerResult(
+            success=False,
+            message=f"You don't see any {object_name} here."
+        )
+
+    # Check if item is climbable
+    if not item.properties.get("climbable", False):
+        return HandlerResult(
+            success=False,
+            message=f"You can't climb the {item.name}."
+        )
+
+    # Invoke entity behaviors (on_climb)
+    result = accessor.update(item, {}, verb="climb", actor_id=actor_id)
+
+    base_message = f"You climb the {item.name}."
+    if result.message:
+        return HandlerResult(success=True, message=f"{base_message} {result.message}")
+
+    return HandlerResult(success=True, message=base_message)
+
+
+def handle_pull(accessor, action):
+    """
+    Handle pull command.
+
+    Allows an actor to pull an object (e.g., lever).
+
+    CRITICAL: Extracts actor_id from action to support both player and NPCs.
+
+    Args:
+        accessor: StateAccessor instance
+        action: Action dict with keys:
+            - actor_id: ID of actor performing action (default: "player")
+            - object: Name of item to pull (required)
+
+    Returns:
+        HandlerResult with success flag and message
+    """
+    actor_id = action.get("actor_id", "player")
+    object_name = action.get("object")
+
+    if not object_name:
+        return HandlerResult(
+            success=False,
+            message="What do you want to pull?"
+        )
+
+    actor = accessor.get_actor(actor_id)
+    if not actor:
+        return HandlerResult(
+            success=False,
+            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
+        )
+
+    item = find_accessible_item(accessor, object_name, actor_id)
+    if not item:
+        return HandlerResult(
+            success=False,
+            message=f"You don't see any {object_name} here."
+        )
+
+    # Invoke entity behaviors (on_pull)
+    result = accessor.update(item, {}, verb="pull", actor_id=actor_id)
+
+    base_message = f"You pull the {item.name}."
+    if result.message:
+        return HandlerResult(success=True, message=f"{base_message} {result.message}")
+
+    return HandlerResult(success=True, message=base_message)
+
+
+def handle_push(accessor, action):
+    """
+    Handle push command.
+
+    Allows an actor to push an object (e.g., button).
+
+    CRITICAL: Extracts actor_id from action to support both player and NPCs.
+
+    Args:
+        accessor: StateAccessor instance
+        action: Action dict with keys:
+            - actor_id: ID of actor performing action (default: "player")
+            - object: Name of item to push (required)
+
+    Returns:
+        HandlerResult with success flag and message
+    """
+    actor_id = action.get("actor_id", "player")
+    object_name = action.get("object")
+
+    if not object_name:
+        return HandlerResult(
+            success=False,
+            message="What do you want to push?"
+        )
+
+    actor = accessor.get_actor(actor_id)
+    if not actor:
+        return HandlerResult(
+            success=False,
+            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
+        )
+
+    item = find_accessible_item(accessor, object_name, actor_id)
+    if not item:
+        return HandlerResult(
+            success=False,
+            message=f"You don't see any {object_name} here."
+        )
+
+    # Invoke entity behaviors (on_push)
+    result = accessor.update(item, {}, verb="push", actor_id=actor_id)
+
+    base_message = f"You push the {item.name}."
+    if result.message:
+        return HandlerResult(success=True, message=f"{base_message} {result.message}")
+
+    return HandlerResult(success=True, message=base_message)

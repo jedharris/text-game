@@ -83,8 +83,24 @@ def handle_go(accessor, action):
             message=f"You can't go {direction} from here."
         )
 
-    # Get destination
-    destination_id = current_location.exits[direction]
+    # Get exit descriptor and destination
+    exit_descriptor = current_location.exits[direction]
+
+    # Handle both ExitDescriptor objects and plain strings (backward compatibility)
+    if hasattr(exit_descriptor, 'to'):
+        destination_id = exit_descriptor.to
+        # Check for door blocking
+        if exit_descriptor.type == 'door' and exit_descriptor.door_id:
+            door = accessor.get_door(exit_descriptor.door_id)
+            if door and not door.open:
+                return HandlerResult(
+                    success=False,
+                    message=f"The {door.description or 'door'} is closed."
+                )
+    else:
+        # Plain string destination (backward compatibility)
+        destination_id = exit_descriptor
+
     destination = accessor.get_location(destination_id)
 
     if not destination:

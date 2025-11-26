@@ -61,9 +61,14 @@
       "id": "treasure_chest",
       "name": "chest",
       "description": "A large golden chest with ornate decorations.",
-      "type": "container",
+      "type": "furniture",
       "portable": false,
       "location": "room2",
+      "container": {
+        "is_surface": false,
+        "open": false,
+        "capacity": 10
+      },
       "behaviors": {
         "on_open": "behaviors.core.containers:on_open_treasure_chest"
       }

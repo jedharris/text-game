@@ -16,7 +16,7 @@ try:
 except ImportError:
     HAS_ANTHROPIC = False
 
-from src.json_protocol import JSONProtocolHandler
+from src.llm_protocol import JSONProtocolHandler
 from src.behavior_manager import BehaviorManager
 
 

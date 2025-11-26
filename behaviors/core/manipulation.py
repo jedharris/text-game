@@ -51,6 +51,21 @@ vocabulary = {
                     "no_recipient": "no one here by that name"
                 }
             }
+        },
+        {
+            "word": "put",
+            "event": "on_put",
+            "synonyms": ["set"],
+            "object_required": True,
+            "llm_context": {
+                "traits": ["places item in/on container", "requires container target"],
+                "failure_narration": {
+                    "not_holding": "not carrying that",
+                    "not_container": "cannot put things there",
+                    "closed": "container is closed",
+                    "full": "container is full"
+                }
+            }
         }
     ],
     "nouns": [],
@@ -124,7 +139,8 @@ def handle_take(accessor, action):
         "location": actor_id
     }
 
-    result = accessor.update(item, changes)
+    # Pass verb and actor_id to trigger entity behaviors (on_take)
+    result = accessor.update(item, changes, verb="take", actor_id=actor_id)
 
     if not result.success:
         return HandlerResult(
@@ -143,9 +159,16 @@ def handle_take(accessor, action):
             message=f"INCONSISTENT STATE: Failed to add item to inventory: {inventory_result.message}"
         )
 
+    # Build message - include behavior message if present
+    base_message = f"You take the {item.name}."
+    if result.message:
+        message = f"{base_message} {result.message}"
+    else:
+        message = base_message
+
     return HandlerResult(
         success=True,
-        message=f"You take the {item.name}."
+        message=message
     )
 
 
@@ -208,7 +231,8 @@ def handle_drop(accessor, action):
         "location": location.id
     }
 
-    result = accessor.update(item, changes)
+    # Pass verb and actor_id to trigger entity behaviors (on_drop)
+    result = accessor.update(item, changes, verb="drop", actor_id=actor_id)
 
     if not result.success:
         return HandlerResult(
@@ -227,9 +251,16 @@ def handle_drop(accessor, action):
             message=f"INCONSISTENT STATE: Failed to remove item from inventory: {inventory_result.message}"
         )
 
+    # Build message - include behavior message if present
+    base_message = f"You drop the {item.name}."
+    if result.message:
+        message = f"{base_message} {result.message}"
+    else:
+        message = base_message
+
     return HandlerResult(
         success=True,
-        message=f"You drop the {item.name}."
+        message=message
     )
 
 
@@ -349,3 +380,123 @@ def handle_give(accessor, action):
         success=True,
         message=f"You give the {item.name} to {recipient.name}."
     )
+
+
+def handle_put(accessor, action):
+    """
+    Handle put/place command.
+
+    Allows an actor to put an item from their inventory into/onto a container.
+
+    CRITICAL: Extracts actor_id from action to support both player and NPCs.
+
+    Args:
+        accessor: StateAccessor instance
+        action: Action dict with keys:
+            - actor_id: ID of actor performing action (default: "player")
+            - object: Name of item to put (required)
+            - indirect_object: Name of container (required)
+
+    Returns:
+        HandlerResult with success flag and message
+    """
+    actor_id = action.get("actor_id", "player")
+    object_name = action.get("object")
+    container_name = action.get("indirect_object")
+
+    if not object_name:
+        return HandlerResult(
+            success=False,
+            message="What do you want to put?"
+        )
+
+    if not container_name:
+        return HandlerResult(
+            success=False,
+            message="Where do you want to put it?"
+        )
+
+    # Get the actor
+    actor = accessor.get_actor(actor_id)
+    if not actor:
+        return HandlerResult(
+            success=False,
+            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
+        )
+
+    # Find item in actor's inventory
+    item = find_item_in_inventory(accessor, object_name, actor_id)
+    if not item:
+        return HandlerResult(
+            success=False,
+            message=f"You don't have the {object_name}."
+        )
+
+    # Find container in current location
+    location = accessor.get_current_location(actor_id)
+    if not location:
+        return HandlerResult(
+            success=False,
+            message=f"INCONSISTENT STATE: Cannot find location for actor {actor_id}"
+        )
+
+    # Search for container
+    container = None
+    for i in accessor.game_state.items:
+        if i.name.lower() == container_name.lower() and i.location == location.id:
+            container = i
+            break
+
+    if not container:
+        return HandlerResult(
+            success=False,
+            message=f"You don't see any {container_name} here."
+        )
+
+    # Check if target is a container
+    container_props = container.properties.get("container")
+    if not container_props:
+        return HandlerResult(
+            success=False,
+            message=f"You can't put things in the {container.name}."
+        )
+
+    # Check if enclosed container is open
+    is_surface = container_props.get("is_surface", False)
+    if not is_surface and not container_props.get("open", False):
+        return HandlerResult(
+            success=False,
+            message=f"The {container.name} is closed."
+        )
+
+    # Check capacity
+    capacity = container_props.get("capacity", 0)
+    if capacity > 0:
+        current_count = sum(1 for i in accessor.game_state.items
+                          if i.location == container.id)
+        if current_count >= capacity:
+            return HandlerResult(
+                success=False,
+                message=f"The {container.name} is full."
+            )
+
+    # Move item from inventory to container
+    result = accessor.update(item, {"location": container.id}, verb="put", actor_id=actor_id)
+    if not result.success:
+        return HandlerResult(
+            success=False,
+            message=result.message or f"You can't put the {item.name} there."
+        )
+
+    # Remove from inventory
+    if item.id in actor.inventory:
+        actor.inventory.remove(item.id)
+
+    # Build message based on container type
+    preposition = "on" if is_surface else "in"
+    base_message = f"You put the {item.name} {preposition} the {container.name}."
+
+    if result.message:
+        return HandlerResult(success=True, message=f"{base_message} {result.message}")
+
+    return HandlerResult(success=True, message=base_message)

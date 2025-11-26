@@ -5,7 +5,7 @@ Reference: behavior_refactoring_testing.md lines 573-605 (NPC test pattern)
 """
 
 import unittest
-from src.json_protocol import JSONProtocolHandler
+from src.llm_protocol import JSONProtocolHandler
 from src.behavior_manager import BehaviorManager
 from src.state_manager import Actor, Item
 from tests.conftest import create_test_state

@@ -273,13 +273,16 @@ class TestSimplifiedLock(unittest.TestCase):
 
 
 class TestSimplifiedPlayerState(unittest.TestCase):
-    """Test simplified PlayerState with properties dict."""
+    """Test simplified PlayerState (Actor) with properties dict."""
 
     def test_player_core_fields(self):
-        """PlayerState has location and inventory as core."""
-        from src.state_manager import PlayerState
+        """Actor (player) has location and inventory as core."""
+        from src.state_manager import Actor
 
-        player = PlayerState(
+        player = Actor(
+            id="player",
+            name="player",
+            description="",
             location="loc_1",
             inventory=["item_1"]
         )
@@ -289,9 +292,12 @@ class TestSimplifiedPlayerState(unittest.TestCase):
 
     def test_player_flags_stats_as_properties(self):
         """Flags and stats stored in properties."""
-        from src.state_manager import PlayerState
+        from src.state_manager import Actor
 
-        player = PlayerState(
+        player = Actor(
+            id="player",
+            name="player",
+            description="",
             location="loc_1",
             inventory=[],
             properties={
@@ -819,10 +825,13 @@ class TestGenericSerializer(unittest.TestCase):
     def test_serialize_player_state(self):
         """Player state properties serialized correctly."""
         from src.state_manager import (
-            PlayerState, game_state_to_dict, GameState, Metadata, Location
+            Actor, game_state_to_dict, GameState, Metadata, Location
         )
 
-        player = PlayerState(
+        player = Actor(
+            id="player",
+            name="player",
+            description="",
             location="loc_1",
             inventory=["item_1"],
             properties={
@@ -834,11 +843,12 @@ class TestGenericSerializer(unittest.TestCase):
         state = GameState(
             metadata=Metadata(title="Test", version="1.0", start_location="loc_1"),
             locations=[Location(id="loc_1", name="Room", description="A room", exits={})],
-            player=player
+            actors={"player": player}
         )
 
         result = game_state_to_dict(state)
-        player_dict = result["player_state"]
+        # New format uses actors dict instead of player_state
+        player_dict = result["actors"]["player"]
 
         self.assertEqual(player_dict["location"], "loc_1")
         self.assertEqual(player_dict["inventory"], ["item_1"])
@@ -918,13 +928,13 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
 
     def test_get_npc(self):
         """get_npc finds NPC by id."""
-        from src.state_manager import GameState, Metadata, NPC
+        from src.state_manager import GameState, Metadata, Actor
 
         state = GameState(
             metadata=Metadata(title="Test", version="1.0", start_location="loc_1"),
-            npcs=[
-                NPC(id="npc_1", name="Guard", description="A guard", location="loc_1")
-            ]
+            actors={
+                "npc_1": Actor(id="npc_1", name="Guard", description="A guard", location="loc_1")
+            }
         )
 
         npc = state.get_npc("npc_1")
@@ -933,7 +943,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
     def test_move_item_to_player(self):
         """move_item updates item location to player."""
         from src.state_manager import (
-            GameState, Metadata, Item, Location, PlayerState
+            GameState, Metadata, Item, Location, Actor
         )
 
         state = GameState(
@@ -945,7 +955,9 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
             items=[
                 Item(id="item_1", name="Torch", description="A torch", location="loc_1")
             ],
-            player=PlayerState(location="loc_1", inventory=[])
+            actors={
+                "player": Actor(id="player", name="player", description="", location="loc_1", inventory=[])
+            }
         )
 
         state.move_item("item_1", to_player=True)
@@ -958,7 +970,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
     def test_move_item_to_location(self):
         """move_item updates item location to another location."""
         from src.state_manager import (
-            GameState, Metadata, Item, Location, PlayerState
+            GameState, Metadata, Item, Location, Actor
         )
 
         state = GameState(
@@ -972,7 +984,9 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
             items=[
                 Item(id="item_1", name="Torch", description="A torch", location="loc_1")
             ],
-            player=PlayerState(location="loc_1", inventory=[])
+            actors={
+                "player": Actor(id="player", name="player", description="", location="loc_1", inventory=[])
+            }
         )
 
         state.move_item("item_1", to_location="loc_2")
@@ -985,7 +999,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
     def test_set_player_location(self):
         """set_player_location updates player's location."""
         from src.state_manager import (
-            GameState, Metadata, Location, PlayerState
+            GameState, Metadata, Location, Actor
         )
 
         state = GameState(
@@ -994,7 +1008,9 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
                 Location(id="loc_1", name="Room 1", description="A room", exits={}),
                 Location(id="loc_2", name="Room 2", description="A room", exits={})
             ],
-            player=PlayerState(location="loc_1", inventory=[])
+            actors={
+                "player": Actor(id="player", name="player", description="", location="loc_1", inventory=[])
+            }
         )
 
         state.set_player_location("loc_2")
@@ -1003,12 +1019,14 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
     def test_set_flag_and_get_flag(self):
         """set_flag and get_flag work with properties."""
         from src.state_manager import (
-            GameState, Metadata, PlayerState
+            GameState, Metadata, Actor
         )
 
         state = GameState(
             metadata=Metadata(title="Test", version="1.0", start_location="loc_1"),
-            player=PlayerState(location="loc_1", inventory=[], properties={"flags": {}})
+            actors={
+                "player": Actor(id="player", name="player", description="", location="loc_1", inventory=[], properties={"flags": {}})
+            }
         )
 
         state.set_flag("test_flag", True)
@@ -1019,7 +1037,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
     def test_build_id_registry(self):
         """build_id_registry returns all entity IDs."""
         from src.state_manager import (
-            GameState, Metadata, Location, Item, Door, Lock, NPC
+            GameState, Metadata, Location, Item, Door, Lock, Actor
         )
 
         state = GameState(
@@ -1028,7 +1046,10 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
             items=[Item(id="item_1", name="Torch", description="A torch", location="loc_1")],
             doors=[Door(id="door_1", locations=("loc_1", "loc_2"))],
             locks=[Lock(id="lock_1")],
-            npcs=[NPC(id="npc_1", name="Guard", description="A guard", location="loc_1")]
+            actors={
+                "player": Actor(id="player", name="player", description="", location="loc_1"),
+                "npc_1": Actor(id="npc_1", name="Guard", description="A guard", location="loc_1")
+            }
         )
 
         registry = state.build_id_registry()

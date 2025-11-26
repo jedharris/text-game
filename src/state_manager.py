@@ -79,7 +79,7 @@ class Location:
     items: List[str] = field(default_factory=list)
     npcs: List[str] = field(default_factory=list)
     properties: Dict[str, Any] = field(default_factory=dict)
-    behaviors: Union[List[str], Dict[str, str]] = field(default_factory=list)
+    behaviors: List[str] = field(default_factory=list)
 
     @property
     def llm_context(self) -> Optional[Dict[str, Any]]:
@@ -100,7 +100,7 @@ class Item:
     description: str
     location: str
     properties: Dict[str, Any] = field(default_factory=dict)
-    behaviors: Union[List[str], Dict[str, str]] = field(default_factory=list)
+    behaviors: List[str] = field(default_factory=list)
 
     @property
     def states(self) -> Dict[str, Any]:
@@ -172,7 +172,7 @@ class Door:
     id: str
     locations: Tuple[str, ...]
     properties: Dict[str, Any] = field(default_factory=dict)
-    behaviors: Union[List[str], Dict[str, str]] = field(default_factory=list)
+    behaviors: List[str] = field(default_factory=list)
 
     @property
     def description(self) -> str:
@@ -251,7 +251,7 @@ class Actor:
     location: str
     inventory: List[str] = field(default_factory=list)
     properties: Dict[str, Any] = field(default_factory=dict)
-    behaviors: Union[List[str], Dict[str, str]] = field(default_factory=list)
+    behaviors: List[str] = field(default_factory=list)
 
     @property
     def stats(self) -> Dict[str, Any]:
@@ -458,9 +458,31 @@ def _parse_location(raw: Dict[str, Any]) -> Location:
         exits=exits,
         items=raw.get('items', []),
         npcs=raw.get('npcs', []),
-        properties={k: v for k, v in raw.items() if k not in core_fields},
+        properties=_parse_properties(raw, core_fields),
         behaviors=behaviors
     )
+
+
+def _parse_properties(raw: Dict[str, Any], core_fields: set) -> Dict[str, Any]:
+    """Parse properties from JSON dict.
+
+    Supports both formats:
+    - New format: explicit 'properties' dict
+    - Old format: properties at top level (non-core fields)
+
+    New format takes precedence, but both are merged for compatibility.
+    """
+    # Start with explicit properties dict if present
+    properties = dict(raw.get('properties', {}))
+
+    # Merge in non-core top-level fields (old format)
+    # These are overridden by explicit properties if present
+    extended_core = core_fields | {'properties'}
+    for k, v in raw.items():
+        if k not in extended_core and k not in properties:
+            properties[k] = v
+
+    return properties
 
 
 def _parse_item(raw: Dict[str, Any]) -> Item:
@@ -475,7 +497,7 @@ def _parse_item(raw: Dict[str, Any]) -> Item:
         name=raw.get('name', ''),
         description=raw.get('description', ''),
         location=raw.get('location', ''),
-        properties={k: v for k, v in raw.items() if k not in core_fields},
+        properties=_parse_properties(raw, core_fields),
         behaviors=behaviors
     )
 
@@ -494,7 +516,7 @@ def _parse_door(raw: Dict[str, Any]) -> Door:
     return Door(
         id=raw['id'],
         locations=locations,
-        properties={k: v for k, v in raw.items() if k not in core_fields},
+        properties=_parse_properties(raw, core_fields),
         behaviors=behaviors
     )
 
@@ -505,7 +527,7 @@ def _parse_lock(raw: Dict[str, Any]) -> Lock:
 
     return Lock(
         id=raw['id'],
-        properties={k: v for k, v in raw.items() if k not in core_fields}
+        properties=_parse_properties(raw, core_fields)
     )
 
 
@@ -524,7 +546,7 @@ def _parse_actor(raw: Dict[str, Any], actor_id: str = None) -> Actor:
         description=raw.get('description', ''),
         location=raw.get('location', ''),
         inventory=raw.get('inventory', []),
-        properties={k: v for k, v in raw.items() if k not in core_fields},
+        properties=_parse_properties(raw, core_fields),
         behaviors=raw.get('behaviors', [])  # Keep as-is (supports both dict and list)
     )
 

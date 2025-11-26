@@ -1,11 +1,13 @@
 """Combat behaviors - attack.
 
-Vocabulary for combat actions.
+Vocabulary and handlers for combat actions.
 """
 
 from typing import Dict, Any
 
 from src.behavior_manager import EventResult
+from src.state_accessor import HandlerResult
+from utilities.utils import find_accessible_item
 
 
 # Vocabulary extension - adds attack verb
@@ -13,13 +15,13 @@ vocabulary = {
     "verbs": [
         {
             "word": "attack",
+            "event": "on_attack",
             "synonyms": ["hit", "strike", "fight", "kill"],
             "object_required": True,
             "llm_context": {
-                "traits": ["combat action", "potentially destructive", "may have consequences"],
-                "atmosphere": "violent, aggressive",
+                "traits": ["hostile action", "targets NPCs", "may have consequences"],
                 "failure_narration": {
-                    "no_weapon": "need a weapon",
+                    "not_found": "cannot find target",
                     "cannot_attack": "cannot attack that"
                 }
             }
@@ -29,3 +31,85 @@ vocabulary = {
     "adjectives": [],
     "directions": []
 }
+
+
+def handle_attack(accessor, action):
+    """
+    Handle attack/hit/strike command.
+
+    Allows an actor to attack another actor (NPC).
+
+    CRITICAL: Extracts actor_id from action to support both player and NPCs.
+
+    Args:
+        accessor: StateAccessor instance
+        action: Action dict with keys:
+            - actor_id: ID of actor performing action (default: "player")
+            - object: Name of target to attack (required)
+
+    Returns:
+        HandlerResult with success flag and message
+    """
+    # CRITICAL: Extract actor_id at the top
+    actor_id = action.get("actor_id", "player")
+    target_name = action.get("object")
+
+    if not target_name:
+        return HandlerResult(
+            success=False,
+            message="What do you want to attack?"
+        )
+
+    # Get the attacking actor
+    attacker = accessor.get_actor(actor_id)
+    if not attacker:
+        return HandlerResult(
+            success=False,
+            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
+        )
+
+    # Get attacker's location
+    location = accessor.get_current_location(actor_id)
+    if not location:
+        return HandlerResult(
+            success=False,
+            message=f"INCONSISTENT STATE: Location not found for {actor_id}"
+        )
+
+    # Look for target NPC in same location
+    target_actor = None
+    for actor in accessor.game_state.actors.values():
+        if actor.id != actor_id and actor.location == location.id:
+            if actor.name.lower() == target_name.lower():
+                target_actor = actor
+                break
+
+    if target_actor:
+        # Found an NPC to attack - invoke entity behaviors
+        result = accessor.update(
+            target_actor,
+            {},  # No state changes by default
+            verb="attack",
+            actor_id=actor_id
+        )
+
+        # Build message - include behavior message if present
+        base_message = f"You attack the {target_actor.name}!"
+        if result.message:
+            return HandlerResult(success=True, message=f"{base_message} {result.message}")
+
+        return HandlerResult(success=True, message=base_message)
+
+    # Check for items - can't attack items
+    item = find_accessible_item(accessor, target_name, actor_id)
+    if item:
+        return HandlerResult(
+            success=False,
+            message=f"You can't attack the {item.name}."
+        )
+
+    # Target not found
+    return HandlerResult(
+        success=False,
+        message=f"You don't see any {target_name} here."
+    )

@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 from src.state_manager import load_game_state
-from src.json_protocol import JSONProtocolHandler
+from src.llm_protocol import JSONProtocolHandler
 from src.behavior_manager import BehaviorManager, get_behavior_manager
 
 

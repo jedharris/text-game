@@ -11,7 +11,7 @@ sys.path.insert(0, str(project_root))
 from src.parser import Parser
 from src.parsed_command import ParsedCommand
 from src.state_manager import load_game_state
-from src.json_protocol import JSONProtocolHandler
+from src.llm_protocol import JSONProtocolHandler
 
 
 def format_command(cmd: ParsedCommand) -> str:

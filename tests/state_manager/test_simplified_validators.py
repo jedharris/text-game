@@ -766,7 +766,7 @@ class TestValidateGameStateFunction(unittest.TestCase):
     def test_validate_existing_game_state(self):
         """validate_game_state works on already-loaded state."""
         from src.state_manager import (
-            GameState, Metadata, Location, Item, PlayerState
+            GameState, Metadata, Location, Item, Actor
         )
         from src.validators import validate_game_state
 
@@ -778,7 +778,9 @@ class TestValidateGameStateFunction(unittest.TestCase):
             items=[
                 Item(id="item_1", name="Torch", description="A torch", location="loc_1")
             ],
-            player=PlayerState(location="loc_1", inventory=[])
+            actors={
+                "player": Actor(id="player", name="player", description="", location="loc_1", inventory=[])
+            }
         )
 
         # Should not raise
@@ -787,7 +789,7 @@ class TestValidateGameStateFunction(unittest.TestCase):
     def test_validate_detects_invalid_reference(self):
         """validate_game_state detects invalid references in loaded state."""
         from src.state_manager import (
-            GameState, Metadata, Location, Item, PlayerState
+            GameState, Metadata, Location, Item, Actor
         )
         from src.validators import validate_game_state, ValidationError
 
@@ -799,7 +801,9 @@ class TestValidateGameStateFunction(unittest.TestCase):
             items=[
                 Item(id="item_1", name="Torch", description="A torch", location="loc_999")
             ],
-            player=PlayerState(location="loc_1", inventory=[])
+            actors={
+                "player": Actor(id="player", name="player", description="", location="loc_1", inventory=[])
+            }
         )
 
         with self.assertRaises(ValidationError) as ctx:

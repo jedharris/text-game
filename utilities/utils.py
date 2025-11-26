@@ -14,9 +14,11 @@ def find_accessible_item(accessor, name: str, actor_id: str):
     """
     Find an item that is accessible to the actor.
 
-    An item is accessible if it's either:
-    - In the actor's current location
-    - In the actor's inventory
+    Search order (first match wins):
+    1. Items in actor's current location
+    2. Items in actor's inventory
+    3. Items on surface containers in location
+    4. Items in open enclosed containers in location
 
     IMPORTANT: Do not hardcode 'player' - use the actor_id parameter.
 
@@ -32,20 +34,41 @@ def find_accessible_item(accessor, name: str, actor_id: str):
     if not actor:
         return None
 
-    # Check inventory first
-    item = find_item_in_inventory(accessor, name, actor_id)
-    if item:
-        return item
-
-    # Check current location
+    # Get current location
     location = accessor.get_current_location(actor_id)
     if not location:
         return None
 
+    name_lower = name.lower()
+
+    # Check items directly in location first
     items_in_location = accessor.get_items_in_location(location.id)
     for item in items_in_location:
-        if item.name.lower() == name.lower():
+        if item.name.lower() == name_lower:
             return item
+
+    # Check inventory
+    item = find_item_in_inventory(accessor, name, actor_id)
+    if item:
+        return item
+
+    # Check containers in location
+    for container in items_in_location:
+        container_info = container.properties.get("container", {})
+        if not container_info:
+            continue
+
+        is_surface = container_info.get("is_surface", False)
+        is_open = container_info.get("open", False)
+
+        # Surface containers are always accessible
+        # Enclosed containers must be open
+        if is_surface or is_open:
+            # Get items inside this container
+            items_in_container = accessor.get_items_in_location(container.id)
+            for item in items_in_container:
+                if item.name.lower() == name_lower:
+                    return item
 
     return None
 

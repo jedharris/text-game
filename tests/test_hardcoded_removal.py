@@ -11,7 +11,7 @@ import unittest
 from pathlib import Path
 
 from src.state_manager import load_game_state
-from src.json_protocol import JSONProtocolHandler
+from src.llm_protocol import JSONProtocolHandler
 from src.behavior_manager import BehaviorManager
 
 
@@ -175,18 +175,28 @@ class TestHardcodedChestRemoval(unittest.TestCase):
                     "id": "plain_chest",
                     "name": "chest",
                     "description": "A plain chest without behaviors.",
-                    "type": "container",
+                    "type": "furniture",
                     "portable": False,
-                    "location": "room1"
+                    "location": "room1",
+                    "container": {
+                        "is_surface": False,
+                        "open": False,
+                        "capacity": 10
+                    }
                     # No behaviors - should still be openable but no special effect
                 },
                 {
                     "id": "treasure_chest",
                     "name": "treasure chest",
                     "description": "A treasure chest with behaviors.",
-                    "type": "container",
+                    "type": "furniture",
                     "portable": False,
                     "location": "room1",
+                    "container": {
+                        "is_surface": False,
+                        "open": False,
+                        "capacity": 10
+                    },
                     "behaviors": {
                         "on_open": "behaviors.core.containers:on_open_treasure_chest"
                     }
@@ -195,9 +205,14 @@ class TestHardcodedChestRemoval(unittest.TestCase):
                     "id": "magic_box",
                     "name": "magic box",
                     "description": "A magic box with open behavior.",
-                    "type": "container",
+                    "type": "furniture",
                     "portable": False,
                     "location": "room1",
+                    "container": {
+                        "is_surface": False,
+                        "open": False,
+                        "capacity": 5
+                    },
                     "behaviors": {
                         "on_open": "behaviors.core.containers:on_open_treasure_chest"
                     }
@@ -371,8 +386,9 @@ class TestBehaviorDrivenApproach(unittest.TestCase):
         # Should succeed but no healing
         self.assertTrue(result.get("success"))
         self.assertEqual(self.state.player.stats["health"], initial_health)
-        # No behavior message
-        self.assertNotIn("message", result)
+        # Handler provides message (entity behavior may add to it)
+        self.assertIn("message", result)
+        self.assertIn("drink", result.get("message", "").lower())
 
 
 if __name__ == '__main__':

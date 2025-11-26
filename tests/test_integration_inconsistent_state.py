@@ -8,7 +8,7 @@ Reference: behavior_refactoring_implementation.md lines 297-332
 import unittest
 import sys
 from io import StringIO
-from src.json_protocol import JSONProtocolHandler
+from src.llm_protocol import JSONProtocolHandler
 from src.behavior_manager import BehaviorManager
 from src.state_accessor import HandlerResult
 from tests.conftest import create_test_state

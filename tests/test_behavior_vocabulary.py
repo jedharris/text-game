@@ -68,7 +68,7 @@ class TestBehaviorVocabularyMerging(unittest.TestCase):
         self.assertIsNotNone(squeeze_verb)
         self.assertIn("synonyms", squeeze_verb)
         self.assertIn("squish", squeeze_verb["synonyms"])
-        self.assertIn("press", squeeze_verb["synonyms"])
+        # Note: "press" was removed as synonym to avoid conflict with "push"
 
     def test_no_duplicate_verbs_after_merge(self):
         """Test that duplicate verbs are not added."""

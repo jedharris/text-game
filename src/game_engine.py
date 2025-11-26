@@ -12,7 +12,7 @@ sys.path.insert(0, str(project_root))
 from src.parser import Parser
 from src.state_manager import load_game_state, save_game_state, GameState
 from src.file_dialogs import get_save_filename, get_load_filename
-from src.json_protocol import JSONProtocolHandler
+from src.llm_protocol import JSONProtocolHandler
 from src.vocabulary_generator import extract_nouns_from_state, merge_vocabulary
 from src.behavior_manager import BehaviorManager
 

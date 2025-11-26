@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 from src.game_engine import take_item, drop_item
 from src.state_manager import load_game_state
-from src.json_protocol import JSONProtocolHandler
+from src.llm_protocol import JSONProtocolHandler
 from src.behavior_manager import BehaviorManager
 
 
@@ -170,8 +170,12 @@ class TestLLMGameSetup(unittest.TestCase):
         # Verify behavior was invoked (message present and lit state changed)
         self.assertTrue(result.get("success"))
         self.assertIn("message", result, "Behavior message missing - behavior not invoked")
+        # Behavior sets lit=True via entity.states["lit"]
+        # Check actual state, not response format
+        lantern = next((i for i in state.items if i.name == "lantern"), None)
+        self.assertIsNotNone(lantern, "Lantern not found in state")
         self.assertTrue(
-            result.get("entity", {}).get("lit"),
+            lantern.states.get("lit"),
             "Lantern not lit - behavior not invoked"
         )
 

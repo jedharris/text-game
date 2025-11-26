@@ -22,8 +22,9 @@ class TestEventResult(unittest.TestCase):
     """Tests for EventResult dataclass."""
 
     def test_default_values(self):
-        """Test EventResult has correct default values."""
-        result = EventResult()
+        """Test EventResult with allow=True has expected defaults."""
+        # allow is now required, message defaults to None
+        result = EventResult(allow=True)
         self.assertIs(result.allow, True)
         self.assertIsNone(result.message)
 
@@ -40,8 +41,9 @@ class TestEventResult(unittest.TestCase):
         self.assertIsNone(result.message)
 
     def test_message_only(self):
-        """Test EventResult with only message specified."""
-        result = EventResult(message="Custom message")
+        """Test EventResult with message and allow=True."""
+        # allow is required, specify explicitly
+        result = EventResult(allow=True, message="Custom message")
         self.assertIs(result.allow, True)
         self.assertEqual(result.message, "Custom message")
 
@@ -126,7 +128,7 @@ class TestBehaviorManagerLoadBehavior(unittest.TestCase):
         manager = BehaviorManager()
 
         mock_module = MagicMock()
-        mock_func = Mock(return_value=EventResult())
+        mock_func = Mock(return_value=EventResult(allow=True))
         mock_module.on_squeeze = mock_func
 
         with patch('importlib.import_module', return_value=mock_module):
@@ -206,7 +208,10 @@ class TestBehaviorManagerInvokeBehavior(unittest.TestCase):
         entity = Mock()
         entity.behaviors = {"on_squeeze": "test.module:on_squeeze"}
 
-        state = Mock()
+        # Mock accessor - dict format behaviors receive accessor.game_state
+        accessor = Mock()
+        game_state = Mock()
+        accessor.game_state = game_state
         context = {"location": Mock()}
 
         expected_result = EventResult(allow=True, message="Squeaked!")
@@ -215,10 +220,11 @@ class TestBehaviorManagerInvokeBehavior(unittest.TestCase):
         mock_module.on_squeeze = mock_func
 
         with patch('importlib.import_module', return_value=mock_module):
-            result = manager.invoke_behavior(entity, "on_squeeze", state, context)
+            result = manager.invoke_behavior(entity, "on_squeeze", accessor, context)
 
         self.assertIs(result, expected_result)
-        mock_func.assert_called_once_with(entity, state, context)
+        # Dict format behaviors receive (entity, game_state, context)
+        mock_func.assert_called_once_with(entity, game_state, context)
 
     def test_invoke_behavior_no_behaviors_dict(self):
         """Test invoking behavior on entity without behaviors."""

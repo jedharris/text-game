@@ -9,6 +9,8 @@ A complete example demonstrating:
 from typing import Dict, Any
 
 from src.behavior_manager import EventResult
+from src.state_accessor import HandlerResult
+from utilities.utils import find_item_in_inventory
 
 
 # Vocabulary extension - adds "squeeze" verb
@@ -16,7 +18,8 @@ vocabulary = {
     "verbs": [
         {
             "word": "squeeze",
-            "synonyms": ["squish", "press"],
+            "event": "on_squeeze",
+            "synonyms": ["squish"],
             "object_required": True
         }
     ],
@@ -24,82 +27,45 @@ vocabulary = {
 }
 
 
-def handle_squeeze(state: Any, action: Dict, context: Dict) -> Dict:
+def handle_squeeze(accessor, action: Dict) -> HandlerResult:
     """
     Handle the squeeze command.
 
     Args:
-        state: GameState object
-        action: Action dict with verb, object, etc.
-        context: Context dict with location, verb
+        accessor: StateAccessor instance
+        action: Action dict with verb, object, actor_id
 
     Returns:
-        Result dict for JSON protocol
+        HandlerResult with success flag and message
     """
+    # Extract actor_id at the top (critical for NPC support)
+    actor_id = action.get("actor_id", "player")
     obj_name = action.get("object")
 
     if not obj_name:
-        return {
-            "type": "result",
-            "success": False,
-            "action": "squeeze",
-            "error": {"message": "Squeeze what?"}
-        }
+        return HandlerResult(success=False, message="Squeeze what?")
 
-    # Find item in inventory
-    item = None
-    for item_id in state.player.inventory:
-        for i in state.items:
-            if i.id == item_id and i.name == obj_name:
-                item = i
-                break
-        if item:
-            break
+    # Find item in actor's inventory
+    item = find_item_in_inventory(accessor, obj_name, actor_id)
 
     if not item:
-        return {
-            "type": "result",
-            "success": False,
-            "action": "squeeze",
-            "error": {"message": "You're not carrying that."}
-        }
+        return HandlerResult(success=False, message="You're not carrying that.")
 
-    # Build result with entity_obj for behavior invocation
-    result = {
-        "type": "result",
-        "success": True,
-        "action": "squeeze",
-        "entity": {
-            "id": item.id,
-            "name": item.name,
-            "type": "item",
-            "description": item.description
-        },
-        "entity_obj": item
-    }
+    # Invoke entity behavior via accessor.update() with verb
+    # This triggers on_squeeze if the item has behaviors
+    result = accessor.update(item, {}, verb="squeeze", actor_id=actor_id)
 
-    # Apply behavior if present
-    from src.behavior_manager import get_behavior_manager
-    manager = get_behavior_manager()
+    if not result.success:
+        return HandlerResult(success=False, message=result.message)
 
-    event_name = "on_squeeze"
-    behavior_context = {
-        "location": state.player.location,
-        "verb": "squeeze"
-    }
+    # Build response message
+    base_message = f"You squeeze the {item.name}."
+    if result.message:
+        message = f"{base_message} {result.message}"
+    else:
+        message = base_message
 
-    behavior_result = manager.invoke_behavior(item, event_name, state, behavior_context)
-
-    # Remove entity_obj from result
-    del result["entity_obj"]
-
-    if behavior_result:
-        if behavior_result.message:
-            result["message"] = behavior_result.message
-        if not behavior_result.allow:
-            result["success"] = False
-
-    return result
+    return HandlerResult(success=True, message=message)
 
 
 def on_squeeze(entity: Any, state: Any, context: Dict) -> EventResult:
