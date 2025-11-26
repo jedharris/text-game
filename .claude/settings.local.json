@@ -1,35 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Edit",
-      "Bash(python -m unittest:*)",
-      "Bash(python run_tests.py:*)",
-      "Bash(python3:*)",
-      "Bash(python -m py_compile:*)",
-      "Bash(cat:*)",
-      "Bash(python -c:*)",
-      "Bash(python debug_serialization.py:*)",
-      "Bash(pip install:*)",
-      "Bash(python -m pytest:*)",
-      "Bash(python test_integration.py:*)",
-      "Bash(python:*)",
-      "Bash(ln:*)",
-      "Bash(/tmp/before_testing.txt)",
-      "Bash(/tmp/after_testing.txt)",
-      "Bash(/tmp/behavior_refactoring_implementation.md)",
-      "Bash(/Users/jed/Development/text-game/docs/behavior_refactoring_implementation.md)",
-      "Bash(/tmp/design_before_impl.txt)",
-      "Bash(/tmp/design_after_impl.txt)",
-      "Bash(/tmp/new_design_doc.md)",
-      "Bash(mv:*)",
-      "Bash(test:*)",
-      "Bash(git stash:*)",
-      "Bash(git checkout:*)",
-      "Bash(git -C /Users/jed/Development/text-game log --oneline -10)",
-      "Bash(mkdir:*)",
-      "Bash(node --version:*)",
-      "Bash(command -v:*)",
-      "Bash([ -s \"$HOME/.nvm/nvm.sh\" ])"
+      "Bash(done)",
+      "Bash(find /Users/jed/Development/text-game -name \"*.py\" -type f -not -path \"*__pycache__*\" -not -path \"*venv*\" -exec sh -c 'grep -v \"\"\"\"^\\s*#\"\"\"\" \"\"\"\"$1\"\"\"\" | grep -v \"\"\"\"^\\s*$\"\"\"\" | wc -l' _ {})"
     ],
     "deny": [],
     "ask": []
