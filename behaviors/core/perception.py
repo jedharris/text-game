@@ -172,6 +172,13 @@ def handle_examine(accessor, action):
             elif not is_open and not is_surface:
                 message_parts.append(f"The {item.name} is closed.")
 
+        # Show light source state
+        if item.properties.get("provides_light"):
+            if item.states.get("lit"):
+                message_parts.append("It is currently lit, casting a warm glow.")
+            else:
+                message_parts.append("It is currently unlit.")
+
         # Invoke entity behaviors (on_examine)
         result = accessor.update(item, {}, verb="examine", actor_id=actor_id)
 

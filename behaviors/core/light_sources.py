@@ -47,3 +47,8 @@ def on_drop(entity: Any, state: Any, context: Dict) -> EventResult:
         allow=True,
         message="The lantern's runes fade as you set it down, leaving it dark and cold."
     )
+
+
+def on_put(entity: Any, state: Any, context: Dict) -> EventResult:
+    """Extinguish when put down - delegates to on_drop."""
+    return on_drop(entity, state, context)

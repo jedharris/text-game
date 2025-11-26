@@ -310,6 +310,66 @@ class TestLightSourcesBehaviors(unittest.TestCase):
         self.assertNotIn("glow", msg.lower())
         self.assertNotIn("lit", msg.lower())
 
+    def test_put_lantern_extinguishes(self):
+        """Test that putting lantern on surface extinguishes it."""
+        # Use simple_game_state which has a table surface
+        fixture_path = Path(__file__).parent.parent / "examples" / "simple_game_state.json"
+        state = load_game_state(fixture_path)
+
+        # Create handler with behavior manager
+        handler = JSONProtocolHandler(state, behavior_manager=self.manager)
+
+        # Move player to hallway where lantern and table are
+        state.set_player_location("loc_hallway")
+
+        lantern = state.get_item("item_lantern")
+
+        # Take the lantern (lights it)
+        handler.handle_command({
+            "type": "command",
+            "action": {"verb": "take", "object": "lantern"}
+        })
+        self.assertTrue(lantern.states.get("lit", False))
+
+        # Put it on the table
+        result = handler.handle_command({
+            "type": "command",
+            "action": {"verb": "put", "object": "lantern", "indirect_object": "table"}
+        })
+
+        self.assertTrue(result.get("success"))
+        # Should be extinguished
+        self.assertFalse(lantern.states.get("lit", True))
+
+    def test_examine_lantern_shows_unlit_state(self):
+        """Test that examining unlit lantern shows it is unlit."""
+        result = self.handler.handle_command({
+            "type": "command",
+            "action": {"verb": "examine", "object": "lantern"}
+        })
+
+        self.assertTrue(result.get("success"))
+        msg = result.get("message", "").lower()
+        self.assertIn("unlit", msg)
+
+    def test_examine_lantern_shows_lit_state(self):
+        """Test that examining lit lantern shows it is lit."""
+        # Take the lantern (which lights it)
+        self.handler.handle_command({
+            "type": "command",
+            "action": {"verb": "take", "object": "lantern"}
+        })
+
+        result = self.handler.handle_command({
+            "type": "command",
+            "action": {"verb": "examine", "object": "lantern"}
+        })
+
+        self.assertTrue(result.get("success"))
+        msg = result.get("message", "").lower()
+        self.assertIn("lit", msg)
+        self.assertNotIn("unlit", msg)
+
 
 class TestContainersBehaviors(unittest.TestCase):
     """Test containers behavior module (chest win condition)."""
