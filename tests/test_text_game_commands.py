@@ -1,4 +1,4 @@
-"""Tests for game_engine.py command handling.
+"""Tests for text_game.py command handling.
 
 These tests verify that commands like 'look', 'put X on Y', and 'examine'
 work correctly through the JSON protocol interface.
@@ -19,7 +19,7 @@ from src.state_manager import load_game_state
 from src.behavior_manager import BehaviorManager
 from src.llm_protocol import JSONProtocolHandler
 from src.vocabulary_generator import extract_nouns_from_state, merge_vocabulary
-from src.game_engine import format_location_query
+from src.text_game import format_location_query
 
 
 class TestVocabularyMerging(unittest.TestCase):

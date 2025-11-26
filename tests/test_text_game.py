@@ -1,6 +1,6 @@
-"""Tests for game_engine module.
+"""Tests for text_game module.
 
-These tests verify that game_engine.py correctly formats JSON protocol
+These tests verify that text_game.py correctly formats JSON protocol
 responses as text output, including behavior messages.
 """
 
@@ -8,7 +8,7 @@ import unittest
 import json
 from pathlib import Path
 
-from src.game_engine import format_command_result, format_location_query, format_inventory_query
+from src.text_game import format_command_result, format_location_query, format_inventory_query
 from src.state_manager import load_game_state
 from src.llm_protocol import JSONProtocolHandler
 from src.behavior_manager import BehaviorManager
