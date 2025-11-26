@@ -101,11 +101,22 @@ def describe_location(state: GameState):
     if loc:
         print(loc.description)
 
-        # List items in location
+        # List items in location (not on surfaces)
         items_here = [item for item in state.items if item.location == loc.id]
         if items_here:
             item_names = [item.name for item in items_here]
             print("You see:", ", ".join(item_names))
+
+        # List items on surface containers in this location
+        for container in state.items:
+            if container.location != loc.id:
+                continue
+            container_props = container.properties.get("container")
+            if container_props and container_props.get("is_surface", False):
+                items_on_surface = [item for item in state.items if item.location == container.id]
+                if items_on_surface:
+                    item_names = [item.name for item in items_on_surface]
+                    print(f"On the {container.name}: {', '.join(item_names)}")
 
         # List exits (including doors)
         if loc.exits:
@@ -357,8 +368,27 @@ def examine_item(state: GameState, item_name: str):
     loc = get_current_location(state)
 
     def _print_item_details(item):
-        """Print item description and lit state if applicable."""
+        """Print item description, container contents, and lit state if applicable."""
         print(item.description)
+
+        # Show items on/in container if it's a container
+        container_props = item.properties.get("container")
+        if container_props:
+            is_surface = container_props.get("is_surface", False)
+            is_open = container_props.get("open", False)
+
+            # Surface containers always show contents, enclosed need to be open
+            if is_surface or is_open:
+                items_inside = [i for i in state.items if i.location == item.id]
+                if items_inside:
+                    preposition = "On" if is_surface else "Inside"
+                    item_names = [i.name for i in items_inside]
+                    print(f"{preposition} the {item.name}: {', '.join(item_names)}")
+                elif is_surface:
+                    print(f"The {item.name} is empty.")
+            elif not is_surface and not is_open:
+                print(f"The {item.name} is closed.")
+
         # Show lit state for light sources
         if item.properties.get("provides_light", False):
             states = item.properties.get("states", {})
@@ -672,7 +702,15 @@ def main(save_load_dir=None):
             case _ if result.verb and result.verb.word == "inventory":
                 show_inventory(state)
 
-            # Handle "examine" / "look" without object (examine room)
+            # Handle "look" without object (describe room)
+            case _ if result.verb and result.verb.word == "look" and not result.direct_object:
+                describe_location(state)
+
+            # Handle "look" with object (same as examine)
+            case _ if result.verb and result.verb.word == "look" and result.direct_object:
+                examine_item(state, result.direct_object.word)
+
+            # Handle "examine" without object (describe room)
             case _ if result.verb and result.verb.word == "examine" and result.object_missing:
                 describe_location(state)
 
