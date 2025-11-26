@@ -332,5 +332,117 @@ class TestHandleOpenWithAdjective(unittest.TestCase):
         # Should open first match (iron door)
 
 
+class TestDoorStateAdjectives(unittest.TestCase):
+    """Test that door state properties work as adjectives (locked, unlocked, open, closed)."""
+
+    def setUp(self):
+        """Set up test state with door items having different states."""
+        self.state = create_test_state()
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.state, self.behavior_manager)
+
+        # Get player's location
+        player = self.state.actors["player"]
+        location_id = player.location
+
+        # Create location for exits to point to
+        other_location = Location(
+            id="loc_other",
+            name="Other Room",
+            description="Another room.",
+            exits={}
+        )
+        self.state.locations.append(other_location)
+
+        # Add two door items - one locked, one unlocked
+        # Using unified door item model (properties.door)
+        # IMPORTANT: IDs must NOT contain state words (locked/unlocked/open/closed)
+        # to properly test that matching works on properties, not ID/description
+        iron_door = Item(
+            id="door_iron_test",
+            name="door",
+            description="A heavy iron door.",  # No state words in description
+            location=location_id,
+            properties={
+                "door": {"open": False, "locked": True}
+            }
+        )
+        wooden_door = Item(
+            id="door_wooden_test",
+            name="door",
+            description="A simple wooden door.",  # No state words in description
+            location=location_id,
+            properties={
+                "door": {"open": False, "locked": False}
+            }
+        )
+        self.state.items.append(iron_door)
+        self.state.items.append(wooden_door)
+
+    def test_find_door_with_locked_adjective(self):
+        """Test that 'locked' adjective matches door with locked=True."""
+        from utilities.utils import find_accessible_item
+
+        item = find_accessible_item(
+            self.accessor, "door", "player", adjective="locked"
+        )
+
+        self.assertIsNotNone(item)
+        self.assertEqual(item.id, "door_iron_test")  # iron door is locked
+
+    def test_find_door_with_unlocked_adjective(self):
+        """Test that 'unlocked' adjective matches door with locked=False."""
+        from utilities.utils import find_accessible_item
+
+        item = find_accessible_item(
+            self.accessor, "door", "player", adjective="unlocked"
+        )
+
+        self.assertIsNotNone(item)
+        self.assertEqual(item.id, "door_wooden_test")  # wooden door is unlocked
+
+    def test_find_door_with_closed_adjective(self):
+        """Test that 'closed' adjective matches door with open=False."""
+        from utilities.utils import find_accessible_item
+
+        # Both doors are closed, should return first match
+        item = find_accessible_item(
+            self.accessor, "door", "player", adjective="closed"
+        )
+
+        self.assertIsNotNone(item)
+        # Should match a door that is closed
+        self.assertFalse(item.door_open)
+
+    def test_find_door_with_open_adjective(self):
+        """Test that 'open' adjective matches door with open=True."""
+        from utilities.utils import find_accessible_item
+
+        # Open one of the doors (iron door)
+        iron_door = self.accessor.get_item("door_iron_test")
+        iron_door.door_open = True
+
+        item = find_accessible_item(
+            self.accessor, "door", "player", adjective="open"
+        )
+
+        self.assertIsNotNone(item)
+        self.assertEqual(item.id, "door_iron_test")
+        self.assertTrue(item.door_open)
+
+    def test_state_adjective_takes_precedence_over_description(self):
+        """Test that state adjective matches even if not in description."""
+        from utilities.utils import find_accessible_item
+
+        # The iron door is locked but has "iron" in description, not "locked"
+        # We search for "locked" which is a state property
+        item = find_accessible_item(
+            self.accessor, "door", "player", adjective="locked"
+        )
+
+        self.assertIsNotNone(item)
+        self.assertTrue(item.door_locked)
+
+
 if __name__ == '__main__':
     unittest.main()

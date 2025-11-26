@@ -1,0 +1,68 @@
+Claude Context Setup Cookbook
+Adding Semantic Search to Claude Code in VS Code
+Overview
+Claude Context is an MCP (Model Context Protocol) plugin that adds semantic code search to Claude Code. Instead of loading entire files into context, it stores your codebase in a vector database and retrieves only relevant code chunks when needed.
+Benefits
+~40% token reduction with equivalent retrieval quality
+Semantic search - find code by meaning, not just keywords
+Incremental indexing - only re-indexes changed files
+Large codebase support - handles millions of lines
+Prerequisites
+Node.js 20.x or 22.x (not 24.x - incompatible)
+Claude Code installed in VS Code
+Two API keys (obtained in Step 1)
+Step 1: Get Your API Keys
+Zilliz Cloud (Vector Database)
+Zilliz Cloud provides the vector database that stores your code embeddings. A free tier is available.
+Sign up at https://cloud.zilliz.com/signup
+Create a cluster
+Copy your Public Endpoint (looks like https://xxx.zillizcloud.com)
+Copy your API Key (Personal Key)
+OpenAI (Embedding Model)
+OpenAI provides the embedding model that converts code into vectors for semantic search.
+Go to https://platform.openai.com/api-keys
+Create a new API key (starts with sk-)
+Step 2: Add the MCP Server to Claude Code
+Run this command in your terminal:
+claude mcp add claude-context \
+  -e OPENAI_API_KEY=sk-your-openai-api-key \
+  -e MILVUS_ADDRESS=your-zilliz-cloud-public-endpoint \
+  -e MILVUS_TOKEN=your-zilliz-cloud-api-key \
+  -- npx @zilliz/claude-context-mcp@latest
+Important: Replace the three placeholder values with your actual keys and endpoint from Step 1.
+Step 3: Index Your Codebase
+Open Claude Code in your project directory:
+cd /path/to/your/project
+claude
+Then tell Claude to index your codebase:
+Index this codebase
+Wait for indexing to complete. Check progress with:
+Check the indexing status
+Step 4: Use Semantic Search
+Now Claude can search your codebase semantically instead of reading full files. Example queries:
+Find functions that handle database connections
+Find code related to the authentication flow
+Search for error handling patterns
+Find design documentation about caching
+Available Commands
+
+Tips for Your Workflow
+For Design Documentation
+After indexing, you can search your design docs semantically:
+"Find design documentation about the caching layer"
+"Search for architecture decisions related to the API"
+Incremental Updates
+The system uses Merkle trees to track changes. After the initial index, subsequent indexing only processes changed files, making updates fast.
+Supported Languages
+Python, JavaScript, TypeScript, Java, C++, C#, Go, Rust, PHP, Ruby, Swift, Kotlin, Scala, and Markdown. Code files use AST-based chunking for intelligent splitting.
+Troubleshooting
+"Node version not compatible"
+Downgrade to Node.js 20.x or 22.x. Node 24.x is not supported.
+MCP not connecting
+Run claude mcp list to verify the server is registered. If issues persist, restart Claude Code.
+Poor search results
+Try re-indexing after significant code changes. The index may be stale.
+Resources
+GitHub: https://github.com/zilliztech/claude-context
+Zilliz Cloud: https://cloud.zilliz.com
+Claude Code MCP Docs: https://docs.anthropic.com/en/docs/claude-code/mcp

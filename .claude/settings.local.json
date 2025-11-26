@@ -26,7 +26,10 @@
       "Bash(git stash:*)",
       "Bash(git checkout:*)",
       "Bash(git -C /Users/jed/Development/text-game log --oneline -10)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(node --version:*)",
+      "Bash(command -v:*)",
+      "Bash([ -s \"$HOME/.nvm/nvm.sh\" ])"
     ],
     "deny": [],
     "ask": []
