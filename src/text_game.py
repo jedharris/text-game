@@ -4,6 +4,7 @@ This is a thin wrapper around the JSON protocol handler, converting text
 input to JSON commands and formatting JSON responses as text output.
 """
 
+import argparse
 import json
 import sys
 import tempfile
@@ -167,13 +168,28 @@ def load_game(filename: str) -> Optional[GameState]:
         return None
 
 
-def main(save_load_dir=None):
-    """Run the game."""
-    if save_load_dir is None:
-        save_load_dir = "."
+def main(state_file: str = None):
+    """Run the game.
 
+    Args:
+        state_file: Path to game state JSON file (uses default if not provided)
+    """
     # Load initial game state
-    state = load_game_state(str(DEFAULT_STATE_FILE))
+    if state_file:
+        game_state_path = Path(state_file)
+        # Try adding .json if file doesn't exist
+        if not game_state_path.exists() and not state_file.endswith('.json'):
+            game_state_path = Path(state_file + '.json')
+    else:
+        game_state_path = DEFAULT_STATE_FILE
+    if not game_state_path.exists():
+        print(f"Error: Game state file not found: {game_state_path}")
+        return 1
+
+    # Use the state file's directory for save/load dialogs
+    save_load_dir = str(game_state_path.parent.resolve())
+
+    state = load_game_state(str(game_state_path))
 
     # Initialize behavior manager and load behavior modules
     behavior_manager = BehaviorManager()
@@ -334,5 +350,13 @@ def main(save_load_dir=None):
             break
 
 
+def cli_main():
+    """Entry point for console script."""
+    parser = argparse.ArgumentParser(description='Text adventure game')
+    parser.add_argument('state_file', nargs='?', help='Path to game state JSON file')
+    args = parser.parse_args()
+    sys.exit(main(state_file=args.state_file) or 0)
+
+
 if __name__ == '__main__':
-    main()
+    cli_main()

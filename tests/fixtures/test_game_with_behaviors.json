@@ -37,7 +37,17 @@
       "location": "room1"
     }
   ],
-  "doors": [],
   "npcs": [],
-  "locks": []
+  "locks": [],
+  "actors": {
+    "player": {
+      "id": "player",
+      "name": "player",
+      "description": "",
+      "location": "room1",
+      "inventory": [],
+      "flags": {},
+      "stats": {}
+    }
+  }
 }

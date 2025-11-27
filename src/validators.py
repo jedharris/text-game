@@ -75,8 +75,6 @@ def _build_id_registry(state: "GameState", errors: List[str]) -> Dict[str, str]:
             add_id(item.id, "door_item")
         else:
             add_id(item.id, "item")
-    for door in state.doors:
-        add_id(door.id, "door")
     for lock in state.locks:
         add_id(lock.id, "lock")
     for npc in state.npcs:
@@ -179,18 +177,10 @@ def _validate_item_locations(state: "GameState", registry: Dict[str, str],
 
 def _validate_door_references(state: "GameState", registry: Dict[str, str],
                               errors: List[str]) -> None:
-    """Validate door location references."""
-    for door in state.doors:
-        for loc_id in door.locations:
-            if loc_id not in registry:
-                errors.append(
-                    f"Door '{door.id}' references nonexistent location '{loc_id}'"
-                )
-            elif registry[loc_id] != "location":
-                errors.append(
-                    f"Door '{door.id}' references '{loc_id}' "
-                    f"which is a {registry[loc_id]}, not a location"
-                )
+    """Validate door item references via exits."""
+    # Door items are validated through exit references
+    # No separate validation needed since doors are now items
+    pass
 
 
 def _validate_lock_references(state: "GameState", registry: Dict[str, str],
@@ -211,14 +201,13 @@ def _validate_lock_references(state: "GameState", registry: Dict[str, str],
                     f"which is a {registry[key_id]}, not an item"
                 )
 
-    # Check door lock_id references
+    # Check door item lock_id references
     lock_ids = {lock.id for lock in state.locks}
-    for door in state.doors:
-        lock_id = door.properties.get("lock_id")
-        if lock_id:
-            if lock_id not in lock_ids:
+    for item in state.items:
+        if item.is_door and item.door_lock_id:
+            if item.door_lock_id not in lock_ids:
                 errors.append(
-                    f"Door '{door.id}' references nonexistent lock '{lock_id}'"
+                    f"Door '{item.id}' references nonexistent lock '{item.door_lock_id}'"
                 )
 
 
@@ -344,7 +333,7 @@ def _validate_behavior_references(state: "GameState", loaded_modules: Set[str],
         if hasattr(location, 'behaviors'):
             check_behaviors(location.id, "Location", location.behaviors)
 
-    # Check doors
-    for door in state.doors:
-        if hasattr(door, 'behaviors'):
-            check_behaviors(door.id, "Door", door.behaviors)
+    # Check door items
+    for item in state.items:
+        if item.is_door and hasattr(item, 'behaviors'):
+            check_behaviors(item.id, "Door", item.behaviors)

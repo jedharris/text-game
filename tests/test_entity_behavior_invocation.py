@@ -43,7 +43,6 @@ def create_test_state_with_light_source():
                 behaviors=["behaviors.core.light_sources"]
             )
         ],
-        doors=[],
         locks=[],
         actors={
             "player": Actor(

@@ -64,28 +64,6 @@ class TestStateAccessorGetters(unittest.TestCase):
         location = accessor.get_location("nonexistent")
         self.assertIsNone(location)
 
-    def test_get_door_found(self):
-        """Test retrieving a door that exists."""
-        state = create_test_state()
-        accessor = StateAccessor(state, None)
-
-        # Add a door to test with
-        from src.state_manager import Door
-        door = Door(id="door_test", locations=("location_room", "location_hall"))
-        state.doors.append(door)
-
-        retrieved = accessor.get_door("door_test")
-        self.assertIsNotNone(retrieved)
-        self.assertEqual(retrieved.id, "door_test")
-
-    def test_get_door_not_found(self):
-        """Test retrieving a door that doesn't exist returns None."""
-        state = create_test_state()
-        accessor = StateAccessor(state, None)
-
-        door = accessor.get_door("nonexistent")
-        self.assertIsNone(door)
-
     def test_get_lock_found(self):
         """Test retrieving a lock that exists."""
         state = create_test_state()

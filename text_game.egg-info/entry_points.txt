@@ -1,0 +1,3 @@
+[console_scripts]
+llm-game = src.llm_game:cli_main
+text-game = src.text_game:cli_main

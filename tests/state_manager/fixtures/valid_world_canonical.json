@@ -1,18 +1,16 @@
 {
-  "doors": [
-    {
-      "description": "An iron-bound door.",
-      "id": "door_1",
-      "locations": [
-        "loc_1",
-        "loc_2"
-      ],
-      "lock_id": "lock_1",
-      "locked": true,
-      "open": false
-    }
-  ],
   "items": [
+    {
+      "id": "door_1",
+      "name": "door",
+      "description": "An iron-bound door.",
+      "location": "exit:loc_1:north",
+      "door": {
+        "open": false,
+        "locked": true,
+        "lock_id": "lock_1"
+      }
+    },
     {
       "description": "A wooden torch.",
       "id": "item_1",
@@ -75,6 +73,7 @@
         },
         "north": {
           "door_id": "door_1",
+          "to": "loc_2",
           "type": "door"
         }
       },
@@ -83,7 +82,6 @@
         "item_1"
       ],
       "name": "Entrance Hall",
-      "npcs": [],
       "tags": [
         "indoor",
         "lit"
@@ -94,6 +92,7 @@
       "exits": {
         "south": {
           "door_id": "door_1",
+          "to": "loc_1",
           "type": "door"
         }
       },
@@ -102,9 +101,6 @@
         "item_2"
       ],
       "name": "Inner Chamber",
-      "npcs": [
-        "npc_1"
-      ],
       "tags": [
         "dark",
         "indoor"
@@ -121,7 +117,6 @@
       "id": "loc_3",
       "items": [],
       "name": "Side Room",
-      "npcs": [],
       "tags": [
         "indoor"
       ]
@@ -152,32 +147,36 @@
     "title": "Test Adventure",
     "version": "1.0"
   },
-  "npcs": [
-    {
+  "actors": {
+    "player": {
+      "id": "player",
+      "name": "player",
+      "description": "",
+      "location": "loc_1",
+      "inventory": ["item_4"],
+      "flags": {
+        "started": true
+      },
+      "stats": {
+        "health": 100,
+        "max_health": 100
+      }
+    },
+    "npc_1": {
       "description": "A spectral guardian.",
-      "dialogue": [
-        "Who dares enter?",
-        "Turn back now."
-      ],
       "id": "npc_1",
+      "inventory": [],
       "location": "loc_2",
       "name": "Guardian",
-      "states": {
-        "hostile": false
+      "properties": {
+        "dialogue": [
+          "Who dares enter?",
+          "Turn back now."
+        ],
+        "states": {
+          "hostile": false
+        }
       }
-    }
-  ],
-  "player_state": {
-    "flags": {
-      "started": true
-    },
-    "inventory": [
-      "item_4"
-    ],
-    "location": "loc_1",
-    "stats": {
-      "health": 100,
-      "max_health": 100
     }
   }
 }

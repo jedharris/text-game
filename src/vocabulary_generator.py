@@ -39,8 +39,9 @@ def extract_nouns_from_state(state: GameState) -> List[Dict[str, Any]]:
             nouns.append({"word": name})
             seen_words.add(name)
 
-    # Add "door" noun if there are any doors in the game
-    if state.doors and "door" not in seen_words:
+    # Add "door" noun if there are any door items in the game
+    has_doors = any(item.is_door for item in state.items)
+    if has_doors and "door" not in seen_words:
         nouns.append({"word": "door"})
         seen_words.add("door")
 

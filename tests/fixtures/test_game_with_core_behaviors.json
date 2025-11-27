@@ -93,16 +93,20 @@
       "location": "room1"
     }
   ],
-  "doors": [],
   "npcs": [],
   "locks": [],
-  "player": {
-    "location": "room1",
-    "inventory": [],
-    "flags": {},
-    "stats": {
-      "health": 50,
-      "max_health": 100
+  "actors": {
+    "player": {
+      "id": "player",
+      "name": "player",
+      "description": "",
+      "location": "room1",
+      "inventory": [],
+      "flags": {},
+      "stats": {
+        "health": 50,
+        "max_health": 100
+      }
     }
   }
 }

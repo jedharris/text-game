@@ -5,7 +5,7 @@ import json
 import tempfile
 from pathlib import Path
 
-from src.state_manager import load_game_state, Item, NPC, Door, Location
+from src.state_manager import load_game_state, Item, NPC, Location
 
 
 class TestBehaviorsFieldInModels(unittest.TestCase):
@@ -56,24 +56,31 @@ class TestBehaviorsFieldInModels(unittest.TestCase):
         )
         self.assertIn("module:on_talk", npc.behaviors)
 
-    def test_door_has_behaviors_field(self):
-        """Test that Door model has behaviors field."""
-        door = Door(
+    def test_door_item_has_behaviors_field(self):
+        """Test that door item has behaviors field."""
+        door_item = Item(
             id="test_door",
-            locations=("room1", "room2"),
-            properties={"description": "A test door"}
+            name="door",
+            description="A test door",
+            location="exit:room1:north",
+            properties={"door": {"open": False}},
+            behaviors=[]
         )
-        self.assertEqual(door.behaviors, [])
+        self.assertEqual(door_item.behaviors, [])
+        self.assertTrue(door_item.is_door)
 
-    def test_door_with_behaviors(self):
-        """Test creating Door with behaviors."""
-        door = Door(
+    def test_door_item_with_behaviors(self):
+        """Test creating door item with behaviors."""
+        door_item = Item(
             id="test_door",
-            locations=("room1", "room2"),
-            properties={"description": "A test door"},
+            name="door",
+            description="A test door",
+            location="exit:room1:north",
+            properties={"door": {"open": False}},
             behaviors=["module:on_open", "module:on_close"]
         )
-        self.assertIn("module:on_open", door.behaviors)
+        self.assertIn("module:on_open", door_item.behaviors)
+        self.assertTrue(door_item.is_door)
 
     def test_location_has_behaviors_field(self):
         """Test that Location model has behaviors field."""
@@ -113,7 +120,6 @@ class TestBehaviorsLoading(unittest.TestCase):
                 }
             ],
             "items": [],
-            "doors": [],
             "npcs": []
         }
         state.update(kwargs)
@@ -221,8 +227,8 @@ class TestBehaviorsLoading(unittest.TestCase):
         npc = state.get_npc("guard")
         self.assertEqual(npc.behaviors, [])
 
-    def test_load_door_with_behaviors(self):
-        """Test loading door with behaviors field from JSON."""
+    def test_load_door_item_with_behaviors(self):
+        """Test loading door item with behaviors field from JSON."""
         game_data = self._create_minimal_game_state(
             locations=[
                 {
@@ -239,11 +245,13 @@ class TestBehaviorsLoading(unittest.TestCase):
                     "description": "Second room"
                 }
             ],
-            doors=[
+            items=[
                 {
                     "id": "door1",
-                    "locations": ["room1", "room2"],
+                    "name": "door",
                     "description": "A heavy oak door",
+                    "location": "exit:room1:north",
+                    "properties": {"door": {"open": False}},
                     "behaviors": ["behaviors.doors:on_open_creaky"]
                 }
             ]
@@ -251,13 +259,12 @@ class TestBehaviorsLoading(unittest.TestCase):
 
         state = load_game_state(game_data)
 
-        # After migration, doors become items
         door_item = state.get_item("door1")
         self.assertTrue(door_item.is_door)
         self.assertIn("behaviors.doors:on_open_creaky", door_item.behaviors)
 
-    def test_load_door_without_behaviors(self):
-        """Test loading door without behaviors defaults to empty dict."""
+    def test_load_door_item_without_behaviors(self):
+        """Test loading door item without behaviors defaults to empty list."""
         game_data = self._create_minimal_game_state(
             locations=[
                 {
@@ -274,18 +281,19 @@ class TestBehaviorsLoading(unittest.TestCase):
                     "description": "Second room"
                 }
             ],
-            doors=[
+            items=[
                 {
                     "id": "door1",
-                    "locations": ["room1", "room2"],
-                    "description": "A plain door"
+                    "name": "door",
+                    "description": "A plain door",
+                    "location": "exit:room1:north",
+                    "properties": {"door": {"open": False}}
                 }
             ]
         )
 
         state = load_game_state(game_data)
 
-        # After migration, doors become items
         door_item = state.get_item("door1")
         self.assertTrue(door_item.is_door)
         self.assertEqual(door_item.behaviors, [])

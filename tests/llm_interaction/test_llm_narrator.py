@@ -404,12 +404,11 @@ class TestIntegration(unittest.TestCase):
         # Give player the key
         self.state.player.inventory = ["item_key"]
 
-        # Find the iron door and ensure it's locked
-        for door in self.state.doors:
-            if door.id == "door_iron":
-                door.locked = True
-                door.open = False
-                break
+        # Find the iron door item and ensure it's locked
+        iron_door = self.state.get_item("door_iron")
+        if iron_door and iron_door.is_door:
+            iron_door.door_locked = True
+            iron_door.door_open = False
 
         responses = [
             # Unlock (include adjective for disambiguation since hallway has 2 doors)
@@ -428,11 +427,11 @@ class TestIntegration(unittest.TestCase):
         narrator.process_turn("open the iron door")
 
         # Verify door state
-        for door in self.state.doors:
-            if door.id == "door_iron":
-                self.assertFalse(door.locked)
-                self.assertTrue(door.open)
-                break
+        iron_door = self.state.get_item("door_iron")
+        self.assertIsNotNone(iron_door)
+        self.assertTrue(iron_door.is_door)
+        self.assertFalse(iron_door.door_locked)
+        self.assertTrue(iron_door.door_open)
 
 
 class TestEdgeCases(unittest.TestCase):

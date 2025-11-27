@@ -126,41 +126,39 @@ class TestMultipleAdjectiveDisambiguation(unittest.TestCase):
                     "name": "Test Room",
                     "description": "A room with multiple doors.",
                     "exits": {
-                        "north": {"to": "room2", "door_id": "door1"},
-                        "south": {"to": "room3", "door_id": "door2"}
+                        "north": {"type": "door", "to": "room2", "door_id": "door1"},
+                        "south": {"type": "door", "to": "room3", "door_id": "door2"}
                     }
                 },
                 {
                     "id": "room2",
                     "name": "North Room",
-                    "description": "North room."
+                    "description": "North room.",
+                    "exits": {"south": {"type": "door", "to": "room1", "door_id": "door1"}}
                 },
                 {
                     "id": "room3",
                     "name": "South Room",
-                    "description": "South room."
+                    "description": "South room.",
+                    "exits": {"north": {"type": "door", "to": "room1", "door_id": "door2"}}
                 }
             ],
-            "items": [],
-            "doors": [
+            "items": [
                 {
                     "id": "door1",
-                    "name": "rough wooden door",
+                    "name": "door",
                     "description": "A rough wooden door with iron bands.",
-                    "locations": ["room1", "room2"],
-                    "open": False,
-                    "locked": False
+                    "location": "exit:room1:north",
+                    "door": {"open": False, "locked": False}
                 },
                 {
                     "id": "door2",
-                    "name": "polished wooden door",
+                    "name": "door",
                     "description": "A polished wooden door with brass fittings.",
-                    "locations": ["room1", "room3"],
-                    "open": False,
-                    "locked": False
+                    "location": "exit:room1:south",
+                    "door": {"open": False, "locked": False}
                 }
             ],
-            "npcs": [],
             "locks": []
         }
 

@@ -186,18 +186,30 @@ def handle_examine(accessor, action):
         if result.message:
             message_parts.append(result.message)
 
+        # Include llm_context for LLM narration
+        data = {}
+        if item.llm_context:
+            data["llm_context"] = item.llm_context
+
         return HandlerResult(
             success=True,
-            message="\n".join(message_parts)
+            message="\n".join(message_parts),
+            data=data if data else None
         )
 
     # If no item found, try to find a door
     door = find_door_with_adjective(accessor, object_name, adjective, location.id)
 
     if door:
+        # Include llm_context for doors too
+        data = {}
+        if door.llm_context:
+            data["llm_context"] = door.llm_context
+
         return HandlerResult(
             success=True,
-            message=f"{door.description}"
+            message=f"{door.description}",
+            data=data if data else None
         )
 
     return HandlerResult(

@@ -14,8 +14,26 @@ sys.path.insert(0, str(project_root))
 
 from src.state_accessor import StateAccessor
 from src.behavior_manager import BehaviorManager
-from src.state_manager import Actor, Item, Door, Lock
+from src.state_manager import Actor, Item, Lock, Location, ExitDescriptor
 from tests.conftest import create_test_state
+
+
+def create_door_item(door_id: str, location_id: str, direction: str,
+                     open: bool = False, locked: bool = False, lock_id: str = None,
+                     description: str = "A door") -> Item:
+    """Helper to create a door item in the new unified format."""
+    door_props = {"open": open, "locked": locked}
+    if lock_id:
+        door_props["lock_id"] = lock_id
+    return Item(
+        id=door_id,
+        name="door",
+        description=description,
+        location=f"exit:{location_id}:{direction}",
+        properties={"door": door_props}
+    )
+
+
 from utilities.utils import (
     find_accessible_item,
     find_item_in_inventory,
@@ -162,11 +180,21 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         state = create_test_state()
         accessor = StateAccessor(state, BehaviorManager())
 
-        # Create door with lock
-        door = Door(id="door_main", locations=["room", "hall"],
-                   properties={"locked": False, "open": True})
-        door.lock_id = "lock_main"
-        state.doors.append(door)
+        # Add hall location and exits
+        hall = Location(
+            id="hall",
+            name="Hall",
+            description="A hall",
+            exits={"south": ExitDescriptor(type="door", to="location_room", door_id="door_main")}
+        )
+        state.locations.append(hall)
+        room = accessor.get_location("location_room")
+        room.exits["north"] = ExitDescriptor(type="door", to="hall", door_id="door_main")
+
+        # Create door item with lock
+        door = create_door_item("door_main", "location_room", "north",
+                                open=True, locked=False, lock_id="lock_main")
+        state.items.append(door)
 
         lock = Lock(id="lock_main", properties={"locked": True, "opens_with": ["item_key"]})
         state.locks.append(lock)
@@ -186,11 +214,21 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         state = create_test_state()
         accessor = StateAccessor(state, BehaviorManager())
 
-        # Create door with lock
-        door = Door(id="door_main", locations=["room", "hall"],
-                   properties={"locked": False, "open": True})
-        door.lock_id = "lock_main"
-        state.doors.append(door)
+        # Add hall location and exits
+        hall = Location(
+            id="hall",
+            name="Hall",
+            description="A hall",
+            exits={"south": ExitDescriptor(type="door", to="location_room", door_id="door_main")}
+        )
+        state.locations.append(hall)
+        room = accessor.get_location("location_room")
+        room.exits["north"] = ExitDescriptor(type="door", to="hall", door_id="door_main")
+
+        # Create door item with lock
+        door = create_door_item("door_main", "location_room", "north",
+                                open=True, locked=False, lock_id="lock_main")
+        state.items.append(door)
 
         lock = Lock(id="lock_main", properties={"locked": True, "opens_with": ["item_key"]})
         state.locks.append(lock)
@@ -260,15 +298,25 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         state = create_test_state()
         accessor = StateAccessor(state, BehaviorManager())
 
-        # Create door
-        door = Door(id="door_main", locations=["location_room", "hall"],
-                   properties={"locked": False, "open": True})
-        state.doors.append(door)
+        # Add hall location and exits
+        hall = Location(
+            id="hall",
+            name="Hall",
+            description="A hall",
+            exits={"south": ExitDescriptor(type="door", to="location_room", door_id="door_main")}
+        )
+        state.locations.append(hall)
+        room = accessor.get_location("location_room")
+        room.exits["north"] = ExitDescriptor(type="door", to="hall", door_id="door_main")
+
+        # Create door item
+        door = create_door_item("door_main", "location_room", "north", open=True)
+        state.items.append(door)
 
         doors = get_doors_in_location(accessor, "location_room", "player")
 
         # Should find the door
-        door_ids = [door.id for door in doors]
+        door_ids = [d.id for d in doors]
         self.assertIn("door_main", door_ids)
 
     def test_get_doors_in_location_no_doors(self):

@@ -233,15 +233,17 @@ class TestStructuralValidation(unittest.TestCase):
         from src.state_manager import load_game_state
         from src.validators import ValidationError
 
+        # Item located in a door item (which is not a container) should fail
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
             "locations": [
-                {"id": "loc_1", "name": "Room", "description": "A room", "exits": {}}
-            ],
-            "doors": [
-                {"id": "door_1", "locations": ["loc_1", "loc_1"]}
+                {"id": "loc_1", "name": "Room", "description": "A room",
+                 "exits": {"north": {"type": "door", "to": "loc_2", "door_id": "door_1"}}},
+                {"id": "loc_2", "name": "Room 2", "description": "A room", "exits": {}}
             ],
             "items": [
+                {"id": "door_1", "name": "door", "description": "A door",
+                 "location": "exit:loc_1:north", "door": {"open": False}},
                 {"id": "item_1", "name": "Item", "description": "Item", "location": "door_1"}
             ]
         }
@@ -255,7 +257,7 @@ class TestStructuralValidation(unittest.TestCase):
                 load_game_state(temp_path)
             # Should mention that doors are not valid item locations
             error_msg = str(ctx.exception).lower()
-            self.assertTrue("door" in error_msg or "location" in error_msg)
+            self.assertTrue("door" in error_msg or "location" in error_msg or "container" in error_msg)
         finally:
             os.unlink(temp_path)
 
@@ -527,16 +529,10 @@ class TestStructuralValidation(unittest.TestCase):
             os.unlink(temp_path)
 
     def test_door_item_lock_references_invalid_lock_raises_error(self):
-        """Door item referencing nonexistent lock is validated when used.
-
-        Note: Door item lock_ids are not validated at load time, only at runtime
-        when lock/unlock is attempted. This is consistent with how container lock
-        validation works. The lock entity is validated separately.
-        """
+        """Door item referencing nonexistent lock raises error at load time."""
         from src.state_manager import load_game_state
+        from src.validators import ValidationError
 
-        # Door items with invalid lock_id don't fail at load time
-        # (consistent with container behavior - lock is checked at runtime)
         data = {
             "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
             "locations": [
@@ -556,12 +552,9 @@ class TestStructuralValidation(unittest.TestCase):
             temp_path = f.name
 
         try:
-            # Should load successfully - lock validation happens at runtime
-            state = load_game_state(temp_path)
-            # The door item should exist
-            door_items = [i for i in state.items if i.is_door]
-            self.assertEqual(len(door_items), 1)
-            self.assertEqual(door_items[0].door_lock_id, "lock_999")
+            with self.assertRaises(ValidationError) as ctx:
+                load_game_state(temp_path)
+            self.assertIn("lock_999", str(ctx.exception))
         finally:
             os.unlink(temp_path)
 
@@ -658,7 +651,7 @@ class TestStructuralValidation(unittest.TestCase):
                     "name": "Entrance",
                     "description": "An entrance hall",
                     "exits": {
-                        "north": {"type": "door", "door_id": "door_1"}
+                        "north": {"type": "door", "to": "loc_2", "door_id": "door_1"}
                     },
                     "items": ["chest"],
                     "npcs": ["guard"]
@@ -668,19 +661,18 @@ class TestStructuralValidation(unittest.TestCase):
                     "name": "Inner Room",
                     "description": "An inner room",
                     "exits": {
-                        "south": {"type": "door", "door_id": "door_1"}
+                        "south": {"type": "door", "to": "loc_1", "door_id": "door_1"}
                     }
                 }
             ],
-            "doors": [
+            "items": [
                 {
                     "id": "door_1",
-                    "locations": ["loc_1", "loc_2"],
-                    "locked": True,
-                    "lock_id": "lock_1"
-                }
-            ],
-            "items": [
+                    "name": "door",
+                    "description": "A wooden door",
+                    "location": "exit:loc_1:north",
+                    "door": {"open": False, "locked": True, "lock_id": "lock_1"}
+                },
                 {
                     "id": "chest",
                     "name": "Chest",
@@ -723,11 +715,9 @@ class TestStructuralValidation(unittest.TestCase):
         try:
             state = load_game_state(temp_path)
             self.assertEqual(len(state.locations), 2)
-            # Legacy doors are migrated to items, so doors list is empty
-            self.assertEqual(len(state.doors), 0)
-            # Items: 3 original + 1 migrated door = 4
+            # 4 items: door_1, chest, key, sword
             self.assertEqual(len(state.items), 4)
-            # Check door item was created
+            # Check door item exists
             door_items = [i for i in state.items if i.is_door]
             self.assertEqual(len(door_items), 1)
             self.assertEqual(door_items[0].id, "door_1")

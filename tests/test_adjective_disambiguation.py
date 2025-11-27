@@ -9,7 +9,7 @@ import unittest
 from tests.conftest import create_test_state
 from src.state_accessor import StateAccessor
 from src.behavior_manager import BehaviorManager
-from src.state_manager import Item, Door, Location
+from src.state_manager import Item, Location
 
 
 class TestFindItemWithAdjective(unittest.TestCase):
@@ -115,7 +115,7 @@ class TestFindDoorWithAdjective(unittest.TestCase):
     """Test find_door_with_adjective utility function."""
 
     def setUp(self):
-        """Set up test state with multiple doors."""
+        """Set up test state with multiple doors (as door items)."""
         self.state = create_test_state()
         self.behavior_manager = BehaviorManager()
         self.accessor = StateAccessor(self.state, self.behavior_manager)
@@ -124,19 +124,23 @@ class TestFindDoorWithAdjective(unittest.TestCase):
         player = self.state.actors["player"]
         location_id = player.location
 
-        # Add two doors with different adjectives (description in properties)
-        iron_door = Door(
+        # Add two door items with different adjectives
+        iron_door = Item(
             id="door_iron",
-            locations=(location_id, "other_room"),
-            properties={"open": False, "locked": False, "description": "A heavy iron door with rivets."}
+            name="door",
+            description="A heavy iron door with rivets.",
+            location=f"exit:{location_id}:north",
+            properties={"door": {"open": False, "locked": False}}
         )
-        wooden_door = Door(
+        wooden_door = Item(
             id="door_wooden",
-            locations=(location_id, "another_room"),
-            properties={"open": False, "locked": False, "description": "A rough wooden door with brass hinges."}
+            name="door",
+            description="A rough wooden door with brass hinges.",
+            location=f"exit:{location_id}:east",
+            properties={"door": {"open": False, "locked": False}}
         )
-        self.state.doors.append(iron_door)
-        self.state.doors.append(wooden_door)
+        self.state.items.append(iron_door)
+        self.state.items.append(wooden_door)
 
     def test_find_door_with_matching_adjective(self):
         """Test finding door when adjective matches description."""
@@ -272,7 +276,7 @@ class TestHandleOpenWithAdjective(unittest.TestCase):
     """Test handle_open uses adjective for door disambiguation."""
 
     def setUp(self):
-        """Set up test state with multiple doors."""
+        """Set up test state with multiple door items."""
         self.state = create_test_state()
         self.behavior_manager = BehaviorManager()
 
@@ -286,19 +290,23 @@ class TestHandleOpenWithAdjective(unittest.TestCase):
         player = self.state.actors["player"]
         location_id = player.location
 
-        # Add two doors with different adjectives (description in properties)
-        iron_door = Door(
+        # Add two door items with different adjectives
+        iron_door = Item(
             id="door_iron",
-            locations=(location_id, "other_room"),
-            properties={"open": False, "locked": False, "description": "A heavy iron door with rivets."}
+            name="door",
+            description="A heavy iron door with rivets.",
+            location=f"exit:{location_id}:north",
+            properties={"door": {"open": False, "locked": False}}
         )
-        wooden_door = Door(
+        wooden_door = Item(
             id="door_wooden",
-            locations=(location_id, "another_room"),
-            properties={"open": False, "locked": False, "description": "A rough wooden door with brass hinges."}
+            name="door",
+            description="A rough wooden door with brass hinges.",
+            location=f"exit:{location_id}:east",
+            properties={"door": {"open": False, "locked": False}}
         )
-        self.state.doors.append(iron_door)
-        self.state.doors.append(wooden_door)
+        self.state.items.append(iron_door)
+        self.state.items.append(wooden_door)
 
     def test_open_with_adjective_selects_correct_door(self):
         """Test that open with adjective selects correct door."""
@@ -312,11 +320,11 @@ class TestHandleOpenWithAdjective(unittest.TestCase):
         result = handle_open(self.accessor, action)
 
         self.assertTrue(result.success)
-        # Verify correct door was opened
-        wooden_door = next(d for d in self.state.doors if d.id == "door_wooden")
-        iron_door = next(d for d in self.state.doors if d.id == "door_iron")
-        self.assertTrue(wooden_door.open)
-        self.assertFalse(iron_door.open)
+        # Verify correct door was opened (door items use door_open property)
+        wooden_door = next(i for i in self.state.items if i.id == "door_wooden")
+        iron_door = next(i for i in self.state.items if i.id == "door_iron")
+        self.assertTrue(wooden_door.door_open)
+        self.assertFalse(iron_door.door_open)
 
     def test_open_without_adjective_opens_first(self):
         """Test that open without adjective opens first match."""

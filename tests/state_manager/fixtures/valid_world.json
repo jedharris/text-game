@@ -16,6 +16,7 @@
       "exits": {
         "north": {
           "type": "door",
+          "to": "loc_2",
           "door_id": "door_1"
         },
         "east": {
@@ -30,10 +31,10 @@
       "description": "A dimly lit chamber with ancient tapestries.",
       "tags": ["indoor", "dark"],
       "items": ["item_2"],
-      "npcs": ["npc_1"],
       "exits": {
         "south": {
           "type": "door",
+          "to": "loc_1",
           "door_id": "door_1"
         }
       }
@@ -53,105 +54,126 @@
       }
     }
   ],
-  "doors": [
+  "items": [
     {
       "id": "door_1",
-      "locations": ["loc_1", "loc_2"],
+      "name": "door",
       "description": "An iron-bound door.",
-      "locked": true,
-      "lock_id": "lock_1",
-      "open": false
-    }
-  ],
-  "items": [
+      "location": "exit:loc_1:north",
+      "door": {
+        "open": false,
+        "locked": true,
+        "lock_id": "lock_1"
+      }
+    },
     {
       "id": "item_1",
       "name": "Torch",
       "description": "A wooden torch.",
-      "type": "tool",
-      "portable": true,
       "location": "loc_1",
-      "states": {
-        "lit": false
+      "properties": {
+        "type": "tool",
+        "portable": true,
+        "states": {
+          "lit": false
+        }
       }
     },
     {
       "id": "item_2",
       "name": "Stone Chest",
       "description": "A heavy stone chest.",
-      "type": "container",
-      "portable": false,
       "location": "loc_2",
-      "container": {
-        "is_container": true,
-        "is_surface": false,
-        "open": false,
-        "locked": true,
-        "lock_id": "lock_2",
-        "capacity": 10
+      "properties": {
+        "type": "container",
+        "portable": false,
+        "container": {
+          "is_container": true,
+          "is_surface": false,
+          "open": false,
+          "locked": true,
+          "lock_id": "lock_2",
+          "capacity": 10
+        }
       }
     },
     {
       "id": "item_3",
       "name": "Silver Key",
       "description": "A key with a raven design.",
-      "type": "key",
-      "portable": true,
-      "location": "item_2"
+      "location": "item_2",
+      "properties": {
+        "type": "key",
+        "portable": true
+      }
     },
     {
       "id": "item_4",
       "name": "Rusty Sword",
       "description": "An old iron sword.",
-      "type": "weapon",
-      "portable": true,
-      "location": "player"
+      "location": "player",
+      "properties": {
+        "type": "weapon",
+        "portable": true
+      }
     },
     {
       "id": "item_5",
       "name": "Amulet",
       "description": "A mysterious amulet.",
-      "type": "jewelry",
-      "portable": true,
-      "location": "npc_1"
+      "location": "npc_1",
+      "properties": {
+        "type": "jewelry",
+        "portable": true
+      }
     }
   ],
   "locks": [
     {
       "id": "lock_1",
-      "opens_with": ["item_3"],
-      "auto_unlock": false,
       "description": "A raven-shaped lock.",
-      "fail_message": "The door remains locked."
+      "properties": {
+        "opens_with": ["item_3"],
+        "auto_unlock": false,
+        "fail_message": "The door remains locked."
+      }
     },
     {
       "id": "lock_2",
-      "opens_with": ["item_3"],
-      "auto_unlock": false,
-      "description": "A sturdy lock."
+      "description": "A sturdy lock.",
+      "properties": {
+        "opens_with": ["item_3"],
+        "auto_unlock": false
+      }
     }
   ],
-  "npcs": [
-    {
+  "actors": {
+    "player": {
+      "id": "player",
+      "name": "player",
+      "description": "",
+      "location": "loc_1",
+      "inventory": ["item_4"],
+      "flags": {
+        "started": true
+      },
+      "stats": {
+        "health": 100,
+        "max_health": 100
+      }
+    },
+    "npc_1": {
       "id": "npc_1",
       "name": "Guardian",
       "description": "A spectral guardian.",
       "location": "loc_2",
-      "dialogue": ["Who dares enter?", "Turn back now."],
-      "states": {
-        "hostile": false
+      "inventory": [],
+      "properties": {
+        "dialogue": ["Who dares enter?", "Turn back now."],
+        "states": {
+          "hostile": false
+        }
       }
-    }
-  ],
-  "player_state": {
-    "location": "loc_1",
-    "inventory": ["item_4"],
-    "flags": {
-      "started": true
-    },
-    "stats": {
-      "health": 100,
-      "max_health": 100
     }
   }
 }

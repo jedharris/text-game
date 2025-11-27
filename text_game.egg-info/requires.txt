@@ -1,0 +1,6 @@
+
+[gui]
+wxPython
+
+[llm]
+anthropic

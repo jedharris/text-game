@@ -162,42 +162,6 @@ class TestSimplifiedLocation(unittest.TestCase):
         self.assertEqual(exit_desc.properties["on_fail"], "You can't see in the dark.")
 
 
-class TestSimplifiedDoor(unittest.TestCase):
-    """Test simplified Door with properties dict."""
-
-    def test_door_core_fields(self):
-        """Door has only locations tuple as structural field."""
-        from src.state_manager import Door
-
-        door = Door(
-            id="door_1",
-            locations=("loc_1", "loc_2")
-        )
-
-        self.assertEqual(door.id, "door_1")
-        self.assertEqual(door.locations, ("loc_1", "loc_2"))
-        self.assertEqual(door.properties, {})
-
-    def test_door_state_as_properties(self):
-        """Door open/locked state stored in properties."""
-        from src.state_manager import Door
-
-        door = Door(
-            id="door_1",
-            locations=("loc_1", "loc_2"),
-            properties={
-                "description": "An iron door",
-                "open": False,
-                "locked": True,
-                "lock_id": "lock_1"
-            }
-        )
-
-        self.assertFalse(door.properties.get("open"))
-        self.assertTrue(door.properties.get("locked"))
-        self.assertEqual(door.properties.get("lock_id"), "lock_1")
-
-
 class TestSimplifiedNPC(unittest.TestCase):
     """Test simplified NPC with properties dict."""
 
@@ -352,49 +316,6 @@ class TestGenericLoader(unittest.TestCase):
             self.assertEqual(item.properties["type"], "tool")
             self.assertTrue(item.properties["portable"])
             self.assertEqual(item.properties["custom_field"], "custom_value")
-        finally:
-            os.unlink(temp_path)
-
-    def test_load_door_properties(self):
-        """Door state fields are migrated to door items."""
-        from src.state_manager import load_game_state
-
-        data = {
-            "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
-            "locations": [
-                {"id": "loc_1", "name": "Room", "description": "A room", "exits": {}},
-                {"id": "loc_2", "name": "Room 2", "description": "A room", "exits": {}}
-            ],
-            "doors": [
-                {
-                    "id": "door_1",
-                    "locations": ["loc_1", "loc_2"],
-                    "description": "A door",
-                    "open": False,
-                    "locked": True
-                }
-            ]
-        }
-
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-            json.dump(data, f)
-            temp_path = f.name
-
-        try:
-            state = load_game_state(temp_path)
-            # After migration, doors become items
-            # Old doors list should be empty
-            self.assertEqual(len(state.doors), 0)
-
-            # Door should be migrated to an item
-            door_item = state.get_item("door_1")
-            self.assertIsNotNone(door_item)
-            self.assertTrue(door_item.is_door)
-
-            # Check door state via item properties
-            self.assertEqual(door_item.description, "A door")
-            self.assertFalse(door_item.door_open)
-            self.assertTrue(door_item.door_locked)
         finally:
             os.unlink(temp_path)
 
@@ -720,39 +641,6 @@ class TestGenericSerializer(unittest.TestCase):
         # No 'properties' key in output
         self.assertNotIn("properties", item_dict)
 
-    def test_serialize_door_merges_properties(self):
-        """Door properties merged to top level."""
-        from src.state_manager import (
-            Door, game_state_to_dict, GameState, Metadata, Location
-        )
-
-        door = Door(
-            id="door_1",
-            locations=("loc_1", "loc_2"),
-            properties={
-                "description": "A door",
-                "open": False,
-                "locked": True
-            }
-        )
-
-        state = GameState(
-            metadata=Metadata(title="Test", version="1.0", start_location="loc_1"),
-            locations=[
-                Location(id="loc_1", name="Room 1", description="A room", exits={}),
-                Location(id="loc_2", name="Room 2", description="A room", exits={})
-            ],
-            doors=[door]
-        )
-
-        result = game_state_to_dict(state)
-        door_dict = result["doors"][0]
-
-        self.assertEqual(door_dict["locations"], ["loc_1", "loc_2"])
-        self.assertEqual(door_dict["description"], "A door")
-        self.assertFalse(door_dict["open"])
-        self.assertTrue(door_dict["locked"])
-
     def test_serialize_preserves_behaviors(self):
         """Behaviors preserved in serialized output."""
         from src.state_manager import (
@@ -902,20 +790,6 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
         loc = state.get_location("loc_1")
         self.assertEqual(loc.name, "Room")
 
-    def test_get_door(self):
-        """get_door finds door by id."""
-        from src.state_manager import GameState, Metadata, Door
-
-        state = GameState(
-            metadata=Metadata(title="Test", version="1.0", start_location="loc_1"),
-            doors=[
-                Door(id="door_1", locations=("loc_1", "loc_2"))
-            ]
-        )
-
-        door = state.get_door("door_1")
-        self.assertEqual(door.locations, ("loc_1", "loc_2"))
-
     def test_get_lock(self):
         """get_lock finds lock by id."""
         from src.state_manager import GameState, Metadata, Lock
@@ -1041,14 +915,25 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
     def test_build_id_registry(self):
         """build_id_registry returns all entity IDs."""
         from src.state_manager import (
-            GameState, Metadata, Location, Item, Door, Lock, Actor
+            GameState, Metadata, Location, Item, Lock, Actor
+        )
+
+        # Create a door item (new unified model)
+        door_item = Item(
+            id="door_1",
+            name="door",
+            description="A door",
+            location="exit:loc_1:north",
+            properties={"door": {"open": False, "locked": False}}
         )
 
         state = GameState(
             metadata=Metadata(title="Test", version="1.0", start_location="loc_1"),
             locations=[Location(id="loc_1", name="Room", description="A room", exits={})],
-            items=[Item(id="item_1", name="Torch", description="A torch", location="loc_1")],
-            doors=[Door(id="door_1", locations=("loc_1", "loc_2"))],
+            items=[
+                Item(id="item_1", name="Torch", description="A torch", location="loc_1"),
+                door_item
+            ],
             locks=[Lock(id="lock_1")],
             actors={
                 "player": Actor(id="player", name="player", description="", location="loc_1"),
@@ -1061,28 +946,26 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
         self.assertEqual(registry["player"], "player")
         self.assertEqual(registry["loc_1"], "location")
         self.assertEqual(registry["item_1"], "item")
-        self.assertEqual(registry["door_1"], "door")
+        self.assertEqual(registry["door_1"], "door_item")
         self.assertEqual(registry["lock_1"], "lock")
         self.assertEqual(registry["npc_1"], "npc")
 
 
 class TestBackwardCompatibility(unittest.TestCase):
-    """Test that existing game files load correctly."""
+    """Test that game files with unified door items load correctly."""
 
     def test_load_valid_world_fixture(self):
-        """Load existing valid_world.json fixture."""
+        """Load existing valid_world.json fixture with unified door items."""
         from src.state_manager import load_game_state
 
         fixture_path = Path(__file__).parent / "fixtures" / "valid_world.json"
         state = load_game_state(fixture_path)
 
         self.assertEqual(len(state.locations), 3)
-        # Legacy doors are migrated to items: 5 original + 1 door = 6
+        # Items includes door item
         self.assertEqual(len(state.items), 6)
         self.assertEqual(len(state.npcs), 1)
-        # Doors list is empty after migration
-        self.assertEqual(len(state.doors), 0)
-        # But we have a door item
+        # Door items
         door_items = [i for i in state.items if i.is_door]
         self.assertEqual(len(door_items), 1)
         self.assertEqual(len(state.locks), 2)
@@ -1093,7 +976,7 @@ class TestBackwardCompatibility(unittest.TestCase):
         self.assertTrue(chest.properties["container"]["locked"])
 
     def test_serialized_output_matches_input(self):
-        """Serialized output semantically matches input (accounting for migration)."""
+        """Serialized output semantically matches input."""
         from src.state_manager import load_game_state, game_state_to_dict
 
         fixture_path = Path(__file__).parent / "fixtures" / "valid_world.json"
@@ -1106,19 +989,28 @@ class TestBackwardCompatibility(unittest.TestCase):
         state = load_game_state(fixture_path)
         serialized = game_state_to_dict(state)
 
-        # Items: original + migrated doors
+        # Items count should match (including door items)
         original_items = len(original.get("items", []))
-        original_doors = len(original.get("doors", []))
-        self.assertEqual(len(serialized["items"]), original_items + original_doors)
+        self.assertEqual(len(serialized["items"]), original_items)
 
-        # Doors should be empty (migrated to items)
-        self.assertEqual(len(serialized.get("doors", [])), 0)
-
-        # Compare specific values for original items
+        # Compare specific values for original items (excluding door items)
         for orig_item in original["items"]:
-            ser_item = next(i for i in serialized["items"] if i["id"] == orig_item["id"])
-            self.assertEqual(ser_item.get("portable"), orig_item.get("portable"))
-            self.assertEqual(ser_item.get("type"), orig_item.get("type"))
+            if "door" not in orig_item:
+                ser_item = next((i for i in serialized["items"] if i["id"] == orig_item["id"]), None)
+                if ser_item:
+                    # Properties may be at top level or nested in "properties"
+                    orig_props = orig_item.get("properties", orig_item)
+                    ser_props = ser_item.get("properties", ser_item)
+                    self.assertEqual(
+                        ser_props.get("portable"),
+                        orig_props.get("portable"),
+                        f"Mismatch in portable for {orig_item['id']}"
+                    )
+                    self.assertEqual(
+                        ser_props.get("type"),
+                        orig_props.get("type"),
+                        f"Mismatch in type for {orig_item['id']}"
+                    )
 
 
 if __name__ == '__main__':

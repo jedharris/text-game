@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: text-game
+Version: 0.1.0
+Summary: A text adventure game engine with optional LLM narration
+Requires-Python: >=3.8
+Provides-Extra: llm
+Requires-Dist: anthropic; extra == "llm"
+Provides-Extra: gui
+Requires-Dist: wxPython; extra == "gui"

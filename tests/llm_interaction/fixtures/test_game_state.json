@@ -124,54 +124,16 @@
       }
     }
   ],
-  "doors": [
-    {
-      "id": "door_wooden",
-      "locations": ["loc_start", "loc_hallway"],
-      "description": "A simple wooden door.",
-      "locked": false,
-      "open": true,
-      "llm_context": {
-        "traits": [
-          "rough-hewn planks",
-          "iron hinges",
-          "creaks when moved"
-        ],
-        "state_variants": {
-          "open": "stands ajar",
-          "closed": "blocks the way"
-        }
-      }
-    },
-    {
-      "id": "door_iron",
-      "locations": ["loc_hallway", "loc_treasure"],
-      "description": "A heavy iron door with a sturdy lock.",
-      "locked": true,
-      "open": false,
-      "lock_id": "lock_treasure",
-      "llm_context": {
-        "traits": [
-          "thick iron plates",
-          "riveted construction",
-          "imposing presence"
-        ],
-        "state_variants": {
-          "locked": "sealed tight",
-          "unlocked": "the lock hangs open",
-          "open": "swung wide"
-        }
-      }
-    }
-  ],
   "items": [
     {
       "id": "item_sword",
       "name": "sword",
       "description": "A rusty but serviceable sword.",
-      "type": "object",
-      "portable": true,
       "location": "loc_start",
+      "properties": {
+        "type": "object",
+        "portable": true
+      },
       "llm_context": {
         "traits": [
           "pitted blade",
@@ -188,9 +150,11 @@
       "id": "item_key",
       "name": "key",
       "description": "An iron key.",
-      "type": "object",
-      "portable": true,
       "location": "loc_start",
+      "properties": {
+        "type": "object",
+        "portable": true
+      },
       "llm_context": {
         "traits": [
           "solid iron",
@@ -207,9 +171,11 @@
       "id": "item_potion",
       "name": "potion",
       "description": "A red potion that glows faintly.",
-      "type": "object",
-      "portable": true,
       "location": "loc_hallway",
+      "properties": {
+        "type": "object",
+        "portable": true
+      },
       "llm_context": {
         "traits": [
           "crimson liquid",
@@ -226,9 +192,11 @@
       "id": "item_chest",
       "name": "chest",
       "description": "A large golden chest.",
-      "type": "object",
-      "portable": false,
       "location": "loc_treasure",
+      "properties": {
+        "type": "object",
+        "portable": false
+      },
       "llm_context": {
         "traits": [
           "ornate gold filigree",
@@ -245,17 +213,16 @@
       "id": "item_lantern",
       "name": "lantern",
       "description": "A copper lantern with runes.",
-      "type": "object",
-      "portable": true,
-      "provides_light": true,
       "location": "loc_start",
-      "states": {
-        "lit": false
+      "properties": {
+        "type": "object",
+        "portable": true,
+        "provides_light": true,
+        "states": {
+          "lit": false
+        }
       },
-      "behaviors": {
-        "on_take": "behaviors.core.light_sources:on_take",
-        "on_drop": "behaviors.core.light_sources:on_drop"
-      },
+      "behaviors": ["behaviors.core.light_sources"],
       "llm_context": {
         "traits": [
           "hexagonal",
@@ -267,14 +234,60 @@
           "lit": "sheds a helpful light"
         }
       }
+    },
+    {
+      "id": "door_wooden",
+      "name": "door",
+      "description": "A simple wooden door.",
+      "location": "exit:loc_start:north",
+      "door": {
+        "open": true,
+        "locked": false
+      },
+      "llm_context": {
+        "traits": [
+          "rough-hewn planks",
+          "iron hinges",
+          "creaks when moved"
+        ],
+        "state_variants": {
+          "open": "stands ajar",
+          "closed": "blocks the way"
+        }
+      }
+    },
+    {
+      "id": "door_iron",
+      "name": "door",
+      "description": "A heavy iron door with a sturdy lock.",
+      "location": "exit:loc_hallway:east",
+      "door": {
+        "open": false,
+        "locked": true,
+        "lock_id": "lock_treasure"
+      },
+      "llm_context": {
+        "traits": [
+          "thick iron plates",
+          "riveted construction",
+          "imposing presence"
+        ],
+        "state_variants": {
+          "locked": "sealed tight",
+          "unlocked": "the lock hangs open",
+          "open": "swung wide"
+        }
+      }
     }
   ],
   "locks": [
     {
       "id": "lock_treasure",
-      "opens_with": ["item_key"],
-      "auto_unlock": true,
       "description": "A sturdy lock.",
+      "properties": {
+        "opens_with": ["item_key"],
+        "auto_unlock": true
+      },
       "llm_context": {
         "traits": [
           "heavy iron mechanism",
@@ -307,10 +320,15 @@
       }
     }
   ],
-  "player_state": {
-    "location": "loc_start",
-    "inventory": [],
-    "flags": {},
-    "stats": {}
+  "actors": {
+    "player": {
+      "id": "player",
+      "name": "player",
+      "description": "",
+      "location": "loc_start",
+      "inventory": [],
+      "flags": {},
+      "stats": {}
+    }
   }
 }

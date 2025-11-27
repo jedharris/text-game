@@ -942,10 +942,10 @@ class TestCommandMessages(unittest.TestCase):
 
     def test_open_door_success(self):
         """Test opening an unlocked door."""
-        # Close the wooden door first
-        for door in self.state.doors:
-            if door.id == "door_wooden":
-                door.open = False
+        # Close the wooden door first (door is now an item)
+        for item in self.state.items:
+            if item.id == "door_wooden" and item.is_door:
+                item.properties["door"]["open"] = False
                 break
 
         message = {
@@ -983,22 +983,18 @@ class TestCommandMessages(unittest.TestCase):
         self.assertTrue(result["success"])
         # Door should now be open and unlocked
         iron_door = self.handler._get_door_by_id("door_iron")
-        # Handle both door items and old-style doors
-        if hasattr(iron_door, 'is_door') and iron_door.is_door:
-            self.assertTrue(iron_door.door_open)
-            self.assertFalse(iron_door.door_locked)
-        else:
-            self.assertTrue(iron_door.open)
-            self.assertFalse(iron_door.locked)
+        self.assertTrue(iron_door.door_open)
+        self.assertFalse(iron_door.door_locked)
 
     def test_open_locked_door_without_key(self):
         """Test opening locked door without key."""
         # Move to hallway
         self.state.player.location = "loc_hallway"
-        # Close the wooden door so we can test the iron door
-        for door in self.state.doors:
-            if door.id == "door_wooden":
-                door.open = False
+        # Close the wooden door so we can test the iron door (door is now an item)
+        for item in self.state.items:
+            if item.id == "door_wooden" and item.is_door:
+                item.properties["door"]["open"] = False
+                break
 
         # Use "iron door" to specify the locked door
         message = {

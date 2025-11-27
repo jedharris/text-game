@@ -1,0 +1,698 @@
+{
+  "metadata": {
+    "title": "Simple Adventure",
+    "version": "1.0",
+    "description": "A simple adventure game demonstrating the state manager.",
+    "start_location": "loc_start",
+    "author": "Text Game Example"
+  },
+  "locations": [
+    {
+      "id": "loc_start",
+      "name": "Small Room",
+      "description": "You are in a small room. There is a rusty sword on the ground and a wooden door to the north.",
+      "exits": {
+        "north": {
+          "type": "door",
+          "to": "loc_hallway",
+          "door_id": "door_wooden"
+        }
+      },
+      "items": [
+        "item_sword"
+      ],
+      "npcs": [],
+      "tags": [],
+      "llm_context": {
+        "traits": [
+          "cramped stone walls",
+          "dim light from narrow embrasure",
+          "dusty floor",
+          "musty air",
+          "cobwebs in corners",
+          "mortar crumbling between stones",
+          "scratch marks near the door",
+          "water stain on ceiling",
+          "single narrow window slit",
+          "cold draft from below",
+          "moss growing in corner cracks",
+          "worn threshold stone",
+          "soot marks above where torches hung",
+          "faded chalk markings on wall",
+          "uneven flagstone floor",
+          "iron torch bracket rusted empty",
+          "spider webs thick as gauze",
+          "ceiling barely above head height",
+          "damp patches on north wall",
+          "dust motes floating in light beam",
+          "rat droppings along baseboards",
+          "ancient graffiti scratched in stone",
+          "smell of old straw",
+          "cracked lintel above door",
+          "sense of long abandonment"
+        ],
+        "atmosphere": "confined, neglected, forgotten, claustrophobic, stale, humble, lonely, decrepit, unwelcoming",
+        "state_variants": {
+          "first_visit": "The room feels forgotten, as if no one has entered in years.",
+          "revisit": "The familiar small room, unchanged.",
+          "sword_taken": "The room feels emptier now."
+        }
+      }
+    },
+    {
+      "id": "loc_hallway",
+      "name": "Long Hallway",
+      "description": "You are in a long hallway. There is a locked door to the east and stairs going up.",
+      "exits": {
+        "south": {
+          "type": "door",
+          "to": "loc_start",
+          "door_id": "door_wooden"
+        },
+        "up": {
+          "type": "open",
+          "to": "loc_tower"
+        },
+        "east": {
+          "type": "door",
+          "to": "loc_locked_room",
+          "door_id": "door_treasure"
+        }
+      },
+      "items": [
+        "item_key",
+        "item_table"
+      ],
+      "npcs": [],
+      "tags": [],
+      "llm_context": {
+        "traits": [
+          "high vaulted ceiling",
+          "stone floor worn smooth",
+          "echoing footsteps",
+          "draft from above",
+          "faded tapestries on walls",
+          "a shaft of light from openings high on the north wall",
+          "iron torch brackets empty",
+          "faint smell of old smoke",
+          "carved stone corbels",
+          "shadows pooling in alcoves",
+          "distant dripping water",
+          "worn carpet runner threadbare",
+          "painted ceiling faded beyond recognition",
+          "arrow slits high on east wall",
+          "dust swirling in light beams",
+          "boot scuffs on flagstones",
+          "spider silk between torch brackets",
+          "cold seeping from stone walls",
+          "wooden wainscoting rotted at base",
+          "intermittent creaking from above",
+          "mortar dust collecting in corners",
+          "faded chalk marks on walls",
+          "scratched initials near doorframe",
+          "smell of old parchment",
+          "sense of many feet having passed"
+        ],
+        "atmosphere": "transitional, mysterious, ancient, echoing, grand, expectant, solemn, passage-like, connecting",
+        "state_variants": {
+          "first_visit": "The hallway stretches before you, promising discoveries.",
+          "revisit": "The familiar corridor, still echoing your steps.",
+          "key_taken": "The hallway feels less mysterious now."
+        }
+      }
+    },
+    {
+      "id": "loc_tower",
+      "name": "Tower Top",
+      "description": "You are at the top of a tower. You can see for miles. Stairs lead down.",
+      "exits": {
+        "down": {
+          "type": "open",
+          "to": "loc_hallway"
+        }
+      },
+      "items": [
+        "item_pedestal"
+      ],
+      "npcs": [],
+      "tags": [],
+      "llm_context": {
+        "traits": [
+          "open to sky",
+          "wind whipping past",
+          "panoramic view",
+          "weathered stone parapet",
+          "dizzying height",
+          "sunlight filtered through high clouds",
+          "crenellated battlements",
+          "lichen on stone",
+          "bird droppings on ledges",
+          "rusted iron flagpole",
+          "rope marks on parapet",
+          "wind-scoured surfaces",
+          "distant forest visible",
+          "clouds seeming close enough to touch",
+          "vertigo-inducing drop",
+          "hawks circling below",
+          "crumbling mortar in cracks",
+          "weathervane creaking overhead",
+          "sun-bleached stone",
+          "small puddles from recent rain",
+          "moss in sheltered corners",
+          "carved heraldic shield worn smooth",
+          "wind humming through gaps",
+          "spectacular sunset views",
+          "sense of ultimate destination"
+        ],
+        "atmosphere": "exposed, exhilarating, isolated, windswept, triumphant, breathtaking, precarious, liberating, culminating",
+        "state_variants": {
+          "first_visit": "The view takes your breath away.",
+          "revisit": "The tower top, as windswept as before.",
+          "potion_taken": "The pedestal stands empty now."
+        }
+      }
+    },
+    {
+      "id": "loc_locked_room",
+      "name": "Treasure Room",
+      "description": "You are in a treasure room. There is a golden chest here.",
+      "exits": {
+        "west": {
+          "type": "door",
+          "to": "loc_hallway",
+          "door_id": "door_treasure"
+        }
+      },
+      "items": [
+        "item_chest"
+      ],
+      "npcs": [],
+      "tags": [],
+      "llm_context": {
+        "traits": [
+          "glittering walls",
+          "smell of old gold",
+          "surprisingly small",
+          "dust motes in shafts of light",
+          "undisturbed for ages",
+          "gold leaf on ceiling",
+          "gemstone-inlaid floor tiles",
+          "velvet wall hangings",
+          "crystal sconces empty",
+          "coin stacks in corners",
+          "jeweled goblets on shelves",
+          "silver candlesticks tarnished",
+          "silk tapestry depicting conquest",
+          "marble pedestals for display",
+          "locked display cases",
+          "smell of old velvet",
+          "dust thick as fur",
+          "footprints clearly visible in dust",
+          "glinting reflections everywhere",
+          "sense of accumulated wealth",
+          "temperature noticeably cooler",
+          "sound dampened by fabric",
+          "no windows or natural light",
+          "magical glow from unknown source",
+          "feeling of long-awaited discovery"
+        ],
+        "atmosphere": "rewarding, secretive, climactic, opulent, hushed, reverential, triumphant, dazzling, culminating",
+        "state_variants": {
+          "first_visit": "You've found it - the treasure room!",
+          "revisit": "The treasure room, still glittering.",
+          "chest_opened": "The room feels less magical with the chest open."
+        }
+      }
+    }
+  ],
+  "items": [
+    {
+      "id": "item_sword",
+      "name": "sword",
+      "description": "A rusty but serviceable sword.",
+      "location": "loc_start",
+      "properties": {
+        "type": "object",
+        "portable": true
+      },
+      "llm_context": {
+        "traits": [
+          "pitted blade",
+          "leather-wrapped hilt",
+          "still holds an edge",
+          "balanced for combat",
+          "rust flakes when gripped",
+          "fuller groove down center",
+          "crossguard slightly bent",
+          "pommel weighted for balance",
+          "old blood stains on guard",
+          "notches from past battles",
+          "faint maker's mark visible",
+          "blade slightly curved",
+          "grip worn to fit a hand",
+          "tang visible through pommel",
+          "scabbard long lost",
+          "cutting edge still keen",
+          "flat of blade scratched",
+          "copper wire binding loose",
+          "blade rings when struck",
+          "comfortable heft",
+          "quillons chipped",
+          "blade tip slightly bent",
+          "subtle pattern in steel",
+          "smell of old oil",
+          "sense of past violence"
+        ],
+        "state_variants": {
+          "in_location": "lies forgotten on the dusty floor",
+          "in_inventory": "a reassuring weight at your side",
+          "examined": "despite the rust, still deadly"
+        }
+      }
+    },
+    {
+      "id": "item_key",
+      "name": "key",
+      "description": "An iron key.",
+      "location": "loc_hallway",
+      "properties": {
+        "type": "object",
+        "portable": true
+      },
+      "llm_context": {
+        "traits": [
+          "solid iron",
+          "intricate teeth",
+          "cold and heavy",
+          "no rust despite age",
+          "fits in palm",
+          "bow shaped like a shield",
+          "fine scrollwork on bow",
+          "complex bit pattern",
+          "chain hole for lanyard",
+          "blacksmith's mark stamped",
+          "slight warmth when held",
+          "hums faintly near lock",
+          "teeth worn smooth on edges",
+          "patina of age on surface",
+          "satisfying weight",
+          "clearly important purpose",
+          "oil sheen on metal",
+          "perfect teeth alignment",
+          "mysterious rune on shaft",
+          "unique tooth pattern",
+          "clicks softly when moved",
+          "metal unusually cold",
+          "sense of purpose",
+          "clearly master-crafted",
+          "feeling of significance"
+        ],
+        "state_variants": {
+          "in_location": "glints on the stone floor",
+          "in_inventory": "cold weight in your pocket",
+          "examined": "clearly made for an important lock"
+        }
+      }
+    },
+    {
+      "id": "item_potion",
+      "name": "potion",
+      "description": "A red potion that glows faintly.",
+      "location": "item_pedestal",
+      "properties": {
+        "type": "object",
+        "portable": true
+      },
+      "llm_context": {
+        "traits": [
+          "crimson liquid",
+          "glass vial",
+          "warm to touch",
+          "swirls when shaken",
+          "faint inner glow",
+          "cork stopper sealed with wax",
+          "red wax stamp unbroken",
+          "bubbles rise slowly",
+          "liquid seems alive",
+          "label faded beyond reading",
+          "hand-blown glass imperfections",
+          "pleasant warmth radiates",
+          "scent of herbs through seal",
+          "viscous like honey",
+          "tiny gold flecks suspended",
+          "color shifts in light",
+          "slight hum when held",
+          "glass cool but liquid warm",
+          "ribbon tied around neck",
+          "finger-worn from handling",
+          "glow pulses like heartbeat",
+          "liquid never quite settles",
+          "promising vitality",
+          "ancient alchemist's work",
+          "sense of renewal within"
+        ],
+        "state_variants": {
+          "in_location": "rests on a stone pedestal, pulsing softly",
+          "in_inventory": "warm glow through your pack",
+          "examined": "healing magic swirls within"
+        }
+      }
+    },
+    {
+      "id": "item_chest",
+      "name": "chest",
+      "description": "A large golden chest. It looks valuable!",
+      "location": "loc_locked_room",
+      "properties": {
+        "type": "object",
+        "portable": false
+      },
+      "llm_context": {
+        "traits": [
+          "ornate gold filigree",
+          "heavy oak construction",
+          "brass fittings",
+          "domed lid",
+          "gemstone inlays",
+          "iron bands reinforcing corners",
+          "intricate lock mechanism",
+          "carved dragon motif",
+          "velvet lining visible at seams",
+          "gold hinges well-oiled",
+          "keyhole shaped like crown",
+          "precious stones in lid",
+          "maker's signature inside lid",
+          "weight suggests full contents",
+          "dust patterns undisturbed",
+          "faint jingle when touched",
+          "gold leaf on carved panels",
+          "secret compartment possible",
+          "brass corner protectors",
+          "rope handles on sides",
+          "wax seal on lock",
+          "embossed coat of arms",
+          "cedar scent from wood",
+          "centuries of craftsmanship",
+          "promise of untold wealth"
+        ],
+        "state_variants": {
+          "closed": "sits mysteriously, contents unknown",
+          "open": "reveals glittering treasures within",
+          "examined": "master craftsmanship evident in every detail"
+        }
+      }
+    },
+    {
+      "id": "item_lantern",
+      "name": "lantern",
+      "description": "A small lantern, slightly dusty",
+      "location": "item_table",
+      "properties": {
+        "type": "object",
+        "portable": true,
+        "provides_light": true,
+        "states": {
+          "lit": false
+        }
+      },
+      "llm_context": {
+        "traits": [
+          "hexagonal",
+          "hammered copper",
+          "rough runes around cap",
+          "door on side",
+          "wire loop handle",
+          "glass panes clouded with age",
+          "oil reservoir half full",
+          "wick trimmed and ready",
+          "brass hinges on door",
+          "chain for hanging",
+          "dents from past use",
+          "soot stains on top",
+          "reflector plate inside",
+          "finger-worn grip",
+          "runes glow when lit",
+          "ventilation holes in cap",
+          "maker's stamp on base",
+          "leather grip wrap",
+          "snuffer chain attached",
+          "spare wick in base",
+          "copper gone green in spots",
+          "satisfying weight",
+          "oil smells of pine",
+          "practical design",
+          "sense of reliable utility"
+        ],
+        "state_variants": {
+          "unlit": "dark and silent",
+          "lit": "sheds a helpful light",
+          "examined": "crudely made but functional"
+        }
+      },
+      "behaviors": ["behaviors.core.light_sources"]
+    },
+    {
+      "id": "item_pedestal",
+      "name": "pedestal",
+      "description": "A weathered stone pedestal with a shallow depression on top.",
+      "location": "loc_tower",
+      "properties": {
+        "type": "furniture",
+        "portable": false,
+        "container": {
+          "is_container": true,
+          "is_surface": true,
+          "capacity": 1
+        }
+      },
+      "llm_context": {
+        "traits": [
+          "ancient stone",
+          "waist-high",
+          "flat top with shallow depression",
+          "carved spiral patterns",
+          "worn smooth by touching",
+          "base wider than top",
+          "faint runes around rim",
+          "moss in carved grooves",
+          "chips on edges",
+          "offering stains in depression",
+          "single column support",
+          "granite veined with quartz",
+          "cold to the touch",
+          "clearly ceremonial purpose",
+          "positioned to catch light",
+          "dust settles in grooves",
+          "circular base",
+          "cracks from age",
+          "sense of sacred purpose",
+          "weathered by centuries",
+          "perfectly level top",
+          "flecks of gold in stone",
+          "sized for single precious item",
+          "aura of importance",
+          "feeling of ancient ritual"
+        ],
+        "state_variants": {
+          "empty": "stands empty, waiting",
+          "holding_item": "holds something on its surface"
+        }
+      }
+    },
+    {
+      "id": "item_table",
+      "name": "table",
+      "description": "A sturdy wooden table against the wall.",
+      "location": "loc_hallway",
+      "properties": {
+        "type": "furniture",
+        "portable": false,
+        "container": {
+          "is_container": true,
+          "is_surface": true,
+          "capacity": 5
+        }
+      },
+      "llm_context": {
+        "traits": [
+          "oak wood",
+          "worn surface",
+          "sturdy legs",
+          "carved apron beneath top",
+          "mortise and tenon joints",
+          "drawer on one end",
+          "ring stains from cups",
+          "knife marks on surface",
+          "wax buildup in cracks",
+          "grain raised from cleaning",
+          "pegged construction",
+          "stretcher bars between legs",
+          "feet worn uneven",
+          "split forming in top",
+          "generations of use evident",
+          "initials carved underneath",
+          "candle wax drippings",
+          "ink stains near edge",
+          "smell of old wood polish",
+          "creaks when leaned on",
+          "dust in joints",
+          "solid practical furniture",
+          "slightly wobbly",
+          "patina of countless hands",
+          "sense of everyday utility"
+        ],
+        "state_variants": {
+          "empty": "its surface bare",
+          "holding_items": "holds various items"
+        }
+      }
+    },
+    {
+      "id": "door_wooden",
+      "name": "door",
+      "description": "A simple wooden door.",
+      "location": "exit:loc_start:north",
+      "door": {
+        "open": true,
+        "locked": false
+      },
+      "llm_context": {
+        "traits": [
+          "rough-hewn planks",
+          "iron hinges",
+          "creaks when moved",
+          "worn handle",
+          "gaps between boards",
+          "oak darkened with age",
+          "iron studs for reinforcement",
+          "latch worn smooth",
+          "draft seeping through cracks",
+          "bottom scraped from dragging",
+          "nail heads visible",
+          "wood grain raised by moisture",
+          "leather strap for pulling",
+          "frame slightly warped",
+          "splinters on edges",
+          "hinges squeak loudly",
+          "kick marks at base",
+          "old paint flaking",
+          "knotholes letting light through",
+          "wood swollen from humidity",
+          "simple crossbar mount inside",
+          "centuries of use evident",
+          "functional rather than decorative",
+          "smell of old wood",
+          "sense of humble purpose"
+        ],
+        "state_variants": {
+          "open": "stands ajar, revealing the passage beyond",
+          "closed": "blocks the way with its weathered planks",
+          "from_start": "leads north to the hallway",
+          "from_hallway": "leads south to the small room"
+        }
+      }
+    },
+    {
+      "id": "door_treasure",
+      "name": "door",
+      "description": "A heavy iron door with a sturdy lock.",
+      "location": "exit:loc_hallway:east",
+      "door": {
+        "open": false,
+        "locked": true,
+        "lock_id": "lock_treasure"
+      },
+      "llm_context": {
+        "traits": [
+          "thick iron plates",
+          "riveted construction",
+          "imposing presence",
+          "cold to touch",
+          "faint runes etched near lock",
+          "massive iron ring handle",
+          "decorative bosses",
+          "blackened by age",
+          "seams perfectly fitted",
+          "no rust despite age",
+          "hinges hidden from view",
+          "frame set deep in stone",
+          "faint hum from enchantment",
+          "reflects no light",
+          "weighs as much as a man",
+          "lock mechanism complex",
+          "scratch marks from picks",
+          "oil film on surface",
+          "cold radiates from metal",
+          "dent from battering ram",
+          "magical wards visible",
+          "keyhole ornately decorated",
+          "clearly built to last centuries",
+          "sense of important protection",
+          "feeling of forbidden secrets"
+        ],
+        "state_variants": {
+          "locked": "sealed tight, the lock gleaming with purpose",
+          "unlocked": "the lock hangs open, defeated",
+          "open": "swung wide, revealing treasures beyond",
+          "closed": "stands as an iron barrier"
+        }
+      }
+    }
+  ],
+  "locks": [
+    {
+      "id": "lock_treasure",
+      "description": "A sturdy lock.",
+      "properties": {
+        "opens_with": [
+          "item_key"
+        ],
+        "auto_unlock": true
+      },
+      "llm_context": {
+        "traits": [
+          "heavy iron mechanism",
+          "complex tumblers",
+          "recently oiled",
+          "rune-marked keyhole",
+          "brass faceplate",
+          "internal springs audible",
+          "pick-resistant design",
+          "multiple pins visible",
+          "keyhole precisely cut",
+          "cold emanating from metal",
+          "faint magical glow",
+          "dusty in crevices",
+          "scratch marks from attempts",
+          "perfectly balanced mechanism",
+          "clicks satisfyingly",
+          "ornate scrollwork surround",
+          "ward cutouts visible inside",
+          "master locksmith's work",
+          "sense of guarded secrets",
+          "feels heavier than it looks",
+          "designed to frustrate thieves",
+          "subtle enchantment protects",
+          "key-specific precision",
+          "centuries-old craftsmanship",
+          "feeling of final barrier"
+        ],
+        "state_variants": {
+          "locked": "clicks firmly, resisting all force",
+          "unlocked": "mechanism disengaged with a satisfying click"
+        }
+      }
+    }
+  ],
+  "actors": {
+    "player": {
+      "id": "player",
+      "name": "player",
+      "description": "",
+      "location": "loc_start",
+      "inventory": [],
+      "flags": {},
+      "stats": {}
+    }
+  }
+}

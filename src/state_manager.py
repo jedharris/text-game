@@ -205,55 +205,6 @@ class Item:
 
 
 @dataclass
-class Door:
-    """Door connecting locations."""
-    id: str
-    locations: Tuple[str, ...]
-    properties: Dict[str, Any] = field(default_factory=dict)
-    behaviors: List[str] = field(default_factory=list)
-
-    @property
-    def description(self) -> str:
-        """Access description from properties for backward compatibility."""
-        return self.properties.get("description", "")
-
-    @description.setter
-    def description(self, value: str) -> None:
-        """Set description in properties."""
-        self.properties["description"] = value
-
-    @property
-    def open(self) -> bool:
-        """Access open state from properties for backward compatibility."""
-        return self.properties.get("open", False)
-
-    @open.setter
-    def open(self, value: bool) -> None:
-        """Set open state in properties."""
-        self.properties["open"] = value
-
-    @property
-    def locked(self) -> bool:
-        """Access locked state from properties for backward compatibility."""
-        return self.properties.get("locked", False)
-
-    @locked.setter
-    def locked(self, value: bool) -> None:
-        """Set locked state in properties."""
-        self.properties["locked"] = value
-
-    @property
-    def lock_id(self) -> Optional[str]:
-        """Access lock_id from properties for backward compatibility."""
-        return self.properties.get("lock_id")
-
-    @lock_id.setter
-    def lock_id(self, value: Optional[str]) -> None:
-        """Set lock_id in properties."""
-        self.properties["lock_id"] = value
-
-
-@dataclass
 class Lock:
     """Lock mechanism."""
     id: str
@@ -326,7 +277,6 @@ class GameState:
     """Complete game state."""
     metadata: Metadata
     locations: List[Location] = field(default_factory=list)
-    doors: List[Door] = field(default_factory=list)
     items: List[Item] = field(default_factory=list)
     locks: List[Lock] = field(default_factory=list)
     actors: Dict[str, Actor] = field(default_factory=dict)
@@ -375,13 +325,6 @@ class GameState:
             if loc.id == location_id:
                 return loc
         raise KeyError(f"Location not found: {location_id}")
-
-    def get_door(self, door_id: str) -> Door:
-        """Get door by ID."""
-        for door in self.doors:
-            if door.id == door_id:
-                return door
-        raise KeyError(f"Door not found: {door_id}")
 
     def get_lock(self, lock_id: str) -> Lock:
         """Get lock by ID."""
@@ -453,9 +396,10 @@ class GameState:
         for loc in self.locations:
             registry[loc.id] = "location"
         for item in self.items:
-            registry[item.id] = "item"
-        for door in self.doors:
-            registry[door.id] = "door"
+            if item.is_door:
+                registry[item.id] = "door_item"
+            else:
+                registry[item.id] = "item"
         for lock in self.locks:
             registry[lock.id] = "lock"
         for npc in self.npcs:
@@ -540,25 +484,6 @@ def _parse_item(raw: Dict[str, Any]) -> Item:
     )
 
 
-def _parse_door(raw: Dict[str, Any]) -> Door:
-    """Parse door from JSON dict."""
-    core_fields = {'id', 'locations', 'behaviors'}
-
-    locations = raw.get('locations', [])
-    if isinstance(locations, list):
-        locations = tuple(locations)
-
-    # Parse behaviors - keep as-is (supports both dict and list)
-    behaviors = raw.get('behaviors', [])
-
-    return Door(
-        id=raw['id'],
-        locations=locations,
-        properties=_parse_properties(raw, core_fields),
-        behaviors=behaviors
-    )
-
-
 def _parse_lock(raw: Dict[str, Any]) -> Lock:
     """Parse lock from JSON dict."""
     core_fields = {'id'}
@@ -611,86 +536,11 @@ def _parse_metadata(raw: Dict[str, Any]) -> Metadata:
     )
 
 
-def _migrate_doors_to_items(
-    doors: List[Door],
-    items: List[Item],
-    locations: List[Location]
-) -> Tuple[List[Item], List[Door]]:
-    """Migrate old-style Door entities to unified Item model.
-
-    Converts each Door to an Item with properties.door containing door state.
-    Door location is derived from the first exit that references it.
-
-    Args:
-        doors: List of old-style Door entities
-        items: Current list of items
-        locations: List of locations (to find exit references)
-
-    Returns:
-        Tuple of (migrated items list, empty doors list)
-    """
-    if not doors:
-        return items, []
-
-    # Build lookup of existing door item IDs to avoid duplicates
-    existing_door_ids = {item.id for item in items if item.is_door}
-
-    # Build lookup: door_id -> (location_id, direction) for exit references
-    door_to_exit: Dict[str, Tuple[str, str]] = {}
-    for location in locations:
-        for direction, exit_desc in location.exits.items():
-            if exit_desc.door_id and exit_desc.door_id not in door_to_exit:
-                door_to_exit[exit_desc.door_id] = (location.id, direction)
-
-    migrated_items = list(items)
-
-    for door in doors:
-        # Skip if already migrated (item with same ID exists)
-        if door.id in existing_door_ids:
-            continue
-
-        # Determine location from exit reference
-        if door.id in door_to_exit:
-            loc_id, direction = door_to_exit[door.id]
-            item_location = f"exit:{loc_id}:{direction}"
-        elif door.locations:
-            # Fallback: use first location in door.locations
-            item_location = f"exit:{door.locations[0]}:unknown"
-        else:
-            item_location = None
-
-        # Build door properties
-        door_props: Dict[str, Any] = {
-            "open": door.open,
-            "locked": door.locked,
-        }
-        if door.lock_id:
-            door_props["lock_id"] = door.lock_id
-
-        # Create item properties with door sub-object
-        item_properties = dict(door.properties)
-        item_properties["door"] = door_props
-
-        # Create the migrated item
-        migrated_item = Item(
-            id=door.id,
-            name="door",  # Default name for doors
-            description=door.description or "a door",
-            location=item_location,
-            properties=item_properties,
-            behaviors=door.behaviors
-        )
-
-        migrated_items.append(migrated_item)
-
-    return migrated_items, []
-
-
 def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
     """Load game state from file path or dict.
 
     Supports both old format (player/npcs fields) and new format (actors dict).
-    Automatically migrates old-style Door entities to unified Item model.
+    Doors are represented as Items with a 'door' property.
     """
     if isinstance(source, dict):
         data = source
@@ -705,14 +555,8 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
     # Parse locations
     locations = [_parse_location(loc) for loc in data.get('locations', [])]
 
-    # Parse items
+    # Parse items (doors are stored as items with door property)
     items = [_parse_item(item) for item in data.get('items', [])]
-
-    # Parse doors (legacy format)
-    doors = [_parse_door(door) for door in data.get('doors', [])]
-
-    # Migrate old-style doors to items
-    items, doors = _migrate_doors_to_items(doors, items, locations)
 
     # Parse locks
     locks = [_parse_lock(lock) for lock in data.get('locks', [])]
@@ -752,7 +596,6 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
         metadata=metadata,
         locations=locations,
         items=items,
-        doors=doors,
         locks=locks,
         actors=actors
     )
@@ -816,23 +659,6 @@ def _serialize_item(item: Item) -> Dict[str, Any]:
     # Add behaviors if present
     if item.behaviors:
         result['behaviors'] = item.behaviors
-
-    return result
-
-
-def _serialize_door(door: Door) -> Dict[str, Any]:
-    """Serialize door to dict."""
-    result = {
-        'id': door.id,
-        'locations': list(door.locations)
-    }
-
-    # Merge properties
-    result.update(door.properties)
-
-    # Add behaviors if present
-    if door.behaviors:
-        result['behaviors'] = door.behaviors
 
     return result
 
@@ -906,24 +732,15 @@ def _serialize_metadata(metadata: Metadata) -> Dict[str, Any]:
 def game_state_to_dict(state: GameState) -> Dict[str, Any]:
     """Serialize game state to dict using new unified actor format.
 
-    Note: After entity unification, doors are stored as items with properties.door.
-    Old-style doors are migrated on load, so state.doors should be empty.
-    We only include 'doors' in output if there are any (for backward compatibility
-    with partially migrated states).
+    Note: Doors are stored as items with properties.door.
     """
-    result = {
+    return {
         'metadata': _serialize_metadata(state.metadata),
         'locations': [_serialize_location(loc) for loc in state.locations],
         'items': [_serialize_item(item) for item in state.items],
         'locks': [_serialize_lock(lock) for lock in state.locks],
         'actors': {actor_id: _serialize_actor(actor) for actor_id, actor in state.actors.items()}
     }
-
-    # Only include doors if any exist (for backward compatibility)
-    if state.doors:
-        result['doors'] = [_serialize_door(door) for door in state.doors]
-
-    return result
 
 
 def save_game_state(state: GameState, path: Union[str, Path]) -> None:

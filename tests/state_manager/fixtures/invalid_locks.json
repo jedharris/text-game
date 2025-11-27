@@ -13,6 +13,7 @@
       "exits": {
         "north": {
           "type": "door",
+          "to": "loc_2",
           "door_id": "door_1"
         }
       }
@@ -24,19 +25,36 @@
       "exits": {
         "south": {
           "type": "door",
+          "to": "loc_1",
           "door_id": "door_1"
         }
       }
     }
   ],
-  "doors": [
+  "items": [
     {
       "id": "door_1",
-      "locations": ["loc_1", "loc_2"],
+      "name": "door",
       "description": "A locked door.",
-      "locked": true,
-      "lock_id": "lock_999",
-      "open": false
+      "location": "exit:loc_1:north",
+      "door": {
+        "open": false,
+        "locked": true,
+        "lock_id": "lock_999"
+      }
     }
-  ]
+  ],
+  "locks": [],
+  "npcs": [],
+  "actors": {
+    "player": {
+      "id": "player",
+      "name": "player",
+      "description": "",
+      "location": "loc_1",
+      "inventory": [],
+      "flags": {},
+      "stats": {}
+    }
+  }
 }

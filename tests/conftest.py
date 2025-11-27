@@ -114,7 +114,6 @@ def create_test_state() -> GameState:
         metadata=metadata,
         locations=[room],
         items=[sword, table, lantern, anvil, feather],
-        doors=[],
         locks=[],
         actors={"player": player},
         extra={}

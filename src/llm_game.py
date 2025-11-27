@@ -5,6 +5,7 @@ This script provides a natural language interface to the text adventure game,
 using an LLM to translate player input into game commands and narrate results.
 """
 
+import argparse
 import os
 import sys
 from pathlib import Path
@@ -22,8 +23,12 @@ from src.behavior_manager import BehaviorManager
 DEFAULT_STATE_FILE = Path(__file__).parent.parent / "examples" / "simple_game_state.json"
 
 
-def main():
-    """Run the LLM-powered text adventure."""
+def main(state_file: str = None):
+    """Run the LLM-powered text adventure.
+
+    Args:
+        state_file: Path to game state JSON file (uses default if not provided)
+    """
     # Load API key
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
@@ -31,12 +36,19 @@ def main():
         print("Set it with: export ANTHROPIC_API_KEY=sk-ant-...")
         return 1
 
-    # Load game state from examples directory
-    if not DEFAULT_STATE_FILE.exists():
-        print(f"Error: Game state file not found: {DEFAULT_STATE_FILE}")
+    # Load game state
+    if state_file:
+        game_state_path = Path(state_file)
+        # Try adding .json if file doesn't exist
+        if not game_state_path.exists() and not state_file.endswith('.json'):
+            game_state_path = Path(state_file + '.json')
+    else:
+        game_state_path = DEFAULT_STATE_FILE
+    if not game_state_path.exists():
+        print(f"Error: Game state file not found: {game_state_path}")
         return 1
 
-    state = load_game_state(str(DEFAULT_STATE_FILE))
+    state = load_game_state(str(game_state_path))
 
     # Create behavior manager and load modules
     behavior_manager = BehaviorManager()
@@ -88,5 +100,13 @@ def main():
     return 0
 
 
+def cli_main():
+    """Entry point for console script."""
+    parser = argparse.ArgumentParser(description='LLM-powered text adventure game')
+    parser.add_argument('state_file', nargs='?', help='Path to game state JSON file')
+    args = parser.parse_args()
+    sys.exit(main(state_file=args.state_file))
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    cli_main()

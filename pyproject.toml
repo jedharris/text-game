@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "text-game"
+version = "0.1.0"
+description = "A text adventure game engine with optional LLM narration"
+requires-python = ">=3.8"
+dependencies = []
+
+[project.optional-dependencies]
+llm = ["anthropic"]
+gui = ["wxPython"]
+
+[project.scripts]
+text-game = "src.text_game:cli_main"
+llm-game = "src.llm_game:cli_main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*", "behaviors*", "utilities*"]

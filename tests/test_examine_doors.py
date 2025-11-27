@@ -7,7 +7,7 @@ import unittest
 from tests.conftest import create_test_state
 from src.state_accessor import StateAccessor
 from src.behavior_manager import BehaviorManager
-from src.state_manager import Door
+from src.state_manager import Item, Location, ExitDescriptor
 
 
 class TestExamineDoor(unittest.TestCase):
@@ -23,27 +23,44 @@ class TestExamineDoor(unittest.TestCase):
         player = self.state.actors["player"]
         location_id = player.location
 
-        # Add doors to the location
-        wooden_door = Door(
+        # Add destination rooms
+        other_room = Location(
+            id="other_room",
+            name="Other Room",
+            description="Another room.",
+            exits={"south": ExitDescriptor(type="door", to=location_id, door_id="door_wooden")}
+        )
+        another_room = Location(
+            id="another_room",
+            name="Another Room",
+            description="Yet another room.",
+            exits={"west": ExitDescriptor(type="door", to=location_id, door_id="door_iron")}
+        )
+        self.state.locations.append(other_room)
+        self.state.locations.append(another_room)
+
+        # Add exits from player's current location
+        room = self.accessor.get_location(location_id)
+        room.exits["north"] = ExitDescriptor(type="door", to="other_room", door_id="door_wooden")
+        room.exits["east"] = ExitDescriptor(type="door", to="another_room", door_id="door_iron")
+
+        # Add door items
+        wooden_door = Item(
             id="door_wooden",
-            locations=(location_id, "other_room"),
-            properties={
-                "open": False,
-                "locked": False,
-                "description": "A simple wooden door with iron hinges."
-            }
+            name="door",
+            description="A simple wooden door with iron hinges.",
+            location=f"exit:{location_id}:north",
+            properties={"door": {"open": False, "locked": False}}
         )
-        iron_door = Door(
+        iron_door = Item(
             id="door_iron",
-            locations=(location_id, "another_room"),
-            properties={
-                "open": False,
-                "locked": True,
-                "description": "A heavy iron door with a sturdy lock."
-            }
+            name="door",
+            description="A heavy iron door with a sturdy lock.",
+            location=f"exit:{location_id}:east",
+            properties={"door": {"open": False, "locked": True}}
         )
-        self.state.doors.append(wooden_door)
-        self.state.doors.append(iron_door)
+        self.state.items.append(wooden_door)
+        self.state.items.append(iron_door)
 
     def test_examine_door_finds_door(self):
         """Test that examine door finds a door in the location."""
@@ -90,31 +107,17 @@ class TestExamineDoor(unittest.TestCase):
         self.assertFalse(result.success)
         self.assertIn("don't see", result.message.lower())
 
-    def test_examine_door_in_wrong_location_fails(self):
-        """Test that door in different location isn't found."""
+    def test_examine_door_in_connected_location(self):
+        """Test that door is found from connected location."""
         from behaviors.core.perception import handle_examine
 
-        # Move player to a location with no doors
+        # Move player to other_room which has exit with door_wooden
         self.state.actors["player"].location = "other_room"
-
-        # Add a location for the player
-        from src.state_manager import Location
-        other_room = Location(
-            id="other_room",
-            name="Other Room",
-            description="An empty room.",
-            exits={},
-            items=[],
-            npcs=[],
-            properties={},
-            behaviors=[]
-        )
-        self.state.locations.append(other_room)
 
         action = {"actor_id": "player", "object": "door"}
         result = handle_examine(self.accessor, action)
 
-        # The wooden door connects to other_room, so it should be found there
+        # The wooden door connects to other_room via the south exit, so it should be found there
         self.assertTrue(result.success)
 
     def test_examine_item_still_works(self):

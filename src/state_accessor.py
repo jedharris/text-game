@@ -4,7 +4,7 @@ StateAccessor - Clean API for state queries and mutations with automatic behavio
 This module provides the core abstraction for accessing and modifying game state.
 """
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Dict, Optional
 
 
 @dataclass
@@ -35,10 +35,12 @@ class HandlerResult:
     Result from a command handler.
 
     Command handlers return this to indicate success/failure and provide
-    a message for the user.
+    a message for the user. Optional data dict can include extra info
+    like llm_context for narration.
     """
     success: bool
     message: str
+    data: Optional[Dict[str, Any]] = None
 
 
 class StateAccessor:
@@ -105,20 +107,6 @@ class StateAccessor:
                 return location
         return None
 
-    def get_door(self, door_id: str):
-        """
-        Get door by ID.
-
-        Args:
-            door_id: The door ID to look up
-
-        Returns:
-            Door or None if not found
-        """
-        for door in self.game_state.doors:
-            if door.id == door_id:
-                return door
-        return None
 
     def get_lock(self, lock_id: str):
         """

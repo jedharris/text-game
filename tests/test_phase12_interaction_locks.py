@@ -15,8 +15,24 @@ sys.path.insert(0, str(project_root))
 
 from src.state_accessor import StateAccessor, HandlerResult
 from src.behavior_manager import BehaviorManager
-from src.state_manager import Actor, Door, Lock, Item
+from src.state_manager import Actor, Lock, Item, Location, ExitDescriptor
 from tests.conftest import create_test_state
+
+
+def create_door_item(door_id: str, location_id: str, direction: str,
+                     open: bool = False, locked: bool = False, lock_id: str = None,
+                     description: str = "A door") -> Item:
+    """Helper to create a door item in the new unified format."""
+    door_props = {"open": open, "locked": locked}
+    if lock_id:
+        door_props["lock_id"] = lock_id
+    return Item(
+        id=door_id,
+        name="door",
+        description=description,
+        location=f"exit:{location_id}:{direction}",
+        properties={"door": door_props}
+    )
 
 
 class TestPhase12InteractionLocks(unittest.TestCase):
@@ -57,32 +73,30 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         behavior_manager.load_module(behaviors.core.interaction)
         accessor = StateAccessor(state, behavior_manager)
 
-        # Add a second room and door
-        from src.state_manager import Location
+        # Add a second room with exit back
         hall = Location(
             id="location_hall",
             name="Hall",
             description="A hallway",
-            exits={},
-            items=[],
-            npcs=[]
+            exits={"south": ExitDescriptor(type="door", to="location_room", door_id="door_main")}
         )
         state.locations.append(hall)
 
-        # Create a door
-        door = Door(
-            id="door_main",
-            locations=("location_room", "location_hall"),
-            properties={"open": False, "description": "A wooden door"}
-        )
-        state.doors.append(door)
+        # Add exit to existing room
+        room = accessor.get_location("location_room")
+        room.exits["north"] = ExitDescriptor(type="door", to="location_hall", door_id="door_main")
+
+        # Create a door item
+        door = create_door_item("door_main", "location_room", "north",
+                                open=False, description="A wooden door")
+        state.items.append(door)
 
         from behaviors.core.interaction import handle_open
         action = {"actor_id": "player", "object": "door"}
         result = handle_open(accessor, action)
 
         self.assertTrue(result.success)
-        self.assertTrue(door.open)
+        self.assertTrue(door.door_open)
 
     def test_handle_open_already_open(self):
         """Test that opening an already open container reports appropriately."""
@@ -177,32 +191,30 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         behavior_manager.load_module(behaviors.core.interaction)
         accessor = StateAccessor(state, behavior_manager)
 
-        # Add a second room and door
-        from src.state_manager import Location
+        # Add a second room with exit back
         hall = Location(
             id="location_hall",
             name="Hall",
             description="A hallway",
-            exits={},
-            items=[],
-            npcs=[]
+            exits={"south": ExitDescriptor(type="door", to="location_room", door_id="door_main")}
         )
         state.locations.append(hall)
 
-        # Create an open door
-        door = Door(
-            id="door_main",
-            locations=("location_room", "location_hall"),
-            properties={"open": True, "description": "A wooden door"}
-        )
-        state.doors.append(door)
+        # Add exit to existing room
+        room = accessor.get_location("location_room")
+        room.exits["north"] = ExitDescriptor(type="door", to="location_hall", door_id="door_main")
+
+        # Create an open door item
+        door = create_door_item("door_main", "location_room", "north",
+                                open=True, description="A wooden door")
+        state.items.append(door)
 
         from behaviors.core.interaction import handle_close
         action = {"actor_id": "player", "object": "door"}
         result = handle_close(accessor, action)
 
         self.assertTrue(result.success)
-        self.assertFalse(door.open)
+        self.assertFalse(door.door_open)
 
     def test_handle_close_npc(self):
         """Test NPC closing something (critical for actor_id threading)."""
@@ -249,17 +261,18 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         behavior_manager.load_module(behaviors.core.locks)
         accessor = StateAccessor(state, behavior_manager)
 
-        # Add a second room and locked door
-        from src.state_manager import Location
+        # Add a second room with exit back
         hall = Location(
             id="location_hall",
             name="Hall",
             description="A hallway",
-            exits={},
-            items=[],
-            npcs=[]
+            exits={"south": ExitDescriptor(type="door", to="location_room", door_id="door_main")}
         )
         state.locations.append(hall)
+
+        # Add exit to existing room
+        room = accessor.get_location("location_room")
+        room.exits["north"] = ExitDescriptor(type="door", to="location_hall", door_id="door_main")
 
         # Create a lock
         lock = Lock(
@@ -268,13 +281,11 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         )
         state.locks.append(lock)
 
-        # Create a locked door
-        door = Door(
-            id="door_main",
-            locations=("location_room", "location_hall"),
-            properties={"open": False, "locked": True, "lock_id": "lock_door", "description": "A locked door"}
-        )
-        state.doors.append(door)
+        # Create a locked door item
+        door = create_door_item("door_main", "location_room", "north",
+                                open=False, locked=True, lock_id="lock_door",
+                                description="A locked door")
+        state.items.append(door)
 
         # Create key and give to player
         key = Item(
@@ -293,7 +304,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         result = handle_unlock(accessor, action)
 
         self.assertTrue(result.success)
-        self.assertFalse(door.locked)
+        self.assertFalse(door.door_locked)
 
     def test_handle_unlock_without_key(self):
         """Test that unlocking fails without key."""
@@ -303,17 +314,18 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         behavior_manager.load_module(behaviors.core.locks)
         accessor = StateAccessor(state, behavior_manager)
 
-        # Add a second room and locked door
-        from src.state_manager import Location
+        # Add a second room with exit back
         hall = Location(
             id="location_hall",
             name="Hall",
             description="A hallway",
-            exits={},
-            items=[],
-            npcs=[]
+            exits={"south": ExitDescriptor(type="door", to="location_room", door_id="door_main")}
         )
         state.locations.append(hall)
+
+        # Add exit to existing room
+        room = accessor.get_location("location_room")
+        room.exits["north"] = ExitDescriptor(type="door", to="location_hall", door_id="door_main")
 
         # Create a lock
         lock = Lock(
@@ -322,13 +334,11 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         )
         state.locks.append(lock)
 
-        # Create a locked door (no key in player inventory)
-        door = Door(
-            id="door_main",
-            locations=("location_room", "location_hall"),
-            properties={"open": False, "locked": True, "lock_id": "lock_door", "description": "A locked door"}
-        )
-        state.doors.append(door)
+        # Create a locked door item (no key in player inventory)
+        door = create_door_item("door_main", "location_room", "north",
+                                open=False, locked=True, lock_id="lock_door",
+                                description="A locked door")
+        state.items.append(door)
 
         from behaviors.core.locks import handle_unlock
         action = {"actor_id": "player", "object": "door"}
@@ -345,17 +355,18 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         behavior_manager.load_module(behaviors.core.locks)
         accessor = StateAccessor(state, behavior_manager)
 
-        # Add a second room and locked door
-        from src.state_manager import Location
+        # Add a second room with exit back
         hall = Location(
             id="location_hall",
             name="Hall",
             description="A hallway",
-            exits={},
-            items=[],
-            npcs=[]
+            exits={"south": ExitDescriptor(type="door", to="location_room", door_id="door_main")}
         )
         state.locations.append(hall)
+
+        # Add exit to existing room
+        room = accessor.get_location("location_room")
+        room.exits["north"] = ExitDescriptor(type="door", to="location_hall", door_id="door_main")
 
         # Create a lock
         lock = Lock(
@@ -364,13 +375,11 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         )
         state.locks.append(lock)
 
-        # Create a locked door
-        door = Door(
-            id="door_main",
-            locations=("location_room", "location_hall"),
-            properties={"open": False, "locked": True, "lock_id": "lock_door", "description": "A locked door"}
-        )
-        state.doors.append(door)
+        # Create a locked door item
+        door = create_door_item("door_main", "location_room", "north",
+                                open=False, locked=True, lock_id="lock_door",
+                                description="A locked door")
+        state.items.append(door)
 
         # Create key and give to NPC (not player)
         key = Item(
@@ -397,7 +406,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         result = handle_unlock(accessor, action)
 
         self.assertTrue(result.success, f"NPC unlock failed: {result.message}")
-        self.assertFalse(door.locked)
+        self.assertFalse(door.door_locked)
 
     def test_handle_lock_with_key(self):
         """Test locking with correct key."""
@@ -407,17 +416,18 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         behavior_manager.load_module(behaviors.core.locks)
         accessor = StateAccessor(state, behavior_manager)
 
-        # Add a second room and unlocked door
-        from src.state_manager import Location
+        # Add a second room with exit back
         hall = Location(
             id="location_hall",
             name="Hall",
             description="A hallway",
-            exits={},
-            items=[],
-            npcs=[]
+            exits={"south": ExitDescriptor(type="door", to="location_room", door_id="door_main")}
         )
         state.locations.append(hall)
+
+        # Add exit to existing room
+        room = accessor.get_location("location_room")
+        room.exits["north"] = ExitDescriptor(type="door", to="location_hall", door_id="door_main")
 
         # Create a lock
         lock = Lock(
@@ -426,13 +436,11 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         )
         state.locks.append(lock)
 
-        # Create an unlocked door
-        door = Door(
-            id="door_main",
-            locations=("location_room", "location_hall"),
-            properties={"open": False, "locked": False, "lock_id": "lock_door", "description": "A door"}
-        )
-        state.doors.append(door)
+        # Create an unlocked door item
+        door = create_door_item("door_main", "location_room", "north",
+                                open=False, locked=False, lock_id="lock_door",
+                                description="A door")
+        state.items.append(door)
 
         # Create key and give to player
         key = Item(
@@ -451,7 +459,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         result = handle_lock(accessor, action)
 
         self.assertTrue(result.success)
-        self.assertTrue(door.locked)
+        self.assertTrue(door.door_locked)
 
     def test_handle_lock_door_open(self):
         """Test that locking fails if door is open."""
@@ -461,17 +469,18 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         behavior_manager.load_module(behaviors.core.locks)
         accessor = StateAccessor(state, behavior_manager)
 
-        # Add a second room and open door
-        from src.state_manager import Location
+        # Add a second room with exit back
         hall = Location(
             id="location_hall",
             name="Hall",
             description="A hallway",
-            exits={},
-            items=[],
-            npcs=[]
+            exits={"south": ExitDescriptor(type="door", to="location_room", door_id="door_main")}
         )
         state.locations.append(hall)
+
+        # Add exit to existing room
+        room = accessor.get_location("location_room")
+        room.exits["north"] = ExitDescriptor(type="door", to="location_hall", door_id="door_main")
 
         # Create a lock
         lock = Lock(
@@ -480,13 +489,11 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         )
         state.locks.append(lock)
 
-        # Create an open door
-        door = Door(
-            id="door_main",
-            locations=("location_room", "location_hall"),
-            properties={"open": True, "locked": False, "lock_id": "lock_door", "description": "A door"}
-        )
-        state.doors.append(door)
+        # Create an open door item
+        door = create_door_item("door_main", "location_room", "north",
+                                open=True, locked=False, lock_id="lock_door",
+                                description="A door")
+        state.items.append(door)
 
         # Create key and give to player
         key = Item(
@@ -515,17 +522,18 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         behavior_manager.load_module(behaviors.core.locks)
         accessor = StateAccessor(state, behavior_manager)
 
-        # Add a second room and unlocked door
-        from src.state_manager import Location
+        # Add a second room with exit back
         hall = Location(
             id="location_hall",
             name="Hall",
             description="A hallway",
-            exits={},
-            items=[],
-            npcs=[]
+            exits={"south": ExitDescriptor(type="door", to="location_room", door_id="door_main")}
         )
         state.locations.append(hall)
+
+        # Add exit to existing room
+        room = accessor.get_location("location_room")
+        room.exits["north"] = ExitDescriptor(type="door", to="location_hall", door_id="door_main")
 
         # Create a lock
         lock = Lock(
@@ -534,13 +542,11 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         )
         state.locks.append(lock)
 
-        # Create an unlocked door
-        door = Door(
-            id="door_main",
-            locations=("location_room", "location_hall"),
-            properties={"open": False, "locked": False, "lock_id": "lock_door", "description": "A door"}
-        )
-        state.doors.append(door)
+        # Create an unlocked door item
+        door = create_door_item("door_main", "location_room", "north",
+                                open=False, locked=False, lock_id="lock_door",
+                                description="A door")
+        state.items.append(door)
 
         # Create key and give to NPC (not player)
         key = Item(
@@ -567,7 +573,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         result = handle_lock(accessor, action)
 
         self.assertTrue(result.success, f"NPC lock failed: {result.message}")
-        self.assertTrue(door.locked)
+        self.assertTrue(door.door_locked)
 
 
 if __name__ == '__main__':

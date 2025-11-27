@@ -5,7 +5,7 @@ Verifies that behaviors field only accepts List[str] format.
 """
 
 import unittest
-from src.state_manager import Location, Item, Door, Actor
+from src.state_manager import Location, Item, Actor
 
 
 class TestBehaviorsListOnly(unittest.TestCase):
@@ -44,20 +44,28 @@ class TestBehaviorsListOnly(unittest.TestCase):
         self.assertIsInstance(item.behaviors, list)
         self.assertEqual(item.behaviors, [])
 
-    def test_door_behaviors_is_list(self):
-        """Test Door behaviors field accepts list."""
-        door = Door(
-            id="test", locations=("loc1", "loc2"),
+    def test_door_item_behaviors_is_list(self):
+        """Test door item behaviors field accepts list."""
+        door_item = Item(
+            id="test_door", name="door", description="A door",
+            location="exit:loc1:north",
+            properties={"door": {"open": False}},
             behaviors=["behaviors.doors"]
         )
-        self.assertIsInstance(door.behaviors, list)
-        self.assertEqual(len(door.behaviors), 1)
+        self.assertIsInstance(door_item.behaviors, list)
+        self.assertEqual(len(door_item.behaviors), 1)
+        self.assertTrue(door_item.is_door)
 
-    def test_door_behaviors_default_empty_list(self):
-        """Test Door behaviors defaults to empty list."""
-        door = Door(id="test", locations=("loc1", "loc2"))
-        self.assertIsInstance(door.behaviors, list)
-        self.assertEqual(door.behaviors, [])
+    def test_door_item_behaviors_default_empty_list(self):
+        """Test door item behaviors defaults to empty list."""
+        door_item = Item(
+            id="test_door", name="door", description="A door",
+            location="exit:loc1:north",
+            properties={"door": {"open": False}}
+        )
+        self.assertIsInstance(door_item.behaviors, list)
+        self.assertEqual(door_item.behaviors, [])
+        self.assertTrue(door_item.is_door)
 
     def test_actor_behaviors_is_list(self):
         """Test Actor behaviors field accepts list."""
@@ -92,12 +100,6 @@ class TestBehaviorsTypeAnnotation(unittest.TestCase):
         """Test Item.behaviors has List[str] annotation."""
         from typing import get_type_hints, List
         hints = get_type_hints(Item)
-        self.assertEqual(hints['behaviors'], List[str])
-
-    def test_door_behaviors_annotation(self):
-        """Test Door.behaviors has List[str] annotation."""
-        from typing import get_type_hints, List
-        hints = get_type_hints(Door)
         self.assertEqual(hints['behaviors'], List[str])
 
     def test_actor_behaviors_annotation(self):
