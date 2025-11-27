@@ -5,7 +5,7 @@ import json
 import tempfile
 from pathlib import Path
 
-from src.state_manager import load_game_state, Item, NPC, Location
+from src.state_manager import load_game_state, Item, Actor, Location
 
 
 class TestBehaviorsFieldInModels(unittest.TestCase):
@@ -35,26 +35,26 @@ class TestBehaviorsFieldInModels(unittest.TestCase):
         self.assertIn("module:on_take", item.behaviors)
         self.assertIn("module:on_drop", item.behaviors)
 
-    def test_npc_has_behaviors_field(self):
-        """Test that NPC model has behaviors field."""
-        npc = NPC(
+    def test_actor_has_behaviors_field(self):
+        """Test that Actor model has behaviors field."""
+        actor = Actor(
             id="test_npc",
             name="Test NPC",
             description="A test NPC",
             location="room1"
         )
-        self.assertEqual(npc.behaviors, [])
+        self.assertEqual(actor.behaviors, [])
 
-    def test_npc_with_behaviors(self):
-        """Test creating NPC with behaviors."""
-        npc = NPC(
+    def test_actor_with_behaviors(self):
+        """Test creating Actor with behaviors."""
+        actor = Actor(
             id="test_npc",
             name="Test NPC",
             description="A test NPC",
             location="room1",
             behaviors=["module:on_talk"]
         )
-        self.assertIn("module:on_talk", npc.behaviors)
+        self.assertIn("module:on_talk", actor.behaviors)
 
     def test_door_item_has_behaviors_field(self):
         """Test that door item has behaviors field."""
@@ -206,7 +206,7 @@ class TestBehaviorsLoading(unittest.TestCase):
 
         state = load_game_state(game_data)
 
-        npc = state.get_npc("wizard")
+        npc = state.get_actor("wizard")
         self.assertIn("behaviors.npcs:on_talk_wizard", npc.behaviors)
 
     def test_load_npc_without_behaviors(self):
@@ -224,7 +224,7 @@ class TestBehaviorsLoading(unittest.TestCase):
 
         state = load_game_state(game_data)
 
-        npc = state.get_npc("guard")
+        npc = state.get_actor("guard")
         self.assertEqual(npc.behaviors, [])
 
     def test_load_door_item_with_behaviors(self):

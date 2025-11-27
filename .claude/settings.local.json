@@ -11,7 +11,15 @@
       "Bash(python -m pytest:*)",
       "Bash(python3 -m pytest:*)",
       "Bash(python -m unittest:*)",
-      "Bash(python -c:*)"
+      "Bash(python -c:*)",
+      "Bash(python3:*)",
+      "Bash(node --version:*)",
+      "mcp__claude-context__index_codebase",
+      "mcp__claude-context__search_code",
+      "mcp__claude-context__clear_index",
+      "mcp__claude-context__get_indexing_status",
+      "Bash(gh auth status:*)",
+      "Bash(gh issue view:*)"
     ],
     "deny": [],
     "ask": []

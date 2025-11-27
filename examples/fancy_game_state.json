@@ -21,7 +21,6 @@
       "items": [
         "item_sword"
       ],
-      "npcs": [],
       "tags": [],
       "llm_context": {
         "traits": [
@@ -83,7 +82,6 @@
         "item_key",
         "item_table"
       ],
-      "npcs": [],
       "tags": [],
       "llm_context": {
         "traits": [
@@ -134,7 +132,6 @@
       "items": [
         "item_pedestal"
       ],
-      "npcs": [],
       "tags": [],
       "llm_context": {
         "traits": [
@@ -186,7 +183,6 @@
       "items": [
         "item_chest"
       ],
-      "npcs": [],
       "tags": [],
       "llm_context": {
         "traits": [
@@ -449,7 +445,9 @@
           "examined": "crudely made but functional"
         }
       },
-      "behaviors": ["behaviors.core.light_sources"]
+      "behaviors": [
+        "behaviors.core.light_sources"
+      ]
     },
     {
       "id": "item_pedestal",

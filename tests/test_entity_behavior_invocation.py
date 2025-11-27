@@ -25,8 +25,7 @@ def create_test_state_with_light_source():
                 name="Test Room",
                 description="A test room.",
                 exits={},
-                items=["lantern"],
-                npcs=[]
+                items=["lantern"]
             )
         ],
         items=[

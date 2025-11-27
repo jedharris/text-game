@@ -36,7 +36,6 @@ class TestPhase11MovementPerception(unittest.TestCase):
             description="A hallway",
             exits={"west": "location_room"},
             items=[],
-            npcs=[]
         )
         state.locations.append(hall)
 
@@ -85,7 +84,6 @@ class TestPhase11MovementPerception(unittest.TestCase):
             description="A hallway",
             exits={"west": "location_room"},
             items=[],
-            npcs=[]
         )
         state.locations.append(hall)
 
@@ -148,7 +146,6 @@ class TestPhase11MovementPerception(unittest.TestCase):
             description="A hallway",
             exits={},
             items=["item_table"],  # Only table in hall
-            npcs=[]
         )
         state.locations.append(hall)
 

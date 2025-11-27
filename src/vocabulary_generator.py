@@ -32,12 +32,13 @@ def extract_nouns_from_state(state: GameState) -> List[Dict[str, Any]]:
             nouns.append({"word": name})
             seen_words.add(name)
 
-    # Extract NPC names
-    for npc in state.npcs:
-        name = npc.name
-        if name and name not in seen_words:
-            nouns.append({"word": name})
-            seen_words.add(name)
+    # Extract NPC names (actors that aren't the player)
+    for actor_id, actor in state.actors.items():
+        if actor_id != "player":
+            name = actor.name
+            if name and name not in seen_words:
+                nouns.append({"word": name})
+                seen_words.add(name)
 
     # Add "door" noun if there are any door items in the game
     has_doors = any(item.is_door for item in state.items)

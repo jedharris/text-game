@@ -629,7 +629,7 @@ class TestHiddenDoors:
     def test_revealed_door_becomes_visible(self):
         """Door becomes visible after hidden=False."""
         secret_door = self.accessor.get_item("door_secret")
-        secret_door.properties["hidden"] = False
+        secret_door.states["hidden"] = False
 
         contents = gather_location_contents(self.accessor, "loc_library", "player")
         door_ids = [item.id for item in contents["items"]]
@@ -1146,7 +1146,7 @@ class TestDoorItemIntegration:
         assert not response["success"]
 
         # Reveal the door (simulating a behavior trigger)
-        state.get_item("door_secret").properties["hidden"] = False
+        state.get_item("door_secret").states["hidden"] = False
 
         # Now query shows door
         response = handler.handle_message({"type": "query", "query_type": "location"})

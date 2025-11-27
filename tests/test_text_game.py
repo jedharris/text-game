@@ -33,7 +33,7 @@ class TestBehaviorMessageDisplay(unittest.TestCase):
         self.handler = JSONProtocolHandler(self.state, behavior_manager=self.manager)
 
         # Move player to hallway where lantern is
-        self.state.player.location = "loc_hallway"
+        self.state.actors["player"].location = "loc_hallway"
 
     def test_take_command_includes_behavior_message(self):
         """Test that take command includes behavior message from on_take."""
@@ -99,7 +99,7 @@ class TestMessageKeyConsistency(unittest.TestCase):
         self.manager.load_modules(modules)
 
         self.handler = JSONProtocolHandler(self.state, behavior_manager=self.manager)
-        self.state.player.location = "loc_hallway"
+        self.state.actors["player"].location = "loc_hallway"
 
     def test_take_result_uses_message_key(self):
         """Test that take command result uses 'message' key, not 'behavior_message'."""
@@ -173,7 +173,7 @@ class TestLLMGameSetup(unittest.TestCase):
         json_handler = JSONProtocolHandler(state, behavior_manager=behavior_manager)
 
         # Move to hallway and take lantern
-        state.player.location = "loc_hallway"
+        state.actors["player"].location = "loc_hallway"
         result = json_handler.handle_message({
             "type": "command",
             "action": {"verb": "take", "object": "lantern"}
@@ -221,7 +221,7 @@ class TestFormatFunctions(unittest.TestCase):
 
     def test_format_location_query_basic(self):
         """Test formatting basic location query."""
-        self.state.player.location = "loc_hallway"
+        self.state.actors["player"].location = "loc_hallway"
         response = self.handler.handle_message({
             "type": "query",
             "query_type": "location",
@@ -258,7 +258,7 @@ class TestExamineLLMContext(unittest.TestCase):
         self.manager.load_modules(modules)
 
         self.handler = JSONProtocolHandler(self.state, behavior_manager=self.manager)
-        self.state.player.location = "loc_hallway"
+        self.state.actors["player"].location = "loc_hallway"
 
     def test_examine_item_includes_llm_context(self):
         """Test that examining an item includes llm_context in response."""
@@ -304,7 +304,7 @@ class TestExamineLLMContext(unittest.TestCase):
         simple_path = Path(__file__).parent.parent / "examples" / "simple_game_state.json"
         state = load_game_state(simple_path)
         handler = JSONProtocolHandler(state, behavior_manager=self.manager)
-        state.player.location = "loc_start"
+        state.actors["player"].location = "loc_start"
 
         result = handler.handle_message({
             "type": "command",

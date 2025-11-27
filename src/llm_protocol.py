@@ -177,8 +177,9 @@ class LLMProtocolHandler:
 
         # Build event name and context
         event_name = f"on_{verb}"
+        player = self.state.actors.get("player")
         context = {
-            "location": self.state.player.location,
+            "location": player.location if player else "",
             "verb": verb
         }
 
@@ -280,11 +281,14 @@ class LLMProtocolHandler:
 
             data["items"] = items
 
+        # Get visible exits once for both doors and exits sections
+        visible_exits = accessor.get_visible_exits(loc.id, actor_id)
+
         if "doors" in include or not include:
             doors = []
             seen_door_ids = set()
-            # First check for door items through exits
-            for direction, exit_desc in loc.exits.items():
+            # Check for door items through visible exits
+            for direction, exit_desc in visible_exits.items():
                 if exit_desc.door_id:
                     door = self._get_door_by_id(exit_desc.door_id)
                     if door and exit_desc.door_id not in seen_door_ids:
@@ -296,7 +300,7 @@ class LLMProtocolHandler:
 
         if "exits" in include or not include:
             exits = {}
-            for direction, exit_desc in loc.exits.items():
+            for direction, exit_desc in visible_exits.items():
                 exits[direction] = {
                     "type": exit_desc.type,
                     "to": exit_desc.to
@@ -305,7 +309,7 @@ class LLMProtocolHandler:
                     exits[direction]["door_id"] = exit_desc.door_id
             data["exits"] = exits
 
-        if "actors" in include or "npcs" in include or not include:
+        if "actors" in include or not include:
             actors = []
             for actor in contents["actors"]:
                 actors.append(self._actor_to_dict(actor))
@@ -361,9 +365,9 @@ class LLMProtocolHandler:
             if entity:
                 entity = self._door_to_dict(entity)
         elif entity_type == "npc":
-            entity = self._get_npc_by_id(entity_id)
+            entity = self._get_actor_by_id(entity_id)
             if entity:
-                entity = self._npc_to_dict(entity)
+                entity = self._actor_to_dict(entity)
         elif entity_type == "location":
             entity = self._get_location_by_id(entity_id)
             if entity:
@@ -407,9 +411,9 @@ class LLMProtocolHandler:
                     entities.append(self._entity_to_dict(item))
         elif entity_type == "npc":
             loc = self._get_location_by_id(location_id) if location_id else self._get_current_location()
-            for npc in self.state.npcs:
-                if npc.location == loc.id:
-                    entities.append(self._npc_to_dict(npc))
+            for actor_id, actor in self.state.actors.items():
+                if actor_id != "player" and actor.location == loc.id:
+                    entities.append(self._actor_to_dict(actor))
 
         return {
             "type": "query_response",
@@ -418,17 +422,53 @@ class LLMProtocolHandler:
         }
 
     def _query_vocabulary(self, message: Dict) -> Dict:
-        """Query game vocabulary."""
-        # Vocabulary is now loaded from vocabulary.json and behavior modules,
-        # not stored in game state
+        """Query game vocabulary.
+
+        Returns merged vocabulary from vocabulary.json and behavior modules.
+        Includes verbs with their synonyms, required parameters, and directions.
+        """
+        from pathlib import Path
+        import json
+
+        # Load base vocabulary from vocabulary.json
+        vocab_file = Path(__file__).parent / "vocabulary.json"
+        if vocab_file.exists():
+            try:
+                base_vocab = json.loads(vocab_file.read_text())
+            except (json.JSONDecodeError, IOError):
+                base_vocab = {"verbs": [], "directions": []}
+        else:
+            base_vocab = {"verbs": [], "directions": []}
+
+        # Merge with behavior module vocabulary
+        if self.behavior_manager:
+            vocab = self.behavior_manager.get_merged_vocabulary(base_vocab)
+        else:
+            vocab = base_vocab
+
+        # Format verbs for response
+        verbs = {}
+        for verb_data in vocab.get("verbs", []):
+            word = verb_data["word"]
+            verbs[word] = {
+                "synonyms": verb_data.get("synonyms", []),
+                "object_required": verb_data.get("object_required", False)
+            }
+
+        # Format directions for response
+        directions = {}
+        for dir_data in vocab.get("directions", []):
+            word = dir_data["word"]
+            directions[word] = {
+                "synonyms": dir_data.get("synonyms", [])
+            }
+
         return {
             "type": "query_response",
             "query_type": "vocabulary",
             "data": {
-                "aliases": {},
-                "verbs": {},
-                "nouns": {},
-                "adjectives": {}
+                "verbs": verbs,
+                "directions": directions
             }
         }
 
@@ -449,8 +489,11 @@ class LLMProtocolHandler:
 
     def _get_current_location(self):
         """Get current location object."""
+        player = self.state.actors.get("player")
+        if not player:
+            return None
         for loc in self.state.locations:
-            if loc.id == self.state.player.location:
+            if loc.id == player.location:
                 return loc
         return None
 
@@ -475,12 +518,11 @@ class LLMProtocolHandler:
                 return item
         return None
 
-    def _get_npc_by_id(self, npc_id: str):
-        """Get NPC by ID."""
-        for npc in self.state.npcs:
-            if npc.id == npc_id:
-                return npc
-        return None
+    def _get_actor_by_id(self, actor_id: str):
+        """Get actor by ID (excludes player)."""
+        if actor_id == "player":
+            return None
+        return self.state.actors.get(actor_id)
 
     def _get_lock_by_id(self, lock_id: str):
         """Get lock by ID."""
@@ -613,10 +655,6 @@ class LLMProtocolHandler:
             result["llm_context"] = loc.properties['llm_context']
 
         return result
-
-    def _npc_to_dict(self, npc) -> Dict:
-        """Convert NPC to dict with llm_context."""
-        return self._actor_to_dict(npc)
 
     def _actor_to_dict(self, actor) -> Dict:
         """Convert Actor to dict with llm_context."""

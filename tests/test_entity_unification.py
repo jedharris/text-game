@@ -454,7 +454,7 @@ class TestHiddenDoors(unittest.TestCase):
                     name="door",
                     description="A hidden door behind the bookshelf.",
                     location="exit:loc_library:east",
-                    properties={"door": {"open": False}, "hidden": True}
+                    properties={"door": {"open": False}, "states": {"hidden": True}}
                 )
             ],
             actors={"player": Actor(
@@ -483,11 +483,11 @@ class TestHiddenDoors(unittest.TestCase):
         self.assertEqual(item.id, "door_visible")
 
     def test_revealed_door_becomes_visible(self):
-        """Door becomes visible after hidden=False."""
+        """Door becomes visible after states.hidden=False."""
         from utilities.utils import gather_location_contents
 
         secret_door = self.accessor.get_item("door_secret")
-        secret_door.properties["hidden"] = False
+        secret_door.states["hidden"] = False
 
         contents = gather_location_contents(self.accessor, "loc_library", "player")
         door_ids = [item.id for item in contents["items"]]

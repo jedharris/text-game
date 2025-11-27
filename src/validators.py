@@ -77,8 +77,9 @@ def _build_id_registry(state: "GameState", errors: List[str]) -> Dict[str, str]:
             add_id(item.id, "item")
     for lock in state.locks:
         add_id(lock.id, "lock")
-    for npc in state.npcs:
-        add_id(npc.id, "npc")
+    for actor_id, actor in state.actors.items():
+        if actor_id != "player":
+            add_id(actor_id, "npc")
 
     return registry
 
@@ -245,11 +246,12 @@ def _validate_metadata(state: "GameState", registry: Dict[str, str],
 def _validate_player_state(state: "GameState", registry: Dict[str, str],
                            errors: List[str]) -> None:
     """Validate player state references."""
-    if not state.player:
+    player = state.actors.get("player")
+    if not player:
         return
 
     # Validate location
-    loc = state.player.location
+    loc = player.location
     if loc:
         if loc not in registry:
             errors.append(
@@ -262,7 +264,7 @@ def _validate_player_state(state: "GameState", registry: Dict[str, str],
             )
 
     # Validate inventory
-    for item_id in state.player.inventory:
+    for item_id in player.inventory:
         if item_id not in registry:
             errors.append(
                 f"Player inventory contains nonexistent item '{item_id}'"

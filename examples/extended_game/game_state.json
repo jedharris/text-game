@@ -17,8 +17,10 @@
           "to": "loc_tower_entrance"
         }
       },
-      "items": ["item_rusty_trowel", "item_garden_bench"],
-      "npcs": [],
+      "items": [
+        "item_rusty_trowel",
+        "item_garden_bench"
+      ],
       "tags": []
     },
     {
@@ -40,8 +42,10 @@
           "door_id": "door_storage"
         }
       },
-      "items": ["item_welcome_mat", "item_umbrella_stand"],
-      "npcs": [],
+      "items": [
+        "item_welcome_mat",
+        "item_umbrella_stand"
+      ],
       "tags": []
     },
     {
@@ -55,8 +59,10 @@
           "door_id": "door_storage"
         }
       },
-      "items": ["item_crate", "item_old_rope"],
-      "npcs": [],
+      "items": [
+        "item_crate",
+        "item_old_rope"
+      ],
       "tags": []
     },
     {
@@ -74,8 +80,10 @@
           "door_id": "door_sanctum"
         }
       },
-      "items": ["item_desk", "item_crystal_ball"],
-      "npcs": [],
+      "items": [
+        "item_desk",
+        "item_crystal_ball"
+      ],
       "tags": []
     },
     {
@@ -89,8 +97,10 @@
           "door_id": "door_sanctum"
         }
       },
-      "items": ["item_altar", "item_magic_wand"],
-      "npcs": [],
+      "items": [
+        "item_altar",
+        "item_magic_wand"
+      ],
       "tags": []
     }
   ],
@@ -124,7 +134,9 @@
         "type": "object",
         "portable": false
       },
-      "behaviors": ["behaviors.magic_mat"]
+      "behaviors": [
+        "behaviors.magic_mat"
+      ]
     },
     {
       "id": "item_umbrella_stand",
@@ -213,7 +225,9 @@
         "portable": true,
         "readable": true
       },
-      "behaviors": ["behaviors.spellbook"]
+      "behaviors": [
+        "behaviors.spellbook"
+      ]
     },
     {
       "id": "item_crystal_ball",
@@ -225,7 +239,9 @@
         "portable": true,
         "magical": true
       },
-      "behaviors": ["behaviors.crystal_ball"]
+      "behaviors": [
+        "behaviors.crystal_ball"
+      ]
     },
     {
       "id": "item_sanctum_key",
@@ -263,7 +279,9 @@
         "portable": true,
         "magical": true
       },
-      "behaviors": ["behaviors.magic_wand"]
+      "behaviors": [
+        "behaviors.magic_wand"
+      ]
     },
     {
       "id": "door_storage",
@@ -292,7 +310,9 @@
       "id": "lock_sanctum",
       "description": "A magical lock that pulses with energy.",
       "properties": {
-        "opens_with": ["item_sanctum_key"],
+        "opens_with": [
+          "item_sanctum_key"
+        ],
         "auto_unlock": true
       }
     }

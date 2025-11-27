@@ -100,13 +100,11 @@ class TestSimplifiedLocation(unittest.TestCase):
             name="Room",
             description="A room",
             exits={},
-            items=["item_1"],
-            npcs=[]
+            items=["item_1"]
         )
 
         self.assertEqual(loc.id, "loc_1")
         self.assertEqual(loc.items, ["item_1"])
-        self.assertEqual(loc.npcs, [])
 
     def test_location_tags_as_property(self):
         """Tags stored in properties."""
@@ -140,7 +138,7 @@ class TestSimplifiedLocation(unittest.TestCase):
         self.assertEqual(loc.exits["east"].door_id, "door_1")
 
     def test_exit_descriptor_with_properties(self):
-        """ExitDescriptor stores description, hidden, conditions in properties."""
+        """ExitDescriptor stores description, conditions in properties."""
         from src.state_manager import ExitDescriptor
 
         exit_desc = ExitDescriptor(
@@ -148,7 +146,6 @@ class TestSimplifiedLocation(unittest.TestCase):
             to="loc_2",
             properties={
                 "description": "A dark passage",
-                "hidden": True,
                 "conditions": ["has_torch"],
                 "on_fail": "You can't see in the dark."
             }
@@ -157,19 +154,63 @@ class TestSimplifiedLocation(unittest.TestCase):
         self.assertEqual(exit_desc.type, "open")
         self.assertEqual(exit_desc.to, "loc_2")
         self.assertEqual(exit_desc.properties["description"], "A dark passage")
-        self.assertTrue(exit_desc.properties["hidden"])
         self.assertEqual(exit_desc.properties["conditions"], ["has_torch"])
         self.assertEqual(exit_desc.properties["on_fail"], "You can't see in the dark.")
 
+    def test_exit_descriptor_with_behaviors(self):
+        """ExitDescriptor can have behaviors list."""
+        from src.state_manager import ExitDescriptor
 
-class TestSimplifiedNPC(unittest.TestCase):
-    """Test simplified NPC with properties dict."""
+        exit_desc = ExitDescriptor(
+            type="open",
+            to="loc_2",
+            behaviors=["core/observability", "game/magic_portal"]
+        )
 
-    def test_npc_core_fields(self):
-        """NPC has id, name, description, location, inventory as core."""
-        from src.state_manager import NPC
+        self.assertEqual(exit_desc.type, "open")
+        self.assertEqual(exit_desc.to, "loc_2")
+        self.assertEqual(exit_desc.behaviors, ["core/observability", "game/magic_portal"])
 
-        npc = NPC(
+    def test_exit_descriptor_states_property(self):
+        """ExitDescriptor states property accesses states within properties."""
+        from src.state_manager import ExitDescriptor
+
+        exit_desc = ExitDescriptor(
+            type="open",
+            to="loc_2"
+        )
+
+        # Initially empty
+        self.assertEqual(exit_desc.states, {})
+
+        # Can set states
+        exit_desc.states["hidden"] = True
+        self.assertTrue(exit_desc.states["hidden"])
+
+        # States stored in properties
+        self.assertTrue(exit_desc.properties["states"]["hidden"])
+
+    def test_exit_descriptor_with_hidden_state(self):
+        """ExitDescriptor with hidden in states (not properties directly)."""
+        from src.state_manager import ExitDescriptor
+
+        exit_desc = ExitDescriptor(
+            type="open",
+            to="loc_2",
+            properties={"states": {"hidden": True}}
+        )
+
+        self.assertTrue(exit_desc.states.get("hidden"))
+
+
+class TestSimplifiedActor(unittest.TestCase):
+    """Test simplified Actor with properties dict."""
+
+    def test_actor_core_fields(self):
+        """Actor has id, name, description, location, inventory as core."""
+        from src.state_manager import Actor
+
+        actor = Actor(
             id="npc_1",
             name="Guard",
             description="A guard",
@@ -177,16 +218,16 @@ class TestSimplifiedNPC(unittest.TestCase):
             inventory=["item_5"]
         )
 
-        self.assertEqual(npc.id, "npc_1")
-        self.assertEqual(npc.name, "Guard")
-        self.assertEqual(npc.location, "loc_1")
-        self.assertEqual(npc.inventory, ["item_5"])
+        self.assertEqual(actor.id, "npc_1")
+        self.assertEqual(actor.name, "Guard")
+        self.assertEqual(actor.location, "loc_1")
+        self.assertEqual(actor.inventory, ["item_5"])
 
-    def test_npc_dialogue_as_property(self):
+    def test_actor_dialogue_as_property(self):
         """Dialogue and states stored in properties."""
-        from src.state_manager import NPC
+        from src.state_manager import Actor
 
-        npc = NPC(
+        actor = Actor(
             id="npc_1",
             name="Guard",
             description="A guard",
@@ -198,9 +239,9 @@ class TestSimplifiedNPC(unittest.TestCase):
             }
         )
 
-        self.assertEqual(len(npc.properties["dialogue"]), 2)
-        self.assertFalse(npc.properties["states"]["hostile"])
-        self.assertEqual(npc.inventory, ["item_5"])
+        self.assertEqual(len(actor.properties["dialogue"]), 2)
+        self.assertFalse(actor.properties["states"]["hostile"])
+        self.assertEqual(actor.inventory, ["item_5"])
 
 
 class TestSimplifiedLock(unittest.TestCase):
@@ -404,7 +445,6 @@ class TestGenericLoader(unittest.TestCase):
                             "type": "open",
                             "to": "loc_2",
                             "description": "A dark passage",
-                            "hidden": True,
                             "conditions": ["has_torch"]
                         }
                     }
@@ -433,13 +473,95 @@ class TestGenericLoader(unittest.TestCase):
 
             # Properties
             self.assertEqual(exit_desc.properties["description"], "A dark passage")
-            self.assertTrue(exit_desc.properties["hidden"])
             self.assertEqual(exit_desc.properties["conditions"], ["has_torch"])
         finally:
             os.unlink(temp_path)
 
+    def test_load_exit_behaviors(self):
+        """Exit descriptor behaviors loaded correctly."""
+        from src.state_manager import load_game_state
+
+        data = {
+            "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
+            "locations": [
+                {
+                    "id": "loc_1",
+                    "name": "Room",
+                    "description": "A room",
+                    "exits": {
+                        "north": {
+                            "type": "open",
+                            "to": "loc_2",
+                            "behaviors": ["core/observability", "game/magic_portal"]
+                        }
+                    }
+                },
+                {
+                    "id": "loc_2",
+                    "name": "Room 2",
+                    "description": "Another room",
+                    "exits": {}
+                }
+            ]
+        }
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            json.dump(data, f)
+            temp_path = f.name
+
+        try:
+            state = load_game_state(temp_path)
+            loc = state.locations[0]
+            exit_desc = loc.exits["north"]
+
+            self.assertEqual(exit_desc.behaviors, ["core/observability", "game/magic_portal"])
+        finally:
+            os.unlink(temp_path)
+
+    def test_load_exit_with_hidden_state(self):
+        """Exit descriptor with hidden in states loaded correctly."""
+        from src.state_manager import load_game_state
+
+        data = {
+            "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
+            "locations": [
+                {
+                    "id": "loc_1",
+                    "name": "Room",
+                    "description": "A room",
+                    "exits": {
+                        "north": {
+                            "type": "open",
+                            "to": "loc_2",
+                            "states": {"hidden": True}
+                        }
+                    }
+                },
+                {
+                    "id": "loc_2",
+                    "name": "Room 2",
+                    "description": "Another room",
+                    "exits": {}
+                }
+            ]
+        }
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            json.dump(data, f)
+            temp_path = f.name
+
+        try:
+            state = load_game_state(temp_path)
+            loc = state.locations[0]
+            exit_desc = loc.exits["north"]
+
+            # states.hidden should be accessible via the states property
+            self.assertTrue(exit_desc.states.get("hidden"))
+        finally:
+            os.unlink(temp_path)
+
     def test_load_npc_properties(self):
-        """NPC dialogue and states loaded into properties, inventory as core."""
+        """NPC (Actor) dialogue and states loaded into properties, inventory as core."""
         from src.state_manager import load_game_state
 
         data = {
@@ -466,7 +588,7 @@ class TestGenericLoader(unittest.TestCase):
 
         try:
             state = load_game_state(temp_path)
-            npc = state.npcs[0]
+            npc = state.get_actor("npc_1")
 
             # Core fields
             self.assertEqual(npc.id, "npc_1")
@@ -542,11 +664,12 @@ class TestGenericLoader(unittest.TestCase):
 
         try:
             state = load_game_state(temp_path)
+            player = state.actors.get("player")
 
-            self.assertEqual(state.player.location, "loc_1")
-            self.assertEqual(state.player.inventory, ["item_1"])
-            self.assertTrue(state.player.properties["flags"]["started"])
-            self.assertEqual(state.player.properties["stats"]["health"], 100)
+            self.assertEqual(player.location, "loc_1")
+            self.assertEqual(player.inventory, ["item_1"])
+            self.assertTrue(player.properties["flags"]["started"])
+            self.assertEqual(player.properties["stats"]["health"], 100)
         finally:
             os.unlink(temp_path)
 
@@ -665,6 +788,113 @@ class TestGenericSerializer(unittest.TestCase):
         item_dict = result["items"][0]
 
         self.assertEqual(item_dict["behaviors"]["on_take"], "core.items:on_take")
+
+    def test_serialize_exit_behaviors(self):
+        """Exit behaviors preserved in serialized output."""
+        from src.state_manager import (
+            game_state_to_dict, GameState, Metadata, Location, ExitDescriptor
+        )
+
+        state = GameState(
+            metadata=Metadata(title="Test", version="1.0", start_location="loc_1"),
+            locations=[
+                Location(
+                    id="loc_1",
+                    name="Room",
+                    description="A room",
+                    exits={
+                        "north": ExitDescriptor(
+                            type="open",
+                            to="loc_2",
+                            behaviors=["core/observability", "game/magic_portal"]
+                        )
+                    }
+                ),
+                Location(id="loc_2", name="Room 2", description="Another room", exits={})
+            ],
+            items=[]
+        )
+
+        result = game_state_to_dict(state)
+        exit_dict = result["locations"][0]["exits"]["north"]
+
+        self.assertEqual(exit_dict["behaviors"], ["core/observability", "game/magic_portal"])
+
+    def test_serialize_exit_with_states(self):
+        """Exit states preserved in serialized output."""
+        from src.state_manager import (
+            game_state_to_dict, GameState, Metadata, Location, ExitDescriptor
+        )
+
+        exit_desc = ExitDescriptor(type="open", to="loc_2")
+        exit_desc.states["hidden"] = True
+
+        state = GameState(
+            metadata=Metadata(title="Test", version="1.0", start_location="loc_1"),
+            locations=[
+                Location(
+                    id="loc_1",
+                    name="Room",
+                    description="A room",
+                    exits={"north": exit_desc}
+                ),
+                Location(id="loc_2", name="Room 2", description="Another room", exits={})
+            ],
+            items=[]
+        )
+
+        result = game_state_to_dict(state)
+        exit_dict = result["locations"][0]["exits"]["north"]
+
+        self.assertTrue(exit_dict["states"]["hidden"])
+
+    def test_exit_round_trip_preserves_behaviors_and_states(self):
+        """Exit behaviors and states preserved through load -> serialize -> reload."""
+        from src.state_manager import load_game_state, game_state_to_dict
+
+        original_data = {
+            "metadata": {"title": "Test", "version": "1.0", "start_location": "loc_1"},
+            "locations": [
+                {
+                    "id": "loc_1",
+                    "name": "Room",
+                    "description": "A room",
+                    "exits": {
+                        "north": {
+                            "type": "open",
+                            "to": "loc_2",
+                            "behaviors": ["core/observability"],
+                            "states": {"hidden": True}
+                        }
+                    }
+                },
+                {
+                    "id": "loc_2",
+                    "name": "Room 2",
+                    "description": "Another room",
+                    "exits": {}
+                }
+            ]
+        }
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            json.dump(original_data, f)
+            temp_path = f.name
+
+        try:
+            # Load
+            state = load_game_state(temp_path)
+            exit_desc = state.locations[0].exits["north"]
+            self.assertEqual(exit_desc.behaviors, ["core/observability"])
+            self.assertTrue(exit_desc.states.get("hidden"))
+
+            # Serialize
+            result = game_state_to_dict(state)
+            exit_dict = result["locations"][0]["exits"]["north"]
+            self.assertEqual(exit_dict["behaviors"], ["core/observability"])
+            self.assertTrue(exit_dict["states"]["hidden"])
+        finally:
+            os.unlink(temp_path)
 
     def test_round_trip_preserves_all_data(self):
         """Load -> serialize -> reload preserves all data."""
@@ -804,8 +1034,8 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
         lock = state.get_lock("lock_1")
         self.assertEqual(lock.properties["opens_with"], ["key_1"])
 
-    def test_get_npc(self):
-        """get_npc finds NPC by id."""
+    def test_get_actor(self):
+        """get_actor finds actor by id."""
         from src.state_manager import GameState, Metadata, Actor
 
         state = GameState(
@@ -815,7 +1045,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
             }
         )
 
-        npc = state.get_npc("npc_1")
+        npc = state.get_actor("npc_1")
         self.assertEqual(npc.name, "Guard")
 
     def test_move_item_to_player(self):
@@ -841,8 +1071,9 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
         state.move_item("item_1", to_player=True)
 
         item = state.get_item("item_1")
+        player = state.actors.get("player")
         self.assertEqual(item.location, "player")
-        self.assertIn("item_1", state.player.inventory)
+        self.assertIn("item_1", player.inventory)
         self.assertNotIn("item_1", state.locations[0].items)
 
     def test_move_item_to_location(self):
@@ -892,7 +1123,8 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
         )
 
         state.set_player_location("loc_2")
-        self.assertEqual(state.player.location, "loc_2")
+        player = state.actors.get("player")
+        self.assertEqual(player.location, "loc_2")
 
     def test_set_flag_and_get_flag(self):
         """set_flag and get_flag work with properties."""
@@ -964,7 +1196,9 @@ class TestBackwardCompatibility(unittest.TestCase):
         self.assertEqual(len(state.locations), 3)
         # Items includes door item
         self.assertEqual(len(state.items), 6)
-        self.assertEqual(len(state.npcs), 1)
+        # NPCs are actors (excluding player)
+        npcs = [a for aid, a in state.actors.items() if aid != "player"]
+        self.assertEqual(len(npcs), 1)
         # Door items
         door_items = [i for i in state.items if i.is_door]
         self.assertEqual(len(door_items), 1)

@@ -84,7 +84,9 @@ def on_open_treasure_chest(entity: Any, state: Any, context: Dict) -> EventResul
     Returns:
         EventResult with allow and message
     """
-    state.player.flags["won"] = True
+    player = state.actors.get("player")
+    if player:
+        player.flags["won"] = True
 
     return EventResult(
         allow=True,

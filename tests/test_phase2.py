@@ -99,7 +99,7 @@ class TestSetPathListOperations(unittest.TestCase):
         state = create_test_state()
         accessor = StateAccessor(state, None)
 
-        actor = state.player
+        actor = state.actors.get("player")
         initial_count = len(actor.inventory)
         error = accessor._set_path(actor, "+inventory", "new_item")
 
@@ -112,7 +112,7 @@ class TestSetPathListOperations(unittest.TestCase):
         state = create_test_state()
         accessor = StateAccessor(state, None)
 
-        actor = state.player
+        actor = state.actors.get("player")
         actor.inventory.append("item_to_remove")
 
         error = accessor._set_path(actor, "-inventory", "item_to_remove")
@@ -188,7 +188,7 @@ class TestSetPathErrors(unittest.TestCase):
         state = create_test_state()
         accessor = StateAccessor(state, None)
 
-        actor = state.player
+        actor = state.actors.get("player")
         error = accessor._set_path(actor, "-inventory", "not_in_list")
 
         self.assertIsNotNone(error)

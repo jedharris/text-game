@@ -21,7 +21,6 @@
       "items": [
         "item_sword"
       ],
-      "npcs": [],
       "tags": [],
       "llm_context": {
         "traits": [
@@ -63,7 +62,6 @@
         "item_key",
         "item_table"
       ],
-      "npcs": [],
       "tags": [],
       "llm_context": {
         "traits": [
@@ -95,7 +93,6 @@
       "items": [
         "item_pedestal"
       ],
-      "npcs": [],
       "tags": [],
       "llm_context": {
         "traits": [
@@ -128,7 +125,6 @@
       "items": [
         "item_chest"
       ],
-      "npcs": [],
       "tags": [],
       "llm_context": {
         "traits": [
@@ -245,6 +241,33 @@
       }
     },
     {
+      "id": "item_hidden_gem",
+      "name": "gem",
+      "description": "A magnificent ruby that pulses with inner fire.",
+      "location": "loc_locked_room",
+      "properties": {
+        "type": "object",
+        "portable": true,
+        "states": {
+          "hidden": true
+        }
+      },
+      "llm_context": {
+        "traits": [
+          "deep crimson",
+          "flawless clarity",
+          "warm to touch",
+          "ancient and powerful",
+          "seems to pulse with life"
+        ],
+        "state_variants": {
+          "hidden": "concealed beneath the chest, waiting to be discovered",
+          "revealed": "glints brilliantly in the light",
+          "in_inventory": "radiates warmth through your pack"
+        }
+      }
+    },
+    {
       "id": "item_lantern",
       "name": "lantern",
       "description": "A small lantern, slightly dusty",
@@ -271,7 +294,9 @@
           "examined": "crudely made but functional"
         }
       },
-      "behaviors": ["behaviors.core.light_sources"]
+      "behaviors": [
+        "behaviors.core.light_sources"
+      ]
     },
     {
       "id": "item_pedestal",

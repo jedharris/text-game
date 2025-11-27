@@ -182,20 +182,24 @@ def on_drink_health_potion(entity: Any, state: Any, context: Dict) -> EventResul
     Returns:
         EventResult with allow and message
     """
+    player = state.actors.get("player")
+    if not player:
+        return EventResult(allow=False, message="No player found.")
+
     # Remove from inventory
-    if entity.id in state.player.inventory:
-        state.player.inventory.remove(entity.id)
+    if entity.id in player.inventory:
+        player.inventory.remove(entity.id)
 
     # Mark as consumed (empty location)
     entity.location = ""
 
     # Heal player
-    current_health = state.player.stats.get("health", 100)
-    max_health = state.player.stats.get("max_health", 100)
+    current_health = player.stats.get("health", 100)
+    max_health = player.stats.get("max_health", 100)
     heal_amount = 20
 
     new_health = min(current_health + heal_amount, max_health)
-    state.player.stats["health"] = new_health
+    player.stats["health"] = new_health
 
     return EventResult(
         allow=True,
@@ -217,9 +221,13 @@ def on_eat_food(entity: Any, state: Any, context: Dict) -> EventResult:
     Returns:
         EventResult with allow and message
     """
+    player = state.actors.get("player")
+    if not player:
+        return EventResult(allow=False, message="No player found.")
+
     # Remove from inventory
-    if entity.id in state.player.inventory:
-        state.player.inventory.remove(entity.id)
+    if entity.id in player.inventory:
+        player.inventory.remove(entity.id)
 
     # Mark as consumed
     entity.location = ""

@@ -49,7 +49,6 @@ def create_test_state() -> GameState:
         description="A room for testing",
         exits={},
         items=["item_sword", "item_table", "item_lantern", "item_anvil", "item_feather"],
-        npcs=[],
         properties={},
         behaviors=[]
     )

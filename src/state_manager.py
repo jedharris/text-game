@@ -67,6 +67,19 @@ class ExitDescriptor:
     to: Optional[str] = None
     door_id: Optional[str] = None
     properties: Dict[str, Any] = field(default_factory=dict)
+    behaviors: List[str] = field(default_factory=list)
+
+    @property
+    def states(self) -> Dict[str, Any]:
+        """Access states dict within properties."""
+        if "states" not in self.properties:
+            self.properties["states"] = {}
+        return self.properties["states"]
+
+    @states.setter
+    def states(self, value: Dict[str, Any]) -> None:
+        """Set states dict within properties."""
+        self.properties["states"] = value
 
 
 @dataclass
@@ -77,7 +90,6 @@ class Location:
     description: str
     exits: Dict[str, ExitDescriptor] = field(default_factory=dict)
     items: List[str] = field(default_factory=list)
-    npcs: List[str] = field(default_factory=list)
     properties: Dict[str, Any] = field(default_factory=dict)
     behaviors: List[str] = field(default_factory=list)
 
@@ -266,10 +278,17 @@ class Actor:
         """Set flags dict within properties."""
         self.properties["flags"] = value
 
+    @property
+    def states(self) -> Dict[str, Any]:
+        """Access states dict within properties."""
+        if "states" not in self.properties:
+            self.properties["states"] = {}
+        return self.properties["states"]
 
-# Backward compatibility aliases
-NPC = Actor
-PlayerState = Actor
+    @states.setter
+    def states(self, value: Dict[str, Any]) -> None:
+        """Set states dict within properties."""
+        self.properties["states"] = value
 
 
 @dataclass
@@ -282,35 +301,12 @@ class GameState:
     actors: Dict[str, Actor] = field(default_factory=dict)
     extra: Dict[str, Any] = field(default_factory=dict)
 
-    # Backward compatibility properties
-    @property
-    def player(self) -> Optional[Actor]:
-        """Access player actor for backward compatibility."""
-        return self.actors.get("player")
-
-    @player.setter
-    def player(self, value: Optional[Actor]) -> None:
-        """Set player actor for backward compatibility."""
-        if value is not None:
-            self.actors["player"] = value
-        elif "player" in self.actors:
-            del self.actors["player"]
-
-    @property
-    def npcs(self) -> List[Actor]:
-        """Access NPCs for backward compatibility."""
-        return [actor for actor_id, actor in self.actors.items() if actor_id != "player"]
-
-    @npcs.setter
-    def npcs(self, value: List[Actor]) -> None:
-        """Set NPCs for backward compatibility."""
-        # Remove old NPCs
-        npc_ids = [actor_id for actor_id in self.actors.keys() if actor_id != "player"]
-        for npc_id in npc_ids:
-            del self.actors[npc_id]
-        # Add new NPCs
-        for npc in value:
-            self.actors[npc.id] = npc
+    def get_actor(self, actor_id: str) -> Actor:
+        """Get actor by ID."""
+        actor = self.actors.get(actor_id)
+        if actor:
+            return actor
+        raise KeyError(f"Actor not found: {actor_id}")
 
     def get_item(self, item_id: str) -> Item:
         """Get item by ID."""
@@ -333,23 +329,17 @@ class GameState:
                 return lock
         raise KeyError(f"Lock not found: {lock_id}")
 
-    def get_npc(self, npc_id: str) -> Actor:
-        """Get NPC by ID (backward compatibility - use actors dict instead)."""
-        actor = self.actors.get(npc_id)
-        if actor and actor.id != "player":
-            return actor
-        raise KeyError(f"NPC not found: {npc_id}")
-
     def move_item(self, item_id: str, to_player: bool = False,
                   to_location: Optional[str] = None, to_container: Optional[str] = None) -> None:
         """Move item to new location."""
         item = self.get_item(item_id)
         old_location = item.location
+        player = self.actors.get("player")
 
         # Remove from old location
-        if old_location == "player" and self.player:
-            if item_id in self.player.inventory:
-                self.player.inventory.remove(item_id)
+        if old_location == "player" and player:
+            if item_id in player.inventory:
+                player.inventory.remove(item_id)
         else:
             # Check if it's in a location
             for loc in self.locations:
@@ -360,8 +350,8 @@ class GameState:
         # Add to new location
         if to_player:
             item.location = "player"
-            if self.player and item_id not in self.player.inventory:
-                self.player.inventory.append(item_id)
+            if player and item_id not in player.inventory:
+                player.inventory.append(item_id)
         elif to_location:
             item.location = to_location
             loc = self.get_location(to_location)
@@ -372,20 +362,23 @@ class GameState:
 
     def set_player_location(self, location_id: str) -> None:
         """Set player's current location."""
-        if self.player:
-            self.player.location = location_id
+        player = self.actors.get("player")
+        if player:
+            player.location = location_id
 
     def set_flag(self, flag_name: str, value: Any) -> None:
         """Set a player flag."""
-        if self.player:
-            if "flags" not in self.player.properties:
-                self.player.properties["flags"] = {}
-            self.player.properties["flags"][flag_name] = value
+        player = self.actors.get("player")
+        if player:
+            if "flags" not in player.properties:
+                player.properties["flags"] = {}
+            player.properties["flags"][flag_name] = value
 
     def get_flag(self, flag_name: str, default: Any = None) -> Any:
         """Get a player flag."""
-        if self.player:
-            flags = self.player.properties.get("flags", {})
+        player = self.actors.get("player")
+        if player:
+            flags = player.properties.get("flags", {})
             return flags.get(flag_name, default)
         return default
 
@@ -402,8 +395,9 @@ class GameState:
                 registry[item.id] = "item"
         for lock in self.locks:
             registry[lock.id] = "lock"
-        for npc in self.npcs:
-            registry[npc.id] = "npc"
+        for actor_id, actor in self.actors.items():
+            if actor_id != "player":
+                registry[actor_id] = "npc"
 
         return registry
 
@@ -411,18 +405,21 @@ class GameState:
 # Parsers
 def _parse_exit(direction: str, raw: Dict[str, Any]) -> ExitDescriptor:
     """Parse exit descriptor from JSON dict."""
-    core_fields = {'type', 'to', 'door_id'}
+    core_fields = {'type', 'to', 'door_id', 'behaviors'}
 
     return ExitDescriptor(
         type=raw.get('type', 'open'),
         to=raw.get('to'),
         door_id=raw.get('door_id'),
-        properties={k: v for k, v in raw.items() if k not in core_fields}
+        properties={k: v for k, v in raw.items() if k not in core_fields},
+        behaviors=raw.get('behaviors', [])
     )
 
 
 def _parse_location(raw: Dict[str, Any]) -> Location:
     """Parse location from JSON dict."""
+    # Note: 'npcs' is included in core_fields to filter it from properties
+    # but it's no longer stored on Location (actors track their own location)
     core_fields = {'id', 'name', 'description', 'exits', 'items', 'npcs', 'behaviors'}
 
     # Parse exits
@@ -439,7 +436,6 @@ def _parse_location(raw: Dict[str, Any]) -> Location:
         description=raw.get('description', ''),
         exits=exits,
         items=raw.get('items', []),
-        npcs=raw.get('npcs', []),
         properties=_parse_properties(raw, core_fields),
         behaviors=behaviors
     )
@@ -514,17 +510,6 @@ def _parse_actor(raw: Dict[str, Any], actor_id: str = None) -> Actor:
     )
 
 
-# Backward compatibility aliases
-def _parse_npc(raw: Dict[str, Any]) -> Actor:
-    """Parse NPC from JSON dict (backward compatibility)."""
-    return _parse_actor(raw)
-
-
-def _parse_player_state(raw: Dict[str, Any]) -> Actor:
-    """Parse player state from JSON dict (backward compatibility)."""
-    return _parse_actor(raw, actor_id='player')
-
-
 def _parse_metadata(raw: Dict[str, Any]) -> Metadata:
     """Parse metadata from JSON dict."""
     return Metadata(
@@ -572,9 +557,9 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
         # Old format: separate player and npcs fields
         # Parse player state (support both 'player_state' and 'player' keys)
         if 'player_state' in data:
-            actors['player'] = _parse_player_state(data['player_state'])
+            actors['player'] = _parse_actor(data['player_state'], actor_id='player')
         elif 'player' in data:
-            actors['player'] = _parse_player_state(data['player'])
+            actors['player'] = _parse_actor(data['player'], actor_id='player')
         elif metadata.start_location:
             # Create default player state from metadata.start_location
             actors['player'] = Actor(
@@ -589,7 +574,7 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
 
         # Parse NPCs
         for npc_data in data.get('npcs', []):
-            npc = _parse_npc(npc_data)
+            npc = _parse_actor(npc_data)
             actors[npc.id] = npc
 
     state = GameState(
@@ -616,8 +601,10 @@ def _serialize_exit(exit_desc: ExitDescriptor) -> Dict[str, Any]:
         result['to'] = exit_desc.to
     if exit_desc.door_id:
         result['door_id'] = exit_desc.door_id
+    if exit_desc.behaviors:
+        result['behaviors'] = exit_desc.behaviors
 
-    # Merge properties
+    # Merge properties (includes states if set)
     result.update(exit_desc.properties)
 
     return result
@@ -630,8 +617,7 @@ def _serialize_location(loc: Location) -> Dict[str, Any]:
         'name': loc.name,
         'description': loc.description,
         'exits': {d: _serialize_exit(e) for d, e in loc.exits.items()},
-        'items': loc.items,
-        'npcs': loc.npcs
+        'items': loc.items
     }
 
     # Merge properties
@@ -689,25 +675,6 @@ def _serialize_actor(actor: Actor) -> Dict[str, Any]:
     # Add behaviors if present
     if actor.behaviors:
         result['behaviors'] = actor.behaviors
-
-    return result
-
-
-# Backward compatibility aliases
-def _serialize_npc(npc: Actor) -> Dict[str, Any]:
-    """Serialize NPC to dict (backward compatibility)."""
-    return _serialize_actor(npc)
-
-
-def _serialize_player_state(player: Actor) -> Dict[str, Any]:
-    """Serialize player state to dict (backward compatibility)."""
-    result = {
-        'location': player.location,
-        'inventory': player.inventory
-    }
-
-    # Merge properties
-    result.update(player.properties)
 
     return result
 

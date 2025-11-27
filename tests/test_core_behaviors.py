@@ -51,7 +51,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
 
     def test_drink_potion_heals(self):
         """Test that drinking health potion increases health."""
-        initial_health = self.state.player.stats.get("health", 100)
+        initial_health = self.state.actors["player"].stats.get("health", 100)
 
         # Take and drink the potion
         self.handler.handle_command({
@@ -64,7 +64,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
         })
 
         # Health should have increased
-        new_health = self.state.player.stats.get("health", 100)
+        new_health = self.state.actors["player"].stats.get("health", 100)
         self.assertGreater(new_health, initial_health)
 
     def test_drink_potion_removes_from_inventory(self):
@@ -76,7 +76,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
         })
 
         # Verify it's in inventory
-        self.assertIn("health_potion", self.state.player.inventory)
+        self.assertIn("health_potion", self.state.actors["player"].inventory)
 
         # Drink the potion
         self.handler.handle_command({
@@ -85,7 +85,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
         })
 
         # Should be removed from inventory
-        self.assertNotIn("health_potion", self.state.player.inventory)
+        self.assertNotIn("health_potion", self.state.actors["player"].inventory)
 
     def test_drink_potion_has_message(self):
         """Test that drinking potion returns a behavior message."""
@@ -154,7 +154,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
         })
 
         # Verify it's in inventory
-        self.assertIn("bread", self.state.player.inventory)
+        self.assertIn("bread", self.state.actors["player"].inventory)
 
         # Eat the bread
         self.handler.handle_command({
@@ -163,7 +163,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
         })
 
         # Should be removed from inventory
-        self.assertNotIn("bread", self.state.player.inventory)
+        self.assertNotIn("bread", self.state.actors["player"].inventory)
 
     def test_eat_food_has_message(self):
         """Test that eating food returns a behavior message."""
@@ -380,7 +380,7 @@ class TestContainersBehaviors(unittest.TestCase):
         self.state = load_game_state(fixture_path)
 
         # Move player to room2 where chest is
-        self.state.player.location = "room2"
+        self.state.actors["player"].location = "room2"
 
         # Create behavior manager and load core modules
         self.manager = BehaviorManager()
@@ -409,7 +409,7 @@ class TestContainersBehaviors(unittest.TestCase):
         })
 
         # Win flag should be set
-        self.assertTrue(self.state.player.flags.get("won", False))
+        self.assertTrue(self.state.actors["player"].flags.get("won", False))
 
     def test_open_chest_has_message(self):
         """Test that opening chest returns a behavior message."""
@@ -491,10 +491,12 @@ class TestBehaviorFunctionSignatures(unittest.TestCase):
         entity.id = "health_potion"
         entity.states = {}
 
+        player_mock = Mock()
+        player_mock.inventory = ["health_potion"]
+        player_mock.stats = {"health": 50, "max_health": 100}
+
         state = Mock()
-        state.player = Mock()
-        state.player.inventory = ["health_potion"]
-        state.player.stats = {"health": 50, "max_health": 100}
+        state.actors = {"player": player_mock}
 
         context = {"location": "room1", "verb": "drink"}
 
@@ -512,10 +514,12 @@ class TestBehaviorFunctionSignatures(unittest.TestCase):
         entity.id = "bread"
         entity.states = {}
 
+        player_mock = Mock()
+        player_mock.inventory = ["bread"]
+        player_mock.stats = {}
+
         state = Mock()
-        state.player = Mock()
-        state.player.inventory = ["bread"]
-        state.player.stats = {}
+        state.actors = {"player": player_mock}
 
         context = {"location": "room1", "verb": "eat"}
 
@@ -564,9 +568,11 @@ class TestBehaviorFunctionSignatures(unittest.TestCase):
         entity = Mock()
         entity.states = {}
 
+        player_mock = Mock()
+        player_mock.flags = {}
+
         state = Mock()
-        state.player = Mock()
-        state.player.flags = {}
+        state.actors = {"player": player_mock}
 
         context = {"location": "room2", "verb": "open"}
 

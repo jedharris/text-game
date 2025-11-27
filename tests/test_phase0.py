@@ -43,9 +43,10 @@ class TestPhase0Infrastructure(unittest.TestCase):
         state = create_test_state()
 
         # Verify player exists
-        self.assertIsNotNone(state.player)
-        self.assertEqual(state.player.location, "location_room")
-        self.assertIsInstance(state.player.inventory, list)
+        player = state.actors.get("player")
+        self.assertIsNotNone(player)
+        self.assertEqual(player.location, "location_room")
+        self.assertIsInstance(player.inventory, list)
 
         # Verify location exists
         self.assertEqual(len(state.locations), 1)

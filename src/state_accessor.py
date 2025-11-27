@@ -163,6 +163,36 @@ class StateAccessor:
             return None
         return self.get_door_item(exit_desc.door_id)
 
+    def get_visible_exits(self, location_id: str, actor_id: str) -> dict:
+        """
+        Get all visible exits for a location.
+
+        Filters out hidden exits using is_observable() check.
+
+        Args:
+            location_id: The location ID
+            actor_id: The actor observing (for behavior context)
+
+        Returns:
+            Dict of direction -> ExitDescriptor for visible exits only
+        """
+        from utilities.utils import is_observable
+
+        location = self.get_location(location_id)
+        if not location:
+            return {}
+
+        visible_exits = {}
+        for direction, exit_desc in location.exits.items():
+            visible, _ = is_observable(
+                exit_desc, self, self.behavior_manager,
+                actor_id=actor_id, method="look"
+            )
+            if visible:
+                visible_exits[direction] = exit_desc
+
+        return visible_exits
+
     # Collection methods
 
     def get_current_location(self, actor_id: str):

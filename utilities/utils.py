@@ -7,7 +7,90 @@ Functions in this module should be generic and reusable across different behavio
 IMPORTANT: All utility functions that operate on entities should accept an actor_id
 parameter and use it correctly. Never hardcode "player" - use the actor_id variable.
 """
-from typing import Optional, List
+from typing import Optional, List, Tuple, Dict, Any
+
+from src.state_accessor import EventResult
+
+
+def is_observable(
+    entity,
+    accessor,
+    behavior_manager,
+    actor_id: str,
+    method: str
+) -> Tuple[bool, Optional[str]]:
+    """
+    Check if an entity is observable.
+
+    Checks the entity's hidden state and invokes any on_observe behaviors.
+    The core hidden check happens first, but custom behaviors can override it
+    (e.g., to reveal a hidden item when searched).
+
+    For entities without on_observe behaviors:
+    - Returns (False, None) if states.hidden is True
+    - Returns (True, None) otherwise
+
+    For entities with on_observe behaviors:
+    - Behaviors are invoked with context {"actor_id": actor_id, "method": method}
+    - Behaviors can modify the entity's hidden state
+    - The behavior's EventResult determines visibility
+
+    Args:
+        entity: Entity to check (Item, Actor, ExitDescriptor, etc.)
+        accessor: StateAccessor instance
+        behavior_manager: BehaviorManager instance
+        actor_id: Who is observing
+        method: The verb/method of observation (e.g., "look", "examine", "search")
+
+    Returns:
+        Tuple of (is_visible, message)
+    """
+    # Get the entity's states dict
+    states = _get_entity_states(entity)
+
+    # If entity has on_observe behaviors, invoke them
+    # Behaviors can override the hidden check (e.g., reveal on search)
+    if hasattr(entity, 'behaviors') and entity.behaviors:
+        context = {"actor_id": actor_id, "method": method}
+        result = behavior_manager.invoke_behavior(entity, "on_observe", accessor, context)
+
+        if result is not None:
+            return (result.allow, result.message)
+
+    # No behavior or behavior didn't handle on_observe
+    # Use core hidden state check
+    if states.get("hidden", False):
+        return (False, None)
+
+    return (True, None)
+
+
+def _get_entity_states(entity) -> Dict[str, Any]:
+    """
+    Get the states dict from an entity.
+
+    Handles different entity types:
+    - Entities with a 'states' property (Item, ExitDescriptor) return entity.states
+    - Entities with properties dict return properties.get("states", {})
+
+    Args:
+        entity: Entity to get states from
+
+    Returns:
+        Dict of states, empty dict if none found
+    """
+    # Try the states property first (Item, ExitDescriptor have this)
+    if hasattr(entity, 'states'):
+        try:
+            return entity.states
+        except Exception:
+            pass
+
+    # Fall back to properties.states
+    if hasattr(entity, 'properties') and isinstance(entity.properties, dict):
+        return entity.properties.get("states", {})
+
+    return {}
 
 
 def find_accessible_item(accessor, name: str, actor_id: str, adjective: Optional[str] = None):
@@ -56,22 +139,26 @@ def find_accessible_item(accessor, name: str, actor_id: str, adjective: Optional
     # Check all visible items in location (uses _is_item_visible_in_location)
     # This includes door items visible through exits and excludes hidden items
     for item in accessor.game_state.items:
-        if _is_item_visible_in_location(item, location.id, accessor):
+        if _is_item_visible_in_location(item, location.id, accessor, actor_id):
             if item.name.lower() == name_lower:
                 matching_items.append(item)
 
-    # Check inventory (inventory items don't need visibility check)
+    # Check inventory (inventory items use observability check)
     for item_id in actor.inventory:
         item = accessor.get_item(item_id)
         if item and item.name.lower() == name_lower:
-            # Check not hidden even in inventory
-            if not item.properties.get("hidden", False):
+            # Check observability even in inventory
+            visible, _ = is_observable(
+                item, accessor, accessor.behavior_manager,
+                actor_id=actor_id, method="look"
+            )
+            if visible:
                 matching_items.append(item)
 
     # Check containers in location
     # Get visible items that are containers
     visible_items = [item for item in accessor.game_state.items
-                     if _is_item_visible_in_location(item, location.id, accessor)]
+                     if _is_item_visible_in_location(item, location.id, accessor, actor_id)]
     for container in visible_items:
         container_info = container.properties.get("container", {})
         if not container_info:
@@ -83,10 +170,14 @@ def find_accessible_item(accessor, name: str, actor_id: str, adjective: Optional
         # Surface containers are always accessible
         # Enclosed containers must be open
         if is_surface or is_open:
-            # Get items inside this container (not hidden)
+            # Get items inside this container (check observability)
             for item in accessor.game_state.items:
                 if item.location == container.id and item.name.lower() == name_lower:
-                    if not item.properties.get("hidden", False):
+                    visible, _ = is_observable(
+                        item, accessor, accessor.behavior_manager,
+                        actor_id=actor_id, method="look"
+                    )
+                    if visible:
                         matching_items.append(item)
 
     # If no matches, return None
@@ -228,6 +319,7 @@ def get_visible_actors_in_location(accessor, location_id: str, actor_id: str) ->
     Get all visible actors in a location, excluding the viewing actor.
 
     IMPORTANT: Excludes the actor specified by actor_id from the results.
+    Also excludes hidden actors (uses is_observable() check).
 
     Args:
         accessor: StateAccessor instance
@@ -235,12 +327,22 @@ def get_visible_actors_in_location(accessor, location_id: str, actor_id: str) ->
         actor_id: ID of the actor viewing (excluded from results)
 
     Returns:
-        List of visible Actor objects (excluding actor_id)
+        List of visible Actor objects (excluding actor_id and hidden actors)
     """
     all_actors = accessor.get_actors_in_location(location_id)
 
-    # Filter out the viewing actor
-    return [actor for actor in all_actors if actor.id != actor_id]
+    # Filter out the viewing actor and hidden actors
+    visible_actors = []
+    for actor in all_actors:
+        if actor.id == actor_id:
+            continue
+        visible, _ = is_observable(
+            actor, accessor, accessor.behavior_manager,
+            actor_id=actor_id, method="look"
+        )
+        if visible:
+            visible_actors.append(actor)
+    return visible_actors
 
 
 def get_doors_in_location(accessor, location_id: str, actor_id: str) -> List:
@@ -262,7 +364,7 @@ def get_doors_in_location(accessor, location_id: str, actor_id: str) -> List:
 
     # Get door items visible in this location
     for item in accessor.game_state.items:
-        if item.is_door and _is_item_visible_in_location(item, location_id, accessor):
+        if item.is_door and _is_item_visible_in_location(item, location_id, accessor, actor_id):
             doors_in_location.append(item)
 
     return doors_in_location
@@ -461,7 +563,7 @@ def find_door_with_adjective(
     for item in accessor.game_state.items:
         if not item.is_door:
             continue
-        if not _is_item_visible_in_location(item, location_id, accessor):
+        if not _is_item_visible_in_location(item, location_id, accessor, actor_id, verb or "look"):
             continue
         # Check if name matches - for door items, check name and description
         if name_lower in item.name.lower() or name_lower in item.description.lower():
@@ -536,12 +638,18 @@ def find_door_with_adjective(
     return matching_doors[0]
 
 
-def _is_item_visible_in_location(item, location_id: str, accessor) -> bool:
+def _is_item_visible_in_location(
+    item,
+    location_id: str,
+    accessor,
+    actor_id: str = "player",
+    method: str = "look"
+) -> bool:
     """
     Check if item should be visible in a location.
 
     An item is visible if:
-    1. It's not hidden (properties.hidden != True)
+    1. It passes the observability check (not hidden, or behavior allows)
     2. AND one of:
        a. Its location is that room directly
        b. For doors: any exit in that room references it via door_id
@@ -550,12 +658,18 @@ def _is_item_visible_in_location(item, location_id: str, accessor) -> bool:
         item: Item to check visibility for
         location_id: ID of location to check visibility in
         accessor: StateAccessor instance
+        actor_id: ID of the actor observing (default "player")
+        method: The observation method/verb (default "look")
 
     Returns:
         True if item should be visible, False otherwise
     """
-    # Hidden items are not visible
-    if item.properties.get("hidden", False):
+    # Check observability (hidden state and behaviors)
+    visible, _ = is_observable(
+        item, accessor, accessor.behavior_manager,
+        actor_id=actor_id, method=method
+    )
+    if not visible:
         return False
 
     # Direct location match
@@ -591,7 +705,7 @@ def gather_location_contents(accessor, location_id: str, actor_id: str) -> dict:
     - Located directly in this room (decorative doors)
     - Referenced by an exit in this room via door_id
 
-    Excludes hidden items (properties.hidden == True).
+    Excludes hidden items (uses is_observable() check).
 
     Args:
         accessor: StateAccessor instance
@@ -608,7 +722,7 @@ def gather_location_contents(accessor, location_id: str, actor_id: str) -> dict:
     # Collect all visible items in location
     items_here = []
     for item in accessor.game_state.items:
-        if _is_item_visible_in_location(item, location_id, accessor):
+        if _is_item_visible_in_location(item, location_id, accessor, actor_id):
             items_here.append(item)
 
     # Collect items on surfaces and in open containers
@@ -627,7 +741,13 @@ def gather_location_contents(accessor, location_id: str, actor_id: str) -> dict:
             items_in_container = []
             for item in accessor.game_state.items:
                 if item.location == container.id:
-                    items_in_container.append(item)
+                    # Check observability for items in containers
+                    visible, _ = is_observable(
+                        item, accessor, accessor.behavior_manager,
+                        actor_id=actor_id, method="look"
+                    )
+                    if visible:
+                        items_in_container.append(item)
 
             if items_in_container:
                 if is_surface:
@@ -635,11 +755,17 @@ def gather_location_contents(accessor, location_id: str, actor_id: str) -> dict:
                 else:
                     open_container_items[container.name] = items_in_container
 
-    # Collect other actors
+    # Collect other visible actors
     actors_here = []
     for other_actor_id, other_actor in accessor.game_state.actors.items():
         if other_actor.location == location_id and other_actor_id != actor_id:
-            actors_here.append(other_actor)
+            # Check observability for actors
+            visible, _ = is_observable(
+                other_actor, accessor, accessor.behavior_manager,
+                actor_id=actor_id, method="look"
+            )
+            if visible:
+                actors_here.append(other_actor)
 
     return {
         "items": items_here,

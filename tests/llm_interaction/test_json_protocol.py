@@ -133,7 +133,7 @@ class _JSONProtocolHandlerReference:
 
         # Move item to inventory
         item.location = "player"
-        self.state.player.inventory.append(item.id)
+        self.state.actors["player"].inventory.append(item.id)
         if item.id in current_loc.items:
             current_loc.items.remove(item.id)
 
@@ -158,7 +158,7 @@ class _JSONProtocolHandlerReference:
 
         # Find item in inventory
         item = None
-        for item_id in self.state.player.inventory:
+        for item_id in self.state.actors["player"].inventory:
             i = self._get_item_by_id(item_id)
             if i and i.name == obj_name:
                 item = i
@@ -175,7 +175,7 @@ class _JSONProtocolHandlerReference:
         # Move item to current location
         current_loc = self._get_current_location()
         item.location = current_loc.id
-        self.state.player.inventory.remove(item.id)
+        self.state.actors["player"].inventory.remove(item.id)
         current_loc.items.append(item.id)
 
         return {
@@ -276,7 +276,7 @@ class _JSONProtocolHandlerReference:
 
         # Move player
         new_loc_id = exit_desc.to
-        self.state.player.location = new_loc_id
+        self.state.actors["player"].location = new_loc_id
         new_loc = self._get_location_by_id(new_loc_id)
 
         return {
@@ -475,7 +475,7 @@ class _JSONProtocolHandlerReference:
     def _cmd_inventory(self, action: dict) -> dict:
         """Handle inventory command."""
         items = []
-        for item_id in self.state.player.inventory:
+        for item_id in self.state.actors["player"].inventory:
             item = self._get_item_by_id(item_id)
             if item:
                 items.append(self._entity_to_dict(item))
@@ -534,9 +534,9 @@ class _JSONProtocolHandlerReference:
 
         if "npcs" in include or not include:
             npcs = []
-            for npc in self.state.npcs:
-                if npc.location == loc.id:
-                    npcs.append(self._npc_to_dict(npc))
+            for actor_id, actor in self.state.actors.items():
+                if actor_id != "player" and actor.location == loc.id:
+                    npcs.append(self._npc_to_dict(actor))
             data["npcs"] = npcs
 
         return {
@@ -548,7 +548,7 @@ class _JSONProtocolHandlerReference:
     def _query_inventory(self, message: dict) -> dict:
         """Query player inventory."""
         items = []
-        for item_id in self.state.player.inventory:
+        for item_id in self.state.actors["player"].inventory:
             item = self._get_item_by_id(item_id)
             if item:
                 items.append(self._entity_to_dict(item))
@@ -655,7 +655,7 @@ class _JSONProtocolHandlerReference:
     def _get_current_location(self):
         """Get current location object."""
         for loc in self.state.locations:
-            if loc.id == self.state.player.location:
+            if loc.id == self.state.actors["player"].location:
                 return loc
         return None
 
@@ -682,10 +682,9 @@ class _JSONProtocolHandlerReference:
 
     def _get_npc_by_id(self, npc_id: str):
         """Get NPC by ID."""
-        for npc in self.state.npcs:
-            if npc.id == npc_id:
-                return npc
-        return None
+        if npc_id == "player":
+            return None
+        return self.state.actors.get(npc_id)
 
     def _get_lock_by_id(self, lock_id: str):
         """Get lock by ID."""
@@ -713,7 +712,7 @@ class _JSONProtocolHandlerReference:
                 return item
 
         # Check inventory
-        for item_id in self.state.player.inventory:
+        for item_id in self.state.actors["player"].inventory:
             item = self._get_item_by_id(item_id)
             if item and item.name == name:
                 return item
@@ -748,7 +747,7 @@ class _JSONProtocolHandlerReference:
         if not lock:
             return False
 
-        return any(key_id in self.state.player.inventory for key_id in lock.opens_with)
+        return any(key_id in self.state.actors["player"].inventory for key_id in lock.opens_with)
 
     def _entity_to_dict(self, item) -> dict:
         """Convert item to dict with llm_context."""
@@ -837,7 +836,7 @@ class TestCommandMessages(unittest.TestCase):
         self.assertIn("key", result["message"])
 
         # Verify state changed
-        self.assertIn("item_key", self.state.player.inventory)
+        self.assertIn("item_key", self.state.actors["player"].inventory)
 
     def test_take_item_not_found(self):
         """Test take command for non-existent item."""
@@ -856,7 +855,7 @@ class TestCommandMessages(unittest.TestCase):
     def test_take_non_portable_item(self):
         """Test take command for non-portable item."""
         # Move player to treasure room
-        self.state.player.location = "loc_treasure"
+        self.state.actors["player"].location = "loc_treasure"
 
         message = {
             "type": "command",
@@ -871,7 +870,7 @@ class TestCommandMessages(unittest.TestCase):
     def test_drop_item_success(self):
         """Test successful drop command."""
         # First take the item
-        self.state.player.inventory.append("item_key")
+        self.state.actors["player"].inventory.append("item_key")
         self.state.items[1].location = "player"  # item_key
 
         message = {
@@ -883,7 +882,7 @@ class TestCommandMessages(unittest.TestCase):
 
         self.assertTrue(result["success"])
         self.assertEqual(result["action"], "drop")
-        self.assertNotIn("item_key", self.state.player.inventory)
+        self.assertNotIn("item_key", self.state.actors["player"].inventory)
 
     def test_drop_item_not_in_inventory(self):
         """Test drop command for item not in inventory."""
@@ -910,7 +909,7 @@ class TestCommandMessages(unittest.TestCase):
 
         self.assertTrue(result["success"])
         self.assertEqual(result["action"], "go")
-        self.assertEqual(self.state.player.location, "loc_hallway")
+        self.assertEqual(self.state.actors["player"].location, "loc_hallway")
 
     def test_go_invalid_direction(self):
         """Test movement in invalid direction."""
@@ -927,7 +926,7 @@ class TestCommandMessages(unittest.TestCase):
     def test_go_through_closed_door(self):
         """Test movement through closed door."""
         # Move to hallway and try to go east through locked door
-        self.state.player.location = "loc_hallway"
+        self.state.actors["player"].location = "loc_hallway"
 
         message = {
             "type": "command",
@@ -961,9 +960,9 @@ class TestCommandMessages(unittest.TestCase):
     def test_open_locked_door_with_key(self):
         """Test opening locked door after unlocking it with key."""
         # Move to hallway
-        self.state.player.location = "loc_hallway"
+        self.state.actors["player"].location = "loc_hallway"
         # Give player the key
-        self.state.player.inventory.append("item_key")
+        self.state.actors["player"].inventory.append("item_key")
 
         # First unlock the door
         unlock_msg = {
@@ -989,7 +988,7 @@ class TestCommandMessages(unittest.TestCase):
     def test_open_locked_door_without_key(self):
         """Test opening locked door without key."""
         # Move to hallway
-        self.state.player.location = "loc_hallway"
+        self.state.actors["player"].location = "loc_hallway"
         # Close the wooden door so we can test the iron door (door is now an item)
         for item in self.state.items:
             if item.id == "door_wooden" and item.is_door:
@@ -1065,8 +1064,8 @@ class TestCommandMessages(unittest.TestCase):
     def test_unlock_door_with_key(self):
         """Test unlocking a door with key."""
         # Move to hallway and give key
-        self.state.player.location = "loc_hallway"
-        self.state.player.inventory.append("item_key")
+        self.state.actors["player"].location = "loc_hallway"
+        self.state.actors["player"].inventory.append("item_key")
 
         # Use "iron door" to specify the locked door
         message = {
@@ -1086,7 +1085,7 @@ class TestCommandMessages(unittest.TestCase):
 
     def test_unlock_door_without_key(self):
         """Test unlocking door without key."""
-        self.state.player.location = "loc_hallway"
+        self.state.actors["player"].location = "loc_hallway"
 
         # Use "iron door" to specify the locked door
         message = {
@@ -1114,7 +1113,7 @@ class TestCommandMessages(unittest.TestCase):
     def test_inventory_command(self):
         """Test inventory command."""
         # Add item to inventory
-        self.state.player.inventory.append("item_sword")
+        self.state.actors["player"].inventory.append("item_sword")
 
         message = {
             "type": "command",
@@ -1157,7 +1156,7 @@ class TestQueryMessages(unittest.TestCase):
     def test_query_inventory(self):
         """Test inventory query."""
         # Add items to inventory
-        self.state.player.inventory.append("item_sword")
+        self.state.actors["player"].inventory.append("item_sword")
 
         message = {
             "type": "query",
@@ -1189,7 +1188,7 @@ class TestQueryMessages(unittest.TestCase):
 
     def test_query_entities_doors(self):
         """Test entities query for doors in location."""
-        self.state.player.location = "loc_hallway"
+        self.state.actors["player"].location = "loc_hallway"
 
         message = {
             "type": "query",
@@ -1220,7 +1219,7 @@ class TestQueryMessages(unittest.TestCase):
         self.assertEqual(result["data"]["title"], "LLM Test Game")
 
     def test_query_vocabulary(self):
-        """Test vocabulary query."""
+        """Test vocabulary query returns verbs and directions."""
         message = {
             "type": "query",
             "query_type": "vocabulary"
@@ -1231,7 +1230,59 @@ class TestQueryMessages(unittest.TestCase):
         self.assertEqual(result["type"], "query_response")
         self.assertEqual(result["query_type"], "vocabulary")
         self.assertIn("verbs", result["data"])
-        self.assertIn("nouns", result["data"])
+        self.assertIn("directions", result["data"])
+
+    def test_query_vocabulary_includes_core_verbs(self):
+        """Test vocabulary query includes verbs from behavior modules."""
+        message = {
+            "type": "query",
+            "query_type": "vocabulary"
+        }
+
+        result = self.handler.handle_message(message)
+
+        verbs = result["data"]["verbs"]
+        # Should include core verbs from behavior modules
+        self.assertIn("take", verbs)
+        self.assertIn("drop", verbs)
+        self.assertIn("examine", verbs)
+        self.assertIn("go", verbs)
+        self.assertIn("open", verbs)
+        self.assertIn("close", verbs)
+        self.assertIn("look", verbs)
+
+    def test_query_vocabulary_verb_has_synonyms(self):
+        """Test vocabulary query includes synonyms for verbs."""
+        message = {
+            "type": "query",
+            "query_type": "vocabulary"
+        }
+
+        result = self.handler.handle_message(message)
+
+        verbs = result["data"]["verbs"]
+        # Take should have synonyms like "get", "grab", "pick"
+        self.assertIn("take", verbs)
+        self.assertIn("synonyms", verbs["take"])
+        self.assertIsInstance(verbs["take"]["synonyms"], list)
+
+    def test_query_vocabulary_directions(self):
+        """Test vocabulary query includes directions."""
+        message = {
+            "type": "query",
+            "query_type": "vocabulary"
+        }
+
+        result = self.handler.handle_message(message)
+
+        directions = result["data"]["directions"]
+        # Should include standard directions
+        self.assertIn("north", directions)
+        self.assertIn("south", directions)
+        self.assertIn("east", directions)
+        self.assertIn("west", directions)
+        self.assertIn("up", directions)
+        self.assertIn("down", directions)
 
     def test_query_nonexistent_entity(self):
         """Test query for non-existent entity."""
@@ -1246,6 +1297,147 @@ class TestQueryMessages(unittest.TestCase):
 
         self.assertEqual(result["type"], "error")
         self.assertIn("not found", result["message"].lower())
+
+
+class TestVocabularyQueryProtocol(unittest.TestCase):
+    """Test vocabulary query protocol in detail."""
+
+    def setUp(self):
+        """Load test game state."""
+        fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
+        self.state = load_game_state(str(fixtures_path))
+        self.handler = JSONProtocolHandler(self.state)
+
+    def test_vocabulary_query_response_structure(self):
+        """Test vocabulary query returns correct response structure."""
+        message = {"type": "query", "query_type": "vocabulary"}
+        result = self.handler.handle_message(message)
+
+        # Check top-level structure
+        self.assertEqual(result["type"], "query_response")
+        self.assertEqual(result["query_type"], "vocabulary")
+        self.assertIn("data", result)
+
+        # Check data structure
+        data = result["data"]
+        self.assertIn("verbs", data)
+        self.assertIn("directions", data)
+        self.assertIsInstance(data["verbs"], dict)
+        self.assertIsInstance(data["directions"], dict)
+
+    def test_vocabulary_verb_entry_structure(self):
+        """Test each verb entry has correct structure."""
+        message = {"type": "query", "query_type": "vocabulary"}
+        result = self.handler.handle_message(message)
+
+        verbs = result["data"]["verbs"]
+        # Check at least one verb has the expected structure
+        self.assertIn("take", verbs)
+        take_entry = verbs["take"]
+
+        self.assertIn("synonyms", take_entry)
+        self.assertIn("object_required", take_entry)
+        self.assertIsInstance(take_entry["synonyms"], list)
+        self.assertIsInstance(take_entry["object_required"], bool)
+
+    def test_vocabulary_direction_entry_structure(self):
+        """Test each direction entry has correct structure."""
+        message = {"type": "query", "query_type": "vocabulary"}
+        result = self.handler.handle_message(message)
+
+        directions = result["data"]["directions"]
+        # Check at least one direction has the expected structure
+        self.assertIn("north", directions)
+        north_entry = directions["north"]
+
+        self.assertIn("synonyms", north_entry)
+        self.assertIsInstance(north_entry["synonyms"], list)
+
+    def test_vocabulary_includes_behavior_module_verbs(self):
+        """Test vocabulary merges verbs from behavior modules."""
+        message = {"type": "query", "query_type": "vocabulary"}
+        result = self.handler.handle_message(message)
+
+        verbs = result["data"]["verbs"]
+        # These come from behavior modules (behaviors/core/)
+        behavior_verbs = ["take", "drop", "examine", "look", "go", "open", "close", "lock", "unlock", "put"]
+        for verb in behavior_verbs:
+            self.assertIn(verb, verbs, f"Missing behavior verb: {verb}")
+
+    def test_vocabulary_verb_synonyms_populated(self):
+        """Test verbs have their synonyms populated."""
+        message = {"type": "query", "query_type": "vocabulary"}
+        result = self.handler.handle_message(message)
+
+        verbs = result["data"]["verbs"]
+
+        # 'take' should have synonyms like 'get', 'grab', 'pick'
+        take_synonyms = verbs["take"]["synonyms"]
+        self.assertTrue(len(take_synonyms) > 0, "take should have synonyms")
+        self.assertIn("get", take_synonyms)
+
+        # 'examine' should have synonyms like 'look at', 'inspect', 'x'
+        examine_synonyms = verbs["examine"]["synonyms"]
+        self.assertTrue(len(examine_synonyms) > 0, "examine should have synonyms")
+
+    def test_vocabulary_direction_synonyms_populated(self):
+        """Test directions have their synonyms populated."""
+        message = {"type": "query", "query_type": "vocabulary"}
+        result = self.handler.handle_message(message)
+
+        directions = result["data"]["directions"]
+
+        # 'north' should have synonym 'n'
+        north_synonyms = directions["north"]["synonyms"]
+        self.assertIn("n", north_synonyms)
+
+        # 'south' should have synonym 's'
+        south_synonyms = directions["south"]["synonyms"]
+        self.assertIn("s", south_synonyms)
+
+    def test_vocabulary_object_required_varies(self):
+        """Test object_required varies appropriately between verbs.
+
+        object_required can be:
+        - True: object is required
+        - False: object is not used
+        - "optional": object is optional
+        """
+        message = {"type": "query", "query_type": "vocabulary"}
+        result = self.handler.handle_message(message)
+
+        verbs = result["data"]["verbs"]
+
+        # 'take' requires an object
+        self.assertEqual(verbs["take"]["object_required"], True)
+
+        # 'look' has optional object (look vs look at X)
+        self.assertIn(verbs["look"]["object_required"], [False, "optional"])
+
+        # 'inventory' does not require an object
+        self.assertEqual(verbs["inventory"]["object_required"], False)
+
+    def test_vocabulary_all_cardinal_directions(self):
+        """Test all cardinal and vertical directions are present."""
+        message = {"type": "query", "query_type": "vocabulary"}
+        result = self.handler.handle_message(message)
+
+        directions = result["data"]["directions"]
+
+        cardinal = ["north", "south", "east", "west"]
+        vertical = ["up", "down"]
+
+        for direction in cardinal + vertical:
+            self.assertIn(direction, directions, f"Missing direction: {direction}")
+
+    def test_vocabulary_query_is_idempotent(self):
+        """Test vocabulary query returns same result on repeated calls."""
+        message = {"type": "query", "query_type": "vocabulary"}
+
+        result1 = self.handler.handle_message(message)
+        result2 = self.handler.handle_message(message)
+
+        self.assertEqual(result1, result2)
 
 
 class TestErrorHandling(unittest.TestCase):
@@ -1395,7 +1587,7 @@ class TestEndToEndInteractions(unittest.TestCase):
             "action": {"verb": "go", "direction": "north"}
         })
         self.assertTrue(result["success"])
-        self.assertEqual(self.state.player.location, "loc_hallway")
+        self.assertEqual(self.state.actors["player"].location, "loc_hallway")
 
         # Unlock iron door
         result = self.handler.handle_message({
@@ -1417,7 +1609,7 @@ class TestEndToEndInteractions(unittest.TestCase):
             "action": {"verb": "go", "direction": "east"}
         })
         self.assertTrue(result["success"])
-        self.assertEqual(self.state.player.location, "loc_treasure")
+        self.assertEqual(self.state.actors["player"].location, "loc_treasure")
 
     def test_query_then_command_sequence(self):
         """Test querying state then executing command."""
@@ -1453,8 +1645,8 @@ class TestEndToEndInteractions(unittest.TestCase):
     def test_disambiguation_with_adjective(self):
         """Test using adjective to disambiguate doors."""
         # Move to hallway (has two doors)
-        self.state.player.location = "loc_hallway"
-        self.state.player.inventory.append("item_key")
+        self.state.actors["player"].location = "loc_hallway"
+        self.state.actors["player"].inventory.append("item_key")
 
         # Query doors
         result = self.handler.handle_message({
@@ -1491,7 +1683,7 @@ class TestEndToEndInteractions(unittest.TestCase):
     def test_failed_action_then_retry(self):
         """Test failed action, then success after getting requirements."""
         # Move to hallway
-        self.state.player.location = "loc_hallway"
+        self.state.actors["player"].location = "loc_hallway"
 
         # Try to unlock iron door without key - should fail
         result = self.handler.handle_message({
@@ -1596,7 +1788,7 @@ class TestLightSourceFunctionality(unittest.TestCase):
         self.assertIn("lantern", result["message"].lower())
 
         # Verify item is in inventory
-        self.assertIn("item_lantern", self.state.player.inventory)
+        self.assertIn("item_lantern", self.state.actors["player"].inventory)
 
         # Verify item is marked as lit
         lantern = None

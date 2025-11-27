@@ -6,6 +6,8 @@ using an LLM to translate player input into game commands and narrate results.
 """
 
 import argparse
+import json
+import logging
 import os
 import sys
 from pathlib import Path
@@ -18,17 +20,27 @@ from src.state_manager import load_game_state
 from src.llm_protocol import JSONProtocolHandler
 from src.llm_narrator import LLMNarrator
 from src.behavior_manager import BehaviorManager
+from src.vocabulary_generator import extract_nouns_from_state, merge_vocabulary
 
 # Default game state file location
 DEFAULT_STATE_FILE = Path(__file__).parent.parent / "examples" / "simple_game_state.json"
 
 
-def main(state_file: str = None):
+def main(state_file: str = None, debug: bool = False):
     """Run the LLM-powered text adventure.
 
     Args:
         state_file: Path to game state JSON file (uses default if not provided)
+        debug: If True, enable debug logging (shows cache statistics)
     """
+    # Configure logging
+    if debug:
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format='[DEBUG] %(name)s: %(message)s'
+        )
+    else:
+        logging.basicConfig(level=logging.WARNING)
     # Load API key
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
@@ -56,11 +68,21 @@ def main(state_file: str = None):
     modules = behavior_manager.discover_modules(str(behaviors_dir))
     behavior_manager.load_modules(modules)
 
+    # Load and merge vocabulary (same pattern as text_game.py)
+    vocab_path = Path(__file__).parent / 'vocabulary.json'
+    with open(vocab_path, 'r') as f:
+        base_vocab = json.load(f)
+
+    extracted_nouns = extract_nouns_from_state(state)
+    vocab_with_nouns = merge_vocabulary(base_vocab, extracted_nouns)
+    merged_vocab = behavior_manager.get_merged_vocabulary(vocab_with_nouns)
+
     # Create JSON handler with behavior manager
     json_handler = JSONProtocolHandler(state, behavior_manager=behavior_manager)
 
-    # Create narrator
-    narrator = LLMNarrator(api_key, json_handler)
+    # Create narrator with merged vocabulary for local parsing
+    narrator = LLMNarrator(api_key, json_handler, behavior_manager=behavior_manager,
+                           vocabulary=merged_vocab)
 
     # Show title and opening
     print(f"\n{state.metadata.title}")
@@ -104,8 +126,10 @@ def cli_main():
     """Entry point for console script."""
     parser = argparse.ArgumentParser(description='LLM-powered text adventure game')
     parser.add_argument('state_file', nargs='?', help='Path to game state JSON file')
+    parser.add_argument('--debug', '-d', action='store_true',
+                        help='Enable debug logging (shows API cache statistics)')
     args = parser.parse_args()
-    sys.exit(main(state_file=args.state_file))
+    sys.exit(main(state_file=args.state_file, debug=args.debug))
 
 
 if __name__ == "__main__":

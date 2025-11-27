@@ -77,15 +77,16 @@ def handle_go(accessor, action):
             message=f"INCONSISTENT STATE: Cannot find location for actor {actor_id}"
         )
 
-    # Check if exit exists
-    if direction not in current_location.exits:
+    # Check if exit exists and is visible
+    visible_exits = accessor.get_visible_exits(current_location.id, actor_id)
+    if direction not in visible_exits:
         return HandlerResult(
             success=False,
             message=f"You can't go {direction} from here."
         )
 
     # Get exit descriptor and destination
-    exit_descriptor = current_location.exits[direction]
+    exit_descriptor = visible_exits[direction]
 
     # Handle both ExitDescriptor objects and plain strings (backward compatibility)
     if hasattr(exit_descriptor, 'to'):

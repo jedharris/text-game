@@ -25,7 +25,7 @@ A property is the right choice because:
 - Consistent with other boolean states like `portable`, `locked`, `open`
 - Behaviors can still hook into reveal events via `on_reveal` callback
 
-The property approach in game state:
+The states approach in game state:
 ```json
 {
   "id": "item_sanctum_key",
@@ -33,8 +33,10 @@ The property approach in game state:
   "description": "A golden key that glows faintly with magic.",
   "location": "loc_library",
   "properties": {
-    "hidden": true,
-    "portable": true
+    "portable": true,
+    "states": {
+      "hidden": true
+    }
   }
 }
 ```
@@ -55,8 +57,8 @@ Example behavior-triggered reveal (crystal ball):
 ```python
 def on_peer(entity, accessor, context):
     sanctum_key = accessor.get_item("item_sanctum_key")
-    if sanctum_key and sanctum_key.properties.get("hidden"):
-        accessor.reveal_item(sanctum_key)
+    if sanctum_key and sanctum_key.states.get("hidden"):
+        sanctum_key.states["hidden"] = False
         return EventResult(
             allow=True,
             message="A golden key materializes and falls to the floor!"
@@ -73,7 +75,7 @@ def on_peer(entity, accessor, context):
 - Hidden items are excluded from `examine` (unless `reveal_on_examine` is set)
 - Hidden items cannot be found by `find_accessible_item`
 - Players cannot interact with hidden items even if they know the name
-- Once revealed (`hidden: false`), the item behaves normally
+- Once revealed (`states.hidden: false`), the item behaves normally
 
 This approach:
 - Avoids "guess the hidden item name" gameplay
@@ -94,9 +96,8 @@ Filter hidden items from all returned collections:
 def gather_location_contents(accessor, location_id: str, actor_id: str) -> dict:
     # ... existing code ...
 
-    # Filter: exclude hidden items
-    items_here = [item for item in items_here
-                  if not item.properties.get("hidden", False)]
+    # Filter: exclude hidden items using is_observable()
+    # (now handled by _is_item_visible_in_location() which calls is_observable())
 ```
 
 #### find_accessible_item()
@@ -108,8 +109,9 @@ def find_accessible_item(accessor, name: str, actor_id: str, adjective: Optional
     # ... existing code ...
 
     for item in items_in_location:
-        # Skip hidden items
-        if item.properties.get("hidden", False):
+        # Skip hidden items (handled by is_observable() check)
+        visible, _ = is_observable(item, accessor, accessor.behavior_manager, actor_id, method)
+        if not visible:
             continue
         if item.name.lower() == name_lower:
             matching_items.append(item)
@@ -124,8 +126,9 @@ def find_item_in_container(accessor, item_name: str, container_id: str, adjectiv
     # ... existing code ...
 
     for item in items_in_container:
-        # Skip hidden items
-        if item.properties.get("hidden", False):
+        # Skip hidden items (handled by is_observable() check)
+        visible, _ = is_observable(item, accessor, accessor.behavior_manager, actor_id, method)
+        if not visible:
             continue
         if item.name.lower() == name_lower:
             matching_items.append(item)
@@ -146,7 +149,7 @@ def reveal_item(self, item) -> None:
     if isinstance(item, str):
         item = self.get_item(item)
     if item:
-        item.properties["hidden"] = False
+        item.states["hidden"] = False
 ```
 
 ### Optional: Search Command
@@ -186,8 +189,8 @@ def handle_search(accessor, action):
     # Find hidden items in search location
     revealed = []
     for item in accessor.game_state.items:
-        if item.location == search_location and item.properties.get("hidden"):
-            accessor.reveal_item(item)
+        if item.location == search_location and item.states.get("hidden"):
+            item.states["hidden"] = False
             revealed.append(item.name)
 
     if revealed:
@@ -206,39 +209,43 @@ The same pattern can apply to doors for secret passages:
   "locations": ["loc_library", "loc_hidden_room"],
   "description": "A hidden door behind the bookshelf.",
   "properties": {
-    "hidden": true,
-    "open": false
+    "door": {
+      "open": false
+    },
+    "states": {
+      "hidden": true
+    }
   }
 }
 ```
 
-Changes needed:
+Changes needed (now implemented via `is_observable()`):
 - `get_doors_in_location()` filters hidden doors
 - `find_door_with_adjective()` skips hidden doors
-- Add `reveal_door()` method to StateAccessor
+- Reveal by setting `item.states["hidden"] = False`
 
 ## Migration Path
 
 Existing games are unaffected:
-- Items without `hidden` property default to `hidden: false` (visible)
+- Items without `states.hidden` default to visible
 - No breaking changes to game state format
 - New functionality is opt-in
 
 ## Testing Strategy
 
-1. **Unit tests for visibility filtering**
+1. **Unit tests for visibility filtering** (implemented in `tests/test_observability.py`)
    - Hidden items excluded from `gather_location_contents`
    - Hidden items not found by `find_accessible_item`
    - Hidden items in containers not found
 
 2. **Unit tests for reveal mechanism**
-   - `reveal_item()` sets `hidden: false`
+   - Setting `states["hidden"] = False` reveals item
    - Revealed items appear in subsequent lookups
 
-3. **Integration tests**
-   - Search command reveals hidden items
-   - Behavior-triggered reveal works
-   - `reveal_on_examine` property works
+3. **Integration tests** (implemented in `tests/test_observability.py`)
+   - Hidden actors not visible
+   - Hidden exits not usable
+   - Behavior-triggered reveal works via `on_observe` event
 
 4. **End-to-end test**
-   - Update extended_game example to use hidden key instead of workaround
+   - See `tests/test_observability.py` for comprehensive coverage

@@ -14,7 +14,7 @@ sys.path.insert(0, str(project_root))
 
 from src.state_manager import load_game_state
 from src.llm_protocol import JSONProtocolHandler
-from src.llm_narrator import MockLLMNarrator, LLMNarrator
+from src.llm_narrator import MockLLMNarrator, LLMNarrator, parsed_to_json
 from src.behavior_manager import BehaviorManager
 
 
@@ -150,7 +150,7 @@ class TestProcessTurn(unittest.TestCase):
     def test_process_turn_take_item(self):
         """Test processing a take command."""
         # Ensure player is in loc_start where sword is
-        self.state.player.location = "loc_start"
+        self.state.actors["player"].location = "loc_start"
 
         # Mock responses: first for command generation, second for narration
         responses = [
@@ -172,7 +172,7 @@ class TestProcessTurn(unittest.TestCase):
 
     def test_process_turn_movement(self):
         """Test processing a movement command."""
-        self.state.player.location = "loc_start"
+        self.state.actors["player"].location = "loc_start"
 
         responses = [
             '{"type": "command", "action": {"verb": "go", "direction": "north"}}',
@@ -200,7 +200,7 @@ class TestProcessTurn(unittest.TestCase):
 
     def test_process_turn_failed_action(self):
         """Test processing a command that fails."""
-        self.state.player.location = "loc_start"
+        self.state.actors["player"].location = "loc_start"
 
         # Try to take something that doesn't exist
         responses = [
@@ -217,7 +217,7 @@ class TestProcessTurn(unittest.TestCase):
 
     def test_process_turn_examine(self):
         """Test processing an examine command."""
-        self.state.player.location = "loc_start"
+        self.state.actors["player"].location = "loc_start"
 
         responses = [
             '{"type": "command", "action": {"verb": "examine", "object": "sword"}}',
@@ -232,7 +232,7 @@ class TestProcessTurn(unittest.TestCase):
     def test_process_turn_inventory(self):
         """Test processing an inventory command."""
         # Give player some items
-        self.state.player.inventory = ["item_sword"]
+        self.state.actors["player"].inventory = ["item_sword"]
 
         responses = [
             '{"type": "command", "action": {"verb": "inventory"}}',
@@ -246,7 +246,7 @@ class TestProcessTurn(unittest.TestCase):
 
     def test_process_turn_query(self):
         """Test processing a location query."""
-        self.state.player.location = "loc_start"
+        self.state.actors["player"].location = "loc_start"
 
         responses = [
             '{"type": "query", "query_type": "location"}',
@@ -270,7 +270,7 @@ class TestGetOpening(unittest.TestCase):
 
     def test_get_opening_returns_narrative(self):
         """Test that get_opening returns a narrative."""
-        self.state.player.location = "loc_start"
+        self.state.actors["player"].location = "loc_start"
 
         responses = [
             "You awaken in a small stone chamber. Dim light filters through cracks in the ceiling."
@@ -284,7 +284,7 @@ class TestGetOpening(unittest.TestCase):
 
     def test_get_opening_includes_location_context(self):
         """Test that get_opening sends location info to LLM."""
-        self.state.player.location = "loc_start"
+        self.state.actors["player"].location = "loc_start"
 
         responses = ["Opening narrative"]
         narrator = MockLLMNarrator(self.handler, responses)
@@ -299,7 +299,7 @@ class TestGetOpening(unittest.TestCase):
 
     def test_get_opening_queries_full_location(self):
         """Test that get_opening requests items, doors, npcs."""
-        self.state.player.location = "loc_start"
+        self.state.actors["player"].location = "loc_start"
 
         responses = ["You stand in a dusty chamber."]
         narrator = MockLLMNarrator(self.handler, responses)
@@ -366,7 +366,7 @@ class TestIntegration(unittest.TestCase):
 
     def test_full_game_sequence(self):
         """Test a sequence of game actions."""
-        self.state.player.location = "loc_start"
+        self.state.actors["player"].location = "loc_start"
 
         # Sequence: look, take sword, go north
         responses = [
@@ -390,19 +390,19 @@ class TestIntegration(unittest.TestCase):
         result2 = narrator.process_turn("pick up sword")
         self.assertEqual(narrator.call_count, 4)
         # Verify sword is now in inventory
-        self.assertIn("item_sword", self.state.player.inventory)
+        self.assertIn("item_sword", self.state.actors["player"].inventory)
 
         # Turn 3: Go north
         result3 = narrator.process_turn("go north")
         self.assertEqual(narrator.call_count, 6)
         # Verify player moved
-        self.assertEqual(self.state.player.location, "loc_hallway")
+        self.assertEqual(self.state.actors["player"].location, "loc_hallway")
 
     def test_unlock_and_open_door(self):
         """Test unlocking and opening a door."""
-        self.state.player.location = "loc_hallway"
+        self.state.actors["player"].location = "loc_hallway"
         # Give player the key
-        self.state.player.inventory = ["item_key"]
+        self.state.actors["player"].inventory = ["item_key"]
 
         # Find the iron door item and ensure it's locked
         iron_door = self.state.get_item("door_iron")

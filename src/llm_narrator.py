@@ -5,10 +5,14 @@ translating player input to commands and game results to narrative prose.
 """
 
 import json
+import logging
 import re
+import tempfile
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional
+
+logger = logging.getLogger(__name__)
 
 try:
     import anthropic
@@ -18,6 +22,8 @@ except ImportError:
 
 from src.llm_protocol import JSONProtocolHandler
 from src.behavior_manager import BehaviorManager
+from src.parser import Parser
+from src.parsed_command import ParsedCommand
 
 
 # Default system prompt location
@@ -26,13 +32,39 @@ DEFAULT_PROMPT_FILE = Path(__file__).parent.parent / "examples" / "narrator_prom
 DEFAULT_VOCABULARY_FILE = Path(__file__).parent / "vocabulary.json"
 
 
+def parsed_to_json(result: ParsedCommand) -> Dict[str, Any]:
+    """Convert ParsedCommand to JSON protocol format.
+
+    Args:
+        result: Parsed command from the Parser
+
+    Returns:
+        JSON protocol dict for the command
+    """
+    action = {"verb": result.verb.word}
+
+    if result.direct_object:
+        action["object"] = result.direct_object.word
+    if result.direct_adjective:
+        action["adjective"] = result.direct_adjective.word
+    if result.direction:
+        action["direction"] = result.direction.word
+    if result.indirect_object:
+        action["indirect_object"] = result.indirect_object.word
+    if result.indirect_adjective:
+        action["indirect_adjective"] = result.indirect_adjective.word
+
+    return {"type": "command", "action": action}
+
+
 class LLMNarrator:
     """Translates between natural language and the JSON protocol."""
 
     def __init__(self, api_key: str, json_handler: JSONProtocolHandler,
                  model: str = "claude-3-5-haiku-20241022",
                  prompt_file: Optional[Path] = None,
-                 behavior_manager: Optional[BehaviorManager] = None):
+                 behavior_manager: Optional[BehaviorManager] = None,
+                 vocabulary: Optional[Dict[str, Any]] = None):
         """Initialize the narrator.
 
         Args:
@@ -41,6 +73,7 @@ class LLMNarrator:
             model: Model to use for generation
             prompt_file: Optional path to custom system prompt file
             behavior_manager: Optional BehaviorManager to get merged vocabulary
+            vocabulary: Optional merged vocabulary dict (if not provided, loads default)
         """
         if not HAS_ANTHROPIC:
             raise ImportError("anthropic library is required. Install with: pip install anthropic")
@@ -50,9 +83,45 @@ class LLMNarrator:
         self.model = model
         self.behavior_manager = behavior_manager
         self.system_prompt = self._load_system_prompt(prompt_file)
+        self.parser = self._create_parser(vocabulary)
+
+    def _create_parser(self, vocabulary: Optional[Dict[str, Any]] = None) -> Parser:
+        """Create a Parser with merged vocabulary.
+
+        Args:
+            vocabulary: Optional pre-merged vocabulary dict
+
+        Returns:
+            Parser instance ready to parse commands
+        """
+        if vocabulary is None:
+            # Load base vocabulary
+            if DEFAULT_VOCABULARY_FILE.exists():
+                try:
+                    vocabulary = json.loads(DEFAULT_VOCABULARY_FILE.read_text())
+                except (json.JSONDecodeError, IOError):
+                    vocabulary = {"verbs": [], "nouns": [], "directions": []}
+            else:
+                vocabulary = {"verbs": [], "nouns": [], "directions": []}
+
+            # Merge with behavior module vocabulary if available
+            if self.behavior_manager:
+                vocabulary = self.behavior_manager.get_merged_vocabulary(vocabulary)
+
+        # Write vocabulary to temp file for Parser (it requires a file path)
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            json.dump(vocabulary, f)
+            vocab_path = f.name
+
+        parser = Parser(vocab_path)
+        Path(vocab_path).unlink()  # Clean up temp file
+        return parser
 
     def process_turn(self, player_input: str) -> str:
         """Process one turn: input -> command -> result -> narrative.
+
+        Uses a fast local parser for simple commands (directions, common verbs)
+        and falls back to LLM for complex/ambiguous input.
 
         Args:
             player_input: Natural language input from player
@@ -60,14 +129,27 @@ class LLMNarrator:
         Returns:
             Narrative description of what happened
         """
-        # 1. Get JSON command from LLM
-        command_response = self._call_llm(
-            f"Player says: {player_input}\n\nRespond with a JSON command."
-        )
-        json_cmd = self._extract_json(command_response)
+        # 1. Try fast local parsing first
+        parsed = self.parser.parse_command(player_input)
 
-        if json_cmd is None:
-            return "I don't understand what you want to do."
+        if parsed is not None:
+            # Convert ParsedCommand to JSON protocol format
+            if parsed.direction and not parsed.verb:
+                # Bare direction (e.g., "north") -> go command
+                json_cmd = {"type": "command", "action": {"verb": "go", "direction": parsed.direction.word}}
+            else:
+                json_cmd = parsed_to_json(parsed)
+            logger.debug(f"Local parse: {player_input!r} -> {json_cmd}")
+        else:
+            # Fall back to LLM for complex input
+            logger.debug(f"LLM parse needed for: {player_input!r}")
+            command_response = self._call_llm(
+                f"Player says: {player_input}\n\nRespond with a JSON command."
+            )
+            json_cmd = self._extract_json(command_response)
+
+            if json_cmd is None:
+                return "I don't understand what you want to do."
 
         # 2. Execute command via game engine
         result = self.handler.handle_message(json_cmd)
@@ -99,6 +181,10 @@ class LLMNarrator:
     def _call_llm(self, user_message: str) -> str:
         """Make an API call to the LLM.
 
+        Uses prompt caching for the system prompt to reduce latency and costs.
+        The system prompt is marked with cache_control to enable caching across
+        multiple requests within the cache TTL (currently 5 minutes).
+
         Args:
             user_message: The message to send
 
@@ -109,8 +195,22 @@ class LLMNarrator:
             response = self.client.messages.create(
                 model=self.model,
                 max_tokens=512,
-                system=self.system_prompt,
+                system=[
+                    {
+                        "type": "text",
+                        "text": self.system_prompt,
+                        "cache_control": {"type": "ephemeral"}
+                    }
+                ],
                 messages=[{"role": "user", "content": user_message}]
+            )
+            # Log cache statistics for debugging
+            usage = response.usage
+            cache_read = getattr(usage, 'cache_read_input_tokens', 0)
+            cache_creation = getattr(usage, 'cache_creation_input_tokens', 0)
+            logger.debug(
+                f"API call - input: {usage.input_tokens}, output: {usage.output_tokens}, "
+                f"cache_read: {cache_read}, cache_creation: {cache_creation}"
             )
             return response.content[0].text
         except anthropic.RateLimitError:
@@ -186,13 +286,12 @@ Keep the tone consistent with a classic text adventure - evocative but concise."
             return base_prompt + "\n\n" + vocab_section
 
     def _build_vocabulary_section(self) -> str:
-        """Build the vocabulary section for the system prompt.
+        """Build a minimal vocabulary section for the system prompt.
 
-        Uses merged vocabulary from behavior manager if available,
-        otherwise falls back to vocabulary.json.
+        Returns just verb names. The model can query for full details if needed.
 
         Returns:
-            Formatted string describing available verbs and directions
+            Compact string listing available verbs
         """
         if not DEFAULT_VOCABULARY_FILE.exists():
             return "Available verbs: take, drop, examine, go, open, close, unlock, lock, look, inventory"
@@ -208,53 +307,11 @@ Keep the tone consistent with a classic text adventure - evocative but concise."
         else:
             vocab = base_vocab
 
-        lines = ["## Available Commands (from vocabulary.json)", ""]
+        # Just list verb names
+        verbs = [v["word"] for v in vocab.get("verbs", [])]
+        directions = [d["word"] for d in vocab.get("directions", [])]
 
-        # Build verb list with formats
-        lines.append("### Verbs")
-        for verb_data in vocab.get("verbs", []):
-            word = verb_data["word"]
-            synonyms = verb_data.get("synonyms", [])
-            obj_required = verb_data.get("object_required", False)
-
-            # Build synonym string
-            syn_str = f" (aliases: {', '.join(synonyms)})" if synonyms else ""
-
-            # Build format based on object requirement
-            if word == "go":
-                format_str = f'{{"verb": "{word}", "direction": "north|south|east|west|up|down"}}'
-            elif word == "inventory" or word == "look":
-                format_str = f'{{"verb": "{word}"}}'
-            elif obj_required == "optional":
-                format_str = f'{{"verb": "{word}"}} or {{"verb": "{word}", "object": "item_name"}}'
-            elif obj_required:
-                format_str = f'{{"verb": "{word}", "object": "item_name"}}'
-            else:
-                format_str = f'{{"verb": "{word}"}}'
-
-            lines.append(f"- **{word}**{syn_str}: {format_str}")
-
-        lines.append("")
-
-        # Build directions list
-        lines.append("### Directions")
-        directions = []
-        for dir_data in vocab.get("directions", []):
-            word = dir_data["word"]
-            synonyms = dir_data.get("synonyms", [])
-            if synonyms:
-                directions.append(f"{word} ({', '.join(synonyms)})")
-            else:
-                directions.append(word)
-        lines.append(", ".join(directions))
-
-        lines.append("")
-        lines.append("If an adjective helps identify the object, include it:")
-        lines.append('```json')
-        lines.append('{"type": "command", "action": {"verb": "examine", "object": "door", "adjective": "iron"}}')
-        lines.append('```')
-
-        return "\n".join(lines)
+        return f"Available verbs: {', '.join(verbs)}\nDirections: {', '.join(directions)}"
 
 
 class MockLLMNarrator(LLMNarrator):
@@ -265,13 +322,15 @@ class MockLLMNarrator(LLMNarrator):
     """
 
     def __init__(self, json_handler: JSONProtocolHandler, responses: list,
-                 behavior_manager: Optional[BehaviorManager] = None):
+                 behavior_manager: Optional[BehaviorManager] = None,
+                 vocabulary: Optional[Dict[str, Any]] = None):
         """Initialize mock narrator.
 
         Args:
             json_handler: JSONProtocolHandler for game engine communication
             responses: List of responses to return in sequence
             behavior_manager: Optional BehaviorManager to get merged vocabulary
+            vocabulary: Optional merged vocabulary dict (if not provided, loads default)
         """
         self.handler = json_handler
         self.responses = responses
@@ -279,6 +338,7 @@ class MockLLMNarrator(LLMNarrator):
         self.system_prompt = ""  # Not used in mock
         self.calls = []  # Track calls for testing
         self.behavior_manager = behavior_manager
+        self.parser = self._create_parser(vocabulary)
 
     def _call_llm(self, user_message: str) -> str:
         """Return mock response instead of calling API.

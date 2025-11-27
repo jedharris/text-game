@@ -722,7 +722,9 @@ class TestStructuralValidation(unittest.TestCase):
             self.assertEqual(len(door_items), 1)
             self.assertEqual(door_items[0].id, "door_1")
             self.assertEqual(len(state.locks), 2)
-            self.assertEqual(len(state.npcs), 1)
+            # NPCs are actors excluding player
+            npcs = [a for aid, a in state.actors.items() if aid != "player"]
+            self.assertEqual(len(npcs), 1)
         finally:
             os.unlink(temp_path)
 

@@ -152,7 +152,7 @@ class TestLocationQuery(unittest.TestCase):
         self.handler = JSONProtocolHandler(self.state, behavior_manager=self.behavior_manager)
 
         # Move player to hallway where table with lantern is
-        self.state.player.location = "loc_hallway"
+        self.state.actors["player"].location = "loc_hallway"
 
     def test_location_query_shows_items_on_surfaces(self):
         """Test that location query shows items on surface containers."""
@@ -197,7 +197,7 @@ class TestExamineCommand(unittest.TestCase):
         self.handler = JSONProtocolHandler(self.state, behavior_manager=self.behavior_manager)
 
         # Move player to hallway where table with lantern is
-        self.state.player.location = "loc_hallway"
+        self.state.actors["player"].location = "loc_hallway"
 
     def test_examine_command_finds_item_by_name(self):
         """Test that examine command finds items by name."""

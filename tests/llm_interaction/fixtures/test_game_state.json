@@ -19,8 +19,10 @@
         }
       },
       "tags": [],
-      "items": ["item_sword", "item_key"],
-      "npcs": [],
+      "items": [
+        "item_sword",
+        "item_key"
+      ],
       "llm_context": {
         "traits": [
           "cramped stone walls",
@@ -55,8 +57,9 @@
         }
       },
       "tags": [],
-      "items": ["item_potion"],
-      "npcs": [],
+      "items": [
+        "item_potion"
+      ],
       "llm_context": {
         "traits": [
           "high vaulted ceiling",
@@ -82,7 +85,6 @@
       },
       "tags": [],
       "items": [],
-      "npcs": ["npc_guard"],
       "llm_context": {
         "traits": [
           "open to sky",
@@ -108,8 +110,9 @@
         }
       },
       "tags": [],
-      "items": ["item_chest"],
-      "npcs": [],
+      "items": [
+        "item_chest"
+      ],
       "llm_context": {
         "traits": [
           "glittering walls",
@@ -222,7 +225,9 @@
           "lit": false
         }
       },
-      "behaviors": ["behaviors.core.light_sources"],
+      "behaviors": [
+        "behaviors.core.light_sources"
+      ],
       "llm_context": {
         "traits": [
           "hexagonal",
@@ -285,7 +290,9 @@
       "id": "lock_treasure",
       "description": "A sturdy lock.",
       "properties": {
-        "opens_with": ["item_key"],
+        "opens_with": [
+          "item_key"
+        ],
         "auto_unlock": true
       },
       "llm_context": {
