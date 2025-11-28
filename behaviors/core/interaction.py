@@ -8,6 +8,7 @@ from typing import Dict, Any
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
 from utilities.utils import find_accessible_item, find_door_with_adjective
+from utilities.handler_utils import find_action_target
 from utilities.entity_serializer import serialize_for_handler_result
 
 
@@ -407,44 +408,27 @@ def handle_use(accessor, action):
     Allows an actor to use an item in a generic way.
     Entity behaviors (on_use) can provide specific functionality.
 
-    CRITICAL: Extracts actor_id from action to support both player and NPCs.
-
     Args:
         accessor: StateAccessor instance
         action: Action dict with keys:
             - actor_id: ID of actor performing action (default: "player")
             - object: Name of item to use (required)
+            - adjective: Optional adjective for disambiguation
 
     Returns:
         HandlerResult with success flag and message
     """
+    item, error = find_action_target(accessor, action)
+    if error:
+        return error
+
+    verb = action.get("verb", "use")
     actor_id = action.get("actor_id", "player")
-    object_name = action.get("object")
-
-    if not object_name:
-        return HandlerResult(
-            success=False,
-            message="What do you want to use?"
-        )
-
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
-
-    item = find_accessible_item(accessor, object_name, actor_id)
-    if not item:
-        return HandlerResult(
-            success=False,
-            message=f"You don't see any {object_name} here."
-        )
 
     # Invoke entity behaviors (on_use)
-    result = accessor.update(item, {}, verb="use", actor_id=actor_id)
+    result = accessor.update(item, {}, verb=verb, actor_id=actor_id)
 
-    base_message = f"You use the {item.name}."
+    base_message = f"You {verb} the {item.name}."
     data = serialize_for_handler_result(item)
     if result.message:
         return HandlerResult(success=True, message=f"{base_message} {result.message}", data=data)
@@ -458,56 +442,39 @@ def handle_read(accessor, action):
 
     Allows an actor to read a readable item.
 
-    CRITICAL: Extracts actor_id from action to support both player and NPCs.
-
     Args:
         accessor: StateAccessor instance
         action: Action dict with keys:
             - actor_id: ID of actor performing action (default: "player")
             - object: Name of item to read (required)
+            - adjective: Optional adjective for disambiguation
 
     Returns:
         HandlerResult with success flag and message
     """
-    actor_id = action.get("actor_id", "player")
-    object_name = action.get("object")
+    item, error = find_action_target(accessor, action)
+    if error:
+        return error
 
-    if not object_name:
-        return HandlerResult(
-            success=False,
-            message="What do you want to read?"
-        )
-
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
-
-    item = find_accessible_item(accessor, object_name, actor_id)
-    if not item:
-        return HandlerResult(
-            success=False,
-            message=f"You don't see any {object_name} here."
-        )
-
-    # Check if item is readable
+    # Property validation specific to this verb
     if not item.properties.get("readable", False):
         return HandlerResult(
             success=False,
             message=f"You can't read the {item.name}."
         )
 
+    verb = action.get("verb", "read")
+    actor_id = action.get("actor_id", "player")
+
     # Invoke entity behaviors (on_read)
-    result = accessor.update(item, {}, verb="read", actor_id=actor_id)
+    result = accessor.update(item, {}, verb=verb, actor_id=actor_id)
 
     # Get text content if available
     text = item.properties.get("text", "")
     if text:
-        base_message = f"You read the {item.name}: {text}"
+        base_message = f"You {verb} the {item.name}: {text}"
     else:
-        base_message = f"You read the {item.name}."
+        base_message = f"You {verb} the {item.name}."
 
     data = serialize_for_handler_result(item)
     if result.message:
@@ -522,51 +489,34 @@ def handle_climb(accessor, action):
 
     Allows an actor to climb a climbable object.
 
-    CRITICAL: Extracts actor_id from action to support both player and NPCs.
-
     Args:
         accessor: StateAccessor instance
         action: Action dict with keys:
             - actor_id: ID of actor performing action (default: "player")
             - object: Name of item to climb (required)
+            - adjective: Optional adjective for disambiguation
 
     Returns:
         HandlerResult with success flag and message
     """
-    actor_id = action.get("actor_id", "player")
-    object_name = action.get("object")
+    item, error = find_action_target(accessor, action)
+    if error:
+        return error
 
-    if not object_name:
-        return HandlerResult(
-            success=False,
-            message="What do you want to climb?"
-        )
-
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
-
-    item = find_accessible_item(accessor, object_name, actor_id)
-    if not item:
-        return HandlerResult(
-            success=False,
-            message=f"You don't see any {object_name} here."
-        )
-
-    # Check if item is climbable
+    # Property validation specific to this verb
     if not item.properties.get("climbable", False):
         return HandlerResult(
             success=False,
             message=f"You can't climb the {item.name}."
         )
 
-    # Invoke entity behaviors (on_climb)
-    result = accessor.update(item, {}, verb="climb", actor_id=actor_id)
+    verb = action.get("verb", "climb")
+    actor_id = action.get("actor_id", "player")
 
-    base_message = f"You climb the {item.name}."
+    # Invoke entity behaviors (on_climb)
+    result = accessor.update(item, {}, verb=verb, actor_id=actor_id)
+
+    base_message = f"You {verb} the {item.name}."
     data = serialize_for_handler_result(item)
     if result.message:
         return HandlerResult(success=True, message=f"{base_message} {result.message}", data=data)
@@ -580,44 +530,27 @@ def handle_pull(accessor, action):
 
     Allows an actor to pull an object (e.g., lever).
 
-    CRITICAL: Extracts actor_id from action to support both player and NPCs.
-
     Args:
         accessor: StateAccessor instance
         action: Action dict with keys:
             - actor_id: ID of actor performing action (default: "player")
             - object: Name of item to pull (required)
+            - adjective: Optional adjective for disambiguation
 
     Returns:
         HandlerResult with success flag and message
     """
+    item, error = find_action_target(accessor, action)
+    if error:
+        return error
+
+    verb = action.get("verb", "pull")
     actor_id = action.get("actor_id", "player")
-    object_name = action.get("object")
-
-    if not object_name:
-        return HandlerResult(
-            success=False,
-            message="What do you want to pull?"
-        )
-
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
-
-    item = find_accessible_item(accessor, object_name, actor_id)
-    if not item:
-        return HandlerResult(
-            success=False,
-            message=f"You don't see any {object_name} here."
-        )
 
     # Invoke entity behaviors (on_pull)
-    result = accessor.update(item, {}, verb="pull", actor_id=actor_id)
+    result = accessor.update(item, {}, verb=verb, actor_id=actor_id)
 
-    base_message = f"You pull the {item.name}."
+    base_message = f"You {verb} the {item.name}."
     data = serialize_for_handler_result(item)
     if result.message:
         return HandlerResult(success=True, message=f"{base_message} {result.message}", data=data)
@@ -631,44 +564,27 @@ def handle_push(accessor, action):
 
     Allows an actor to push an object (e.g., button).
 
-    CRITICAL: Extracts actor_id from action to support both player and NPCs.
-
     Args:
         accessor: StateAccessor instance
         action: Action dict with keys:
             - actor_id: ID of actor performing action (default: "player")
             - object: Name of item to push (required)
+            - adjective: Optional adjective for disambiguation
 
     Returns:
         HandlerResult with success flag and message
     """
+    item, error = find_action_target(accessor, action)
+    if error:
+        return error
+
+    verb = action.get("verb", "push")
     actor_id = action.get("actor_id", "player")
-    object_name = action.get("object")
-
-    if not object_name:
-        return HandlerResult(
-            success=False,
-            message="What do you want to push?"
-        )
-
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
-
-    item = find_accessible_item(accessor, object_name, actor_id)
-    if not item:
-        return HandlerResult(
-            success=False,
-            message=f"You don't see any {object_name} here."
-        )
 
     # Invoke entity behaviors (on_push)
-    result = accessor.update(item, {}, verb="push", actor_id=actor_id)
+    result = accessor.update(item, {}, verb=verb, actor_id=actor_id)
 
-    base_message = f"You push the {item.name}."
+    base_message = f"You {verb} the {item.name}."
     data = serialize_for_handler_result(item)
     if result.message:
         return HandlerResult(success=True, message=f"{base_message} {result.message}", data=data)

@@ -133,6 +133,7 @@ def create_test_game_state():
         locks=[
             Lock(
                 id="lock_door",
+                name="Door Lock",
                 description="An iron lock.",
                 properties={
                     "opens_with": ["item_key"],

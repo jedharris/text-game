@@ -144,7 +144,9 @@ class TestFindExitByName(unittest.TestCase):
         self.assertIsNotNone(result)
         direction, exit_desc = result
         self.assertEqual(direction, "north")
-        self.assertIsNone(exit_desc.name)
+        # When created directly in code without a name, name is empty string.
+        # The direction key is used for lookup, not the name field.
+        self.assertEqual(exit_desc.name, "")
 
 
 class TestExamineExit(unittest.TestCase):

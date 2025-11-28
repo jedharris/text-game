@@ -141,6 +141,7 @@
   "locks": [
     {
       "id": "lock_1",
+      "name": "Raven Lock",
       "description": "A raven-shaped lock.",
       "properties": {
         "opens_with": [
@@ -152,6 +153,7 @@
     },
     {
       "id": "lock_2",
+      "name": "Chest Lock",
       "description": "A sturdy lock.",
       "properties": {
         "opens_with": [

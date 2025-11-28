@@ -314,6 +314,8 @@ class TestSimplifiedLock(unittest.TestCase):
 
         lock = Lock(
             id="lock_1",
+            name="Stubborn Lock",
+            description="A stubborn lock.",
             properties={
                 "opens_with": ["key_1"],
                 "fail_message": "The lock won't budge."
@@ -343,6 +345,8 @@ class TestSimplifiedLock(unittest.TestCase):
 
         lock = Lock(
             id="lock_1",
+            name="ancient lock",
+            description="An ancient rusted lock",
             properties={
                 "opens_with": ["key_1"],
                 "llm_context": {
@@ -359,7 +363,7 @@ class TestSimplifiedLock(unittest.TestCase):
         """Lock llm_context can be set via property."""
         from src.state_manager import Lock
 
-        lock = Lock(id="lock_1", properties={"opens_with": ["key_1"]})
+        lock = Lock(id="lock_1", name="test lock", description="A test lock", properties={"opens_with": ["key_1"]})
         lock.llm_context = {"traits": ["shiny", "new"]}
 
         self.assertEqual(lock.llm_context["traits"], ["shiny", "new"])
@@ -1161,7 +1165,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
         state = GameState(
             metadata=Metadata(title="Test", version="1.0", start_location="loc_1"),
             locks=[
-                Lock(id="lock_1", properties={"opens_with": ["key_1"]})
+                Lock(id="lock_1", name="test lock", description="A test lock", properties={"opens_with": ["key_1"]})
             ]
         )
 
@@ -1300,7 +1304,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
                 Item(id="item_1", name="Torch", description="A torch", location="loc_1"),
                 door_item
             ],
-            locks=[Lock(id="lock_1")],
+            locks=[Lock(id="lock_1", name="test lock", description="A test lock")],
             actors={
                 "player": Actor(id="player", name="player", description="", location="loc_1"),
                 "npc_1": Actor(id="npc_1", name="Guard", description="A guard", location="loc_1")

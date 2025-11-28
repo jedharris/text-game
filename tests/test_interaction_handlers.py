@@ -313,5 +313,351 @@ class TestHandlePush(unittest.TestCase):
         self.assertIn("push", result.message.lower())
 
 
+class TestPushWithAdjective(unittest.TestCase):
+    """Test handle_push with adjective for disambiguation (issue #41)."""
+
+    def setUp(self):
+        """Set up test state with multiple doors."""
+        self.state = create_test_state()
+        self.behavior_manager = BehaviorManager()
+
+        import behaviors.core.interaction
+        self.behavior_manager.load_module(behaviors.core.interaction)
+
+        self.accessor = StateAccessor(self.state, self.behavior_manager)
+
+        # Add two door items with different adjectives
+        iron_door = Item(
+            id="door_iron",
+            name="door",
+            description="A heavy iron door with rivets.",
+            location="loc1",
+            properties={"door": {"open": False, "locked": False}}
+        )
+        wooden_door = Item(
+            id="door_wooden",
+            name="door",
+            description="A rough wooden door with brass hinges.",
+            location="loc1",
+            properties={"door": {"open": False, "locked": False}}
+        )
+        self.state.items.append(iron_door)
+        self.state.items.append(wooden_door)
+
+    def test_push_with_adjective_selects_correct_door(self):
+        """Test that push with adjective selects correct door."""
+        from behaviors.core.interaction import handle_push
+
+        action = {
+            "actor_id": "player",
+            "object": "door",
+            "adjective": "iron"
+        }
+        result = handle_push(self.accessor, action)
+
+        self.assertTrue(result.success)
+        # Check that the message mentions the correct door
+        # The data should contain the iron door
+        self.assertIn("door", result.message.lower())
+        # Verify we got the right door by checking data.id
+        if result.data and "id" in result.data:
+            self.assertEqual(result.data["id"], "door_iron")
+
+    def test_push_with_different_adjective_selects_other_door(self):
+        """Test that push with different adjective selects other door."""
+        from behaviors.core.interaction import handle_push
+
+        action = {
+            "actor_id": "player",
+            "object": "door",
+            "adjective": "wooden"
+        }
+        result = handle_push(self.accessor, action)
+
+        self.assertTrue(result.success)
+        # Verify we got the wooden door
+        if result.data and "id" in result.data:
+            self.assertEqual(result.data["id"], "door_wooden")
+
+    def test_push_without_adjective_returns_first(self):
+        """Test that push without adjective returns first match."""
+        from behaviors.core.interaction import handle_push
+
+        action = {
+            "actor_id": "player",
+            "object": "door"
+        }
+        result = handle_push(self.accessor, action)
+
+        self.assertTrue(result.success)
+
+
+class TestPullWithAdjective(unittest.TestCase):
+    """Test handle_pull with adjective for disambiguation (issue #41)."""
+
+    def setUp(self):
+        """Set up test state with multiple levers."""
+        self.state = create_test_state()
+        self.behavior_manager = BehaviorManager()
+
+        import behaviors.core.interaction
+        self.behavior_manager.load_module(behaviors.core.interaction)
+
+        self.accessor = StateAccessor(self.state, self.behavior_manager)
+
+        # Add two lever items with different adjectives
+        # Note: use unique adjectives that don't match the fixture's "rusty lever"
+        copper_lever = Item(
+            id="lever_copper",
+            name="lever",
+            description="A tarnished copper lever.",
+            location="loc1",
+            properties={"pullable": True}
+        )
+        brass_lever = Item(
+            id="lever_brass",
+            name="lever",
+            description="A shiny brass lever.",
+            location="loc1",
+            properties={"pullable": True}
+        )
+        self.state.items.append(copper_lever)
+        self.state.items.append(brass_lever)
+
+    def test_pull_with_adjective_selects_correct_lever(self):
+        """Test that pull with adjective selects correct lever."""
+        from behaviors.core.interaction import handle_pull
+
+        action = {
+            "actor_id": "player",
+            "object": "lever",
+            "adjective": "brass"
+        }
+        result = handle_pull(self.accessor, action)
+
+        self.assertTrue(result.success)
+        # Verify we got the brass lever
+        if result.data and "id" in result.data:
+            self.assertEqual(result.data["id"], "lever_brass")
+
+    def test_pull_with_different_adjective_selects_other_lever(self):
+        """Test that pull with different adjective selects other lever."""
+        from behaviors.core.interaction import handle_pull
+
+        action = {
+            "actor_id": "player",
+            "object": "lever",
+            "adjective": "copper"
+        }
+        result = handle_pull(self.accessor, action)
+
+        self.assertTrue(result.success)
+        # Verify we got the copper lever
+        if result.data and "id" in result.data:
+            self.assertEqual(result.data["id"], "lever_copper")
+
+
+class TestReadWithAdjective(unittest.TestCase):
+    """Test handle_read with adjective for disambiguation (Phase 3)."""
+
+    def setUp(self):
+        """Set up test state with multiple readable items."""
+        self.state = create_test_state()
+        self.behavior_manager = BehaviorManager()
+
+        import behaviors.core.interaction
+        self.behavior_manager.load_module(behaviors.core.interaction)
+
+        self.accessor = StateAccessor(self.state, self.behavior_manager)
+
+        # Add two book items with different adjectives
+        ancient_book = Item(
+            id="book_ancient",
+            name="book",
+            description="An ancient tome.",
+            location="loc1",
+            properties={"portable": True, "readable": True, "text": "Ancient secrets..."}
+        )
+        leather_book = Item(
+            id="book_leather",
+            name="book",
+            description="A leather-bound journal.",
+            location="loc1",
+            properties={"portable": True, "readable": True, "text": "Dear diary..."}
+        )
+        self.state.items.append(ancient_book)
+        self.state.items.append(leather_book)
+
+    def test_read_with_adjective_selects_correct_item(self):
+        """Test that read with adjective selects correct item."""
+        from behaviors.core.interaction import handle_read
+
+        action = {
+            "actor_id": "player",
+            "verb": "read",
+            "object": "book",
+            "adjective": "ancient"
+        }
+        result = handle_read(self.accessor, action)
+
+        self.assertTrue(result.success)
+        # Verify we got the ancient book
+        if result.data and "id" in result.data:
+            self.assertEqual(result.data["id"], "book_ancient")
+        # Verify the text is in the message
+        self.assertIn("Ancient secrets", result.message)
+
+    def test_read_with_different_adjective_selects_other_item(self):
+        """Test that read with different adjective selects other item."""
+        from behaviors.core.interaction import handle_read
+
+        action = {
+            "actor_id": "player",
+            "verb": "read",
+            "object": "book",
+            "adjective": "leather"
+        }
+        result = handle_read(self.accessor, action)
+
+        self.assertTrue(result.success)
+        # Verify we got the leather book
+        if result.data and "id" in result.data:
+            self.assertEqual(result.data["id"], "book_leather")
+        # Verify the text is in the message
+        self.assertIn("Dear diary", result.message)
+
+
+class TestClimbWithAdjective(unittest.TestCase):
+    """Test handle_climb with adjective for disambiguation (Phase 3)."""
+
+    def setUp(self):
+        """Set up test state with multiple climbable items."""
+        self.state = create_test_state()
+        self.behavior_manager = BehaviorManager()
+
+        import behaviors.core.interaction
+        self.behavior_manager.load_module(behaviors.core.interaction)
+
+        self.accessor = StateAccessor(self.state, self.behavior_manager)
+
+        # Add two ladder items with different adjectives
+        rope_ladder = Item(
+            id="ladder_rope",
+            name="ladder",
+            description="A rope ladder.",
+            location="loc1",
+            properties={"climbable": True}
+        )
+        metal_ladder = Item(
+            id="ladder_metal",
+            name="ladder",
+            description="A metal ladder.",
+            location="loc1",
+            properties={"climbable": True}
+        )
+        self.state.items.append(rope_ladder)
+        self.state.items.append(metal_ladder)
+
+    def test_climb_with_adjective_selects_correct_item(self):
+        """Test that climb with adjective selects correct item."""
+        from behaviors.core.interaction import handle_climb
+
+        action = {
+            "actor_id": "player",
+            "verb": "climb",
+            "object": "ladder",
+            "adjective": "rope"
+        }
+        result = handle_climb(self.accessor, action)
+
+        self.assertTrue(result.success)
+        # Verify we got the rope ladder
+        if result.data and "id" in result.data:
+            self.assertEqual(result.data["id"], "ladder_rope")
+
+    def test_climb_with_different_adjective_selects_other_item(self):
+        """Test that climb with different adjective selects other item."""
+        from behaviors.core.interaction import handle_climb
+
+        action = {
+            "actor_id": "player",
+            "verb": "climb",
+            "object": "ladder",
+            "adjective": "metal"
+        }
+        result = handle_climb(self.accessor, action)
+
+        self.assertTrue(result.success)
+        # Verify we got the metal ladder
+        if result.data and "id" in result.data:
+            self.assertEqual(result.data["id"], "ladder_metal")
+
+
+class TestUseWithAdjective(unittest.TestCase):
+    """Test handle_use with adjective for disambiguation (Phase 2)."""
+
+    def setUp(self):
+        """Set up test state with multiple similar items."""
+        self.state = create_test_state()
+        self.behavior_manager = BehaviorManager()
+
+        import behaviors.core.interaction
+        self.behavior_manager.load_module(behaviors.core.interaction)
+
+        self.accessor = StateAccessor(self.state, self.behavior_manager)
+
+        # Add two key items with different adjectives
+        gold_key = Item(
+            id="key_gold",
+            name="key",
+            description="A gleaming gold key.",
+            location="loc1",
+            properties={"portable": True, "usable": True}
+        )
+        silver_key = Item(
+            id="key_silver",
+            name="key",
+            description="A tarnished silver key.",
+            location="loc1",
+            properties={"portable": True, "usable": True}
+        )
+        self.state.items.append(gold_key)
+        self.state.items.append(silver_key)
+
+    def test_use_with_adjective_selects_correct_item(self):
+        """Test that use with adjective selects correct item."""
+        from behaviors.core.interaction import handle_use
+
+        action = {
+            "actor_id": "player",
+            "verb": "use",
+            "object": "key",
+            "adjective": "gold"
+        }
+        result = handle_use(self.accessor, action)
+
+        self.assertTrue(result.success)
+        # Verify we got the gold key
+        if result.data and "id" in result.data:
+            self.assertEqual(result.data["id"], "key_gold")
+
+    def test_use_with_different_adjective_selects_other_item(self):
+        """Test that use with different adjective selects other item."""
+        from behaviors.core.interaction import handle_use
+
+        action = {
+            "actor_id": "player",
+            "verb": "use",
+            "object": "key",
+            "adjective": "silver"
+        }
+        result = handle_use(self.accessor, action)
+
+        self.assertTrue(result.success)
+        # Verify we got the silver key
+        if result.data and "id" in result.data:
+            self.assertEqual(result.data["id"], "key_silver")
+
+
 if __name__ == '__main__':
     unittest.main()

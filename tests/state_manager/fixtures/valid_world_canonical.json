@@ -128,6 +128,7 @@
       "description": "A raven-shaped lock.",
       "fail_message": "The door remains locked.",
       "id": "lock_1",
+      "name": "Raven Lock",
       "opens_with": [
         "item_3"
       ]
@@ -136,6 +137,7 @@
       "auto_unlock": false,
       "description": "A sturdy lock.",
       "id": "lock_2",
+      "name": "Chest Lock",
       "opens_with": [
         "item_3"
       ]

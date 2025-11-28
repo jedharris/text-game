@@ -631,7 +631,7 @@ class TestLockUnlockDoorItems(unittest.TestCase):
                 )
             ],
             locks=[
-                Lock(id="lock_1", properties={"opens_with": ["item_key"]})
+                Lock(id="lock_1", name="test lock", description="A test lock", properties={"opens_with": ["item_key"]})
             ],
             actors={"player": Actor(
                 id="player", name="Adventurer", description="The player",

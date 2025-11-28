@@ -196,7 +196,7 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
                                 open=True, locked=False, lock_id="lock_main")
         state.items.append(door)
 
-        lock = Lock(id="lock_main", properties={"locked": True, "opens_with": ["item_key"]})
+        lock = Lock(id="lock_main", name="main lock", description="The main lock", properties={"locked": True, "opens_with": ["item_key"]})
         state.locks.append(lock)
 
         key = Item(id="item_key", name="key", description="A key",
@@ -230,7 +230,7 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
                                 open=True, locked=False, lock_id="lock_main")
         state.items.append(door)
 
-        lock = Lock(id="lock_main", properties={"locked": True, "opens_with": ["item_key"]})
+        lock = Lock(id="lock_main", name="main lock", description="The main lock", properties={"locked": True, "opens_with": ["item_key"]})
         state.locks.append(lock)
 
         # Give key to NPC, not player

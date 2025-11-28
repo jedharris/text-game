@@ -71,7 +71,7 @@ class TestStateAccessorGetters(unittest.TestCase):
 
         # Add a lock to test with
         from src.state_manager import Lock
-        lock = Lock(id="lock_test", properties={"opens_with": ["item_key"]})
+        lock = Lock(id="lock_test", name="test lock", description="A test lock", properties={"opens_with": ["item_key"]})
         state.locks.append(lock)
 
         retrieved = accessor.get_lock("lock_test")

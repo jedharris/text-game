@@ -277,6 +277,8 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         # Create a lock
         lock = Lock(
             id="lock_door",
+            name="Door Lock",
+            description="A sturdy lock.",
             properties={"opens_with": ["item_key"]}
         )
         state.locks.append(lock)
@@ -330,6 +332,8 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         # Create a lock
         lock = Lock(
             id="lock_door",
+            name="Door Lock",
+            description="A sturdy lock.",
             properties={"opens_with": ["item_key"]}
         )
         state.locks.append(lock)
@@ -371,6 +375,8 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         # Create a lock
         lock = Lock(
             id="lock_door",
+            name="Door Lock",
+            description="A sturdy lock.",
             properties={"opens_with": ["item_key"]}
         )
         state.locks.append(lock)
@@ -432,6 +438,8 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         # Create a lock
         lock = Lock(
             id="lock_door",
+            name="Door Lock",
+            description="A sturdy lock.",
             properties={"opens_with": ["item_key"]}
         )
         state.locks.append(lock)
@@ -485,6 +493,8 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         # Create a lock
         lock = Lock(
             id="lock_door",
+            name="Door Lock",
+            description="A sturdy lock.",
             properties={"opens_with": ["item_key"]}
         )
         state.locks.append(lock)
@@ -538,6 +548,8 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         # Create a lock
         lock = Lock(
             id="lock_door",
+            name="Door Lock",
+            description="A sturdy lock.",
             properties={"opens_with": ["item_key"]}
         )
         state.locks.append(lock)

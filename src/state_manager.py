@@ -66,10 +66,20 @@ class ExitDescriptor:
     type: str  # "open" or "door"
     to: Optional[str] = None
     door_id: Optional[str] = None
-    name: Optional[str] = None  # User-facing name e.g. "spiral staircase", "stone archway"
-    description: Optional[str] = None  # Prose description for examine
+    name: str = ""  # User-facing name e.g. "spiral staircase", "stone archway"
+    description: str = ""  # Prose description for examine
     properties: Dict[str, Any] = field(default_factory=dict)
     behaviors: List[str] = field(default_factory=list)
+    # Internal fields for id synthesis - set by parser
+    _direction: str = field(default="", repr=False)
+    _location_id: str = field(default="", repr=False)
+
+    @property
+    def id(self) -> str:
+        """Synthesized ID from location and direction."""
+        if self._location_id and self._direction:
+            return f"exit:{self._location_id}:{self._direction}"
+        return ""
 
     @property
     def states(self) -> Dict[str, Any]:
@@ -104,6 +114,18 @@ class Location:
     items: List[str] = field(default_factory=list)
     properties: Dict[str, Any] = field(default_factory=dict)
     behaviors: List[str] = field(default_factory=list)
+
+    @property
+    def states(self) -> Dict[str, Any]:
+        """Access states dict within properties."""
+        if "states" not in self.properties:
+            self.properties["states"] = {}
+        return self.properties["states"]
+
+    @states.setter
+    def states(self, value: Dict[str, Any]) -> None:
+        """Set states dict within properties."""
+        self.properties["states"] = value
 
     @property
     def llm_context(self) -> Optional[Dict[str, Any]]:
@@ -232,8 +254,8 @@ class Item:
 class Lock:
     """Lock mechanism."""
     id: str
-    name: Optional[str] = None
-    description: Optional[str] = None
+    name: str
+    description: str
     properties: Dict[str, Any] = field(default_factory=dict)
     behaviors: List[str] = field(default_factory=list)
 
@@ -450,18 +472,26 @@ class GameState:
 
 
 # Parsers
-def _parse_exit(direction: str, raw: Dict[str, Any]) -> ExitDescriptor:
-    """Parse exit descriptor from JSON dict."""
+def _parse_exit(direction: str, raw: Dict[str, Any], location_id: str = "") -> ExitDescriptor:
+    """Parse exit descriptor from JSON dict.
+
+    Args:
+        direction: The direction key (e.g., "north", "up")
+        raw: The exit data dict
+        location_id: The parent location's ID (for synthesized exit id)
+    """
     core_fields = {'type', 'to', 'door_id', 'name', 'description', 'behaviors'}
 
     return ExitDescriptor(
         type=raw.get('type', 'open'),
         to=raw.get('to'),
         door_id=raw.get('door_id'),
-        name=raw.get('name'),
-        description=raw.get('description'),
+        name=raw.get('name', direction),  # Default to direction if no name
+        description=raw.get('description', ''),
         properties={k: v for k, v in raw.items() if k not in core_fields},
-        behaviors=raw.get('behaviors', [])
+        behaviors=raw.get('behaviors', []),
+        _direction=direction,
+        _location_id=location_id
     )
 
 
@@ -471,16 +501,18 @@ def _parse_location(raw: Dict[str, Any]) -> Location:
     # but it's no longer stored on Location (actors track their own location)
     core_fields = {'id', 'name', 'description', 'exits', 'items', 'npcs', 'behaviors'}
 
-    # Parse exits
+    location_id = raw['id']
+
+    # Parse exits - pass location_id for synthesized exit ids
     exits = {}
     for direction, exit_data in raw.get('exits', {}).items():
-        exits[direction] = _parse_exit(direction, exit_data)
+        exits[direction] = _parse_exit(direction, exit_data, location_id)
 
     # Parse behaviors - keep as-is (supports both dict and list)
     behaviors = raw.get('behaviors', [])
 
     return Location(
-        id=raw['id'],
+        id=location_id,
         name=raw.get('name', ''),
         description=raw.get('description', ''),
         exits=exits,
@@ -533,10 +565,11 @@ def _parse_lock(raw: Dict[str, Any]) -> Lock:
     """Parse lock from JSON dict."""
     core_fields = {'id', 'name', 'description', 'properties', 'behaviors'}
 
+    lock_id = raw['id']
     return Lock(
-        id=raw['id'],
-        name=raw.get('name'),
-        description=raw.get('description'),
+        id=lock_id,
+        name=raw.get('name', lock_id),  # Default to id if no name
+        description=raw.get('description', ''),
         properties=_parse_properties(raw, core_fields),
         behaviors=raw.get('behaviors', [])
     )
@@ -713,7 +746,7 @@ def _serialize_item(item: Item) -> Dict[str, Any]:
 
 def _serialize_lock(lock: Lock) -> Dict[str, Any]:
     """Serialize lock to dict."""
-    return _serialize_entity(lock, required_fields=['id'], optional_fields=['name', 'description'])
+    return _serialize_entity(lock, required_fields=['id', 'name', 'description'])
 
 
 def _serialize_actor(actor: Actor) -> Dict[str, Any]:

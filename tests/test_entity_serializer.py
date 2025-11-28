@@ -262,6 +262,7 @@ class TestEntityToDictLock(unittest.TestCase):
 
         lock = Lock(
             id="lock_iron",
+            name="Iron Lock",
             description="An iron lock with intricate engravings.",
             properties={"opens_with": ["item_key"]}
         )
@@ -277,6 +278,7 @@ class TestEntityToDictLock(unittest.TestCase):
 
         lock = Lock(
             id="lock_iron",
+            name="Iron Lock",
             description="An iron lock.",
             properties={
                 "opens_with": ["item_key"],

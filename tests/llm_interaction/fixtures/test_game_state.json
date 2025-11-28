@@ -288,6 +288,7 @@
   "locks": [
     {
       "id": "lock_treasure",
+      "name": "Treasure Lock",
       "description": "A sturdy lock.",
       "properties": {
         "opens_with": [
