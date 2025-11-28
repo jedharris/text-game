@@ -16,7 +16,43 @@
         "north": {
           "type": "door",
           "to": "loc_hallway",
-          "door_id": "door_wooden"
+          "door_id": "door_wooden",
+          "name": "wooden doorway",
+          "description": "A simple wooden doorway leads north. The door frame is rough-hewn, its planks showing years of wear.",
+          "llm_context": {
+            "traits": [
+              "rough-hewn door frame",
+              "planks showing years of wear",
+              "threshold stone worn smooth",
+              "draft seeping through gaps",
+              "iron nail heads visible",
+              "frame slightly askew from settling",
+              "scratch marks at handle height",
+              "cobwebs in upper corners",
+              "wood grain darkened by countless hands",
+              "hinges mounted with square-head bolts",
+              "gap at bottom letting light through",
+              "faint smell of old wood and dust",
+              "carved notch for latch bar",
+              "stone lintel cracked but holding",
+              "plaster crumbling where frame meets wall",
+              "mouse gnaw marks at base",
+              "leather hinge straps reinforcing iron",
+              "boot scuffs on threshold stone",
+              "tallow stains from carried candles",
+              "chalk marks from previous occupants",
+              "splinters waiting at edge height",
+              "paint long since worn away",
+              "iron latch plate loose on wood",
+              "draft whistle when wind picks up",
+              "sense of countless passages through"
+            ],
+            "atmosphere": "humble, functional, well-used",
+            "state_variants": {
+              "door_open": "The doorway stands open, revealing the hallway beyond.",
+              "door_closed": "The wooden door blocks the passage north."
+            }
+          }
         }
       },
       "items": [
@@ -67,16 +103,126 @@
         "south": {
           "type": "door",
           "to": "loc_start",
-          "door_id": "door_wooden"
+          "door_id": "door_wooden",
+          "name": "wooden doorway",
+          "description": "The wooden doorway leads back south to the small room where you began.",
+          "llm_context": {
+            "traits": [
+              "wooden doorway leading south",
+              "frame darker on hallway side",
+              "scuff marks at base from door",
+              "cooler air drifting from beyond",
+              "threshold slightly raised",
+              "door swing arc worn into floor",
+              "iron hinges squeaking softly",
+              "wood warped from hallway dampness",
+              "light filtering through board gaps",
+              "cobwebs stretching between frame and wall",
+              "knotholes darkened by age",
+              "latch mechanism well-oiled",
+              "fingerprints visible in dust on frame",
+              "small room's mustiness wafting through",
+              "stone floor transition visible",
+              "carved initials near base of frame",
+              "old torch bracket shadow on wall beside",
+              "plaster patch where frame was reset",
+              "nail heads rusting in wood",
+              "gap at top where frame shrank",
+              "spider web anchor points on lintel",
+              "worn groove from decades of closing",
+              "faint echo from small room beyond",
+              "draft stronger when hallway wind gusts",
+              "sense of returning to beginnings"
+            ],
+            "atmosphere": "familiar, returning, humble",
+            "state_variants": {
+              "door_open": "The passage south stands open.",
+              "door_closed": "The wooden door bars the way back."
+            }
+          }
         },
         "up": {
           "type": "open",
-          "to": "loc_tower"
+          "to": "loc_tower",
+          "name": "spiral staircase",
+          "description": "A narrow spiral staircase carved from living rock winds upward into shadow. The worn treads speak of centuries of footsteps.",
+          "llm_context": {
+            "traits": [
+              "spiral staircase carved from living rock",
+              "worn treads polished by centuries of footsteps",
+              "narrow passage barely wide enough for one",
+              "cold draft descending from above",
+              "faint light filtering down",
+              "iron handrail bolted to outer wall",
+              "moss growing in shadowed corners",
+              "steps of uneven height from ancient carving",
+              "chisel marks visible on inner wall",
+              "slight rightward curve as it ascends",
+              "occasional arrow slits letting in pale light",
+              "echo of dripping water from somewhere above",
+              "smell of old stone and damp air",
+              "dust motes swirling in thin light beams",
+              "patches of lichen on damp walls",
+              "rope grooves worn into handrail",
+              "spider webs spanning between steps",
+              "scratched tally marks near base",
+              "faded torch sconce holders every ten steps",
+              "cool air temperature dropping as you climb",
+              "acoustics that carry distant sounds downward",
+              "occasional loose pebble underfoot",
+              "smooth patches where hands steadied against wall",
+              "darkness thickening above and below",
+              "sense of great height beyond the curve"
+            ],
+            "atmosphere": "vertical, ancient, slightly vertiginous",
+            "state_variants": {
+              "first_visit": "The stairs spiral upward into shadow, promising either doom or discovery.",
+              "revisit": "The familiar spiral climb awaits.",
+              "carrying_light": "Your light reveals the full weathered beauty of the ancient stonework."
+            }
+          }
         },
         "east": {
           "type": "door",
           "to": "loc_locked_room",
-          "door_id": "door_treasure"
+          "door_id": "door_treasure",
+          "name": "grand archway",
+          "description": "A grand stone archway frames an imposing iron door. Gargoyle faces flank the doorframe, their weathered features watching silently.",
+          "llm_context": {
+            "traits": [
+              "grand archway framing the door",
+              "carved stone lintel above",
+              "geometric patterns in surrounding masonry",
+              "runes of warding etched into threshold",
+              "gargoyle faces flanking the doorframe",
+              "slightly raised stone step before entrance",
+              "darker stone indicating greater age",
+              "worn prayer stones set into floor",
+              "brass fixtures green with age",
+              "torch bracket shadows on arch",
+              "dust accumulation in carved crevices",
+              "faint scratch marks near lock height",
+              "air temperature noticeably colder here",
+              "slight sulfur smell near the threshold",
+              "crystalline deposits on stone edges",
+              "sound dampening effect when approaching",
+              "odd acoustic echo from beyond",
+              "visible draft movement at floor level",
+              "ancient keyhole large enough to peer through",
+              "metallic tang in the air",
+              "discoloration suggesting removed tapestry",
+              "chisel marks from attempted forced entry",
+              "alignment with morning sun angle",
+              "protective symbols worn smooth by touching",
+              "sense of significance and finality"
+            ],
+            "atmosphere": "imposing, mysterious, guarded",
+            "state_variants": {
+              "door_locked": "The passage radiates an air of forbidden secrets waiting within.",
+              "door_unlocked": "The archway seems almost to exhale, as if relieved of its burden.",
+              "door_open": "The grand frame now welcomes entry to the treasures beyond."
+            }
+          }
         }
       },
       "items": [
@@ -127,7 +273,44 @@
       "exits": {
         "down": {
           "type": "open",
-          "to": "loc_hallway"
+          "to": "loc_hallway",
+          "name": "spiral staircase",
+          "description": "The spiral staircase winds downward into the shadows of the hallway below. A cold draft rises from the depths.",
+          "llm_context": {
+            "traits": [
+              "spiral staircase descending into shadow",
+              "cold draft rising from below",
+              "worn stone steps curving out of sight",
+              "darkness pooling in the depths",
+              "handrail disappearing into gloom",
+              "wind from tower top whistling down shaft",
+              "treads slippery from condensation",
+              "faint glow of hallway light far below",
+              "iron handrail cold from draft",
+              "moss thicker on descent side",
+              "occasional bird dropping on steps",
+              "smell of stone and trapped air",
+              "acoustics carrying sounds up from below",
+              "steps narrower on inner curve",
+              "rope burn marks on handrail",
+              "carved graffiti from past climbers",
+              "dust collecting in step corners",
+              "arrow slit light slicing across steps",
+              "spider retreat into cracks as you pass",
+              "temperature warming as you descend",
+              "echo of footsteps multiplying",
+              "smooth patches on wall from steadying hands",
+              "pebbles crunching underfoot",
+              "darkness swallowing the tower top behind",
+              "sense of leaving sky for earth"
+            ],
+            "atmosphere": "descending, shadowy, returning",
+            "state_variants": {
+              "first_visit": "The stairs spiral down into darkness below.",
+              "revisit": "The familiar descent awaits.",
+              "from_tower": "The stairway corkscrews down into the gloom of the hallway."
+            }
+          }
         }
       },
       "items": [
@@ -178,7 +361,43 @@
         "west": {
           "type": "door",
           "to": "loc_hallway",
-          "door_id": "door_treasure"
+          "door_id": "door_treasure",
+          "name": "iron doorway",
+          "description": "The imposing iron doorway leads west back to the hallway. The grand archway frames the exit.",
+          "llm_context": {
+            "traits": [
+              "imposing iron doorway leading west",
+              "grand archway framing the exit",
+              "gargoyle faces watching from frame",
+              "cooler air from hallway beyond",
+              "threshold worn by treasure seekers",
+              "gold reflections dancing on iron surface",
+              "door frame set deep into stone wall",
+              "runes glowing faintly on inner side",
+              "massive iron ring handle within reach",
+              "hinges hidden but well-oiled",
+              "slight echo from hallway beyond",
+              "dust motes gilded by treasure room light",
+              "scratch marks from hasty exits",
+              "temperature gradient visible in air",
+              "velvet drape rod holes above frame",
+              "protective sigils facing inward",
+              "worn step down to hallway level",
+              "brass kick plate at base of door",
+              "keyhole visible from this side too",
+              "faint magical hum from ward stones",
+              "draft carrying hallway mustiness",
+              "gargoyle shadows stretching into room",
+              "centuries of footprints in threshold dust",
+              "iron cold despite room's warmth",
+              "sense of leaving sanctuary behind"
+            ],
+            "atmosphere": "exiting, triumphant, returning",
+            "state_variants": {
+              "door_open": "The iron doorway stands open to the hallway.",
+              "door_closed": "The heavy iron door seals the treasure room."
+            }
+          }
         }
       },
       "items": [
@@ -686,12 +905,47 @@
   "actors": {
     "player": {
       "id": "player",
-      "name": "player",
+      "name": "Landry",
       "description": "",
       "location": "loc_start",
       "inventory": [],
       "flags": {},
-      "stats": {}
+      "stats": {},
+      "llm_context": {
+        "traits": [
+          "determined explorer",
+          "cautious but curious",
+          "travel-worn clothing",
+          "alert and observant",
+          "resourceful problem solver",
+          "quiet footsteps from habit",
+          "eyes adjusting to dim light",
+          "hands ready for anything",
+          "breathing steady despite nerves",
+          "posture suggesting readiness",
+          "senses heightened by anticipation",
+          "movements deliberate and careful",
+          "experienced in dark places",
+          "instincts honed by adventure",
+          "patience of a treasure hunter",
+          "quick to notice details",
+          "memory for paths traveled",
+          "respect for ancient places",
+          "healthy wariness of traps",
+          "courage tested and proven",
+          "adaptable to circumstances",
+          "light on feet when needed",
+          "grip firm on possessions",
+          "mind mapping surroundings",
+          "sense of purpose driving forward"
+        ],
+        "atmosphere": "protagonist, capable, present",
+        "state_variants": {
+          "exploring": "You move carefully through the unknown.",
+          "in_combat": "Adrenaline sharpens your focus.",
+          "at_rest": "A moment to catch your breath."
+        }
+      }
     }
   }
 }

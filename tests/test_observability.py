@@ -439,7 +439,7 @@ class TestObservabilityIntegration(unittest.TestCase):
             actors={
                 "player": StateActor(
                     id="player",
-                    name="Player",
+                    name="Adventurer",
                     description="The player",
                     location="room1",
                     inventory=[]
@@ -655,7 +655,7 @@ class TestHiddenExitsIntegration(unittest.TestCase):
             actors={
                 "player": StateActor(
                     id="player",
-                    name="Player",
+                    name="Adventurer",
                     description="The player",
                     location="room1",
                     inventory=[]

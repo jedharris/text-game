@@ -185,7 +185,7 @@ class TestStateAccessorDoorMethods(unittest.TestCase):
                 )
             ],
             actors={"player": Actor(
-                id="player", name="Player", description="The player",
+                id="player", name="Adventurer", description="The player",
                 location="loc_room", inventory=[]
             )}
         )
@@ -278,7 +278,7 @@ class TestDoorVisibility(unittest.TestCase):
                 )
             ],
             actors={"player": Actor(
-                id="player", name="Player", description="The player",
+                id="player", name="Adventurer", description="The player",
                 location="loc_room1", inventory=[]
             )}
         )
@@ -379,7 +379,7 @@ class TestFindAccessibleItemWithDoors(unittest.TestCase):
                 )
             ],
             actors={"player": Actor(
-                id="player", name="Player", description="The player",
+                id="player", name="Adventurer", description="The player",
                 location="loc_room", inventory=[]
             )}
         )
@@ -458,7 +458,7 @@ class TestHiddenDoors(unittest.TestCase):
                 )
             ],
             actors={"player": Actor(
-                id="player", name="Player", description="The player",
+                id="player", name="Adventurer", description="The player",
                 location="loc_library", inventory=[]
             )}
         )
@@ -531,7 +531,7 @@ class TestOpenCloseDoorItems(unittest.TestCase):
                 )
             ],
             actors={"player": Actor(
-                id="player", name="Player", description="The player",
+                id="player", name="Adventurer", description="The player",
                 location="loc_room", inventory=[]
             )}
         )
@@ -634,7 +634,7 @@ class TestLockUnlockDoorItems(unittest.TestCase):
                 Lock(id="lock_1", properties={"opens_with": ["item_key"]})
             ],
             actors={"player": Actor(
-                id="player", name="Player", description="The player",
+                id="player", name="Adventurer", description="The player",
                 location="loc_room", inventory=["item_key"]
             )}
         )
@@ -734,7 +734,7 @@ class TestMovementThroughDoorItems(unittest.TestCase):
                 )
             ],
             actors={"player": Actor(
-                id="player", name="Player", description="The player",
+                id="player", name="Adventurer", description="The player",
                 location="loc_room1", inventory=[]
             )}
         )

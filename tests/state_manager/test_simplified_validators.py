@@ -791,7 +791,7 @@ class TestValidateGameStateFunction(unittest.TestCase):
                 Item(id="item_1", name="Torch", description="A torch", location="loc_1")
             ],
             actors={
-                "player": Actor(id="player", name="player", description="", location="loc_1", inventory=[])
+                "player": Actor(id="player", name="Adventurer", description="", location="loc_1", inventory=[])
             }
         )
 

@@ -514,7 +514,7 @@
   "actors": {
     "player": {
       "id": "player",
-      "name": "player",
+      "name": "Landry",
       "description": "",
       "location": "loc_start",
       "inventory": [],

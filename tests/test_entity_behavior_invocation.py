@@ -46,7 +46,7 @@ def create_test_state_with_light_source():
         actors={
             "player": Actor(
                 id="player",
-                name="player",
+                name="Adventurer",
                 description="",
                 location="room1",
                 inventory=[]

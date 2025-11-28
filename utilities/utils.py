@@ -11,6 +11,89 @@ from typing import Optional, List, Tuple, Dict, Any, Union
 
 from src.state_accessor import EventResult
 from src.word_entry import WordEntry
+from utilities.entity_serializer import serialize_for_handler_result
+
+
+def find_actor_by_name(
+    accessor,
+    name: Union[WordEntry, str],
+    actor_id: str
+):
+    """
+    Find an actor accessible to the examining actor.
+
+    Handles special cases:
+    - "self" (with synonyms "me"/"myself" via WordEntry) -> returns the acting actor
+    - Other names -> searches actors in same location
+
+    The name parameter should be a WordEntry from the parser, which provides
+    synonym information. When the parser sees "me" or "myself", it returns
+    the canonical "self" WordEntry with synonyms, so name_matches will work.
+
+    Args:
+        accessor: StateAccessor instance
+        name: Actor name (WordEntry from parser preferred, plain string for entity names)
+        actor_id: ID of the actor doing the examining
+
+    Returns:
+        Actor if found, None otherwise
+    """
+    actor = accessor.get_actor(actor_id)
+    if not actor:
+        return None
+
+    # Handle self-reference using name_matches
+    # Parser returns canonical WordEntry with synonyms, so name_matches("self", "self") works
+    if name_matches(name, "self"):
+        return actor
+
+    # Search actors in same location
+    location = accessor.get_current_location(actor_id)
+    if not location:
+        return None
+
+    for other_actor in accessor.get_actors_in_location(location.id):
+        # Don't return self when searching by name
+        if other_actor.id == actor_id:
+            continue
+        if name_matches(name, other_actor.name):
+            return other_actor
+
+    return None
+
+
+def format_inventory(
+    accessor,
+    actor,
+    for_self: bool = True
+) -> Tuple[Optional[str], List[Dict[str, Any]]]:
+    """
+    Format an actor's inventory for display.
+
+    Args:
+        accessor: StateAccessor instance
+        actor: Actor whose inventory to format
+        for_self: If True, use "You are carrying"; if False, use "Carrying"
+
+    Returns:
+        Tuple of (message string or None if empty, list of serialized items)
+    """
+    if not actor.inventory:
+        return None, []
+
+    item_names = []
+    items_data = []
+    for item_id in actor.inventory:
+        item = accessor.get_item(item_id)
+        if item:
+            item_names.append(item.name)
+            items_data.append(serialize_for_handler_result(item))
+
+    if not item_names:
+        return None, []
+
+    prefix = "You are carrying" if for_self else "Carrying"
+    return f"{prefix}: {', '.join(item_names)}", items_data
 
 
 def name_matches(

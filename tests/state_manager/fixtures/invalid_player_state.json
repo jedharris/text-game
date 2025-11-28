@@ -16,7 +16,7 @@
   "actors": {
     "player": {
       "id": "player",
-      "name": "player",
+      "name": "Adventurer",
       "description": "The player character",
       "location": "loc_999",
       "inventory": ["item_999"]

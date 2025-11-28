@@ -25,7 +25,7 @@ class TestFileRename(unittest.TestCase):
         state = GameState(
             metadata=Metadata(title="Test"),
             locations=[Location(id="loc1", name="Room", description="A room")],
-            actors={"player": Actor(id="player", name="Player", description="You", location="loc1")}
+            actors={"player": Actor(id="player", name="Adventurer", description="You", location="loc1")}
         )
 
         handler = LLMProtocolHandler(state)

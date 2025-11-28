@@ -32,9 +32,10 @@ def create_test_state() -> GameState:
     )
 
     # Create player
+    # Note: player.name must not be "player" - that's a prohibited name
     player = Actor(
         id="player",
-        name="player",
+        name="Adventurer",
         description="The player character",
         location="location_room",
         inventory=[],

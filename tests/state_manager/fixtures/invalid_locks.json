@@ -49,7 +49,7 @@
   "actors": {
     "player": {
       "id": "player",
-      "name": "player",
+      "name": "Adventurer",
       "description": "",
       "location": "loc_1",
       "inventory": [],

@@ -6,13 +6,18 @@
 ## Handling problems
 - For problems or features that are small enough to handle without significant design discussion, after you have handled them, memorialize the original motivation (feature description or problem symptom) as a new github issue. Then in comments provide your analysis of the work required to handle the issue, and then the results of doing the work. If you encounter any significant unexpected problems, add comments after the first analysis comment to record the new analysis. 
 
+## Coding guidelines
+- NEVER add local heuristics for word matching or special vocabulary
+- ALWAYS rely on the merged vocabulary and WordEntry
+- This applies to testing as well as normal code
+
 ## Codebase exploration
 - Use `mcp__claude-context__search_code` as the first step when exploring unfamiliar parts of the codebase or answering conceptual questions
 - This finds relevant code chunks via semantic search, reducing the need to read entire files speculatively
 - Use traditional tools (Glob/Grep/Read) for specific lookups when exact file/function names are known
 - Re-index with `mcp__claude-context__index_codebase` if significant structural changes have been made
 
-## Role of game engine vs. supporting LLM  
+## Role of game engine vs. LLM  
 - in any LLM augmented game, the game engine should be responsible for all state management, including all state changes caused by user commands.
 - The LLM should never cause state changes, it should only narrate state changes.
 

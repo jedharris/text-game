@@ -98,7 +98,7 @@
   "actors": {
     "player": {
       "id": "player",
-      "name": "player",
+      "name": "Adventurer",
       "description": "",
       "location": "room1",
       "inventory": [],

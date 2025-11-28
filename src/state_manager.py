@@ -554,9 +554,12 @@ def _parse_actor(raw: Dict[str, Any], actor_id: str = None) -> Actor:
     # Use actor_id if provided (from dict key), otherwise require id in raw data
     effective_id = actor_id or raw['id']
 
+    # Default name: use provided name, or "Adventurer" for player, or ID for others
+    # "player" is a prohibited name, so we must use a different default
+    default_name = "Adventurer" if effective_id == "player" else effective_id
     return Actor(
         id=effective_id,
-        name=raw.get('name', effective_id),
+        name=raw.get('name', default_name),
         description=raw.get('description', ''),
         location=raw.get('location', ''),
         inventory=raw.get('inventory', []),
@@ -617,9 +620,10 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
             actors['player'] = _parse_actor(data['player'], actor_id='player')
         elif metadata.start_location:
             # Create default player state from metadata.start_location
+            # Note: name must not be "player" - that's a prohibited name
             actors['player'] = Actor(
                 id='player',
-                name='player',
+                name='Adventurer',
                 description='The player character',
                 location=metadata.start_location,
                 inventory=[],

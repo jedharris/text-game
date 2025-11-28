@@ -6,6 +6,10 @@ Does not validate behavior-specific properties.
 """
 from typing import Dict, List, Set, Any, TYPE_CHECKING
 
+# Prohibited actor names (case-insensitive)
+# These create ambiguity with self-reference or generic terms
+PROHIBITED_ACTOR_NAMES = {"player", "npc", "self", "me", "myself"}
+
 if TYPE_CHECKING:
     from src.state_manager import GameState
 
@@ -45,6 +49,7 @@ def validate_game_state(state: "GameState", loaded_modules: Set[str] = None) -> 
     _validate_metadata(state, id_registry, errors)
     _validate_player_state(state, id_registry, errors)
     _validate_container_cycles(state, errors)
+    _validate_actor_names(state, errors)
 
     # Validate behavior module references if modules provided
     if loaded_modules is not None:
@@ -339,3 +344,18 @@ def _validate_behavior_references(state: "GameState", loaded_modules: Set[str],
     for item in state.items:
         if item.is_door and hasattr(item, 'behaviors'):
             check_behaviors(item.id, "Door", item.behaviors)
+
+
+def _validate_actor_names(state: "GameState", errors: List[str]) -> None:
+    """Validate that actors don't have prohibited names.
+
+    Prohibited names (case-insensitive):
+    - "player", "npc": ambiguous in multiplayer and general contexts
+    - "self", "me", "myself": reserved for self-reference vocabulary
+    """
+    for actor_id, actor in state.actors.items():
+        if actor.name and actor.name.lower() in PROHIBITED_ACTOR_NAMES:
+            errors.append(
+                f"Actor '{actor_id}' has prohibited name '{actor.name}' "
+                f"(reserved words: {', '.join(sorted(PROHIBITED_ACTOR_NAMES))})"
+            )

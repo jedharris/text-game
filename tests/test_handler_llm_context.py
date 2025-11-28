@@ -112,7 +112,7 @@ def create_test_game_state():
         actors={
             "player": Actor(
                 id="player",
-                name="Player",
+                name="Adventurer",
                 description="The player.",
                 location="loc_room",
                 inventory=["item_key"]

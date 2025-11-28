@@ -28,7 +28,13 @@
       "Bash(llm-game:*)",
       "Bash(gh issue list:*)",
       "Bash(mkdir:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(for f in test_cleanup_file_rename.py test_combat_behaviors.py test_entity_behavior_invocation.py test_entity_unification.py test_handler_llm_context.py test_interaction_handlers.py test_observability.py test_protocol_behaviors.py test_put_handler.py)",
+      "Bash(do sed -i '' 's/name=\"\"Player\"\"/name=\"\"Adventurer\"\"/g; s/name=\"\"player\"\"/name=\"\"Adventurer\"\"/g' \"$f\")",
+      "Bash(find:*)",
+      "Bash(for f in /Users/jed/Development/text-game/tests/llm_interaction/fixtures/test_game_state.json /Users/jed/Development/text-game/tests/state_manager/fixtures/valid_world.json /Users/jed/Development/text-game/tests/state_manager/fixtures/invalid_locks.json /Users/jed/Development/text-game/tests/state_manager/fixtures/valid_world_canonical.json /Users/jed/Development/text-game/tests/state_manager/fixtures/invalid_player_state.json)",
+      "Bash(do sed -i '' 's/\"\"name\"\": \"\"player\"\"/\"\"name\"\": \"\"Adventurer\"\"/g' \"$f\")",
+      "Bash(echo:*)"
     ],
     "deny": [],
     "ask": []

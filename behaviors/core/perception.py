@@ -12,9 +12,12 @@ from utilities.utils import (
     find_door_with_adjective,
     find_exit_by_name,
     find_lock_by_context,
+    find_actor_by_name,
+    format_inventory,
     describe_location,
     gather_location_llm_context,
-    name_matches
+    name_matches,
+    is_observable
 )
 from utilities.entity_serializer import serialize_for_handler_result
 
@@ -43,7 +46,7 @@ vocabulary = {
             "object_required": True,
             "llm_context": {
                 "traits": ["reveals details", "non-destructive", "provides information"],
-                "valid_objects": ["items", "doors", "exits"]
+                "valid_objects": ["items", "doors", "exits", "locks", "actors"]
             }
         },
         {
@@ -300,6 +303,61 @@ def handle_examine(accessor, action):
                 message="You don't see any lock here."
             )
 
+    # Special case: redirect "examine player" to use "self"/"me"
+    # Check BEFORE actor search to ensure consistent behavior regardless of player.name
+    if name_matches(object_name, "player"):
+        return HandlerResult(
+            success=False,
+            message="To examine yourself, use 'examine self' or 'examine me'. To examine another player, use their name (e.g., 'examine Blake' or 'examine Ayomide')."
+        )
+
+    # Try to find an actor
+    target_actor = find_actor_by_name(accessor, object_name, actor_id)
+
+    if target_actor:
+        # Check observability (handles invisible actors)
+        visible, reason = is_observable(
+            target_actor, accessor, accessor.behavior_manager,
+            actor_id=actor_id, method="examine"
+        )
+        if visible:
+            message_parts = []
+            is_self = (target_actor.id == actor_id)
+
+            # Build description
+            if is_self:
+                # Self-examination
+                if target_actor.description:
+                    message_parts.append(target_actor.description)
+                else:
+                    message_parts.append("You examine yourself.")
+            else:
+                # Other actor examination
+                if target_actor.description:
+                    message_parts.append(f"{target_actor.name}: {target_actor.description}")
+                else:
+                    message_parts.append(f"You see {target_actor.name}.")
+
+            # Show inventory using shared helper
+            inv_message, inv_data = format_inventory(accessor, target_actor, for_self=is_self)
+            if inv_message:
+                message_parts.append(inv_message)
+
+            # Invoke actor behaviors (on_examine)
+            result = accessor.update(target_actor, {}, verb="examine", actor_id=actor_id)
+            if result.message:
+                message_parts.append(result.message)
+
+            # Use unified serializer for llm_context with trait randomization
+            data = serialize_for_handler_result(target_actor)
+
+            return HandlerResult(
+                success=True,
+                message="\n".join(message_parts),
+                data=data
+            )
+        # Invisible actor - fall through to "not found" message
+
     return HandlerResult(
         success=False,
         message=f"You don't see any {object_name} here."
@@ -333,30 +391,17 @@ def handle_inventory(accessor, action):
             message=f"INCONSISTENT STATE: Actor {actor_id} not found"
         )
 
-    # Get items in inventory
-    if not actor.inventory:
+    # Use shared format_inventory helper
+    message, items_data = format_inventory(accessor, actor, for_self=True)
+
+    if not message:
         return HandlerResult(
             success=True,
             message="You are carrying nothing."
         )
 
-    # Build list of item names and serialize items for llm_context
-    item_names = []
-    items_data = []
-    for item_id in actor.inventory:
-        item = accessor.get_item(item_id)
-        if item:
-            item_names.append(item.name)
-            items_data.append(serialize_for_handler_result(item))
-
-    if not item_names:
-        return HandlerResult(
-            success=True,
-            message="Your inventory is empty."
-        )
-
     return HandlerResult(
         success=True,
-        message=f"You are carrying: {', '.join(item_names)}",
+        message=message,
         data={"items": items_data}
     )

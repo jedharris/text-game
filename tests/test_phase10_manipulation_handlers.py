@@ -197,7 +197,8 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
         sword.location = "npc_guard"
 
         from behaviors.core.manipulation import handle_give
-        action = {"actor_id": "npc_guard", "object": "sword", "indirect_object": "player"}
+        # Use player's actual name ("Adventurer") not the ID ("player")
+        action = {"actor_id": "npc_guard", "object": "sword", "indirect_object": "Adventurer"}
         result = handle_give(accessor, action)
 
         self.assertTrue(result.success, f"NPC give failed: {result.message}")
