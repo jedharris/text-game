@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from migrate_to_v_0_01 import (
+from tools.migrations.migrate_to_v_0_01 import (
     detect_version,
     migrate_to_v_0_01,
     migrate_file,

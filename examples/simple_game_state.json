@@ -4,7 +4,8 @@
     "version": "1.0",
     "description": "A simple adventure game demonstrating the state manager.",
     "start_location": "loc_start",
-    "author": "Text Game Example"
+    "author": "Text Game Example",
+    "schema_version": "v_0.02"
   },
   "locations": [
     {
@@ -508,7 +509,8 @@
           "locked": "clicks firmly, resisting all force",
           "unlocked": "mechanism disengaged with a satisfying click"
         }
-      }
+      },
+      "name": "Treasure Lock"
     }
   ],
   "actors": {
