@@ -10,6 +10,7 @@ from src.state_accessor import HandlerResult
 from utilities.utils import (
     find_accessible_item,
     find_door_with_adjective,
+    find_exit_by_name,
     describe_location
 )
 
@@ -37,7 +38,8 @@ vocabulary = {
             "synonyms": ["inspect", "x"],
             "object_required": True,
             "llm_context": {
-                "traits": ["reveals details", "non-destructive", "provides information"]
+                "traits": ["reveals details", "non-destructive", "provides information"],
+                "valid_objects": ["items", "doors", "exits"]
             }
         },
         {
@@ -122,6 +124,8 @@ def handle_examine(accessor, action):
     actor_id = action.get("actor_id", "player")
     object_name = action.get("object")
     adjective = action.get("adjective")
+    # Direction can act as adjective (e.g., "examine east door")
+    direction = action.get("direction")
 
     if not object_name:
         return HandlerResult(
@@ -146,7 +150,9 @@ def handle_examine(accessor, action):
         )
 
     # Try to find an item first
-    item = find_accessible_item(accessor, object_name, actor_id, adjective)
+    # Use direction as adjective if no explicit adjective (e.g., "examine east door")
+    item_adjective = adjective or direction
+    item = find_accessible_item(accessor, object_name, actor_id, item_adjective)
 
     if item:
         message_parts = [f"{item.name}: {item.description}"]
@@ -198,7 +204,9 @@ def handle_examine(accessor, action):
         )
 
     # If no item found, try to find a door
-    door = find_door_with_adjective(accessor, object_name, adjective, location.id)
+    # Use direction as adjective if no explicit adjective provided (e.g., "examine east door")
+    door_adjective = adjective or direction
+    door = find_door_with_adjective(accessor, object_name, door_adjective, location.id)
 
     if door:
         # Include llm_context for doors too
@@ -210,6 +218,38 @@ def handle_examine(accessor, action):
             success=True,
             message=f"{door.description}",
             data=data if data else None
+        )
+
+    # If no door found, try to find an exit
+    # Use direction as adjective if no explicit adjective provided (e.g., "examine east exit")
+    exit_adjective = adjective or direction
+    exit_result = find_exit_by_name(accessor, object_name, actor_id, exit_adjective)
+
+    if exit_result:
+        exit_direction, exit_desc = exit_result
+
+        # Build description from available fields
+        if exit_desc.description:
+            desc = exit_desc.description
+        elif exit_desc.name:
+            desc = f"A {exit_desc.name} leads {exit_direction}."
+        else:
+            desc = f"A passage leads {exit_direction}."
+
+        # Include llm_context for exits
+        data = {
+            "exit_direction": exit_direction,
+            "exit_type": exit_desc.type
+        }
+        if exit_desc.llm_context:
+            data["llm_context"] = exit_desc.llm_context
+        if exit_desc.door_id:
+            data["door_id"] = exit_desc.door_id
+
+        return HandlerResult(
+            success=True,
+            message=desc,
+            data=data
         )
 
     return HandlerResult(

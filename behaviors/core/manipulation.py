@@ -11,7 +11,8 @@ from utilities.utils import (
     find_accessible_item,
     find_item_in_inventory,
     find_container_with_adjective,
-    find_item_in_container
+    find_item_in_container,
+    name_matches
 )
 
 
@@ -138,7 +139,7 @@ def handle_take(accessor, action):
         if not container:
             # Check if item exists but isn't a container
             for item in accessor.get_items_in_location(location.id):
-                if item.name.lower() == container_name.lower():
+                if name_matches(container_name, item.name):
                     return HandlerResult(
                         success=False,
                         message=f"The {item.name} is not a container."
@@ -385,7 +386,7 @@ def handle_give(accessor, action):
     # Search for recipient in current location
     recipient = None
     for other_actor_id, other_actor in accessor.game_state.actors.items():
-        if other_actor.location == location.id and other_actor.name.lower() == recipient_name.lower():
+        if other_actor.location == location.id and name_matches(recipient_name, other_actor.name):
             recipient = other_actor
             break
 
@@ -501,7 +502,7 @@ def handle_put(accessor, action):
     # Search for container
     container = None
     for i in accessor.game_state.items:
-        if i.name.lower() == container_name.lower() and i.location == location.id:
+        if name_matches(container_name, i.name) and i.location == location.id:
             container = i
             break
 

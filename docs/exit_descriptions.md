@@ -265,3 +265,36 @@ This is a small, purely additive change that:
 - Updates 1 test fixture
 
 Existing tests pass unchanged. Authors who don't want the additional descriptive capability simply don't add `llm_context` to their exits - the behavior is identical to current.
+
+## Implementation Summary
+
+**Completed:** All changes implemented and tested.
+
+### Code Changes
+- `src/state_manager.py`: Added `llm_context` property accessor to `ExitDescriptor` (lines 84-92)
+- `src/llm_protocol.py`: Updated `_query_location()` to include exit `llm_context` in response (lines 310-312)
+
+### Test Changes
+- `tests/state_manager/test_simplified_models.py`: Added `test_exit_descriptor_with_llm_context` and `test_exit_descriptor_llm_context_property_accessor`
+- `tests/llm_interaction/test_json_protocol.py`: Added `test_location_query_includes_exit_llm_context` and `test_location_query_omits_exit_llm_context_when_missing`
+
+### Example Content
+Added `llm_context` with 25 traits each to two exits in `examples/simple_game_state.json`:
+
+1. **Stairs up** (doorless exit from Long Hallway to Tower Top):
+   - Traits: spiral staircase carved from living rock, worn treads, iron handrail, moss, arrow slits, dripping water echo, lichen, spider webs, torch sconce holders, etc.
+   - Atmosphere: "vertical, ancient, slightly vertiginous"
+   - State variants for first visit, revisit, from tower, and carrying light
+
+2. **East archway** (door exit from Long Hallway to Treasure Room):
+   - Traits: grand archway, carved lintel, geometric patterns, runes of warding, gargoyle faces, prayer stones, brass fixtures, crystalline deposits, etc.
+   - Atmosphere: "imposing, mysterious, guarded"
+   - State variants for door locked/unlocked/open, first visit, and revisit
+
+3. **South exit** left undescribed to demonstrate backward compatibility
+
+### Test Results
+All 930 tests pass. The implementation is purely additive with no breaking changes.
+
+### GitHub Issue
+Closes #18 "Give exits descriptions"

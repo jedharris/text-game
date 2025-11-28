@@ -7,9 +7,64 @@ Functions in this module should be generic and reusable across different behavio
 IMPORTANT: All utility functions that operate on entities should accept an actor_id
 parameter and use it correctly. Never hardcode "player" - use the actor_id variable.
 """
-from typing import Optional, List, Tuple, Dict, Any
+from typing import Optional, List, Tuple, Dict, Any, Union
 
 from src.state_accessor import EventResult
+from src.word_entry import WordEntry
+
+
+def name_matches(
+    search_term: Union[WordEntry, str],
+    target_name: str,
+    match_in_phrase: bool = False
+) -> bool:
+    """
+    Check if search_term matches target_name, considering vocabulary synonyms.
+
+    This function provides uniform name matching across all entity finders,
+    using the vocabulary's synonym definitions to match player input against
+    entity names.
+
+    Args:
+        search_term: WordEntry (with synonyms) or plain string from player input
+        target_name: The entity's name field to match against
+        match_in_phrase: If True, also match if any search word appears
+                        as a complete word within target_name (for multi-word
+                        names like "spiral staircase")
+
+    Returns:
+        True if any form of search_term matches target_name
+
+    Examples:
+        >>> entry = WordEntry(word="stairs", synonyms=["staircase", "steps"])
+        >>> name_matches(entry, "stairs")  # Exact match
+        True
+        >>> name_matches(entry, "staircase")  # Synonym match
+        True
+        >>> name_matches(entry, "spiral staircase")  # No match without phrase
+        False
+        >>> name_matches(entry, "spiral staircase", match_in_phrase=True)
+        True  # "staircase" is a word in the phrase
+    """
+    # Extract all words to check (canonical + synonyms)
+    if isinstance(search_term, WordEntry):
+        match_words = [search_term.word] + search_term.synonyms
+    else:
+        match_words = [search_term]
+
+    target_lower = target_name.lower()
+    target_words = target_lower.split()
+
+    for word in match_words:
+        word_lower = word.lower()
+        # Exact match (entire name)
+        if target_lower == word_lower:
+            return True
+        # Word appears as complete word in multi-word name
+        if match_in_phrase and word_lower in target_words:
+            return True
+
+    return False
 
 
 def is_observable(
@@ -93,7 +148,9 @@ def _get_entity_states(entity) -> Dict[str, Any]:
     return {}
 
 
-def find_accessible_item(accessor, name: str, actor_id: str, adjective: Optional[str] = None):
+def find_accessible_item(
+    accessor, name: Union[WordEntry, str], actor_id: str, adjective: Optional[str] = None
+):
     """
     Find an item that is accessible to the actor, optionally filtered by adjective.
 
@@ -114,7 +171,7 @@ def find_accessible_item(accessor, name: str, actor_id: str, adjective: Optional
 
     Args:
         accessor: StateAccessor instance
-        name: Item name to search for
+        name: Item name to search for (WordEntry with synonyms or plain string)
         actor_id: ID of the actor looking for the item
         adjective: Optional adjective to filter by (or None/empty for first match)
 
@@ -130,7 +187,6 @@ def find_accessible_item(accessor, name: str, actor_id: str, adjective: Optional
     if not location:
         return None
 
-    name_lower = name.lower()
     has_adjective = adjective and adjective.strip()
 
     # Collect all accessible items matching name
@@ -140,13 +196,13 @@ def find_accessible_item(accessor, name: str, actor_id: str, adjective: Optional
     # This includes door items visible through exits and excludes hidden items
     for item in accessor.game_state.items:
         if _is_item_visible_in_location(item, location.id, accessor, actor_id):
-            if item.name.lower() == name_lower:
+            if name_matches(name, item.name):
                 matching_items.append(item)
 
     # Check inventory (inventory items use observability check)
     for item_id in actor.inventory:
         item = accessor.get_item(item_id)
-        if item and item.name.lower() == name_lower:
+        if item and name_matches(name, item.name):
             # Check observability even in inventory
             visible, _ = is_observable(
                 item, accessor, accessor.behavior_manager,
@@ -172,7 +228,7 @@ def find_accessible_item(accessor, name: str, actor_id: str, adjective: Optional
         if is_surface or is_open:
             # Get items inside this container (check observability)
             for item in accessor.game_state.items:
-                if item.location == container.id and item.name.lower() == name_lower:
+                if item.location == container.id and name_matches(name, item.name):
                     visible, _ = is_observable(
                         item, accessor, accessor.behavior_manager,
                         actor_id=actor_id, method="look"
@@ -201,7 +257,7 @@ def find_accessible_item(accessor, name: str, actor_id: str, adjective: Optional
     return None
 
 
-def find_item_in_inventory(accessor, name: str, actor_id: str):
+def find_item_in_inventory(accessor, name: Union[WordEntry, str], actor_id: str):
     """
     Find an item in the actor's inventory.
 
@@ -209,7 +265,7 @@ def find_item_in_inventory(accessor, name: str, actor_id: str):
 
     Args:
         accessor: StateAccessor instance
-        name: Item name to search for
+        name: Item name to search for (WordEntry with synonyms or plain string)
         actor_id: ID of the actor whose inventory to search
 
     Returns:
@@ -221,13 +277,13 @@ def find_item_in_inventory(accessor, name: str, actor_id: str):
 
     for item_id in actor.inventory:
         item = accessor.get_item(item_id)
-        if item and item.name.lower() == name.lower():
+        if item and name_matches(name, item.name):
             return item
 
     return None
 
 
-def find_container_by_name(accessor, name: str, location_id: str):
+def find_container_by_name(accessor, name: Union[WordEntry, str], location_id: str):
     """
     Find a container item in a location.
 
@@ -235,7 +291,7 @@ def find_container_by_name(accessor, name: str, location_id: str):
 
     Args:
         accessor: StateAccessor instance
-        name: Container name to search for
+        name: Container name to search for (WordEntry with synonyms or plain string)
         location_id: ID of the location to search in
 
     Returns:
@@ -244,7 +300,7 @@ def find_container_by_name(accessor, name: str, location_id: str):
     items = accessor.get_items_in_location(location_id)
 
     for item in items:
-        if item.name.lower() == name.lower():
+        if name_matches(name, item.name):
             # Check if it's a container
             if hasattr(item, 'properties') and isinstance(item.properties, dict):
                 if item.properties.get('is_container'):
@@ -429,7 +485,7 @@ def find_accessible_item_with_adjective(
 
 
 def find_container_with_adjective(
-    accessor, name: str, adjective: Optional[str], location_id: str
+    accessor, name: Union[WordEntry, str], adjective: Optional[str], location_id: str
 ):
     """
     Find a container item in a location, optionally filtered by adjective.
@@ -438,14 +494,13 @@ def find_container_with_adjective(
 
     Args:
         accessor: StateAccessor instance
-        name: Container name to search for
+        name: Container name to search for (WordEntry with synonyms or plain string)
         adjective: Optional adjective to filter by
         location_id: ID of the location to search in
 
     Returns:
         Item if found and is a container, None otherwise
     """
-    name_lower = name.lower()
     has_adjective = adjective and adjective.strip()
 
     # Collect all containers in location matching name
@@ -453,7 +508,7 @@ def find_container_with_adjective(
 
     items = accessor.get_items_in_location(location_id)
     for item in items:
-        if item.name.lower() != name_lower:
+        if not name_matches(name, item.name):
             continue
 
         # Check if it's a container
@@ -478,20 +533,21 @@ def find_container_with_adjective(
     return None
 
 
-def find_item_in_container(accessor, item_name: str, container_id: str, adjective: Optional[str] = None):
+def find_item_in_container(
+    accessor, item_name: Union[WordEntry, str], container_id: str, adjective: Optional[str] = None
+):
     """
     Find an item inside a specific container.
 
     Args:
         accessor: StateAccessor instance
-        item_name: Name of item to find
+        item_name: Name of item to find (WordEntry with synonyms or plain string)
         container_id: ID of the container to search in
         adjective: Optional adjective to filter items by
 
     Returns:
         Item if found in container, None otherwise
     """
-    name_lower = item_name.lower()
     has_adjective = adjective and adjective.strip()
 
     # Get items in this container
@@ -499,7 +555,7 @@ def find_item_in_container(accessor, item_name: str, container_id: str, adjectiv
 
     matching_items = []
     for item in items_in_container:
-        if item.name.lower() == name_lower:
+        if name_matches(item_name, item.name):
             matching_items.append(item)
 
     if not matching_items:
@@ -527,7 +583,7 @@ def _get_door_state(door):
 
 
 def find_door_with_adjective(
-    accessor, name: str, adjective: Optional[str], location_id: str,
+    accessor, name: Union[WordEntry, str], adjective: Optional[str], location_id: str,
     actor_id: Optional[str] = None, verb: Optional[str] = None
 ):
     """
@@ -543,7 +599,7 @@ def find_door_with_adjective(
 
     Args:
         accessor: StateAccessor instance
-        name: Door name to search for (often just "door")
+        name: Door name to search for (WordEntry with synonyms or plain string)
         adjective: Optional adjective to filter by (or None/empty for smart selection)
         location_id: ID of the location
         actor_id: Optional actor ID for key checking (defaults to "player")
@@ -552,7 +608,6 @@ def find_door_with_adjective(
     Returns:
         Door Item if found, None otherwise
     """
-    name_lower = name.lower()
     has_adjective = adjective and adjective.strip()
     actor_id = actor_id or "player"
 
@@ -566,7 +621,9 @@ def find_door_with_adjective(
         if not _is_item_visible_in_location(item, location_id, accessor, actor_id, verb or "look"):
             continue
         # Check if name matches - for door items, check name and description
-        if name_lower in item.name.lower() or name_lower in item.description.lower():
+        # Use match_in_phrase=True since door names/descriptions can be multi-word
+        if name_matches(name, item.name, match_in_phrase=True) or \
+           name_matches(name, item.description, match_in_phrase=True):
             matching_doors.append(item)
 
     # If no matches, return None
@@ -575,6 +632,26 @@ def find_door_with_adjective(
 
     # If adjective provided, filter by it
     if has_adjective:
+        adj_lower = adjective.lower().strip()
+
+        # Check if adjective is a direction (e.g., "north door", "east door")
+        direction_adj = DIRECTION_ABBREVIATIONS.get(adj_lower, adj_lower)
+        valid_directions = {"north", "south", "east", "west", "up", "down",
+                           "northeast", "northwest", "southeast", "southwest"}
+        if direction_adj in valid_directions:
+            # Find door via exit in that direction
+            location = accessor.get_location(location_id)
+            if location and direction_adj in location.exits:
+                exit_desc = location.exits[direction_adj]
+                if exit_desc.door_id:
+                    # Return the door if it's in matching_doors
+                    for door in matching_doors:
+                        if door.id == exit_desc.door_id:
+                            return door
+            # No door in that direction
+            return None
+
+        # Not a direction - check regular adjective matching
         for door in matching_doors:
             if _matches_adjective(adjective, door):
                 return door
@@ -810,3 +887,99 @@ def describe_location(accessor, location, actor_id: str) -> List[str]:
         message_parts.append(f"\nAlso here: {actor_names}")
 
     return message_parts
+
+
+# Standard direction words for exit lookup
+DIRECTION_WORDS = {
+    "north", "south", "east", "west", "up", "down",
+    "northeast", "northwest", "southeast", "southwest",
+    "n", "s", "e", "w", "u", "d", "ne", "nw", "se", "sw"
+}
+
+# Direction abbreviation mapping
+DIRECTION_ABBREVIATIONS = {
+    "n": "north", "s": "south", "e": "east", "w": "west",
+    "u": "up", "d": "down",
+    "ne": "northeast", "nw": "northwest", "se": "southeast", "sw": "southwest"
+}
+
+
+def find_exit_by_name(
+    accessor, name: Union[WordEntry, str], actor_id: str, adjective: Optional[str] = None
+) -> Optional[Tuple[str, Any]]:
+    """
+    Find an exit in the current location by name, direction, or adjective.
+
+    Search strategy (first match wins):
+    1. Exact direction match (north, up, etc.) or abbreviation (n, u, etc.)
+    2. Direction + "exit" (e.g., "north exit", "east exit")
+    3. Exit name field match using name_matches with synonyms
+       (e.g., "stairs" matches "spiral staircase" via synonym "staircase")
+
+    Hidden exits are excluded via observability check.
+
+    Args:
+        accessor: StateAccessor instance
+        name: Name to search for (WordEntry with synonyms, or plain string)
+        actor_id: ID of the actor looking for the exit
+        adjective: Optional adjective/direction to filter by
+
+    Returns:
+        Tuple of (direction, ExitDescriptor) if found, None otherwise
+    """
+    location = accessor.get_current_location(actor_id)
+    if not location:
+        return None
+
+    # Extract canonical word for direction/generic checks
+    if isinstance(name, WordEntry):
+        name_lower = name.word.lower().strip()
+    else:
+        name_lower = name.lower().strip()
+
+    # Get visible exits
+    visible_exits = accessor.get_visible_exits(location.id, actor_id)
+    if not visible_exits:
+        return None
+
+    # 1. Check for exact direction match
+    # Expand abbreviation if needed
+    direction_to_check = DIRECTION_ABBREVIATIONS.get(name_lower, name_lower)
+    if direction_to_check in visible_exits:
+        return (direction_to_check, visible_exits[direction_to_check])
+
+    # 2. Check for "direction + exit" pattern (e.g., "north exit", "east passage")
+    # Parser normalizes synonyms (passage, way, path, opening) to canonical "exit"
+    if name_lower == "exit" and adjective:
+        adj_lower = adjective.lower().strip()
+        adj_direction = DIRECTION_ABBREVIATIONS.get(adj_lower, adj_lower)
+        if adj_direction in visible_exits:
+            return (adj_direction, visible_exits[adj_direction])
+
+    # 2b. Generic "exit" with no adjective - if only one exit, return it
+    if name_lower == "exit" and not adjective:
+        if len(visible_exits) == 1:
+            direction = next(iter(visible_exits))
+            return (direction, visible_exits[direction])
+
+    # 3. Search by exit.name field using name_matches (handles synonyms)
+    for direction, exit_desc in visible_exits.items():
+        if exit_desc.name:
+            # Use match_in_phrase=True for multi-word exit names like "spiral staircase"
+            if name_matches(name, exit_desc.name, match_in_phrase=True):
+                return (direction, exit_desc)
+
+    # 4. If adjective provided, check for adjective + name combination
+    # This handles cases like "examine north exit" where adjective="north", name="exit"
+    if adjective:
+        # For adjective combinations, we need to match the full phrase
+        if isinstance(name, WordEntry):
+            canonical = name.word
+        else:
+            canonical = name
+        full_search = f"{adjective} {canonical}".lower()
+        for direction, exit_desc in visible_exits.items():
+            if exit_desc.name and full_search in exit_desc.name.lower():
+                return (direction, exit_desc)
+
+    return None

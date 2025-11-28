@@ -39,17 +39,23 @@ CUSTOM_BEHAVIORS_DIR = Path(__file__).parent / "behaviors"
 
 
 def parsed_to_json(result: ParsedCommand) -> dict:
-    """Convert ParsedCommand to JSON protocol format."""
+    """Convert ParsedCommand to JSON protocol format.
+
+    Passes WordEntry objects for object/indirect_object to preserve
+    vocabulary synonyms for entity matching.
+    """
     action = {"verb": result.verb.word}
 
     if result.direct_object:
-        action["object"] = result.direct_object.word
+        # Pass full WordEntry to preserve synonyms for entity matching
+        action["object"] = result.direct_object
     if result.direct_adjective:
         action["adjective"] = result.direct_adjective.word
     if result.direction:
         action["direction"] = result.direction.word
     if result.indirect_object:
-        action["indirect_object"] = result.indirect_object.word
+        # Pass full WordEntry to preserve synonyms for entity matching
+        action["indirect_object"] = result.indirect_object
     if result.indirect_adjective:
         action["indirect_adjective"] = result.indirect_adjective.word
 

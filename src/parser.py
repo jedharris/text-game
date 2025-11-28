@@ -248,6 +248,14 @@ class Parser:
 
         # Three word patterns
         if length == 3:
+            # VERB + DIRECTION + NOUN (direction as adjective, e.g., "examine east door")
+            if types == [WordType.VERB, WordType.DIRECTION, WordType.NOUN]:
+                return ParsedCommand(
+                    verb=entries[0],
+                    direction=entries[1],
+                    direct_object=entries[2]
+                )
+
             # VERB + ADJECTIVE + NOUN
             if types == [WordType.VERB, WordType.ADJECTIVE, WordType.NOUN]:
                 return ParsedCommand(

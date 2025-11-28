@@ -202,6 +202,49 @@ class TestSimplifiedLocation(unittest.TestCase):
 
         self.assertTrue(exit_desc.states.get("hidden"))
 
+    def test_exit_descriptor_with_llm_context(self):
+        """ExitDescriptor can have llm_context in properties."""
+        from src.state_manager import ExitDescriptor
+
+        exit_desc = ExitDescriptor(
+            type="open",
+            to="loc_2",
+            properties={
+                "llm_context": {
+                    "traits": ["worn steps", "cold draft"],
+                    "state_variants": {
+                        "first_visit": "Stairs lead upward."
+                    }
+                }
+            }
+        )
+
+        self.assertIsNotNone(exit_desc.llm_context)
+        self.assertIn("worn steps", exit_desc.llm_context["traits"])
+        self.assertEqual(
+            exit_desc.llm_context["state_variants"]["first_visit"],
+            "Stairs lead upward."
+        )
+
+    def test_exit_descriptor_llm_context_property_accessor(self):
+        """ExitDescriptor llm_context property provides convenient access."""
+        from src.state_manager import ExitDescriptor
+
+        exit_desc = ExitDescriptor(type="open", to="loc_2")
+
+        # Initially None
+        self.assertIsNone(exit_desc.llm_context)
+
+        # Can set via property
+        exit_desc.llm_context = {"traits": ["narrow passage"]}
+        self.assertEqual(exit_desc.llm_context["traits"], ["narrow passage"])
+
+        # Stored in properties
+        self.assertEqual(
+            exit_desc.properties["llm_context"]["traits"],
+            ["narrow passage"]
+        )
+
 
 class TestSimplifiedActor(unittest.TestCase):
     """Test simplified Actor with properties dict."""
@@ -248,19 +291,22 @@ class TestSimplifiedLock(unittest.TestCase):
     """Test simplified Lock with properties dict."""
 
     def test_lock_minimal_core(self):
-        """Lock has only id as core field."""
+        """Lock has id, name, description as core fields."""
         from src.state_manager import Lock
 
         lock = Lock(
             id="lock_1",
+            name="Iron Lock",
+            description="A sturdy lock",
             properties={
-                "opens_with": ["key_1"],
-                "description": "A sturdy lock"
+                "opens_with": ["key_1"]
             }
         )
 
         self.assertEqual(lock.id, "lock_1")
-        self.assertEqual(lock.properties["opens_with"], ["key_1"])
+        self.assertEqual(lock.name, "Iron Lock")
+        self.assertEqual(lock.description, "A sturdy lock")
+        self.assertEqual(lock.opens_with, ["key_1"])
 
     def test_lock_with_fail_message(self):
         """Lock can have failure message."""
@@ -275,6 +321,48 @@ class TestSimplifiedLock(unittest.TestCase):
         )
 
         self.assertEqual(lock.properties["fail_message"], "The lock won't budge.")
+
+    def test_lock_with_behaviors(self):
+        """Lock can have behaviors list."""
+        from src.state_manager import Lock
+
+        lock = Lock(
+            id="lock_1",
+            name="Enchanted Lock",
+            description="A lock requiring an incantation",
+            behaviors=["core:lock", "magic:incantation_lock"],
+            properties={"opens_with": ["key_1"]}
+        )
+
+        self.assertEqual(lock.behaviors, ["core:lock", "magic:incantation_lock"])
+        self.assertEqual(lock.name, "Enchanted Lock")
+
+    def test_lock_llm_context_accessor(self):
+        """Lock llm_context accessible via property."""
+        from src.state_manager import Lock
+
+        lock = Lock(
+            id="lock_1",
+            properties={
+                "opens_with": ["key_1"],
+                "llm_context": {
+                    "traits": ["ancient", "rusted"],
+                    "state_variants": {"locked": "The lock looks impenetrable."}
+                }
+            }
+        )
+
+        self.assertIsNotNone(lock.llm_context)
+        self.assertEqual(lock.llm_context["traits"], ["ancient", "rusted"])
+
+    def test_lock_llm_context_setter(self):
+        """Lock llm_context can be set via property."""
+        from src.state_manager import Lock
+
+        lock = Lock(id="lock_1", properties={"opens_with": ["key_1"]})
+        lock.llm_context = {"traits": ["shiny", "new"]}
+
+        self.assertEqual(lock.llm_context["traits"], ["shiny", "new"])
 
 
 class TestSimplifiedPlayerState(unittest.TestCase):
@@ -313,6 +401,42 @@ class TestSimplifiedPlayerState(unittest.TestCase):
 
         self.assertTrue(player.properties["flags"]["started"])
         self.assertEqual(player.properties["stats"]["health"], 100)
+
+    def test_actor_llm_context_accessor(self):
+        """Actor llm_context accessible via property."""
+        from src.state_manager import Actor
+
+        actor = Actor(
+            id="guard",
+            name="Guard",
+            description="A stern guard",
+            location="loc_1",
+            inventory=[],
+            properties={
+                "llm_context": {
+                    "traits": ["vigilant", "imposing"],
+                    "state_variants": {"alerted": "The guard is on high alert."}
+                }
+            }
+        )
+
+        self.assertIsNotNone(actor.llm_context)
+        self.assertEqual(actor.llm_context["traits"], ["vigilant", "imposing"])
+
+    def test_actor_llm_context_setter(self):
+        """Actor llm_context can be set via property."""
+        from src.state_manager import Actor
+
+        actor = Actor(
+            id="guard",
+            name="Guard",
+            description="A guard",
+            location="loc_1",
+            inventory=[]
+        )
+        actor.llm_context = {"traits": ["friendly"]}
+
+        self.assertEqual(actor.llm_context["traits"], ["friendly"])
 
 
 class TestGenericLoader(unittest.TestCase):
@@ -471,8 +595,10 @@ class TestGenericLoader(unittest.TestCase):
             self.assertEqual(exit_desc.type, "open")
             self.assertEqual(exit_desc.to, "loc_2")
 
-            # Properties
-            self.assertEqual(exit_desc.properties["description"], "A dark passage")
+            # Top-level description field
+            self.assertEqual(exit_desc.description, "A dark passage")
+
+            # Extra properties go to properties dict
             self.assertEqual(exit_desc.properties["conditions"], ["has_torch"])
         finally:
             os.unlink(temp_path)
@@ -603,7 +729,7 @@ class TestGenericLoader(unittest.TestCase):
             os.unlink(temp_path)
 
     def test_load_lock_properties(self):
-        """Lock opens_with and messages loaded into properties."""
+        """Lock name, description, behaviors loaded as core fields; opens_with and messages in properties."""
         from src.state_manager import load_game_state
 
         data = {
@@ -617,8 +743,10 @@ class TestGenericLoader(unittest.TestCase):
             "locks": [
                 {
                     "id": "lock_1",
+                    "name": "Iron Lock",
+                    "description": "A sturdy iron lock",
                     "opens_with": ["key_1"],
-                    "description": "A lock",
+                    "behaviors": ["core:lock"],
                     "fail_message": "Won't budge"
                 }
             ]
@@ -632,8 +760,14 @@ class TestGenericLoader(unittest.TestCase):
             state = load_game_state(temp_path)
             lock = state.locks[0]
 
+            # Core fields
             self.assertEqual(lock.id, "lock_1")
-            self.assertEqual(lock.properties["opens_with"], ["key_1"])
+            self.assertEqual(lock.name, "Iron Lock")
+            self.assertEqual(lock.description, "A sturdy iron lock")
+            self.assertEqual(lock.behaviors, ["core:lock"])
+
+            # Properties (accessed via accessor)
+            self.assertEqual(lock.opens_with, ["key_1"])
             self.assertEqual(lock.properties["fail_message"], "Won't budge")
         finally:
             os.unlink(temp_path)

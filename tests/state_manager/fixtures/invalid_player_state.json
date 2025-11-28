@@ -13,10 +13,13 @@
       "exits": {}
     }
   ],
-  "player_state": {
-    "location": "loc_999",
-    "inventory": ["item_999"],
-    "flags": {},
-    "stats": {}
+  "actors": {
+    "player": {
+      "id": "player",
+      "name": "player",
+      "description": "The player character",
+      "location": "loc_999",
+      "inventory": ["item_999"]
+    }
   }
 }

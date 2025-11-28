@@ -167,6 +167,47 @@ class TestPatternMatching3Words(unittest.TestCase):
         vocab_file = os.path.join(self.fixtures_path, 'test_vocabulary.json')
         self.parser = Parser(vocab_file)
 
+    def test_verb_direction_noun(self):
+        """
+        Test PM-100: Verb + direction + noun (direction as adjective).
+
+        Verify that "examine east door" parses with direction
+        modifying the noun (e.g., "east door", "north exit").
+        """
+        result = self.parser.parse_command("examine east door")
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.verb.word, "examine")
+        self.assertEqual(result.direction.word, "east")
+        self.assertEqual(result.direct_object.word, "door")
+        self.assertIsNone(result.direct_adjective)
+
+    def test_verb_direction_noun_exit(self):
+        """
+        Test PM-100b: Verb + direction + noun with 'exit'.
+
+        Verify that "examine north exit" parses correctly.
+        """
+        result = self.parser.parse_command("examine north exit")
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.verb.word, "examine")
+        self.assertEqual(result.direction.word, "north")
+        self.assertEqual(result.direct_object.word, "exit")
+
+    def test_verb_direction_synonym_noun(self):
+        """
+        Test PM-100c: Verb + direction synonym + noun.
+
+        Verify that "examine e door" parses correctly (e -> east).
+        """
+        result = self.parser.parse_command("examine e door")
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.verb.word, "examine")
+        self.assertEqual(result.direction.word, "east")
+        self.assertEqual(result.direct_object.word, "door")
+
     def test_verb_adjective_noun(self):
         """
         Test PM-101: Verb + adjective + noun.

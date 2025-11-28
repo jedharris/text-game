@@ -66,6 +66,8 @@ class ExitDescriptor:
     type: str  # "open" or "door"
     to: Optional[str] = None
     door_id: Optional[str] = None
+    name: Optional[str] = None  # User-facing name e.g. "spiral staircase", "stone archway"
+    description: Optional[str] = None  # Prose description for examine
     properties: Dict[str, Any] = field(default_factory=dict)
     behaviors: List[str] = field(default_factory=list)
 
@@ -80,6 +82,16 @@ class ExitDescriptor:
     def states(self, value: Dict[str, Any]) -> None:
         """Set states dict within properties."""
         self.properties["states"] = value
+
+    @property
+    def llm_context(self) -> Optional[Dict[str, Any]]:
+        """Access llm_context from properties."""
+        return self.properties.get("llm_context")
+
+    @llm_context.setter
+    def llm_context(self, value: Optional[Dict[str, Any]]) -> None:
+        """Set llm_context in properties."""
+        self.properties["llm_context"] = value
 
 
 @dataclass
@@ -220,11 +232,14 @@ class Item:
 class Lock:
     """Lock mechanism."""
     id: str
+    name: Optional[str] = None
+    description: Optional[str] = None
     properties: Dict[str, Any] = field(default_factory=dict)
+    behaviors: List[str] = field(default_factory=list)
 
     @property
     def opens_with(self) -> List[str]:
-        """Access opens_with from properties for backward compatibility."""
+        """Access opens_with from properties."""
         return self.properties.get("opens_with", [])
 
     @opens_with.setter
@@ -234,13 +249,23 @@ class Lock:
 
     @property
     def auto_unlock(self) -> bool:
-        """Access auto_unlock from properties for backward compatibility."""
+        """Access auto_unlock from properties."""
         return self.properties.get("auto_unlock", False)
 
     @auto_unlock.setter
     def auto_unlock(self, value: bool) -> None:
         """Set auto_unlock in properties."""
         self.properties["auto_unlock"] = value
+
+    @property
+    def llm_context(self) -> Optional[Dict[str, Any]]:
+        """Access llm_context from properties."""
+        return self.properties.get("llm_context")
+
+    @llm_context.setter
+    def llm_context(self, value: Optional[Dict[str, Any]]) -> None:
+        """Set llm_context in properties."""
+        self.properties["llm_context"] = value
 
 
 @dataclass
@@ -289,6 +314,16 @@ class Actor:
     def states(self, value: Dict[str, Any]) -> None:
         """Set states dict within properties."""
         self.properties["states"] = value
+
+    @property
+    def llm_context(self) -> Optional[Dict[str, Any]]:
+        """Access llm_context from properties."""
+        return self.properties.get("llm_context")
+
+    @llm_context.setter
+    def llm_context(self, value: Optional[Dict[str, Any]]) -> None:
+        """Set llm_context in properties."""
+        self.properties["llm_context"] = value
 
 
 @dataclass
@@ -405,12 +440,14 @@ class GameState:
 # Parsers
 def _parse_exit(direction: str, raw: Dict[str, Any]) -> ExitDescriptor:
     """Parse exit descriptor from JSON dict."""
-    core_fields = {'type', 'to', 'door_id', 'behaviors'}
+    core_fields = {'type', 'to', 'door_id', 'name', 'description', 'behaviors'}
 
     return ExitDescriptor(
         type=raw.get('type', 'open'),
         to=raw.get('to'),
         door_id=raw.get('door_id'),
+        name=raw.get('name'),
+        description=raw.get('description'),
         properties={k: v for k, v in raw.items() if k not in core_fields},
         behaviors=raw.get('behaviors', [])
     )
@@ -482,31 +519,37 @@ def _parse_item(raw: Dict[str, Any]) -> Item:
 
 def _parse_lock(raw: Dict[str, Any]) -> Lock:
     """Parse lock from JSON dict."""
-    core_fields = {'id'}
+    core_fields = {'id', 'name', 'description', 'properties', 'behaviors'}
 
     return Lock(
         id=raw['id'],
-        properties=_parse_properties(raw, core_fields)
+        name=raw.get('name'),
+        description=raw.get('description'),
+        properties=_parse_properties(raw, core_fields),
+        behaviors=raw.get('behaviors', [])
     )
 
 
 def _parse_actor(raw: Dict[str, Any], actor_id: str = None) -> Actor:
-    """Parse Actor from JSON dict."""
+    """Parse Actor from JSON dict.
+
+    Args:
+        raw: Actor data from JSON
+        actor_id: Optional ID override (used when parsing from actors dict where key is the ID)
+    """
     core_fields = {'id', 'name', 'description', 'location', 'inventory', 'behaviors'}
 
-    # Handle backward compatibility - old saves may have player_state without id/name/description
-    if 'id' not in raw and actor_id:
-        raw = dict(raw)  # Make a copy
-        raw['id'] = actor_id
+    # Use actor_id if provided (from dict key), otherwise require id in raw data
+    effective_id = actor_id or raw['id']
 
     return Actor(
-        id=raw.get('id', actor_id or 'unknown'),
-        name=raw.get('name', raw.get('id', 'unknown')),
+        id=effective_id,
+        name=raw.get('name', effective_id),
         description=raw.get('description', ''),
         location=raw.get('location', ''),
         inventory=raw.get('inventory', []),
         properties=_parse_properties(raw, core_fields),
-        behaviors=raw.get('behaviors', [])  # Keep as-is (supports both dict and list)
+        behaviors=raw.get('behaviors', [])
     )
 
 
@@ -593,90 +636,73 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
 
 
 # Serializers
-def _serialize_exit(exit_desc: ExitDescriptor) -> Dict[str, Any]:
-    """Serialize exit descriptor to dict."""
-    result = {'type': exit_desc.type}
+def _serialize_entity(
+    entity,
+    required_fields: List[str],
+    optional_fields: List[str] = None
+) -> Dict[str, Any]:
+    """Generic entity serializer.
 
-    if exit_desc.to:
-        result['to'] = exit_desc.to
-    if exit_desc.door_id:
-        result['door_id'] = exit_desc.door_id
-    if exit_desc.behaviors:
-        result['behaviors'] = exit_desc.behaviors
+    Args:
+        entity: Any dataclass with properties and behaviors attributes
+        required_fields: Fields to always include (e.g., ['id', 'name', 'description'])
+        optional_fields: Fields to include only if truthy (e.g., ['name', 'description'] for Lock)
 
-    # Merge properties (includes states if set)
-    result.update(exit_desc.properties)
+    Returns:
+        Dict with fields, merged properties, and behaviors (if present)
+    """
+    result = {}
+
+    # Add required fields
+    for field in required_fields:
+        result[field] = getattr(entity, field)
+
+    # Add optional fields only if they have values
+    for field in (optional_fields or []):
+        value = getattr(entity, field, None)
+        if value:
+            result[field] = value
+
+    # Merge properties
+    result.update(entity.properties)
+
+    # Add behaviors if present
+    if entity.behaviors:
+        result['behaviors'] = entity.behaviors
 
     return result
 
 
+def _serialize_exit(exit_desc: ExitDescriptor) -> Dict[str, Any]:
+    """Serialize exit descriptor to dict."""
+    return _serialize_entity(
+        exit_desc,
+        required_fields=['type'],
+        optional_fields=['to', 'door_id', 'name', 'description']
+    )
+
+
 def _serialize_location(loc: Location) -> Dict[str, Any]:
     """Serialize location to dict."""
-    result = {
-        'id': loc.id,
-        'name': loc.name,
-        'description': loc.description,
-        'exits': {d: _serialize_exit(e) for d, e in loc.exits.items()},
-        'items': loc.items
-    }
-
-    # Merge properties
-    result.update(loc.properties)
-
-    # Add behaviors if present
-    if loc.behaviors:
-        result['behaviors'] = loc.behaviors
-
+    result = _serialize_entity(loc, required_fields=['id', 'name', 'description'])
+    result['exits'] = {d: _serialize_exit(e) for d, e in loc.exits.items()}
+    result['items'] = loc.items
     return result
 
 
 def _serialize_item(item: Item) -> Dict[str, Any]:
     """Serialize item to dict."""
-    result = {
-        'id': item.id,
-        'name': item.name,
-        'description': item.description,
-        'location': item.location
-    }
-
-    # Merge properties
-    result.update(item.properties)
-
-    # Add behaviors if present
-    if item.behaviors:
-        result['behaviors'] = item.behaviors
-
-    return result
+    return _serialize_entity(item, required_fields=['id', 'name', 'description', 'location'])
 
 
 def _serialize_lock(lock: Lock) -> Dict[str, Any]:
     """Serialize lock to dict."""
-    result = {'id': lock.id}
-
-    # Merge properties
-    result.update(lock.properties)
-
-    return result
+    return _serialize_entity(lock, required_fields=['id'], optional_fields=['name', 'description'])
 
 
 def _serialize_actor(actor: Actor) -> Dict[str, Any]:
     """Serialize Actor to dict."""
-    result = {
-        'id': actor.id,
-        'name': actor.name,
-        'description': actor.description,
-        'location': actor.location,
-        'inventory': actor.inventory
-    }
-
-    # Merge properties
-    result.update(actor.properties)
-
-    # Add behaviors if present
-    if actor.behaviors:
-        result['behaviors'] = actor.behaviors
-
-    return result
+    return _serialize_entity(actor, required_fields=['id', 'name', 'description', 'location', 'inventory'])
 
 
 def _serialize_metadata(metadata: Metadata) -> Dict[str, Any]:

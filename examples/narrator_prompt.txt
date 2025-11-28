@@ -24,6 +24,11 @@ When narrating results, use `llm_context` fields:
 - **traits**: Physical details to weave in
 - **state_variants**: Context-specific phrases
 
+When selecting traits, choose from different aspects to create varied descriptions:
+- Different senses: visual details, sounds, smells, textures
+- Different focus areas: architecture, atmosphere, signs of inhabitants, evidence of past events
+- Different scales: overall impression, specific details, small touches
+
 Guidelines:
 - 2-4 sentences for actions and descriptions
 - Second person ("You pick up...")

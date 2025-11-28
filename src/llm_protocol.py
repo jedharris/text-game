@@ -6,6 +6,7 @@ Processes commands and queries, returning structured JSON results.
 """
 
 import json
+import random
 from typing import Any, Dict, List, Optional
 
 from .state_manager import GameState
@@ -307,6 +308,9 @@ class LLMProtocolHandler:
                 }
                 if exit_desc.door_id:
                     exits[direction]["door_id"] = exit_desc.door_id
+                # Include llm_context if present (with randomized traits)
+                if exit_desc.llm_context:
+                    self._add_llm_context(exits[direction], {"llm_context": exit_desc.llm_context})
             data["exits"] = exits
 
         if "actors" in include or not include:
@@ -585,6 +589,27 @@ class LLMProtocolHandler:
                 return door
         return doors[0]
 
+    def _add_llm_context(self, result: Dict, properties: Dict) -> None:
+        """Add llm_context to result dict, randomizing traits for narration variety.
+
+        Shuffles the traits list so the narrator LLM sees them in different order
+        each time, encouraging more diverse trait selection in narration.
+        """
+        llm_context = properties.get('llm_context')
+        if not llm_context:
+            return
+
+        # Make a copy to avoid mutating original
+        context_copy = dict(llm_context)
+
+        # Shuffle traits if present
+        if 'traits' in context_copy and isinstance(context_copy['traits'], list):
+            traits_copy = list(context_copy['traits'])
+            random.shuffle(traits_copy)
+            context_copy['traits'] = traits_copy
+
+        result['llm_context'] = context_copy
+
     def _entity_to_dict(self, item) -> Dict:
         """Convert item to dict with llm_context."""
         result = {
@@ -594,9 +619,7 @@ class LLMProtocolHandler:
             "description": item.description
         }
 
-        # Add llm_context if available (stored in properties)
-        if item.properties.get('llm_context'):
-            result["llm_context"] = item.properties['llm_context']
+        self._add_llm_context(result, item.properties)
 
         # Add lit state if present (in states dict within properties)
         states = item.properties.get('states', {})
@@ -636,10 +659,7 @@ class LLMProtocolHandler:
                        "")
         result["name"] = f"{adjective} door" if adjective else "door"
 
-        # Add llm_context if available
-        if door.properties.get('llm_context'):
-            result["llm_context"] = door.properties['llm_context']
-
+        self._add_llm_context(result, door.properties)
         return result
 
     def _location_to_dict(self, loc) -> Dict:
@@ -649,11 +669,7 @@ class LLMProtocolHandler:
             "name": loc.name,
             "description": loc.description
         }
-
-        # Add llm_context if available
-        if loc.properties.get('llm_context'):
-            result["llm_context"] = loc.properties['llm_context']
-
+        self._add_llm_context(result, loc.properties)
         return result
 
     def _actor_to_dict(self, actor) -> Dict:
@@ -663,11 +679,7 @@ class LLMProtocolHandler:
             "name": actor.name,
             "description": actor.description
         }
-
-        # Add llm_context if stored in properties
-        if actor.properties.get('llm_context'):
-            result["llm_context"] = actor.properties['llm_context']
-
+        self._add_llm_context(result, actor.properties)
         return result
 
 

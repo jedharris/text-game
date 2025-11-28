@@ -7,7 +7,7 @@ from typing import Dict, Any
 
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
-from utilities.utils import find_accessible_item
+from utilities.utils import find_accessible_item, name_matches
 
 
 # Vocabulary extension - adds attack verb
@@ -80,7 +80,7 @@ def handle_attack(accessor, action):
     target_actor = None
     for actor in accessor.game_state.actors.values():
         if actor.id != actor_id and actor.location == location.id:
-            if actor.name.lower() == target_name.lower():
+            if name_matches(target_name, actor.name):
                 target_actor = actor
                 break
 

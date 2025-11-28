@@ -153,16 +153,16 @@ class TestCommandsStillWork(unittest.TestCase):
             "action": {"verb": "go", "direction": "north"}
         })
 
-        # Close the wooden door first so we can open it
+        # Close the wooden door first so we can open it (use adjective + object)
         self.handler.handle_command({
             "type": "command",
-            "action": {"verb": "close", "object": "wooden door"}
+            "action": {"verb": "close", "object": "door", "adjective": "wooden"}
         })
 
-        # Now open it
+        # Now open it (use adjective + object)
         result = self.handler.handle_command({
             "type": "command",
-            "action": {"verb": "open", "object": "wooden door"}
+            "action": {"verb": "open", "object": "door", "adjective": "wooden"}
         })
         self.assertTrue(result.get("success"))
         self.assertEqual(result.get("action"), "open")
@@ -175,10 +175,10 @@ class TestCommandsStillWork(unittest.TestCase):
             "action": {"verb": "go", "direction": "north"}
         })
 
-        # Close the wooden door
+        # Close the wooden door (use adjective + object)
         result = self.handler.handle_command({
             "type": "command",
-            "action": {"verb": "close", "object": "wooden door"}
+            "action": {"verb": "close", "object": "door", "adjective": "wooden"}
         })
         self.assertTrue(result.get("success"))
         self.assertEqual(result.get("action"), "close")
@@ -195,10 +195,10 @@ class TestCommandsStillWork(unittest.TestCase):
             "action": {"verb": "take", "object": "key"}
         })
 
-        # Unlock the treasure door
+        # Unlock the treasure door (use adjective + object)
         result = self.handler.handle_command({
             "type": "command",
-            "action": {"verb": "unlock", "object": "iron door"}
+            "action": {"verb": "unlock", "object": "door", "adjective": "iron"}
         })
         self.assertTrue(result.get("success"))
         self.assertEqual(result.get("action"), "unlock")

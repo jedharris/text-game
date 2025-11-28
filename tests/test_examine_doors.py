@@ -155,6 +155,93 @@ class TestExamineDoor(unittest.TestCase):
         self.assertIn("ornament", result.message.lower())
 
 
+class TestExamineDoorWithDirectionAdjective(unittest.TestCase):
+    """Test examining doors using direction as adjective.
+
+    Tests the pattern "examine <direction> door" where the direction
+    acts as an adjective to select the specific door.
+    """
+
+    def setUp(self):
+        """Set up test state with doors."""
+        self.state = create_test_state()
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.state, self.behavior_manager)
+
+        # Get player's location
+        player = self.state.actors["player"]
+        location_id = player.location
+
+        # Add destination rooms
+        other_room = Location(
+            id="other_room",
+            name="Other Room",
+            description="Another room.",
+            exits={"south": ExitDescriptor(type="door", to=location_id, door_id="door_wooden")}
+        )
+        another_room = Location(
+            id="another_room",
+            name="Another Room",
+            description="Yet another room.",
+            exits={"west": ExitDescriptor(type="door", to=location_id, door_id="door_iron")}
+        )
+        self.state.locations.append(other_room)
+        self.state.locations.append(another_room)
+
+        # Add exits from player's current location
+        room = self.accessor.get_location(location_id)
+        room.exits["north"] = ExitDescriptor(type="door", to="other_room", door_id="door_wooden")
+        room.exits["east"] = ExitDescriptor(type="door", to="another_room", door_id="door_iron")
+
+        # Add door items
+        wooden_door = Item(
+            id="door_wooden",
+            name="door",
+            description="A simple wooden door with iron hinges.",
+            location=f"exit:{location_id}:north",
+            properties={"door": {"open": False, "locked": False}}
+        )
+        iron_door = Item(
+            id="door_iron",
+            name="door",
+            description="A heavy iron door with a sturdy lock.",
+            location=f"exit:{location_id}:east",
+            properties={"door": {"open": False, "locked": True}}
+        )
+        self.state.items.append(wooden_door)
+        self.state.items.append(iron_door)
+
+    def test_examine_north_door(self):
+        """Test 'examine north door' finds the north door."""
+        from behaviors.core.perception import handle_examine
+
+        action = {"actor_id": "player", "object": "door", "direction": "north"}
+        result = handle_examine(self.accessor, action)
+
+        self.assertTrue(result.success)
+        self.assertIn("wooden", result.message.lower())
+
+    def test_examine_east_door(self):
+        """Test 'examine east door' finds the east door."""
+        from behaviors.core.perception import handle_examine
+
+        action = {"actor_id": "player", "object": "door", "direction": "east"}
+        result = handle_examine(self.accessor, action)
+
+        self.assertTrue(result.success)
+        self.assertIn("iron", result.message.lower())
+
+    def test_examine_nonexistent_direction_door(self):
+        """Test 'examine west door' fails when no west door exists."""
+        from behaviors.core.perception import handle_examine
+
+        action = {"actor_id": "player", "object": "door", "direction": "west"}
+        result = handle_examine(self.accessor, action)
+
+        self.assertFalse(result.success)
+        self.assertIn("don't see", result.message.lower())
+
+
 class TestExamineDoorIntegration(unittest.TestCase):
     """Integration tests using JSONProtocolHandler."""
 

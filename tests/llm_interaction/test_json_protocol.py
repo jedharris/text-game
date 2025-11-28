@@ -964,18 +964,18 @@ class TestCommandMessages(unittest.TestCase):
         # Give player the key
         self.state.actors["player"].inventory.append("item_key")
 
-        # First unlock the door
+        # First unlock the door (use adjective + object as parser would produce)
         unlock_msg = {
             "type": "command",
-            "action": {"verb": "unlock", "object": "iron door"}
+            "action": {"verb": "unlock", "object": "door", "adjective": "iron"}
         }
         unlock_result = self.handler.handle_message(unlock_msg)
         self.assertTrue(unlock_result["success"])
 
-        # Now open the door
+        # Now open the door (use adjective + object as parser would produce)
         message = {
             "type": "command",
-            "action": {"verb": "open", "object": "iron door"}
+            "action": {"verb": "open", "object": "door", "adjective": "iron"}
         }
         result = self.handler.handle_message(message)
 
@@ -995,10 +995,10 @@ class TestCommandMessages(unittest.TestCase):
                 item.properties["door"]["open"] = False
                 break
 
-        # Use "iron door" to specify the locked door
+        # Use adjective + object as parser would produce
         message = {
             "type": "command",
-            "action": {"verb": "open", "object": "iron door"}
+            "action": {"verb": "open", "object": "door", "adjective": "iron"}
         }
 
         result = self.handler.handle_message(message)
@@ -1008,10 +1008,10 @@ class TestCommandMessages(unittest.TestCase):
 
     def test_open_already_open_door(self):
         """Test opening already open door."""
-        # Wooden door starts open
+        # Wooden door starts open (use adjective + object as parser would produce)
         message = {
             "type": "command",
-            "action": {"verb": "open", "object": "wooden door"}
+            "action": {"verb": "open", "object": "door", "adjective": "wooden"}
         }
 
         result = self.handler.handle_message(message)
@@ -1067,10 +1067,10 @@ class TestCommandMessages(unittest.TestCase):
         self.state.actors["player"].location = "loc_hallway"
         self.state.actors["player"].inventory.append("item_key")
 
-        # Use "iron door" to specify the locked door
+        # Use adjective "iron" and object "door" (as parser would produce)
         message = {
             "type": "command",
-            "action": {"verb": "unlock", "object": "iron door"}
+            "action": {"verb": "unlock", "object": "door", "adjective": "iron"}
         }
 
         result = self.handler.handle_message(message)
@@ -1087,10 +1087,10 @@ class TestCommandMessages(unittest.TestCase):
         """Test unlocking door without key."""
         self.state.actors["player"].location = "loc_hallway"
 
-        # Use "iron door" to specify the locked door
+        # Use adjective "iron" and object "door" (as parser would produce)
         message = {
             "type": "command",
-            "action": {"verb": "unlock", "object": "iron door"}
+            "action": {"verb": "unlock", "object": "door", "adjective": "iron"}
         }
 
         result = self.handler.handle_message(message)
@@ -1297,6 +1297,54 @@ class TestQueryMessages(unittest.TestCase):
 
         self.assertEqual(result["type"], "error")
         self.assertIn("not found", result["message"].lower())
+
+    def test_location_query_includes_exit_llm_context(self):
+        """Location query includes llm_context for exits that have it."""
+        # Add llm_context to an exit
+        loc = self.state.get_location("loc_hallway")
+        loc.exits["up"].llm_context = {
+            "traits": ["spiral staircase", "worn stone steps"],
+            "state_variants": {
+                "first_visit": "A winding stair leads upward."
+            }
+        }
+
+        self.state.actors["player"].location = "loc_hallway"
+
+        message = {
+            "type": "query",
+            "query_type": "location",
+            "include": ["exits"]
+        }
+
+        result = self.handler.handle_message(message)
+
+        self.assertEqual(result["type"], "query_response")
+        exits = result["data"]["exits"]
+        self.assertIn("up", exits)
+        self.assertIn("llm_context", exits["up"])
+        self.assertIn("spiral staircase", exits["up"]["llm_context"]["traits"])
+
+    def test_location_query_omits_exit_llm_context_when_missing(self):
+        """Location query omits llm_context for exits without it."""
+        # Ensure exit has no llm_context
+        loc = self.state.get_location("loc_start")
+        self.assertIsNone(loc.exits["north"].llm_context)
+
+        self.state.actors["player"].location = "loc_start"
+
+        message = {
+            "type": "query",
+            "query_type": "location",
+            "include": ["exits"]
+        }
+
+        result = self.handler.handle_message(message)
+
+        self.assertEqual(result["type"], "query_response")
+        exits = result["data"]["exits"]
+        self.assertIn("north", exits)
+        self.assertNotIn("llm_context", exits["north"])
 
 
 class TestVocabularyQueryProtocol(unittest.TestCase):
@@ -2010,6 +2058,134 @@ class TestLightSourceFunctionality(unittest.TestCase):
                 break
 
         self.assertFalse(sword.states.get('lit', False))
+
+
+class TestTraitRandomization(unittest.TestCase):
+    """Test trait randomization for narration variety."""
+
+    def setUp(self):
+        """Load test game state."""
+        fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
+        self.state = load_game_state(str(fixtures_path))
+        self.handler = JSONProtocolHandler(self.state)
+
+    def test_traits_are_shuffled(self):
+        """Verify traits list is shuffled (not always in original order)."""
+        # Add llm_context with many traits to a location
+        loc = self.state.get_location("loc_start")
+        original_traits = [f"trait_{i}" for i in range(20)]
+        loc.properties["llm_context"] = {"traits": original_traits.copy()}
+
+        # Run multiple times and check if at least one shuffle differs
+        different_order_found = False
+        for _ in range(10):
+            result = self.handler._location_to_dict(loc)
+            result_traits = result["llm_context"]["traits"]
+            if result_traits != original_traits:
+                different_order_found = True
+                break
+
+        self.assertTrue(different_order_found,
+            "Traits should be shuffled at least once in 10 attempts")
+
+    def test_original_traits_not_mutated(self):
+        """Verify original entity traits are not modified."""
+        loc = self.state.get_location("loc_start")
+        original_traits = ["trait_a", "trait_b", "trait_c", "trait_d", "trait_e"]
+        loc.properties["llm_context"] = {"traits": original_traits.copy()}
+        original_copy = original_traits.copy()
+
+        # Call multiple times
+        for _ in range(5):
+            self.handler._location_to_dict(loc)
+
+        # Original traits should be unchanged
+        self.assertEqual(loc.properties["llm_context"]["traits"], original_copy)
+
+    def test_state_variants_preserved(self):
+        """Verify state_variants are included unchanged."""
+        loc = self.state.get_location("loc_start")
+        state_variants = {
+            "first_visit": "Welcome to the room.",
+            "revisit": "You're back again."
+        }
+        loc.properties["llm_context"] = {
+            "traits": ["trait1", "trait2"],
+            "state_variants": state_variants.copy()
+        }
+
+        result = self.handler._location_to_dict(loc)
+
+        self.assertEqual(result["llm_context"]["state_variants"], state_variants)
+
+    def test_no_llm_context_handled(self):
+        """Verify entities without llm_context work correctly."""
+        loc = self.state.get_location("loc_start")
+        loc.properties.pop("llm_context", None)
+
+        result = self.handler._location_to_dict(loc)
+
+        self.assertNotIn("llm_context", result)
+
+    def test_empty_traits_handled(self):
+        """Verify empty traits list is handled correctly."""
+        loc = self.state.get_location("loc_start")
+        loc.properties["llm_context"] = {"traits": []}
+
+        result = self.handler._location_to_dict(loc)
+
+        self.assertEqual(result["llm_context"]["traits"], [])
+
+    def test_llm_context_without_traits_preserved(self):
+        """Verify llm_context without traits key is preserved."""
+        loc = self.state.get_location("loc_start")
+        loc.properties["llm_context"] = {
+            "state_variants": {"default": "A room."}
+        }
+
+        result = self.handler._location_to_dict(loc)
+
+        self.assertIn("llm_context", result)
+        self.assertIn("state_variants", result["llm_context"])
+        self.assertNotIn("traits", result["llm_context"])
+
+    def test_exit_traits_randomized(self):
+        """Verify exit llm_context traits are also randomized."""
+        loc = self.state.get_location("loc_hallway")
+        original_traits = [f"exit_trait_{i}" for i in range(15)]
+        loc.exits["up"].llm_context = {"traits": original_traits.copy()}
+
+        self.state.actors["player"].location = "loc_hallway"
+
+        message = {
+            "type": "query",
+            "query_type": "location",
+            "include": ["exits"]
+        }
+
+        # Run multiple times to detect shuffling
+        different_order_found = False
+        for _ in range(10):
+            result = self.handler.handle_message(message)
+            exit_traits = result["data"]["exits"]["up"]["llm_context"]["traits"]
+            if exit_traits != original_traits:
+                different_order_found = True
+                break
+
+        self.assertTrue(different_order_found,
+            "Exit traits should be shuffled at least once in 10 attempts")
+
+    def test_all_traits_present_after_shuffle(self):
+        """Verify shuffling preserves all traits (no loss)."""
+        loc = self.state.get_location("loc_start")
+        original_traits = ["alpha", "beta", "gamma", "delta", "epsilon"]
+        loc.properties["llm_context"] = {"traits": original_traits.copy()}
+
+        result = self.handler._location_to_dict(loc)
+        result_traits = result["llm_context"]["traits"]
+
+        self.assertEqual(sorted(result_traits), sorted(original_traits))
+        self.assertEqual(len(result_traits), len(original_traits))
 
 
 if __name__ == "__main__":
