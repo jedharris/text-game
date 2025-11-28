@@ -242,82 +242,26 @@ class LLMProtocolHandler:
     def _query_location(self, message: Dict) -> Dict:
         """Query current location.
 
-        Uses gather_location_contents utility for unified item/actor gathering.
+        Uses serialize_location_for_llm for unified serialization.
         """
-        from utilities.utils import gather_location_contents
+        from utilities.location_serializer import serialize_location_for_llm
         from src.state_accessor import StateAccessor
 
         loc = self._get_current_location()
         include = message.get("include", [])
         actor_id = message.get("actor_id", "player")
 
-        data = {
-            "location": self._location_to_dict(loc)
-        }
-
-        # Use unified utility for gathering location contents
         accessor = StateAccessor(self.state, self.behavior_manager)
-        contents = gather_location_contents(accessor, loc.id, actor_id)
+        full_data = serialize_location_for_llm(accessor, loc, actor_id)
 
-        if "items" in include or not include:
-            items = []
-
-            # Items directly in location
-            for item in contents["items"]:
-                items.append(self._entity_to_dict(item))
-
-            # Items on surfaces - add with on_surface marker
-            for container_name, container_items in contents["surface_items"].items():
-                for item in container_items:
-                    item_dict = self._entity_to_dict(item)
-                    item_dict["on_surface"] = container_name
-                    items.append(item_dict)
-
-            # Items in open containers - add with in_container marker
-            for container_name, container_items in contents["open_container_items"].items():
-                for item in container_items:
-                    item_dict = self._entity_to_dict(item)
-                    item_dict["in_container"] = container_name
-                    items.append(item_dict)
-
-            data["items"] = items
-
-        # Get visible exits once for both doors and exits sections
-        visible_exits = accessor.get_visible_exits(loc.id, actor_id)
-
-        if "doors" in include or not include:
-            doors = []
-            seen_door_ids = set()
-            # Check for door items through visible exits
-            for direction, exit_desc in visible_exits.items():
-                if exit_desc.door_id:
-                    door = self._get_door_by_id(exit_desc.door_id)
-                    if door and exit_desc.door_id not in seen_door_ids:
-                        seen_door_ids.add(exit_desc.door_id)
-                        door_dict = self._door_to_dict(door)
-                        door_dict["direction"] = direction
-                        doors.append(door_dict)
-            data["doors"] = doors
-
-        if "exits" in include or not include:
-            exits = {}
-            for direction, exit_desc in visible_exits.items():
-                exits[direction] = {
-                    "type": exit_desc.type,
-                    "to": exit_desc.to
-                }
-                if exit_desc.door_id:
-                    exits[direction]["door_id"] = exit_desc.door_id
-                # Include llm_context if present (with randomized traits)
-                if exit_desc.llm_context:
-                    self._add_llm_context(exits[direction], {"llm_context": exit_desc.llm_context})
-            data["exits"] = exits
-
-        if "actors" in include or not include:
-            actors = []
-            for actor in contents["actors"]:
-                actors.append(self._actor_to_dict(actor))
-            data["actors"] = actors
+        # Filter to only included sections (empty include means all)
+        if include:
+            data = {"location": full_data["location"]}
+            for key in ["items", "doors", "exits", "actors"]:
+                if key in include:
+                    data[key] = full_data[key]
+        else:
+            data = full_data
 
         return {
             "type": "query_response",

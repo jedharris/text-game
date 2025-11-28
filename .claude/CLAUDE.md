@@ -1,15 +1,11 @@
 ## Design priorities
-- Always maximize author capability, code cleanliness, and player agency, especially when they don't conflict
+- Always maximize author capability and player agency, especially when they don't conflict
 - When adding features, do all the work necessary to make all relevant entities first-class citizens, participating fully in game narration and action. 
-- As far as possible try to follow existing patterns over special-case handling, regardless of how much extra work this requires. 
-
-## Handling problems
-- For problems or features that are small enough to handle without significant design discussion, after you have handled them, memorialize the original motivation (feature description or problem symptom) as a new github issue. Then in comments provide your analysis of the work required to handle the issue, and then the results of doing the work. If you encounter any significant unexpected problems, add comments after the first analysis comment to record the new analysis. 
 
 ## Coding guidelines
 - NEVER add local heuristics for word matching or special vocabulary
 - ALWAYS rely on the merged vocabulary and WordEntry
-- This applies to testing as well as normal code
+- Vocabulary handling rules apply to testing as well as normal code
 
 ## Codebase exploration
 - Use `mcp__claude-context__search_code` as the first step when exploring unfamiliar parts of the codebase or answering conceptual questions
@@ -18,7 +14,7 @@
 - Re-index with `mcp__claude-context__index_codebase` if significant structural changes have been made
 
 ## Role of game engine vs. LLM  
-- in any LLM augmented game, the game engine should be responsible for all state management, including all state changes caused by user commands.
+- in any LLM augmented game, the game engine must be responsible for all state management, including all state changes caused by user commands.
 - The LLM should never cause state changes, it should only narrate state changes.
 
 ## Testing

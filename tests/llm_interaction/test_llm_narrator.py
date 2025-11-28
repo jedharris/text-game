@@ -491,6 +491,190 @@ class TestEdgeCases(unittest.TestCase):
         self.assertEqual(result["action"]["verb"], "take")
 
 
+class TestVerbosityTracking(unittest.TestCase):
+    """Test visit tracking and verbosity determination."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
+        self.state = load_game_state(str(fixture_path))
+        self.handler = JSONProtocolHandler(self.state)
+
+    def test_narrator_has_visit_tracking_sets(self):
+        """Test that narrator initializes with empty tracking sets."""
+        narrator = MockLLMNarrator(self.handler, ["response"])
+
+        self.assertTrue(hasattr(narrator, 'visited_locations'))
+        self.assertTrue(hasattr(narrator, 'examined_entities'))
+        self.assertIsInstance(narrator.visited_locations, set)
+        self.assertIsInstance(narrator.examined_entities, set)
+        self.assertEqual(len(narrator.visited_locations), 0)
+        self.assertEqual(len(narrator.examined_entities), 0)
+
+    def test_first_room_entry_uses_full_verbosity(self):
+        """Test that first entry to a room uses full verbosity."""
+        self.state.actors["player"].location = "loc_start"
+
+        responses = [
+            '{"type": "command", "action": {"verb": "go", "direction": "north"}}',
+            "You enter the hallway."
+        ]
+        narrator = MockLLMNarrator(self.handler, responses)
+
+        narrator.process_turn("go north")
+
+        # Check that the narration request includes full verbosity
+        narrate_call = narrator.calls[-1]  # Last call is narration
+        self.assertIn('"verbosity": "full"', narrate_call)
+
+    def test_second_room_entry_uses_brief_verbosity(self):
+        """Test that returning to a visited room uses brief verbosity."""
+        self.state.actors["player"].location = "loc_start"
+
+        # First visit to hallway
+        responses = [
+            '{"type": "command", "action": {"verb": "go", "direction": "north"}}',
+            "You enter the hallway.",
+            # Return to start
+            '{"type": "command", "action": {"verb": "go", "direction": "south"}}',
+            "You return to the small room."
+        ]
+        narrator = MockLLMNarrator(self.handler, responses)
+
+        # First: go north to hallway (full)
+        narrator.process_turn("go north")
+        # Mark loc_start as visited (simulating opening scene)
+        narrator.visited_locations.add("loc_start")
+
+        # Second: go south back to start (brief - already visited)
+        narrator.process_turn("go south")
+
+        narrate_call = narrator.calls[-1]
+        self.assertIn('"verbosity": "brief"', narrate_call)
+
+    def test_first_examine_uses_full_verbosity(self):
+        """Test that first examine of an entity uses full verbosity."""
+        self.state.actors["player"].location = "loc_start"
+
+        responses = [
+            '{"type": "command", "action": {"verb": "examine", "object": "sword"}}',
+            "The sword is rusty but serviceable."
+        ]
+        narrator = MockLLMNarrator(self.handler, responses)
+
+        narrator.process_turn("examine sword")
+
+        narrate_call = narrator.calls[-1]
+        self.assertIn('"verbosity": "full"', narrate_call)
+
+    def test_second_examine_uses_brief_verbosity(self):
+        """Test that re-examining an entity uses brief verbosity."""
+        self.state.actors["player"].location = "loc_start"
+
+        responses = [
+            '{"type": "command", "action": {"verb": "examine", "object": "sword"}}',
+            "The sword is rusty but serviceable.",
+            '{"type": "command", "action": {"verb": "examine", "object": "sword"}}',
+            "The rusty sword."
+        ]
+        narrator = MockLLMNarrator(self.handler, responses)
+
+        # First examine
+        narrator.process_turn("examine sword")
+        # Second examine
+        narrator.process_turn("examine sword")
+
+        narrate_call = narrator.calls[-1]
+        self.assertIn('"verbosity": "brief"', narrate_call)
+
+    def test_take_always_uses_brief_verbosity(self):
+        """Test that take actions always use brief verbosity."""
+        self.state.actors["player"].location = "loc_start"
+
+        responses = [
+            '{"type": "command", "action": {"verb": "take", "object": "sword"}}',
+            "You pick up the sword."
+        ]
+        narrator = MockLLMNarrator(self.handler, responses)
+
+        narrator.process_turn("take sword")
+
+        narrate_call = narrator.calls[-1]
+        self.assertIn('"verbosity": "brief"', narrate_call)
+
+    def test_drop_always_uses_brief_verbosity(self):
+        """Test that drop actions always use brief verbosity."""
+        self.state.actors["player"].location = "loc_start"
+        self.state.actors["player"].inventory = ["item_sword"]
+
+        responses = [
+            '{"type": "command", "action": {"verb": "drop", "object": "sword"}}',
+            "You drop the sword."
+        ]
+        narrator = MockLLMNarrator(self.handler, responses)
+
+        narrator.process_turn("drop sword")
+
+        narrate_call = narrator.calls[-1]
+        self.assertIn('"verbosity": "brief"', narrate_call)
+
+    def test_open_close_use_brief_verbosity(self):
+        """Test that open/close actions use brief verbosity."""
+        self.state.actors["player"].location = "loc_start"
+
+        responses = [
+            '{"type": "command", "action": {"verb": "open", "object": "door"}}',
+            "You open the door."
+        ]
+        narrator = MockLLMNarrator(self.handler, responses)
+
+        narrator.process_turn("open door")
+
+        narrate_call = narrator.calls[-1]
+        self.assertIn('"verbosity": "brief"', narrate_call)
+
+    def test_opening_scene_marks_start_location_visited(self):
+        """Test that get_opening marks the starting location as visited."""
+        self.state.actors["player"].location = "loc_start"
+
+        responses = ["You awaken in a small room."]
+        narrator = MockLLMNarrator(self.handler, responses)
+
+        narrator.get_opening()
+
+        # Location query uses entity_to_dict which includes id
+        self.assertIn("loc_start", narrator.visited_locations)
+
+    def test_location_added_to_visited_after_movement(self):
+        """Test that new location is added to visited set after movement."""
+        self.state.actors["player"].location = "loc_start"
+
+        responses = [
+            '{"type": "command", "action": {"verb": "go", "direction": "north"}}',
+            "You enter the hallway."
+        ]
+        narrator = MockLLMNarrator(self.handler, responses)
+
+        narrator.process_turn("go north")
+
+        # Location tracking uses id as key
+        self.assertIn("loc_hallway", narrator.visited_locations)
+
+    def test_entity_added_to_examined_after_examine(self):
+        """Test that entity is added to examined set after examine."""
+        self.state.actors["player"].location = "loc_start"
+
+        responses = [
+            '{"type": "command", "action": {"verb": "examine", "object": "sword"}}',
+            "The sword is rusty."
+        ]
+        narrator = MockLLMNarrator(self.handler, responses)
+
+        narrator.process_turn("examine sword")
+
+        self.assertIn("item_sword", narrator.examined_entities)
+
+
 class TestSystemPrompt(unittest.TestCase):
     """Test system prompt construction."""
 

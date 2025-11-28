@@ -7,7 +7,8 @@ from typing import Dict, Any
 
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
-from utilities.utils import describe_location, gather_location_llm_context
+from utilities.utils import describe_location
+from utilities.location_serializer import serialize_location_for_llm
 
 
 # Vocabulary extension - adds movement verbs
@@ -136,11 +137,11 @@ def handle_go(accessor, action):
     # Add location description using shared utility
     message_parts.extend(describe_location(accessor, destination, actor_id))
 
-    # Gather llm_context for trait display
-    llm_data = gather_location_llm_context(accessor, destination, actor_id)
+    # Serialize location for LLM consumption
+    llm_data = serialize_location_for_llm(accessor, destination, actor_id)
 
     return HandlerResult(
         success=True,
         message="\n".join(message_parts),
-        data=llm_data if llm_data else None
+        data=llm_data
     )

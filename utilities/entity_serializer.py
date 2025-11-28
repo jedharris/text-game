@@ -12,7 +12,8 @@ import random
 from typing import Any, Dict, Optional
 
 
-def entity_to_dict(entity, include_llm_context: bool = True) -> Dict[str, Any]:
+def entity_to_dict(entity, include_llm_context: bool = True,
+                   max_traits: Optional[int] = None) -> Dict[str, Any]:
     """Convert any entity to a dict suitable for LLM communication.
 
     Handles: Item, Location, Actor, ExitDescriptor, Lock
@@ -20,6 +21,8 @@ def entity_to_dict(entity, include_llm_context: bool = True) -> Dict[str, Any]:
     Args:
         entity: Entity object to serialize
         include_llm_context: If True, include llm_context with randomized traits
+        max_traits: If set, limit traits to this count (after randomization).
+                   Use for brief verbosity mode to reduce LLM output length.
 
     Returns:
         Dict representation of entity
@@ -27,7 +30,7 @@ def entity_to_dict(entity, include_llm_context: bool = True) -> Dict[str, Any]:
     result = _serialize_core_fields(entity)
 
     if include_llm_context:
-        _add_llm_context(result, entity)
+        _add_llm_context(result, entity, max_traits=max_traits)
 
     return result
 
@@ -112,7 +115,7 @@ def _detect_entity_type(entity) -> Optional[str]:
     return None
 
 
-def _add_llm_context(result: Dict, entity) -> None:
+def _add_llm_context(result: Dict, entity, max_traits: Optional[int] = None) -> None:
     """Add llm_context with randomized traits.
 
     Randomizes trait order to encourage varied LLM narration.
@@ -121,6 +124,7 @@ def _add_llm_context(result: Dict, entity) -> None:
     Args:
         result: Dict to add llm_context to
         entity: Entity to get llm_context from
+        max_traits: If set, limit traits to this count after randomization
     """
     llm_context = _get_llm_context(entity)
 
@@ -134,6 +138,9 @@ def _add_llm_context(result: Dict, entity) -> None:
     if 'traits' in context_copy and isinstance(context_copy['traits'], list):
         traits_copy = list(context_copy['traits'])
         random.shuffle(traits_copy)
+        # Apply max_traits limit if specified
+        if max_traits is not None:
+            traits_copy = traits_copy[:max_traits]
         context_copy['traits'] = traits_copy
 
     result['llm_context'] = context_copy

@@ -292,6 +292,129 @@ class TestEntityToDictLock(unittest.TestCase):
         self.assertEqual(len(result["llm_context"]["traits"]), 3)
 
 
+class TestMaxTraits(unittest.TestCase):
+    """Test max_traits parameter for limiting trait count."""
+
+    def test_max_traits_limits_trait_count(self):
+        """Test that max_traits parameter limits the number of traits."""
+        from utilities.entity_serializer import entity_to_dict
+
+        item = Item(
+            id="item_sword",
+            name="sword",
+            description="A sword.",
+            location="loc_room",
+            properties={
+                "llm_context": {
+                    "traits": ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]
+                }
+            }
+        )
+
+        result = entity_to_dict(item, max_traits=3)
+
+        self.assertEqual(len(result["llm_context"]["traits"]), 3)
+
+    def test_max_traits_none_returns_all_traits(self):
+        """Test that max_traits=None returns all traits."""
+        from utilities.entity_serializer import entity_to_dict
+
+        item = Item(
+            id="item_sword",
+            name="sword",
+            description="A sword.",
+            location="loc_room",
+            properties={
+                "llm_context": {
+                    "traits": ["a", "b", "c", "d", "e"]
+                }
+            }
+        )
+
+        result = entity_to_dict(item, max_traits=None)
+
+        self.assertEqual(len(result["llm_context"]["traits"]), 5)
+
+    def test_max_traits_larger_than_list_returns_all(self):
+        """Test that max_traits larger than list returns all traits."""
+        from utilities.entity_serializer import entity_to_dict
+
+        item = Item(
+            id="item_sword",
+            name="sword",
+            description="A sword.",
+            location="loc_room",
+            properties={
+                "llm_context": {
+                    "traits": ["a", "b", "c"]
+                }
+            }
+        )
+
+        result = entity_to_dict(item, max_traits=10)
+
+        self.assertEqual(len(result["llm_context"]["traits"]), 3)
+
+    def test_max_traits_zero_returns_empty_list(self):
+        """Test that max_traits=0 returns empty traits list."""
+        from utilities.entity_serializer import entity_to_dict
+
+        item = Item(
+            id="item_sword",
+            name="sword",
+            description="A sword.",
+            location="loc_room",
+            properties={
+                "llm_context": {
+                    "traits": ["a", "b", "c"]
+                }
+            }
+        )
+
+        result = entity_to_dict(item, max_traits=0)
+
+        self.assertEqual(len(result["llm_context"]["traits"]), 0)
+
+    def test_max_traits_preserves_other_llm_context_fields(self):
+        """Test that max_traits doesn't affect other llm_context fields."""
+        from utilities.entity_serializer import entity_to_dict
+
+        item = Item(
+            id="item_sword",
+            name="sword",
+            description="A sword.",
+            location="loc_room",
+            properties={
+                "llm_context": {
+                    "traits": ["a", "b", "c", "d", "e"],
+                    "state_variants": {"broken": "shattered"},
+                    "atmosphere": "tense"
+                }
+            }
+        )
+
+        result = entity_to_dict(item, max_traits=2)
+
+        self.assertEqual(len(result["llm_context"]["traits"]), 2)
+        self.assertEqual(result["llm_context"]["state_variants"]["broken"], "shattered")
+        self.assertEqual(result["llm_context"]["atmosphere"], "tense")
+
+    def test_max_traits_with_no_llm_context(self):
+        """Test that max_traits doesn't break entities without llm_context."""
+        from utilities.entity_serializer import entity_to_dict
+
+        item = Item(
+            id="item_rock",
+            name="rock",
+            description="A plain rock.",
+            location="loc_room"
+        )
+
+        result = entity_to_dict(item, max_traits=5)
+
+        self.assertNotIn("llm_context", result)
+
+
 class TestTraitRandomization(unittest.TestCase):
     """Test trait randomization in llm_context."""
 

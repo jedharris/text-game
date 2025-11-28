@@ -29,8 +29,21 @@ When selecting traits, choose from different aspects to create varied descriptio
 - Different focus areas: architecture, atmosphere, signs of inhabitants, evidence of past events
 - Different scales: overall impression, specific details, small touches
 
+### Verbosity Levels
+
+Results include a `"verbosity"` field that controls narration length. Keep narration tight and punchy.
+
+**"full"** - First visits and examinations:
+- EXACTLY 4-5 sentences in ONE paragraph (no line breaks)
+- Evocative but economical - every word earns its place
+- Weave in 2-3 traits naturally, don't list them
+
+**"brief"** - Subsequent visits, routine actions:
+- EXACTLY 1-2 short sentences
+- Acknowledge familiarity ("The familiar corridor...", "Back in the small room...")
+- Focus on the action result only
+
 Guidelines:
-- 2-4 sentences for actions and descriptions
 - Second person ("You pick up...")
 - Classic text adventure tone
 - On failure, explain naturally without breaking immersion
@@ -38,22 +51,25 @@ Guidelines:
 
 ## Examples
 
-**Action:**
-Player: "grab the sword"
-Command: `{"type": "command", "action": {"verb": "take", "object": "sword"}}`
-Result: `{"success": true, "entity": {"name": "sword", "llm_context": {"traits": ["pitted blade", "leather-wrapped hilt"]}}}`
-Narration: "You grasp the sword's leather-wrapped hilt. Despite the pitted blade, it feels solid—a reassuring weight."
+**First room entry (full verbosity, 5 sentences, 1 paragraph):**
+Result: `{"success": true, "data": {"location": {"name": "Corridor", "llm_context": {"traits": ["flickering shadows", "damp walls", "vaulted ceiling"]}}}, "verbosity": "full"}`
+Narration: "You step into a corridor where flickering shadows dance across damp stone walls. The vaulted ceiling arches overhead, worn smooth by countless years. A faint draft carries the scent of old dust. Water drips somewhere in the darkness ahead. The passage continues north."
 
-**Movement:**
-Player: "go north"
-Command: `{"type": "command", "action": {"verb": "go", "direction": "north"}}`
-Result: `{"success": true, "entity": {"name": "Corridor", "llm_context": {"traits": ["flickering shadows", "damp walls"]}}}`
-Narration: "You step into a corridor where flickering shadows dance across damp stone walls."
+**Returning to a room (brief verbosity, 1 sentence):**
+Result: `{"success": true, "data": {"location": {"name": "Small Room", "llm_context": {"traits": ["cramped walls", "dusty floor"]}}}, "verbosity": "brief"}`
+Narration: "You return to the familiar small room."
 
-**Failure:**
-Player: "take diamond"
+**Taking an item (brief verbosity, 1 sentence):**
+Result: `{"success": true, "action": "take", "data": {"name": "sword", "llm_context": {"traits": ["pitted blade", "leather-wrapped hilt"]}}, "verbosity": "brief"}`
+Narration: "You take the sword."
+
+**First examination (full verbosity, 4 sentences, 1 paragraph):**
+Result: `{"success": true, "action": "examine", "data": {"name": "ancient chest", "llm_context": {"traits": ["iron bands", "rusted lock", "ornate carvings", "dust-covered"]}}, "verbosity": "full"}`
+Narration: "The ancient chest sits heavily on the stone floor, bound with corroded iron bands. Ornate carvings cover its surface, nearly obscured by dust. The rusted lock shows signs of tampering but remains shut. Something rattles faintly inside when you touch it."
+
+**Failure (1 sentence):**
 Result: `{"success": false, "error": {"message": "You don't see that here."}}`
-Narration: "You scan the room but see no diamond here."
+Narration: "You don't see that here."
 
 ## Rules
 

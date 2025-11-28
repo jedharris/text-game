@@ -66,6 +66,17 @@ def parsed_to_json(result: ParsedCommand) -> Dict[str, Any]:
 class LLMNarrator:
     """Translates between natural language and the JSON protocol."""
 
+    # Verbs that always use brief verbosity regardless of first/subsequent
+    BRIEF_VERBS = {'take', 'drop', 'put', 'open', 'close', 'lock', 'unlock',
+                   'light', 'extinguish', 'attack', 'eat', 'drink'}
+
+    # Verbs that use full verbosity on first occurrence, brief on subsequent
+    TRACKING_VERBS = {'go', 'examine', 'look'}
+
+    # Trait limits for verbosity modes
+    FULL_TRAITS = 8
+    BRIEF_TRAITS = 3
+
     def __init__(self, api_key: str, json_handler: JSONProtocolHandler,
                  model: str = "claude-3-5-haiku-20241022",
                  prompt_file: Optional[Path] = None,
@@ -93,6 +104,10 @@ class LLMNarrator:
         self.show_traits = show_traits
         self.system_prompt = self._load_system_prompt(prompt_file)
         self.parser = self._create_parser(vocabulary)
+
+        # Visit tracking for verbosity control
+        self.visited_locations: set = set()
+        self.examined_entities: set = set()
 
     def _print_traits(self, result: Dict[str, Any]) -> None:
         """Print llm_context traits from a result if show_traits is enabled.
@@ -207,15 +222,82 @@ class LLMNarrator:
         # 2. Execute command via game engine
         result = self.handler.handle_message(json_cmd)
 
-        # 3. Print traits if enabled
+        # 3. Determine verbosity and update tracking
+        verbosity = self._determine_verbosity(json_cmd, result)
+        self._update_tracking(json_cmd, result)
+
+        # 4. Print traits if enabled
         self._print_traits(result)
 
-        # 4. Get narrative from LLM
+        # 5. Add verbosity hint to result for LLM
+        result_with_verbosity = dict(result)
+        result_with_verbosity["verbosity"] = verbosity
+
+        # 6. Get narrative from LLM
         narrative = self._call_llm(
-            f"Narrate this result:\n{json.dumps(result, indent=2)}"
+            f"Narrate this result:\n{json.dumps(result_with_verbosity, indent=2)}"
         )
 
         return narrative
+
+    def _determine_verbosity(self, json_cmd: Dict, result: Dict) -> str:
+        """Determine verbosity level based on command and tracking state.
+
+        Args:
+            json_cmd: The JSON command that was executed
+            result: The result from the game engine
+
+        Returns:
+            "full" for first visits/examines, "brief" for subsequent or routine actions
+        """
+        verb = json_cmd.get("action", {}).get("verb", "")
+
+        # Brief verbs are always brief
+        if verb in self.BRIEF_VERBS:
+            return "brief"
+
+        # For go/movement: check if destination is new
+        if verb == "go" and result.get("success"):
+            # Get the new location ID from the result (nested under data.location)
+            loc_id = result.get("data", {}).get("location", {}).get("id")
+            if loc_id and loc_id not in self.visited_locations:
+                return "full"
+            return "brief"
+
+        # For examine/look: check if entity is new
+        if verb in ("examine", "look"):
+            entity_id = result.get("data", {}).get("id")
+            if entity_id and entity_id not in self.examined_entities:
+                return "full"
+            return "brief"
+
+        # Default to brief for unknown verbs
+        return "brief"
+
+    def _update_tracking(self, json_cmd: Dict, result: Dict) -> None:
+        """Update visit/examine tracking based on successful commands.
+
+        Args:
+            json_cmd: The JSON command that was executed
+            result: The result from the game engine
+        """
+        if not result.get("success"):
+            return
+
+        verb = json_cmd.get("action", {}).get("verb", "")
+
+        # Track visited locations on successful movement
+        if verb == "go":
+            # Location ID is nested under data.location
+            loc_id = result.get("data", {}).get("location", {}).get("id")
+            if loc_id:
+                self.visited_locations.add(loc_id)
+
+        # Track examined entities
+        if verb in ("examine", "look"):
+            entity_id = result.get("data", {}).get("id")
+            if entity_id:
+                self.examined_entities.add(entity_id)
 
     def get_opening(self) -> str:
         """Get opening narrative for game start.
@@ -230,11 +312,20 @@ class LLMNarrator:
             "include": ["items", "doors", "npcs"]
         })
 
+        # Mark starting location as visited
+        loc_id = result.get("data", {}).get("location", {}).get("id")
+        if loc_id:
+            self.visited_locations.add(loc_id)
+
         # Print traits if enabled
         self._print_traits(result)
 
+        # Opening always uses full verbosity
+        result_with_verbosity = dict(result)
+        result_with_verbosity["verbosity"] = "full"
+
         return self._call_llm(
-            f"Narrate the opening scene:\n{json.dumps(result, indent=2)}"
+            f"Narrate the opening scene:\n{json.dumps(result_with_verbosity, indent=2)}"
         )
 
     def _call_llm(self, user_message: str) -> str:
@@ -401,6 +492,10 @@ class MockLLMNarrator(LLMNarrator):
         self.behavior_manager = behavior_manager
         self.show_traits = show_traits
         self.parser = self._create_parser(vocabulary)
+
+        # Visit tracking for verbosity control (same as parent)
+        self.visited_locations: set = set()
+        self.examined_entities: set = set()
 
     def _call_llm(self, user_message: str) -> str:
         """Return mock response instead of calling API.

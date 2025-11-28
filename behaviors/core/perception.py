@@ -15,10 +15,10 @@ from utilities.utils import (
     find_actor_by_name,
     format_inventory,
     describe_location,
-    gather_location_llm_context,
     name_matches,
     is_observable
 )
+from utilities.location_serializer import serialize_location_for_llm
 from utilities.entity_serializer import serialize_for_handler_result
 
 
@@ -103,13 +103,13 @@ def handle_look(accessor, action):
     # Use shared utility to build location description
     message_parts = describe_location(accessor, location, actor_id)
 
-    # Gather llm_context for trait display
-    llm_data = gather_location_llm_context(accessor, location, actor_id)
+    # Serialize location for LLM consumption
+    llm_data = serialize_location_for_llm(accessor, location, actor_id)
 
     return HandlerResult(
         success=True,
         message="\n".join(message_parts),
-        data=llm_data if llm_data else None
+        data=llm_data
     )
 
 
