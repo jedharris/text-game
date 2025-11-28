@@ -659,5 +659,134 @@ class TestUseWithAdjective(unittest.TestCase):
             self.assertEqual(result.data["id"], "key_silver")
 
 
+class TestClimbExit(unittest.TestCase):
+    """Test handle_climb for exits (like stairs) - Issue #45."""
+
+    def setUp(self):
+        """Set up test state with an exit that has a name."""
+        from src.state_manager import ExitDescriptor
+
+        self.state = GameState(
+            metadata=Metadata(title="Test"),
+            locations=[
+                Location(
+                    id="loc_hallway",
+                    name="Long Hallway",
+                    description="A long stone hallway.",
+                    exits={
+                        "up": ExitDescriptor(
+                            type="open",
+                            to="loc_tower",
+                            name="spiral staircase",
+                            description="A narrow spiral staircase winds upward."
+                        ),
+                        "north": ExitDescriptor(
+                            type="open",
+                            to="loc_courtyard"
+                        )
+                    }
+                ),
+                Location(
+                    id="loc_tower",
+                    name="Tower Room",
+                    description="A circular tower room."
+                ),
+                Location(
+                    id="loc_courtyard",
+                    name="Courtyard",
+                    description="An open courtyard."
+                )
+            ],
+            items=[],
+            actors={
+                "player": Actor(
+                    id="player",
+                    name="Adventurer",
+                    description="The player",
+                    location="loc_hallway",
+                    inventory=[]
+                )
+            }
+        )
+        self.behavior_manager = BehaviorManager()
+
+        import behaviors.core.interaction
+        import behaviors.core.movement
+        self.behavior_manager.load_module(behaviors.core.interaction)
+        self.behavior_manager.load_module(behaviors.core.movement)
+
+        self.accessor = StateAccessor(self.state, self.behavior_manager)
+
+    def test_climb_stairs_moves_to_destination(self):
+        """Test climbing 'stairs' moves player to destination via exit named 'spiral staircase'.
+
+        Uses WordEntry with synonyms as the actual game parser does.
+        """
+        from behaviors.core.interaction import handle_climb
+        from src.parser import WordEntry, WordType
+
+        # When player types "climb stairs", parser creates WordEntry with synonyms
+        stairs_entry = WordEntry(
+            word="stairs",
+            word_type=WordType.NOUN,
+            synonyms=["staircase", "stairway", "steps"]
+        )
+        action = {"actor_id": "player", "verb": "climb", "object": stairs_entry}
+        result = handle_climb(self.accessor, action)
+
+        self.assertTrue(result.success)
+        self.assertIn("climb", result.message.lower())
+        self.assertIn("spiral staircase", result.message.lower())
+        self.assertIn("Tower Room", result.message)
+        # Verify player actually moved
+        player = self.accessor.get_actor("player")
+        self.assertEqual(player.location, "loc_tower")
+
+    def test_climb_staircase_moves_to_destination(self):
+        """Test climbing 'staircase' moves player to destination."""
+        from behaviors.core.interaction import handle_climb
+
+        # "staircase" is a direct word match in the exit name
+        action = {"actor_id": "player", "verb": "climb", "object": "staircase"}
+        result = handle_climb(self.accessor, action)
+
+        self.assertTrue(result.success)
+        # Verify player actually moved
+        player = self.accessor.get_actor("player")
+        self.assertEqual(player.location, "loc_tower")
+
+    def test_climb_spiral_staircase_moves_to_destination(self):
+        """Test climbing 'spiral staircase' moves player to destination."""
+        from behaviors.core.interaction import handle_climb
+
+        action = {"actor_id": "player", "verb": "climb", "object": "spiral staircase"}
+        result = handle_climb(self.accessor, action)
+
+        self.assertTrue(result.success)
+        # Verify player actually moved
+        player = self.accessor.get_actor("player")
+        self.assertEqual(player.location, "loc_tower")
+
+    def test_climb_nonexistent_exit_fails(self):
+        """Test climbing non-existent exit fails with helpful message."""
+        from behaviors.core.interaction import handle_climb
+
+        action = {"actor_id": "player", "verb": "climb", "object": "tree"}
+        result = handle_climb(self.accessor, action)
+
+        self.assertFalse(result.success)
+        self.assertIn("don't see", result.message.lower())
+
+    def test_climb_unnamed_exit_does_not_match(self):
+        """Test climbing something that doesn't match an exit name fails."""
+        from behaviors.core.interaction import handle_climb
+
+        # "north" is a direction, not an object name for climbing
+        action = {"actor_id": "player", "verb": "climb", "object": "wall"}
+        result = handle_climb(self.accessor, action)
+
+        self.assertFalse(result.success)
+
+
 if __name__ == '__main__':
     unittest.main()
