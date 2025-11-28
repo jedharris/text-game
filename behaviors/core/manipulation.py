@@ -14,6 +14,7 @@ from utilities.utils import (
     find_item_in_container,
     name_matches
 )
+from utilities.entity_serializer import serialize_for_handler_result
 
 
 # Vocabulary extension - adds take and drop verbs
@@ -225,9 +226,13 @@ def handle_take(accessor, action):
     else:
         message = base_message
 
+    # Use unified serializer for llm_context with trait randomization
+    data = serialize_for_handler_result(item)
+
     return HandlerResult(
         success=True,
-        message=message
+        message=message,
+        data=data
     )
 
 
@@ -317,9 +322,13 @@ def handle_drop(accessor, action):
     else:
         message = base_message
 
+    # Use unified serializer for llm_context with trait randomization
+    data = serialize_for_handler_result(item)
+
     return HandlerResult(
         success=True,
-        message=message
+        message=message,
+        data=data
     )
 
 
@@ -435,9 +444,13 @@ def handle_give(accessor, action):
             message=f"INCONSISTENT STATE: Failed to add item to recipient inventory: {add_result.message}"
         )
 
+    # Use unified serializer for llm_context with trait randomization
+    data = serialize_for_handler_result(item)
+
     return HandlerResult(
         success=True,
-        message=f"You give the {item.name} to {recipient.name}."
+        message=f"You give the {item.name} to {recipient.name}.",
+        data=data
     )
 
 
@@ -555,7 +568,10 @@ def handle_put(accessor, action):
     preposition = "on" if is_surface else "in"
     base_message = f"You put the {item.name} {preposition} the {container.name}."
 
-    if result.message:
-        return HandlerResult(success=True, message=f"{base_message} {result.message}")
+    # Use unified serializer for llm_context with trait randomization
+    data = serialize_for_handler_result(item)
 
-    return HandlerResult(success=True, message=base_message)
+    if result.message:
+        return HandlerResult(success=True, message=f"{base_message} {result.message}", data=data)
+
+    return HandlerResult(success=True, message=base_message, data=data)

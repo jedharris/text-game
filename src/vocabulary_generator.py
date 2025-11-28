@@ -46,6 +46,13 @@ def extract_nouns_from_state(state: GameState) -> List[Dict[str, Any]]:
         nouns.append({"word": "door"})
         seen_words.add("door")
 
+    # Extract lock names
+    for lock in state.locks:
+        name = getattr(lock, 'name', None) or 'lock'
+        if name and name not in seen_words:
+            nouns.append({"word": name})
+            seen_words.add(name)
+
     return nouns
 
 

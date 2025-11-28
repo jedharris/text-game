@@ -26,12 +26,13 @@ from src.vocabulary_generator import extract_nouns_from_state, merge_vocabulary
 DEFAULT_STATE_FILE = Path(__file__).parent.parent / "examples" / "simple_game_state.json"
 
 
-def main(state_file: str = None, debug: bool = False):
+def main(state_file: str = None, debug: bool = False, show_traits: bool = False):
     """Run the LLM-powered text adventure.
 
     Args:
         state_file: Path to game state JSON file (uses default if not provided)
         debug: If True, enable debug logging (shows cache statistics)
+        show_traits: If True, print llm_context traits before each LLM narration
     """
     # Configure logging
     if debug:
@@ -82,7 +83,7 @@ def main(state_file: str = None, debug: bool = False):
 
     # Create narrator with merged vocabulary for local parsing
     narrator = LLMNarrator(api_key, json_handler, behavior_manager=behavior_manager,
-                           vocabulary=merged_vocab)
+                           vocabulary=merged_vocab, show_traits=show_traits)
 
     # Show title and opening
     print(f"\n{state.metadata.title}")
@@ -128,8 +129,10 @@ def cli_main():
     parser.add_argument('state_file', nargs='?', help='Path to game state JSON file')
     parser.add_argument('--debug', '-d', action='store_true',
                         help='Enable debug logging (shows API cache statistics)')
+    parser.add_argument('--show-traits', '-t', action='store_true',
+                        help='Print llm_context traits before each LLM narration')
     args = parser.parse_args()
-    sys.exit(main(state_file=args.state_file, debug=args.debug))
+    sys.exit(main(state_file=args.state_file, debug=args.debug, show_traits=args.show_traits))
 
 
 if __name__ == "__main__":

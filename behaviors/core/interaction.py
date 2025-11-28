@@ -8,6 +8,7 @@ from typing import Dict, Any
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
 from utilities.utils import find_accessible_item, find_door_with_adjective
+from utilities.entity_serializer import serialize_for_handler_result
 
 
 # Vocabulary extension - adds interaction verbs
@@ -187,10 +188,12 @@ def handle_open(accessor, action):
     # Check if it's a door item (unified model) or old-style Door
     if hasattr(item, 'is_door') and item.is_door:
         # Unified door item
+        data = serialize_for_handler_result(item)
         if item.door_open:
             return HandlerResult(
                 success=True,
-                message=f"The {object_name} is already open."
+                message=f"The {object_name} is already open.",
+                data=data
             )
         if item.door_locked:
             return HandlerResult(
@@ -201,7 +204,8 @@ def handle_open(accessor, action):
         item.door_open = True
         return HandlerResult(
             success=True,
-            message=f"You open the {object_name}."
+            message=f"You open the {object_name}.",
+            data=data
         )
     elif hasattr(item, 'locations'):
         # Old-style Door entity
@@ -230,9 +234,11 @@ def handle_open(accessor, action):
 
     # Check if already open
     if item.container.open:
+        data = serialize_for_handler_result(item)
         return HandlerResult(
             success=True,
-            message=f"The {item.name} is already open."
+            message=f"The {item.name} is already open.",
+            data=data
         )
 
     # Open the container using accessor.update() to invoke behaviors
@@ -251,15 +257,18 @@ def handle_open(accessor, action):
 
     # Build message - include behavior message if present
     base_message = f"You open the {item.name}."
+    data = serialize_for_handler_result(item)
     if result.message:
         return HandlerResult(
             success=True,
-            message=f"{base_message} {result.message}"
+            message=f"{base_message} {result.message}",
+            data=data
         )
 
     return HandlerResult(
         success=True,
-        message=base_message
+        message=base_message,
+        data=data
     )
 
 
@@ -338,16 +347,19 @@ def handle_close(accessor, action):
     # Check if it's a door item (unified model) or old-style Door
     if hasattr(item, 'is_door') and item.is_door:
         # Unified door item
+        data = serialize_for_handler_result(item)
         if not item.door_open:
             return HandlerResult(
                 success=True,
-                message=f"The {object_name} is already closed."
+                message=f"The {object_name} is already closed.",
+                data=data
             )
         # Close the door item
         item.door_open = False
         return HandlerResult(
             success=True,
-            message=f"You close the {object_name}."
+            message=f"You close the {object_name}.",
+            data=data
         )
     elif hasattr(item, 'locations'):
         # Old-style Door entity
@@ -370,10 +382,12 @@ def handle_close(accessor, action):
         )
 
     # Check if already closed
+    data = serialize_for_handler_result(item)
     if not item.container.open:
         return HandlerResult(
             success=True,
-            message=f"The {item.name} is already closed."
+            message=f"The {item.name} is already closed.",
+            data=data
         )
 
     # Close the container
@@ -381,7 +395,8 @@ def handle_close(accessor, action):
 
     return HandlerResult(
         success=True,
-        message=f"You close the {item.name}."
+        message=f"You close the {item.name}.",
+        data=data
     )
 
 
@@ -430,10 +445,11 @@ def handle_use(accessor, action):
     result = accessor.update(item, {}, verb="use", actor_id=actor_id)
 
     base_message = f"You use the {item.name}."
+    data = serialize_for_handler_result(item)
     if result.message:
-        return HandlerResult(success=True, message=f"{base_message} {result.message}")
+        return HandlerResult(success=True, message=f"{base_message} {result.message}", data=data)
 
-    return HandlerResult(success=True, message=base_message)
+    return HandlerResult(success=True, message=base_message, data=data)
 
 
 def handle_read(accessor, action):
@@ -493,10 +509,11 @@ def handle_read(accessor, action):
     else:
         base_message = f"You read the {item.name}."
 
+    data = serialize_for_handler_result(item)
     if result.message:
-        return HandlerResult(success=True, message=f"{base_message} {result.message}")
+        return HandlerResult(success=True, message=f"{base_message} {result.message}", data=data)
 
-    return HandlerResult(success=True, message=base_message)
+    return HandlerResult(success=True, message=base_message, data=data)
 
 
 def handle_climb(accessor, action):
@@ -550,10 +567,11 @@ def handle_climb(accessor, action):
     result = accessor.update(item, {}, verb="climb", actor_id=actor_id)
 
     base_message = f"You climb the {item.name}."
+    data = serialize_for_handler_result(item)
     if result.message:
-        return HandlerResult(success=True, message=f"{base_message} {result.message}")
+        return HandlerResult(success=True, message=f"{base_message} {result.message}", data=data)
 
-    return HandlerResult(success=True, message=base_message)
+    return HandlerResult(success=True, message=base_message, data=data)
 
 
 def handle_pull(accessor, action):
@@ -600,10 +618,11 @@ def handle_pull(accessor, action):
     result = accessor.update(item, {}, verb="pull", actor_id=actor_id)
 
     base_message = f"You pull the {item.name}."
+    data = serialize_for_handler_result(item)
     if result.message:
-        return HandlerResult(success=True, message=f"{base_message} {result.message}")
+        return HandlerResult(success=True, message=f"{base_message} {result.message}", data=data)
 
-    return HandlerResult(success=True, message=base_message)
+    return HandlerResult(success=True, message=base_message, data=data)
 
 
 def handle_push(accessor, action):
@@ -650,7 +669,8 @@ def handle_push(accessor, action):
     result = accessor.update(item, {}, verb="push", actor_id=actor_id)
 
     base_message = f"You push the {item.name}."
+    data = serialize_for_handler_result(item)
     if result.message:
-        return HandlerResult(success=True, message=f"{base_message} {result.message}")
+        return HandlerResult(success=True, message=f"{base_message} {result.message}", data=data)
 
-    return HandlerResult(success=True, message=base_message)
+    return HandlerResult(success=True, message=base_message, data=data)

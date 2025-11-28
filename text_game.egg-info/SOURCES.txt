@@ -43,6 +43,8 @@ tests/test_enhanced_containers.py
 tests/test_entity_behavior_invocation.py
 tests/test_entity_unification.py
 tests/test_examine_doors.py
+tests/test_examine_exits.py
+tests/test_examine_locks.py
 tests/test_file_dialogs.py
 tests/test_go_auto_look.py
 tests/test_hardcoded_removal.py
@@ -52,6 +54,8 @@ tests/test_integration_inconsistent_state.py
 tests/test_integration_query_inventory.py
 tests/test_integration_query_location.py
 tests/test_interaction_handlers.py
+tests/test_name_matching.py
+tests/test_observability.py
 tests/test_phase0.py
 tests/test_phase1.py
 tests/test_phase10_manipulation_handlers.py

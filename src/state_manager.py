@@ -267,6 +267,18 @@ class Lock:
         """Set llm_context in properties."""
         self.properties["llm_context"] = value
 
+    @property
+    def states(self) -> Dict[str, Any]:
+        """Access states dict within properties."""
+        if "states" not in self.properties:
+            self.properties["states"] = {}
+        return self.properties["states"]
+
+    @states.setter
+    def states(self, value: Dict[str, Any]) -> None:
+        """Set states dict within properties."""
+        self.properties["states"] = value
+
 
 @dataclass
 class Actor:

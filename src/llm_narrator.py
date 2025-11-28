@@ -70,7 +70,8 @@ class LLMNarrator:
                  model: str = "claude-3-5-haiku-20241022",
                  prompt_file: Optional[Path] = None,
                  behavior_manager: Optional[BehaviorManager] = None,
-                 vocabulary: Optional[Dict[str, Any]] = None):
+                 vocabulary: Optional[Dict[str, Any]] = None,
+                 show_traits: bool = False):
         """Initialize the narrator.
 
         Args:
@@ -80,6 +81,7 @@ class LLMNarrator:
             prompt_file: Optional path to custom system prompt file
             behavior_manager: Optional BehaviorManager to get merged vocabulary
             vocabulary: Optional merged vocabulary dict (if not provided, loads default)
+            show_traits: If True, print llm_context traits before each LLM narration
         """
         if not HAS_ANTHROPIC:
             raise ImportError("anthropic library is required. Install with: pip install anthropic")
@@ -88,8 +90,53 @@ class LLMNarrator:
         self.handler = json_handler
         self.model = model
         self.behavior_manager = behavior_manager
+        self.show_traits = show_traits
         self.system_prompt = self._load_system_prompt(prompt_file)
         self.parser = self._create_parser(vocabulary)
+
+    def _print_traits(self, result: Dict[str, Any]) -> None:
+        """Print llm_context traits from a result if show_traits is enabled.
+
+        Searches for llm_context in the result at various nesting levels:
+        - Top-level llm_context (command results)
+        - data.llm_context (command results with data)
+        - data.location.llm_context (location queries)
+        - Entities in items, doors, actors lists
+
+        Args:
+            result: JSON result from game engine
+        """
+        if not self.show_traits:
+            return
+
+        def collect_traits(obj: Any, prefix: str = "") -> list:
+            """Recursively collect traits from nested structures."""
+            collected = []
+            if not isinstance(obj, dict):
+                return collected
+
+            # Check for llm_context at this level
+            llm_context = obj.get("llm_context")
+            if llm_context and "traits" in llm_context:
+                name = obj.get("name", prefix.rstrip(".") or "result")
+                collected.append((name, llm_context["traits"]))
+
+            # Recurse into known containers
+            for key in ["data", "location"]:
+                if key in obj and isinstance(obj[key], dict):
+                    collected.extend(collect_traits(obj[key], f"{prefix}{key}."))
+
+            # Recurse into entity lists
+            for key in ["items", "doors", "actors", "exits"]:
+                if key in obj and isinstance(obj[key], list):
+                    for item in obj[key]:
+                        collected.extend(collect_traits(item, f"{prefix}{key}."))
+
+            return collected
+
+        all_traits = collect_traits(result)
+        for name, traits in all_traits:
+            print(f"[{name} traits: {', '.join(traits)}]")
 
     def _create_parser(self, vocabulary: Optional[Dict[str, Any]] = None) -> Parser:
         """Create a Parser with merged vocabulary.
@@ -160,7 +207,10 @@ class LLMNarrator:
         # 2. Execute command via game engine
         result = self.handler.handle_message(json_cmd)
 
-        # 3. Get narrative from LLM
+        # 3. Print traits if enabled
+        self._print_traits(result)
+
+        # 4. Get narrative from LLM
         narrative = self._call_llm(
             f"Narrate this result:\n{json.dumps(result, indent=2)}"
         )
@@ -179,6 +229,9 @@ class LLMNarrator:
             "query_type": "location",
             "include": ["items", "doors", "npcs"]
         })
+
+        # Print traits if enabled
+        self._print_traits(result)
 
         return self._call_llm(
             f"Narrate the opening scene:\n{json.dumps(result, indent=2)}"
@@ -329,7 +382,8 @@ class MockLLMNarrator(LLMNarrator):
 
     def __init__(self, json_handler: JSONProtocolHandler, responses: list,
                  behavior_manager: Optional[BehaviorManager] = None,
-                 vocabulary: Optional[Dict[str, Any]] = None):
+                 vocabulary: Optional[Dict[str, Any]] = None,
+                 show_traits: bool = False):
         """Initialize mock narrator.
 
         Args:
@@ -337,6 +391,7 @@ class MockLLMNarrator(LLMNarrator):
             responses: List of responses to return in sequence
             behavior_manager: Optional BehaviorManager to get merged vocabulary
             vocabulary: Optional merged vocabulary dict (if not provided, loads default)
+            show_traits: If True, print llm_context traits before each LLM narration
         """
         self.handler = json_handler
         self.responses = responses
@@ -344,6 +399,7 @@ class MockLLMNarrator(LLMNarrator):
         self.system_prompt = ""  # Not used in mock
         self.calls = []  # Track calls for testing
         self.behavior_manager = behavior_manager
+        self.show_traits = show_traits
         self.parser = self._create_parser(vocabulary)
 
     def _call_llm(self, user_message: str) -> str:

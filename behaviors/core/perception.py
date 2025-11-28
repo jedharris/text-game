@@ -11,8 +11,12 @@ from utilities.utils import (
     find_accessible_item,
     find_door_with_adjective,
     find_exit_by_name,
-    describe_location
+    find_lock_by_context,
+    describe_location,
+    gather_location_llm_context,
+    name_matches
 )
+from utilities.entity_serializer import serialize_for_handler_result
 
 
 # Vocabulary extension - adds perception verbs
@@ -96,9 +100,13 @@ def handle_look(accessor, action):
     # Use shared utility to build location description
     message_parts = describe_location(accessor, location, actor_id)
 
+    # Gather llm_context for trait display
+    llm_data = gather_location_llm_context(accessor, location, actor_id)
+
     return HandlerResult(
         success=True,
-        message="\n".join(message_parts)
+        message="\n".join(message_parts),
+        data=llm_data if llm_data else None
     )
 
 
@@ -192,15 +200,13 @@ def handle_examine(accessor, action):
         if result.message:
             message_parts.append(result.message)
 
-        # Include llm_context for LLM narration
-        data = {}
-        if item.llm_context:
-            data["llm_context"] = item.llm_context
+        # Use unified serializer for llm_context with trait randomization
+        data = serialize_for_handler_result(item)
 
         return HandlerResult(
             success=True,
             message="\n".join(message_parts),
-            data=data if data else None
+            data=data
         )
 
     # If no item found, try to find a door
@@ -209,15 +215,13 @@ def handle_examine(accessor, action):
     door = find_door_with_adjective(accessor, object_name, door_adjective, location.id)
 
     if door:
-        # Include llm_context for doors too
-        data = {}
-        if door.llm_context:
-            data["llm_context"] = door.llm_context
+        # Use unified serializer for llm_context with trait randomization
+        data = serialize_for_handler_result(door)
 
         return HandlerResult(
             success=True,
             message=f"{door.description}",
-            data=data if data else None
+            data=data
         )
 
     # If no door found, try to find an exit
@@ -236,13 +240,11 @@ def handle_examine(accessor, action):
         else:
             desc = f"A passage leads {exit_direction}."
 
-        # Include llm_context for exits
-        data = {
-            "exit_direction": exit_direction,
-            "exit_type": exit_desc.type
-        }
-        if exit_desc.llm_context:
-            data["llm_context"] = exit_desc.llm_context
+        # Use unified serializer for llm_context with trait randomization
+        data = serialize_for_handler_result(exit_desc)
+        # Add exit-specific fields
+        data["exit_direction"] = exit_direction
+        data["exit_type"] = exit_desc.type
         if exit_desc.door_id:
             data["door_id"] = exit_desc.door_id
 
@@ -251,6 +253,52 @@ def handle_examine(accessor, action):
             message=desc,
             data=data
         )
+
+    # If no exit found, try to find a lock
+    # Check if object_name matches "lock" (using vocabulary synonym matching)
+    if name_matches(object_name, "lock"):
+        # Extract indirect_object for "examine lock in door" pattern
+        indirect_object = action.get("indirect_object")
+        indirect_adjective = action.get("indirect_adjective")
+
+        lock = find_lock_by_context(
+            accessor,
+            location_id=location.id,
+            direction=direction,
+            door_name=indirect_object,
+            door_adjective=indirect_adjective,
+            actor_id=actor_id
+        )
+
+        if lock:
+            # Build lock description
+            desc = lock.description if hasattr(lock, 'description') and lock.description else "A lock."
+
+            # Use unified serializer for llm_context with trait randomization
+            data = serialize_for_handler_result(lock)
+
+            return HandlerResult(
+                success=True,
+                message=desc,
+                data=data
+            )
+
+        # Lock lookup failed - provide helpful error message
+        if direction:
+            return HandlerResult(
+                success=False,
+                message=f"There's no lock to the {direction}."
+            )
+        elif indirect_object:
+            return HandlerResult(
+                success=False,
+                message=f"You don't see any lock on that."
+            )
+        else:
+            return HandlerResult(
+                success=False,
+                message="You don't see any lock here."
+            )
 
     return HandlerResult(
         success=False,
@@ -292,12 +340,14 @@ def handle_inventory(accessor, action):
             message="You are carrying nothing."
         )
 
-    # Build list of item names
+    # Build list of item names and serialize items for llm_context
     item_names = []
+    items_data = []
     for item_id in actor.inventory:
         item = accessor.get_item(item_id)
         if item:
             item_names.append(item.name)
+            items_data.append(serialize_for_handler_result(item))
 
     if not item_names:
         return HandlerResult(
@@ -307,5 +357,6 @@ def handle_inventory(accessor, action):
 
     return HandlerResult(
         success=True,
-        message=f"You are carrying: {', '.join(item_names)}"
+        message=f"You are carrying: {', '.join(item_names)}",
+        data={"items": items_data}
     )

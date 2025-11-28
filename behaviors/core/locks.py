@@ -8,6 +8,7 @@ from typing import Dict, Any
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
 from utilities.utils import find_accessible_item, find_door_with_adjective
+from utilities.entity_serializer import serialize_for_handler_result
 
 
 # Vocabulary extension - adds unlock and lock verbs
@@ -123,10 +124,12 @@ def handle_unlock(accessor, action):
     # Check if it's a door item (unified model) or old-style Door
     if hasattr(item, 'is_door') and item.is_door:
         # Unified door item
+        data = serialize_for_handler_result(item)
         if not item.door_locked:
             return HandlerResult(
                 success=True,
-                message=f"The {object_name} is already unlocked."
+                message=f"The {object_name} is already unlocked.",
+                data=data
             )
         if not item.door_lock_id:
             return HandlerResult(
@@ -149,14 +152,17 @@ def handle_unlock(accessor, action):
         item.door_locked = False
         return HandlerResult(
             success=True,
-            message=f"You unlock the {object_name}."
+            message=f"You unlock the {object_name}.",
+            data=data
         )
     elif hasattr(item, 'locations'):
         # Old-style Door entity
+        data = serialize_for_handler_result(item)
         if not item.locked:
             return HandlerResult(
                 success=True,
-                message=f"The {object_name} is already unlocked."
+                message=f"The {object_name} is already unlocked.",
+                data=data
             )
         if not item.lock_id:
             return HandlerResult(
@@ -178,7 +184,8 @@ def handle_unlock(accessor, action):
         item.locked = False
         return HandlerResult(
             success=True,
-            message=f"You unlock the {object_name}."
+            message=f"You unlock the {object_name}.",
+            data=data
         )
 
     # Check if it's a container
@@ -188,12 +195,16 @@ def handle_unlock(accessor, action):
             message=f"The {item.name} has no lock."
         )
 
+    # Serialize for handler result
+    data = serialize_for_handler_result(item)
+
     # Check if locked
     locked = item.container.get("locked", False)
     if not locked:
         return HandlerResult(
             success=True,
-            message=f"The {item.name} is already unlocked."
+            message=f"The {item.name} is already unlocked.",
+            data=data
         )
 
     # Check if container has a lock_id
@@ -226,7 +237,8 @@ def handle_unlock(accessor, action):
 
     return HandlerResult(
         success=True,
-        message=f"You unlock the {item.name}."
+        message=f"You unlock the {item.name}.",
+        data=data
     )
 
 
@@ -305,6 +317,7 @@ def handle_lock(accessor, action):
     # Check if it's a door item (unified model) or old-style Door
     if hasattr(item, 'is_door') and item.is_door:
         # Unified door item
+        data = serialize_for_handler_result(item)
         if item.door_open:
             return HandlerResult(
                 success=False,
@@ -313,7 +326,8 @@ def handle_lock(accessor, action):
         if item.door_locked:
             return HandlerResult(
                 success=True,
-                message=f"The {object_name} is already locked."
+                message=f"The {object_name} is already locked.",
+                data=data
             )
         if not item.door_lock_id:
             return HandlerResult(
@@ -336,10 +350,12 @@ def handle_lock(accessor, action):
         item.door_locked = True
         return HandlerResult(
             success=True,
-            message=f"You lock the {object_name}."
+            message=f"You lock the {object_name}.",
+            data=data
         )
     elif hasattr(item, 'locations'):
         # Old-style Door entity
+        data = serialize_for_handler_result(item)
         if item.open:
             return HandlerResult(
                 success=False,
@@ -348,7 +364,8 @@ def handle_lock(accessor, action):
         if item.locked:
             return HandlerResult(
                 success=True,
-                message=f"The {object_name} is already locked."
+                message=f"The {object_name} is already locked.",
+                data=data
             )
         if not item.lock_id:
             return HandlerResult(
@@ -370,7 +387,8 @@ def handle_lock(accessor, action):
         item.locked = True
         return HandlerResult(
             success=True,
-            message=f"You lock the {object_name}."
+            message=f"You lock the {object_name}.",
+            data=data
         )
 
     # Check if it's a container
@@ -379,6 +397,9 @@ def handle_lock(accessor, action):
             success=False,
             message=f"The {item.name} has no lock."
         )
+
+    # Serialize for handler result
+    data = serialize_for_handler_result(item)
 
     # Check if container is open (can't lock an open container)
     if item.container.open:
@@ -392,7 +413,8 @@ def handle_lock(accessor, action):
     if locked:
         return HandlerResult(
             success=True,
-            message=f"The {item.name} is already locked."
+            message=f"The {item.name} is already locked.",
+            data=data
         )
 
     # Check if container has a lock_id
@@ -425,5 +447,6 @@ def handle_lock(accessor, action):
 
     return HandlerResult(
         success=True,
-        message=f"You lock the {item.name}."
+        message=f"You lock the {item.name}.",
+        data=data
     )

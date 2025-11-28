@@ -889,6 +889,173 @@ def describe_location(accessor, location, actor_id: str) -> List[str]:
     return message_parts
 
 
+def gather_location_llm_context(accessor, location, actor_id: str) -> Dict[str, Any]:
+    """
+    Gather llm_context data from a location and its visible contents.
+
+    Collects llm_context from:
+    - The location itself
+    - Visible items (direct and on surfaces/in containers)
+    - Visible actors
+
+    Uses entity_serializer for consistent llm_context extraction with trait randomization.
+
+    Args:
+        accessor: StateAccessor instance
+        location: Location object
+        actor_id: ID of the actor viewing
+
+    Returns:
+        Dict with llm_context data structured for trait display:
+        {
+            "location": {"name": str, "llm_context": {...}},
+            "items": [{"name": str, "llm_context": {...}}, ...],
+            "actors": [{"name": str, "llm_context": {...}}, ...]
+        }
+    """
+    from utilities.entity_serializer import entity_to_dict
+
+    result = {}
+
+    # Location llm_context - use serializer for consistent access and trait randomization
+    location_dict = entity_to_dict(location)
+    if "llm_context" in location_dict:
+        result["location"] = {
+            "name": location.name,
+            "llm_context": location_dict["llm_context"]
+        }
+
+    # Gather visible contents
+    contents = gather_location_contents(accessor, location.id, actor_id)
+
+    # Items with llm_context - use serializer for consistent access and trait randomization
+    items_with_context = []
+    all_items = list(contents["items"])
+    for items in contents["surface_items"].values():
+        all_items.extend(items)
+    for items in contents["open_container_items"].values():
+        all_items.extend(items)
+
+    for item in all_items:
+        item_dict = entity_to_dict(item)
+        if "llm_context" in item_dict:
+            items_with_context.append({
+                "name": item.name,
+                "llm_context": item_dict["llm_context"]
+            })
+
+    if items_with_context:
+        result["items"] = items_with_context
+
+    # Actors with llm_context - use serializer for consistent access and trait randomization
+    actors_with_context = []
+    for actor in contents["actors"]:
+        actor_dict = entity_to_dict(actor)
+        if "llm_context" in actor_dict:
+            actors_with_context.append({
+                "name": actor.name,
+                "llm_context": actor_dict["llm_context"]
+            })
+
+    if actors_with_context:
+        result["actors"] = actors_with_context
+
+    return result
+
+
+def find_lock_by_context(
+    accessor,
+    location_id: str,
+    direction: Optional[str] = None,
+    door_name: Optional[Union[WordEntry, str]] = None,
+    door_adjective: Optional[str] = None,
+    actor_id: str = "player"
+) -> Optional[Any]:
+    """
+    Find a lock based on context (direction or door specification).
+
+    Locks don't have a location - they're attached to doors via lock_id.
+    This function finds a lock by first finding the door, then getting its lock.
+
+    Search strategy:
+    1. If direction provided: Find exit in that direction → get door → get lock
+    2. If door_name provided: Find door by name (with optional adjective) → get lock
+    3. If neither: Find all visible doors with locks, return lock if exactly one
+
+    Hidden locks (states.hidden == True) are excluded from results.
+
+    Args:
+        accessor: StateAccessor instance
+        location_id: Current location ID
+        direction: Direction to find door with lock (e.g., "east")
+        door_name: Name of door to find lock on (WordEntry or string)
+        door_adjective: Adjective to disambiguate door
+        actor_id: ID of actor looking for the lock (for observability check)
+
+    Returns:
+        Lock entity if found and visible, None otherwise
+    """
+    location = accessor.get_location(location_id)
+    if not location:
+        return None
+
+    def _get_visible_lock(lock_id: str) -> Optional[Any]:
+        """Get lock if it exists and is visible."""
+        lock = accessor.get_lock(lock_id)
+        if not lock:
+            return None
+        # Check lock visibility
+        visible, _ = is_observable(
+            lock, accessor, accessor.behavior_manager,
+            actor_id=actor_id, method="examine"
+        )
+        if not visible:
+            return None
+        return lock
+
+    # Strategy 1: Find lock via direction
+    if direction:
+        # Expand abbreviation if needed
+        dir_expanded = DIRECTION_ABBREVIATIONS.get(direction.lower(), direction.lower())
+
+        # Check if there's an exit in that direction
+        if dir_expanded not in location.exits:
+            return None
+
+        exit_desc = location.exits[dir_expanded]
+        if not exit_desc.door_id:
+            return None
+
+        door = accessor.get_door_item(exit_desc.door_id)
+        if not door or not door.door_lock_id:
+            return None
+
+        return _get_visible_lock(door.door_lock_id)
+
+    # Strategy 2: Find lock via door name
+    if door_name:
+        door = find_door_with_adjective(accessor, door_name, door_adjective, location_id)
+        if not door or not door.door_lock_id:
+            return None
+
+        return _get_visible_lock(door.door_lock_id)
+
+    # Strategy 3: Find lock if only one visible door has a visible lock
+    visible_locks = []
+    for item in accessor.game_state.items:
+        if item.is_door and item.door_lock_id:
+            if _is_item_visible_in_location(item, location_id, accessor):
+                lock = _get_visible_lock(item.door_lock_id)
+                if lock:
+                    visible_locks.append(lock)
+
+    if len(visible_locks) == 1:
+        return visible_locks[0]
+
+    # Multiple or no visible locks - ambiguous or not found
+    return None
+
+
 # Standard direction words for exit lookup
 DIRECTION_WORDS = {
     "north", "south", "east", "west", "up", "down",

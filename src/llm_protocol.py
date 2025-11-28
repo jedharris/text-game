@@ -592,45 +592,30 @@ class LLMProtocolHandler:
     def _add_llm_context(self, result: Dict, properties: Dict) -> None:
         """Add llm_context to result dict, randomizing traits for narration variety.
 
-        Shuffles the traits list so the narrator LLM sees them in different order
-        each time, encouraging more diverse trait selection in narration.
+        DEPRECATED: Use utilities.entity_serializer.entity_to_dict() instead.
+        Kept for exit descriptor handling in _query_location which needs
+        to work with dict properties rather than entity objects.
         """
-        llm_context = properties.get('llm_context')
-        if not llm_context:
-            return
-
-        # Make a copy to avoid mutating original
-        context_copy = dict(llm_context)
-
-        # Shuffle traits if present
-        if 'traits' in context_copy and isinstance(context_copy['traits'], list):
-            traits_copy = list(context_copy['traits'])
-            random.shuffle(traits_copy)
-            context_copy['traits'] = traits_copy
-
-        result['llm_context'] = context_copy
+        from utilities.entity_serializer import _add_llm_context, _get_llm_context
+        # Create a minimal object-like wrapper for the properties
+        class PropsWrapper:
+            def __init__(self, props):
+                self.properties = props
+        wrapper = PropsWrapper(properties)
+        _add_llm_context(result, wrapper)
 
     def _entity_to_dict(self, item) -> Dict:
-        """Convert item to dict with llm_context."""
-        result = {
-            "id": item.id,
-            "name": item.name,
-            "type": "item",
-            "description": item.description
-        }
+        """Convert item to dict with llm_context.
 
-        self._add_llm_context(result, item.properties)
+        Uses unified entity_serializer for base conversion, then adds
+        query-specific container location info.
+        """
+        from utilities.entity_serializer import entity_to_dict
 
-        # Add lit state if present (in states dict within properties)
-        states = item.properties.get('states', {})
-        if states.get('lit'):
-            result["lit"] = states['lit']
-
-        # Add provides_light property if present
-        if item.properties.get('provides_light'):
-            result["provides_light"] = item.properties['provides_light']
+        result = entity_to_dict(item)
 
         # Add container location info if item is on a surface or in a container
+        # This is query-specific context, not needed for command results
         container = self._get_container_for_item(item)
         if container:
             container_props = container.properties.get("container", {})
@@ -642,45 +627,36 @@ class LLMProtocolHandler:
         return result
 
     def _door_to_dict(self, door) -> Dict:
-        """Convert door item to dict with llm_context."""
-        description = door.description or ""
-        result = {
-            "id": door.id,
-            "description": description,
-            "open": door.door_open,
-            "locked": door.door_locked
-        }
+        """Convert door item to dict with llm_context.
 
-        # Get door name from description for consistency
-        # Extract adjective from description for name
-        desc_words = description.lower().split()
-        adjective = next((word for word in desc_words
-                        if word in ["wooden", "iron", "heavy", "simple", "golden", "ancient"]),
-                       "")
-        result["name"] = f"{adjective} door" if adjective else "door"
+        Uses unified entity_serializer for base conversion, then adds
+        name extraction from description for backward compatibility.
+        """
+        from utilities.entity_serializer import entity_to_dict
 
-        self._add_llm_context(result, door.properties)
+        result = entity_to_dict(door)
+
+        # Ensure name is set (for backward compatibility with query responses)
+        # If serializer didn't set a good name, extract from description
+        if result.get("name") == "door" or not result.get("name"):
+            description = door.description or ""
+            desc_words = description.lower().split()
+            adjective = next((word for word in desc_words
+                            if word in ["wooden", "iron", "heavy", "simple", "golden", "ancient"]),
+                           "")
+            result["name"] = f"{adjective} door" if adjective else "door"
+
         return result
 
     def _location_to_dict(self, loc) -> Dict:
         """Convert location to dict with llm_context."""
-        result = {
-            "id": loc.id,
-            "name": loc.name,
-            "description": loc.description
-        }
-        self._add_llm_context(result, loc.properties)
-        return result
+        from utilities.entity_serializer import entity_to_dict
+        return entity_to_dict(loc)
 
     def _actor_to_dict(self, actor) -> Dict:
         """Convert Actor to dict with llm_context."""
-        result = {
-            "id": actor.id,
-            "name": actor.name,
-            "description": actor.description
-        }
-        self._add_llm_context(result, actor.properties)
-        return result
+        from utilities.entity_serializer import entity_to_dict
+        return entity_to_dict(actor)
 
 
 # Backward compatibility alias
