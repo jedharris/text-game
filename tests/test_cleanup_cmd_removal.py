@@ -2,7 +2,7 @@
 Tests for Phase C-3: Remove old _cmd_* methods.
 
 These tests verify that:
-1. Migrated _cmd_* methods are removed from JSONProtocolHandler
+1. Migrated _cmd_* methods are removed from LLMProtocolHandler
 2. Commands still work through behavior handlers after removal
 3. Stub _cmd_* methods remain until migrated in Phase C-8
 """
@@ -11,7 +11,7 @@ import unittest
 from pathlib import Path
 
 from src.state_manager import load_game_state
-from src.llm_protocol import JSONProtocolHandler
+from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
 
 
@@ -25,7 +25,7 @@ class TestCmdMethodsRemoval(unittest.TestCase):
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
-        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
 
     def test_migrated_cmd_methods_removed(self):
         """Test that all migrated _cmd_* methods are removed."""
@@ -82,7 +82,7 @@ class TestCommandsStillWork(unittest.TestCase):
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
-        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
 
     def test_take_command_works(self):
         """Test take command works through behavior handler."""

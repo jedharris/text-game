@@ -17,7 +17,7 @@ sys.path.insert(0, str(project_root))
 from src.parser import Parser
 from src.state_manager import load_game_state
 from src.behavior_manager import BehaviorManager
-from src.llm_protocol import JSONProtocolHandler
+from src.llm_protocol import LLMProtocolHandler
 from src.vocabulary_generator import extract_nouns_from_state, merge_vocabulary
 from src.text_game import format_location_query
 
@@ -149,7 +149,7 @@ class TestLocationQuery(unittest.TestCase):
         behaviors_dir = project_root / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
-        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.behavior_manager)
+        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.behavior_manager)
 
         # Move player to hallway where table with lantern is
         self.state.actors["player"].location = "loc_hallway"
@@ -194,7 +194,7 @@ class TestExamineCommand(unittest.TestCase):
         behaviors_dir = project_root / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
-        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.behavior_manager)
+        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.behavior_manager)
 
         # Move player to hallway where table with lantern is
         self.state.actors["player"].location = "loc_hallway"

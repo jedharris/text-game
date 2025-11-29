@@ -8,7 +8,7 @@ Reference: behavior_refactoring_testing.md lines 113-153 (basic handler tests)
 """
 
 import unittest
-from src.llm_protocol import JSONProtocolHandler
+from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
 from tests.conftest import create_test_state
 
@@ -34,7 +34,7 @@ class TestCommandRouting(unittest.TestCase):
         self.behavior_manager.load_module(behaviors.core.interaction)
         self.behavior_manager.load_module(behaviors.core.locks)
 
-        self.handler = JSONProtocolHandler(self.state, self.behavior_manager)
+        self.handler = LLMProtocolHandler(self.state, self.behavior_manager)
 
     def test_take_routes_to_behavior_handler(self):
         """Test that 'take' command uses behavior handler."""

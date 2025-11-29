@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 from src.state_manager import load_game_state
-from src.llm_protocol import JSONProtocolHandler
+from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager, get_behavior_manager
 
 
@@ -27,7 +27,7 @@ class TestRubberDuckBehavior(unittest.TestCase):
         self.manager.load_modules(modules)
 
         # Create handler with behavior manager
-        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
 
     def test_squeeze_verb_registered(self):
         """Test that squeeze verb handler is registered."""

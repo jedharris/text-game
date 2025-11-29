@@ -5,7 +5,7 @@ Reference: behavior_refactoring_testing.md lines 573-605 (NPC test pattern)
 """
 
 import unittest
-from src.llm_protocol import JSONProtocolHandler
+from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
 from src.state_manager import Actor
 from tests.conftest import create_test_state
@@ -18,7 +18,7 @@ class TestLocationQueryRefactoring(unittest.TestCase):
         """Set up test fixtures."""
         self.state = create_test_state()
         self.behavior_manager = BehaviorManager()
-        self.handler = JSONProtocolHandler(self.state, self.behavior_manager)
+        self.handler = LLMProtocolHandler(self.state, self.behavior_manager)
 
     def test_query_location_returns_items(self):
         """Test that location query returns items."""

@@ -11,7 +11,7 @@ from pathlib import Path
 from unittest.mock import Mock, MagicMock
 
 from src.state_manager import load_game_state
-from src.llm_protocol import JSONProtocolHandler
+from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager, EventResult
 
 
@@ -30,7 +30,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
         self.manager.load_modules(modules)
 
         # Create handler with behavior manager
-        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
 
     def test_drink_potion_success(self):
         """Test drinking a potion successfully."""
@@ -223,7 +223,7 @@ class TestLightSourcesBehaviors(unittest.TestCase):
         self.manager.load_modules(modules)
 
         # Create handler with behavior manager
-        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
 
     def test_lantern_starts_unlit(self):
         """Test that lantern starts in unlit state."""
@@ -317,7 +317,7 @@ class TestLightSourcesBehaviors(unittest.TestCase):
         state = load_game_state(fixture_path)
 
         # Create handler with behavior manager
-        handler = JSONProtocolHandler(state, behavior_manager=self.manager)
+        handler = LLMProtocolHandler(state, behavior_manager=self.manager)
 
         # Move player to hallway where lantern and table are
         state.set_player_location("loc_hallway")
@@ -389,7 +389,7 @@ class TestContainersBehaviors(unittest.TestCase):
         self.manager.load_modules(modules)
 
         # Create handler with behavior manager
-        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
 
     def test_open_chest_succeeds(self):
         """Test opening treasure chest succeeds."""

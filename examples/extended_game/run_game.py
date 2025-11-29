@@ -28,7 +28,7 @@ sys.path.insert(0, str(extended_game_dir))
 # Now we can import from the engine
 from src.parser import Parser, ParsedCommand
 from src.state_manager import load_game_state, save_game_state, GameState
-from src.llm_protocol import JSONProtocolHandler
+from src.llm_protocol import LLMProtocolHandler
 from src.vocabulary_generator import extract_nouns_from_state, merge_vocabulary
 from src.behavior_manager import BehaviorManager
 from src.validators import validate_game_state
@@ -201,7 +201,7 @@ def main():
 
     # Step 6: Initialize JSON protocol handler
     print("Initializing protocol handler...")
-    json_handler = JSONProtocolHandler(state, behavior_manager=behavior_manager)
+    json_handler = LLMProtocolHandler(state, behavior_manager=behavior_manager)
 
     print()
     print("=" * 60)

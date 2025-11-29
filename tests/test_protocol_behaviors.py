@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Dict, List
 
 from src.behavior_manager import BehaviorManager, EventResult
-from src.llm_protocol import JSONProtocolHandler
+from src.llm_protocol import LLMProtocolHandler
 from src.state_manager import (
     GameState, Metadata, Location, Item, Actor
 )
@@ -65,21 +65,21 @@ def create_test_state():
 
 
 class TestProtocolBehaviorIntegration(unittest.TestCase):
-    """Test JSONProtocolHandler integration with BehaviorManager."""
+    """Test LLMProtocolHandler integration with BehaviorManager."""
 
     def setUp(self):
         """Set up test fixtures."""
         self.state = create_test_state()
 
     def test_handler_accepts_behavior_manager(self):
-        """Test that JSONProtocolHandler accepts behavior_manager parameter."""
+        """Test that LLMProtocolHandler accepts behavior_manager parameter."""
         manager = BehaviorManager()
-        handler = JSONProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
         self.assertIs(handler.behavior_manager, manager)
 
     def test_handler_creates_default_behavior_manager(self):
         """Test that handler creates default behavior manager if none provided."""
-        handler = JSONProtocolHandler(self.state)
+        handler = LLMProtocolHandler(self.state)
         # New behavior: auto-creates BehaviorManager
         self.assertIsNotNone(handler.behavior_manager)
         self.assertIsInstance(handler.behavior_manager, BehaviorManager)
@@ -88,7 +88,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         """Test that builtin handler is used when no registered handler."""
         # Use manager with core modules loaded
         manager = create_behavior_manager_with_core_modules()
-        handler = JSONProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
         result = handler.handle_command({
             "type": "command",
@@ -120,7 +120,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         # Add behavior to item using dict format (for backward compatibility)
         self.state.items[0].behaviors = {"on_take": "test_module:on_take"}
 
-        handler = JSONProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
         result = handler.handle_command({
             "type": "command",
@@ -143,7 +143,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         manager._behavior_cache["test_module:on_take"] = on_take
         self.state.items[0].behaviors = {"on_take": "test_module:on_take"}
 
-        handler = JSONProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
         result = handler.handle_command({
             "type": "command",
@@ -166,7 +166,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         manager._behavior_cache["test_module:on_take"] = on_take
         self.state.items[0].behaviors = {"on_take": "test_module:on_take"}
 
-        handler = JSONProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
         result = handler.handle_command({
             "type": "command",
@@ -178,7 +178,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
     def test_entity_obj_removed_from_final_result(self):
         """Test that entity_obj is removed from final result."""
         manager = create_behavior_manager_with_core_modules()
-        handler = JSONProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
         result = handler.handle_command({
             "type": "command",
@@ -203,7 +203,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         manager._behavior_cache["test_module:on_take"] = on_take
         self.state.items[0].behaviors = {"on_take": "test_module:on_take"}
 
-        handler = JSONProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
         handler.handle_command({
             "type": "command",
@@ -228,7 +228,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         manager._behavior_cache["test_module:on_take"] = on_take
         self.state.items[0].behaviors = {"on_take": "test_module:on_take"}
 
-        handler = JSONProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
         # Try to take item that doesn't exist
         result = handler.handle_command({
@@ -252,7 +252,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         manager._behavior_cache["test_module:on_take"] = on_take
         self.state.items[0].behaviors = {"on_take": "test_module:on_take"}
 
-        handler = JSONProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
         handler.handle_command({
             "type": "command",
@@ -277,7 +277,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         manager._behavior_cache["test_module:on_take"] = on_take
         self.state.items[0].behaviors = {"on_take": "test_module:on_take"}
 
-        handler = JSONProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
         handler.handle_command({
             "type": "command",
@@ -299,7 +299,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         manager._behavior_cache["test_module:on_take"] = on_take
         self.state.items[0].behaviors = {"on_take": "test_module:on_take"}
 
-        handler = JSONProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
         handler.handle_command({
             "type": "command",
@@ -326,7 +326,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
             "on_drop": "test_module:on_drop"
         }
 
-        handler = JSONProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
         # Take the item
         result = handler.handle_command({
@@ -344,7 +344,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
 
     def test_no_behavior_manager_works_without_behaviors(self):
         """Test that handler works with auto-created behavior manager."""
-        handler = JSONProtocolHandler(self.state)
+        handler = LLMProtocolHandler(self.state)
 
         result = handler.handle_command({
             "type": "command",
@@ -361,7 +361,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         # Item with empty behaviors
         self.state.items[0].behaviors = []
 
-        handler = JSONProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
         result = handler.handle_command({
             "type": "command",
@@ -375,7 +375,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         manager = create_behavior_manager_with_core_modules()
         self.state.items[0].behaviors = {}
 
-        handler = JSONProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
         result = handler.handle_command({
             "type": "command",
@@ -394,7 +394,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         manager._behavior_cache["test_module:on_take"] = on_take
         self.state.items[0].behaviors = {"on_take": "test_module:on_take"}
 
-        handler = JSONProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
         # Command should still succeed even if behavior errors
         result = handler.handle_command({
@@ -418,7 +418,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         manager._behavior_cache["test_module:on_take"] = on_take
         self.state.items[0].behaviors = {"on_take": "test_module:on_take"}
 
-        handler = JSONProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
         handler.handle_command({
             "type": "command",
@@ -476,7 +476,7 @@ class TestProtocolBehaviorCommands(unittest.TestCase):
             }
         )
         self.manager = create_behavior_manager_with_core_modules()
-        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
 
     def test_drink_command_invokes_on_drink(self):
         """Test drink command invokes on_drink behavior."""

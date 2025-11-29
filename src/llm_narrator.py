@@ -20,7 +20,7 @@ try:
 except ImportError:
     HAS_ANTHROPIC = False
 
-from src.llm_protocol import JSONProtocolHandler
+from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
 from src.parser import Parser
 from src.parsed_command import ParsedCommand
@@ -77,7 +77,7 @@ class LLMNarrator:
     FULL_TRAITS = 8
     BRIEF_TRAITS = 3
 
-    def __init__(self, api_key: str, json_handler: JSONProtocolHandler,
+    def __init__(self, api_key: str, json_handler: LLMProtocolHandler,
                  model: str = "claude-3-5-haiku-20241022",
                  prompt_file: Optional[Path] = None,
                  behavior_manager: Optional[BehaviorManager] = None,
@@ -87,7 +87,7 @@ class LLMNarrator:
 
         Args:
             api_key: Anthropic API key
-            json_handler: JSONProtocolHandler for game engine communication
+            json_handler: LLMProtocolHandler for game engine communication
             model: Model to use for generation
             prompt_file: Optional path to custom system prompt file
             behavior_manager: Optional BehaviorManager to get merged vocabulary
@@ -462,51 +462,3 @@ Keep the tone consistent with a classic text adventure - evocative but concise."
         directions = [d["word"] for d in vocab.get("directions", [])]
 
         return f"Available verbs: {', '.join(verbs)}\nDirections: {', '.join(directions)}"
-
-
-class MockLLMNarrator(LLMNarrator):
-    """Narrator with mocked LLM responses for testing.
-
-    This class bypasses the actual LLM API and returns predetermined responses,
-    useful for testing the narrator logic without API calls.
-    """
-
-    def __init__(self, json_handler: JSONProtocolHandler, responses: list,
-                 behavior_manager: Optional[BehaviorManager] = None,
-                 vocabulary: Optional[Dict[str, Any]] = None,
-                 show_traits: bool = False):
-        """Initialize mock narrator.
-
-        Args:
-            json_handler: JSONProtocolHandler for game engine communication
-            responses: List of responses to return in sequence
-            behavior_manager: Optional BehaviorManager to get merged vocabulary
-            vocabulary: Optional merged vocabulary dict (if not provided, loads default)
-            show_traits: If True, print llm_context traits before each LLM narration
-        """
-        self.handler = json_handler
-        self.responses = responses
-        self.call_count = 0
-        self.system_prompt = ""  # Not used in mock
-        self.calls = []  # Track calls for testing
-        self.behavior_manager = behavior_manager
-        self.show_traits = show_traits
-        self.parser = self._create_parser(vocabulary)
-
-        # Visit tracking for verbosity control (same as parent)
-        self.visited_locations: set = set()
-        self.examined_entities: set = set()
-
-    def _call_llm(self, user_message: str) -> str:
-        """Return mock response instead of calling API.
-
-        Args:
-            user_message: The message that would be sent
-
-        Returns:
-            Next response from the responses list
-        """
-        self.calls.append(user_message)
-        response = self.responses[self.call_count % len(self.responses)]
-        self.call_count += 1
-        return response

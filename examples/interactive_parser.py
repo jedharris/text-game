@@ -11,7 +11,7 @@ sys.path.insert(0, str(project_root))
 from src.parser import Parser
 from src.parsed_command import ParsedCommand
 from src.state_manager import load_game_state
-from src.llm_protocol import JSONProtocolHandler
+from src.llm_protocol import LLMProtocolHandler
 
 
 def format_command(cmd: ParsedCommand) -> str:
@@ -68,7 +68,7 @@ def main():
     script_dir = Path(__file__).parent
     state_file = script_dir / "simple_game" / "game_state.json"
     state = load_game_state(str(state_file))
-    json_handler = JSONProtocolHandler(state)
+    json_handler = LLMProtocolHandler(state)
 
     print("=" * 60)
     print("Interactive Parser Testing Tool")

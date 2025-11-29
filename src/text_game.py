@@ -18,7 +18,7 @@ sys.path.insert(0, str(project_root))
 from src.parser import Parser, ParsedCommand
 from src.state_manager import load_game_state, save_game_state, GameState
 from src.file_dialogs import get_save_filename, get_load_filename
-from src.llm_protocol import JSONProtocolHandler
+from src.llm_protocol import LLMProtocolHandler
 from src.vocabulary_generator import extract_nouns_from_state, merge_vocabulary
 from src.behavior_manager import BehaviorManager
 
@@ -237,7 +237,7 @@ def main(game_dir: str = None):
     Path(merged_vocab_path).unlink()
 
     # Initialize JSON protocol handler
-    json_handler = JSONProtocolHandler(state, behavior_manager=behavior_manager)
+    json_handler = LLMProtocolHandler(state, behavior_manager=behavior_manager)
 
     print(f"Welcome to {state.metadata.title}!")
     print("Type 'quit' to exit, 'help' for commands.")
@@ -316,7 +316,7 @@ def main(game_dir: str = None):
                     if loaded_state:
                         state = loaded_state
                         # Recreate handler with new state
-                        json_handler = JSONProtocolHandler(state, behavior_manager=behavior_manager)
+                        json_handler = LLMProtocolHandler(state, behavior_manager=behavior_manager)
                         response = json_handler.handle_message({
                             "type": "query",
                             "query_type": "location",

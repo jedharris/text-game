@@ -129,7 +129,7 @@ class Location:
 
     @property
     def llm_context(self) -> Optional[Dict[str, Any]]:
-        """Access llm_context from properties for backward compatibility."""
+        """Access llm_context from properties."""
         return self.properties.get("llm_context")
 
     @llm_context.setter
@@ -150,7 +150,7 @@ class Item:
 
     @property
     def states(self) -> Dict[str, Any]:
-        """Access states dict within properties for backward compatibility."""
+        """Access states dict within properties."""
         if "states" not in self.properties:
             self.properties["states"] = {}
         return self.properties["states"]
@@ -162,7 +162,7 @@ class Item:
 
     @property
     def portable(self) -> bool:
-        """Access portable from properties for backward compatibility."""
+        """Access portable from properties."""
         return self.properties.get("portable", False)
 
     @portable.setter
@@ -172,7 +172,7 @@ class Item:
 
     @property
     def pushable(self) -> bool:
-        """Access pushable from properties for backward compatibility."""
+        """Access pushable from properties."""
         return self.properties.get("pushable", False)
 
     @pushable.setter
@@ -182,7 +182,7 @@ class Item:
 
     @property
     def provides_light(self) -> bool:
-        """Access provides_light from properties for backward compatibility."""
+        """Access provides_light from properties."""
         return self.properties.get("provides_light", False)
 
     @provides_light.setter
@@ -192,7 +192,7 @@ class Item:
 
     @property
     def container(self) -> Optional[ContainerInfo]:
-        """Access container from properties for backward compatibility."""
+        """Access container from properties."""
         data = self.properties.get("container")
         return ContainerInfo(data) if data else None
 
@@ -203,7 +203,7 @@ class Item:
 
     @property
     def llm_context(self) -> Optional[Dict[str, Any]]:
-        """Access llm_context from properties for backward compatibility."""
+        """Access llm_context from properties."""
         return self.properties.get("llm_context")
 
     @llm_context.setter
@@ -315,7 +315,7 @@ class Actor:
 
     @property
     def stats(self) -> Dict[str, Any]:
-        """Access stats dict within properties for backward compatibility."""
+        """Access stats dict within properties."""
         if "stats" not in self.properties:
             self.properties["stats"] = {}
         return self.properties["stats"]
@@ -327,7 +327,7 @@ class Actor:
 
     @property
     def flags(self) -> Dict[str, Any]:
-        """Access flags dict within properties for backward compatibility."""
+        """Access flags dict within properties."""
         if "flags" not in self.properties:
             self.properties["flags"] = {}
         return self.properties["flags"]

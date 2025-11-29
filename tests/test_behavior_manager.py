@@ -102,6 +102,7 @@ class TestBehaviorManagerLoadModule(unittest.TestCase):
 
         def create_mock_module(handler_name):
             mock = MagicMock()
+            mock.vocabulary = None  # Avoid vocabulary validation
             handler = Mock()
             setattr(mock, f"handle_{handler_name}", handler)
             # Capture handler_name in closure
@@ -432,6 +433,7 @@ class TestBehaviorManagerHandlers(unittest.TestCase):
         manager = BehaviorManager()
 
         mock_module = MagicMock()
+        mock_module.vocabulary = None  # Avoid vocabulary validation
         mock_module.handle_test = Mock()
         mock_module.__dir__ = lambda self=None: ['handle_test']
 
@@ -450,6 +452,7 @@ class TestBehaviorManagerHandlers(unittest.TestCase):
         manager = BehaviorManager()
 
         mock_module = MagicMock()
+        mock_module.vocabulary = None  # Avoid vocabulary validation
         mock_handler = Mock()
         mock_module.handle_test = mock_handler
         mock_module.__dir__ = lambda self=None: ['handle_test']

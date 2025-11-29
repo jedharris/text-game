@@ -243,13 +243,13 @@ class TestExamineDoorWithDirectionAdjective(unittest.TestCase):
 
 
 class TestExamineDoorIntegration(unittest.TestCase):
-    """Integration tests using JSONProtocolHandler."""
+    """Integration tests using LLMProtocolHandler."""
 
     def setUp(self):
         """Set up with protocol handler."""
         from pathlib import Path
         from src.state_manager import load_game_state
-        from src.llm_protocol import JSONProtocolHandler
+        from src.llm_protocol import LLMProtocolHandler
 
         # Load actual game state
         fixture_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
@@ -260,7 +260,7 @@ class TestExamineDoorIntegration(unittest.TestCase):
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
 
-        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.behavior_manager)
+        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.behavior_manager)
 
     def test_examine_door_in_hallway(self):
         """Test examining door when in hallway with two doors."""

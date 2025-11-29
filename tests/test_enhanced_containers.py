@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 
 from src.state_manager import load_game_state, Item, GameState, ContainerInfo
-from src.llm_protocol import JSONProtocolHandler
+from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
 
 
@@ -232,7 +232,7 @@ class TestPhase3EnhancedTake(unittest.TestCase):
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
 
-        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
 
     def test_take_from_surface_visible_item(self):
         """Test taking an item from a surface container (visible)."""
@@ -360,7 +360,7 @@ class TestPhase5GameState(unittest.TestCase):
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
 
-        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
 
     def test_tower_has_pedestal_item(self):
         """Test that tower contains a pedestal item."""
@@ -535,7 +535,7 @@ class TestPhase6RoomDescriptions(unittest.TestCase):
         self.state = load_game_state(self.game_data)
         self.state.actors["player"].location = "loc_test"
 
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_location_query_includes_surface_items(self):
         """Test that location query includes items on surfaces."""
@@ -724,7 +724,7 @@ class TestPhase2PutCommand(unittest.TestCase):
             }
         }
         self.state = load_game_state(self.game_data)
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_put_item_on_surface(self):
         """Test putting an item on a surface container."""
@@ -925,7 +925,7 @@ class TestPhase4PushCommand(unittest.TestCase):
         }
         self.state = load_game_state(self.game_data)
         self.state.actors["player"].location = "loc_test"
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_push_pushable_item_succeeds(self):
         """Test pushing a pushable item succeeds."""
@@ -1026,7 +1026,7 @@ class TestContainerCapacity(unittest.TestCase):
         self.state = load_game_state(self.game_data)
         self.state.actors["player"].location = "loc_test"
 
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_count_items_in_container(self):
         """Test counting items currently in a container."""

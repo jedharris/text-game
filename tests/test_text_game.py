@@ -10,7 +10,7 @@ from pathlib import Path
 
 from src.text_game import format_command_result, format_location_query, format_inventory_query
 from src.state_manager import load_game_state
-from src.llm_protocol import JSONProtocolHandler
+from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
 
 
@@ -30,7 +30,7 @@ class TestBehaviorMessageDisplay(unittest.TestCase):
         self.manager.load_modules(modules)
 
         # Create handler with behavior manager
-        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
 
         # Move player to hallway where lantern is
         self.state.actors["player"].location = "loc_hallway"
@@ -98,7 +98,7 @@ class TestMessageKeyConsistency(unittest.TestCase):
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
 
-        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
         self.state.actors["player"].location = "loc_hallway"
 
     def test_take_result_uses_message_key(self):
@@ -152,7 +152,7 @@ class TestLLMGameSetup(unittest.TestCase):
         behavior_manager.load_modules(modules)
 
         # Create handler with behavior manager
-        json_handler = JSONProtocolHandler(state, behavior_manager=behavior_manager)
+        json_handler = LLMProtocolHandler(state, behavior_manager=behavior_manager)
 
         # Verify behavior manager is attached
         self.assertIsNotNone(json_handler.behavior_manager)
@@ -170,7 +170,7 @@ class TestLLMGameSetup(unittest.TestCase):
         modules = behavior_manager.discover_modules(str(behaviors_dir))
         behavior_manager.load_modules(modules)
 
-        json_handler = JSONProtocolHandler(state, behavior_manager=behavior_manager)
+        json_handler = LLMProtocolHandler(state, behavior_manager=behavior_manager)
 
         # Move to hallway and take lantern
         state.actors["player"].location = "loc_hallway"
@@ -205,7 +205,7 @@ class TestFormatFunctions(unittest.TestCase):
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
 
-        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
 
     def test_format_command_result_success(self):
         """Test formatting successful command result."""
@@ -257,7 +257,7 @@ class TestExamineLLMContext(unittest.TestCase):
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
 
-        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
         self.state.actors["player"].location = "loc_hallway"
 
     def test_examine_item_includes_llm_context(self):
@@ -303,7 +303,7 @@ class TestExamineLLMContext(unittest.TestCase):
         # Use simple_game_state which may not have llm_context on all items
         simple_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
         state = load_game_state(simple_path)
-        handler = JSONProtocolHandler(state, behavior_manager=self.manager)
+        handler = LLMProtocolHandler(state, behavior_manager=self.manager)
         state.actors["player"].location = "loc_start"
 
         result = handler.handle_message({

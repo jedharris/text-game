@@ -6,7 +6,7 @@ still work through behavior handlers.
 """
 
 import unittest
-from src.llm_protocol import JSONProtocolHandler
+from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
 from tests.conftest import create_test_state
 
@@ -32,7 +32,7 @@ class TestOldMethodsRemoved(unittest.TestCase):
         self.behavior_manager.load_module(behaviors.core.interaction)
         self.behavior_manager.load_module(behaviors.core.locks)
 
-        self.handler = JSONProtocolHandler(self.state, self.behavior_manager)
+        self.handler = LLMProtocolHandler(self.state, self.behavior_manager)
 
     def test_cmd_methods_removed_handlers_active(self):
         """Test that old _cmd_* methods have been removed and behavior handlers are active.

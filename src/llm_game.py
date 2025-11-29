@@ -17,7 +17,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from src.state_manager import load_game_state
-from src.llm_protocol import JSONProtocolHandler
+from src.llm_protocol import LLMProtocolHandler
 from src.llm_narrator import LLMNarrator
 from src.behavior_manager import BehaviorManager
 from src.vocabulary_generator import extract_nouns_from_state, merge_vocabulary
@@ -94,7 +94,7 @@ def main(game_dir: str = None, debug: bool = False, show_traits: bool = False):
     merged_vocab = behavior_manager.get_merged_vocabulary(vocab_with_nouns)
 
     # Create JSON handler with behavior manager
-    json_handler = JSONProtocolHandler(state, behavior_manager=behavior_manager)
+    json_handler = LLMProtocolHandler(state, behavior_manager=behavior_manager)
 
     # Create narrator with merged vocabulary for local parsing
     narrator = LLMNarrator(api_key, json_handler, behavior_manager=behavior_manager,

@@ -11,7 +11,7 @@ import unittest
 from pathlib import Path
 
 from src.state_manager import load_game_state
-from src.llm_protocol import JSONProtocolHandler
+from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
 
 
@@ -74,7 +74,7 @@ class TestHardcodedLightSourceRemoval(unittest.TestCase):
         self.manager.load_modules(modules)
 
         # Create handler with behavior manager
-        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
 
     def test_plain_lantern_not_auto_lit_on_take(self):
         """Test that plain lantern (no behavior) is NOT auto-lit on take."""
@@ -241,7 +241,7 @@ class TestHardcodedChestRemoval(unittest.TestCase):
         self.manager.load_modules(modules)
 
         # Create handler with behavior manager
-        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
 
     def test_plain_chest_openable_no_win(self):
         """Test that plain chest is openable but doesn't set win flag."""
@@ -352,7 +352,7 @@ class TestBehaviorDrivenApproach(unittest.TestCase):
         self.manager.load_modules(modules)
 
         # Create handler with behavior manager
-        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
 
     def test_potion_with_behavior_heals(self):
         """Test that potion with behavior heals player."""

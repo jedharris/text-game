@@ -29,8 +29,6 @@ class BehaviorManager:
         self._verb_sources: Dict[str, str] = {}  # verb/synonym -> module_name
         # Track handler position for delegation (used by invoke_previous_handler)
         self._handler_position_list: List[int] = []
-        # Legacy vocabulary extensions (for backward compatibility)
-        self._vocabulary_extensions: List[Dict] = []
         # Store loaded modules for entity behavior invocation
         self._modules: Dict[str, Any] = {}  # module_name -> module object
 
@@ -225,13 +223,12 @@ class BehaviorManager:
         Load a behavior module and register its vocabulary and handlers.
 
         Args:
-            module_or_path: Either a module object (for testing) or module path string
+            module_or_path: Either an already-imported module object or a module path string
             source_type: "regular" (game-specific code) or "symlink" (core/library code)
 
         Raises:
             ValueError: If conflicts detected (duplicate handlers/vocabulary in same source type)
         """
-        # Handle both module objects (for testing) and module paths (for production)
         if isinstance(module_or_path, str):
             try:
                 module = importlib.import_module(module_or_path)
@@ -240,7 +237,6 @@ class BehaviorManager:
                 return
             module_name = module_or_path
         else:
-            # Module object passed directly (for testing)
             module = module_or_path
             module_name = module.__name__
 
@@ -253,24 +249,9 @@ class BehaviorManager:
         # Validate and register vocabulary
         if hasattr(module, 'vocabulary') and module.vocabulary:
             vocabulary = module.vocabulary
-
-            # Skip Mock objects (used in legacy tests)
-            # Check for unittest.mock.MagicMock or Mock
-            is_mock = (
-                type(vocabulary).__module__ == 'unittest.mock' or
-                hasattr(vocabulary, '_mock_name')  # Mock objects have this attribute
-            )
-
-            if not is_mock:
-                # Validate real vocabulary (will raise ValueError if invalid)
-                self._validate_vocabulary(vocabulary, module_name)
-
-                # Only register if it's a dict (validation passed)
-                if isinstance(vocabulary, dict):
-                    self._register_vocabulary(vocabulary, module_name)
-
-                    # Legacy: Also add to vocabulary_extensions for backward compatibility
-                    self._vocabulary_extensions.append(vocabulary)
+            self._validate_vocabulary(vocabulary, module_name)
+            if isinstance(vocabulary, dict):
+                self._register_vocabulary(vocabulary, module_name)
 
         # Register protocol handlers
         for name in dir(module):
@@ -294,7 +275,7 @@ class BehaviorManager:
 
     def get_merged_vocabulary(self, base_vocab: Dict) -> Dict:
         """
-        Merge base vocabulary with all extensions.
+        Merge base vocabulary with vocabulary from all loaded modules.
 
         Args:
             base_vocab: Base vocabulary dict from vocabulary.json
@@ -311,7 +292,13 @@ class BehaviorManager:
             "articles": list(base_vocab.get("articles", []))
         }
 
-        for ext in self._vocabulary_extensions:
+        for module in self._modules.values():
+            if not hasattr(module, 'vocabulary') or not module.vocabulary:
+                continue
+            ext = module.vocabulary
+            if not isinstance(ext, dict):
+                continue
+
             # Merge verbs (avoid duplicates by word)
             existing_words = {v["word"] for v in result["verbs"]}
             for verb in ext.get("verbs", []):
@@ -355,24 +342,10 @@ class BehaviorManager:
             Handler function or None
         """
         handlers = self._handlers.get(verb)
-        if not handlers:
+        if not handlers or len(handlers) == 0:
             return None
 
-        # Handle both new format (list of tuples) and legacy format (single function)
-        if isinstance(handlers, list):
-            if len(handlers) > 0:
-                first = handlers[0]
-                if isinstance(first, tuple):
-                    handler, module_name = first
-                    return handler
-                else:
-                    # Legacy: list of functions
-                    return first
-        elif callable(handlers):
-            # Legacy: single function stored directly
-            return handlers
-
-        return None
+        return handlers[0][0]  # First element of tuple is the handler
 
     def get_event_for_verb(self, verb: str) -> Optional[str]:
         """
@@ -530,25 +503,15 @@ class BehaviorManager:
             HandlerResult from handler, or None if no handler registered
         """
         handlers = self._handlers.get(verb)
-        if not handlers:
+        if not handlers or len(handlers) == 0:
             return None
 
         # Initialize position list
         self._handler_position_list = [0]
 
         try:
-            # Get first handler
-            if isinstance(handlers, list) and len(handlers) > 0:
-                first = handlers[0]
-                if isinstance(first, tuple):
-                    handler, module_name = first
-                else:
-                    # Legacy format
-                    handler = first
-            else:
-                return None
-
-            # Call first handler
+            # Get first handler (tuple of handler, module_name)
+            handler = handlers[0][0]
             return handler(accessor, action)
 
         finally:
@@ -598,15 +561,8 @@ class BehaviorManager:
         self._handler_position_list.append(next_pos)
 
         try:
-            # Get next handler
-            next_handler_entry = handlers[next_pos]
-            if isinstance(next_handler_entry, tuple):
-                next_handler, module_name = next_handler_entry
-            else:
-                # Legacy format
-                next_handler = next_handler_entry
-
-            # Call next handler
+            # Get next handler (tuple of handler, module_name)
+            next_handler = handlers[next_pos][0]
             return next_handler(accessor, action)
 
         finally:

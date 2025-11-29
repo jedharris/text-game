@@ -11,7 +11,7 @@ from pathlib import Path
 
 from src.parser import Parser
 from src.state_manager import load_game_state
-from src.llm_protocol import JSONProtocolHandler
+from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
 from src.vocabulary_generator import extract_nouns_from_state, merge_vocabulary
 
@@ -163,7 +163,7 @@ class TestMultipleAdjectiveDisambiguation(unittest.TestCase):
         }
 
         self.state = load_game_state(self.game_data)
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_single_adjective_disambiguates(self):
         """Test that single adjective can disambiguate doors."""
@@ -256,7 +256,7 @@ class TestItemDisambiguation(unittest.TestCase):
         }
 
         self.state = load_game_state(self.game_data)
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_adjective_selects_correct_item(self):
         """Test that adjective selects correct item from multiple."""
@@ -339,7 +339,7 @@ class TestGracefulErrorHandling(unittest.TestCase):
         }
 
         self.state = load_game_state(self.game_data)
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_nonexistent_object_with_adjective(self):
         """Test taking nonexistent object with adjective."""

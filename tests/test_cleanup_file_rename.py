@@ -38,13 +38,7 @@ class TestFileRename(unittest.TestCase):
             del sys.modules['src.json_protocol']
 
         with self.assertRaises(ImportError):
-            from src.json_protocol import JSONProtocolHandler
-
-    def test_backward_compat_alias_works(self):
-        """Test that JSONProtocolHandler alias still works for backward compatibility."""
-        # This allows existing code to gradually migrate
-        from src.llm_protocol import JSONProtocolHandler
-        self.assertTrue(callable(JSONProtocolHandler))
+            from src.json_protocol import LLMProtocolHandler
 
 
 if __name__ == '__main__':

@@ -14,7 +14,7 @@ import tempfile
 from pathlib import Path
 
 from src.state_manager import load_game_state
-from src.llm_protocol import JSONProtocolHandler
+from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
 from src.word_entry import WordEntry, WordType
 
@@ -35,7 +35,7 @@ class TestExamineLockBase(unittest.TestCase):
         self.behavior_manager.load_modules(modules)
 
         # Create protocol handler
-        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.behavior_manager)
+        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.behavior_manager)
 
     def move_player_to(self, location_id: str):
         """Helper to move player to a specific location."""

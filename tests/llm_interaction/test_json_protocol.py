@@ -16,10 +16,10 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from src.state_manager import load_game_state, GameState
-from src.llm_protocol import JSONProtocolHandler
+from src.llm_protocol import LLMProtocolHandler
 
 
-class _JSONProtocolHandlerReference:
+class _LLMProtocolHandlerReference:
     """
     Handler for JSON protocol messages between LLM and game engine.
 
@@ -817,7 +817,7 @@ class TestCommandMessages(unittest.TestCase):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.state = load_game_state(str(fixtures_path))
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_take_item_success(self):
         """Test successful take command."""
@@ -1133,7 +1133,7 @@ class TestQueryMessages(unittest.TestCase):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.state = load_game_state(str(fixtures_path))
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_query_location(self):
         """Test location query."""
@@ -1354,7 +1354,7 @@ class TestVocabularyQueryProtocol(unittest.TestCase):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.state = load_game_state(str(fixtures_path))
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_vocabulary_query_response_structure(self):
         """Test vocabulary query returns correct response structure."""
@@ -1495,7 +1495,7 @@ class TestErrorHandling(unittest.TestCase):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.state = load_game_state(str(fixtures_path))
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_missing_message_type(self):
         """Test message without type field."""
@@ -1560,7 +1560,7 @@ class TestResultFormat(unittest.TestCase):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.state = load_game_state(str(fixtures_path))
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_success_result_format(self):
         """Test that success results have correct format."""
@@ -1618,7 +1618,7 @@ class TestEndToEndInteractions(unittest.TestCase):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.state = load_game_state(str(fixtures_path))
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_take_key_unlock_door_sequence(self):
         """Test sequence: take key, go north, unlock door, open door, go east."""
@@ -1818,7 +1818,7 @@ class TestLightSourceFunctionality(unittest.TestCase):
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
 
-        self.handler = JSONProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
 
     def test_take_light_source_auto_lights(self):
         """Test that taking an item with provides_light sets lit state."""
@@ -2067,7 +2067,7 @@ class TestTraitRandomization(unittest.TestCase):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.state = load_game_state(str(fixtures_path))
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_traits_are_shuffled(self):
         """Verify traits list is shuffled (not always in original order)."""

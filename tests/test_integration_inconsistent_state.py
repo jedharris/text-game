@@ -8,7 +8,7 @@ Reference: behavior_refactoring_implementation.md lines 297-332
 import unittest
 import sys
 from io import StringIO
-from src.llm_protocol import JSONProtocolHandler
+from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
 from src.state_accessor import HandlerResult
 from tests.conftest import create_test_state
@@ -21,7 +21,7 @@ class TestInconsistentStateHandling(unittest.TestCase):
         """Set up test fixtures."""
         self.state = create_test_state()
         self.behavior_manager = BehaviorManager()
-        self.handler = JSONProtocolHandler(self.state, self.behavior_manager)
+        self.handler = LLMProtocolHandler(self.state, self.behavior_manager)
 
     def test_state_corrupted_flag_starts_false(self):
         """Test that state_corrupted flag initializes to False."""

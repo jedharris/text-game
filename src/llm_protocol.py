@@ -571,26 +571,9 @@ class LLMProtocolHandler:
         return result
 
     def _door_to_dict(self, door) -> Dict:
-        """Convert door item to dict with llm_context.
-
-        Uses unified entity_serializer for base conversion, then adds
-        name extraction from description for backward compatibility.
-        """
+        """Convert door item to dict with llm_context."""
         from utilities.entity_serializer import entity_to_dict
-
-        result = entity_to_dict(door)
-
-        # Ensure name is set (for backward compatibility with query responses)
-        # If serializer didn't set a good name, extract from description
-        if result.get("name") == "door" or not result.get("name"):
-            description = door.description or ""
-            desc_words = description.lower().split()
-            adjective = next((word for word in desc_words
-                            if word in ["wooden", "iron", "heavy", "simple", "golden", "ancient"]),
-                           "")
-            result["name"] = f"{adjective} door" if adjective else "door"
-
-        return result
+        return entity_to_dict(door)
 
     def _location_to_dict(self, loc) -> Dict:
         """Convert location to dict with llm_context."""
@@ -601,7 +584,3 @@ class LLMProtocolHandler:
         """Convert Actor to dict with llm_context."""
         from utilities.entity_serializer import entity_to_dict
         return entity_to_dict(actor)
-
-
-# Backward compatibility alias
-JSONProtocolHandler = LLMProtocolHandler

@@ -13,9 +13,10 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from src.state_manager import load_game_state
-from src.llm_protocol import JSONProtocolHandler
-from src.llm_narrator import MockLLMNarrator, LLMNarrator, parsed_to_json
+from src.llm_protocol import LLMProtocolHandler
+from src.llm_narrator import LLMNarrator, parsed_to_json
 from src.behavior_manager import BehaviorManager
+from tests.llm_interaction.mock_narrator import MockLLMNarrator
 
 
 class TestJSONExtraction(unittest.TestCase):
@@ -25,7 +26,7 @@ class TestJSONExtraction(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.state = load_game_state(str(fixture_path))
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_extract_json_from_code_block(self):
         """Test extracting JSON from markdown code block with json tag."""
@@ -145,7 +146,7 @@ class TestProcessTurn(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.state = load_game_state(str(fixture_path))
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_process_turn_take_item(self):
         """Test processing a take command."""
@@ -266,7 +267,7 @@ class TestGetOpening(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.state = load_game_state(str(fixture_path))
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_get_opening_returns_narrative(self):
         """Test that get_opening returns a narrative."""
@@ -319,7 +320,7 @@ class TestMockNarrator(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.state = load_game_state(str(fixture_path))
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_mock_tracks_calls(self):
         """Test that mock narrator tracks all calls."""
@@ -362,7 +363,7 @@ class TestIntegration(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.state = load_game_state(str(fixture_path))
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_full_game_sequence(self):
         """Test a sequence of game actions."""
@@ -441,7 +442,7 @@ class TestEdgeCases(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.state = load_game_state(str(fixture_path))
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_empty_input(self):
         """Test handling empty player input."""
@@ -498,7 +499,7 @@ class TestVerbosityTracking(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.state = load_game_state(str(fixture_path))
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_narrator_has_visit_tracking_sets(self):
         """Test that narrator initializes with empty tracking sets."""
@@ -682,7 +683,7 @@ class TestSystemPrompt(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.state = load_game_state(str(fixture_path))
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_mock_narrator_has_empty_system_prompt(self):
         """Test that mock narrator has empty system prompt."""
@@ -697,7 +698,7 @@ class TestMergedVocabulary(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.state = load_game_state(str(fixture_path))
-        self.handler = JSONProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.state)
 
     def test_vocabulary_section_includes_base_verbs(self):
         """Test that vocabulary section includes base verbs from vocabulary.json."""
