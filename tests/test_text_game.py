@@ -20,7 +20,7 @@ class TestBehaviorMessageDisplay(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures with lantern that has on_take/on_drop behaviors."""
         # Load game state with lantern
-        fixture_path = Path(__file__).parent.parent / "examples" / "simple_game_state.json"
+        fixture_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
         self.state = load_game_state(fixture_path)
 
         # Create behavior manager and load modules
@@ -90,7 +90,7 @@ class TestMessageKeyConsistency(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        fixture_path = Path(__file__).parent.parent / "examples" / "simple_game_state.json"
+        fixture_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
         self.state = load_game_state(fixture_path)
 
         self.manager = BehaviorManager()
@@ -142,7 +142,7 @@ class TestLLMGameSetup(unittest.TestCase):
         from pathlib import Path
         project_root = Path(__file__).parent.parent
 
-        fixture_path = project_root / "examples" / "simple_game_state.json"
+        fixture_path = project_root / "examples" / "simple_game" / "game_state.json"
         state = load_game_state(fixture_path)
 
         # Create behavior manager like llm_game does
@@ -162,7 +162,7 @@ class TestLLMGameSetup(unittest.TestCase):
         from pathlib import Path
         project_root = Path(__file__).parent.parent
 
-        fixture_path = project_root / "examples" / "simple_game_state.json"
+        fixture_path = project_root / "examples" / "simple_game" / "game_state.json"
         state = load_game_state(fixture_path)
 
         behavior_manager = BehaviorManager()
@@ -197,7 +197,7 @@ class TestFormatFunctions(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        fixture_path = Path(__file__).parent.parent / "examples" / "simple_game_state.json"
+        fixture_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
         self.state = load_game_state(fixture_path)
 
         self.manager = BehaviorManager()
@@ -249,7 +249,7 @@ class TestExamineLLMContext(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures with fancy game state that has llm_context."""
-        fixture_path = Path(__file__).parent.parent / "examples" / "fancy_game_state.json"
+        fixture_path = Path(__file__).parent.parent / "examples" / "fancy_game" / "game_state.json"
         self.state = load_game_state(fixture_path)
 
         self.manager = BehaviorManager()
@@ -301,7 +301,7 @@ class TestExamineLLMContext(unittest.TestCase):
     def test_examine_item_without_llm_context(self):
         """Test that items without llm_context don't include data field."""
         # Use simple_game_state which may not have llm_context on all items
-        simple_path = Path(__file__).parent.parent / "examples" / "simple_game_state.json"
+        simple_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
         state = load_game_state(simple_path)
         handler = JSONProtocolHandler(state, behavior_manager=self.manager)
         state.actors["player"].location = "loc_start"
@@ -318,62 +318,53 @@ class TestExamineLLMContext(unittest.TestCase):
             self.assertIn("llm_context", result["data"])
 
 
-class TestGameStateFileArgument(unittest.TestCase):
-    """Test command-line argument for game state file."""
+class TestGameDirArgument(unittest.TestCase):
+    """Test command-line argument for game directory."""
 
-    def test_main_with_default_state_file(self):
-        """Test that main() uses default state file when none provided."""
-        from src.text_game import DEFAULT_STATE_FILE
-        self.assertTrue(DEFAULT_STATE_FILE.exists())
+    def test_main_with_default_game_dir(self):
+        """Test that main() uses default game directory when none provided."""
+        from src.text_game import DEFAULT_GAME_DIR
+        self.assertTrue(DEFAULT_GAME_DIR.exists())
 
-    def test_main_with_nonexistent_state_file(self):
-        """Test that main() returns error for nonexistent file."""
+    def test_main_with_nonexistent_game_dir(self):
+        """Test that main() returns error for nonexistent directory."""
         from src.text_game import main
-        result = main(state_file="/nonexistent/path.json")
+        result = main(game_dir="/nonexistent/path")
         self.assertEqual(result, 1)
 
-    def test_main_with_custom_state_file(self):
-        """Test that main() accepts custom state file path."""
+    def test_main_with_custom_game_dir(self):
+        """Test that main() accepts custom game directory path."""
         # We can't easily test the full game loop, but we can verify
-        # the state_file parameter is accepted without error by checking
+        # the game_dir parameter is accepted without error by checking
         # the function signature
         from src.text_game import main
         import inspect
         sig = inspect.signature(main)
-        self.assertIn("state_file", sig.parameters)
-
-    def test_main_auto_appends_json_extension(self):
-        """Test that main() auto-appends .json if file not found."""
-        from src.text_game import main
-        # examples/simple_game_state.json exists, so simple_game_state should work
-        # But we can't run the full game loop, so test the error case:
-        # /nonexistent/path doesn't exist, and neither does /nonexistent/path.json
-        result = main(state_file="/nonexistent/path")
-        self.assertEqual(result, 1)
+        self.assertIn("game_dir", sig.parameters)
 
 
-class TestLLMGameStateFileArgument(unittest.TestCase):
-    """Test command-line argument for llm_game state file."""
+class TestLLMGameDirArgument(unittest.TestCase):
+    """Test command-line argument for llm_game directory."""
 
-    def test_main_with_default_state_file(self):
-        """Test that llm_game main() uses default state file when none provided."""
-        from src.llm_game import DEFAULT_STATE_FILE
-        self.assertTrue(DEFAULT_STATE_FILE.exists())
+    def test_main_with_default_game_dir(self):
+        """Test that llm_game main() uses default game directory when none provided."""
+        from src.llm_game import DEFAULT_GAME_DIR
+        self.assertTrue(DEFAULT_GAME_DIR.exists())
 
-    def test_main_with_nonexistent_state_file(self):
-        """Test that llm_game main() returns error for nonexistent file."""
+    def test_main_with_nonexistent_game_dir(self):
+        """Test that llm_game main() returns error for nonexistent directory."""
         from src.llm_game import main
-        # This will also fail due to missing API key, but file check comes first
-        result = main(state_file="/nonexistent/path.json")
-        # Returns 1 for either missing API key or missing file
+        # This will also fail due to missing API key, but directory check comes first
+        result = main(game_dir="/nonexistent/path")
+        # Returns 1 for either missing API key or missing directory
         self.assertEqual(result, 1)
 
-    def test_main_accepts_state_file_parameter(self):
-        """Test that llm_game main() accepts state_file parameter."""
+    def test_main_accepts_game_dir_parameter(self):
+        """Test that llm_game main() accepts game_dir parameter."""
         from src.llm_game import main
         import inspect
         sig = inspect.signature(main)
-        self.assertIn("state_file", sig.parameters)
+        self.assertIn("game_dir", sig.parameters)
 
 
 class TestConsoleEntryPoints(unittest.TestCase):
@@ -399,7 +390,7 @@ class TestConsoleEntryPoints(unittest.TestCase):
             cwd=Path(__file__).parent.parent
         )
         self.assertEqual(result.returncode, 0)
-        self.assertIn('state_file', result.stdout)
+        self.assertIn('game_dir', result.stdout)
 
     def test_llm_game_cli_main_handles_help(self):
         """Test that llm_game cli_main handles --help."""
@@ -411,7 +402,7 @@ class TestConsoleEntryPoints(unittest.TestCase):
             cwd=Path(__file__).parent.parent
         )
         self.assertEqual(result.returncode, 0)
-        self.assertIn('state_file', result.stdout)
+        self.assertIn('game_dir', result.stdout)
 
 
 if __name__ == '__main__':

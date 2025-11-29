@@ -352,7 +352,7 @@ class TestPhase5GameState(unittest.TestCase):
 
     def setUp(self):
         """Set up with the actual game state file."""
-        fixture_path = Path(__file__).parent.parent / "examples" / "simple_game_state.json"
+        fixture_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
         self.state = load_game_state(fixture_path)
 
         self.manager = BehaviorManager()

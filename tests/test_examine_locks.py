@@ -25,7 +25,7 @@ class TestExamineLockBase(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures with simple game state."""
         # Load game state
-        state_path = Path(__file__).parent.parent / "examples" / "simple_game_state.json"
+        state_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
         self.state = load_game_state(str(state_path))
 
         # Set up behavior manager
@@ -241,7 +241,7 @@ class TestFindLockByContext(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        state_path = Path(__file__).parent.parent / "examples" / "simple_game_state.json"
+        state_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
         self.state = load_game_state(str(state_path))
 
         self.behavior_manager = BehaviorManager()

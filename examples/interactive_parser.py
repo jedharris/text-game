@@ -66,7 +66,7 @@ def main():
 
     # Load game state for JSON protocol testing
     script_dir = Path(__file__).parent
-    state_file = script_dir / "simple_game_state.json"
+    state_file = script_dir / "simple_game" / "game_state.json"
     state = load_game_state(str(state_file))
     json_handler = JSONProtocolHandler(state)
 

@@ -348,10 +348,10 @@ class TestIntegrationWithGameState(unittest.TestCase):
     """Integration tests with actual game state files."""
 
     def test_simple_game_state_vocabulary(self):
-        """Test vocabulary generation from simple_game_state.json."""
-        game_state_path = Path(__file__).parent.parent / "examples" / "simple_game_state.json"
+        """Test vocabulary generation from simple_game/game_state.json."""
+        game_state_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
         if not game_state_path.exists():
-            self.skipTest("simple_game_state.json not found")
+            self.skipTest("simple_game/game_state.json not found")
 
         state = load_game_state(str(game_state_path))
         nouns = extract_nouns_from_state(state)

@@ -22,8 +22,8 @@ from src.llm_protocol import JSONProtocolHandler
 from src.vocabulary_generator import extract_nouns_from_state, merge_vocabulary
 from src.behavior_manager import BehaviorManager
 
-# Default game state file location
-DEFAULT_STATE_FILE = Path(__file__).parent.parent / "examples" / "simple_game_state.json"
+# Default game directory location
+DEFAULT_GAME_DIR = Path(__file__).parent.parent / "examples" / "simple_game"
 
 
 def parsed_to_json(result: ParsedCommand) -> Dict[str, Any]:
@@ -175,33 +175,48 @@ def load_game(filename: str) -> Optional[GameState]:
         return None
 
 
-def main(state_file: str = None):
+def main(game_dir: str = None):
     """Run the game.
 
     Args:
-        state_file: Path to game state JSON file (uses default if not provided)
+        game_dir: Path to game directory containing game_state.json (uses default if not provided)
     """
-    # Load initial game state
-    if state_file:
-        game_state_path = Path(state_file)
-        # Try adding .json if file doesn't exist
-        if not game_state_path.exists() and not state_file.endswith('.json'):
-            game_state_path = Path(state_file + '.json')
+    # Resolve game directory
+    if game_dir:
+        game_dir_path = Path(game_dir).absolute()
     else:
-        game_state_path = DEFAULT_STATE_FILE
-    if not game_state_path.exists():
-        print(f"Error: Game state file not found: {game_state_path}")
+        game_dir_path = DEFAULT_GAME_DIR
+
+    if not game_dir_path.exists() or not game_dir_path.is_dir():
+        print(f"Error: Game directory not found: {game_dir_path}")
         return 1
 
-    # Use the state file's directory for save/load dialogs
-    save_load_dir = str(game_state_path.parent.resolve())
+    # Load game state from game_state.json in the directory
+    game_state_path = game_dir_path / "game_state.json"
+    if not game_state_path.exists():
+        print(f"Error: game_state.json not found in: {game_dir_path}")
+        return 1
+
+    # Use the game directory for save/load dialogs
+    save_load_dir = str(game_dir_path)
 
     state = load_game_state(str(game_state_path))
 
     # Initialize behavior manager and load behavior modules
+    # Game must have its own behaviors/ directory (with at least a symlink to core behaviors).
     behavior_manager = BehaviorManager()
-    behaviors_dir = Path(__file__).parent.parent / "behaviors"
-    modules = behavior_manager.discover_modules(str(behaviors_dir))
+    game_behaviors_dir = game_dir_path / "behaviors"
+    if not game_behaviors_dir.exists() or not game_behaviors_dir.is_dir():
+        print(f"Error: Game must have a behaviors/ directory: {game_behaviors_dir}")
+        print("Create one with at least a symlink to the engine's core behaviors.")
+        return
+
+    # Add game directory to sys.path so game-specific modules can be imported
+    if str(game_dir_path) not in sys.path:
+        sys.path.insert(0, str(game_dir_path))
+
+    # Load all behaviors from game directory (includes core via symlink)
+    modules = behavior_manager.discover_modules(str(game_behaviors_dir))
     behavior_manager.load_modules(modules)
 
     # Load and merge vocabulary
@@ -360,9 +375,9 @@ def main(state_file: str = None):
 def cli_main():
     """Entry point for console script."""
     parser = argparse.ArgumentParser(description='Text adventure game')
-    parser.add_argument('state_file', nargs='?', help='Path to game state JSON file')
+    parser.add_argument('game_dir', nargs='?', help='Path to game directory containing game_state.json')
     args = parser.parse_args()
-    sys.exit(main(state_file=args.state_file) or 0)
+    sys.exit(main(game_dir=args.game_dir) or 0)
 
 
 if __name__ == '__main__':

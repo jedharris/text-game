@@ -22,15 +22,15 @@ from src.llm_narrator import LLMNarrator
 from src.behavior_manager import BehaviorManager
 from src.vocabulary_generator import extract_nouns_from_state, merge_vocabulary
 
-# Default game state file location
-DEFAULT_STATE_FILE = Path(__file__).parent.parent / "examples" / "simple_game_state.json"
+# Default game directory location
+DEFAULT_GAME_DIR = Path(__file__).parent.parent / "examples" / "simple_game"
 
 
-def main(state_file: str = None, debug: bool = False, show_traits: bool = False):
+def main(game_dir: str = None, debug: bool = False, show_traits: bool = False):
     """Run the LLM-powered text adventure.
 
     Args:
-        state_file: Path to game state JSON file (uses default if not provided)
+        game_dir: Path to game directory containing game_state.json (uses default if not provided)
         debug: If True, enable debug logging (shows cache statistics)
         show_traits: If True, print llm_context traits before each LLM narration
     """
@@ -49,24 +49,39 @@ def main(state_file: str = None, debug: bool = False, show_traits: bool = False)
         print("Set it with: export ANTHROPIC_API_KEY=sk-ant-...")
         return 1
 
-    # Load game state
-    if state_file:
-        game_state_path = Path(state_file)
-        # Try adding .json if file doesn't exist
-        if not game_state_path.exists() and not state_file.endswith('.json'):
-            game_state_path = Path(state_file + '.json')
+    # Resolve game directory
+    if game_dir:
+        game_dir_path = Path(game_dir).absolute()
     else:
-        game_state_path = DEFAULT_STATE_FILE
+        game_dir_path = DEFAULT_GAME_DIR
+
+    if not game_dir_path.exists() or not game_dir_path.is_dir():
+        print(f"Error: Game directory not found: {game_dir_path}")
+        return 1
+
+    # Load game state from game_state.json in the directory
+    game_state_path = game_dir_path / "game_state.json"
     if not game_state_path.exists():
-        print(f"Error: Game state file not found: {game_state_path}")
+        print(f"Error: game_state.json not found in: {game_dir_path}")
         return 1
 
     state = load_game_state(str(game_state_path))
 
     # Create behavior manager and load modules
+    # Game must have its own behaviors/ directory (with at least a symlink to core behaviors).
     behavior_manager = BehaviorManager()
-    behaviors_dir = project_root / "behaviors"
-    modules = behavior_manager.discover_modules(str(behaviors_dir))
+    game_behaviors_dir = game_dir_path / "behaviors"
+    if not game_behaviors_dir.exists() or not game_behaviors_dir.is_dir():
+        print(f"Error: Game must have a behaviors/ directory: {game_behaviors_dir}")
+        print("Create one with at least a symlink to the engine's core behaviors.")
+        return 1
+
+    # Add game directory to sys.path so game-specific modules can be imported
+    if str(game_dir_path) not in sys.path:
+        sys.path.insert(0, str(game_dir_path))
+
+    # Load all behaviors from game directory (includes core via symlink)
+    modules = behavior_manager.discover_modules(str(game_behaviors_dir))
     behavior_manager.load_modules(modules)
 
     # Load and merge vocabulary (same pattern as text_game.py)
@@ -126,13 +141,13 @@ def main(state_file: str = None, debug: bool = False, show_traits: bool = False)
 def cli_main():
     """Entry point for console script."""
     parser = argparse.ArgumentParser(description='LLM-powered text adventure game')
-    parser.add_argument('state_file', nargs='?', help='Path to game state JSON file')
+    parser.add_argument('game_dir', nargs='?', help='Path to game directory containing game_state.json')
     parser.add_argument('--debug', '-d', action='store_true',
                         help='Enable debug logging (shows API cache statistics)')
     parser.add_argument('--show-traits', '-t', action='store_true',
                         help='Print llm_context traits before each LLM narration')
     args = parser.parse_args()
-    sys.exit(main(state_file=args.state_file, debug=args.debug, show_traits=args.show_traits))
+    sys.exit(main(game_dir=args.game_dir, debug=args.debug, show_traits=args.show_traits))
 
 
 if __name__ == "__main__":

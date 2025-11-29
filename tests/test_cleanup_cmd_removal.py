@@ -20,7 +20,7 @@ class TestCmdMethodsRemoval(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.state = load_game_state(Path("examples/simple_game_state.json"))
+        self.state = load_game_state(Path("examples/simple_game/game_state.json"))
         self.manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
@@ -77,7 +77,7 @@ class TestCommandsStillWork(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.state = load_game_state(Path("examples/simple_game_state.json"))
+        self.state = load_game_state(Path("examples/simple_game/game_state.json"))
         self.manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))

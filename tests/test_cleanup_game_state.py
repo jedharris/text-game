@@ -18,12 +18,12 @@ class TestGameStateFormat(unittest.TestCase):
 
     def test_load_example_game_state(self):
         """Test that example game state loads successfully."""
-        state = load_game_state(Path("examples/simple_game_state.json"))
+        state = load_game_state(Path("examples/simple_game/game_state.json"))
         self.assertIsInstance(state, GameState)
 
     def test_behaviors_are_list_format(self):
         """Test that item behaviors use list format, not dict."""
-        with open("examples/simple_game_state.json") as f:
+        with open("examples/simple_game/game_state.json") as f:
             data = json.load(f)
 
         for item in data.get("items", []):
@@ -34,7 +34,7 @@ class TestGameStateFormat(unittest.TestCase):
 
     def test_item_properties_in_properties_dict(self):
         """Test that item portable/type are in properties dict."""
-        with open("examples/simple_game_state.json") as f:
+        with open("examples/simple_game/game_state.json") as f:
             data = json.load(f)
 
         for item in data.get("items", []):
@@ -52,7 +52,7 @@ class TestGameStateFormat(unittest.TestCase):
 
     def test_lantern_behaviors_list_format(self):
         """Test that lantern with behaviors uses list format."""
-        state = load_game_state(Path("examples/simple_game_state.json"))
+        state = load_game_state(Path("examples/simple_game/game_state.json"))
         lantern = state.get_item("item_lantern")
 
         self.assertIsNotNone(lantern)
@@ -61,7 +61,7 @@ class TestGameStateFormat(unittest.TestCase):
 
     def test_actors_unified_format(self):
         """Test that actors use unified dict format."""
-        with open("examples/simple_game_state.json") as f:
+        with open("examples/simple_game/game_state.json") as f:
             data = json.load(f)
 
         self.assertIn("actors", data)
@@ -70,7 +70,7 @@ class TestGameStateFormat(unittest.TestCase):
 
     def test_door_properties_in_properties_dict(self):
         """Test that door locked/open are in properties dict."""
-        with open("examples/simple_game_state.json") as f:
+        with open("examples/simple_game/game_state.json") as f:
             data = json.load(f)
 
         for door in data.get("doors", []):
@@ -85,7 +85,7 @@ class TestGameStateFormat(unittest.TestCase):
 
     def test_lock_properties_in_properties_dict(self):
         """Test that lock opens_with/auto_unlock are in properties dict."""
-        with open("examples/simple_game_state.json") as f:
+        with open("examples/simple_game/game_state.json") as f:
             data = json.load(f)
 
         for lock in data.get("locks", []):

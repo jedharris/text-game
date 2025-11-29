@@ -27,7 +27,7 @@ class TestVocabularyMerging(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.state = load_game_state(str(project_root / "examples" / "simple_game_state.json"))
+        self.state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
         self.behavior_manager = BehaviorManager()
         behaviors_dir = project_root / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
@@ -60,7 +60,7 @@ class TestParserCommands(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures with proper vocabulary."""
-        self.state = load_game_state(str(project_root / "examples" / "simple_game_state.json"))
+        self.state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
         self.behavior_manager = BehaviorManager()
         behaviors_dir = project_root / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
@@ -124,7 +124,7 @@ class TestGameEngineIntegration(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.state = load_game_state(str(project_root / "examples" / "simple_game_state.json"))
+        self.state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
         self.behavior_manager = BehaviorManager()
         behaviors_dir = project_root / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
@@ -144,7 +144,7 @@ class TestLocationQuery(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.state = load_game_state(str(project_root / "examples" / "simple_game_state.json"))
+        self.state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
         self.behavior_manager = BehaviorManager()
         behaviors_dir = project_root / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
@@ -189,7 +189,7 @@ class TestExamineCommand(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.state = load_game_state(str(project_root / "examples" / "simple_game_state.json"))
+        self.state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
         self.behavior_manager = BehaviorManager()
         behaviors_dir = project_root / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))

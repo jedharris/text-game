@@ -252,7 +252,7 @@ class TestExamineDoorIntegration(unittest.TestCase):
         from src.llm_protocol import JSONProtocolHandler
 
         # Load actual game state
-        fixture_path = Path(__file__).parent.parent / "examples" / "simple_game_state.json"
+        fixture_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
         self.state = load_game_state(fixture_path)
 
         self.behavior_manager = BehaviorManager()

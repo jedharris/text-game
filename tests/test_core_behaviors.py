@@ -313,7 +313,7 @@ class TestLightSourcesBehaviors(unittest.TestCase):
     def test_put_lantern_extinguishes(self):
         """Test that putting lantern on surface extinguishes it."""
         # Use simple_game_state which has a table surface
-        fixture_path = Path(__file__).parent.parent / "examples" / "simple_game_state.json"
+        fixture_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
         state = load_game_state(fixture_path)
 
         # Create handler with behavior manager

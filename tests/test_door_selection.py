@@ -26,7 +26,7 @@ class TestDoorSelection(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.state = load_game_state(str(project_root / "examples" / "simple_game_state.json"))
+        self.state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
         self.behavior_manager = BehaviorManager()
         behaviors_dir = project_root / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
@@ -140,7 +140,7 @@ class TestDoorSelectionUtility(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.state = load_game_state(str(project_root / "examples" / "simple_game_state.json"))
+        self.state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
         self.behavior_manager = BehaviorManager()
         behaviors_dir = project_root / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
