@@ -4,7 +4,8 @@
     "version": "1.0",
     "description": "A custom game demonstrating engine extensibility.",
     "start_location": "loc_garden",
-    "author": "Extended Game Example"
+    "author": "Extended Game Example",
+    "schema_version": "v_0.02"
   },
   "locations": [
     {
@@ -14,7 +15,9 @@
       "exits": {
         "north": {
           "type": "open",
-          "to": "loc_tower_entrance"
+          "to": "loc_tower_entrance",
+          "name": "stone path",
+          "description": "A weathered stone path winds through the overgrown garden toward the tower entrance."
         }
       },
       "items": [
@@ -30,16 +33,22 @@
       "exits": {
         "south": {
           "type": "open",
-          "to": "loc_garden"
+          "to": "loc_garden",
+          "name": "garden archway",
+          "description": "An ivy-covered archway leads back to the overgrown garden."
         },
         "up": {
           "type": "open",
-          "to": "loc_library"
+          "to": "loc_library",
+          "name": "spiral staircase",
+          "description": "A worn spiral staircase of grey stone winds upward into the tower."
         },
         "east": {
           "type": "door",
           "to": "loc_storage",
-          "door_id": "door_storage"
+          "door_id": "door_storage",
+          "name": "wooden door",
+          "description": "A simple wooden door leads to what appears to be a storage area."
         }
       },
       "items": [
@@ -56,7 +65,9 @@
         "west": {
           "type": "door",
           "to": "loc_tower_entrance",
-          "door_id": "door_storage"
+          "door_id": "door_storage",
+          "name": "wooden door",
+          "description": "The wooden door leads back to the tower entrance hall."
         }
       },
       "items": [
@@ -72,12 +83,16 @@
       "exits": {
         "down": {
           "type": "open",
-          "to": "loc_tower_entrance"
+          "to": "loc_tower_entrance",
+          "name": "spiral staircase",
+          "description": "The spiral staircase winds downward to the entrance hall below."
         },
         "up": {
           "type": "door",
           "to": "loc_sanctum",
-          "door_id": "door_sanctum"
+          "door_id": "door_sanctum",
+          "name": "ornate door",
+          "description": "An ornate door covered in glowing runes bars the way to the upper sanctum."
         }
       },
       "items": [
@@ -94,7 +109,9 @@
         "down": {
           "type": "door",
           "to": "loc_library",
-          "door_id": "door_sanctum"
+          "door_id": "door_sanctum",
+          "name": "ornate door",
+          "description": "The ornate rune-covered door leads back down to the library."
         }
       },
       "items": [
@@ -247,11 +264,14 @@
       "id": "item_sanctum_key",
       "name": "key",
       "description": "A golden key that glows faintly with magic.",
-      "location": "loc_sanctum",
+      "location": "loc_library",
       "properties": {
         "type": "object",
         "portable": true,
         "magical": true
+      },
+      "states": {
+        "hidden": true
       }
     },
     {
@@ -314,13 +334,14 @@
           "item_sanctum_key"
         ],
         "auto_unlock": true
-      }
+      },
+      "name": "Sanctum Lock"
     }
   ],
   "actors": {
     "player": {
       "id": "player",
-      "name": "player",
+      "name": "Adventurer",
       "description": "An adventurer seeking the wizard's secrets.",
       "location": "loc_garden",
       "inventory": [],

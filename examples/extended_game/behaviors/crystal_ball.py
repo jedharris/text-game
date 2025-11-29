@@ -84,6 +84,7 @@ def on_peer(entity: Any, accessor: Any, context: Dict) -> EventResult:
     Entity behavior for being peered into.
 
     This is called when the crystal ball is gazed into.
+    Reveals the hidden sanctum key by setting states.hidden = False.
 
     Args:
         entity: The crystal ball
@@ -93,39 +94,30 @@ def on_peer(entity: Any, accessor: Any, context: Dict) -> EventResult:
     Returns:
         EventResult with allow and message
     """
-    # Track if the key has been revealed
-    if not hasattr(entity, 'states') or entity.states is None:
-        entity.states = {}
+    # Find the sanctum key (hidden in the same location as the crystal ball)
+    sanctum_key = accessor.get_item("item_sanctum_key")
+    if not sanctum_key:
+        message = "The mists swirl mysteriously but reveal nothing."
+        return EventResult(allow=True, message=message)
 
-    if entity.states.get("key_revealed", False):
+    # Initialize states if needed
+    if not hasattr(sanctum_key, 'states') or sanctum_key.states is None:
+        sanctum_key.states = {}
+
+    # Check if the key is still hidden
+    if sanctum_key.states.get("hidden", False):
+        # Reveal the hidden key by setting hidden to False
+        sanctum_key.states["hidden"] = False
+        message = (
+            "The mists within the crystal ball swirl and coalesce...\n"
+            "A golden light pulses from within!\n"
+            "As you watch, a small golden key materializes on the floor nearby!"
+        )
+    else:
         # Key already revealed
         message = (
             "The mists swirl and part, but the crystal ball is now empty.\n"
             "You've already claimed what was hidden within."
         )
-        return EventResult(allow=True, message=message)
-
-    # First time - reveal the hidden key
-    entity.states["key_revealed"] = True
-
-    # Move the sanctum key from its hidden location to the player's current location
-    # We need to find the key and move it
-    sanctum_key = accessor.get_item("item_sanctum_key")
-    if sanctum_key:
-        # Get the actor's current location
-        actor_id = context.get("actor_id", "player")
-        actor = accessor.get_actor(actor_id)
-        if actor:
-            # Move the key to the actor's location
-            sanctum_key.location = actor.location
-            message = (
-                "The mists within the crystal ball swirl and coalesce...\n"
-                "A golden light pulses from within!\n"
-                "As you watch, a small golden key materializes and falls to the floor!"
-            )
-        else:
-            message = "The mists swirl but nothing happens."
-    else:
-        message = "The mists swirl mysteriously but reveal nothing."
 
     return EventResult(allow=True, message=message)

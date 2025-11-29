@@ -588,5 +588,182 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         self.assertTrue(door.door_locked)
 
 
+class TestWordEntryHandling(unittest.TestCase):
+    """Tests that handlers correctly handle WordEntry objects as object names.
+
+    Issue #47: Handlers were calling .lower() directly on object_name without
+    checking if it was a WordEntry object first.
+    """
+
+    def test_handle_open_with_word_entry(self):
+        """Test handle_open works when object is a WordEntry."""
+        from src.parser import WordEntry, WordType
+
+        state = create_test_state()
+        behavior_manager = BehaviorManager()
+        import behaviors.core.interaction
+        behavior_manager.load_module(behaviors.core.interaction)
+        accessor = StateAccessor(state, behavior_manager)
+
+        # Create a container (umbrella that can be opened)
+        umbrella = Item(
+            id="item_umbrella",
+            name="umbrella",
+            description="A dusty umbrella",
+            location="location_room",
+            properties={"container": {"open": False, "capacity": 1}}
+        )
+        state.items.append(umbrella)
+
+        # Parser produces WordEntry for "umbrella"
+        umbrella_entry = WordEntry(
+            word="umbrella",
+            word_type=WordType.NOUN,
+            synonyms=["parasol", "brolly"]
+        )
+
+        from behaviors.core.interaction import handle_open
+        action = {"actor_id": "player", "object": umbrella_entry}
+        result = handle_open(accessor, action)
+
+        self.assertTrue(result.success, f"Failed: {result.message}")
+        self.assertTrue(umbrella.container.open)
+
+    def test_handle_close_with_word_entry(self):
+        """Test handle_close works when object is a WordEntry."""
+        from src.parser import WordEntry, WordType
+
+        state = create_test_state()
+        behavior_manager = BehaviorManager()
+        import behaviors.core.interaction
+        behavior_manager.load_module(behaviors.core.interaction)
+        accessor = StateAccessor(state, behavior_manager)
+
+        # Create an open container
+        umbrella = Item(
+            id="item_umbrella",
+            name="umbrella",
+            description="A dusty umbrella",
+            location="location_room",
+            properties={"container": {"open": True, "capacity": 1}}
+        )
+        state.items.append(umbrella)
+
+        umbrella_entry = WordEntry(
+            word="umbrella",
+            word_type=WordType.NOUN,
+            synonyms=["parasol", "brolly"]
+        )
+
+        from behaviors.core.interaction import handle_close
+        action = {"actor_id": "player", "object": umbrella_entry}
+        result = handle_close(accessor, action)
+
+        self.assertTrue(result.success, f"Failed: {result.message}")
+        self.assertFalse(umbrella.container.open)
+
+    def test_handle_lock_with_word_entry(self):
+        """Test handle_lock works when object is a WordEntry."""
+        from src.parser import WordEntry, WordType
+
+        state = create_test_state()
+        behavior_manager = BehaviorManager()
+        import behaviors.core.locks
+        behavior_manager.load_module(behaviors.core.locks)
+        accessor = StateAccessor(state, behavior_manager)
+
+        # Add a second room
+        hall = Location(
+            id="location_hall",
+            name="Hall",
+            description="A hallway",
+            exits={"south": ExitDescriptor(type="door", to="location_room", door_id="door_main")}
+        )
+        state.locations.append(hall)
+
+        # Update room to have exit north
+        state.locations[0].exits["north"] = ExitDescriptor(
+            type="door", to="location_hall", door_id="door_main"
+        )
+
+        # Create a closed, unlocked door with a lock
+        door = create_door_item("door_main", "location_room", "north",
+                                open=False, locked=False, lock_id="lock_main")
+        state.items.append(door)
+
+        # Add lock and key
+        state.locks = [Lock(id="lock_main", name="Main Lock", description="Lock",
+                           properties={"opens_with": ["item_key"]})]
+        key = Item(id="item_key", name="key", description="A key",
+                   location="player", properties={"portable": True})
+        state.items.append(key)
+        # Add key to player's inventory
+        state.actors["player"].inventory.append("item_key")
+
+        door_entry = WordEntry(
+            word="door",
+            word_type=WordType.NOUN,
+            synonyms=["gate", "entrance"]
+        )
+
+        from behaviors.core.locks import handle_lock
+        action = {"actor_id": "player", "object": door_entry}
+        result = handle_lock(accessor, action)
+
+        self.assertTrue(result.success, f"Failed: {result.message}")
+        self.assertTrue(door.door_locked)
+
+    def test_handle_unlock_with_word_entry(self):
+        """Test handle_unlock works when object is a WordEntry."""
+        from src.parser import WordEntry, WordType
+
+        state = create_test_state()
+        behavior_manager = BehaviorManager()
+        import behaviors.core.locks
+        behavior_manager.load_module(behaviors.core.locks)
+        accessor = StateAccessor(state, behavior_manager)
+
+        # Add a second room
+        hall = Location(
+            id="location_hall",
+            name="Hall",
+            description="A hallway",
+            exits={"south": ExitDescriptor(type="door", to="location_room", door_id="door_main")}
+        )
+        state.locations.append(hall)
+
+        # Update room to have exit north
+        state.locations[0].exits["north"] = ExitDescriptor(
+            type="door", to="location_hall", door_id="door_main"
+        )
+
+        # Create a closed, locked door with a lock
+        door = create_door_item("door_main", "location_room", "north",
+                                open=False, locked=True, lock_id="lock_main")
+        state.items.append(door)
+
+        # Add lock and key
+        state.locks = [Lock(id="lock_main", name="Main Lock", description="Lock",
+                           properties={"opens_with": ["item_key"]})]
+        key = Item(id="item_key", name="key", description="A key",
+                   location="player", properties={"portable": True})
+        state.items.append(key)
+        # Add key to player's inventory
+        state.actors["player"].inventory.append("item_key")
+
+        door_entry = WordEntry(
+            word="door",
+            word_type=WordType.NOUN,
+            synonyms=["gate", "entrance"]
+        )
+
+        from behaviors.core.locks import handle_unlock
+        action = {"actor_id": "player", "object": door_entry}
+        result = handle_unlock(accessor, action)
+
+        self.assertTrue(result.success, f"Failed: {result.message}")
+        self.assertFalse(door.door_locked)
+
+
 if __name__ == '__main__':
     unittest.main()

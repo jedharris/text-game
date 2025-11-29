@@ -7,7 +7,7 @@ from typing import Dict, Any
 
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
-from utilities.utils import find_accessible_item, find_door_with_adjective
+from utilities.handler_utils import find_openable_target
 from utilities.entity_serializer import serialize_for_handler_result
 
 
@@ -55,8 +55,6 @@ def handle_unlock(accessor, action):
 
     Allows an actor to unlock a door item or container with the correct key.
 
-    CRITICAL: Extracts actor_id from action to support both player and NPCs.
-
     Args:
         accessor: StateAccessor instance
         action: Action dict with keys:
@@ -67,74 +65,26 @@ def handle_unlock(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    # CRITICAL: Extract actor_id at the top
-    actor_id = action.get("actor_id", "player")
-    object_name = action.get("object")
-    adjective = action.get("adjective")
+    item, actor_id, error = find_openable_target(accessor, action, "unlock")
+    if error:
+        return error
 
-    if not object_name:
-        return HandlerResult(
-            success=False,
-            message="What do you want to unlock?"
-        )
-
-    # Get the actor
+    # Get actor for key checking
     actor = accessor.get_actor(actor_id)
-    if not actor:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
 
-    # Get current location for door searches
-    location = accessor.get_current_location(actor_id)
-    location_id = location.id if location else None
-
-    # For door-related searches, use smart door selection
-    item = None
-    if object_name.lower() == "door" and location_id:
-        # Use find_door_with_adjective for smart selection
-        item = find_door_with_adjective(
-            accessor, object_name, adjective, location_id,
-            actor_id=actor_id, verb="unlock"
-        )
-
-    # Fall back to general item search
-    if not item:
-        item = find_accessible_item(accessor, object_name, actor_id, adjective)
-
-    if not item:
-        # Try door lookup for backward compatibility during migration
-        if location_id:
-            door = find_door_with_adjective(
-                accessor, object_name, adjective, location_id,
-                actor_id=actor_id, verb="unlock"
-            )
-            if door:
-                # Could be unified door Item or old-style Door
-                # Assign to item and let the unified handling below take over
-                item = door
-
-    if not item:
-        return HandlerResult(
-            success=False,
-            message=f"You don't see any {object_name} here."
-        )
-
-    # Check if it's a door item (unified model) or old-style Door
+    # Check if it's a door item
     if hasattr(item, 'is_door') and item.is_door:
-        # Unified door item
         data = serialize_for_handler_result(item)
         if not item.door_locked:
             return HandlerResult(
                 success=True,
-                message=f"The {object_name} is already unlocked.",
+                message=f"The {item.name} is already unlocked.",
                 data=data
             )
         if not item.door_lock_id:
             return HandlerResult(
                 success=False,
-                message=f"The {object_name} has no lock."
+                message=f"The {item.name} has no lock."
             )
         lock = accessor.get_lock(item.door_lock_id)
         if not lock:
@@ -146,45 +96,12 @@ def handle_unlock(accessor, action):
         if not has_key:
             return HandlerResult(
                 success=False,
-                message=f"You don't have the right key to unlock the {object_name}."
+                message=f"You don't have the right key to unlock the {item.name}."
             )
-        # Unlock the door item
         item.door_locked = False
         return HandlerResult(
             success=True,
-            message=f"You unlock the {object_name}.",
-            data=data
-        )
-    elif hasattr(item, 'locations'):
-        # Old-style Door entity
-        data = serialize_for_handler_result(item)
-        if not item.locked:
-            return HandlerResult(
-                success=True,
-                message=f"The {object_name} is already unlocked.",
-                data=data
-            )
-        if not item.lock_id:
-            return HandlerResult(
-                success=False,
-                message=f"The {object_name} has no lock."
-            )
-        lock = accessor.get_lock(item.lock_id)
-        if not lock:
-            return HandlerResult(
-                success=False,
-                message=f"INCONSISTENT STATE: Lock {item.lock_id} not found"
-            )
-        has_key = any(key_id in actor.inventory for key_id in lock.opens_with)
-        if not has_key:
-            return HandlerResult(
-                success=False,
-                message=f"You don't have the right key to unlock the {object_name}."
-            )
-        item.locked = False
-        return HandlerResult(
-            success=True,
-            message=f"You unlock the {object_name}.",
+            message=f"You unlock the {item.name}.",
             data=data
         )
 
@@ -195,7 +112,6 @@ def handle_unlock(accessor, action):
             message=f"The {item.name} has no lock."
         )
 
-    # Serialize for handler result
     data = serialize_for_handler_result(item)
 
     # Check if locked
@@ -215,7 +131,6 @@ def handle_unlock(accessor, action):
             message=f"The {item.name} has no lock."
         )
 
-    # Get the lock
     lock = accessor.get_lock(lock_id)
     if not lock:
         return HandlerResult(
@@ -223,16 +138,13 @@ def handle_unlock(accessor, action):
             message=f"INCONSISTENT STATE: Lock {lock_id} not found"
         )
 
-    # Check if actor has any of the keys
     has_key = any(key_id in actor.inventory for key_id in lock.opens_with)
-
     if not has_key:
         return HandlerResult(
             success=False,
             message=f"You don't have the right key to unlock the {item.name}."
         )
 
-    # Unlock the container
     item.container._data["locked"] = False
 
     return HandlerResult(
@@ -248,8 +160,6 @@ def handle_lock(accessor, action):
 
     Allows an actor to lock a door item or container with the correct key.
 
-    CRITICAL: Extracts actor_id from action to support both player and NPCs.
-
     Args:
         accessor: StateAccessor instance
         action: Action dict with keys:
@@ -260,79 +170,31 @@ def handle_lock(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    # CRITICAL: Extract actor_id at the top
-    actor_id = action.get("actor_id", "player")
-    object_name = action.get("object")
-    adjective = action.get("adjective")
+    item, actor_id, error = find_openable_target(accessor, action, "lock")
+    if error:
+        return error
 
-    if not object_name:
-        return HandlerResult(
-            success=False,
-            message="What do you want to lock?"
-        )
-
-    # Get the actor
+    # Get actor for key checking
     actor = accessor.get_actor(actor_id)
-    if not actor:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
 
-    # Get current location for door searches
-    location = accessor.get_current_location(actor_id)
-    location_id = location.id if location else None
-
-    # For door-related searches, use smart door selection
-    item = None
-    if object_name.lower() == "door" and location_id:
-        # Use find_door_with_adjective for smart selection
-        item = find_door_with_adjective(
-            accessor, object_name, adjective, location_id,
-            actor_id=actor_id, verb="lock"
-        )
-
-    # Fall back to general item search
-    if not item:
-        item = find_accessible_item(accessor, object_name, actor_id, adjective)
-
-    if not item:
-        # Try door lookup for backward compatibility during migration
-        if location_id:
-            door = find_door_with_adjective(
-                accessor, object_name, adjective, location_id,
-                actor_id=actor_id, verb="lock"
-            )
-            if door:
-                # Could be unified door Item or old-style Door
-                # Assign to item and let the unified handling below take over
-                item = door
-
-    if not item:
-        return HandlerResult(
-            success=False,
-            message=f"You don't see any {object_name} here."
-        )
-
-    # Check if it's a door item (unified model) or old-style Door
+    # Check if it's a door item
     if hasattr(item, 'is_door') and item.is_door:
-        # Unified door item
         data = serialize_for_handler_result(item)
         if item.door_open:
             return HandlerResult(
                 success=False,
-                message=f"You must close the {object_name} first."
+                message=f"You must close the {item.name} first."
             )
         if item.door_locked:
             return HandlerResult(
                 success=True,
-                message=f"The {object_name} is already locked.",
+                message=f"The {item.name} is already locked.",
                 data=data
             )
         if not item.door_lock_id:
             return HandlerResult(
                 success=False,
-                message=f"The {object_name} has no lock."
+                message=f"The {item.name} has no lock."
             )
         lock = accessor.get_lock(item.door_lock_id)
         if not lock:
@@ -344,50 +206,12 @@ def handle_lock(accessor, action):
         if not has_key:
             return HandlerResult(
                 success=False,
-                message=f"You don't have the right key to lock the {object_name}."
+                message=f"You don't have the right key to lock the {item.name}."
             )
-        # Lock the door item
         item.door_locked = True
         return HandlerResult(
             success=True,
-            message=f"You lock the {object_name}.",
-            data=data
-        )
-    elif hasattr(item, 'locations'):
-        # Old-style Door entity
-        data = serialize_for_handler_result(item)
-        if item.open:
-            return HandlerResult(
-                success=False,
-                message=f"You must close the {object_name} first."
-            )
-        if item.locked:
-            return HandlerResult(
-                success=True,
-                message=f"The {object_name} is already locked.",
-                data=data
-            )
-        if not item.lock_id:
-            return HandlerResult(
-                success=False,
-                message=f"The {object_name} has no lock."
-            )
-        lock = accessor.get_lock(item.lock_id)
-        if not lock:
-            return HandlerResult(
-                success=False,
-                message=f"INCONSISTENT STATE: Lock {item.lock_id} not found"
-            )
-        has_key = any(key_id in actor.inventory for key_id in lock.opens_with)
-        if not has_key:
-            return HandlerResult(
-                success=False,
-                message=f"You don't have the right key to lock the {object_name}."
-            )
-        item.locked = True
-        return HandlerResult(
-            success=True,
-            message=f"You lock the {object_name}.",
+            message=f"You lock the {item.name}.",
             data=data
         )
 
@@ -398,7 +222,6 @@ def handle_lock(accessor, action):
             message=f"The {item.name} has no lock."
         )
 
-    # Serialize for handler result
     data = serialize_for_handler_result(item)
 
     # Check if container is open (can't lock an open container)
@@ -425,7 +248,6 @@ def handle_lock(accessor, action):
             message=f"The {item.name} has no lock."
         )
 
-    # Get the lock
     lock = accessor.get_lock(lock_id)
     if not lock:
         return HandlerResult(
@@ -433,16 +255,13 @@ def handle_lock(accessor, action):
             message=f"INCONSISTENT STATE: Lock {lock_id} not found"
         )
 
-    # Check if actor has any of the keys
     has_key = any(key_id in actor.inventory for key_id in lock.opens_with)
-
     if not has_key:
         return HandlerResult(
             success=False,
             message=f"You don't have the right key to lock the {item.name}."
         )
 
-    # Lock the container
     item.container._data["locked"] = True
 
     return HandlerResult(

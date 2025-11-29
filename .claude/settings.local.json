@@ -1,41 +1,12 @@
 {
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
+    },
+  "includeCoAuthoredBy": true,
+  "enableAllProjectMcpServers": true,
   "permissions": {
-    "allow": [
-      "Bash(done)",
-      "Bash(find /Users/jed/Development/text-game -name \"*.py\" -type f -not -path \"*__pycache__*\" -not -path \"*venv*\" -exec sh -c 'grep -v \"\"\"\"^\\s*#\"\"\"\" \"\"\"\"$1\"\"\"\" | grep -v \"\"\"\"^\\s*$\"\"\"\" | wc -l' _ {})",
-      "Bash(for f in /Users/jed/Development/text-game/examples/*.json)",
-      "Bash(do)",
-      "Bash(if python3 -c \"import json; d=json.load(open(''$f'')); print(''$f:'', ''doors'' in d)\")",
-      "Bash(then :)",
-      "Bash(fi)",
-      "Bash(python -m pytest:*)",
-      "Bash(python3 -m pytest:*)",
-      "Bash(python -m unittest:*)",
-      "Bash(python -c:*)",
-      "Bash(python3:*)",
-      "Bash(node --version:*)",
-      "mcp__claude-context__index_codebase",
-      "mcp__claude-context__search_code",
-      "mcp__claude-context__clear_index",
-      "mcp__claude-context__get_indexing_status",
-      "Bash(gh auth status:*)",
-      "Bash(gh issue view:*)",
-      "Bash(gh issue comment:*)",
-      "Bash(gh issue close:*)",
-      "Bash(gh issue create:*)",
-      "Bash(pip show:*)",
-      "Bash(pip install:*)",
-      "Bash(llm-game:*)",
-      "Bash(gh issue list:*)",
-      "Bash(mkdir:*)",
-      "Bash(python:*)",
-      "Bash(for f in test_cleanup_file_rename.py test_combat_behaviors.py test_entity_behavior_invocation.py test_entity_unification.py test_handler_llm_context.py test_interaction_handlers.py test_observability.py test_protocol_behaviors.py test_put_handler.py)",
-      "Bash(do sed -i '' 's/name=\"\"Player\"\"/name=\"\"Adventurer\"\"/g; s/name=\"\"player\"\"/name=\"\"Adventurer\"\"/g' \"$f\")",
-      "Bash(find:*)",
-      "Bash(for f in /Users/jed/Development/text-game/tests/llm_interaction/fixtures/test_game_state.json /Users/jed/Development/text-game/tests/state_manager/fixtures/valid_world.json /Users/jed/Development/text-game/tests/state_manager/fixtures/invalid_locks.json /Users/jed/Development/text-game/tests/state_manager/fixtures/valid_world_canonical.json /Users/jed/Development/text-game/tests/state_manager/fixtures/invalid_player_state.json)",
-      "Bash(do sed -i '' 's/\"\"name\"\": \"\"player\"\"/\"\"name\"\": \"\"Adventurer\"\"/g' \"$f\")",
-      "Bash(echo:*)"
-    ],
+    "allow": [],
     "deny": [],
     "ask": []
   }

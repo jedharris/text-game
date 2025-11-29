@@ -1,6 +1,6 @@
 ## Design priorities
 - Always maximize author capability and player agency, especially when they don't conflict
-- When adding features, do all the work necessary to make all relevant entities first-class citizens, participating fully in game narration and action. 
+- When adding features, do as much as necessary to make all relevant entities first-class citizens, participating fully in game narration and action. 
 
 ## Coding guidelines
 - NEVER build vocabulary into the code, instead ALWAYS use the merged vocabulary and WordEntry. 

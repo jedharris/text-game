@@ -7,11 +7,8 @@ from typing import Dict, Any
 
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
-from utilities.utils import (
-    find_accessible_item, find_door_with_adjective, find_exit_by_name,
-    describe_location
-)
-from utilities.handler_utils import find_action_target
+from utilities.utils import find_accessible_item, find_exit_by_name, describe_location
+from utilities.handler_utils import find_action_target, find_openable_target, get_display_name
 from utilities.entity_serializer import serialize_for_handler_result
 from utilities.location_serializer import serialize_location_for_llm
 
@@ -124,8 +121,6 @@ def handle_open(accessor, action):
 
     Allows an actor to open a container or door item.
 
-    CRITICAL: Extracts actor_id from action to support both player and NPCs.
-
     Args:
         accessor: StateAccessor instance
         action: Action dict with keys:
@@ -136,98 +131,29 @@ def handle_open(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    # CRITICAL: Extract actor_id at the top
-    actor_id = action.get("actor_id", "player")
-    object_name = action.get("object")
-    adjective = action.get("adjective")
+    item, actor_id, error = find_openable_target(accessor, action, "open")
+    if error:
+        return error
 
-    if not object_name:
-        return HandlerResult(
-            success=False,
-            message="What do you want to open?"
-        )
-
-    # Get the actor
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
-
-    # Get current location for door searches
-    location = accessor.get_current_location(actor_id)
-    location_id = location.id if location else None
-
-    # For door-related searches, use smart door selection
-    item = None
-    if object_name.lower() == "door" and location_id:
-        # Use find_door_with_adjective for smart selection
-        item = find_door_with_adjective(
-            accessor, object_name, adjective, location_id,
-            actor_id=actor_id, verb="open"
-        )
-
-    # Fall back to general item search
-    if not item:
-        item = find_accessible_item(accessor, object_name, actor_id, adjective)
-
-    if not item:
-        # Try door lookup for backward compatibility during migration
-        if location_id:
-            door = find_door_with_adjective(
-                accessor, object_name, adjective, location_id,
-                actor_id=actor_id, verb="open"
-            )
-            if door:
-                # Could be unified door Item or old-style Door
-                # Assign to item and let the unified handling below take over
-                item = door
-
-    if not item:
-        return HandlerResult(
-            success=False,
-            message=f"You don't see any {object_name} here."
-        )
-
-    # Check if it's a door item (unified model) or old-style Door
+    # Check if it's a door item
     if hasattr(item, 'is_door') and item.is_door:
-        # Unified door item
         data = serialize_for_handler_result(item)
         if item.door_open:
             return HandlerResult(
                 success=True,
-                message=f"The {object_name} is already open.",
+                message=f"The {item.name} is already open.",
                 data=data
             )
         if item.door_locked:
             return HandlerResult(
                 success=False,
-                message=f"The {object_name} is locked."
+                message=f"The {item.name} is locked."
             )
-        # Open the door item
         item.door_open = True
         return HandlerResult(
             success=True,
-            message=f"You open the {object_name}.",
+            message=f"You open the {item.name}.",
             data=data
-        )
-    elif hasattr(item, 'locations'):
-        # Old-style Door entity
-        if item.open:
-            return HandlerResult(
-                success=True,
-                message=f"The {object_name} is already open."
-            )
-        if item.locked:
-            return HandlerResult(
-                success=False,
-                message=f"The {object_name} is locked."
-            )
-        item.open = True
-        return HandlerResult(
-            success=True,
-            message=f"You open the {object_name}."
         )
 
     # Check if it's a container
@@ -283,8 +209,6 @@ def handle_close(accessor, action):
 
     Allows an actor to close a container or door item.
 
-    CRITICAL: Extracts actor_id from action to support both player and NPCs.
-
     Args:
         accessor: StateAccessor instance
         action: Action dict with keys:
@@ -295,88 +219,24 @@ def handle_close(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    # CRITICAL: Extract actor_id at the top
-    actor_id = action.get("actor_id", "player")
-    object_name = action.get("object")
-    adjective = action.get("adjective")
+    item, actor_id, error = find_openable_target(accessor, action, "close")
+    if error:
+        return error
 
-    if not object_name:
-        return HandlerResult(
-            success=False,
-            message="What do you want to close?"
-        )
-
-    # Get the actor
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
-
-    # Get current location for door searches
-    location = accessor.get_current_location(actor_id)
-    location_id = location.id if location else None
-
-    # For door-related searches, use smart door selection
-    item = None
-    if object_name.lower() == "door" and location_id:
-        # Use find_door_with_adjective for smart selection
-        item = find_door_with_adjective(
-            accessor, object_name, adjective, location_id,
-            actor_id=actor_id, verb="close"
-        )
-
-    # Fall back to general item search
-    if not item:
-        item = find_accessible_item(accessor, object_name, actor_id, adjective)
-
-    if not item:
-        # Try door lookup for backward compatibility during migration
-        if location_id:
-            door = find_door_with_adjective(
-                accessor, object_name, adjective, location_id,
-                actor_id=actor_id, verb="close"
-            )
-            if door:
-                # Could be unified door Item or old-style Door
-                # Assign to item and let the unified handling below take over
-                item = door
-
-    if not item:
-        return HandlerResult(
-            success=False,
-            message=f"You don't see any {object_name} here."
-        )
-
-    # Check if it's a door item (unified model) or old-style Door
+    # Check if it's a door item
     if hasattr(item, 'is_door') and item.is_door:
-        # Unified door item
         data = serialize_for_handler_result(item)
         if not item.door_open:
             return HandlerResult(
                 success=True,
-                message=f"The {object_name} is already closed.",
+                message=f"The {item.name} is already closed.",
                 data=data
             )
-        # Close the door item
         item.door_open = False
         return HandlerResult(
             success=True,
-            message=f"You close the {object_name}.",
+            message=f"You close the {item.name}.",
             data=data
-        )
-    elif hasattr(item, 'locations'):
-        # Old-style Door entity
-        if not item.open:
-            return HandlerResult(
-                success=True,
-                message=f"The {object_name} is already closed."
-            )
-        item.open = False
-        return HandlerResult(
-            success=True,
-            message=f"You close the {object_name}."
         )
 
     # Check if it's a container
@@ -597,7 +457,7 @@ def handle_climb(accessor, action):
 
     return HandlerResult(
         success=False,
-        message=f"You don't see any {object_name} here to climb."
+        message=f"You don't see any {get_display_name(object_name)} here to climb."
     )
 
 
