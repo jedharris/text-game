@@ -19,26 +19,60 @@ class BehaviorManager:
 
     def __init__(self):
         self._behavior_cache: Dict[str, Callable] = {}
-        # Handler storage: verb -> list of (handler, module_name) tuples (in load order)
+        # Handler storage: verb -> list of (tier, handler, module_name) tuples (sorted by tier)
         self._handlers: Dict[str, List[tuple]] = {}
-        # Track module sources for conflict detection
-        self._module_sources: Dict[str, str] = {}  # module_name -> source_type
-        # Track verb-to-event mappings for conflict detection
-        self._verb_event_map: Dict[str, str] = {}  # verb/synonym -> event_name
-        # Track which module registered which verb (for error messages)
-        self._verb_sources: Dict[str, str] = {}  # verb/synonym -> module_name
-        # Track handler position for delegation (used by invoke_previous_handler)
-        self._handler_position_list: List[int] = []
+        # Track verb-to-event mappings with tiers: verb -> list of (tier, event_name) tuples
+        self._verb_event_map: Dict[str, List[tuple]] = {}  # verb/synonym -> [(tier, event_name)]
+        # Track which module registered which verb+tier (for error messages)
+        self._verb_tier_sources: Dict[tuple, str] = {}  # (verb, tier) -> module_name
+        # Track which module registered which handler+tier (for error messages)
+        self._handler_tier_sources: Dict[tuple, str] = {}  # (verb, tier) -> module_name
         # Store loaded modules for entity behavior invocation
         self._modules: Dict[str, Any] = {}  # module_name -> module object
 
-    def _register_vocabulary(self, vocabulary: dict, module_name: str) -> None:
+    def _calculate_tier(self, behavior_file_path: str, base_behavior_dir: str) -> int:
+        """
+        Calculate tier (precedence level) based on directory depth.
+
+        Args:
+            behavior_file_path: Absolute path to behavior file
+            base_behavior_dir: Absolute path to base behaviors directory
+
+        Returns:
+            Tier number (1 = highest precedence, 2 = next, etc.)
+            Tier = depth + 1, where depth is subdirectory levels below base
+        """
+        from pathlib import Path
+
+        behavior_path = Path(behavior_file_path)
+        base_path = Path(base_behavior_dir)
+
+        # Get relative path from base to behavior file
+        try:
+            relative_path = behavior_path.relative_to(base_path)
+        except ValueError:
+            # behavior_file_path is not relative to base_behavior_dir
+            raise ValueError(
+                f"Behavior file {behavior_file_path} is not under base directory {base_behavior_dir}"
+            )
+
+        # Calculate depth: number of directory levels (excluding the file itself)
+        # e.g., "consumables.py" -> 0 levels (Tier 1)
+        #       "library/examine.py" -> 1 level (Tier 2)
+        #       "library/core/basic.py" -> 2 levels (Tier 3)
+        depth = len(relative_path.parts) - 1  # -1 to exclude filename
+
+        # Tier = depth + 1 (so Tier 1 is highest precedence)
+        return depth + 1
+
+    def _register_vocabulary(self, vocabulary: dict, module_name: str, tier: int) -> None:
         """
         Register vocabulary from a module.
 
         Args:
             vocabulary: The vocabulary dict
             module_name: Module name (for error messages)
+            tier: Tier number (1 = highest precedence)
 
         Raises:
             ValueError: If vocabulary conflicts detected
@@ -52,70 +86,87 @@ class BehaviorManager:
 
             # Register main word
             if event:
-                self._register_verb_mapping(word, event, module_name)
+                self._register_verb_mapping(word, event, module_name, tier)
 
             # Register synonyms
             if "synonyms" in verb_spec:
                 for synonym in verb_spec["synonyms"]:
                     if event:
-                        self._register_verb_mapping(synonym, event, module_name)
+                        self._register_verb_mapping(synonym, event, module_name, tier)
 
-    def _register_verb_mapping(self, verb: str, event: str, module_name: str) -> None:
+    def _register_verb_mapping(self, verb: str, event: str, module_name: str, tier: int) -> None:
         """
-        Register a verb/synonym -> event mapping.
+        Register a verb/synonym -> event mapping with tier.
 
         Args:
             verb: The verb or synonym
             event: The event name
             module_name: Module name (for error messages)
+            tier: Tier number (1 = highest precedence)
 
         Raises:
-            ValueError: If verb already maps to different event
+            ValueError: If verb+tier already maps to different event (within-tier conflict)
         """
-        if verb in self._verb_event_map:
-            existing_event = self._verb_event_map[verb]
-            if existing_event != event:
-                existing_module = self._verb_sources[verb]
+        # Initialize list if needed
+        if verb not in self._verb_event_map:
+            self._verb_event_map[verb] = []
+
+        # Check for within-tier conflict
+        existing_events = self._verb_event_map[verb]
+        for existing_tier, existing_event in existing_events:
+            if existing_tier == tier and existing_event != event:
+                # Conflict: same verb+tier, different event
+                existing_module = self._verb_tier_sources.get((verb, tier), "unknown")
                 raise ValueError(
-                    f"Vocabulary conflict: verb '{verb}' already maps to '{existing_event}' "
+                    f"Vocabulary conflict: verb '{verb}' in Tier {tier} already maps to '{existing_event}' "
                     f"(from {existing_module}), cannot map to '{event}' (from {module_name})"
                 )
-            # Same event - allowed (no error)
-        else:
-            # New mapping - register it
-            self._verb_event_map[verb] = event
-            self._verb_sources[verb] = module_name
+            elif existing_tier == tier and existing_event == event:
+                # Same verb+tier+event - allowed, but don't add duplicate
+                return
 
-    def _register_handler(self, verb: str, handler: Callable, module_name: str, source_type: str) -> None:
+        # No conflict - add the mapping
+        self._verb_event_map[verb].append((tier, event))
+        self._verb_tier_sources[(verb, tier)] = module_name
+
+        # Keep list sorted by tier (lowest/highest precedence first)
+        self._verb_event_map[verb].sort(key=lambda x: x[0])
+
+    def _register_handler(self, verb: str, handler: Callable, module_name: str, tier: int) -> None:
         """
-        Register a handler function.
+        Register a protocol handler with tier-based conflict detection.
 
         Args:
             verb: The verb to handle
             handler: The handler function
             module_name: Module name (for error messages)
-            source_type: "regular" or "symlink"
+            tier: Tier number (1 = highest precedence)
 
         Raises:
-            ValueError: If handler conflict detected (same verb, same source type)
+            ValueError: If handler conflict detected (same verb+tier, different module)
         """
         if verb not in self._handlers:
             self._handlers[verb] = []
 
-        # Check for conflicts: same verb from same source type
-        for existing_handler, existing_module in self._handlers[verb]:
-            existing_source_type = self._module_sources.get(existing_module)
-
-            if existing_source_type == source_type:
-                # Conflict: two modules of same source type both define this handler
+        # Check for within-tier conflict (same as _register_verb_mapping)
+        for existing_tier, existing_handler, existing_module in self._handlers[verb]:
+            if existing_tier == tier and existing_module != module_name:
+                # Conflict: same verb+tier, different module
+                existing_handler_module = self._handler_tier_sources.get((verb, tier), "unknown")
                 raise ValueError(
-                    f"Handler conflict: verb '{verb}' already has a handler from {existing_module} "
-                    f"(source_type: {existing_source_type}), cannot add handler from {module_name} "
-                    f"(source_type: {source_type}). Handlers from the same source type cannot coexist."
+                    f"Handler conflict: verb '{verb}' in Tier {tier} already has handler "
+                    f"from {existing_handler_module}, cannot add from {module_name}"
                 )
+            elif existing_tier == tier and existing_module == module_name:
+                # Same verb+tier+module - allowed, but don't add duplicate
+                return
 
-        # Add handler to list (in load order) as tuple (handler, module_name)
-        self._handlers[verb].append((handler, module_name))
+        # No conflict - add the handler
+        self._handlers[verb].append((tier, handler, module_name))
+        self._handler_tier_sources[(verb, tier)] = module_name
+
+        # Keep list sorted by tier (lowest/highest precedence first)
+        self._handlers[verb].sort(key=lambda x: x[0])
 
     def _validate_vocabulary(self, vocabulary: Any, module_name: str) -> None:
         """
@@ -175,26 +226,18 @@ class BehaviorManager:
         """
         Auto-discover behavior modules in a directory.
 
-        Detects symlinked directories and marks modules found within them
-        as source_type="symlink". This allows game-specific handlers to
-        override core handlers without conflict errors.
+        Calculates tier based on directory depth.
 
         Args:
             behaviors_dir: Path to behaviors directory
 
         Returns:
-            List of (module_path, source_type) tuples where source_type is
-            "symlink" for modules found via symlinked directories, "regular" otherwise.
+            List of (module_path, tier) tuples where tier is precedence level
+            (1 = highest, based on directory depth)
         """
         path = Path(behaviors_dir)
         if not path.exists():
             return []
-
-        # First, identify which immediate subdirectories are symlinks
-        symlinked_dirs = set()
-        for item in path.iterdir():
-            if item.is_symlink() and item.is_dir():
-                symlinked_dirs.add(item.name)
 
         modules = []
 
@@ -208,26 +251,23 @@ class BehaviorManager:
                     relative = py_file.relative_to(path.parent)
                     module_path = str(relative.with_suffix("")).replace("/", ".").replace("\\", ".")
 
-                    # Determine source_type based on whether path goes through a symlink
-                    # Check if any path component after behaviors_dir is a symlinked dir
-                    relative_to_behaviors = py_file.relative_to(path)
-                    first_component = relative_to_behaviors.parts[0] if relative_to_behaviors.parts else None
-                    source_type = "symlink" if first_component in symlinked_dirs else "regular"
+                    # Calculate tier from directory depth
+                    tier = self._calculate_tier(str(py_file), str(path))
 
-                    modules.append((module_path, source_type))
+                    modules.append((module_path, tier))
 
         return modules
 
-    def load_module(self, module_or_path, source_type: str = "regular") -> None:
+    def load_module(self, module_or_path, tier: int = 1) -> None:
         """
         Load a behavior module and register its vocabulary and handlers.
 
         Args:
             module_or_path: Either an already-imported module object or a module path string
-            source_type: "regular" (game-specific code) or "symlink" (core/library code)
+            tier: Tier number (1 = highest precedence, based on directory depth)
 
         Raises:
-            ValueError: If conflicts detected (duplicate handlers/vocabulary in same source type)
+            ValueError: If conflicts detected (duplicate handlers/vocabulary within same tier)
         """
         if isinstance(module_or_path, str):
             try:
@@ -240,9 +280,6 @@ class BehaviorManager:
             module = module_or_path
             module_name = module.__name__
 
-        # Track module source
-        self._module_sources[module_name] = source_type
-
         # Store module for entity behavior invocation
         self._modules[module_name] = module
 
@@ -251,23 +288,23 @@ class BehaviorManager:
             vocabulary = module.vocabulary
             self._validate_vocabulary(vocabulary, module_name)
             if isinstance(vocabulary, dict):
-                self._register_vocabulary(vocabulary, module_name)
+                self._register_vocabulary(vocabulary, module_name, tier)
 
         # Register protocol handlers
         for name in dir(module):
             if name.startswith('handle_'):
                 verb = name[7:]  # Remove 'handle_' prefix
                 handler = getattr(module, name)
-                self._register_handler(verb, handler, module_name, source_type)
+                self._register_handler(verb, handler, module_name, tier)
 
     def load_modules(self, module_info: List[tuple]) -> None:
         """Load multiple behavior modules.
 
         Args:
-            module_info: List of (module_path, source_type) tuples from discover_modules()
+            module_info: List of (module_path, tier) tuples from discover_modules()
         """
-        for module_path, source_type in module_info:
-            self.load_module(module_path, source_type)
+        for module_path, tier in module_info:
+            self.load_module(module_path, tier=tier)
 
     def get_loaded_modules(self) -> set:
         """Return set of loaded module names for validation."""
@@ -333,7 +370,7 @@ class BehaviorManager:
         """
         Get registered handler for a verb.
 
-        Returns first loaded handler (first in list).
+        Returns highest precedence handler (Tier 1 = lowest tier number).
 
         Args:
             verb: The verb to handle
@@ -345,11 +382,32 @@ class BehaviorManager:
         if not handlers or len(handlers) == 0:
             return None
 
-        return handlers[0][0]  # First element of tuple is the handler
+        # Return handler from first tuple: (tier, handler, module)
+        return handlers[0][1]  # Second element is the handler
+
+    def get_events_for_verb(self, verb: str) -> Optional[List[tuple]]:
+        """
+        Get list of (tier, event_name) tuples for a verb or synonym.
+
+        Returns events sorted by tier (lowest/highest precedence first).
+
+        Args:
+            verb: The verb or synonym to look up
+
+        Returns:
+            List of (tier, event_name) tuples, or None if not registered
+        """
+        events = self._verb_event_map.get(verb)
+        if not events:
+            return None
+        # Return copy to prevent external modification
+        return list(events)
 
     def get_event_for_verb(self, verb: str) -> Optional[str]:
         """
-        Get event name for a verb or synonym.
+        Get event name for a verb or synonym (backward compatibility).
+
+        Returns the highest precedence (lowest tier) event.
 
         Args:
             verb: The verb or synonym to look up
@@ -357,7 +415,11 @@ class BehaviorManager:
         Returns:
             Event name (e.g., "on_take") or None if not registered
         """
-        return self._verb_event_map.get(verb)
+        events = self.get_events_for_verb(verb)
+        if not events:
+            return None
+        # Return first event (highest precedence)
+        return events[0][1]  # Return event name from (tier, event_name) tuple
 
     def has_handler(self, verb: str) -> bool:
         """Check if a handler is registered for this verb."""
@@ -490,9 +552,10 @@ class BehaviorManager:
 
     def invoke_handler(self, verb: str, accessor, action: Dict[str, Any]):
         """
-        Invoke a registered command handler.
+        Invoke protocol handlers in tier order until one succeeds.
 
-        Manages position list lifecycle for handler chaining support.
+        Tries handlers in tier order (Tier 1 first, highest precedence).
+        Stops at first successful handler (result.success == True).
 
         Args:
             verb: The verb to handle (e.g., "take", "drop")
@@ -506,68 +569,16 @@ class BehaviorManager:
         if not handlers or len(handlers) == 0:
             return None
 
-        # Initialize position list
-        self._handler_position_list = [0]
+        # Try handlers in tier order
+        result = None
+        for tier, handler, module in handlers:
+            result = handler(accessor, action)
+            if result and result.success:
+                return result  # Success, stop trying deeper tiers
+            # Continue to next tier on failure
 
-        try:
-            # Get first handler (tuple of handler, module_name)
-            handler = handlers[0][0]
-            return handler(accessor, action)
-
-        finally:
-            # Always clean up position list
-            self._handler_position_list = []
-
-    def invoke_previous_handler(self, verb: str, accessor, action: Dict[str, Any]):
-        """
-        Invoke the next handler in the chain (delegation).
-
-        Called by handlers to delegate to the next handler in load order.
-        Manages position list to track current position in handler chain.
-
-        Args:
-            verb: The verb being handled
-            accessor: StateAccessor instance
-            action: Action dict
-
-        Returns:
-            HandlerResult from next handler, or None if at end of chain
-
-        Raises:
-            RuntimeError: If position list not initialized (not called from invoke_handler)
-        """
-        # Check position list is initialized
-        if not self._handler_position_list:
-            raise RuntimeError(
-                "Handler position list not initialized. "
-                "invoke_previous_handler() can only be called from within a handler "
-                "invoked via invoke_handler()."
-            )
-
-        # Get handlers list
-        handlers = self._handlers.get(verb)
-        if not handlers or not isinstance(handlers, list):
-            return None
-
-        # Get current position and calculate next
-        current_pos = self._handler_position_list[-1]
-        next_pos = current_pos + 1
-
-        # Check if we're at end of chain
-        if next_pos >= len(handlers):
-            return None
-
-        # Append next position to list
-        self._handler_position_list.append(next_pos)
-
-        try:
-            # Get next handler (tuple of handler, module_name)
-            next_handler = handlers[next_pos][0]
-            return next_handler(accessor, action)
-
-        finally:
-            # Pop position from list
-            self._handler_position_list.pop()
+        # All tiers failed, return last result (or None if all returned None)
+        return result
 
     def clear_cache(self):
         """Clear behavior cache (useful for hot reload)."""

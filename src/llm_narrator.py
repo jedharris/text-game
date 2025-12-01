@@ -26,8 +26,6 @@ from src.parser import Parser
 from src.parsed_command import ParsedCommand
 
 
-# Default system prompt location
-DEFAULT_PROMPT_FILE = Path(__file__).parent.parent / "examples" / "narrator_prompt.txt"
 # Default vocabulary file location
 DEFAULT_VOCABULARY_FILE = Path(__file__).parent / "vocabulary.json"
 
@@ -79,7 +77,7 @@ class LLMNarrator:
 
     def __init__(self, api_key: str, json_handler: LLMProtocolHandler,
                  model: str = "claude-3-5-haiku-20241022",
-                 prompt_file: Optional[Path] = None,
+                 prompt_file: Path = None,
                  behavior_manager: Optional[BehaviorManager] = None,
                  vocabulary: Optional[Dict[str, Any]] = None,
                  show_traits: bool = False):
@@ -89,10 +87,13 @@ class LLMNarrator:
             api_key: Anthropic API key
             json_handler: LLMProtocolHandler for game engine communication
             model: Model to use for generation
-            prompt_file: Optional path to custom system prompt file
+            prompt_file: Path to system prompt file (required, must exist)
             behavior_manager: Optional BehaviorManager to get merged vocabulary
             vocabulary: Optional merged vocabulary dict (if not provided, loads default)
             show_traits: If True, print llm_context traits before each LLM narration
+
+        Raises:
+            FileNotFoundError: If prompt_file does not exist
         """
         if not HAS_ANTHROPIC:
             raise ImportError("anthropic library is required. Install with: pip install anthropic")
@@ -392,40 +393,30 @@ class LLMNarrator:
         except json.JSONDecodeError:
             return None
 
-    def _load_system_prompt(self, prompt_file: Optional[Path] = None) -> str:
-        """Load the system prompt from file or use default.
+    def _load_system_prompt(self, prompt_file: Path) -> str:
+        """Load the system prompt from file.
 
         Args:
-            prompt_file: Optional path to custom prompt file
+            prompt_file: Path to system prompt file (required)
 
         Returns:
             System prompt string
+
+        Raises:
+            FileNotFoundError: If prompt_file does not exist
         """
-        # Load base prompt
-        base_prompt = None
+        if not prompt_file:
+            raise FileNotFoundError(
+                "prompt_file is required. Each game must have a narrator_prompt.txt file."
+            )
 
-        # Try custom file first
-        if prompt_file and prompt_file.exists():
-            base_prompt = prompt_file.read_text()
-        # Try default file
-        elif DEFAULT_PROMPT_FILE.exists():
-            base_prompt = DEFAULT_PROMPT_FILE.read_text()
-        else:
-            # Fall back to minimal embedded prompt
-            base_prompt = """You are the narrator for an interactive text adventure game.
+        if not prompt_file.exists():
+            raise FileNotFoundError(
+                f"Narrator prompt file not found: {prompt_file}\n"
+                "Each game must have a narrator_prompt.txt file in its directory."
+            )
 
-When asked to generate a command, respond with ONLY a JSON block:
-```json
-{"type": "command", "action": {"verb": "take", "object": "sword"}}
-```
-
-{{VOCABULARY}}
-
-When asked to narrate a result, use the llm_context to create 2-4 sentences of
-atmospheric prose. Use traits for physical details and state_variants for
-context-specific phrasing.
-
-Keep the tone consistent with a classic text adventure - evocative but concise."""
+        base_prompt = prompt_file.read_text()
 
         # Load vocabulary and inject into prompt
         vocab_section = self._build_vocabulary_section()

@@ -519,7 +519,7 @@ class TestBehaviorManagerDiscovery(unittest.TestCase):
             symlink = behaviors_dir / "core"
             symlink.symlink_to(source_dir)
 
-            # Test discovery - returns list of (module_path, source_type) tuples
+            # Test discovery - returns list of (module_path, tier) tuples
             modules = manager.discover_modules(str(behaviors_dir))
 
             # Should find the shared module through symlink
@@ -527,10 +527,10 @@ class TestBehaviorManagerDiscovery(unittest.TestCase):
             module_paths = [m[0] for m in modules]
             self.assertTrue(any("shared" in m for m in module_paths), f"Modules found: {modules}")
 
-            # Modules found through symlink should have source_type "symlink"
-            for module_path, source_type in modules:
+            # Modules found through symlink at depth 1 should be Tier 2
+            for module_path, tier in modules:
                 if "shared" in module_path:
-                    self.assertEqual(source_type, "symlink")
+                    self.assertEqual(tier, 2, "Symlinked modules at depth 1 should be Tier 2")
 
     def test_discover_modules_skips_init(self):
         """Test that discover_modules skips __init__.py files."""

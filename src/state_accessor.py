@@ -411,28 +411,47 @@ class StateAccessor:
 
         # Invoke entity behaviors if verb provided
         if verb and self.behavior_manager:
-            # Look up event name from verb
-            event_name = self.behavior_manager.get_event_for_verb(verb)
+            # Look up event names from verb (may be multiple tiers)
+            events = self.behavior_manager.get_events_for_verb(verb)
 
-            if event_name:
-                # Build context dict
-                context = {
-                    "actor_id": actor_id,
-                    "changes": changes,
-                    "verb": verb
-                }
+            behavior_message = None
+            last_deny = False  # Track if all tiers denied
 
-                # Invoke behaviors
-                behavior_result = self.behavior_manager.invoke_behavior(
-                    entity, event_name, self, context
-                )
+            if events:
+                # Try each event in tier order (lowest tier/highest precedence first)
+                for tier, event_name in events:
+                    # Build context dict
+                    context = {
+                        "actor_id": actor_id,
+                        "changes": changes,
+                        "verb": verb
+                    }
 
-                # If behavior denies, return failure
-                if behavior_result and not behavior_result.allow:
-                    return UpdateResult(success=False, message=behavior_result.message)
+                    # Invoke behaviors
+                    behavior_result = self.behavior_manager.invoke_behavior(
+                        entity, event_name, self, context
+                    )
 
-                # If behavior allows but has a message, we'll return it after applying changes
-                behavior_message = behavior_result.message if behavior_result else None
+                    # If behavior explicitly denies, try next tier
+                    if behavior_result and behavior_result.allow is False:
+                        behavior_message = behavior_result.message
+                        last_deny = True
+                        continue  # Try next tier
+
+                    # If behavior returns None, also try next tier (fallthrough)
+                    if behavior_result is None:
+                        last_deny = False
+                        continue  # Try next tier
+
+                    # If behavior allows (explicitly or implicitly), stop trying tiers
+                    if behavior_result and behavior_result.allow:
+                        behavior_message = behavior_result.message
+                        last_deny = False
+                        break  # Success, stop delegation
+
+                # After trying all tiers, if last result was deny, return failure
+                if last_deny:
+                    return UpdateResult(success=False, message=behavior_message)
             else:
                 behavior_message = None
         else:
@@ -449,23 +468,3 @@ class StateAccessor:
         # All changes applied successfully
         # Return behavior message if present, otherwise None
         return UpdateResult(success=True, message=behavior_message)
-
-    def invoke_previous_handler(self, verb: str, action: dict):
-        """
-        Delegate to the next handler in the chain.
-
-        This is a convenience method that allows handlers to call
-        accessor.invoke_previous_handler() naturally, instead of having
-        to reference the behavior_manager directly.
-
-        Args:
-            verb: The verb being handled
-            action: Action dict
-
-        Returns:
-            HandlerResult from next handler, or None if at end of chain
-
-        Raises:
-            RuntimeError: If not called from within a handler chain
-        """
-        return self.behavior_manager.invoke_previous_handler(verb, self, action)

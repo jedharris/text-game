@@ -7,7 +7,6 @@ input to JSON commands and formatting JSON responses as text output.
 import argparse
 import json
 import sys
-import tempfile
 from pathlib import Path
 from typing import Dict, Any, Optional
 
@@ -15,15 +14,10 @@ from typing import Dict, Any, Optional
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.parser import Parser, ParsedCommand
+from src.parser import ParsedCommand
 from src.state_manager import load_game_state, save_game_state, GameState
 from src.file_dialogs import get_save_filename, get_load_filename
-from src.llm_protocol import LLMProtocolHandler
-from src.vocabulary_generator import extract_nouns_from_state, merge_vocabulary
-from src.behavior_manager import BehaviorManager
-
-# Default game directory location
-DEFAULT_GAME_DIR = Path(__file__).parent.parent / "examples" / "simple_game"
+from src.game_engine import GameEngine
 
 
 def parsed_to_json(result: ParsedCommand) -> Dict[str, Any]:
@@ -179,72 +173,32 @@ def main(game_dir: str = None):
     """Run the game.
 
     Args:
-        game_dir: Path to game directory containing game_state.json (uses default if not provided)
+        game_dir: Path to game directory containing game_state.json (required)
     """
-    # Resolve game directory
-    if game_dir:
-        game_dir_path = Path(game_dir).absolute()
-    else:
-        game_dir_path = DEFAULT_GAME_DIR
-
-    if not game_dir_path.exists() or not game_dir_path.is_dir():
-        print(f"Error: Game directory not found: {game_dir_path}")
+    if not game_dir:
+        print("Error: game_dir is required")
+        print("Usage: text_game <game_dir>")
         return 1
 
-    # Load game state from game_state.json in the directory
-    game_state_path = game_dir_path / "game_state.json"
-    if not game_state_path.exists():
-        print(f"Error: game_state.json not found in: {game_dir_path}")
+    # Initialize game engine
+    try:
+        engine = GameEngine(Path(game_dir))
+    except (FileNotFoundError, ValueError) as e:
+        print(f"Error: {e}")
         return 1
 
     # Use the game directory for save/load dialogs
-    save_load_dir = str(game_dir_path)
+    save_load_dir = str(engine.game_dir)
 
-    state = load_game_state(str(game_state_path))
+    # Create parser
+    parser = engine.create_parser()
 
-    # Initialize behavior manager and load behavior modules
-    # Game must have its own behaviors/ directory (with at least a symlink to core behaviors).
-    behavior_manager = BehaviorManager()
-    game_behaviors_dir = game_dir_path / "behaviors"
-    if not game_behaviors_dir.exists() or not game_behaviors_dir.is_dir():
-        print(f"Error: Game must have a behaviors/ directory: {game_behaviors_dir}")
-        print("Create one with at least a symlink to the engine's core behaviors.")
-        return
-
-    # Add game directory to sys.path so game-specific modules can be imported
-    if str(game_dir_path) not in sys.path:
-        sys.path.insert(0, str(game_dir_path))
-
-    # Load all behaviors from game directory (includes core via symlink)
-    modules = behavior_manager.discover_modules(str(game_behaviors_dir))
-    behavior_manager.load_modules(modules)
-
-    # Load and merge vocabulary
-    vocab_path = Path(__file__).parent / 'vocabulary.json'
-    with open(vocab_path, 'r') as f:
-        base_vocab = json.load(f)
-
-    extracted_nouns = extract_nouns_from_state(state)
-    vocab_with_nouns = merge_vocabulary(base_vocab, extracted_nouns)
-    merged_vocab = behavior_manager.get_merged_vocabulary(vocab_with_nouns)
-
-    # Write merged vocabulary to temp file for parser
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-        json.dump(merged_vocab, f)
-        merged_vocab_path = f.name
-
-    parser = Parser(merged_vocab_path)
-    Path(merged_vocab_path).unlink()
-
-    # Initialize JSON protocol handler
-    json_handler = LLMProtocolHandler(state, behavior_manager=behavior_manager)
-
-    print(f"Welcome to {state.metadata.title}!")
+    print(f"Welcome to {engine.game_state.metadata.title}!")
     print("Type 'quit' to exit, 'help' for commands.")
     print()
 
     # Show initial location via query
-    response = json_handler.handle_message({
+    response = engine.json_handler.handle_message({
         "type": "query",
         "query_type": "location",
         "include": ["items", "doors"]
@@ -261,7 +215,7 @@ def main(game_dir: str = None):
         if command_text.startswith("{"):
             try:
                 message = json.loads(command_text)
-                result_json = json_handler.handle_message(message)
+                result_json = engine.json_handler.handle_message(message)
                 print(json.dumps(result_json, indent=2))
             except json.JSONDecodeError as e:
                 print(f"Invalid JSON: {e}")
@@ -286,15 +240,15 @@ def main(game_dir: str = None):
             # Save (needs file dialog support)
             if verb == "save":
                 if result.direct_object:
-                    save_game(state, result.direct_object.word)
+                    save_game(engine.game_state, result.direct_object.word)
                 elif result.object_missing:
                     parts = result.raw.split(maxsplit=1)
                     if len(parts) > 1:
-                        save_game(state, parts[1].strip())
+                        save_game(engine.game_state, parts[1].strip())
                     else:
                         filename = get_save_filename(default_dir=save_load_dir, default_filename="savegame.json")
                         if filename:
-                            save_game(state, filename)
+                            save_game(engine.game_state, filename)
                         else:
                             print("Save canceled.")
                 continue
@@ -314,10 +268,9 @@ def main(game_dir: str = None):
                 if filename:
                     loaded_state = load_game(filename)
                     if loaded_state:
-                        state = loaded_state
-                        # Recreate handler with new state
-                        json_handler = LLMProtocolHandler(state, behavior_manager=behavior_manager)
-                        response = json_handler.handle_message({
+                        # Reload state in engine
+                        engine.reload_state(loaded_state)
+                        response = engine.json_handler.handle_message({
                             "type": "query",
                             "query_type": "location",
                             "include": ["items", "doors"]
@@ -329,7 +282,7 @@ def main(game_dir: str = None):
 
             # Look/examine without object -> location query
             if verb in ("look", "examine") and not result.direct_object:
-                response = json_handler.handle_message({
+                response = engine.json_handler.handle_message({
                     "type": "query",
                     "query_type": "location",
                     "include": ["items", "doors"]
@@ -340,13 +293,13 @@ def main(game_dir: str = None):
             # Examine/look with object -> use command (handlers find by name)
             if verb in ("examine", "look") and result.direct_object:
                 json_cmd = parsed_to_json(result)
-                response = json_handler.handle_message(json_cmd)
+                response = engine.json_handler.handle_message(json_cmd)
                 print(format_command_result(response))
                 continue
 
             # Inventory -> inventory query
             if verb == "inventory":
-                response = json_handler.handle_message({
+                response = engine.json_handler.handle_message({
                     "type": "query",
                     "query_type": "inventory"
                 })
@@ -361,7 +314,7 @@ def main(game_dir: str = None):
             json_cmd = parsed_to_json(result)
 
         # Execute via JSON protocol
-        response = json_handler.handle_message(json_cmd)
+        response = engine.json_handler.handle_message(json_cmd)
         print(format_command_result(response))
 
         # Check for win condition

@@ -321,10 +321,11 @@ class TestExamineLLMContext(unittest.TestCase):
 class TestGameDirArgument(unittest.TestCase):
     """Test command-line argument for game directory."""
 
-    def test_main_with_default_game_dir(self):
-        """Test that main() uses default game directory when none provided."""
-        from src.text_game import DEFAULT_GAME_DIR
-        self.assertTrue(DEFAULT_GAME_DIR.exists())
+    def test_main_requires_game_dir(self):
+        """Test that main() requires game_dir parameter."""
+        from src.text_game import main
+        result = main(game_dir=None)
+        self.assertEqual(result, 1)
 
     def test_main_with_nonexistent_game_dir(self):
         """Test that main() returns error for nonexistent directory."""
@@ -346,10 +347,11 @@ class TestGameDirArgument(unittest.TestCase):
 class TestLLMGameDirArgument(unittest.TestCase):
     """Test command-line argument for llm_game directory."""
 
-    def test_main_with_default_game_dir(self):
-        """Test that llm_game main() uses default game directory when none provided."""
-        from src.llm_game import DEFAULT_GAME_DIR
-        self.assertTrue(DEFAULT_GAME_DIR.exists())
+    def test_main_requires_game_dir(self):
+        """Test that llm_game main() requires game_dir parameter."""
+        from src.llm_game import main
+        result = main(game_dir=None)
+        self.assertEqual(result, 1)
 
     def test_main_with_nonexistent_game_dir(self):
         """Test that llm_game main() returns error for nonexistent directory."""

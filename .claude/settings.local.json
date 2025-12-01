@@ -2,12 +2,16 @@
   "includeCoAuthoredBy": true,
   "permissions": {
     "allow": [
-      "Bash(timeout 30 python:*)",
-      "Bash(ln:*)"
+      "Bash(cat:*)",
+      "Bash(gh:*)",
+      "Bash(gh auth:*)",
+      "Bash(gh pr:*)",
+      "Bash(gh issue:*)"
     ],
     "deny": [],
     "ask": []
   },
+  "model": "opusplan",
   "enableAllProjectMcpServers": true,
   "sandbox": {
     "enabled": true,

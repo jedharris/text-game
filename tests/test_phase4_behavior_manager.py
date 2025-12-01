@@ -113,36 +113,36 @@ class TestPhase4ModuleLoading(unittest.TestCase):
             return HandlerResult(success=True, message="second")
         second_module.handle_test = second_handle_test
 
-        # Load first module
-        behavior_manager.load_module(first_module, source_type="regular")
+        # Load first module with tier=1
+        behavior_manager.load_module(first_module, tier=1)
 
-        # Load second module - should raise ValueError
+        # Load second module with same tier - should raise ValueError
         with self.assertRaises(ValueError) as cm:
-            behavior_manager.load_module(second_module, source_type="regular")
+            behavior_manager.load_module(second_module, tier=1)
 
         self.assertIn("Handler conflict", str(cm.exception))
         self.assertIn("first_module", str(cm.exception))
         self.assertIn("second_module", str(cm.exception))
 
-    def test_handler_no_conflict_different_source_types(self):
-        """Test that same verb from different source types is allowed."""
+    def test_handler_no_conflict_different_tiers(self):
+        """Test that same verb from different tiers is allowed."""
         behavior_manager = BehaviorManager()
 
-        # Regular module
+        # Game-specific module (Tier 1)
         game_module = ModuleType("game_module")
         def game_handle_test(accessor, action):
             return HandlerResult(success=True, message="game")
         game_module.handle_test = game_handle_test
 
-        # Symlink module
+        # Library module (Tier 2)
         core_module = ModuleType("core_module")
         def core_handle_test(accessor, action):
             return HandlerResult(success=True, message="core")
         core_module.handle_test = core_handle_test
 
-        # Load both - should succeed
-        behavior_manager.load_module(game_module, source_type="regular")
-        behavior_manager.load_module(core_module, source_type="symlink")
+        # Load both - should succeed (different tiers)
+        behavior_manager.load_module(game_module, tier=1)
+        behavior_manager.load_module(core_module, tier=2)
 
         # Both should be registered
         self.assertEqual(len(behavior_manager._handlers["test"]), 2)
@@ -209,9 +209,9 @@ class TestPhase4ModuleLoading(unittest.TestCase):
             return HandlerResult(success=True, message="second")
         second_module.handle_test = second_handle_test
 
-        # Load in order with different source types (for chaining)
-        behavior_manager.load_module(first_module, source_type="regular")
-        behavior_manager.load_module(second_module, source_type="symlink")
+        # Load in order with different tiers
+        behavior_manager.load_module(first_module, tier=1)
+        behavior_manager.load_module(second_module, tier=2)
 
         # Verify first loaded is returned by get_handler()
         handler = behavior_manager.get_handler("test")
@@ -219,11 +219,14 @@ class TestPhase4ModuleLoading(unittest.TestCase):
         self.assertTrue(result.success and result.message == "first",
                        "First loaded handler should be called")
 
-        # Verify handlers list is in load order
+        # Verify handlers list is in tier order
         self.assertEqual(len(behavior_manager._handlers["test"]), 2)
-        # Now handlers are tuples (handler, module_name)
-        handler0, _ = behavior_manager._handlers["test"][0]
-        handler1, _ = behavior_manager._handlers["test"][1]
+        # Now handlers are 3-tuples (tier, handler, module_name)
+        tier0, handler0, _ = behavior_manager._handlers["test"][0]
+        tier1, handler1, _ = behavior_manager._handlers["test"][1]
+        # Verify tier order (lowest/highest precedence first)
+        self.assertEqual(tier0, 1)
+        self.assertEqual(tier1, 2)
         result0 = handler0(None, {})
         result1 = handler1(None, {})
         self.assertTrue(result0.success and result0.message == "first")

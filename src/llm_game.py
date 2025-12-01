@@ -6,7 +6,6 @@ using an LLM to translate player input into game commands and narrate results.
 """
 
 import argparse
-import json
 import logging
 import os
 import sys
@@ -16,21 +15,14 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.state_manager import load_game_state
-from src.llm_protocol import LLMProtocolHandler
-from src.llm_narrator import LLMNarrator
-from src.behavior_manager import BehaviorManager
-from src.vocabulary_generator import extract_nouns_from_state, merge_vocabulary
-
-# Default game directory location
-DEFAULT_GAME_DIR = Path(__file__).parent.parent / "examples" / "simple_game"
+from src.game_engine import GameEngine
 
 
 def main(game_dir: str = None, debug: bool = False, show_traits: bool = False):
     """Run the LLM-powered text adventure.
 
     Args:
-        game_dir: Path to game directory containing game_state.json (uses default if not provided)
+        game_dir: Path to game directory containing game_state.json (required)
         debug: If True, enable debug logging (shows cache statistics)
         show_traits: If True, print llm_context traits before each LLM narration
     """
@@ -42,6 +34,12 @@ def main(game_dir: str = None, debug: bool = False, show_traits: bool = False):
         )
     else:
         logging.basicConfig(level=logging.WARNING)
+
+    if not game_dir:
+        print("Error: game_dir is required")
+        print("Usage: llm_game <game_dir>")
+        return 1
+
     # Load API key
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
@@ -49,60 +47,23 @@ def main(game_dir: str = None, debug: bool = False, show_traits: bool = False):
         print("Set it with: export ANTHROPIC_API_KEY=sk-ant-...")
         return 1
 
-    # Resolve game directory
-    if game_dir:
-        game_dir_path = Path(game_dir).absolute()
-    else:
-        game_dir_path = DEFAULT_GAME_DIR
-
-    if not game_dir_path.exists() or not game_dir_path.is_dir():
-        print(f"Error: Game directory not found: {game_dir_path}")
+    # Initialize game engine
+    try:
+        engine = GameEngine(Path(game_dir))
+    except (FileNotFoundError, ValueError) as e:
+        print(f"Error: {e}")
         return 1
 
-    # Load game state from game_state.json in the directory
-    game_state_path = game_dir_path / "game_state.json"
-    if not game_state_path.exists():
-        print(f"Error: game_state.json not found in: {game_dir_path}")
+    # Create narrator with game-specific prompt
+    try:
+        narrator = engine.create_narrator(api_key, show_traits=show_traits)
+    except (ImportError, FileNotFoundError) as e:
+        print(f"Error: {e}")
         return 1
-
-    state = load_game_state(str(game_state_path))
-
-    # Create behavior manager and load modules
-    # Game must have its own behaviors/ directory (with at least a symlink to core behaviors).
-    behavior_manager = BehaviorManager()
-    game_behaviors_dir = game_dir_path / "behaviors"
-    if not game_behaviors_dir.exists() or not game_behaviors_dir.is_dir():
-        print(f"Error: Game must have a behaviors/ directory: {game_behaviors_dir}")
-        print("Create one with at least a symlink to the engine's core behaviors.")
-        return 1
-
-    # Add game directory to sys.path so game-specific modules can be imported
-    if str(game_dir_path) not in sys.path:
-        sys.path.insert(0, str(game_dir_path))
-
-    # Load all behaviors from game directory (includes core via symlink)
-    modules = behavior_manager.discover_modules(str(game_behaviors_dir))
-    behavior_manager.load_modules(modules)
-
-    # Load and merge vocabulary (same pattern as text_game.py)
-    vocab_path = Path(__file__).parent / 'vocabulary.json'
-    with open(vocab_path, 'r') as f:
-        base_vocab = json.load(f)
-
-    extracted_nouns = extract_nouns_from_state(state)
-    vocab_with_nouns = merge_vocabulary(base_vocab, extracted_nouns)
-    merged_vocab = behavior_manager.get_merged_vocabulary(vocab_with_nouns)
-
-    # Create JSON handler with behavior manager
-    json_handler = LLMProtocolHandler(state, behavior_manager=behavior_manager)
-
-    # Create narrator with merged vocabulary for local parsing
-    narrator = LLMNarrator(api_key, json_handler, behavior_manager=behavior_manager,
-                           vocabulary=merged_vocab, show_traits=show_traits)
 
     # Show title and opening
-    print(f"\n{state.metadata.title}")
-    print("=" * len(state.metadata.title))
+    print(f"\n{engine.game_state.metadata.title}")
+    print("=" * len(engine.game_state.metadata.title))
     print()
 
     try:

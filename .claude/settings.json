@@ -1,0 +1,22 @@
+{
+    "includeCoAuthoredBy": true,
+    "permissions": {
+      "allow": [
+        "gh:*",
+        "Bash(gh:*)",
+        "Bash(gh auth:*)",
+        "Bash(gh pr:*)",
+        "Bash(gh issue:*)",
+        "Bash(cat:*)"
+      ],
+      "deny": [],
+      "ask": []
+    },
+    "model": "opusplan",
+    "enableAllProjectMcpServers": true,
+    "sandbox": {
+      "enabled": true,
+      "autoAllowBashIfSandboxed": true
+    }
+  }
+  
