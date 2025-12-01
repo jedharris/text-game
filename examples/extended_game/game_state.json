@@ -247,10 +247,26 @@
       ]
     },
     {
+      "id": "item_silver_stand",
+      "name": "stand",
+      "description": "An ornate silver stand with intricate engravings.",
+      "location": "loc_library",
+      "properties": {
+        "type": "furniture",
+        "portable": false,
+        "pushable": false,
+        "container": {
+          "is_container": true,
+          "is_surface": true,
+          "capacity": 1
+        }
+      }
+    },
+    {
       "id": "item_crystal_ball",
       "name": "ball",
-      "description": "A crystal ball on a silver stand. Mist swirls within.",
-      "location": "loc_library",
+      "description": "A crystal ball. Mist swirls within its depths.",
+      "location": "item_silver_stand",
       "properties": {
         "type": "object",
         "portable": true,

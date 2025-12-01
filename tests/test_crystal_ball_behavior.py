@@ -31,7 +31,7 @@ class TestCrystalBallRevealHiddenItem(unittest.TestCase):
                 Item(
                     id="item_crystal_ball",
                     name="ball",
-                    description="A crystal ball on a silver stand.",
+                    description="A crystal ball. Mist swirls within its depths.",
                     location="library",
                     properties={"magical": True},
                     behaviors=["behaviors.crystal_ball"]
@@ -125,22 +125,150 @@ class TestCrystalBallRevealHiddenItem(unittest.TestCase):
         self.assertIsNotNone(key)
         self.assertEqual(key.id, "item_sanctum_key")
 
-    def test_key_stays_in_same_location(self):
-        """Key stays in library location after reveal (not moved)."""
+    def test_key_appears_in_same_location_as_crystal_ball(self):
+        """Key appears in the same location as the crystal ball after reveal."""
         from examples.extended_game.behaviors.crystal_ball import on_peer
 
         crystal_ball = self.accessor.get_item("item_crystal_ball")
         sanctum_key = self.accessor.get_item("item_sanctum_key")
 
-        # Key starts in library
-        self.assertEqual(sanctum_key.location, "library")
+        # Crystal ball is in library
+        self.assertEqual(crystal_ball.location, "library")
 
         # Peer into crystal ball
         context = {"actor_id": "player", "verb": "peer"}
         on_peer(crystal_ball, self.accessor, context)
 
-        # Key should still be in library (not moved)
-        self.assertEqual(sanctum_key.location, "library")
+        # Key should now be in the same location as the crystal ball
+        self.assertEqual(sanctum_key.location, crystal_ball.location)
+
+
+class TestCrystalBallInContainers(unittest.TestCase):
+    """Test crystal ball behavior when placed in/on containers and surfaces."""
+
+    def setUp(self):
+        """Set up test fixtures with various containers."""
+        self.state = GameState(
+            metadata=Metadata(title="Crystal Ball Container Test"),
+            locations=[
+                Location(
+                    id="library",
+                    name="Library",
+                    description="A library with furniture.",
+                    exits={}
+                )
+            ],
+            items=[
+                Item(
+                    id="item_desk",
+                    name="desk",
+                    description="A large oak desk.",
+                    location="library",
+                    properties={
+                        "type": "furniture",
+                        "portable": False,
+                        "container": {
+                            "is_container": True,
+                            "is_surface": True,
+                            "capacity": 10
+                        }
+                    }
+                ),
+                Item(
+                    id="item_box",
+                    name="box",
+                    description="A wooden box.",
+                    location="library",
+                    properties={
+                        "type": "container",
+                        "portable": False,
+                        "container": {
+                            "is_container": True,
+                            "is_surface": False,
+                            "capacity": 10,
+                            "open": True
+                        }
+                    }
+                ),
+                Item(
+                    id="item_crystal_ball",
+                    name="ball",
+                    description="A crystal ball. Mist swirls within its depths.",
+                    location="library",
+                    properties={"magical": True, "portable": True},
+                    behaviors=["behaviors.crystal_ball"]
+                ),
+                Item(
+                    id="item_sanctum_key",
+                    name="key",
+                    description="A golden key that glows faintly with magic.",
+                    location="library",
+                    properties={
+                        "portable": True,
+                        "magical": True,
+                        "states": {"hidden": True}
+                    }
+                )
+            ],
+            actors={
+                "player": Actor(
+                    id="player",
+                    name="Adventurer",
+                    description="The player",
+                    location="library",
+                    inventory=[]
+                )
+            }
+        )
+
+        self.behavior_manager = BehaviorManager()
+        import examples.extended_game.behaviors.crystal_ball
+        self.behavior_manager.load_module(examples.extended_game.behaviors.crystal_ball)
+        self.accessor = StateAccessor(self.state, self.behavior_manager)
+
+    def test_key_appears_on_surface_when_crystal_ball_on_surface(self):
+        """When crystal ball is on a surface, key appears on same surface with 'on' preposition."""
+        from examples.extended_game.behaviors.crystal_ball import on_peer
+
+        crystal_ball = self.accessor.get_item("item_crystal_ball")
+        sanctum_key = self.accessor.get_item("item_sanctum_key")
+
+        # Place crystal ball on desk (a surface)
+        crystal_ball.location = "item_desk"
+
+        # Peer into crystal ball
+        context = {"actor_id": "player", "verb": "peer"}
+        result = on_peer(crystal_ball, self.accessor, context)
+
+        # Key should be on the desk
+        self.assertEqual(sanctum_key.location, "item_desk")
+        self.assertEqual(sanctum_key.location, crystal_ball.location)
+
+        # Message should use "on the desk"
+        self.assertIn("on the desk", result.message.lower())
+        self.assertNotIn("on the floor", result.message.lower())
+
+    def test_key_appears_in_container_when_crystal_ball_in_container(self):
+        """When crystal ball is in a non-surface container, key appears in same container with 'in' preposition."""
+        from examples.extended_game.behaviors.crystal_ball import on_peer
+
+        crystal_ball = self.accessor.get_item("item_crystal_ball")
+        sanctum_key = self.accessor.get_item("item_sanctum_key")
+
+        # Place crystal ball in box (a container but not a surface)
+        crystal_ball.location = "item_box"
+
+        # Peer into crystal ball
+        context = {"actor_id": "player", "verb": "peer"}
+        result = on_peer(crystal_ball, self.accessor, context)
+
+        # Key should be in the box
+        self.assertEqual(sanctum_key.location, "item_box")
+        self.assertEqual(sanctum_key.location, crystal_ball.location)
+
+        # Message should use "in the box"
+        self.assertIn("in the box", result.message.lower())
+        self.assertNotIn("on the floor", result.message.lower())
 
 
 class TestCrystalBallMissingKey(unittest.TestCase):
@@ -162,7 +290,7 @@ class TestCrystalBallMissingKey(unittest.TestCase):
                 Item(
                     id="item_crystal_ball",
                     name="ball",
-                    description="A crystal ball on a silver stand.",
+                    description="A crystal ball. Mist swirls within its depths.",
                     location="library",
                     properties={"magical": True},
                     behaviors=["behaviors.crystal_ball"]

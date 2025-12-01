@@ -84,7 +84,8 @@ def on_peer(entity: Any, accessor: Any, context: Dict) -> EventResult:
     Entity behavior for being peered into.
 
     This is called when the crystal ball is gazed into.
-    Reveals the hidden sanctum key by setting states.hidden = False.
+    Reveals the hidden sanctum key by setting states.hidden = False
+    and placing it on the same surface/container as the crystal ball.
 
     Args:
         entity: The crystal ball
@@ -108,10 +109,28 @@ def on_peer(entity: Any, accessor: Any, context: Dict) -> EventResult:
     if sanctum_key.states.get("hidden", False):
         # Reveal the hidden key by setting hidden to False
         sanctum_key.states["hidden"] = False
+
+        # Place the key in the same location as the crystal ball
+        crystal_ball_location = entity.location
+        sanctum_key.location = crystal_ball_location
+
+        # Determine the appropriate message based on where the crystal ball is
+        location_item = accessor.get_item(crystal_ball_location)
+        if location_item and hasattr(location_item, 'properties'):
+            container_props = location_item.properties.get("container", {})
+            if container_props.get("is_surface", False):
+                location_desc = f"on the {location_item.name}"
+            elif container_props.get("is_container", False):
+                location_desc = f"in the {location_item.name}"
+            else:
+                location_desc = "on the floor nearby"
+        else:
+            location_desc = "on the floor nearby"
+
         message = (
             "The mists within the crystal ball swirl and coalesce...\n"
             "A golden light pulses from within!\n"
-            "As you watch, a small golden key materializes on the floor nearby!"
+            f"As you watch, a small golden key materializes {location_desc}!"
         )
     else:
         # Key already revealed
