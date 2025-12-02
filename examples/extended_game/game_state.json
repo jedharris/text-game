@@ -357,8 +357,8 @@
   "actors": {
     "player": {
       "id": "player",
-      "name": "Adventurer",
-      "description": "An adventurer seeking the wizard's secrets.",
+      "name": "Tam",
+      "description": "A teenage farmhand who stumbled upon the wizard's tower while taking a walk through the countryside. Never been inside a place like this before - everything is strange and exciting and maybe a little scary. Knows they probably shouldn't be here, but can't resist exploring.",
       "location": "loc_garden",
       "inventory": [],
       "flags": {},

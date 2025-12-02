@@ -485,8 +485,8 @@
   "actors": {
     "player": {
       "id": "player",
-      "name": "Adventurer",
-      "description": "A brave explorer seeking to master the trials.",
+      "name": "Mordecai",
+      "description": "A crusty old puzzle enthusiast who's seen more trick locks and hidden mechanisms than most people have seen sunrises. Spent decades solving puzzles, from simple sliding blocks to elaborate multi-room contraptions. Unimpressed by cheap gimmicks and theatrical nonsense. Heard about this place and came hoping for something that might actually present a challenge. Cautiously optimistic but prepared to be disappointed.",
       "location": "loc_entrance",
       "inventory": [],
       "flags": {},

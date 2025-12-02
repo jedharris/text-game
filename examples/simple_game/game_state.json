@@ -517,7 +517,7 @@
     "player": {
       "id": "player",
       "name": "Landry",
-      "description": "",
+      "description": "A professional treasure hunter and dungeon crawler. Seen it all, done it all, just here for the loot. Evaluates everything by resale value and considers most adventures routine work. Cynical about danger, excited only about gold.",
       "location": "loc_start",
       "inventory": [],
       "flags": {},
