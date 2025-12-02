@@ -33,13 +33,7 @@
       }
     }
   ],
-  "nouns": [
-    {"word": "exit", "synonyms": ["passage", "way", "path", "opening"]},
-    {"word": "stairs", "synonyms": ["staircase", "stairway", "steps"]},
-    {"word": "archway", "synonyms": ["arch"]},
-    {"word": "corridor", "synonyms": ["hallway", "hall"]},
-    {"word": "tunnel", "synonyms": ["passageway"]}
-  ],
+  "nouns": [],
   "adjectives": [],
   "prepositions": ["with", "to", "in", "on", "under", "behind", "from", "into", "onto"],
   "directions": [
