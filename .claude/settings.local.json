@@ -6,15 +6,13 @@
       "Bash(gh:*)",
       "Bash(gh auth:*)",
       "Bash(gh pr:*)",
-      "Bash(gh issue:*)"
+      "Bash(gh issue:*)",
+      "Bash(python -m unittest discover:*)",
+      "Bash(python -m unittest:*)"
     ],
     "deny": [],
     "ask": []
   },
   "model": "opusplan",
-  "enableAllProjectMcpServers": true,
-  "sandbox": {
-    "enabled": true,
-    "autoAllowBashIfSandboxed": true
-  }
+  "enableAllProjectMcpServers": true
 }

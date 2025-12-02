@@ -13,10 +13,6 @@
       "ask": []
     },
     "model": "opusplan",
-    "enableAllProjectMcpServers": true,
-    "sandbox": {
-      "enabled": true,
-      "autoAllowBashIfSandboxed": true
-    }
+    "enableAllProjectMcpServers": true
   }
   

@@ -5,11 +5,26 @@ This test module uses Approach 2 from wxPython_testing_strategy.md:
 Headless wxPython Testing - creates real wx components but doesn't display windows.
 """
 
+import os
+import sys
 import unittest
 from unittest.mock import patch, MagicMock
 import wx
 
+# Check if we can create a wx.App (requires display on macOS)
+def can_create_wx_app():
+    """Check if we can create a wx.App without a display."""
+    try:
+        app = wx.App(False)
+        app.Destroy()
+        return True
+    except SystemExit:
+        return False
 
+HAS_DISPLAY = can_create_wx_app()
+
+
+@unittest.skipIf(not HAS_DISPLAY, "wxPython requires display access on this platform")
 class TestFileDialogsHeadless(unittest.TestCase):
     """
     Test file dialog functions with real wxPython components in headless mode.
@@ -426,6 +441,7 @@ class TestFileDialogHelpers(unittest.TestCase):
         self.assertIsNone(result)
 
 
+@unittest.skipIf(not HAS_DISPLAY, "wxPython requires display access on this platform")
 class TestFileDialogErrorHandling(unittest.TestCase):
     """Test error handling in file dialog operations."""
 

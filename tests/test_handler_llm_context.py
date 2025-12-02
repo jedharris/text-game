@@ -267,7 +267,7 @@ class TestInteractionHandlersLlmContext(unittest.TestCase):
 
     def test_handle_climb_returns_llm_context(self):
         """Test handle_climb returns item llm_context."""
-        from behaviors.core.interaction import handle_climb
+        from behaviors.core.exits import handle_climb
 
         action = {"actor_id": "player", "object": "ladder"}
         result = handle_climb(self.accessor, action)
