@@ -65,11 +65,10 @@ class LLMNarrator:
     """Translates between natural language and the JSON protocol."""
 
     # Verbs that always use brief verbosity regardless of first/subsequent
-    BRIEF_VERBS = {'take', 'drop', 'put', 'open', 'close', 'lock', 'unlock',
-                   'light', 'extinguish', 'attack', 'eat', 'drink'}
+    BRIEF_VERBS = {'drop', 'put', 'close', 'lock', 'extinguish', 'attack'}
 
     # Verbs that use full verbosity on first occurrence, brief on subsequent
-    TRACKING_VERBS = {'go', 'examine', 'look'}
+    TRACKING_VERBS = {'go', 'examine', 'look', 'take', 'open', 'unlock', 'light', 'eat', 'drink'}
 
     # Trait limits for verbosity modes
     FULL_TRAITS = 8
@@ -265,8 +264,8 @@ class LLMNarrator:
                 return "full"
             return "brief"
 
-        # For examine/look: check if entity is new
-        if verb in ("examine", "look"):
+        # For other tracking verbs: check if entity is new
+        if verb in self.TRACKING_VERBS and verb != "go":
             entity_id = result.get("data", {}).get("id")
             if entity_id and entity_id not in self.examined_entities:
                 return "full"
@@ -294,8 +293,8 @@ class LLMNarrator:
             if loc_id:
                 self.visited_locations.add(loc_id)
 
-        # Track examined entities
-        if verb in ("examine", "look"):
+        # Track entities for all other tracking verbs
+        if verb in self.TRACKING_VERBS and verb != "go":
             entity_id = result.get("data", {}).get("id")
             if entity_id:
                 self.examined_entities.add(entity_id)
@@ -394,29 +393,46 @@ class LLMNarrator:
             return None
 
     def _load_system_prompt(self, prompt_file: Path) -> str:
-        """Load the system prompt from file.
+        """Load the system prompt from protocol template and game style file.
+
+        Combines the protocol specification from src/narrator_protocol.txt
+        with game-specific style guidance from the prompt_file.
 
         Args:
-            prompt_file: Path to system prompt file (required)
+            prompt_file: Path to game-specific style file (narrator_style.txt)
 
         Returns:
-            System prompt string
+            Combined system prompt string
 
         Raises:
-            FileNotFoundError: If prompt_file does not exist
+            FileNotFoundError: If protocol template or style file does not exist
         """
+        # Load protocol template from src/
+        protocol_path = Path(__file__).parent / "narrator_protocol.txt"
+        if not protocol_path.exists():
+            raise FileNotFoundError(
+                f"Protocol template not found: {protocol_path}\n"
+                "The narrator_protocol.txt file should be in the src/ directory."
+            )
+
+        protocol = protocol_path.read_text()
+
+        # Load game-specific style
         if not prompt_file:
             raise FileNotFoundError(
-                "prompt_file is required. Each game must have a narrator_prompt.txt file."
+                "prompt_file is required. Each game must have a narrator_style.txt file."
             )
 
         if not prompt_file.exists():
             raise FileNotFoundError(
-                f"Narrator prompt file not found: {prompt_file}\n"
-                "Each game must have a narrator_prompt.txt file in its directory."
+                f"Narrator style file not found: {prompt_file}\n"
+                "Each game must have a narrator_style.txt file in its directory."
             )
 
-        base_prompt = prompt_file.read_text()
+        style = prompt_file.read_text()
+
+        # Combine protocol + style
+        base_prompt = f"{protocol}\n\n{style}"
 
         # Load vocabulary and inject into prompt
         vocab_section = self._build_vocabulary_section()
