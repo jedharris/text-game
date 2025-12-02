@@ -23,13 +23,13 @@ class TestCommandRouting(unittest.TestCase):
 
         # Load behavior modules
         import behaviors.core.manipulation
-        import behaviors.core.movement
+        import behaviors.core.exits
         import behaviors.core.perception
         import behaviors.core.interaction
         import behaviors.core.locks
 
         self.behavior_manager.load_module(behaviors.core.manipulation)
-        self.behavior_manager.load_module(behaviors.core.movement)
+        self.behavior_manager.load_module(behaviors.core.exits)
         self.behavior_manager.load_module(behaviors.core.perception)
         self.behavior_manager.load_module(behaviors.core.interaction)
         self.behavior_manager.load_module(behaviors.core.locks)

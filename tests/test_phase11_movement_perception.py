@@ -43,11 +43,11 @@ class TestPhase11MovementPerception(unittest.TestCase):
         room = state.get_location("location_room")
         room.exits["east"] = "location_hall"
 
-        import behaviors.core.movement
-        behavior_manager.load_module(behaviors.core.movement)
+        import behaviors.core.exits
+        behavior_manager.load_module(behaviors.core.exits)
         accessor = StateAccessor(state, behavior_manager)
 
-        from behaviors.core.movement import handle_go
+        from behaviors.core.exits import handle_go
         action = {"actor_id": "player", "direction": "east"}
         result = handle_go(accessor, action)
 
@@ -61,11 +61,11 @@ class TestPhase11MovementPerception(unittest.TestCase):
         """Test that going in invalid direction fails."""
         state = create_test_state()
         behavior_manager = BehaviorManager()
-        import behaviors.core.movement
-        behavior_manager.load_module(behaviors.core.movement)
+        import behaviors.core.exits
+        behavior_manager.load_module(behaviors.core.exits)
         accessor = StateAccessor(state, behavior_manager)
 
-        from behaviors.core.movement import handle_go
+        from behaviors.core.exits import handle_go
         action = {"actor_id": "player", "direction": "north"}
         result = handle_go(accessor, action)
 
@@ -101,11 +101,11 @@ class TestPhase11MovementPerception(unittest.TestCase):
         )
         state.actors["npc_guard"] = guard
 
-        import behaviors.core.movement
-        behavior_manager.load_module(behaviors.core.movement)
+        import behaviors.core.exits
+        behavior_manager.load_module(behaviors.core.exits)
         accessor = StateAccessor(state, behavior_manager)
 
-        from behaviors.core.movement import handle_go
+        from behaviors.core.exits import handle_go
         action = {"actor_id": "npc_guard", "direction": "east"}
         result = handle_go(accessor, action)
 

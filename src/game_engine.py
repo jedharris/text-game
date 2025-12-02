@@ -104,7 +104,8 @@ class GameEngine:
                        show_traits: bool = False):
         """Create an LLMNarrator with game-specific configuration.
 
-        Automatically loads narrator_prompt.txt from game directory.
+        Automatically loads narrator_style.txt from game directory and combines
+        it with the protocol template from src/narrator_protocol.txt.
 
         Args:
             api_key: Anthropic API key
@@ -116,23 +117,25 @@ class GameEngine:
 
         Raises:
             ImportError: If anthropic library not installed
-            FileNotFoundError: If narrator_prompt.txt not found in game directory
+            FileNotFoundError: If narrator_style.txt not found in game directory
         """
         from src.llm_narrator import LLMNarrator
 
-        # Check for narrator prompt in game directory
-        prompt_path = self.game_dir / "narrator_prompt.txt"
-        if not prompt_path.exists():
+        # Check for narrator style in game directory
+        style_path = self.game_dir / "narrator_style.txt"
+        if not style_path.exists():
             raise FileNotFoundError(
-                f"narrator_prompt.txt not found in game directory: {self.game_dir}\n"
-                "Each game must have its own narrator_prompt.txt file."
+                f"narrator_style.txt not found in game directory: {self.game_dir}\n"
+                "Each game must have its own narrator_style.txt file.\n"
+                "This file contains game-specific narration style and examples.\n"
+                "The protocol specification is automatically loaded from src/narrator_protocol.txt."
             )
 
         return LLMNarrator(
             api_key=api_key,
             json_handler=self.json_handler,
             model=model,
-            prompt_file=prompt_path,
+            prompt_file=style_path,
             behavior_manager=self.behavior_manager,
             vocabulary=self.merged_vocabulary,
             show_traits=show_traits

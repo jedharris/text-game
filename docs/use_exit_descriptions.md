@@ -188,25 +188,26 @@ VOCABULARY = {
 }
 ```
 
-**File:** `src/vocabulary.json`
+**File:** `behaviors/core/exits.py`
 
-Add common exit nouns:
+Exit nouns are now defined in the exits behavior module (not in vocabulary.json):
 
-```json
-{
-  "nouns": [
-    {"word": "exit", "synonyms": ["passage", "way", "path"]},
-    {"word": "stairs", "synonyms": ["staircase", "stairway", "steps"]},
-    {"word": "archway", "synonyms": ["arch", "opening"]},
-    {"word": "corridor", "synonyms": ["hallway", "hall"]},
-    {"word": "door", "synonyms": ["doorway", "entrance"]}
-  ]
+```python
+vocabulary = {
+    "nouns": [
+        {"word": "exit", "synonyms": ["passage", "way", "path", "opening"]},
+        {"word": "stairs", "synonyms": ["staircase", "stairway", "steps"]},
+        {"word": "archway", "synonyms": ["arch"]},
+        {"word": "corridor", "synonyms": ["hallway", "hall"]},
+        {"word": "tunnel", "synonyms": ["passageway"]}
+    ],
+    ...
 }
 ```
 
 **Work Completed:**
 1. Updated `behaviors/core/perception.py` vocabulary to add `valid_objects: ["items", "doors", "exits"]` to examine verb
-2. Added exit-related nouns to `src/vocabulary.json`: exit, stairs, archway, corridor, tunnel with synonyms
+2. Exit-related nouns are now defined in `behaviors/core/exits.py` behavior module (migrated from vocabulary.json per architectural principle)
 
 ### Phase 6: Update Game State Examples
 
@@ -414,7 +415,7 @@ All 6 phases completed successfully. Exits are now first-class examinable entiti
 
 4. **Phase 5:** Updated vocabulary:
    - Added `valid_objects: ["items", "doors", "exits"]` to examine verb
-   - Added exit nouns to `src/vocabulary.json`: exit, stairs, archway, corridor, tunnel
+   - Exit nouns defined in `behaviors/core/exits.py`: exit, stairs, archway, corridor, tunnel (migrated from vocabulary.json)
 
 5. **Phase 6:** Updated `examples/simple_game_state.json`:
    - Added name/description to "up" exit (spiral staircase)
@@ -438,6 +439,6 @@ All 6 phases completed successfully. Exits are now first-class examinable entiti
 | `src/state_manager.py` | Added `name`, `description` fields to ExitDescriptor |
 | `utilities/utils.py` | Added `find_exit_by_name()`, `DIRECTION_WORDS`, `DIRECTION_ABBREVIATIONS` |
 | `behaviors/core/perception.py` | Extended `handle_examine()`, imported `find_exit_by_name` |
-| `src/vocabulary.json` | Added exit-related nouns |
+| `behaviors/core/exits.py` | Exit-related nouns defined in behavior module vocabulary |
 | `examples/simple_game_state.json` | Added exit names/descriptions |
 | `tests/test_examine_exits.py` | New test file (18 tests) |

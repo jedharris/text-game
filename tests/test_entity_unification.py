@@ -739,13 +739,13 @@ class TestMovementThroughDoorItems(unittest.TestCase):
             )}
         )
         self.behavior_manager = BehaviorManager()
-        import behaviors.core.movement
-        self.behavior_manager.load_module(behaviors.core.movement)
+        import behaviors.core.exits
+        self.behavior_manager.load_module(behaviors.core.exits)
         self.accessor = StateAccessor(self.state, self.behavior_manager)
 
     def test_cannot_go_through_closed_door(self):
         """Movement blocked by closed door."""
-        from behaviors.core.movement import handle_go
+        from behaviors.core.exits import handle_go
 
         action = {"verb": "go", "direction": "north", "actor_id": "player"}
         result = handle_go(self.accessor, action)
@@ -756,7 +756,7 @@ class TestMovementThroughDoorItems(unittest.TestCase):
 
     def test_can_go_through_open_door(self):
         """Movement allowed through open door."""
-        from behaviors.core.movement import handle_go
+        from behaviors.core.exits import handle_go
 
         door = self.accessor.get_item("door_1")
         door.door_open = True

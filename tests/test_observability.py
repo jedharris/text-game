@@ -701,7 +701,7 @@ class TestHiddenExitsIntegration(unittest.TestCase):
 
     def test_hidden_exit_blocks_movement(self):
         """Hidden exit blocks movement (can't go that direction)."""
-        from behaviors.core.movement import handle_go
+        from behaviors.core.exits import handle_go
 
         result = handle_go(
             self.accessor,
@@ -713,7 +713,7 @@ class TestHiddenExitsIntegration(unittest.TestCase):
 
     def test_visible_exit_allows_movement(self):
         """Visible exit allows movement."""
-        from behaviors.core.movement import handle_go
+        from behaviors.core.exits import handle_go
 
         result = handle_go(
             self.accessor,
@@ -725,7 +725,7 @@ class TestHiddenExitsIntegration(unittest.TestCase):
 
     def test_revealed_exit_becomes_usable(self):
         """Exit becomes usable after states.hidden=False."""
-        from behaviors.core.movement import handle_go
+        from behaviors.core.exits import handle_go
 
         # Reveal the hidden exit
         hidden_exit = self.state.locations[0].exits["south"]

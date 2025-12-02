@@ -22,7 +22,7 @@ This document describes the integration work remaining after Phase 12 of the beh
 
 **New behavior system (tested, 138 tests passing):**
 - `behaviors/core/manipulation.py` - handle_take, handle_drop, handle_give
-- `behaviors/core/movement.py` - handle_go
+- `behaviors/core/exits.py` - handle_go, handle_climb
 - `behaviors/core/perception.py` - handle_look, handle_examine, handle_inventory
 - `behaviors/core/interaction.py` - handle_open, handle_close
 - `behaviors/core/locks.py` - handle_unlock, handle_lock

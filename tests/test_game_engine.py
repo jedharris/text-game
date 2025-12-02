@@ -145,12 +145,12 @@ class TestGameEngineNarrator(unittest.TestCase):
             with self.assertRaises(FileNotFoundError) as ctx:
                 engine.create_narrator("fake-api-key")
 
-            self.assertIn("narrator_prompt.txt not found", str(ctx.exception))
+            self.assertIn("narrator_style.txt not found", str(ctx.exception))
 
     @patch('src.llm_narrator.HAS_ANTHROPIC', True)
     @patch('src.llm_narrator.anthropic')
     def test_create_narrator_with_prompt_file(self, mock_anthropic):
-        """Test creating narrator when narrator_prompt.txt exists."""
+        """Test creating narrator when narrator_style.txt exists."""
         # Note: This test will be fully functional once we distribute prompts in Phase 2
         # For now, we can test with a temp directory
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -166,8 +166,8 @@ class TestGameEngineNarrator(unittest.TestCase):
             core_behaviors = Path(__file__).parent.parent / "behaviors" / "core"
             (behaviors_dir / "core").symlink_to(core_behaviors)
 
-            # Create a narrator_prompt.txt file
-            (tmppath / "narrator_prompt.txt").write_text("Test prompt")
+            # Create a narrator_style.txt file
+            (tmppath / "narrator_style.txt").write_text("Test style guidance")
 
             engine = GameEngine(tmppath)
             narrator = engine.create_narrator("fake-api-key")

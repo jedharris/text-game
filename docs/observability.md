@@ -340,7 +340,7 @@ None required for existing visible entities. Only entities that need to be hidde
 - Updated `llm_protocol.py:_query_location()` to use `get_visible_exits()`:
   - Single call to get visible exits, used by both doors and exits sections
   - Removed redundant inline `is_observable()` checks
-- Updated `behaviors/core/movement.py:handle_go()` to use `get_visible_exits()`:
+- Updated `behaviors/core/exits.py:handle_go()` to use `get_visible_exits()`:
   - Checks `direction not in visible_exits` instead of accessing `location.exits` directly
   - Hidden exits appear as if they don't exist to the movement handler
 - Added 6 integration tests in `tests/test_observability.py` (TestHiddenExitsIntegration class):

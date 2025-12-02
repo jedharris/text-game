@@ -188,7 +188,7 @@ class TestHandleClimb(unittest.TestCase):
 
     def test_climb_no_object(self):
         """Test climb without specifying object."""
-        from behaviors.core.interaction import handle_climb
+        from behaviors.core.exits import handle_climb
 
         action = {"actor_id": "player"}
         result = handle_climb(self.accessor, action)
@@ -198,7 +198,7 @@ class TestHandleClimb(unittest.TestCase):
 
     def test_climb_item_not_found(self):
         """Test climbing non-existent item."""
-        from behaviors.core.interaction import handle_climb
+        from behaviors.core.exits import handle_climb
 
         action = {"actor_id": "player", "object": "tree"}
         result = handle_climb(self.accessor, action)
@@ -208,7 +208,7 @@ class TestHandleClimb(unittest.TestCase):
 
     def test_climb_not_climbable(self):
         """Test climbing non-climbable item."""
-        from behaviors.core.interaction import handle_climb
+        from behaviors.core.exits import handle_climb
 
         action = {"actor_id": "player", "object": "rock"}
         result = handle_climb(self.accessor, action)
@@ -218,7 +218,7 @@ class TestHandleClimb(unittest.TestCase):
 
     def test_climb_success(self):
         """Test climbing a climbable item."""
-        from behaviors.core.interaction import handle_climb
+        from behaviors.core.exits import handle_climb
 
         action = {"actor_id": "player", "object": "ladder"}
         result = handle_climb(self.accessor, action)
@@ -560,7 +560,7 @@ class TestClimbWithAdjective(unittest.TestCase):
 
     def test_climb_with_adjective_selects_correct_item(self):
         """Test that climb with adjective selects correct item."""
-        from behaviors.core.interaction import handle_climb
+        from behaviors.core.exits import handle_climb
 
         action = {
             "actor_id": "player",
@@ -577,7 +577,7 @@ class TestClimbWithAdjective(unittest.TestCase):
 
     def test_climb_with_different_adjective_selects_other_item(self):
         """Test that climb with different adjective selects other item."""
-        from behaviors.core.interaction import handle_climb
+        from behaviors.core.exits import handle_climb
 
         action = {
             "actor_id": "player",
@@ -711,9 +711,9 @@ class TestClimbExit(unittest.TestCase):
         self.behavior_manager = BehaviorManager()
 
         import behaviors.core.interaction
-        import behaviors.core.movement
+        import behaviors.core.exits
         self.behavior_manager.load_module(behaviors.core.interaction)
-        self.behavior_manager.load_module(behaviors.core.movement)
+        self.behavior_manager.load_module(behaviors.core.exits)
 
         self.accessor = StateAccessor(self.state, self.behavior_manager)
 
@@ -722,7 +722,7 @@ class TestClimbExit(unittest.TestCase):
 
         Uses WordEntry with synonyms as the actual game parser does.
         """
-        from behaviors.core.interaction import handle_climb
+        from behaviors.core.exits import handle_climb
         from src.parser import WordEntry, WordType
 
         # When player types "climb stairs", parser creates WordEntry with synonyms
@@ -744,7 +744,7 @@ class TestClimbExit(unittest.TestCase):
 
     def test_climb_staircase_moves_to_destination(self):
         """Test climbing 'staircase' moves player to destination."""
-        from behaviors.core.interaction import handle_climb
+        from behaviors.core.exits import handle_climb
 
         # "staircase" is a direct word match in the exit name
         action = {"actor_id": "player", "verb": "climb", "object": "staircase"}
@@ -757,7 +757,7 @@ class TestClimbExit(unittest.TestCase):
 
     def test_climb_spiral_staircase_moves_to_destination(self):
         """Test climbing 'spiral staircase' moves player to destination."""
-        from behaviors.core.interaction import handle_climb
+        from behaviors.core.exits import handle_climb
 
         action = {"actor_id": "player", "verb": "climb", "object": "spiral staircase"}
         result = handle_climb(self.accessor, action)
@@ -769,7 +769,7 @@ class TestClimbExit(unittest.TestCase):
 
     def test_climb_nonexistent_exit_fails(self):
         """Test climbing non-existent exit fails with helpful message."""
-        from behaviors.core.interaction import handle_climb
+        from behaviors.core.exits import handle_climb
 
         action = {"actor_id": "player", "verb": "climb", "object": "tree"}
         result = handle_climb(self.accessor, action)
@@ -779,7 +779,7 @@ class TestClimbExit(unittest.TestCase):
 
     def test_climb_unnamed_exit_does_not_match(self):
         """Test climbing something that doesn't match an exit name fails."""
-        from behaviors.core.interaction import handle_climb
+        from behaviors.core.exits import handle_climb
 
         # "north" is a direction, not an object name for climbing
         action = {"actor_id": "player", "verb": "climb", "object": "wall"}
