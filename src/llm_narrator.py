@@ -62,12 +62,6 @@ def parsed_to_json(result: ParsedCommand) -> Dict[str, Any]:
 class LLMNarrator:
     """Translates between natural language and the JSON protocol."""
 
-    # Verbs that always use brief verbosity regardless of first/subsequent
-    BRIEF_VERBS = {'drop', 'put', 'close', 'lock', 'extinguish', 'attack'}
-
-    # Verbs that use full verbosity on first occurrence, brief on subsequent
-    TRACKING_VERBS = {'go', 'examine', 'look', 'take', 'open', 'unlock', 'light', 'eat', 'drink'}
-
     # Trait limits for verbosity modes
     FULL_TRAITS = 8
     BRIEF_TRAITS = 3
@@ -100,8 +94,11 @@ class LLMNarrator:
         self.model = model
         self.behavior_manager = behavior_manager
         self.show_traits = show_traits
+
+        # Store merged vocabulary for narration mode lookup (must be before _load_system_prompt)
+        self.merged_vocabulary = self._get_merged_vocabulary(vocabulary)
+        self.parser = self._create_parser(self.merged_vocabulary)
         self.system_prompt = self._load_system_prompt(prompt_file)
-        self.parser = self._create_parser(vocabulary)
 
         # Visit tracking for verbosity control
         self.visited_locations: set = set()
@@ -151,14 +148,14 @@ class LLMNarrator:
         for name, traits in all_traits:
             print(f"[{name} traits: {', '.join(traits)}]")
 
-    def _create_parser(self, vocabulary: Optional[Dict[str, Any]] = None) -> Parser:
-        """Create a Parser with merged vocabulary.
+    def _get_merged_vocabulary(self, vocabulary: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Get merged vocabulary from base + behaviors.
 
         Args:
             vocabulary: Optional pre-merged vocabulary dict
 
         Returns:
-            Parser instance ready to parse commands
+            Merged vocabulary dict
         """
         if vocabulary is None:
             # Load base vocabulary
@@ -174,6 +171,17 @@ class LLMNarrator:
             if self.behavior_manager:
                 vocabulary = self.behavior_manager.get_merged_vocabulary(vocabulary)
 
+        return vocabulary
+
+    def _create_parser(self, vocabulary: Dict[str, Any]) -> Parser:
+        """Create a Parser with merged vocabulary.
+
+        Args:
+            vocabulary: Merged vocabulary dict
+
+        Returns:
+            Parser instance ready to parse commands
+        """
         # Write vocabulary to temp file for Parser (it requires a file path)
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
             json.dump(vocabulary, f)
@@ -239,6 +247,24 @@ class LLMNarrator:
 
         return narrative
 
+    def _get_narration_mode(self, verb: str) -> str:
+        """Look up narration_mode for a verb from merged vocabulary.
+
+        Args:
+            verb: The verb to look up
+
+        Returns:
+            "brief" or "tracking" (default: "tracking")
+        """
+        # Search for verb in merged vocabulary
+        for verb_entry in self.merged_vocabulary.get("verbs", []):
+            if verb_entry.get("word") == verb:
+                # Return narration_mode if specified, otherwise default to "tracking"
+                return verb_entry.get("narration_mode", "tracking")
+
+        # If verb not found in vocabulary, default to "tracking"
+        return "tracking"
+
     def _determine_verbosity(self, json_cmd: Dict, result: Dict) -> str:
         """Determine verbosity level based on command and tracking state.
 
@@ -251,10 +277,14 @@ class LLMNarrator:
         """
         verb = json_cmd.get("action", {}).get("verb", "")
 
-        # Brief verbs are always brief
-        if verb in self.BRIEF_VERBS:
+        # Look up narration_mode from merged vocabulary
+        narration_mode = self._get_narration_mode(verb)
+
+        # Brief mode is always brief
+        if narration_mode == "brief":
             return "brief"
 
+        # Tracking mode: full on first occurrence, brief on subsequent
         # For go/movement: check if destination is new
         if verb == "go" and result.get("success"):
             # Get the new location ID from the result (nested under data.location)
@@ -263,14 +293,10 @@ class LLMNarrator:
                 return "full"
             return "brief"
 
-        # For other tracking verbs: check if entity is new
-        if verb in self.TRACKING_VERBS and verb != "go":
-            entity_id = result.get("data", {}).get("id")
-            if entity_id and entity_id not in self.examined_entities:
-                return "full"
-            return "brief"
-
-        # Default to brief for unknown verbs
+        # For other verbs: check if entity is new
+        entity_id = result.get("data", {}).get("id")
+        if entity_id and entity_id not in self.examined_entities:
+            return "full"
         return "brief"
 
     def _update_tracking(self, json_cmd: Dict, result: Dict) -> None:
@@ -285,15 +311,19 @@ class LLMNarrator:
 
         verb = json_cmd.get("action", {}).get("verb", "")
 
+        # Only track for verbs in tracking mode
+        narration_mode = self._get_narration_mode(verb)
+        if narration_mode != "tracking":
+            return
+
         # Track visited locations on successful movement
         if verb == "go":
             # Location ID is nested under data.location
             loc_id = result.get("data", {}).get("location", {}).get("id")
             if loc_id:
                 self.visited_locations.add(loc_id)
-
-        # Track entities for all other tracking verbs
-        if verb in self.TRACKING_VERBS and verb != "go":
+        else:
+            # Track entities for all other tracking verbs
             entity_id = result.get("data", {}).get("id")
             if entity_id:
                 self.examined_entities.add(entity_id)
@@ -449,22 +479,14 @@ class LLMNarrator:
         Returns:
             Compact string listing available verbs
         """
-        if not DEFAULT_VOCABULARY_FILE.exists():
-            return "Available verbs: take, drop, examine, go, open, close, unlock, lock, look, inventory"
-
-        try:
-            base_vocab = json.loads(DEFAULT_VOCABULARY_FILE.read_text())
-        except (json.JSONDecodeError, IOError):
-            return "Available verbs: take, drop, examine, go, open, close, unlock, lock, look, inventory"
-
-        # Merge with behavior module vocabulary if available
-        if self.behavior_manager:
-            vocab = self.behavior_manager.get_merged_vocabulary(base_vocab)
-        else:
-            vocab = base_vocab
+        # Use the already-merged vocabulary
+        vocab = self.merged_vocabulary
 
         # Just list verb names
         verbs = [v["word"] for v in vocab.get("verbs", [])]
         directions = [d["word"] for d in vocab.get("directions", [])]
+
+        if not verbs:
+            return "Available verbs: take, drop, examine, go, open, close, unlock, lock, look, inventory"
 
         return f"Available verbs: {', '.join(verbs)}\nDirections: {', '.join(directions)}"

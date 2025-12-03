@@ -29,6 +29,7 @@ vocabulary = {
             "word": "close",
             "synonyms": ["shut"],
             "object_required": True,
+            "narration_mode": "brief",
             "llm_context": {
                 "traits": ["conceals contents", "changes state to closed"],
                 "failure_narration": {
@@ -42,6 +43,7 @@ vocabulary = {
             "synonyms": ["place", "set"],
             "object_required": True,
             "indirect_object_required": True,
+            "narration_mode": "brief",
             "llm_context": {
                 "traits": ["places item in/on container", "requires indirect_object"],
                 "failure_narration": {

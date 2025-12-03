@@ -18,6 +18,7 @@ vocabulary = {
             "event": "on_attack",
             "synonyms": ["hit", "strike", "fight", "kill"],
             "object_required": True,
+            "narration_mode": "brief",
             "llm_context": {
                 "traits": ["hostile action", "targets NPCs", "may have consequences"],
                 "failure_narration": {

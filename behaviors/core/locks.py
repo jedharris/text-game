@@ -33,6 +33,7 @@ vocabulary = {
             "event": "on_lock",
             "synonyms": [],
             "object_required": True,
+            "narration_mode": "brief",
             "llm_context": {
                 "traits": ["secures object", "requires correct key"],
                 "failure_narration": {

@@ -34,6 +34,7 @@ vocabulary = {
             "event": "on_close",
             "synonyms": ["shut"],
             "object_required": True,
+            "narration_mode": "brief",
             "llm_context": {
                 "traits": ["physical action", "changes state", "requires closeable object"],
                 "failure_narration": {

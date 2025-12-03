@@ -609,11 +609,16 @@ class TestVerbosityTracking(unittest.TestCase):
         self.state.actors["player"].location = "loc_start"
         self.state.actors["player"].inventory = ["item_sword"]
 
+        # Load behavior module to get narration_mode annotations
+        behavior_manager = BehaviorManager()
+        behavior_manager.load_module("behaviors.core.manipulation")
+
         responses = [
             '{"type": "command", "action": {"verb": "drop", "object": "sword"}}',
             "You drop the sword."
         ]
-        narrator = MockLLMNarrator(self.handler, responses)
+        narrator = MockLLMNarrator(self.handler, responses,
+                                   behavior_manager=behavior_manager)
 
         narrator.process_turn("drop sword")
 
@@ -676,6 +681,147 @@ class TestVerbosityTracking(unittest.TestCase):
         narrator.process_turn("examine sword")
 
         self.assertIn("item_sword", narrator.examined_entities)
+
+
+class TestNarrationMode(unittest.TestCase):
+    """Test narration_mode field from vocabulary."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
+        self.state = load_game_state(str(fixture_path))
+        self.handler = LLMProtocolHandler(self.state)
+
+    def test_get_narration_mode_returns_brief_for_marked_verbs(self):
+        """Test that verbs marked with narration_mode=brief return 'brief'."""
+        # Create behavior manager and load module with brief verbs
+        behavior_manager = BehaviorManager()
+        behavior_manager.load_module("behaviors.core.manipulation")
+
+        narrator = MockLLMNarrator(self.handler, ["response"],
+                                   behavior_manager=behavior_manager)
+
+        # drop is marked as brief in manipulation.py
+        mode = narrator._get_narration_mode("drop")
+        self.assertEqual(mode, "brief")
+
+        # put is also marked as brief
+        mode = narrator._get_narration_mode("put")
+        self.assertEqual(mode, "brief")
+
+    def test_get_narration_mode_defaults_to_tracking(self):
+        """Test that verbs without narration_mode default to 'tracking'."""
+        behavior_manager = BehaviorManager()
+        behavior_manager.load_module("behaviors.core.manipulation")
+
+        narrator = MockLLMNarrator(self.handler, ["response"],
+                                   behavior_manager=behavior_manager)
+
+        # take has no narration_mode specified, should default to tracking
+        mode = narrator._get_narration_mode("take")
+        self.assertEqual(mode, "tracking")
+
+        # give has no narration_mode specified, should default to tracking
+        mode = narrator._get_narration_mode("give")
+        self.assertEqual(mode, "tracking")
+
+    def test_get_narration_mode_unknown_verb_defaults_to_tracking(self):
+        """Test that unknown verbs default to 'tracking'."""
+        narrator = MockLLMNarrator(self.handler, ["response"])
+
+        # Unknown verb should default to tracking
+        mode = narrator._get_narration_mode("unknownverb")
+        self.assertEqual(mode, "tracking")
+
+    def test_brief_mode_verbs_always_brief_verbosity(self):
+        """Test that brief mode verbs always use brief verbosity."""
+        self.state.actors["player"].location = "loc_start"
+        self.state.actors["player"].inventory = ["item_sword"]
+
+        behavior_manager = BehaviorManager()
+        behavior_manager.load_module("behaviors.core.manipulation")
+
+        responses = [
+            '{"type": "command", "action": {"verb": "drop", "object": "sword"}}',
+            "You drop the sword."
+        ]
+        narrator = MockLLMNarrator(self.handler, responses,
+                                   behavior_manager=behavior_manager)
+
+        narrator.process_turn("drop sword")
+
+        # Check narration call includes brief verbosity
+        narrate_call = narrator.calls[-1]
+        self.assertIn('"verbosity": "brief"', narrate_call)
+
+    def test_brief_mode_verbs_dont_track(self):
+        """Test that brief mode verbs don't add to tracking sets."""
+        self.state.actors["player"].location = "loc_start"
+        self.state.actors["player"].inventory = ["item_sword"]
+
+        behavior_manager = BehaviorManager()
+        behavior_manager.load_module("behaviors.core.manipulation")
+
+        responses = [
+            '{"type": "command", "action": {"verb": "drop", "object": "sword"}}',
+            "You drop the sword."
+        ]
+        narrator = MockLLMNarrator(self.handler, responses,
+                                   behavior_manager=behavior_manager)
+
+        narrator.process_turn("drop sword")
+
+        # Drop is brief mode, shouldn't add to examined_entities
+        self.assertNotIn("item_sword", narrator.examined_entities)
+
+    def test_tracking_mode_first_occurrence_full(self):
+        """Test that tracking mode verbs use full verbosity on first occurrence."""
+        self.state.actors["player"].location = "loc_start"
+
+        behavior_manager = BehaviorManager()
+        behavior_manager.load_module("behaviors.core.manipulation")
+
+        responses = [
+            '{"type": "command", "action": {"verb": "take", "object": "sword"}}',
+            "You pick up the rusty sword."
+        ]
+        narrator = MockLLMNarrator(self.handler, responses,
+                                   behavior_manager=behavior_manager)
+
+        narrator.process_turn("take sword")
+
+        # First take of sword should use full verbosity
+        narrate_call = narrator.calls[-1]
+        self.assertIn('"verbosity": "full"', narrate_call)
+
+    def test_tracking_mode_subsequent_occurrence_brief(self):
+        """Test that tracking mode verbs use brief verbosity on subsequent occurrences."""
+        self.state.actors["player"].location = "loc_start"
+
+        behavior_manager = BehaviorManager()
+        behavior_manager.load_module("behaviors.core.manipulation")
+        behavior_manager.load_module("behaviors.core.perception")
+
+        responses = [
+            # First examine - full
+            '{"type": "command", "action": {"verb": "examine", "object": "sword"}}',
+            "The sword is rusty but serviceable.",
+            # Second examine - brief
+            '{"type": "command", "action": {"verb": "examine", "object": "sword"}}',
+            "The rusty sword."
+        ]
+        narrator = MockLLMNarrator(self.handler, responses,
+                                   behavior_manager=behavior_manager)
+
+        # First examine
+        narrator.process_turn("examine sword")
+        first_call = narrator.calls[-1]
+        self.assertIn('"verbosity": "full"', first_call)
+
+        # Second examine
+        narrator.process_turn("examine sword")
+        second_call = narrator.calls[-1]
+        self.assertIn('"verbosity": "brief"', second_call)
 
 
 class TestSystemPrompt(unittest.TestCase):

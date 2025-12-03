@@ -38,7 +38,10 @@ class MockLLMNarrator(LLMNarrator):
         self.calls = []  # Track calls for testing
         self.behavior_manager = behavior_manager
         self.show_traits = show_traits
-        self.parser = self._create_parser(vocabulary)
+
+        # Store merged vocabulary for narration mode lookup
+        self.merged_vocabulary = self._get_merged_vocabulary(vocabulary)
+        self.parser = self._create_parser(self.merged_vocabulary)
 
         # Visit tracking for verbosity control (same as parent)
         self.visited_locations: set = set()

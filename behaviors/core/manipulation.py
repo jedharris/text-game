@@ -39,6 +39,7 @@ vocabulary = {
             "event": "on_drop",
             "synonyms": ["place"],
             "object_required": True,
+            "narration_mode": "brief",
             "llm_context": {
                 "traits": ["releases held object", "places in current location"],
                 "failure_narration": {
@@ -64,6 +65,7 @@ vocabulary = {
             "event": "on_put",
             "synonyms": ["set"],
             "object_required": True,
+            "narration_mode": "brief",
             "llm_context": {
                 "traits": ["places item in/on container", "requires container target"],
                 "failure_narration": {
