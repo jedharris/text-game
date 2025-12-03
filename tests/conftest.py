@@ -6,6 +6,7 @@ Based on behavior_refactoring_testing.md lines 14-106
 from dataclasses import field
 from typing import Dict, List, Any
 from src.state_manager import GameState, Item, Location, Actor, Metadata
+from src.word_entry import WordEntry, WordType
 
 
 def create_test_state() -> GameState:
@@ -120,3 +121,91 @@ def create_test_state() -> GameState:
     )
 
     return state
+
+
+def make_word_entry(word: str, word_type: WordType = WordType.NOUN, synonyms: List[str] = None) -> WordEntry:
+    """
+    Create a WordEntry for testing.
+
+    Helper function to reduce boilerplate when creating WordEntry objects in tests.
+
+    Args:
+        word: The word string
+        word_type: The grammatical type (defaults to NOUN)
+        synonyms: List of synonyms (defaults to empty list)
+
+    Returns:
+        WordEntry with specified attributes
+
+    Examples:
+        >>> make_word_entry("sword")
+        WordEntry(word="sword", word_type=WordType.NOUN, synonyms=[])
+
+        >>> make_word_entry("take", WordType.VERB)
+        WordEntry(word="take", word_type=WordType.VERB, synonyms=[])
+
+        >>> make_word_entry("stairs", synonyms=["staircase", "steps"])
+        WordEntry(word="stairs", word_type=WordType.NOUN, synonyms=["staircase", "steps"])
+    """
+    if synonyms is None:
+        synonyms = []
+    return WordEntry(word=word, word_type=word_type, synonyms=synonyms)
+
+
+def make_action(verb: str = None, object: str = None, adjective: str = None,
+                indirect_object: str = None, indirect_adjective: str = None,
+                preposition: str = None, direction: str = None,
+                actor_id: str = "player", **kwargs) -> Dict[str, Any]:
+    """
+    Create an action dictionary with strings auto-converted to WordEntry objects.
+
+    This helper allows tests to use simple strings while ensuring handlers receive
+    proper WordEntry objects. This maintains backward compatibility with existing
+    tests while supporting the new WordEntry-only infrastructure.
+
+    Args:
+        verb: Verb string (optional)
+        object: Object string (converted to WordEntry)
+        adjective: Adjective string (converted to WordEntry)
+        indirect_object: Indirect object string (converted to WordEntry)
+        indirect_adjective: Indirect adjective string (converted to WordEntry)
+        preposition: Preposition string (converted to WordEntry)
+        direction: Direction string (converted to WordEntry)
+        actor_id: Actor performing the action (defaults to "player")
+        **kwargs: Additional action fields passed through unchanged
+
+    Returns:
+        Action dict with WordEntry objects for word fields
+
+    Examples:
+        >>> make_action(verb="take", object="sword", actor_id="player")
+        {"verb": "take", "object": WordEntry("sword", ...), "actor_id": "player"}
+
+        >>> make_action(object="key", adjective="brass")
+        {"object": WordEntry("key", ...), "adjective": WordEntry("brass", ...), "actor_id": "player"}
+    """
+    action = {"actor_id": actor_id}
+
+    # Add verb as string (verbs don't need to be WordEntry in action dicts)
+    if verb is not None:
+        action["verb"] = verb
+
+    # Convert word fields to WordEntry
+    if object is not None:
+        action["object"] = make_word_entry(object)
+    if adjective is not None:
+        action["adjective"] = adjective  # Adjectives stay as strings for description matching
+    if indirect_object is not None:
+        action["indirect_object"] = make_word_entry(indirect_object)
+    if indirect_adjective is not None:
+        action["indirect_adjective"] = indirect_adjective  # Also stays as string
+    if preposition is not None:
+        action["preposition"] = preposition  # Prepositions stay as strings
+    if direction is not None:
+        # Direction is now handled as object
+        action["object"] = make_word_entry(direction)
+
+    # Add any additional kwargs
+    action.update(kwargs)
+
+    return action

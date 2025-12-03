@@ -16,7 +16,7 @@ from utilities.entity_serializer import serialize_for_handler_result
 
 def find_actor_by_name(
     accessor,
-    name: Union[WordEntry, str],
+    name: WordEntry,
     actor_id: str
 ):
     """
@@ -26,13 +26,13 @@ def find_actor_by_name(
     - "self" (with synonyms "me"/"myself" via WordEntry) -> returns the acting actor
     - Other names -> searches actors in same location
 
-    The name parameter should be a WordEntry from the parser, which provides
+    The name parameter is a WordEntry from the parser, which provides
     synonym information. When the parser sees "me" or "myself", it returns
     the canonical "self" WordEntry with synonyms, so name_matches will work.
 
     Args:
         accessor: StateAccessor instance
-        name: Actor name (WordEntry from parser preferred, plain string for entity names)
+        name: Actor name as WordEntry from parser
         actor_id: ID of the actor doing the examining
 
     Returns:
@@ -97,7 +97,7 @@ def format_inventory(
 
 
 def name_matches(
-    search_term: Union[WordEntry, str],
+    search_term: WordEntry,
     target_name: str,
     match_in_phrase: bool = False
 ) -> bool:
@@ -109,7 +109,7 @@ def name_matches(
     entity names.
 
     Args:
-        search_term: WordEntry (with synonyms) or plain string from player input
+        search_term: WordEntry with canonical word and synonyms
         target_name: The entity's name field to match against
         match_in_phrase: If True, also match if any search word appears
                         as a complete word within target_name (for multi-word
@@ -130,10 +130,7 @@ def name_matches(
         True  # "staircase" is a word in the phrase
     """
     # Extract all words to check (canonical + synonyms)
-    if isinstance(search_term, WordEntry):
-        match_words = [search_term.word] + search_term.synonyms
-    else:
-        match_words = [search_term]
+    match_words = [search_term.word] + search_term.synonyms
 
     target_lower = target_name.lower()
     target_words = target_lower.split()
@@ -232,7 +229,7 @@ def _get_entity_states(entity) -> Dict[str, Any]:
 
 
 def find_accessible_item(
-    accessor, name: Union[WordEntry, str], actor_id: str, adjective: Optional[str] = None
+    accessor, name: WordEntry, actor_id: str, adjective: Optional[str] = None
 ):
     """
     Find an item that is accessible to the actor, optionally filtered by adjective.
@@ -340,7 +337,7 @@ def find_accessible_item(
     return None
 
 
-def find_item_in_inventory(accessor, name: Union[WordEntry, str], actor_id: str):
+def find_item_in_inventory(accessor, name: WordEntry, actor_id: str):
     """
     Find an item in the actor's inventory.
 
@@ -366,7 +363,7 @@ def find_item_in_inventory(accessor, name: Union[WordEntry, str], actor_id: str)
     return None
 
 
-def find_container_by_name(accessor, name: Union[WordEntry, str], location_id: str):
+def find_container_by_name(accessor, name: WordEntry, location_id: str):
     """
     Find a container item in a location.
 
@@ -568,7 +565,7 @@ def find_accessible_item_with_adjective(
 
 
 def find_container_with_adjective(
-    accessor, name: Union[WordEntry, str], adjective: Optional[str], location_id: str
+    accessor, name: WordEntry, adjective: Optional[str], location_id: str
 ):
     """
     Find a container item in a location, optionally filtered by adjective.
@@ -617,7 +614,7 @@ def find_container_with_adjective(
 
 
 def find_item_in_container(
-    accessor, item_name: Union[WordEntry, str], container_id: str, adjective: Optional[str] = None
+    accessor, item_name: WordEntry, container_id: str, adjective: Optional[str] = None
 ):
     """
     Find an item inside a specific container.
@@ -666,7 +663,7 @@ def _get_door_state(door):
 
 
 def find_door_with_adjective(
-    accessor, name: Union[WordEntry, str], adjective: Optional[str], location_id: str,
+    accessor, name: WordEntry, adjective: Optional[str], location_id: str,
     actor_id: Optional[str] = None, verb: Optional[str] = None
 ):
     """
@@ -977,7 +974,7 @@ def find_lock_by_context(
     accessor,
     location_id: str,
     direction: Optional[str] = None,
-    door_name: Optional[Union[WordEntry, str]] = None,
+    door_name: Optional[WordEntry] = None,
     door_adjective: Optional[str] = None,
     actor_id: str = "player"
 ) -> Optional[Any]:
@@ -1082,7 +1079,7 @@ DIRECTION_ABBREVIATIONS = {
 
 
 def find_exit_by_name(
-    accessor, name: Union[WordEntry, str], actor_id: str, adjective: Optional[str] = None
+    accessor, name: WordEntry, actor_id: str, adjective: Optional[str] = None
 ) -> Optional[Tuple[str, Any]]:
     """
     Find an exit in the current location by name, direction, or adjective.
@@ -1109,10 +1106,7 @@ def find_exit_by_name(
         return None
 
     # Extract canonical word for direction/generic checks
-    if isinstance(name, WordEntry):
-        name_lower = name.word.lower().strip()
-    else:
-        name_lower = name.lower().strip()
+    name_lower = name.word.lower().strip()
 
     # Get visible exits
     visible_exits = accessor.get_visible_exits(location.id, actor_id)
@@ -1150,10 +1144,7 @@ def find_exit_by_name(
     # This handles cases like "examine north exit" where adjective="north", name="exit"
     if adjective:
         # For adjective combinations, we need to match the full phrase
-        if isinstance(name, WordEntry):
-            canonical = name.word
-        else:
-            canonical = name
+        canonical = name.word
         full_search = f"{adjective} {canonical}".lower()
         for direction, exit_desc in visible_exits.items():
             if exit_desc.name and full_search in exit_desc.name.lower():

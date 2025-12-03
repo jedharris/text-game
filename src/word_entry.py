@@ -1,7 +1,7 @@
 """Word entry data structures for the parser."""
 
 from enum import Enum
-from typing import Optional, List
+from typing import Optional, List, Set, Union
 from dataclasses import dataclass, field
 
 
@@ -11,7 +11,6 @@ class WordType(Enum):
     NOUN = "NOUN"
     ADJECTIVE = "ADJECTIVE"
     PREPOSITION = "PREPOSITION"
-    DIRECTION = "DIRECTION"
     ARTICLE = "ARTICLE"
     FILENAME = "FILENAME"
 
@@ -23,13 +22,13 @@ class WordEntry:
 
     Attributes:
         word: The actual word string
-        word_type: The grammatical type of the word
+        word_type: The grammatical type(s) of the word (single WordType or Set[WordType])
         synonyms: List of alternative words with same meaning
         value: Optional numeric ID for game logic
         object_required: For verbs, whether direct object is required (True/False/"optional")
     """
     word: str
-    word_type: WordType
+    word_type: Union[WordType, Set[WordType]]  # Single type or set of types
     synonyms: List[str] = field(default_factory=list)
     value: Optional[int] = None
     object_required: bool | str = True  # True, False, or "optional"

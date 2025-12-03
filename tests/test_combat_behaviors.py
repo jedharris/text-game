@@ -6,6 +6,7 @@ import unittest
 from src.state_manager import GameState, Location, Item, Actor, Metadata
 from src.behavior_manager import BehaviorManager
 from src.state_accessor import StateAccessor
+from tests.conftest import make_action
 
 
 def create_test_state():
@@ -74,7 +75,7 @@ class TestHandleAttack(unittest.TestCase):
         """Test attack without specifying target."""
         from behaviors.core.combat import handle_attack
 
-        action = {"actor_id": "player"}
+        action = make_action(actor_id="player")
         result = handle_attack(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -84,7 +85,7 @@ class TestHandleAttack(unittest.TestCase):
         """Test attacking non-existent target."""
         from behaviors.core.combat import handle_attack
 
-        action = {"actor_id": "player", "object": "dragon"}
+        action = make_action(object="dragon", actor_id="player")
         result = handle_attack(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -94,7 +95,7 @@ class TestHandleAttack(unittest.TestCase):
         """Test attacking an NPC."""
         from behaviors.core.combat import handle_attack
 
-        action = {"actor_id": "player", "object": "goblin"}
+        action = make_action(object="goblin", actor_id="player")
         result = handle_attack(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -105,7 +106,7 @@ class TestHandleAttack(unittest.TestCase):
         """Test attacking an item (should fail - can't attack items)."""
         from behaviors.core.combat import handle_attack
 
-        action = {"actor_id": "player", "object": "chair"}
+        action = make_action(object="chair", actor_id="player")
         result = handle_attack(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -115,7 +116,7 @@ class TestHandleAttack(unittest.TestCase):
         """Test NPC attacking another NPC (critical for actor_id threading)."""
         from behaviors.core.combat import handle_attack
 
-        action = {"actor_id": "npc_guard", "object": "goblin"}
+        action = make_action(object="goblin", actor_id="npc_guard")
         result = handle_attack(self.accessor, action)
 
         self.assertTrue(result.success)

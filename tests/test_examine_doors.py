@@ -4,7 +4,7 @@ Verifies that handle_examine can find and describe doors, not just items.
 """
 
 import unittest
-from tests.conftest import create_test_state
+from tests.conftest import make_action, create_test_state
 from src.state_accessor import StateAccessor
 from src.behavior_manager import BehaviorManager
 from src.state_manager import Item, Location, ExitDescriptor
@@ -66,7 +66,7 @@ class TestExamineDoor(unittest.TestCase):
         """Test that examine door finds a door in the location."""
         from behaviors.core.perception import handle_examine
 
-        action = {"actor_id": "player", "object": "door"}
+        action = make_action(object="door", actor_id="player")
         result = handle_examine(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -78,7 +78,7 @@ class TestExamineDoor(unittest.TestCase):
         from behaviors.core.perception import handle_examine
 
         # Use "heavy" which only appears in the iron door description
-        action = {"actor_id": "player", "object": "door", "adjective": "heavy"}
+        action = make_action(object="door", adjective="heavy", actor_id="player")
         result = handle_examine(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -89,7 +89,7 @@ class TestExamineDoor(unittest.TestCase):
         """Test examining the wooden door specifically."""
         from behaviors.core.perception import handle_examine
 
-        action = {"actor_id": "player", "object": "door", "adjective": "wooden"}
+        action = make_action(object="door", adjective="wooden", actor_id="player")
         result = handle_examine(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -101,7 +101,7 @@ class TestExamineDoor(unittest.TestCase):
         from behaviors.core.perception import handle_examine
 
         # No golden door exists
-        action = {"actor_id": "player", "object": "door", "adjective": "golden"}
+        action = make_action(object="door", adjective="golden", actor_id="player")
         result = handle_examine(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -114,7 +114,7 @@ class TestExamineDoor(unittest.TestCase):
         # Move player to other_room which has exit with door_wooden
         self.state.actors["player"].location = "other_room"
 
-        action = {"actor_id": "player", "object": "door"}
+        action = make_action(object="door", actor_id="player")
         result = handle_examine(self.accessor, action)
 
         # The wooden door connects to other_room via the south exit, so it should be found there
@@ -125,7 +125,7 @@ class TestExamineDoor(unittest.TestCase):
         from behaviors.core.perception import handle_examine
 
         # Sword is in the test state
-        action = {"actor_id": "player", "object": "sword"}
+        action = make_action(object="sword", actor_id="player")
         result = handle_examine(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -147,7 +147,7 @@ class TestExamineDoor(unittest.TestCase):
         )
         self.state.items.append(door_item)
 
-        action = {"actor_id": "player", "object": "door"}
+        action = make_action(object="door", actor_id="player")
         result = handle_examine(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -215,7 +215,7 @@ class TestExamineDoorWithDirectionAdjective(unittest.TestCase):
         """Test 'examine north door' finds the north door."""
         from behaviors.core.perception import handle_examine
 
-        action = {"actor_id": "player", "object": "door", "direction": "north"}
+        action = make_action(object="door", adjective="north", actor_id="player")
         result = handle_examine(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -225,7 +225,7 @@ class TestExamineDoorWithDirectionAdjective(unittest.TestCase):
         """Test 'examine east door' finds the east door."""
         from behaviors.core.perception import handle_examine
 
-        action = {"actor_id": "player", "object": "door", "direction": "east"}
+        action = make_action(object="door", adjective="east", actor_id="player")
         result = handle_examine(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -235,7 +235,7 @@ class TestExamineDoorWithDirectionAdjective(unittest.TestCase):
         """Test 'examine west door' fails when no west door exists."""
         from behaviors.core.perception import handle_examine
 
-        action = {"actor_id": "player", "object": "door", "direction": "west"}
+        action = make_action(object="door", adjective="west", actor_id="player")
         result = handle_examine(self.accessor, action)
 
         self.assertFalse(result.success)

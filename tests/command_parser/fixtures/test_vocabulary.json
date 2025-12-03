@@ -22,7 +22,18 @@
     { "word": "coin", "value": 108 },
     { "word": "lock", "value": 109 },
     { "word": "table", "value": 110 },
-    { "word": "book", "value": 111 }
+    { "word": "book", "value": 111 },
+    { "word": "exit", "value": 112 },
+    { "word": "north", "word_type": ["noun", "adjective"], "synonyms": ["n"], "value": 1 },
+    { "word": "south", "word_type": ["noun", "adjective"], "synonyms": ["s"], "value": 2 },
+    { "word": "east", "word_type": ["noun", "adjective"], "synonyms": ["e"], "value": 3 },
+    { "word": "west", "word_type": ["noun", "adjective"], "synonyms": ["w"], "value": 4 },
+    { "word": "up", "word_type": ["noun", "adjective"], "synonyms": ["u"], "value": 5 },
+    { "word": "down", "word_type": ["noun", "adjective"], "synonyms": ["d"], "value": 6 },
+    { "word": "northeast", "word_type": ["noun", "adjective"], "synonyms": ["ne"], "value": 7 },
+    { "word": "northwest", "word_type": ["noun", "adjective"], "synonyms": ["nw"], "value": 8 },
+    { "word": "southeast", "word_type": ["noun", "adjective"], "synonyms": ["se"], "value": 9 },
+    { "word": "southwest", "word_type": ["noun", "adjective"], "synonyms": ["sw"], "value": 10 }
   ],
   "adjectives": [
     { "word": "red", "value": 201 },
@@ -37,17 +48,5 @@
     { "word": "ancient", "value": 210 }
   ],
   "prepositions": ["with", "to", "in", "on", "under", "behind", "from", "into"],
-  "directions": [
-    { "word": "north", "synonyms": ["n"], "value": 1 },
-    { "word": "south", "synonyms": ["s"], "value": 2 },
-    { "word": "east", "synonyms": ["e"], "value": 3 },
-    { "word": "west", "synonyms": ["w"], "value": 4 },
-    { "word": "up", "synonyms": ["u"], "value": 5 },
-    { "word": "down", "synonyms": ["d"], "value": 6 },
-    { "word": "northeast", "synonyms": ["ne"], "value": 7 },
-    { "word": "northwest", "synonyms": ["nw"], "value": 8 },
-    { "word": "southeast", "synonyms": ["se"], "value": 9 },
-    { "word": "southwest", "synonyms": ["sw"], "value": 10 }
-  ],
   "articles": ["the", "a", "an"]
 }

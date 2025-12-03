@@ -6,6 +6,7 @@ import unittest
 from src.state_manager import GameState, Location, Item, Actor, Metadata
 from src.behavior_manager import BehaviorManager
 from src.state_accessor import StateAccessor
+from tests.conftest import make_action
 
 
 def create_test_state():
@@ -117,7 +118,7 @@ class TestHandlePut(unittest.TestCase):
         """Test put without specifying container."""
         from behaviors.core.manipulation import handle_put
 
-        action = {"actor_id": "player", "object": "key"}
+        action = make_action(object="key", actor_id="player")
         result = handle_put(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -127,7 +128,7 @@ class TestHandlePut(unittest.TestCase):
         """Test putting item not in inventory."""
         from behaviors.core.manipulation import handle_put
 
-        action = {"actor_id": "player", "object": "rock", "indirect_object": "box"}
+        action = make_action(object="rock", indirect_object="box", actor_id="player")
         result = handle_put(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -137,7 +138,7 @@ class TestHandlePut(unittest.TestCase):
         """Test putting item in open container."""
         from behaviors.core.manipulation import handle_put
 
-        action = {"actor_id": "player", "object": "key", "indirect_object": "box"}
+        action = make_action(object="key", indirect_object="box", actor_id="player")
         result = handle_put(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -152,7 +153,7 @@ class TestHandlePut(unittest.TestCase):
         """Test putting item on surface container."""
         from behaviors.core.manipulation import handle_put
 
-        action = {"actor_id": "player", "object": "key", "indirect_object": "table"}
+        action = make_action(object="key", indirect_object="table", actor_id="player")
         result = handle_put(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -164,7 +165,7 @@ class TestHandlePut(unittest.TestCase):
         """Test putting item in closed container fails."""
         from behaviors.core.manipulation import handle_put
 
-        action = {"actor_id": "player", "object": "key", "indirect_object": "chest"}
+        action = make_action(object="key", indirect_object="chest", actor_id="player")
         result = handle_put(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -174,7 +175,7 @@ class TestHandlePut(unittest.TestCase):
         """Test putting item in non-container fails."""
         from behaviors.core.manipulation import handle_put
 
-        action = {"actor_id": "player", "object": "key", "indirect_object": "rock"}
+        action = make_action(object="key", indirect_object="rock", actor_id="player")
         result = handle_put(self.accessor, action)
 
         self.assertFalse(result.success)

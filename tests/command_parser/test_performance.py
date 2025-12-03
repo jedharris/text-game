@@ -92,8 +92,9 @@ class TestPerformance(unittest.TestCase):
                        f"Vocabulary load took {load_time_ms:.3f}ms, should be < 500ms")
 
         # Verify parser works with a command from base vocabulary
-        # (nouns and action verbs including "go" are now in behavior modules)
-        result = parser.parse_command("north")
+        # Base vocabulary now only contains meta-commands (quit, load, save, inventory)
+        # Test with "inventory" which is in base vocab and doesn't require an object
+        result = parser.parse_command("inventory")
         self.assertIsNotNone(result)
 
     def test_worst_case_lookup(self):

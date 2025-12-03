@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional
 
 from .state_manager import GameState
 from .behavior_manager import BehaviorManager
+from .word_entry import WordEntry, WordType
 
 
 class LLMProtocolHandler:
@@ -69,6 +70,39 @@ class LLMProtocolHandler:
                 "message": f"Invalid JSON: {e}"
             }
 
+    def _convert_action_strings_to_wordentry(self, action: Dict) -> Dict:
+        """
+        Convert string fields in action dict to WordEntry objects.
+
+        Handlers expect object and indirect_object as WordEntry objects.
+        Adjectives, prepositions, and verbs remain as strings.
+
+        Args:
+            action: Action dict that may contain strings
+
+        Returns:
+            Action dict with WordEntry objects for object/indirect_object fields
+        """
+        action = action.copy()  # Don't modify original
+
+        # Convert object to WordEntry if it's a string
+        if "object" in action and isinstance(action["object"], str):
+            action["object"] = WordEntry(
+                word=action["object"],
+                word_type=WordType.NOUN,
+                synonyms=[]
+            )
+
+        # Convert indirect_object to WordEntry if it's a string
+        if "indirect_object" in action and isinstance(action["indirect_object"], str):
+            action["indirect_object"] = WordEntry(
+                word=action["indirect_object"],
+                word_type=WordType.NOUN,
+                synonyms=[]
+            )
+
+        return action
+
     def handle_command(self, message: Dict) -> Dict:
         """Process a command message and return result."""
         import sys
@@ -97,6 +131,9 @@ class LLMProtocolHandler:
         # Ensure action has actor_id
         if "actor_id" not in action:
             action["actor_id"] = "player"
+
+        # Convert string fields to WordEntry objects for handlers
+        action = self._convert_action_strings_to_wordentry(action)
 
         # Try new behavior system first (using invoke_handler)
         if self.behavior_manager and self.behavior_manager.has_handler(verb):
@@ -374,6 +411,10 @@ class LLMProtocolHandler:
 
         Returns merged vocabulary from vocabulary.json and behavior modules.
         Includes verbs with their synonyms, required parameters, and directions.
+
+        NOTE: Directions are now first-class nouns with multi-valued word_type.
+        They are extracted from the nouns list by checking for word_type containing
+        both "noun" and "adjective".
         """
         from pathlib import Path
         import json
@@ -384,9 +425,9 @@ class LLMProtocolHandler:
             try:
                 base_vocab = json.loads(vocab_file.read_text())
             except (json.JSONDecodeError, IOError):
-                base_vocab = {"verbs": [], "directions": []}
+                base_vocab = {"verbs": [], "nouns": []}
         else:
-            base_vocab = {"verbs": [], "directions": []}
+            base_vocab = {"verbs": [], "nouns": []}
 
         # Merge with behavior module vocabulary
         if self.behavior_manager:
@@ -403,13 +444,20 @@ class LLMProtocolHandler:
                 "object_required": verb_data.get("object_required", False)
             }
 
-        # Format directions for response
+        # Extract directions from nouns (directions have multi-valued word_type)
+        # Directions are nouns with word_type containing both "noun" and "adjective"
         directions = {}
-        for dir_data in vocab.get("directions", []):
-            word = dir_data["word"]
-            directions[word] = {
-                "synonyms": dir_data.get("synonyms", [])
-            }
+        for noun_data in vocab.get("nouns", []):
+            word_type = noun_data.get("word_type")
+            # Check if word_type is a list containing both "noun" and "adjective"
+            if isinstance(word_type, list):
+                word_type_lower = [wt.lower() for wt in word_type]
+                if "noun" in word_type_lower and "adjective" in word_type_lower:
+                    # This is a direction
+                    word = noun_data["word"]
+                    directions[word] = {
+                        "synonyms": noun_data.get("synonyms", [])
+                    }
 
         return {
             "type": "query_response",

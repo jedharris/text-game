@@ -18,6 +18,7 @@ sys.path.insert(0, str(project_root))
 from src.state_manager import Item, Location, ExitDescriptor, load_game_state
 from src.state_accessor import StateAccessor
 from src.behavior_manager import BehaviorManager
+from tests.conftest import make_word_entry, make_action
 
 
 class TestItemDoorProperties(unittest.TestCase):
@@ -390,7 +391,13 @@ class TestFindAccessibleItemWithDoors(unittest.TestCase):
         """find_accessible_item finds door by name 'door'."""
         from utilities.utils import find_accessible_item
 
-        item = find_accessible_item(self.accessor, "door", "player")
+        door_entry = make_word_entry("door")
+
+
+        item = find_accessible_item(
+
+
+            self.accessor, door_entry, "player")
         self.assertIsNotNone(item)
         self.assertTrue(item.is_door)
 
@@ -398,7 +405,13 @@ class TestFindAccessibleItemWithDoors(unittest.TestCase):
         """find_accessible_item finds specific door with adjective."""
         from utilities.utils import find_accessible_item
 
-        item = find_accessible_item(self.accessor, "door", "player", "iron")
+        door_entry = make_word_entry("door")
+
+
+        item = find_accessible_item(
+
+
+            self.accessor, door_entry, "player", "iron")
         self.assertIsNotNone(item)
         self.assertEqual(item.id, "door_iron")
 
@@ -406,7 +419,13 @@ class TestFindAccessibleItemWithDoors(unittest.TestCase):
         """find_accessible_item finds wooden door with adjective."""
         from utilities.utils import find_accessible_item
 
-        item = find_accessible_item(self.accessor, "door", "player", "wooden")
+        door_entry = make_word_entry("door")
+
+
+        item = find_accessible_item(
+
+
+            self.accessor, door_entry, "player", "wooden")
         self.assertIsNotNone(item)
         self.assertEqual(item.id, "door_wooden")
 
@@ -414,7 +433,13 @@ class TestFindAccessibleItemWithDoors(unittest.TestCase):
         """find_accessible_item still finds regular items."""
         from utilities.utils import find_accessible_item
 
-        item = find_accessible_item(self.accessor, "key", "player")
+        key_entry = make_word_entry("key")
+
+
+        item = find_accessible_item(
+
+
+            self.accessor, key_entry, "player")
         self.assertIsNotNone(item)
         self.assertEqual(item.id, "item_key")
 
@@ -479,7 +504,11 @@ class TestHiddenDoors(unittest.TestCase):
         from utilities.utils import find_accessible_item
 
         # Should find the visible door, not the hidden one
-        item = find_accessible_item(self.accessor, "door", "player")
+        door_entry = make_word_entry("door")
+
+        item = find_accessible_item(
+
+            self.accessor, door_entry, "player")
         self.assertEqual(item.id, "door_visible")
 
     def test_revealed_door_becomes_visible(self):
@@ -544,7 +573,7 @@ class TestOpenCloseDoorItems(unittest.TestCase):
         """open command works on door items."""
         from behaviors.core.interaction import handle_open
 
-        action = {"verb": "open", "object": "door", "actor_id": "player"}
+        action = make_action(verb="open", object="door", actor_id="player")
         result = handle_open(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -559,7 +588,7 @@ class TestOpenCloseDoorItems(unittest.TestCase):
         door = self.accessor.get_item("door_1")
         door.door_open = True
 
-        action = {"verb": "close", "object": "door", "actor_id": "player"}
+        action = make_action(verb="close", object="door", actor_id="player")
         result = handle_close(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -572,7 +601,7 @@ class TestOpenCloseDoorItems(unittest.TestCase):
         door = self.accessor.get_item("door_1")
         door.door_locked = True
 
-        action = {"verb": "open", "object": "door", "actor_id": "player"}
+        action = make_action(verb="open", object="door", actor_id="player")
         result = handle_open(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -585,7 +614,7 @@ class TestOpenCloseDoorItems(unittest.TestCase):
         door = self.accessor.get_item("door_1")
         door.door_open = True
 
-        action = {"verb": "open", "object": "door", "actor_id": "player"}
+        action = make_action(verb="open", object="door", actor_id="player")
         result = handle_open(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -647,7 +676,7 @@ class TestLockUnlockDoorItems(unittest.TestCase):
         """unlock command works with key in inventory."""
         from behaviors.core.locks import handle_unlock
 
-        action = {"verb": "unlock", "object": "door", "actor_id": "player"}
+        action = make_action(verb="unlock", object="door", actor_id="player")
         result = handle_unlock(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -662,7 +691,7 @@ class TestLockUnlockDoorItems(unittest.TestCase):
         player = self.accessor.get_actor("player")
         player.inventory.remove("item_key")
 
-        action = {"verb": "unlock", "object": "door", "actor_id": "player"}
+        action = make_action(verb="unlock", object="door", actor_id="player")
         result = handle_unlock(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -676,7 +705,7 @@ class TestLockUnlockDoorItems(unittest.TestCase):
         door = self.accessor.get_item("door_1")
         door.door_locked = False
 
-        action = {"verb": "lock", "object": "door", "actor_id": "player"}
+        action = make_action(verb="lock", object="door", actor_id="player")
         result = handle_lock(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -690,7 +719,7 @@ class TestLockUnlockDoorItems(unittest.TestCase):
         door.door_open = True
         door.door_locked = False
 
-        action = {"verb": "lock", "object": "door", "actor_id": "player"}
+        action = make_action(verb="lock", object="door", actor_id="player")
         result = handle_lock(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -747,7 +776,7 @@ class TestMovementThroughDoorItems(unittest.TestCase):
         """Movement blocked by closed door."""
         from behaviors.core.exits import handle_go
 
-        action = {"verb": "go", "direction": "north", "actor_id": "player"}
+        action = {"verb": "go", "object": "north", "actor_id": "player"}
         result = handle_go(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -761,7 +790,7 @@ class TestMovementThroughDoorItems(unittest.TestCase):
         door = self.accessor.get_item("door_1")
         door.door_open = True
 
-        action = {"verb": "go", "direction": "north", "actor_id": "player"}
+        action = {"verb": "go", "object": "north", "actor_id": "player"}
         result = handle_go(self.accessor, action)
 
         self.assertTrue(result.success)

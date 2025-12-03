@@ -190,7 +190,7 @@ class TestGoThroughPreposition(unittest.TestCase):
         action = {
             "actor_id": "player",
             "verb": "go",
-            "direction": "north"
+            "object": "north"
         }
 
         result = handle_go(self.accessor, action)

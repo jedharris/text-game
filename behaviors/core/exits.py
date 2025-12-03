@@ -47,11 +47,24 @@ vocabulary = {
         }
     ],
     "nouns": [
+        # Exit structure nouns (single type)
         {"word": "exit", "synonyms": ["passage", "way", "path", "opening"]},
         {"word": "stairs", "synonyms": ["staircase", "stairway", "steps"]},
         {"word": "archway", "synonyms": ["arch"]},
         {"word": "corridor", "synonyms": ["hallway", "hall"]},
-        {"word": "tunnel", "synonyms": ["passageway"]}
+        {"word": "tunnel", "synonyms": ["passageway"]},
+
+        # Direction nouns (multi-type: noun + adjective)
+        {"word": "north", "word_type": ["noun", "adjective"], "synonyms": ["n"]},
+        {"word": "south", "word_type": ["noun", "adjective"], "synonyms": ["s"]},
+        {"word": "east", "word_type": ["noun", "adjective"], "synonyms": ["e"]},
+        {"word": "west", "word_type": ["noun", "adjective"], "synonyms": ["w"]},
+        {"word": "up", "word_type": ["noun", "adjective"], "synonyms": ["u"]},
+        {"word": "down", "word_type": ["noun", "adjective"], "synonyms": ["d"]},
+        {"word": "northeast", "word_type": ["noun", "adjective"], "synonyms": ["ne"]},
+        {"word": "northwest", "word_type": ["noun", "adjective"], "synonyms": ["nw"]},
+        {"word": "southeast", "word_type": ["noun", "adjective"], "synonyms": ["se"]},
+        {"word": "southwest", "word_type": ["noun", "adjective"], "synonyms": ["sw"]}
     ],
     "adjectives": [],
     "directions": []
@@ -64,12 +77,12 @@ def handle_go(accessor, action):
 
     Supports:
     1. Direction-based: "go north", "go up"
-    2. Preposition + noun: "go through archway" (traverses exit by name)
+    2. Exit name: "go archway", "go through archway"
 
-    When preposition "through" is present:
-    - Extract exit name from object/indirect_object
-    - Use find_exit_by_name() to locate exit
-    - Traverse if found
+    Uses unified action["object"] for both directions and exit names:
+    - First tries to match object as a compass direction
+    - If not a direction, tries to match as exit structure name
+    - Preposition "through" is optional syntactic sugar
 
     CRITICAL: Extracts actor_id from action to support both player and NPCs.
 
@@ -77,9 +90,8 @@ def handle_go(accessor, action):
         accessor: StateAccessor instance
         action: Action dict with keys:
             - actor_id: ID of actor performing action (required)
-            - direction: Direction to go (for direction-based)
+            - object: Direction or exit name (WordEntry)
             - preposition: Optional (e.g., "through")
-            - object: Exit name (when preposition present)
             - adjective: Optional adjective for disambiguation
 
     Returns:
@@ -87,9 +99,8 @@ def handle_go(accessor, action):
     """
     # CRITICAL: Extract actor_id at the top
     actor_id = action.get("actor_id", "player")
-    direction = action.get("direction")
+    object_entry = action.get("object")  # Now a WordEntry, not just string
     preposition = action.get("preposition")
-    object_name = action.get("object")
     adjective = action.get("adjective")
 
     # Get the actor
@@ -108,36 +119,54 @@ def handle_go(accessor, action):
             message=f"INCONSISTENT STATE: Cannot find location for actor {actor_id}"
         )
 
-    # Determine exit: either by direction or by preposition + name
-    exit_descriptor = None
+    # Extract object entry
+    if not object_entry:
+        return HandlerResult(
+            success=False,
+            message="Which direction do you want to go?"
+        )
 
-    # Check for preposition-based movement ("go through archway")
-    if preposition == "through" and object_name:
-        # Find exit by name
-        exit_result = find_exit_by_name(accessor, object_name, actor_id, adjective)
+    # Get object name for error messages
+    from src.word_entry import WordEntry
+    if isinstance(object_entry, WordEntry):
+        object_name = object_entry.word
+    else:
+        # Backward compatibility: if it's already a string
+        object_name = object_entry
+
+    # Determine exit: try as direction first, then as exit name
+    exit_descriptor = None
+    direction = None
+
+    # If preposition "through" is used, skip direction check and go straight to exit name
+    if preposition == "through":
+        # Force exit name lookup when "through" is explicit
+        # Pass WordEntry to preserve synonyms
+        exit_result = find_exit_by_name(accessor, object_entry, actor_id, adjective)
         if not exit_result:
             return HandlerResult(
                 success=False,
                 message=f"You don't see any {object_name} here to go through."
             )
         direction, exit_descriptor = exit_result
-
-    # Direction-based movement ("go north")
-    elif direction:
-        # Check if exit exists and is visible
-        visible_exits = accessor.get_visible_exits(current_location.id, actor_id)
-        if direction not in visible_exits:
-            return HandlerResult(
-                success=False,
-                message=f"You can't go {direction} from here."
-            )
-        exit_descriptor = visible_exits[direction]
-
     else:
-        return HandlerResult(
-            success=False,
-            message="Which direction do you want to go?"
-        )
+        # Try to match as a compass direction first
+        visible_exits = accessor.get_visible_exits(current_location.id, actor_id)
+        if object_name in visible_exits:
+            # It's a direction!
+            direction = object_name
+            exit_descriptor = visible_exits[direction]
+        else:
+            # Not a direction - try as exit structure name
+            # Pass WordEntry to preserve synonyms
+            exit_result = find_exit_by_name(accessor, object_entry, actor_id, adjective)
+            if not exit_result:
+                # Not found as direction or exit name
+                return HandlerResult(
+                    success=False,
+                    message=f"You can't go {object_name} from here."
+                )
+            direction, exit_descriptor = exit_result
 
     # Handle both ExitDescriptor objects and plain strings (backward compatibility)
     if hasattr(exit_descriptor, 'to'):

@@ -24,8 +24,8 @@ def parsed_to_json(result: ParsedCommand) -> Dict[str, Any]:
     """Convert ParsedCommand to JSON protocol format.
 
     Passes WordEntry objects for object/indirect_object to preserve
-    vocabulary synonyms for entity matching. Verbs, directions, and
-    adjectives use .word since they don't need synonym matching.
+    vocabulary synonyms for entity matching. Verbs and adjectives use
+    .word since they don't need synonym matching.
     """
     action = {"verb": result.verb.word}
 
@@ -34,8 +34,6 @@ def parsed_to_json(result: ParsedCommand) -> Dict[str, Any]:
         action["object"] = result.direct_object
     if result.direct_adjective:
         action["adjective"] = result.direct_adjective.word
-    if result.direction:
-        action["direction"] = result.direction.word
     if result.indirect_object:
         # Pass full WordEntry to preserve synonyms for entity matching
         action["indirect_object"] = result.indirect_object
@@ -307,8 +305,9 @@ def main(game_dir: str = None):
                 continue
 
         # Handle direction-only input (bare "north", etc.)
-        if result.direction and not result.verb:
-            json_cmd = {"type": "command", "action": {"verb": "go", "direction": result.direction.word}}
+        # Directions are now in direct_object as nouns
+        if result.direct_object and not result.verb:
+            json_cmd = {"type": "command", "action": {"verb": "go", "object": result.direct_object}}
         else:
             # Convert parsed command to JSON
             json_cmd = parsed_to_json(result)

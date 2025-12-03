@@ -10,6 +10,7 @@ from src.state_manager import load_game_state
 from src.state_accessor import StateAccessor, HandlerResult
 from src.behavior_manager import BehaviorManager
 from src.word_entry import WordEntry, WordType
+from tests.conftest import make_word_entry
 
 
 def make_self_word_entry() -> WordEntry:
@@ -98,33 +99,38 @@ class TestFindActorByName(unittest.TestCase):
     def test_find_npc_in_same_location(self):
         """find_actor_by_name returns NPC in same location."""
         from utilities.utils import find_actor_by_name
-        result = find_actor_by_name(self.accessor, "Guard", "player")
+        guard_entry = make_word_entry("Guard")
+        result = find_actor_by_name(self.accessor, guard_entry, "player")
         self.assertIsNotNone(result)
         self.assertEqual(result.id, "guard")
 
     def test_find_npc_case_insensitive(self):
         """find_actor_by_name is case-insensitive for NPC names."""
         from utilities.utils import find_actor_by_name
-        result = find_actor_by_name(self.accessor, "guard", "player")
+        guard_entry = make_word_entry("guard")
+        result = find_actor_by_name(self.accessor, guard_entry, "player")
         self.assertIsNotNone(result)
         self.assertEqual(result.id, "guard")
 
     def test_npc_in_different_location_not_found(self):
         """find_actor_by_name returns None for NPC in different location."""
         from utilities.utils import find_actor_by_name
-        result = find_actor_by_name(self.accessor, "Merchant", "player")
+        merchant_entry = make_word_entry("Merchant")
+        result = find_actor_by_name(self.accessor, merchant_entry, "player")
         self.assertIsNone(result)
 
     def test_nonexistent_actor_not_found(self):
         """find_actor_by_name returns None for nonexistent actor."""
         from utilities.utils import find_actor_by_name
-        result = find_actor_by_name(self.accessor, "wizard", "player")
+        wizard_entry = make_word_entry("wizard")
+        result = find_actor_by_name(self.accessor, wizard_entry, "player")
         self.assertIsNone(result)
 
     def test_npc_can_find_player(self):
         """NPCs can find the player actor by name."""
         from utilities.utils import find_actor_by_name
-        result = find_actor_by_name(self.accessor, "Landry", "guard")
+        landry_entry = make_word_entry("Landry")
+        result = find_actor_by_name(self.accessor, landry_entry, "guard")
         self.assertIsNotNone(result)
         self.assertEqual(result.id, "player")
 
@@ -283,14 +289,16 @@ class TestHandleExamineActors(unittest.TestCase):
     def test_examine_npc_in_same_location(self):
         """examine guard returns guard description."""
         from behaviors.core.perception import handle_examine
-        result = handle_examine(self.accessor, {"actor_id": "player", "object": "guard"})
+        guard_entry = make_word_entry("guard")
+        result = handle_examine(self.accessor, {"actor_id": "player", "object": guard_entry})
         self.assertTrue(result.success)
         self.assertIn("stern guard", result.message)
 
     def test_examine_player_gives_helpful_message(self):
         """examine player gives helpful message to use self/me."""
         from behaviors.core.perception import handle_examine
-        result = handle_examine(self.accessor, {"actor_id": "player", "object": "player"})
+        player_entry = make_word_entry("player")
+        result = handle_examine(self.accessor, {"actor_id": "player", "object": player_entry})
         self.assertFalse(result.success)
         self.assertIn("examine self", result.message)
         self.assertIn("examine me", result.message)
@@ -309,7 +317,8 @@ class TestHandleExamineActors(unittest.TestCase):
         """examine NPC with no description shows 'You see Name'."""
         self.game_state.actors["guard"].description = ""
         from behaviors.core.perception import handle_examine
-        result = handle_examine(self.accessor, {"actor_id": "player", "object": "guard"})
+        guard_entry = make_word_entry("guard")
+        result = handle_examine(self.accessor, {"actor_id": "player", "object": guard_entry})
         self.assertTrue(result.success)
         self.assertIn("You see Guard", result.message)
 
@@ -334,14 +343,16 @@ class TestHandleExamineActors(unittest.TestCase):
     def test_examine_nonexistent_actor(self):
         """examine nonexistent actor returns not found."""
         from behaviors.core.perception import handle_examine
-        result = handle_examine(self.accessor, {"actor_id": "player", "object": "wizard"})
+        wizard_entry = make_word_entry("wizard")
+        result = handle_examine(self.accessor, {"actor_id": "player", "object": wizard_entry})
         self.assertFalse(result.success)
         self.assertIn("don't see", result.message)
 
     def test_npc_examines_player(self):
         """NPC can examine the player by name."""
         from behaviors.core.perception import handle_examine
-        result = handle_examine(self.accessor, {"actor_id": "guard", "object": "Landry"})
+        landry_entry = make_word_entry("Landry")
+        result = handle_examine(self.accessor, {"actor_id": "guard", "object": landry_entry})
         self.assertTrue(result.success)
         self.assertIn("brave adventurer", result.message)
         # NPC sees player's inventory

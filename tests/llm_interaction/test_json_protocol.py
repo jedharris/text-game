@@ -902,7 +902,7 @@ class TestCommandMessages(unittest.TestCase):
         """Test successful movement."""
         message = {
             "type": "command",
-            "action": {"verb": "go", "direction": "north"}
+            "action": {"verb": "go", "object": "north"}
         }
 
         result = self.handler.handle_message(message)
@@ -915,7 +915,7 @@ class TestCommandMessages(unittest.TestCase):
         """Test movement in invalid direction."""
         message = {
             "type": "command",
-            "action": {"verb": "go", "direction": "west"}
+            "action": {"verb": "go", "object": "west"}
         }
 
         result = self.handler.handle_message(message)
@@ -930,7 +930,7 @@ class TestCommandMessages(unittest.TestCase):
 
         message = {
             "type": "command",
-            "action": {"verb": "go", "direction": "east"}
+            "action": {"verb": "go", "object": "east"}
         }
 
         result = self.handler.handle_message(message)
@@ -1102,7 +1102,7 @@ class TestCommandMessages(unittest.TestCase):
         """Test command with unknown verb."""
         message = {
             "type": "command",
-            "action": {"verb": "teleport", "direction": "north"}
+            "action": {"verb": "teleport", "object": "north"}
         }
 
         result = self.handler.handle_message(message)
@@ -1632,7 +1632,7 @@ class TestEndToEndInteractions(unittest.TestCase):
         # Go north to hallway
         result = self.handler.handle_message({
             "type": "command",
-            "action": {"verb": "go", "direction": "north"}
+            "action": {"verb": "go", "object": "north"}
         })
         self.assertTrue(result["success"])
         self.assertEqual(self.state.actors["player"].location, "loc_hallway")
@@ -1654,7 +1654,7 @@ class TestEndToEndInteractions(unittest.TestCase):
         # Go east to treasure room
         result = self.handler.handle_message({
             "type": "command",
-            "action": {"verb": "go", "direction": "east"}
+            "action": {"verb": "go", "object": "east"}
         })
         self.assertTrue(result["success"])
         self.assertEqual(self.state.actors["player"].location, "loc_treasure")
@@ -1743,7 +1743,7 @@ class TestEndToEndInteractions(unittest.TestCase):
         # Go back and get key
         self.handler.handle_message({
             "type": "command",
-            "action": {"verb": "go", "direction": "south"}
+            "action": {"verb": "go", "object": "south"}
         })
 
         result = self.handler.handle_message({
@@ -1755,7 +1755,7 @@ class TestEndToEndInteractions(unittest.TestCase):
         # Return to hallway
         self.handler.handle_message({
             "type": "command",
-            "action": {"verb": "go", "direction": "north"}
+            "action": {"verb": "go", "object": "north"}
         })
 
         # Now unlocking should succeed

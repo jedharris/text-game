@@ -6,7 +6,7 @@ to select specific entities when multiple match a name.
 """
 
 import unittest
-from tests.conftest import create_test_state
+from tests.conftest import create_test_state, make_word_entry, make_action
 from src.state_accessor import StateAccessor
 from src.behavior_manager import BehaviorManager
 from src.state_manager import Item, Location
@@ -47,8 +47,9 @@ class TestFindItemWithAdjective(unittest.TestCase):
         """Test finding item when adjective matches description."""
         from utilities.utils import find_accessible_item
 
+        key_entry = make_word_entry("key")
         item = find_accessible_item(
-            self.accessor, "key", "player", adjective="iron"
+            self.accessor, key_entry, "player", adjective="iron"
         )
 
         self.assertIsNotNone(item)
@@ -58,8 +59,13 @@ class TestFindItemWithAdjective(unittest.TestCase):
         """Test finding different item with different adjective."""
         from utilities.utils import find_accessible_item
 
+        key_entry = make_word_entry("key")
+
+
         item = find_accessible_item(
-            self.accessor, "key", "player", adjective="brass"
+
+
+            self.accessor, key_entry, "player", adjective="brass"
         )
 
         self.assertIsNotNone(item)
@@ -69,8 +75,13 @@ class TestFindItemWithAdjective(unittest.TestCase):
         """Test that no adjective returns first matching item."""
         from utilities.utils import find_accessible_item
 
+        key_entry = make_word_entry("key")
+
+
         item = find_accessible_item(
-            self.accessor, "key", "player", adjective=None
+
+
+            self.accessor, key_entry, "player", adjective=None
         )
 
         self.assertIsNotNone(item)
@@ -81,8 +92,13 @@ class TestFindItemWithAdjective(unittest.TestCase):
         """Test that empty adjective returns first matching item."""
         from utilities.utils import find_accessible_item
 
+        key_entry = make_word_entry("key")
+
+
         item = find_accessible_item(
-            self.accessor, "key", "player", adjective=""
+
+
+            self.accessor, key_entry, "player", adjective=""
         )
 
         self.assertIsNotNone(item)
@@ -92,8 +108,13 @@ class TestFindItemWithAdjective(unittest.TestCase):
         """Test that non-matching adjective returns None."""
         from utilities.utils import find_accessible_item
 
+        key_entry = make_word_entry("key")
+
+
         item = find_accessible_item(
-            self.accessor, "key", "player", adjective="golden"
+
+
+            self.accessor, key_entry, "player", adjective="golden"
         )
 
         self.assertIsNone(item)
@@ -103,8 +124,11 @@ class TestFindItemWithAdjective(unittest.TestCase):
         from utilities.utils import find_accessible_item
 
         # "iron" appears in "item_iron_key"
+        key_entry = make_word_entry("key")
+
         item = find_accessible_item(
-            self.accessor, "key", "player", adjective="iron"
+
+            self.accessor, key_entry, "player", adjective="iron"
         )
 
         self.assertIsNotNone(item)
@@ -147,8 +171,11 @@ class TestFindDoorWithAdjective(unittest.TestCase):
         from utilities.utils import find_door_with_adjective
 
         player = self.state.actors["player"]
+        door_entry = make_word_entry("door")
+
         door = find_door_with_adjective(
-            self.accessor, "door", "iron", player.location
+
+            self.accessor, door_entry, "iron", player.location
         )
 
         self.assertIsNotNone(door)
@@ -159,8 +186,11 @@ class TestFindDoorWithAdjective(unittest.TestCase):
         from utilities.utils import find_door_with_adjective
 
         player = self.state.actors["player"]
+        door_entry = make_word_entry("door")
+
         door = find_door_with_adjective(
-            self.accessor, "door", "wooden", player.location
+
+            self.accessor, door_entry, "wooden", player.location
         )
 
         self.assertIsNotNone(door)
@@ -171,8 +201,11 @@ class TestFindDoorWithAdjective(unittest.TestCase):
         from utilities.utils import find_door_with_adjective
 
         player = self.state.actors["player"]
+        door_entry = make_word_entry("door")
+
         door = find_door_with_adjective(
-            self.accessor, "door", None, player.location
+
+            self.accessor, door_entry, None, player.location
         )
 
         self.assertIsNotNone(door)
@@ -183,8 +216,11 @@ class TestFindDoorWithAdjective(unittest.TestCase):
         from utilities.utils import find_door_with_adjective
 
         player = self.state.actors["player"]
+        door_entry = make_word_entry("door")
+
         door = find_door_with_adjective(
-            self.accessor, "door", "golden", player.location
+
+            self.accessor, door_entry, "golden", player.location
         )
 
         self.assertIsNone(door)
@@ -195,8 +231,11 @@ class TestFindDoorWithAdjective(unittest.TestCase):
 
         player = self.state.actors["player"]
         # "iron" appears in "door_iron"
+        door_entry = make_word_entry("door")
+
         door = find_door_with_adjective(
-            self.accessor, "door", "iron", player.location
+
+            self.accessor, door_entry, "iron", player.location
         )
 
         self.assertIsNotNone(door)
@@ -243,11 +282,7 @@ class TestHandleTakeWithAdjective(unittest.TestCase):
         """Test that take with adjective selects correct item."""
         from behaviors.core.manipulation import handle_take
 
-        action = {
-            "actor_id": "player",
-            "object": "key",
-            "adjective": "brass"
-        }
+        action = make_action(verb="take", object="key", adjective="brass", actor_id="player")
         result = handle_take(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -260,10 +295,7 @@ class TestHandleTakeWithAdjective(unittest.TestCase):
         """Test that take without adjective takes first match."""
         from behaviors.core.manipulation import handle_take
 
-        action = {
-            "actor_id": "player",
-            "object": "key"
-        }
+        action = make_action(verb="take", object="key", actor_id="player")
         result = handle_take(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -312,11 +344,7 @@ class TestHandleOpenWithAdjective(unittest.TestCase):
         """Test that open with adjective selects correct door."""
         from behaviors.core.interaction import handle_open
 
-        action = {
-            "actor_id": "player",
-            "object": "door",
-            "adjective": "wooden"
-        }
+        action = make_action(verb="open", object="door", adjective="wooden", actor_id="player")
         result = handle_open(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -330,10 +358,7 @@ class TestHandleOpenWithAdjective(unittest.TestCase):
         """Test that open without adjective opens first match."""
         from behaviors.core.interaction import handle_open
 
-        action = {
-            "actor_id": "player",
-            "object": "door"
-        }
+        action = make_action(verb="open", object="door", actor_id="player")
         result = handle_open(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -391,8 +416,13 @@ class TestDoorStateAdjectives(unittest.TestCase):
         """Test that 'locked' adjective matches door with locked=True."""
         from utilities.utils import find_accessible_item
 
+        door_entry = make_word_entry("door")
+
+
         item = find_accessible_item(
-            self.accessor, "door", "player", adjective="locked"
+
+
+            self.accessor, door_entry, "player", adjective="locked"
         )
 
         self.assertIsNotNone(item)
@@ -402,8 +432,13 @@ class TestDoorStateAdjectives(unittest.TestCase):
         """Test that 'unlocked' adjective matches door with locked=False."""
         from utilities.utils import find_accessible_item
 
+        door_entry = make_word_entry("door")
+
+
         item = find_accessible_item(
-            self.accessor, "door", "player", adjective="unlocked"
+
+
+            self.accessor, door_entry, "player", adjective="unlocked"
         )
 
         self.assertIsNotNone(item)
@@ -414,8 +449,11 @@ class TestDoorStateAdjectives(unittest.TestCase):
         from utilities.utils import find_accessible_item
 
         # Both doors are closed, should return first match
+        door_entry = make_word_entry("door")
+
         item = find_accessible_item(
-            self.accessor, "door", "player", adjective="closed"
+
+            self.accessor, door_entry, "player", adjective="closed"
         )
 
         self.assertIsNotNone(item)
@@ -430,8 +468,13 @@ class TestDoorStateAdjectives(unittest.TestCase):
         iron_door = self.accessor.get_item("door_iron_test")
         iron_door.door_open = True
 
+        door_entry = make_word_entry("door")
+
+
         item = find_accessible_item(
-            self.accessor, "door", "player", adjective="open"
+
+
+            self.accessor, door_entry, "player", adjective="open"
         )
 
         self.assertIsNotNone(item)
@@ -444,8 +487,11 @@ class TestDoorStateAdjectives(unittest.TestCase):
 
         # The iron door is locked but has "iron" in description, not "locked"
         # We search for "locked" which is a state property
+        door_entry = make_word_entry("door")
+
         item = find_accessible_item(
-            self.accessor, "door", "player", adjective="locked"
+
+            self.accessor, door_entry, "player", adjective="locked"
         )
 
         self.assertIsNotNone(item)

@@ -16,6 +16,7 @@ sys.path.insert(0, str(project_root))
 from src.state_manager import load_game_state
 from src.behavior_manager import BehaviorManager
 from src.state_accessor import StateAccessor
+from tests.conftest import make_action
 
 
 class TestGoAutoLook(unittest.TestCase):
@@ -33,7 +34,7 @@ class TestGoAutoLook(unittest.TestCase):
     def test_go_includes_location_name(self):
         """Test that successful 'go' includes the new location's name."""
         # Player starts in loc_start, go north to loc_hallway
-        action = {"actor_id": "player", "direction": "north"}
+        action = make_action(object="north", actor_id="player")
         result = self.behavior_manager.invoke_handler("go", self.accessor, action)
 
         self.assertTrue(result.success)
@@ -42,7 +43,7 @@ class TestGoAutoLook(unittest.TestCase):
 
     def test_go_includes_location_description(self):
         """Test that successful 'go' includes the new location's description."""
-        action = {"actor_id": "player", "direction": "north"}
+        action = make_action(object="north", actor_id="player")
         result = self.behavior_manager.invoke_handler("go", self.accessor, action)
 
         self.assertTrue(result.success)
@@ -51,7 +52,7 @@ class TestGoAutoLook(unittest.TestCase):
 
     def test_go_includes_visible_items(self):
         """Test that successful 'go' lists visible items in the new location."""
-        action = {"actor_id": "player", "direction": "north"}
+        action = make_action(object="north", actor_id="player")
         result = self.behavior_manager.invoke_handler("go", self.accessor, action)
 
         self.assertTrue(result.success)
@@ -61,7 +62,7 @@ class TestGoAutoLook(unittest.TestCase):
     def test_go_failure_does_not_include_look(self):
         """Test that failed 'go' does not include look info."""
         # Try to go east from loc_start (no exit)
-        action = {"actor_id": "player", "direction": "east"}
+        action = make_action(object="east", actor_id="player")
         result = self.behavior_manager.invoke_handler("go", self.accessor, action)
 
         self.assertFalse(result.success)
@@ -71,11 +72,11 @@ class TestGoAutoLook(unittest.TestCase):
     def test_go_blocked_by_door_does_not_include_look(self):
         """Test that 'go' blocked by closed door does not include look info."""
         # First move to hallway
-        action = {"actor_id": "player", "direction": "north"}
+        action = make_action(object="north", actor_id="player")
         self.behavior_manager.invoke_handler("go", self.accessor, action)
 
         # Now try to go east through the locked door
-        action = {"actor_id": "player", "direction": "east"}
+        action = make_action(object="east", actor_id="player")
         result = self.behavior_manager.invoke_handler("go", self.accessor, action)
 
         self.assertFalse(result.success)

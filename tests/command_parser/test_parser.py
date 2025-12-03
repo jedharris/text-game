@@ -107,9 +107,9 @@ class TestWordLookup(unittest.TestCase):
         # Verify result is not None
         self.assertIsNotNone(result)
 
-        # Verify it returns the main direction entry
+        # Verify it returns the main direction entry (directions now have multi-valued type)
         self.assertEqual(result.word, "north")
-        self.assertEqual(result.word_type, WordType.DIRECTION)
+        self.assertEqual(result.word_type, {WordType.NOUN, WordType.ADJECTIVE})
         self.assertEqual(result.value, 1)
 
         # Verify synonym is in the list
@@ -350,10 +350,10 @@ class TestParserIntegration(unittest.TestCase):
         Test a series of commands that might occur in a real game.
         """
         commands = [
-            ("north", lambda r: r.direction and r.direction.word == "north"),
+            ("north", lambda r: r.direct_object and r.direct_object.word == "north"),
             ("take sword", lambda r: r.verb.word == "take" and r.direct_object.word == "sword"),
             ("examine the sword", lambda r: r.verb.word == "examine" and r.direct_object.word == "sword"),
-            ("go west", lambda r: r.verb.word == "go" and r.direction.word == "west"),
+            ("go west", lambda r: r.verb.word == "go" and r.direct_object.word == "west"),
             ("unlock door with key", lambda r: r.verb.word == "unlock" and r.direct_object.word == "door" and r.indirect_object.word == "key"),
         ]
 
@@ -541,7 +541,8 @@ class TestParserIntegration(unittest.TestCase):
 
             self.assertIsNotNone(result_main)
             self.assertIsNotNone(result_synonym)
-            self.assertEqual(result_main.direction.word, result_synonym.direction.word)
+            # Directions are now treated as nouns in direct_object
+            self.assertEqual(result_main.direct_object.word, result_synonym.direct_object.word)
 
 
 if __name__ == '__main__':

@@ -11,6 +11,7 @@ from pathlib import Path
 from src.state_manager import Item, Actor, ExitDescriptor
 from src.state_accessor import EventResult
 from src.behavior_manager import BehaviorManager
+from tests.conftest import make_word_entry, make_action
 
 
 class TestIsObservableBasic(unittest.TestCase):
@@ -482,7 +483,8 @@ class TestObservabilityIntegration(unittest.TestCase):
         from utilities.utils import find_accessible_item
 
         # Should find the visible key, not the hidden one
-        item = find_accessible_item(self.accessor, "key", "player")
+        key_entry = make_word_entry("key")
+        item = find_accessible_item(self.accessor, key_entry, "player")
         self.assertEqual(item.id, "visible_key")
 
     def test_revealed_item_becomes_visible_in_location(self):
@@ -705,7 +707,7 @@ class TestHiddenExitsIntegration(unittest.TestCase):
 
         result = handle_go(
             self.accessor,
-            {"actor_id": "player", "direction": "south"}
+            make_action(object="south", actor_id="player")
         )
 
         self.assertFalse(result.success)
@@ -717,7 +719,7 @@ class TestHiddenExitsIntegration(unittest.TestCase):
 
         result = handle_go(
             self.accessor,
-            {"actor_id": "player", "direction": "north"}
+            make_action(object="north", actor_id="player")
         )
 
         self.assertTrue(result.success)
@@ -733,7 +735,7 @@ class TestHiddenExitsIntegration(unittest.TestCase):
 
         result = handle_go(
             self.accessor,
-            {"actor_id": "player", "direction": "south"}
+            make_action(object="south", actor_id="player")
         )
 
         self.assertTrue(result.success)

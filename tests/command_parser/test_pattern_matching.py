@@ -40,10 +40,10 @@ class TestPatternMatching12Words(unittest.TestCase):
         # Verify result
         self.assertIsNotNone(result)
         self.assertIsInstance(result, ParsedCommand)
-        self.assertEqual(result.direction, north)
-        self.assertEqual(result.direction.word, "north")
+        # Directions are now treated as nouns in direct_object
+        self.assertEqual(result.direct_object, north)
+        self.assertEqual(result.direct_object.word, "north")
         self.assertIsNone(result.verb)
-        self.assertIsNone(result.direct_object)
 
     def test_direction_synonym(self):
         """
@@ -63,8 +63,9 @@ class TestPatternMatching12Words(unittest.TestCase):
 
         # Verify result
         self.assertIsNotNone(result)
-        self.assertEqual(result.direction, n)
-        self.assertEqual(result.direction.word, "north")
+        # Directions are now treated as nouns in direct_object
+        self.assertEqual(result.direct_object, n)
+        self.assertEqual(result.direct_object.word, "north")
 
     def test_verb_noun(self):
         """
@@ -87,7 +88,6 @@ class TestPatternMatching12Words(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertEqual(result.verb, take)
         self.assertEqual(result.direct_object, sword)
-        self.assertIsNone(result.direction)
 
     def test_verb_direction(self):
         """
@@ -109,8 +109,8 @@ class TestPatternMatching12Words(unittest.TestCase):
         # Verify result
         self.assertIsNotNone(result)
         self.assertEqual(result.verb, go)
-        self.assertEqual(result.direction, north)
-        self.assertIsNone(result.direct_object)
+        # Directions are now treated as nouns in direct_object
+        self.assertEqual(result.direct_object, north)
 
     def test_verb_direction_synonym(self):
         """
@@ -131,8 +131,9 @@ class TestPatternMatching12Words(unittest.TestCase):
         # Verify result
         self.assertIsNotNone(result)
         self.assertEqual(result.verb, go)
-        self.assertEqual(result.direction, n)
-        self.assertEqual(result.direction.word, "north")
+        # Directions are now treated as nouns in direct_object
+        self.assertEqual(result.direct_object, n)
+        self.assertEqual(result.direct_object.word, "north")
 
     def test_synonym_verb_noun(self):
         """
@@ -178,9 +179,9 @@ class TestPatternMatching3Words(unittest.TestCase):
 
         self.assertIsNotNone(result)
         self.assertEqual(result.verb.word, "examine")
-        self.assertEqual(result.direction.word, "east")
+        # Directions acting as adjectives are now in direct_adjective
+        self.assertEqual(result.direct_adjective.word, "east")
         self.assertEqual(result.direct_object.word, "door")
-        self.assertIsNone(result.direct_adjective)
 
     def test_verb_direction_noun_exit(self):
         """
@@ -192,7 +193,8 @@ class TestPatternMatching3Words(unittest.TestCase):
 
         self.assertIsNotNone(result)
         self.assertEqual(result.verb.word, "examine")
-        self.assertEqual(result.direction.word, "north")
+        # Directions acting as adjectives are now in direct_adjective
+        self.assertEqual(result.direct_adjective.word, "north")
         self.assertEqual(result.direct_object.word, "exit")
 
     def test_verb_direction_synonym_noun(self):
@@ -205,7 +207,8 @@ class TestPatternMatching3Words(unittest.TestCase):
 
         self.assertIsNotNone(result)
         self.assertEqual(result.verb.word, "examine")
-        self.assertEqual(result.direction.word, "east")
+        # Directions acting as adjectives are now in direct_adjective
+        self.assertEqual(result.direct_adjective.word, "east")
         self.assertEqual(result.direct_object.word, "door")
 
     def test_verb_adjective_noun(self):

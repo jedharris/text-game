@@ -51,8 +51,6 @@ def parsed_to_json(result: ParsedCommand) -> dict:
         action["object"] = result.direct_object
     if result.direct_adjective:
         action["adjective"] = result.direct_adjective.word
-    if result.direction:
-        action["direction"] = result.direction.word
     if result.indirect_object:
         # Pass full WordEntry to preserve synonyms for entity matching
         action["indirect_object"] = result.indirect_object
@@ -279,8 +277,9 @@ def main():
                 continue
 
         # Handle direction-only input
-        if result.direction and not result.verb:
-            json_cmd = {"type": "command", "action": {"verb": "go", "direction": result.direction.word}}
+        # Directions are now in direct_object as nouns
+        if result.direct_object and not result.verb:
+            json_cmd = {"type": "command", "action": {"verb": "go", "object": result.direct_object}}
         else:
             json_cmd = parsed_to_json(result)
 

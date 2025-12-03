@@ -5,7 +5,7 @@ These tests verify that eat/drink commands require edible/drinkable properties.
 """
 
 import unittest
-from tests.conftest import create_test_state
+from tests.conftest import create_test_state, make_action
 from src.state_accessor import StateAccessor
 from src.behavior_manager import BehaviorManager
 from src.state_manager import Item
@@ -26,7 +26,7 @@ class TestConsumableProperties(unittest.TestCase):
         sword.location = "player"
         state.actors["player"].inventory.append("item_sword")
 
-        action = {"actor_id": "player", "object": "sword"}
+        action = make_action(object="sword", actor_id="player")
         result = handle_eat(accessor, action)
 
         self.assertFalse(result.success)
@@ -49,7 +49,7 @@ class TestConsumableProperties(unittest.TestCase):
         state.items.append(apple)
         state.actors["player"].inventory.append("item_apple")
 
-        action = {"actor_id": "player", "object": "apple"}
+        action = make_action(object="apple", actor_id="player")
         result = handle_eat(accessor, action)
 
         self.assertTrue(result.success)
@@ -65,7 +65,7 @@ class TestConsumableProperties(unittest.TestCase):
         sword.location = "player"
         state.actors["player"].inventory.append("item_sword")
 
-        action = {"actor_id": "player", "object": "sword"}
+        action = make_action(object="sword", actor_id="player")
         result = handle_drink(accessor, action)
 
         self.assertFalse(result.success)
@@ -88,7 +88,7 @@ class TestConsumableProperties(unittest.TestCase):
         state.items.append(potion)
         state.actors["player"].inventory.append("item_potion")
 
-        action = {"actor_id": "player", "object": "potion"}
+        action = make_action(object="potion", actor_id="player")
         result = handle_drink(accessor, action)
 
         self.assertTrue(result.success)
@@ -110,7 +110,7 @@ class TestConsumableProperties(unittest.TestCase):
         state.items.append(rock)
         state.actors["player"].inventory.append("item_rock")
 
-        action = {"actor_id": "player", "object": "rock"}
+        action = make_action(object="rock", actor_id="player")
         result = handle_eat(accessor, action)
 
         self.assertFalse(result.success)
@@ -133,7 +133,7 @@ class TestConsumableProperties(unittest.TestCase):
         state.items.append(oil)
         state.actors["player"].inventory.append("item_oil")
 
-        action = {"actor_id": "player", "object": "oil"}
+        action = make_action(object="oil", actor_id="player")
         result = handle_drink(accessor, action)
 
         self.assertFalse(result.success)

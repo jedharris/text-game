@@ -91,20 +91,21 @@ class TestWordEntry(unittest.TestCase):
         and that they have the correct string values.
         """
         # Test all enum values exist and have correct string values
+        # Note: DIRECTION removed - directions now use {NOUN, ADJECTIVE}
         self.assertEqual(WordType.VERB.value, "VERB")
         self.assertEqual(WordType.NOUN.value, "NOUN")
         self.assertEqual(WordType.ADJECTIVE.value, "ADJECTIVE")
         self.assertEqual(WordType.PREPOSITION.value, "PREPOSITION")
-        self.assertEqual(WordType.DIRECTION.value, "DIRECTION")
         self.assertEqual(WordType.ARTICLE.value, "ARTICLE")
+        self.assertEqual(WordType.FILENAME.value, "FILENAME")
 
         # Verify enum membership
         self.assertIn(WordType.VERB, WordType)
         self.assertIn(WordType.NOUN, WordType)
         self.assertIn(WordType.ADJECTIVE, WordType)
         self.assertIn(WordType.PREPOSITION, WordType)
-        self.assertIn(WordType.DIRECTION, WordType)
         self.assertIn(WordType.ARTICLE, WordType)
+        self.assertIn(WordType.FILENAME, WordType)
 
         # Verify we can compare enum values
         verb_type = WordType.VERB
@@ -211,9 +212,10 @@ class TestWordEntry(unittest.TestCase):
         __post_init__ method converts it to an empty list.
         """
         # Create entry with synonyms=None explicitly
+        # Directions now use multi-valued type {NOUN, ADJECTIVE}
         entry = WordEntry(
             word="north",
-            word_type=WordType.DIRECTION,
+            word_type={WordType.NOUN, WordType.ADJECTIVE},
             synonyms=None,
             value=1
         )
@@ -248,15 +250,14 @@ class TestWordEntry(unittest.TestCase):
         # Get all word types
         all_types = list(WordType)
 
-        # Verify we have exactly 7 types (added FILENAME)
-        self.assertEqual(len(all_types), 7)
+        # Verify we have exactly 6 types (DIRECTION removed)
+        self.assertEqual(len(all_types), 6)
 
         # Verify specific types are present
         self.assertIn(WordType.VERB, all_types)
         self.assertIn(WordType.NOUN, all_types)
         self.assertIn(WordType.ADJECTIVE, all_types)
         self.assertIn(WordType.PREPOSITION, all_types)
-        self.assertIn(WordType.DIRECTION, all_types)
         self.assertIn(WordType.FILENAME, all_types)
         self.assertIn(WordType.ARTICLE, all_types)
 
@@ -266,13 +267,13 @@ class TestWordEntry(unittest.TestCase):
 
         Ensures WordEntry works correctly with all possible WordType values.
         """
-        # Test each word type
+        # Test each word type (directions now use multi-valued type)
         test_cases = [
             ("take", WordType.VERB, 1),
             ("sword", WordType.NOUN, 101),
             ("rusty", WordType.ADJECTIVE, 201),
             ("with", WordType.PREPOSITION, None),
-            ("north", WordType.DIRECTION, 1),
+            ("north", {WordType.NOUN, WordType.ADJECTIVE}, 1),  # directions use multi-valued type
             ("the", WordType.ARTICLE, None),
         ]
 
@@ -353,7 +354,7 @@ class TestWordTypeEnum(unittest.TestCase):
 
         self.assertIn(WordType.VERB, word_types)
         self.assertIn(WordType.NOUN, word_types)
-        self.assertNotIn(WordType.DIRECTION, word_types)
+        self.assertNotIn(WordType.PREPOSITION, word_types)
 
     def test_word_type_as_dict_key(self):
         """Test that WordType can be used as dictionary keys."""
@@ -365,7 +366,7 @@ class TestWordTypeEnum(unittest.TestCase):
 
         self.assertEqual(type_counts[WordType.VERB], 10)
         self.assertEqual(type_counts[WordType.NOUN], 15)
-        self.assertNotIn(WordType.DIRECTION, type_counts)
+        self.assertNotIn(WordType.PREPOSITION, type_counts)
 
     def test_word_type_string_value(self):
         """Test accessing the string value of WordType."""

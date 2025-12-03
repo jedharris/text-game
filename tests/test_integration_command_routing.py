@@ -73,7 +73,7 @@ class TestCommandRouting(unittest.TestCase):
         """Test that 'go' command uses behavior handler."""
         message = {
             "type": "command",
-            "action": {"verb": "go", "direction": "north"}
+            "action": {"verb": "go", "object": "north"}
         }
 
         result = self.handler.handle_message(message)

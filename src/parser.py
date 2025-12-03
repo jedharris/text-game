@@ -31,6 +31,23 @@ class Parser:
         self._load_vocabulary(vocabulary_file)
         self._build_lookup_table()
 
+    def _parse_word_type(self, word_type_data):
+        """
+        Parse word_type from vocabulary data.
+
+        Args:
+            word_type_data: Either a string (single type) or list of strings (multi-type)
+
+        Returns:
+            WordType or Set[WordType]
+        """
+        if isinstance(word_type_data, list):
+            # Multi-valued type
+            return {WordType[t.upper()] for t in word_type_data}
+        else:
+            # Single type
+            return WordType[word_type_data.upper()]
+
     def _load_vocabulary(self, filename: str):
         """
         Load and parse the vocabulary JSON file.
@@ -58,9 +75,13 @@ class Parser:
 
         # Process nouns
         for noun_data in vocab.get('nouns', []):
+            # Handle multi-valued word_type if specified
+            word_type_raw = noun_data.get('word_type', 'noun')
+            word_type = self._parse_word_type(word_type_raw)
+
             entry = WordEntry(
                 word=noun_data['word'],
-                word_type=WordType.NOUN,
+                word_type=word_type,
                 synonyms=noun_data.get('synonyms', []),
                 value=noun_data.get('value')
             )
@@ -87,16 +108,6 @@ class Parser:
                     synonyms=prep.get('synonyms', []),
                     value=prep.get('value')
                 )
-            self.word_table.append(entry)
-
-        # Process directions
-        for dir_data in vocab.get('directions', []):
-            entry = WordEntry(
-                word=dir_data['word'],
-                word_type=WordType.DIRECTION,
-                synonyms=dir_data.get('synonyms', []),
-                value=dir_data.get('value')
-            )
             self.word_table.append(entry)
 
         # Process articles (can be simple strings or dicts)
@@ -137,6 +148,37 @@ class Parser:
             WordEntry if found, None otherwise
         """
         return self.word_lookup.get(word)
+
+    def _matches_type(self, entry: WordEntry, target_type: WordType) -> bool:
+        """
+        Check if entry matches target type (supports multi-valued word_type).
+
+        Args:
+            entry: WordEntry to check
+            target_type: WordType to match against
+
+        Returns:
+            True if entry's word_type includes target_type
+        """
+        if isinstance(entry.word_type, set):
+            return target_type in entry.word_type
+        else:
+            return entry.word_type == target_type
+
+    def _types_match(self, entries: List[WordEntry], pattern: List[WordType]) -> bool:
+        """
+        Check if entries match a type pattern.
+
+        Args:
+            entries: List of WordEntry objects
+            pattern: List of WordType values to match
+
+        Returns:
+            True if all entries match their corresponding pattern types
+        """
+        if len(entries) != len(pattern):
+            return False
+        return all(self._matches_type(e, p) for e, p in zip(entries, pattern))
 
     def parse_command(self, command: str) -> Optional[ParsedCommand]:
         """
@@ -213,16 +255,11 @@ class Parser:
         entries = self._collapse_adjectives(entries)
 
         length = len(entries)
-        types = [e.word_type for e in entries]
 
         # Single word patterns
         if length == 1:
-            # DIRECTION
-            if types == [WordType.DIRECTION]:
-                return ParsedCommand(direction=entries[0])
-
             # VERB (only if object not required)
-            if types == [WordType.VERB]:
+            if self._matches_type(entries[0], WordType.VERB):
                 verb = entries[0]
                 if verb.object_required == False:
                     return ParsedCommand(verb=verb)
@@ -230,34 +267,29 @@ class Parser:
                     return ParsedCommand(verb=verb, object_missing=True)
                 # If object_required == True, return None (current behavior)
 
+            # Direction NOUN (multi-type: both noun and adjective)
+            # Bare directions like "north" are accepted as implicit "go north"
+            # Regular nouns like "sword" are not accepted alone
+            if self._matches_type(entries[0], WordType.NOUN):
+                # Check if it's also an adjective (multi-type, i.e., a direction)
+                if self._matches_type(entries[0], WordType.ADJECTIVE):
+                    return ParsedCommand(direct_object=entries[0])
+                # Regular noun alone is not valid
+                return None
+
         # Two word patterns
         if length == 2:
             # VERB + NOUN
-            if types == [WordType.VERB, WordType.NOUN]:
+            if self._types_match(entries, [WordType.VERB, WordType.NOUN]):
                 return ParsedCommand(
                     verb=entries[0],
                     direct_object=entries[1]
                 )
 
-            # VERB + DIRECTION
-            if types == [WordType.VERB, WordType.DIRECTION]:
-                return ParsedCommand(
-                    verb=entries[0],
-                    direction=entries[1]
-                )
-
         # Three word patterns
         if length == 3:
-            # VERB + DIRECTION + NOUN (direction as adjective, e.g., "examine east door")
-            if types == [WordType.VERB, WordType.DIRECTION, WordType.NOUN]:
-                return ParsedCommand(
-                    verb=entries[0],
-                    direction=entries[1],
-                    direct_object=entries[2]
-                )
-
-            # VERB + ADJECTIVE + NOUN
-            if types == [WordType.VERB, WordType.ADJECTIVE, WordType.NOUN]:
+            # VERB + ADJECTIVE + NOUN (includes directions as adjectives)
+            if self._types_match(entries, [WordType.VERB, WordType.ADJECTIVE, WordType.NOUN]):
                 return ParsedCommand(
                     verb=entries[0],
                     direct_adjective=entries[1],
@@ -265,7 +297,7 @@ class Parser:
                 )
 
             # VERB + NOUN + NOUN (implicit preposition)
-            if types == [WordType.VERB, WordType.NOUN, WordType.NOUN]:
+            if self._types_match(entries, [WordType.VERB, WordType.NOUN, WordType.NOUN]):
                 return ParsedCommand(
                     verb=entries[0],
                     direct_object=entries[1],
@@ -273,7 +305,7 @@ class Parser:
                 )
 
             # VERB + PREPOSITION + NOUN
-            if types == [WordType.VERB, WordType.PREPOSITION, WordType.NOUN]:
+            if self._types_match(entries, [WordType.VERB, WordType.PREPOSITION, WordType.NOUN]):
                 return ParsedCommand(
                     verb=entries[0],
                     preposition=entries[1],
@@ -283,7 +315,7 @@ class Parser:
         # Four word patterns
         if length == 4:
             # VERB + ADJECTIVE + NOUN + NOUN
-            if types == [WordType.VERB, WordType.ADJECTIVE, WordType.NOUN, WordType.NOUN]:
+            if self._types_match(entries, [WordType.VERB, WordType.ADJECTIVE, WordType.NOUN, WordType.NOUN]):
                 return ParsedCommand(
                     verb=entries[0],
                     direct_adjective=entries[1],
@@ -292,7 +324,7 @@ class Parser:
                 )
 
             # VERB + NOUN + PREPOSITION + NOUN
-            if types == [WordType.VERB, WordType.NOUN, WordType.PREPOSITION, WordType.NOUN]:
+            if self._types_match(entries, [WordType.VERB, WordType.NOUN, WordType.PREPOSITION, WordType.NOUN]):
                 return ParsedCommand(
                     verb=entries[0],
                     direct_object=entries[1],
@@ -301,7 +333,7 @@ class Parser:
                 )
 
             # VERB + PREPOSITION + ADJECTIVE + NOUN
-            if types == [WordType.VERB, WordType.PREPOSITION, WordType.ADJECTIVE, WordType.NOUN]:
+            if self._types_match(entries, [WordType.VERB, WordType.PREPOSITION, WordType.ADJECTIVE, WordType.NOUN]):
                 return ParsedCommand(
                     verb=entries[0],
                     preposition=entries[1],
@@ -312,8 +344,8 @@ class Parser:
         # Five word patterns
         if length == 5:
             # VERB + ADJECTIVE + NOUN + PREPOSITION + NOUN
-            if types == [WordType.VERB, WordType.ADJECTIVE, WordType.NOUN,
-                        WordType.PREPOSITION, WordType.NOUN]:
+            if self._types_match(entries, [WordType.VERB, WordType.ADJECTIVE, WordType.NOUN,
+                                           WordType.PREPOSITION, WordType.NOUN]):
                 return ParsedCommand(
                     verb=entries[0],
                     direct_adjective=entries[1],
@@ -323,8 +355,8 @@ class Parser:
                 )
 
             # VERB + NOUN + PREPOSITION + ADJECTIVE + NOUN
-            if types == [WordType.VERB, WordType.NOUN, WordType.PREPOSITION,
-                        WordType.ADJECTIVE, WordType.NOUN]:
+            if self._types_match(entries, [WordType.VERB, WordType.NOUN, WordType.PREPOSITION,
+                                           WordType.ADJECTIVE, WordType.NOUN]):
                 return ParsedCommand(
                     verb=entries[0],
                     direct_object=entries[1],
@@ -336,8 +368,8 @@ class Parser:
         # Six word patterns
         if length == 6:
             # VERB + ADJECTIVE + NOUN + PREPOSITION + ADJECTIVE + NOUN
-            if types == [WordType.VERB, WordType.ADJECTIVE, WordType.NOUN,
-                        WordType.PREPOSITION, WordType.ADJECTIVE, WordType.NOUN]:
+            if self._types_match(entries, [WordType.VERB, WordType.ADJECTIVE, WordType.NOUN,
+                                           WordType.PREPOSITION, WordType.ADJECTIVE, WordType.NOUN]):
                 return ParsedCommand(
                     verb=entries[0],
                     direct_adjective=entries[1],
@@ -369,20 +401,25 @@ class Parser:
         i = 0
 
         while i < len(entries):
-            if entries[i].word_type == WordType.ADJECTIVE:
+            if self._matches_type(entries[i], WordType.ADJECTIVE):
                 # Collect consecutive adjectives
                 adj_words = [entries[i].word]
+                first_entry = entries[i]
                 j = i + 1
-                while j < len(entries) and entries[j].word_type == WordType.ADJECTIVE:
+                while j < len(entries) and self._matches_type(entries[j], WordType.ADJECTIVE):
                     adj_words.append(entries[j].word)
                     j += 1
 
-                # Create combined adjective entry
-                combined = WordEntry(
-                    word=" ".join(adj_words),
-                    word_type=WordType.ADJECTIVE
-                )
-                result.append(combined)
+                # If only one adjective and it has multi-valued types, keep original
+                if len(adj_words) == 1 and isinstance(first_entry.word_type, set):
+                    result.append(first_entry)
+                else:
+                    # Create combined adjective entry
+                    combined = WordEntry(
+                        word=" ".join(adj_words),
+                        word_type=WordType.ADJECTIVE
+                    )
+                    result.append(combined)
                 i = j
             else:
                 result.append(entries[i])

@@ -140,7 +140,7 @@ class TestCommandsStillWork(unittest.TestCase):
         """Test go command works through behavior handler."""
         result = self.handler.handle_command({
             "type": "command",
-            "action": {"verb": "go", "direction": "north"}
+            "action": {"verb": "go", "object": "north"}
         })
         self.assertTrue(result.get("success"))
         self.assertEqual(result.get("action"), "go")
@@ -150,7 +150,7 @@ class TestCommandsStillWork(unittest.TestCase):
         # Go to hallway first (where the locked door is)
         self.handler.handle_command({
             "type": "command",
-            "action": {"verb": "go", "direction": "north"}
+            "action": {"verb": "go", "object": "north"}
         })
 
         # Close the wooden door first so we can open it (use adjective + object)
@@ -172,7 +172,7 @@ class TestCommandsStillWork(unittest.TestCase):
         # Go north first
         self.handler.handle_command({
             "type": "command",
-            "action": {"verb": "go", "direction": "north"}
+            "action": {"verb": "go", "object": "north"}
         })
 
         # Close the wooden door (use adjective + object)
@@ -188,7 +188,7 @@ class TestCommandsStillWork(unittest.TestCase):
         # Go to hallway and take key
         self.handler.handle_command({
             "type": "command",
-            "action": {"verb": "go", "direction": "north"}
+            "action": {"verb": "go", "object": "north"}
         })
         self.handler.handle_command({
             "type": "command",

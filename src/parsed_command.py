@@ -12,12 +12,11 @@ class ParsedCommand:
 
     Attributes:
         verb: The action verb (if present)
-        direct_object: Primary noun being acted upon
-        direct_adjective: Adjective modifying direct_object
+        direct_object: Primary noun being acted upon (includes directions)
+        direct_adjective: Adjective modifying direct_object (includes directions as adjectives)
         preposition: Relational word (with, to, in, etc.)
         indirect_object: Secondary noun
         indirect_adjective: Adjective modifying indirect_object
-        direction: Movement direction (if present)
         raw: Original input string (preserved exactly as entered)
         object_missing: True if verb accepts optional object but none provided
     """
@@ -27,6 +26,5 @@ class ParsedCommand:
     preposition: Optional[WordEntry] = None
     indirect_object: Optional[WordEntry] = None
     indirect_adjective: Optional[WordEntry] = None
-    direction: Optional[WordEntry] = None
     raw: str = ""
     object_missing: bool = False

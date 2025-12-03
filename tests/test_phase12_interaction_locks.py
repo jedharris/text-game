@@ -16,7 +16,7 @@ sys.path.insert(0, str(project_root))
 from src.state_accessor import StateAccessor, HandlerResult
 from src.behavior_manager import BehaviorManager
 from src.state_manager import Actor, Lock, Item, Location, ExitDescriptor
-from tests.conftest import create_test_state
+from tests.conftest import create_test_state, make_action
 
 
 def create_door_item(door_id: str, location_id: str, direction: str,
@@ -59,7 +59,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         state.items.append(chest)
 
         from behaviors.core.interaction import handle_open
-        action = {"actor_id": "player", "object": "chest"}
+        action = make_action(object="chest", actor_id="player")
         result = handle_open(accessor, action)
 
         self.assertTrue(result.success)
@@ -92,7 +92,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         state.items.append(door)
 
         from behaviors.core.interaction import handle_open
-        action = {"actor_id": "player", "object": "door"}
+        action = make_action(object="door", actor_id="player")
         result = handle_open(accessor, action)
 
         self.assertTrue(result.success)
@@ -117,7 +117,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         state.items.append(chest)
 
         from behaviors.core.interaction import handle_open
-        action = {"actor_id": "player", "object": "chest"}
+        action = make_action(object="chest", actor_id="player")
         result = handle_open(accessor, action)
 
         self.assertTrue(result.success)
@@ -152,7 +152,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         state.actors["npc_guard"] = guard
 
         from behaviors.core.interaction import handle_open
-        action = {"actor_id": "npc_guard", "object": "chest"}
+        action = make_action(object="chest", actor_id="npc_guard")
         result = handle_open(accessor, action)
 
         self.assertTrue(result.success, f"NPC open failed: {result.message}")
@@ -177,7 +177,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         state.items.append(chest)
 
         from behaviors.core.interaction import handle_close
-        action = {"actor_id": "player", "object": "chest"}
+        action = make_action(object="chest", actor_id="player")
         result = handle_close(accessor, action)
 
         self.assertTrue(result.success)
@@ -210,7 +210,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         state.items.append(door)
 
         from behaviors.core.interaction import handle_close
-        action = {"actor_id": "player", "object": "door"}
+        action = make_action(object="door", actor_id="player")
         result = handle_close(accessor, action)
 
         self.assertTrue(result.success)
@@ -245,7 +245,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         state.actors["npc_guard"] = guard
 
         from behaviors.core.interaction import handle_close
-        action = {"actor_id": "npc_guard", "object": "chest"}
+        action = make_action(object="chest", actor_id="npc_guard")
         result = handle_close(accessor, action)
 
         self.assertTrue(result.success, f"NPC close failed: {result.message}")
@@ -302,7 +302,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         player.inventory.append("item_key")
 
         from behaviors.core.locks import handle_unlock
-        action = {"actor_id": "player", "object": "door"}
+        action = make_action(object="door", actor_id="player")
         result = handle_unlock(accessor, action)
 
         self.assertTrue(result.success)
@@ -345,7 +345,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         state.items.append(door)
 
         from behaviors.core.locks import handle_unlock
-        action = {"actor_id": "player", "object": "door"}
+        action = make_action(object="door", actor_id="player")
         result = handle_unlock(accessor, action)
 
         self.assertFalse(result.success)
@@ -408,7 +408,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         state.actors["npc_guard"] = guard
 
         from behaviors.core.locks import handle_unlock
-        action = {"actor_id": "npc_guard", "object": "door"}
+        action = make_action(object="door", actor_id="npc_guard")
         result = handle_unlock(accessor, action)
 
         self.assertTrue(result.success, f"NPC unlock failed: {result.message}")
@@ -463,7 +463,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         player.inventory.append("item_key")
 
         from behaviors.core.locks import handle_lock
-        action = {"actor_id": "player", "object": "door"}
+        action = make_action(object="door", actor_id="player")
         result = handle_lock(accessor, action)
 
         self.assertTrue(result.success)
@@ -518,7 +518,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         player.inventory.append("item_key")
 
         from behaviors.core.locks import handle_lock
-        action = {"actor_id": "player", "object": "door"}
+        action = make_action(object="door", actor_id="player")
         result = handle_lock(accessor, action)
 
         self.assertFalse(result.success)
@@ -581,7 +581,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         state.actors["npc_guard"] = guard
 
         from behaviors.core.locks import handle_lock
-        action = {"actor_id": "npc_guard", "object": "door"}
+        action = make_action(object="door", actor_id="npc_guard")
         result = handle_lock(accessor, action)
 
         self.assertTrue(result.success, f"NPC lock failed: {result.message}")

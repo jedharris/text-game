@@ -50,8 +50,6 @@ def parsed_to_json(result: ParsedCommand) -> Dict[str, Any]:
         action["object"] = result.direct_object
     if result.direct_adjective:
         action["adjective"] = result.direct_adjective.word
-    if result.direction:
-        action["direction"] = result.direction.word
     if result.indirect_object:
         # Pass full WordEntry to preserve synonyms for entity matching
         action["indirect_object"] = result.indirect_object
@@ -202,9 +200,10 @@ class LLMNarrator:
 
         if parsed is not None:
             # Convert ParsedCommand to JSON protocol format
-            if parsed.direction and not parsed.verb:
+            if parsed.direct_object and not parsed.verb:
                 # Bare direction (e.g., "north") -> go command
-                json_cmd = {"type": "command", "action": {"verb": "go", "direction": parsed.direction.word}}
+                # Directions are now in direct_object as nouns
+                json_cmd = {"type": "command", "action": {"verb": "go", "object": parsed.direct_object}}
             else:
                 json_cmd = parsed_to_json(parsed)
             logger.debug(f"Local parse: {player_input!r} -> {json_cmd}")

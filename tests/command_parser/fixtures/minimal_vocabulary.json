@@ -3,14 +3,12 @@
     { "word": "take", "synonyms": [], "value": 1 }
   ],
   "nouns": [
-    { "word": "key", "value": 101 }
+    { "word": "key", "value": 101 },
+    { "word": "north", "word_type": ["noun", "adjective"], "synonyms": [], "value": 1 }
   ],
   "adjectives": [
     { "word": "red", "value": 201 }
   ],
   "prepositions": ["with"],
-  "directions": [
-    { "word": "north", "synonyms": [], "value": 1 }
-  ],
   "articles": ["the"]
 }

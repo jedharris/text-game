@@ -15,7 +15,7 @@ sys.path.insert(0, str(project_root))
 from src.state_accessor import StateAccessor, HandlerResult
 from src.behavior_manager import BehaviorManager
 from src.state_manager import Actor
-from tests.conftest import create_test_state
+from tests.conftest import make_action, create_test_state
 
 
 class TestPhase7HandleTake(unittest.TestCase):
@@ -34,7 +34,7 @@ class TestPhase7HandleTake(unittest.TestCase):
         handle_take = behavior_manager.get_handler("take")
         self.assertIsNotNone(handle_take, "handle_take should be registered")
 
-        action = {"actor_id": "player", "object": "sword"}
+        action = make_action(object="sword", actor_id="player")
         result = handle_take(accessor, action)
 
         self.assertTrue(result.success)
@@ -55,7 +55,7 @@ class TestPhase7HandleTake(unittest.TestCase):
 
         handle_take = behavior_manager.get_handler("take")
 
-        action = {"actor_id": "player", "object": "table"}
+        action = make_action(object="table", actor_id="player")
         result = handle_take(accessor, action)
 
         self.assertFalse(result.success)
@@ -71,7 +71,7 @@ class TestPhase7HandleTake(unittest.TestCase):
 
         handle_take = behavior_manager.get_handler("take")
 
-        action = {"actor_id": "player", "object": "nonexistent"}
+        action = make_action(object="nonexistent", actor_id="player")
         result = handle_take(accessor, action)
 
         self.assertFalse(result.success)
@@ -92,7 +92,7 @@ class TestPhase7HandleTake(unittest.TestCase):
 
         handle_take = behavior_manager.get_handler("take")
 
-        action = {"actor_id": "npc_guard", "object": "sword"}
+        action = make_action(object="sword", actor_id="npc_guard")
         result = handle_take(accessor, action)
 
         self.assertTrue(result.success, f"NPC take failed: {result.message}")
@@ -114,7 +114,7 @@ class TestPhase7HandleTake(unittest.TestCase):
 
         handle_take = behavior_manager.get_handler("take")
 
-        action = {"actor_id": "nonexistent_npc", "object": "sword"}
+        action = make_action(object="sword", actor_id="nonexistent_npc")
         result = handle_take(accessor, action)
 
         # Should return HandlerResult with error, not crash
@@ -151,7 +151,7 @@ class TestPhase7HandleTake(unittest.TestCase):
 
         handle_take = behavior_manager.get_handler("take")
 
-        action = {"actor_id": "player", "object": "sword"}
+        action = make_action(object="sword", actor_id="player")
         result = handle_take(accessor, action)
 
         # Should succeed (item is accessible in inventory)

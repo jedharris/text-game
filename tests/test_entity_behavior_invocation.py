@@ -13,6 +13,7 @@ from src.state_manager import GameState, Item, Actor, Location
 from src.state_accessor import StateAccessor
 from src.behavior_manager import BehaviorManager, EventResult
 from behaviors.core.manipulation import handle_take, handle_drop
+from tests.conftest import make_action
 
 
 def create_test_state_with_light_source():
@@ -79,7 +80,7 @@ class TestEntityBehaviorInvocationOnTake(unittest.TestCase):
         self.assertFalse(lantern.states.get("lit", True))
 
         # Take the lantern
-        action = {"actor_id": "player", "object": "lantern"}
+        action = make_action(object="lantern", actor_id="player")
         result = handle_take(self.accessor, action)
 
         # Should succeed
@@ -91,7 +92,7 @@ class TestEntityBehaviorInvocationOnTake(unittest.TestCase):
 
     def test_take_returns_behavior_message(self):
         """Test that taking an item returns the behavior message."""
-        action = {"actor_id": "player", "object": "lantern"}
+        action = make_action(object="lantern", actor_id="player")
         result = handle_take(self.accessor, action)
 
         # Result message should include behavior message about runes
@@ -128,7 +129,7 @@ class TestEntityBehaviorInvocationOnDrop(unittest.TestCase):
         self.assertTrue(lantern.states.get("lit", False))
 
         # Drop the lantern
-        action = {"actor_id": "player", "object": "lantern"}
+        action = make_action(object="lantern", actor_id="player")
         result = handle_drop(self.accessor, action)
 
         # Should succeed
@@ -140,7 +141,7 @@ class TestEntityBehaviorInvocationOnDrop(unittest.TestCase):
 
     def test_drop_returns_behavior_message(self):
         """Test that dropping an item returns the behavior message."""
-        action = {"actor_id": "player", "object": "lantern"}
+        action = make_action(object="lantern", actor_id="player")
         result = handle_drop(self.accessor, action)
 
         # Result message should include behavior message about runes fading
@@ -180,7 +181,7 @@ class TestEntityBehaviorInvocationNPC(unittest.TestCase):
         self.assertFalse(lantern.states.get("lit", True))
 
         # NPC takes the lantern
-        action = {"actor_id": "guard", "object": "lantern"}
+        action = make_action(object="lantern", actor_id="guard")
         result = handle_take(self.accessor, action)
 
         # Should succeed

@@ -31,12 +31,10 @@ class TestParserUnknownAdjectives(unittest.TestCase):
             "nouns": [
                 {"word": "door"},
                 {"word": "key"},
-                {"word": "lantern"}
+                {"word": "lantern"},
+                {"word": "north", "word_type": ["noun", "adjective"], "synonyms": ["n"]}
             ],
-            "adjectives": [],  # No predefined adjectives
-            "directions": [
-                {"word": "north", "synonyms": ["n"]}
-            ]
+            "adjectives": []  # No predefined adjectives
         }
 
         # Write to temp file
@@ -99,7 +97,8 @@ class TestParserUnknownAdjectives(unittest.TestCase):
         result = self.parser.parse_command("north")
 
         self.assertIsNotNone(result)
-        self.assertEqual(result.direction.word, "north")
+        # Directions are now treated as nouns in direct_object
+        self.assertEqual(result.direct_object.word, "north")
 
     def test_verb_noun_without_adjective_still_works(self):
         """Test that standard verb+noun still works."""

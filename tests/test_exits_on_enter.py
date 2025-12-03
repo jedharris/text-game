@@ -88,7 +88,7 @@ class TestOnEnterEvent(unittest.TestCase):
         action = {
             "actor_id": "player",
             "verb": "go",
-            "direction": "north"
+            "object": "north"
         }
 
         result = handle_go(self.accessor, action)
@@ -106,7 +106,7 @@ class TestOnEnterEvent(unittest.TestCase):
         action = {
             "actor_id": "player",
             "verb": "go",
-            "direction": "up"
+            "object": "up"
         }
 
         result = handle_go(self.accessor, action)
@@ -161,7 +161,7 @@ class TestOnEnterEvent(unittest.TestCase):
         action = {
             "actor_id": "player",
             "verb": "go",
-            "direction": "north"
+            "object": "north"
         }
 
         result = handle_go(self.accessor, action)

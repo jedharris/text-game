@@ -16,7 +16,7 @@ sys.path.insert(0, str(project_root))
 from src.state_accessor import StateAccessor, HandlerResult
 from src.behavior_manager import BehaviorManager
 from src.state_manager import Actor
-from tests.conftest import create_test_state
+from tests.conftest import make_action, create_test_state
 
 
 class TestPhase10ManipulationHandlers(unittest.TestCase):
@@ -39,7 +39,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
         player.inventory.append("item_sword")
 
         from behaviors.core.manipulation import handle_drop
-        action = {"actor_id": "player", "object": "sword"}
+        action = make_action(object="sword", actor_id="player")
         result = handle_drop(accessor, action)
 
         self.assertTrue(result.success)
@@ -58,7 +58,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
         accessor = StateAccessor(state, behavior_manager)
 
         from behaviors.core.manipulation import handle_drop
-        action = {"actor_id": "player", "object": "sword"}
+        action = make_action(object="sword", actor_id="player")
         result = handle_drop(accessor, action)
 
         self.assertFalse(result.success)
@@ -87,7 +87,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
         sword.location = "npc_guard"
 
         from behaviors.core.manipulation import handle_drop
-        action = {"actor_id": "npc_guard", "object": "sword"}
+        action = make_action(object="sword", actor_id="npc_guard")
         result = handle_drop(accessor, action)
 
         self.assertTrue(result.success, f"NPC drop failed: {result.message}")
@@ -121,7 +121,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
         state.actors["npc_guard"] = guard
 
         from behaviors.core.manipulation import handle_give
-        action = {"actor_id": "player", "object": "sword", "indirect_object": "guard"}
+        action = make_action(object="sword", indirect_object="guard", actor_id="player")
         result = handle_give(accessor, action)
 
         self.assertTrue(result.success)
@@ -150,7 +150,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
         state.actors["npc_guard"] = guard
 
         from behaviors.core.manipulation import handle_give
-        action = {"actor_id": "player", "object": "sword", "indirect_object": "guard"}
+        action = make_action(object="sword", indirect_object="guard", actor_id="player")
         result = handle_give(accessor, action)
 
         self.assertFalse(result.success)
@@ -170,7 +170,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
         player.inventory.append("item_sword")
 
         from behaviors.core.manipulation import handle_give
-        action = {"actor_id": "player", "object": "sword", "indirect_object": "nonexistent"}
+        action = make_action(object="sword", indirect_object="nonexistent", actor_id="player")
         result = handle_give(accessor, action)
 
         self.assertFalse(result.success)
@@ -198,7 +198,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
 
         from behaviors.core.manipulation import handle_give
         # Use player's actual name ("Adventurer") not the ID ("player")
-        action = {"actor_id": "npc_guard", "object": "sword", "indirect_object": "Adventurer"}
+        action = make_action(object="sword", indirect_object="Adventurer", actor_id="npc_guard")
         result = handle_give(accessor, action)
 
         self.assertTrue(result.success, f"NPC give failed: {result.message}")

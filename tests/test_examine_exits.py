@@ -4,7 +4,7 @@ Verifies that handle_examine can find and describe exits, not just items and doo
 """
 
 import unittest
-from tests.conftest import create_test_state
+from tests.conftest import create_test_state, make_word_entry
 from src.state_accessor import StateAccessor
 from src.behavior_manager import BehaviorManager
 from src.state_manager import Location, ExitDescriptor
@@ -63,7 +63,8 @@ class TestFindExitByName(unittest.TestCase):
 
     def test_find_exit_by_direction(self):
         """Find exit using direction name."""
-        result = find_exit_by_name(self.accessor, "up", "player")
+        up_entry = make_word_entry("up")
+        result = find_exit_by_name(self.accessor, up_entry, "player")
         self.assertIsNotNone(result)
         direction, exit_desc = result
         self.assertEqual(direction, "up")
@@ -71,14 +72,16 @@ class TestFindExitByName(unittest.TestCase):
 
     def test_find_exit_by_direction_abbreviation(self):
         """Find exit using direction abbreviation."""
-        result = find_exit_by_name(self.accessor, "u", "player")
+        u_entry = make_word_entry("u")
+        result = find_exit_by_name(self.accessor, u_entry, "player")
         self.assertIsNotNone(result)
         direction, exit_desc = result
         self.assertEqual(direction, "up")
 
     def test_find_exit_by_name(self):
         """Find exit using exit.name field."""
-        result = find_exit_by_name(self.accessor, "staircase", "player")
+        staircase_entry = make_word_entry("staircase")
+        result = find_exit_by_name(self.accessor, staircase_entry, "player")
         self.assertIsNotNone(result)
         direction, exit_desc = result
         self.assertEqual(direction, "up")
@@ -86,21 +89,24 @@ class TestFindExitByName(unittest.TestCase):
 
     def test_find_exit_by_partial_name(self):
         """Find exit using partial name match."""
-        result = find_exit_by_name(self.accessor, "spiral", "player")
+        spiral_entry = make_word_entry("spiral")
+        result = find_exit_by_name(self.accessor, spiral_entry, "player")
         self.assertIsNotNone(result)
         direction, exit_desc = result
         self.assertEqual(direction, "up")
 
     def test_find_exit_by_word_in_name(self):
         """Find exit by matching a word in the name."""
-        result = find_exit_by_name(self.accessor, "steps", "player")
+        steps_entry = make_word_entry("steps")
+        result = find_exit_by_name(self.accessor, steps_entry, "player")
         self.assertIsNotNone(result)
         direction, exit_desc = result
         self.assertEqual(direction, "down")
 
     def test_find_exit_with_adjective_direction(self):
         """Find exit using adjective + 'exit' pattern."""
-        result = find_exit_by_name(self.accessor, "exit", "player", adjective="north")
+        exit_entry = make_word_entry("exit")
+        result = find_exit_by_name(self.accessor, exit_entry, "player", adjective="north")
         self.assertIsNotNone(result)
         direction, exit_desc = result
         self.assertEqual(direction, "north")
@@ -121,7 +127,8 @@ class TestFindExitByName(unittest.TestCase):
         self.state.locations.append(single_exit_loc)
         self.state.actors["player"].location = "single_exit_room"
 
-        result = find_exit_by_name(self.accessor, "exit", "player")
+        exit_entry = make_word_entry("exit")
+        result = find_exit_by_name(self.accessor, exit_entry, "player")
         self.assertIsNotNone(result)
         direction, exit_desc = result
         self.assertEqual(direction, "east")
@@ -130,17 +137,20 @@ class TestFindExitByName(unittest.TestCase):
     def test_generic_exit_with_multiple_exits_returns_none(self):
         """Generic 'exit' with multiple exits returns None (ambiguous)."""
         # The default setUp has multiple exits
-        result = find_exit_by_name(self.accessor, "exit", "player")
+        exit_entry = make_word_entry("exit")
+        result = find_exit_by_name(self.accessor, exit_entry, "player")
         self.assertIsNone(result)
 
     def test_exit_not_found(self):
         """Return None when exit doesn't exist."""
-        result = find_exit_by_name(self.accessor, "nonexistent", "player")
+        nonexistent_entry = make_word_entry("nonexistent")
+        result = find_exit_by_name(self.accessor, nonexistent_entry, "player")
         self.assertIsNone(result)
 
     def test_exit_without_name_found_by_direction(self):
         """Exits without name field can still be found by direction."""
-        result = find_exit_by_name(self.accessor, "north", "player")
+        north_entry = make_word_entry("north")
+        result = find_exit_by_name(self.accessor, north_entry, "player")
         self.assertIsNotNone(result)
         direction, exit_desc = result
         self.assertEqual(direction, "north")
@@ -199,9 +209,10 @@ class TestExamineExit(unittest.TestCase):
 
     def test_examine_exit_by_direction(self):
         """Examine exit using direction returns description."""
+        up_entry = make_word_entry("up")
         result = handle_examine(self.accessor, {
             "verb": "examine",
-            "object": "up",
+            "object": up_entry,
             "actor_id": "player"
         })
         self.assertTrue(result.success)
@@ -209,9 +220,10 @@ class TestExamineExit(unittest.TestCase):
 
     def test_examine_exit_by_name(self):
         """Examine exit using name returns description."""
+        staircase_entry = make_word_entry("staircase")
         result = handle_examine(self.accessor, {
             "verb": "examine",
-            "object": "staircase",
+            "object": staircase_entry,
             "actor_id": "player"
         })
         self.assertTrue(result.success)
@@ -219,9 +231,10 @@ class TestExamineExit(unittest.TestCase):
 
     def test_examine_exit_returns_llm_context(self):
         """Examine exit includes llm_context in data."""
+        up_entry = make_word_entry("up")
         result = handle_examine(self.accessor, {
             "verb": "examine",
-            "object": "up",
+            "object": up_entry,
             "actor_id": "player"
         })
         self.assertTrue(result.success)
@@ -231,9 +244,10 @@ class TestExamineExit(unittest.TestCase):
 
     def test_examine_exit_returns_direction_info(self):
         """Examine exit includes direction and type in data."""
+        up_entry = make_word_entry("up")
         result = handle_examine(self.accessor, {
             "verb": "examine",
-            "object": "up",
+            "object": up_entry,
             "actor_id": "player"
         })
         self.assertTrue(result.success)
@@ -244,9 +258,10 @@ class TestExamineExit(unittest.TestCase):
 
     def test_examine_exit_without_description_uses_name(self):
         """Exit without description gets generated message from name."""
+        archway_entry = make_word_entry("archway")
         result = handle_examine(self.accessor, {
             "verb": "examine",
-            "object": "archway",
+            "object": archway_entry,
             "actor_id": "player"
         })
         self.assertTrue(result.success)
@@ -255,9 +270,10 @@ class TestExamineExit(unittest.TestCase):
 
     def test_examine_exit_without_name_or_description(self):
         """Exit with only direction gets minimal message."""
+        south_entry = make_word_entry("south")
         result = handle_examine(self.accessor, {
             "verb": "examine",
-            "object": "south",
+            "object": south_entry,
             "actor_id": "player"
         })
         self.assertTrue(result.success)
@@ -266,9 +282,10 @@ class TestExamineExit(unittest.TestCase):
 
     def test_examine_nonexistent_exit(self):
         """Examining nonexistent exit fails gracefully."""
+        west_entry = make_word_entry("west")
         result = handle_examine(self.accessor, {
             "verb": "examine",
-            "object": "west",
+            "object": west_entry,
             "actor_id": "player"
         })
         self.assertFalse(result.success)
@@ -307,9 +324,10 @@ class TestExitExaminationPriority(unittest.TestCase):
 
     def test_direction_always_finds_exit(self):
         """Using direction like 'up' always finds exit, not item."""
+        up_entry = make_word_entry("up")
         result = handle_examine(self.accessor, {
             "verb": "examine",
-            "object": "up",
+            "object": up_entry,
             "actor_id": "player"
         })
         self.assertTrue(result.success)
@@ -366,10 +384,11 @@ class TestExamineExitWithDirectionAdjective(unittest.TestCase):
 
     def test_examine_direction_exit(self):
         """Test 'examine north exit' finds the north exit."""
+        exit_entry = make_word_entry("exit")
         result = handle_examine(self.accessor, {
             "verb": "examine",
-            "object": "exit",
-            "direction": "north",
+            "object": exit_entry,
+            "adjective": "north",
             "actor_id": "player"
         })
 
@@ -379,10 +398,11 @@ class TestExamineExitWithDirectionAdjective(unittest.TestCase):
 
     def test_examine_east_exit(self):
         """Test 'examine east exit' finds the east exit."""
+        exit_entry = make_word_entry("exit")
         result = handle_examine(self.accessor, {
             "verb": "examine",
-            "object": "exit",
-            "direction": "east",
+            "object": exit_entry,
+            "adjective": "east",
             "actor_id": "player"
         })
 
@@ -404,7 +424,7 @@ class TestExamineExitWithDirectionAdjective(unittest.TestCase):
         result = handle_examine(self.accessor, {
             "verb": "examine",
             "object": exit_word,
-            "direction": "north",
+            "adjective": "north",
             "actor_id": "player"
         })
 
@@ -413,10 +433,11 @@ class TestExamineExitWithDirectionAdjective(unittest.TestCase):
 
     def test_examine_nonexistent_direction_exit(self):
         """Test 'examine west exit' fails when no west exit exists."""
+        exit_entry = make_word_entry("exit")
         result = handle_examine(self.accessor, {
             "verb": "examine",
-            "object": "exit",
-            "direction": "west",
+            "object": exit_entry,
+            "adjective": "west",
             "actor_id": "player"
         })
 
@@ -522,22 +543,24 @@ class TestExitSynonymMatching(unittest.TestCase):
         self.assertTrue(result.success, f"Should succeed but got: {result.message}")
         self.assertIn("spiral staircase", result.message.lower())
 
-    def test_plain_string_still_works(self):
-        """Plain string matching still works (backward compatibility)."""
-        # Using "staircase" directly (a word in the exit name) should work
-        result = find_exit_by_name(self.accessor, "staircase", "player")
+    def test_wordentry_staircase_matches(self):
+        """WordEntry 'staircase' matches exit named 'spiral staircase'."""
+        # Using "staircase" as WordEntry (a word in the exit name) should work
+        staircase_entry = make_word_entry("staircase")
+        result = find_exit_by_name(self.accessor, staircase_entry, "player")
         self.assertIsNotNone(result)
         direction, exit_desc = result
         self.assertEqual(direction, "up")
 
-    def test_plain_string_stairs_without_wordentry_fails(self):
-        """Plain string 'stairs' doesn't match 'staircase' (no synonyms).
+    def test_wordentry_stairs_without_synonyms_fails(self):
+        """WordEntry 'stairs' without synonyms doesn't match 'staircase'.
 
-        This demonstrates why passing WordEntry is important - a plain
-        string doesn't have synonym information.
+        This demonstrates why synonyms are important - without synonym
+        information, "stairs" doesn't match "staircase" in name.
         """
-        result = find_exit_by_name(self.accessor, "stairs", "player")
-        # Without WordEntry, plain "stairs" doesn't match "staircase" in name
+        stairs_entry = make_word_entry("stairs")  # No synonyms
+        result = find_exit_by_name(self.accessor, stairs_entry, "player")
+        # Without synonyms, "stairs" doesn't match "staircase" in name
         self.assertIsNone(result, "Plain 'stairs' shouldn't match 'spiral staircase'")
 
 
@@ -606,7 +629,8 @@ class TestExamineDirectionExitEndToEnd(unittest.TestCase):
 
         self.assertIsNotNone(result)
         self.assertEqual(result.verb.word, "examine")
-        self.assertEqual(result.direction.word, "north")
+        # Directions acting as adjectives are now in direct_adjective
+        self.assertEqual(result.direct_adjective.word, "north")
         self.assertEqual(result.direct_object.word, "exit")
 
     def test_full_flow_examine_north_exit(self):

@@ -74,9 +74,9 @@ def main():
         # Process command based on type
         current_room = game_state[location]
 
-        # Handle movement
-        if result.direction:
-            direction = result.direction.word
+        # Handle movement (directions are now in direct_object as nouns)
+        if result.direct_object and not result.verb:
+            direction = result.direct_object.word
             if direction in current_room.get('exits', {}):
                 new_location = current_room['exits'][direction]
                 # Check if door is locked
@@ -150,9 +150,9 @@ def main():
                 else:
                     print("There is no chest here.")
 
-        # Handle going with direction
-        elif result.verb and result.verb.word == "go" and result.direction:
-            direction = result.direction.word
+        # Handle going with direction (directions are now in direct_object as nouns)
+        elif result.verb and result.verb.word == "go" and result.direct_object:
+            direction = result.direct_object.word
             if direction in current_room.get('exits', {}):
                 location = current_room['exits'][direction]
                 print(game_state[location]['description'])

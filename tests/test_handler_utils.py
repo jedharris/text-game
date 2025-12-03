@@ -9,6 +9,7 @@ import unittest
 from src.state_manager import GameState, Location, Item, Actor, Metadata
 from src.behavior_manager import BehaviorManager
 from src.state_accessor import StateAccessor
+from tests.conftest import make_action
 
 
 def create_test_state():
@@ -66,11 +67,7 @@ class TestFindActionTarget(unittest.TestCase):
         """Test that find_action_target returns item when found."""
         from utilities.handler_utils import find_action_target
 
-        action = {
-            "verb": "push",
-            "actor_id": "player",
-            "object": "sword"
-        }
+        action = make_action(verb="push", object="sword", actor_id="player")
         item, error = find_action_target(self.accessor, action)
 
         self.assertIsNotNone(item)
@@ -97,11 +94,7 @@ class TestFindActionTarget(unittest.TestCase):
         """Test that find_action_target returns error when actor not found."""
         from utilities.handler_utils import find_action_target
 
-        action = {
-            "verb": "push",
-            "actor_id": "nonexistent_actor",
-            "object": "sword"
-        }
+        action = make_action(verb="push", object="sword", actor_id="nonexistent_actor")
         item, error = find_action_target(self.accessor, action)
 
         self.assertIsNone(item)
@@ -113,11 +106,7 @@ class TestFindActionTarget(unittest.TestCase):
         """Test that find_action_target returns error when item not found."""
         from utilities.handler_utils import find_action_target
 
-        action = {
-            "verb": "push",
-            "actor_id": "player",
-            "object": "nonexistent_item"
-        }
+        action = make_action(verb="push", object="nonexistent_item", actor_id="player")
         item, error = find_action_target(self.accessor, action)
 
         self.assertIsNone(item)
@@ -130,34 +119,20 @@ class TestFindActionTarget(unittest.TestCase):
         from utilities.handler_utils import find_action_target
 
         # Without adjective - gets first match
-        action_no_adj = {
-            "verb": "take",
-            "actor_id": "player",
-            "object": "key"
-        }
+        action_no_adj = make_action(verb="take", object="key", actor_id="player")
         item1, error1 = find_action_target(self.accessor, action_no_adj)
         self.assertIsNotNone(item1)
         self.assertIsNone(error1)
 
         # With adjective "brass" - should get brass key
-        action_brass = {
-            "verb": "take",
-            "actor_id": "player",
-            "object": "key",
-            "adjective": "brass"
-        }
+        action_brass = make_action(verb="take", object="key", adjective="brass", actor_id="player")
         item2, error2 = find_action_target(self.accessor, action_brass)
         self.assertIsNotNone(item2)
         self.assertIsNone(error2)
         self.assertEqual(item2.id, "item_brass_key")
 
         # With adjective "iron" - should get iron key
-        action_iron = {
-            "verb": "take",
-            "actor_id": "player",
-            "object": "key",
-            "adjective": "iron"
-        }
+        action_iron = make_action(verb="take", object="key", adjective="iron", actor_id="player")
         item3, error3 = find_action_target(self.accessor, action_iron)
         self.assertIsNotNone(item3)
         self.assertIsNone(error3)
@@ -182,11 +157,8 @@ class TestFindActionTarget(unittest.TestCase):
         """Test that find_action_target defaults actor_id to 'player'."""
         from utilities.handler_utils import find_action_target
 
-        action = {
-            "verb": "push",
-            "object": "sword"
-            # No actor_id - should default to "player"
-        }
+        action = make_action(verb="push", object="sword")
+        # No actor_id explicitly passed - make_action defaults to "player"
         item, error = find_action_target(self.accessor, action)
 
         self.assertIsNotNone(item)

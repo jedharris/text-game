@@ -15,7 +15,7 @@ sys.path.insert(0, str(project_root))
 from src.state_accessor import StateAccessor
 from src.behavior_manager import BehaviorManager
 from src.state_manager import Actor, Item, Lock, Location, ExitDescriptor
-from tests.conftest import create_test_state
+from tests.conftest import create_test_state, make_word_entry
 
 
 def create_door_item(door_id: str, location_id: str, direction: str,
@@ -53,7 +53,8 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         state = create_test_state()
         accessor = StateAccessor(state, BehaviorManager())
 
-        item = find_accessible_item(accessor, "sword", "player")
+        sword_entry = make_word_entry("sword")
+        item = find_accessible_item(accessor, sword_entry, "player")
 
         self.assertIsNotNone(item)
         self.assertEqual(item.id, "item_sword")
@@ -69,7 +70,8 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         sword.location = "player"
         player.inventory.append("item_sword")
 
-        item = find_accessible_item(accessor, "sword", "player")
+        sword_entry = make_word_entry("sword")
+        item = find_accessible_item(accessor, sword_entry, "player")
 
         self.assertIsNotNone(item)
         self.assertEqual(item.id, "item_sword")
@@ -79,7 +81,8 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         state = create_test_state()
         accessor = StateAccessor(state, BehaviorManager())
 
-        item = find_accessible_item(accessor, "nonexistent", "player")
+        nonexistent_entry = make_word_entry("nonexistent")
+        item = find_accessible_item(accessor, nonexistent_entry, "player")
 
         self.assertIsNone(item)
 
@@ -106,12 +109,13 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         state.items.append(key)
 
         # NPC should find key in their location
-        item = find_accessible_item(accessor, "key", "npc_guard")
+        key_entry = make_word_entry("key")
+        item = find_accessible_item(accessor, key_entry, "npc_guard")
         self.assertIsNotNone(item)
         self.assertEqual(item.id, "item_key")
 
         # Player should NOT find key (it's in different location)
-        item = find_accessible_item(accessor, "key", "player")
+        item = find_accessible_item(accessor, key_entry, "player")
         self.assertIsNone(item)
 
     def test_find_item_in_inventory_player(self):
@@ -122,7 +126,8 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         player = state.actors["player"]
         player.inventory.append("item_sword")
 
-        item = find_item_in_inventory(accessor, "sword", "player")
+        sword_entry = make_word_entry("sword")
+        item = find_item_in_inventory(accessor, sword_entry, "player")
 
         self.assertIsNotNone(item)
         self.assertEqual(item.id, "item_sword")
@@ -142,12 +147,13 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         state.items.append(key)
 
         # NPC should find key in their inventory
-        item = find_item_in_inventory(accessor, "key", "npc_guard")
+        key_entry = make_word_entry("key")
+        item = find_item_in_inventory(accessor, key_entry, "npc_guard")
         self.assertIsNotNone(item)
         self.assertEqual(item.id, "item_key")
 
         # Player should NOT find key
-        item = find_item_in_inventory(accessor, "key", "player")
+        item = find_item_in_inventory(accessor, key_entry, "player")
         self.assertIsNone(item)
 
     def test_find_container_by_name(self):
@@ -161,7 +167,8 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
                     properties={"is_container": True, "portable": False})
         state.items.append(chest)
 
-        container = find_container_by_name(accessor, "chest", "location_room")
+        chest_entry = make_word_entry("chest")
+        container = find_container_by_name(accessor, chest_entry, "location_room")
 
         self.assertIsNotNone(container)
         self.assertEqual(container.id, "item_chest")
@@ -171,7 +178,8 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         state = create_test_state()
         accessor = StateAccessor(state, BehaviorManager())
 
-        container = find_container_by_name(accessor, "nonexistent", "location_room")
+        nonexistent_entry = make_word_entry("nonexistent")
+        container = find_container_by_name(accessor, nonexistent_entry, "location_room")
 
         self.assertIsNone(container)
 

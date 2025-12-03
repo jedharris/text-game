@@ -10,6 +10,7 @@ from src.state_manager import (
     Item, Location, Actor, Lock, GameState
 )
 from src.state_accessor import StateAccessor, HandlerResult
+from tests.conftest import make_action
 
 
 def create_test_game_state():
@@ -158,7 +159,7 @@ class TestManipulationHandlersLlmContext(unittest.TestCase):
         """Test handle_take returns item llm_context."""
         from behaviors.core.manipulation import handle_take
 
-        action = {"actor_id": "player", "object": "sword"}
+        action = make_action(object="sword", actor_id="player")
         result = handle_take(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -175,7 +176,7 @@ class TestManipulationHandlersLlmContext(unittest.TestCase):
         sword.location = "player"
         self.game_state.actors["player"].inventory.append("item_sword")
 
-        action = {"actor_id": "player", "object": "sword"}
+        action = make_action(object="sword", actor_id="player")
         result = handle_drop(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -186,7 +187,7 @@ class TestManipulationHandlersLlmContext(unittest.TestCase):
         """Test handle_give returns item llm_context."""
         from behaviors.core.manipulation import handle_give
 
-        action = {"actor_id": "player", "object": "key", "indirect_object": "guard"}
+        action = make_action(object="key", indirect_object="guard", actor_id="player")
         result = handle_give(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -201,7 +202,7 @@ class TestManipulationHandlersLlmContext(unittest.TestCase):
         chest = self.accessor.get_item("item_chest")
         chest.properties["container"]["open"] = True
 
-        action = {"actor_id": "player", "object": "key", "indirect_object": "chest"}
+        action = make_action(object="key", indirect_object="chest", actor_id="player")
         result = handle_put(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -221,7 +222,7 @@ class TestInteractionHandlersLlmContext(unittest.TestCase):
         """Test handle_open returns container llm_context."""
         from behaviors.core.interaction import handle_open
 
-        action = {"actor_id": "player", "object": "chest"}
+        action = make_action(object="chest", actor_id="player")
         result = handle_open(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -236,7 +237,7 @@ class TestInteractionHandlersLlmContext(unittest.TestCase):
         chest = self.accessor.get_item("item_chest")
         chest.properties["container"]["open"] = True
 
-        action = {"actor_id": "player", "object": "chest"}
+        action = make_action(object="chest", actor_id="player")
         result = handle_close(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -247,7 +248,7 @@ class TestInteractionHandlersLlmContext(unittest.TestCase):
         """Test handle_use returns item llm_context."""
         from behaviors.core.interaction import handle_use
 
-        action = {"actor_id": "player", "object": "sword"}
+        action = make_action(object="sword", actor_id="player")
         result = handle_use(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -258,7 +259,7 @@ class TestInteractionHandlersLlmContext(unittest.TestCase):
         """Test handle_read returns item llm_context."""
         from behaviors.core.interaction import handle_read
 
-        action = {"actor_id": "player", "object": "book"}
+        action = make_action(object="book", actor_id="player")
         result = handle_read(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -269,7 +270,7 @@ class TestInteractionHandlersLlmContext(unittest.TestCase):
         """Test handle_climb returns item llm_context."""
         from behaviors.core.exits import handle_climb
 
-        action = {"actor_id": "player", "object": "ladder"}
+        action = make_action(object="ladder", actor_id="player")
         result = handle_climb(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -280,7 +281,7 @@ class TestInteractionHandlersLlmContext(unittest.TestCase):
         """Test handle_pull returns item llm_context."""
         from behaviors.core.interaction import handle_pull
 
-        action = {"actor_id": "player", "object": "lever"}
+        action = make_action(object="lever", actor_id="player")
         result = handle_pull(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -291,7 +292,7 @@ class TestInteractionHandlersLlmContext(unittest.TestCase):
         """Test handle_push returns item llm_context."""
         from behaviors.core.interaction import handle_push
 
-        action = {"actor_id": "player", "object": "lever"}
+        action = make_action(object="lever", actor_id="player")
         result = handle_push(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -311,7 +312,7 @@ class TestLockHandlersLlmContext(unittest.TestCase):
         """Test handle_unlock returns door llm_context."""
         from behaviors.core.locks import handle_unlock
 
-        action = {"actor_id": "player", "object": "door"}
+        action = make_action(object="door", actor_id="player")
         result = handle_unlock(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -326,7 +327,7 @@ class TestLockHandlersLlmContext(unittest.TestCase):
         door = self.accessor.get_item("door_north")
         door.properties["door"]["locked"] = False
 
-        action = {"actor_id": "player", "object": "door"}
+        action = make_action(object="door", actor_id="player")
         result = handle_lock(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -346,7 +347,7 @@ class TestInventoryHandlerLlmContext(unittest.TestCase):
         """Test handle_inventory returns item llm_context for carried items."""
         from behaviors.core.perception import handle_inventory
 
-        action = {"actor_id": "player"}
+        action = make_action(actor_id="player")
         result = handle_inventory(self.accessor, action)
 
         self.assertTrue(result.success)

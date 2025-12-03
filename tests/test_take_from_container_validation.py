@@ -5,7 +5,7 @@ Currently, indirect_object (container) is ignored and item is found anywhere.
 """
 
 import unittest
-from tests.conftest import create_test_state
+from tests.conftest import make_action, create_test_state
 from src.state_accessor import StateAccessor
 from src.behavior_manager import BehaviorManager
 from src.state_manager import Item
@@ -97,11 +97,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
         """Test that take from nonexistent container fails."""
         from behaviors.core.manipulation import handle_take
 
-        action = {
-            "actor_id": "player",
-            "object": "key",
-            "indirect_object": "shelf"  # No shelf exists
-        }
+        action = make_action(object="key", indirect_object="shelf", actor_id="player")
         result = handle_take(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -111,11 +107,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
         """Test that take from valid container succeeds."""
         from behaviors.core.manipulation import handle_take
 
-        action = {
-            "actor_id": "player",
-            "object": "key",
-            "indirect_object": "table"
-        }
+        action = make_action(object="key", indirect_object="table", actor_id="player")
         result = handle_take(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -127,11 +119,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
         from behaviors.core.manipulation import handle_take
 
         # Coin is in the room, not on the table
-        action = {
-            "actor_id": "player",
-            "object": "coin",
-            "indirect_object": "table"
-        }
+        action = make_action(object="coin", indirect_object="table", actor_id="player")
         result = handle_take(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -142,11 +130,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
         """Test that take without indirect_object finds item anywhere."""
         from behaviors.core.manipulation import handle_take
 
-        action = {
-            "actor_id": "player",
-            "object": "coin"
-            # No indirect_object
-        }
+        action = make_action(object="coin", actor_id="player")
         result = handle_take(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -157,11 +141,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
         """Test taking from open enclosed container succeeds."""
         from behaviors.core.manipulation import handle_take
 
-        action = {
-            "actor_id": "player",
-            "object": "ring",
-            "indirect_object": "chest"
-        }
+        action = make_action(object="ring", indirect_object="chest", actor_id="player")
         result = handle_take(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -176,11 +156,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
         chest = self.state.get_item("item_chest")
         chest.properties["container"]["open"] = False
 
-        action = {
-            "actor_id": "player",
-            "object": "ring",
-            "indirect_object": "chest"
-        }
+        action = make_action(object="ring", indirect_object="chest", actor_id="player")
         result = handle_take(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -191,11 +167,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
         from behaviors.core.manipulation import handle_take
 
         # sword is not a container
-        action = {
-            "actor_id": "player",
-            "object": "key",
-            "indirect_object": "sword"
-        }
+        action = make_action(object="key", indirect_object="sword", actor_id="player")
         result = handle_take(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -268,12 +240,7 @@ class TestTakeFromContainerWithAdjective(unittest.TestCase):
         """Test that adjective on container selects correct container."""
         from behaviors.core.manipulation import handle_take
 
-        action = {
-            "actor_id": "player",
-            "object": "key",
-            "indirect_object": "table",
-            "indirect_adjective": "marble"
-        }
+        action = make_action(object="key", indirect_object="table", indirect_adjective="marble", actor_id="player")
         result = handle_take(self.accessor, action)
 
         self.assertTrue(result.success)

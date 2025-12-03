@@ -1,3 +1,4 @@
+from tests.conftest import make_word_entry
 """Tests for the crystal ball behavior in extended_game.
 
 Tests that the crystal ball behavior correctly uses the states.hidden mechanism
@@ -66,7 +67,8 @@ class TestCrystalBallRevealHiddenItem(unittest.TestCase):
         from utilities.utils import find_accessible_item
 
         # Key should not be found because it's hidden
-        key = find_accessible_item(self.accessor, "key", "player")
+        key_entry = make_word_entry("key")
+        key = find_accessible_item(self.accessor, key_entry, "player")
         self.assertIsNone(key)
 
     def test_crystal_ball_reveals_hidden_key(self):
@@ -121,7 +123,8 @@ class TestCrystalBallRevealHiddenItem(unittest.TestCase):
         on_peer(crystal_ball, self.accessor, context)
 
         # Key should now be accessible
-        key = find_accessible_item(self.accessor, "key", "player")
+        key_entry = make_word_entry("key")
+        key = find_accessible_item(self.accessor, key_entry, "player")
         self.assertIsNotNone(key)
         self.assertEqual(key.id, "item_sanctum_key")
 

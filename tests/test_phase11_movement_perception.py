@@ -16,7 +16,7 @@ sys.path.insert(0, str(project_root))
 from src.state_accessor import StateAccessor, HandlerResult
 from src.behavior_manager import BehaviorManager
 from src.state_manager import Actor, Location
-from tests.conftest import create_test_state
+from tests.conftest import make_action, create_test_state
 
 
 class TestPhase11MovementPerception(unittest.TestCase):
@@ -48,7 +48,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
         accessor = StateAccessor(state, behavior_manager)
 
         from behaviors.core.exits import handle_go
-        action = {"actor_id": "player", "direction": "east"}
+        action = make_action(object="east", actor_id="player")
         result = handle_go(accessor, action)
 
         self.assertTrue(result.success)
@@ -66,7 +66,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
         accessor = StateAccessor(state, behavior_manager)
 
         from behaviors.core.exits import handle_go
-        action = {"actor_id": "player", "direction": "north"}
+        action = make_action(object="north", actor_id="player")
         result = handle_go(accessor, action)
 
         self.assertFalse(result.success)
@@ -106,7 +106,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
         accessor = StateAccessor(state, behavior_manager)
 
         from behaviors.core.exits import handle_go
-        action = {"actor_id": "npc_guard", "direction": "east"}
+        action = make_action(object="east", actor_id="npc_guard")
         result = handle_go(accessor, action)
 
         self.assertTrue(result.success, f"NPC movement failed: {result.message}")
@@ -127,7 +127,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
         accessor = StateAccessor(state, behavior_manager)
 
         from behaviors.core.perception import handle_look
-        action = {"actor_id": "player"}
+        action = make_action(actor_id="player")
         result = handle_look(accessor, action)
 
         self.assertTrue(result.success)
@@ -168,7 +168,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
         accessor = StateAccessor(state, behavior_manager)
 
         from behaviors.core.perception import handle_look
-        action = {"actor_id": "npc_guard"}
+        action = make_action(actor_id="npc_guard")
         result = handle_look(accessor, action)
 
         self.assertTrue(result.success, f"NPC look failed: {result.message}")
@@ -185,7 +185,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
         accessor = StateAccessor(state, behavior_manager)
 
         from behaviors.core.perception import handle_examine
-        action = {"actor_id": "player", "object": "sword"}
+        action = make_action(object="sword", actor_id="player")
         result = handle_examine(accessor, action)
 
         self.assertTrue(result.success)
@@ -201,7 +201,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
         accessor = StateAccessor(state, behavior_manager)
 
         from behaviors.core.perception import handle_examine
-        action = {"actor_id": "player", "object": "dragon"}
+        action = make_action(object="dragon", actor_id="player")
         result = handle_examine(accessor, action)
 
         self.assertFalse(result.success)
@@ -222,7 +222,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
         accessor = StateAccessor(state, behavior_manager)
 
         from behaviors.core.perception import handle_inventory
-        action = {"actor_id": "player"}
+        action = make_action(actor_id="player")
         result = handle_inventory(accessor, action)
 
         self.assertTrue(result.success)
@@ -257,7 +257,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
         accessor = StateAccessor(state, behavior_manager)
 
         from behaviors.core.perception import handle_inventory
-        action = {"actor_id": "npc_guard"}
+        action = make_action(actor_id="npc_guard")
         result = handle_inventory(accessor, action)
 
         self.assertTrue(result.success, f"NPC inventory failed: {result.message}")
@@ -274,7 +274,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
         accessor = StateAccessor(state, behavior_manager)
 
         from behaviors.core.perception import handle_inventory
-        action = {"actor_id": "player"}
+        action = make_action(actor_id="player")
         result = handle_inventory(accessor, action)
 
         self.assertTrue(result.success)

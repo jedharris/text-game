@@ -7,44 +7,54 @@ both for exact matches and phrase matching.
 import unittest
 from src.word_entry import WordEntry, WordType
 from utilities.utils import name_matches
+from tests.conftest import make_word_entry
 
 
-class TestNameMatchesWithString(unittest.TestCase):
-    """Test name_matches() with plain string input."""
+class TestNameMatchesBasic(unittest.TestCase):
+    """Test name_matches() with basic WordEntry input."""
 
     def test_exact_match(self):
-        """Plain string exact match."""
-        self.assertTrue(name_matches("sword", "sword"))
+        """WordEntry exact match."""
+        sword = make_word_entry("sword")
+        self.assertTrue(name_matches(sword, "sword"))
 
     def test_exact_match_case_insensitive(self):
         """Matching is case insensitive."""
-        self.assertTrue(name_matches("Sword", "sword"))
-        self.assertTrue(name_matches("sword", "Sword"))
-        self.assertTrue(name_matches("SWORD", "sword"))
+        sword = make_word_entry("sword")
+        sword_upper = make_word_entry("Sword")
+        sword_all_caps = make_word_entry("SWORD")
+        self.assertTrue(name_matches(sword_upper, "sword"))
+        self.assertTrue(name_matches(sword, "Sword"))
+        self.assertTrue(name_matches(sword_all_caps, "sword"))
 
     def test_no_match(self):
-        """Non-matching strings return False."""
-        self.assertFalse(name_matches("sword", "key"))
-        self.assertFalse(name_matches("sword", "swords"))  # Plural different
+        """Non-matching words return False."""
+        sword = make_word_entry("sword")
+        self.assertFalse(name_matches(sword, "key"))
+        self.assertFalse(name_matches(sword, "swords"))  # Plural different
 
     def test_phrase_match_disabled_by_default(self):
         """Without match_in_phrase, partial match in phrase fails."""
-        self.assertFalse(name_matches("staircase", "spiral staircase"))
+        staircase = make_word_entry("staircase")
+        self.assertFalse(name_matches(staircase, "spiral staircase"))
 
     def test_phrase_match_enabled(self):
         """With match_in_phrase, word in phrase matches."""
-        self.assertTrue(name_matches("staircase", "spiral staircase",
+        staircase = make_word_entry("staircase")
+        self.assertTrue(name_matches(staircase, "spiral staircase",
                                      match_in_phrase=True))
 
     def test_phrase_match_first_word(self):
         """match_in_phrase works for first word in phrase."""
-        self.assertTrue(name_matches("spiral", "spiral staircase",
+        spiral = make_word_entry("spiral")
+        self.assertTrue(name_matches(spiral, "spiral staircase",
                                      match_in_phrase=True))
 
     def test_phrase_match_requires_complete_word(self):
         """match_in_phrase only matches complete words, not substrings."""
         # "stair" is not a complete word in "spiral staircase"
-        self.assertFalse(name_matches("stair", "spiral staircase",
+        stair = make_word_entry("stair")
+        self.assertFalse(name_matches(stair, "spiral staircase",
                                       match_in_phrase=True))
 
 
@@ -121,7 +131,8 @@ class TestNameMatchesEdgeCases(unittest.TestCase):
         """Empty target name doesn't match."""
         entry = WordEntry(word="sword", word_type=WordType.NOUN, synonyms=[])
         self.assertFalse(name_matches(entry, ""))
-        self.assertFalse(name_matches("sword", ""))
+        sword = make_word_entry("sword")
+        self.assertFalse(name_matches(sword, ""))
 
     def test_empty_synonyms_list(self):
         """WordEntry with no synonyms still matches canonical word."""

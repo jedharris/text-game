@@ -6,6 +6,7 @@ import unittest
 from src.state_manager import GameState, Location, Item, Actor, Metadata
 from src.behavior_manager import BehaviorManager
 from src.state_accessor import StateAccessor
+from tests.conftest import make_action
 
 
 def create_test_state():
@@ -104,7 +105,7 @@ class TestHandleUse(unittest.TestCase):
         """Test using non-existent item."""
         from behaviors.core.interaction import handle_use
 
-        action = {"actor_id": "player", "object": "wand"}
+        action = make_action(object="wand", actor_id="player")
         result = handle_use(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -114,7 +115,7 @@ class TestHandleUse(unittest.TestCase):
         """Test using a usable item."""
         from behaviors.core.interaction import handle_use
 
-        action = {"actor_id": "player", "object": "key"}
+        action = make_action(object="key", actor_id="player")
         result = handle_use(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -147,7 +148,7 @@ class TestHandleRead(unittest.TestCase):
         """Test reading non-existent item."""
         from behaviors.core.interaction import handle_read
 
-        action = {"actor_id": "player", "object": "scroll"}
+        action = make_action(object="scroll", actor_id="player")
         result = handle_read(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -157,7 +158,7 @@ class TestHandleRead(unittest.TestCase):
         """Test reading non-readable item."""
         from behaviors.core.interaction import handle_read
 
-        action = {"actor_id": "player", "object": "rock"}
+        action = make_action(object="rock", actor_id="player")
         result = handle_read(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -167,7 +168,7 @@ class TestHandleRead(unittest.TestCase):
         """Test reading a readable item."""
         from behaviors.core.interaction import handle_read
 
-        action = {"actor_id": "player", "object": "book"}
+        action = make_action(object="book", actor_id="player")
         result = handle_read(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -200,7 +201,7 @@ class TestHandleClimb(unittest.TestCase):
         """Test climbing non-existent item."""
         from behaviors.core.exits import handle_climb
 
-        action = {"actor_id": "player", "object": "tree"}
+        action = make_action(object="tree", actor_id="player")
         result = handle_climb(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -210,7 +211,7 @@ class TestHandleClimb(unittest.TestCase):
         """Test climbing non-climbable item."""
         from behaviors.core.exits import handle_climb
 
-        action = {"actor_id": "player", "object": "rock"}
+        action = make_action(object="rock", actor_id="player")
         result = handle_climb(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -220,7 +221,7 @@ class TestHandleClimb(unittest.TestCase):
         """Test climbing a climbable item."""
         from behaviors.core.exits import handle_climb
 
-        action = {"actor_id": "player", "object": "ladder"}
+        action = make_action(object="ladder", actor_id="player")
         result = handle_climb(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -253,7 +254,7 @@ class TestHandlePull(unittest.TestCase):
         """Test pulling non-existent item."""
         from behaviors.core.interaction import handle_pull
 
-        action = {"actor_id": "player", "object": "rope"}
+        action = make_action(object="rope", actor_id="player")
         result = handle_pull(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -263,7 +264,7 @@ class TestHandlePull(unittest.TestCase):
         """Test pulling a pullable item."""
         from behaviors.core.interaction import handle_pull
 
-        action = {"actor_id": "player", "object": "lever"}
+        action = make_action(object="lever", actor_id="player")
         result = handle_pull(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -296,7 +297,7 @@ class TestHandlePush(unittest.TestCase):
         """Test pushing non-existent item."""
         from behaviors.core.interaction import handle_push
 
-        action = {"actor_id": "player", "object": "boulder"}
+        action = make_action(object="boulder", actor_id="player")
         result = handle_push(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -306,7 +307,7 @@ class TestHandlePush(unittest.TestCase):
         """Test pushing a pushable item."""
         from behaviors.core.interaction import handle_push
 
-        action = {"actor_id": "player", "object": "button"}
+        action = make_action(object="button", actor_id="player")
         result = handle_push(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -348,11 +349,7 @@ class TestPushWithAdjective(unittest.TestCase):
         """Test that push with adjective selects correct door."""
         from behaviors.core.interaction import handle_push
 
-        action = {
-            "actor_id": "player",
-            "object": "door",
-            "adjective": "iron"
-        }
+        action = make_action(object="door", adjective="iron", actor_id="player")
         result = handle_push(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -367,11 +364,7 @@ class TestPushWithAdjective(unittest.TestCase):
         """Test that push with different adjective selects other door."""
         from behaviors.core.interaction import handle_push
 
-        action = {
-            "actor_id": "player",
-            "object": "door",
-            "adjective": "wooden"
-        }
+        action = make_action(object="door", adjective="wooden", actor_id="player")
         result = handle_push(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -383,10 +376,7 @@ class TestPushWithAdjective(unittest.TestCase):
         """Test that push without adjective returns first match."""
         from behaviors.core.interaction import handle_push
 
-        action = {
-            "actor_id": "player",
-            "object": "door"
-        }
+        action = make_action(object="door", actor_id="player")
         result = handle_push(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -428,11 +418,7 @@ class TestPullWithAdjective(unittest.TestCase):
         """Test that pull with adjective selects correct lever."""
         from behaviors.core.interaction import handle_pull
 
-        action = {
-            "actor_id": "player",
-            "object": "lever",
-            "adjective": "brass"
-        }
+        action = make_action(object="lever", adjective="brass", actor_id="player")
         result = handle_pull(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -444,11 +430,7 @@ class TestPullWithAdjective(unittest.TestCase):
         """Test that pull with different adjective selects other lever."""
         from behaviors.core.interaction import handle_pull
 
-        action = {
-            "actor_id": "player",
-            "object": "lever",
-            "adjective": "copper"
-        }
+        action = make_action(object="lever", adjective="copper", actor_id="player")
         result = handle_pull(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -492,12 +474,7 @@ class TestReadWithAdjective(unittest.TestCase):
         """Test that read with adjective selects correct item."""
         from behaviors.core.interaction import handle_read
 
-        action = {
-            "actor_id": "player",
-            "verb": "read",
-            "object": "book",
-            "adjective": "ancient"
-        }
+        action = make_action(verb="read", object="book", adjective="ancient", actor_id="player")
         result = handle_read(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -511,12 +488,7 @@ class TestReadWithAdjective(unittest.TestCase):
         """Test that read with different adjective selects other item."""
         from behaviors.core.interaction import handle_read
 
-        action = {
-            "actor_id": "player",
-            "verb": "read",
-            "object": "book",
-            "adjective": "leather"
-        }
+        action = make_action(verb="read", object="book", adjective="leather", actor_id="player")
         result = handle_read(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -562,12 +534,7 @@ class TestClimbWithAdjective(unittest.TestCase):
         """Test that climb with adjective selects correct item."""
         from behaviors.core.exits import handle_climb
 
-        action = {
-            "actor_id": "player",
-            "verb": "climb",
-            "object": "ladder",
-            "adjective": "rope"
-        }
+        action = make_action(verb="climb", object="ladder", adjective="rope", actor_id="player")
         result = handle_climb(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -579,12 +546,7 @@ class TestClimbWithAdjective(unittest.TestCase):
         """Test that climb with different adjective selects other item."""
         from behaviors.core.exits import handle_climb
 
-        action = {
-            "actor_id": "player",
-            "verb": "climb",
-            "object": "ladder",
-            "adjective": "metal"
-        }
+        action = make_action(verb="climb", object="ladder", adjective="metal", actor_id="player")
         result = handle_climb(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -628,12 +590,7 @@ class TestUseWithAdjective(unittest.TestCase):
         """Test that use with adjective selects correct item."""
         from behaviors.core.interaction import handle_use
 
-        action = {
-            "actor_id": "player",
-            "verb": "use",
-            "object": "key",
-            "adjective": "gold"
-        }
+        action = make_action(verb="use", object="key", adjective="gold", actor_id="player")
         result = handle_use(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -645,12 +602,7 @@ class TestUseWithAdjective(unittest.TestCase):
         """Test that use with different adjective selects other item."""
         from behaviors.core.interaction import handle_use
 
-        action = {
-            "actor_id": "player",
-            "verb": "use",
-            "object": "key",
-            "adjective": "silver"
-        }
+        action = make_action(verb="use", object="key", adjective="silver", actor_id="player")
         result = handle_use(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -747,7 +699,7 @@ class TestClimbExit(unittest.TestCase):
         from behaviors.core.exits import handle_climb
 
         # "staircase" is a direct word match in the exit name
-        action = {"actor_id": "player", "verb": "climb", "object": "staircase"}
+        action = make_action(verb="climb", object="staircase", actor_id="player")
         result = handle_climb(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -759,7 +711,7 @@ class TestClimbExit(unittest.TestCase):
         """Test climbing 'spiral staircase' moves player to destination."""
         from behaviors.core.exits import handle_climb
 
-        action = {"actor_id": "player", "verb": "climb", "object": "spiral staircase"}
+        action = make_action(verb="climb", object="spiral staircase", actor_id="player")
         result = handle_climb(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -771,7 +723,7 @@ class TestClimbExit(unittest.TestCase):
         """Test climbing non-existent exit fails with helpful message."""
         from behaviors.core.exits import handle_climb
 
-        action = {"actor_id": "player", "verb": "climb", "object": "tree"}
+        action = make_action(verb="climb", object="tree", actor_id="player")
         result = handle_climb(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -782,7 +734,7 @@ class TestClimbExit(unittest.TestCase):
         from behaviors.core.exits import handle_climb
 
         # "north" is a direction, not an object name for climbing
-        action = {"actor_id": "player", "verb": "climb", "object": "wall"}
+        action = make_action(verb="climb", object="wall", actor_id="player")
         result = handle_climb(self.accessor, action)
 
         self.assertFalse(result.success)

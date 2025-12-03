@@ -19,6 +19,7 @@ from src.state_manager import load_game_state
 from src.behavior_manager import BehaviorManager
 from src.state_accessor import StateAccessor
 from utilities.utils import find_door_with_adjective, actor_has_key_for_door
+from tests.conftest import make_word_entry, make_action
 
 
 class TestDoorSelection(unittest.TestCase):
@@ -47,7 +48,7 @@ class TestDoorSelection(unittest.TestCase):
         # - door_wooden (south) - no lock
         # - door_treasure (east) - locked, opens with item_key
 
-        action = {"actor_id": "player", "object": "door"}
+        action = make_action(object="door", actor_id="player")
         result = self.behavior_manager.invoke_handler("unlock", self.accessor, action)
 
         # Should unlock door_treasure, not complain about door_wooden having no lock
@@ -57,7 +58,7 @@ class TestDoorSelection(unittest.TestCase):
     def test_unlock_without_key_still_finds_locked_door(self):
         """Test that 'unlock door' finds the locked door even without key."""
         # Player has no key
-        action = {"actor_id": "player", "object": "door"}
+        action = make_action(object="door", actor_id="player")
         result = self.behavior_manager.invoke_handler("unlock", self.accessor, action)
 
         # Should fail because no key, but should have tried the locked door
@@ -78,7 +79,7 @@ class TestDoorSelection(unittest.TestCase):
         # - door_wooden: closed, unlocked (actionable!)
         # - door_treasure: closed, locked (not actionable without key)
 
-        action = {"actor_id": "player", "object": "door"}
+        action = make_action(object="door", actor_id="player")
         result = self.behavior_manager.invoke_handler("open", self.accessor, action)
 
         # Should successfully open the wooden door
@@ -96,7 +97,7 @@ class TestDoorSelection(unittest.TestCase):
             self.accessor.update(wooden_door, {"open": True})
 
         # Now only door_treasure is closed (and locked)
-        action = {"actor_id": "player", "object": "door"}
+        action = make_action(object="door", actor_id="player")
         result = self.behavior_manager.invoke_handler("open", self.accessor, action)
 
         # Should fail because the only closed door is locked
@@ -110,7 +111,7 @@ class TestDoorSelection(unittest.TestCase):
         self.accessor.update(player, {"inventory": ["item_key"]})
 
         # Explicitly ask for the wooden door
-        action = {"actor_id": "player", "object": "door", "adjective": "wooden"}
+        action = make_action(object="door", adjective="wooden", actor_id="player")
         result = self.behavior_manager.invoke_handler("unlock", self.accessor, action)
 
         # Should try to unlock wooden door - it's not locked so "already unlocked"
@@ -127,7 +128,7 @@ class TestDoorSelection(unittest.TestCase):
         elif wooden_door:
             self.accessor.update(wooden_door, {"open": True})
 
-        action = {"actor_id": "player", "object": "door"}
+        action = make_action(object="door", actor_id="player")
         result = self.behavior_manager.invoke_handler("close", self.accessor, action)
 
         # Should close the wooden door (the open one)
@@ -166,13 +167,21 @@ class TestDoorSelectionUtility(unittest.TestCase):
     def test_find_door_with_adjective_iron(self):
         """Test finding door by 'iron' adjective."""
         # In loc_hallway, door_treasure is described as "heavy iron door"
-        door = find_door_with_adjective(self.accessor, "door", "iron", "loc_hallway")
+        door_entry = make_word_entry("door")
+
+        door = find_door_with_adjective(
+
+            self.accessor, door_entry, "iron", "loc_hallway")
         self.assertIsNotNone(door)
         self.assertEqual(door.id, "door_treasure")
 
     def test_find_door_with_adjective_wooden(self):
         """Test finding door by 'wooden' adjective."""
-        door = find_door_with_adjective(self.accessor, "door", "wooden", "loc_hallway")
+        door_entry = make_word_entry("door")
+
+        door = find_door_with_adjective(
+
+            self.accessor, door_entry, "wooden", "loc_hallway")
         self.assertIsNotNone(door)
         self.assertEqual(door.id, "door_wooden")
 
