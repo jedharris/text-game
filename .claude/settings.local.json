@@ -8,7 +8,8 @@
       "Bash(gh pr:*)",
       "Bash(gh issue:*)",
       "Bash(python -m unittest discover:*)",
-      "Bash(python -m unittest:*)"
+      "Bash(python -m unittest:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

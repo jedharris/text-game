@@ -398,11 +398,23 @@ def handle_climb(accessor, action):
             message=f"You can't reach the {climbable.name} from here."
         )
 
+    # Invoke entity behaviors (on_climb) before allowing climb
+    result = accessor.update(climbable, {}, verb="climb", actor_id=actor_id)
+
+    if not result.success:
+        # Entity behavior denied the climb
+        return HandlerResult(success=False, message=result.message)
+
     # Set climbing state
     actor.properties["focused_on"] = climbable.id
     actor.properties["posture"] = "climbing"
 
-    message = f"You climb the {climbable.name}."
+    # Build message - include behavior message if present
+    base_message = f"You climb the {climbable.name}."
+    if result.message:
+        message = f"{base_message}\n{result.message}"
+    else:
+        message = base_message
 
     # Serialize climbable object for LLM consumption
     data = serialize_for_handler_result(climbable)

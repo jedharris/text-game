@@ -719,6 +719,58 @@ Core Behaviors (Tier 3)
 
 When multiple modules provide handlers for the same verb, game-specific handlers are called first.
 
+### How Tiers Are Determined
+
+Tiers are calculated automatically based on **directory depth** in your game's `behaviors/` folder:
+
+```
+behaviors/
+  my_puzzle.py              # Tier 1 (depth 0 - directly in behaviors/)
+  lib/                      # Directory (not a tier)
+    spatial/                # Tier 2 (depth 1 - one level down)
+      stand_sit.py
+    core/                   # Tier 2 (depth 1 - symlink at depth 1)
+      -> ../../../behaviors/core/
+```
+
+**Key principles:**
+- **Depth = subdirectory levels** below `behaviors/`, not counting the file itself
+- **Tier = Depth + 1** (so depth 0 → Tier 1, depth 1 → Tier 2, etc.)
+- **Symlinks work naturally** - tier is based on where the symlink appears in your game structure, not the engine's internal structure
+- **You control tiers** by organizing your directory structure
+
+**Example:** If you create `behaviors/lib/core/` as a symlink to the engine's core behaviors, those handlers become Tier 3 because the symlink is at depth 2 in your game's directory structure.
+
+**Common patterns:**
+
+*Pattern 1: Game + Core (2 tiers)*
+```
+behaviors/
+  my_game.py           # Tier 1
+  core/ -> engine      # Tier 2
+```
+
+*Pattern 2: Game + Library + Core (3 tiers)*
+```
+behaviors/
+  my_game.py           # Tier 1
+  lib/
+    spatial/           # Tier 2
+      stand_sit.py
+    core/ -> engine    # Tier 3 (nested deeper)
+```
+
+*Pattern 3: Multiple libraries*
+```
+behaviors/
+  my_game.py           # Tier 1
+  lib/
+    puzzles/           # Tier 2
+    spatial/           # Tier 2
+    contrib/
+      core/ -> engine  # Tier 4 (deeply nested)
+```
+
 ## 4.3 Using Core Behaviors
 
 Core behaviors provide standard adventure game commands:

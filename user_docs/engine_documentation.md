@@ -372,6 +372,36 @@ When multiple modules provide handlers for the same verb:
 
 Handlers can call `invoke_previous_handler()` to delegate to lower tiers.
 
+### Tier Calculation
+
+Tiers are determined by directory depth from the base path passed to `discover_modules()`:
+
+```python
+# Tier calculation formula
+depth = len(relative_path.parts) - 1  # -1 excludes filename
+tier = depth + 1
+
+# Examples from discover_modules("behaviors/")
+behaviors/game.py              # parts=["game.py"] → depth=0 → Tier 1
+behaviors/lib/spatial.py       # parts=["lib","spatial.py"] → depth=1 → Tier 2
+behaviors/lib/core/exits.py    # parts=["lib","core","exits.py"] → depth=2 → Tier 3
+```
+
+**Symlink handling:** When a symlink is encountered (e.g., `behaviors/core/ -> /engine/behaviors/core/`), the tier is based on the symlink's position in the game's directory structure, not the target's internal structure. This allows games to control tier assignment by choosing where to place symlinks.
+
+**Example:**
+```python
+# Game structure
+behaviors/
+  puzzle.py                    # Tier 1
+  lib/
+    core/ -> /engine/behaviors/core/  # Symlink at depth 2
+      spatial.py                      # Found through symlink
+
+# Result: spatial.py is Tier 3 (based on symlink depth in game structure)
+# The engine's internal structure (/engine/behaviors/core/) is ignored
+```
+
 ## 2.4 Parser (parser.py)
 
 **Purpose:** Fast local parsing of common command patterns
