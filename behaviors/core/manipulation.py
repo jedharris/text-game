@@ -15,6 +15,7 @@ from utilities.utils import (
     name_matches
 )
 from utilities.entity_serializer import serialize_for_handler_result
+from utilities.positioning import try_implicit_positioning, build_message_with_positioning
 
 
 # Vocabulary extension - adds take and drop verbs
@@ -180,6 +181,13 @@ def handle_take(accessor, action):
             message=f"You don't see any {object_name} here."
         )
 
+    # Apply implicit positioning
+    # For container operations, position to container not item
+    if container_name:
+        moved, move_msg = try_implicit_positioning(accessor, actor_id, container)
+    else:
+        moved, move_msg = try_implicit_positioning(accessor, actor_id, item)
+
     # Check if item is already in actor's inventory
     if item.location == actor_id:
         return HandlerResult(
@@ -222,11 +230,12 @@ def handle_take(accessor, action):
         )
 
     # Build message - include behavior message if present
-    base_message = f"You take the {item.name}."
+    base_messages = [f"You take the {item.name}."]
     if result.message:
-        message = f"{base_message} {result.message}"
-    else:
-        message = base_message
+        base_messages.append(result.message)
+
+    # Combine with positioning message
+    message = build_message_with_positioning(base_messages, move_msg)
 
     # Use unified serializer for llm_context with trait randomization
     data = serialize_for_handler_result(item)

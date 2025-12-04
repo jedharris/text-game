@@ -50,6 +50,7 @@ def validate_game_state(state: "GameState", loaded_modules: Set[str] = None) -> 
     _validate_player_state(state, id_registry, errors)
     _validate_container_cycles(state, errors)
     _validate_actor_names(state, errors)
+    _validate_parts(state, id_registry, errors)
 
     # Validate behavior module references if modules provided
     if loaded_modules is not None:
@@ -85,6 +86,8 @@ def _build_id_registry(state: "GameState", errors: List[str]) -> Dict[str, str]:
     for actor_id, actor in state.actors.items():
         if actor_id != "player":
             add_id(actor_id, "npc")
+    for part in state.parts:
+        add_id(part.id, "part")
 
     return registry
 
@@ -359,3 +362,35 @@ def _validate_actor_names(state: "GameState", errors: List[str]) -> None:
                 f"Actor '{actor_id}' has prohibited name '{actor.name}' "
                 f"(reserved words: {', '.join(sorted(PROHIBITED_ACTOR_NAMES))})"
             )
+
+
+def _validate_parts(state: "GameState", registry: Dict[str, str],
+                    errors: List[str]) -> None:
+    """Validate Part entities.
+
+    Checks:
+    - Required fields (id, name, part_of)
+    - part_of references valid entity
+    - No nested parts (parts cannot have parts as parents in Phase 1)
+    """
+    for part in state.parts:
+        # Check required fields
+        if not part.id:
+            errors.append("Part has empty id")
+        if not part.name:
+            errors.append(f"Part {part.id} has empty name")
+        if not part.part_of:
+            errors.append(f"Part {part.id} missing required part_of field")
+
+        # Check part_of references valid entity
+        if part.part_of:
+            if part.part_of not in registry:
+                errors.append(
+                    f"Part {part.id} references non-existent parent {part.part_of}"
+                )
+            # Phase 1 constraint: parts cannot have parts (no nesting yet)
+            elif registry.get(part.part_of) == "part":
+                errors.append(
+                    f"Part {part.id} cannot have another part as parent "
+                    f"(nested parts not supported in Phase 1)"
+                )

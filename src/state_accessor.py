@@ -163,6 +163,107 @@ class StateAccessor:
             return None
         return self.get_door_item(exit_desc.door_id)
 
+    def get_part(self, part_id: str):
+        """
+        Get part by ID.
+
+        Args:
+            part_id: The part ID to look up
+
+        Returns:
+            Part or None if not found
+        """
+        for part in self.game_state.parts:
+            if part.id == part_id:
+                return part
+        return None
+
+    def get_parts_of(self, entity_id: str):
+        """
+        Get all parts belonging to an entity.
+
+        Args:
+            entity_id: The parent entity ID
+
+        Returns:
+            List of Part objects belonging to entity
+        """
+        return [p for p in self.game_state.parts if p.part_of == entity_id]
+
+    def get_items_at_part(self, part_id: str):
+        """
+        Get items located at a part.
+
+        Args:
+            part_id: The part ID
+
+        Returns:
+            List of Item objects at this part
+        """
+        return [i for i in self.game_state.items if i.location == part_id]
+
+    def get_entity(self, entity_id: str):
+        """
+        Get any entity by ID regardless of type.
+
+        Searches all entity collections: locations, items, actors, locks, parts.
+
+        Args:
+            entity_id: The entity ID to look up
+
+        Returns:
+            Entity or None if not found
+        """
+        # Check locations
+        entity = self.get_location(entity_id)
+        if entity:
+            return entity
+
+        # Check items
+        entity = self.get_item(entity_id)
+        if entity:
+            return entity
+
+        # Check actors
+        entity = self.get_actor(entity_id)
+        if entity:
+            return entity
+
+        # Check locks
+        entity = self.get_lock(entity_id)
+        if entity:
+            return entity
+
+        # Check parts
+        entity = self.get_part(entity_id)
+        if entity:
+            return entity
+
+        return None
+
+    def get_focused_entity(self, actor_id: str):
+        """
+        Get entity actor is focused on.
+
+        The focused_on property can reference any entity type:
+        item, container, part, or actor.
+
+        Args:
+            actor_id: The actor ID
+
+        Returns:
+            Entity actor is focused on, or None
+        """
+        actor = self.get_actor(actor_id)
+        if not actor:
+            return None
+
+        focused_id = actor.properties.get("focused_on")
+        if not focused_id:
+            return None
+
+        return self.get_entity(focused_id)
+
     def get_visible_exits(self, location_id: str, actor_id: str) -> dict:
         """
         Get all visible exits for a location.

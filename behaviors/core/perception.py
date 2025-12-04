@@ -20,6 +20,13 @@ from utilities.utils import (
 )
 from utilities.location_serializer import serialize_location_for_llm
 from utilities.entity_serializer import serialize_for_handler_result
+from utilities.positioning import (
+    try_implicit_positioning,
+    find_part_by_name,
+    find_and_position_item,
+    find_and_position_part,
+    build_message_with_positioning
+)
 
 
 # Vocabulary extension - adds perception verbs
@@ -70,7 +77,8 @@ def handle_look(accessor, action):
     """
     Handle look command.
 
-    Shows the description of the current location and visible items.
+    If object is provided, redirects to examine behavior.
+    Otherwise, shows the description of the current location and visible items.
 
     CRITICAL: Extracts actor_id from action to support both player and NPCs.
 
@@ -78,10 +86,16 @@ def handle_look(accessor, action):
         accessor: StateAccessor instance
         action: Action dict with keys:
             - actor_id: ID of actor performing action (required)
+            - object: Optional object to look at (redirects to examine)
 
     Returns:
         HandlerResult with success flag and message
     """
+    # If object specified, redirect to examine
+    object_name = action.get("object")
+    if object_name:
+        return handle_examine(accessor, action)
+
     # CRITICAL: Extract actor_id at the top
     actor_id = action.get("actor_id", "player")
 
@@ -167,7 +181,14 @@ def handle_examine(accessor, action):
     item = find_accessible_item(accessor, object_name, actor_id, item_adjective)
 
     if item:
-        message_parts = [f"{item.name}: {item.description}"]
+        # Try implicit positioning
+        moved, move_message = try_implicit_positioning(accessor, actor_id, item)
+
+        message_parts = []
+        if move_message:
+            message_parts.append(move_message)
+
+        message_parts.append(f"{item.name}: {item.description}")
 
         # If item is a container, show its contents
         container_props = item.properties.get("container", {})
@@ -213,7 +234,42 @@ def handle_examine(accessor, action):
             data=data
         )
 
-    # If no item found, try to find a door
+    # If no item found, try to find a part
+    part = find_part_by_name(accessor, object_name, location.id)
+
+    if part:
+        # Try implicit positioning
+        moved, move_message = try_implicit_positioning(accessor, actor_id, part)
+
+        message_parts = []
+        if move_message:
+            message_parts.append(move_message)
+
+        # Add part description
+        part_desc = part.properties.get("description", f"A {part.name}.")
+        message_parts.append(f"{part.name}: {part_desc}")
+
+        # List items at this part
+        items_at_part = accessor.get_items_at_part(part.id)
+        if items_at_part:
+            item_names = [item.name for item in items_at_part]
+            message_parts.append(f"On the {part.name}: {', '.join(item_names)}")
+
+        # Invoke part behaviors (on_examine)
+        result = accessor.update(part, {}, verb="examine", actor_id=actor_id)
+        if result.message:
+            message_parts.append(result.message)
+
+        # Use unified serializer for llm_context
+        data = serialize_for_handler_result(part)
+
+        return HandlerResult(
+            success=True,
+            message="\n".join(message_parts),
+            data=data
+        )
+
+    # If no item or part found, try to find a door
     # Use direction as adjective if no explicit adjective provided (e.g., "examine east door")
     door_adjective = adjective or direction
     door = find_door_with_adjective(accessor, object_name, door_adjective, location.id)
@@ -361,6 +417,17 @@ def handle_examine(accessor, action):
                 data=data
             )
         # Invisible actor - fall through to "not found" message
+
+    # Try universal surface fallback
+    # Universal surfaces (ceiling, floor, walls, sky) don't require explicit parts
+    from behaviors.core.spatial import is_universal_surface, get_default_description
+
+    if is_universal_surface(object_name):
+        description = get_default_description(object_name)
+        return HandlerResult(
+            success=True,
+            message=description
+        )
 
     return HandlerResult(
         success=False,

@@ -303,6 +303,38 @@ class Lock:
 
 
 @dataclass
+class Part:
+    """A spatial component of another entity (room, item, container, actor)."""
+    id: str
+    name: str
+    part_of: str  # Parent entity ID
+    properties: Dict[str, Any] = field(default_factory=dict)
+    behaviors: List[str] = field(default_factory=list)
+
+    @property
+    def states(self) -> Dict[str, Any]:
+        """Access states dict within properties."""
+        if "states" not in self.properties:
+            self.properties["states"] = {}
+        return self.properties["states"]
+
+    @states.setter
+    def states(self, value: Dict[str, Any]) -> None:
+        """Set states dict within properties."""
+        self.properties["states"] = value
+
+    @property
+    def llm_context(self) -> Optional[Dict[str, Any]]:
+        """Access llm_context from properties."""
+        return self.properties.get("llm_context")
+
+    @llm_context.setter
+    def llm_context(self, value: Optional[Dict[str, Any]]) -> None:
+        """Set llm_context in properties."""
+        self.properties["llm_context"] = value
+
+
+@dataclass
 class Actor:
     """Unified actor (player or NPC)."""
     id: str
@@ -368,6 +400,7 @@ class GameState:
     items: List[Item] = field(default_factory=list)
     locks: List[Lock] = field(default_factory=list)
     actors: Dict[str, Actor] = field(default_factory=dict)
+    parts: List[Part] = field(default_factory=list)
     extra: Dict[str, Any] = field(default_factory=dict)
 
     def get_actor(self, actor_id: str) -> Actor:
@@ -637,6 +670,18 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
     # Parse locks
     locks = [_parse_lock(lock) for lock in data.get('locks', [])]
 
+    # Parse parts
+    parts = []
+    for part_data in data.get('parts', []):
+        part = Part(
+            id=part_data['id'],
+            name=part_data['name'],
+            part_of=part_data['part_of'],
+            properties=part_data.get('properties', {}),
+            behaviors=part_data.get('behaviors', [])
+        )
+        parts.append(part)
+
     # Parse actors - support both old and new formats
     actors = {}
 
@@ -674,7 +719,8 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
         locations=locations,
         items=items,
         locks=locks,
-        actors=actors
+        actors=actors,
+        parts=parts
     )
 
     # Validate after loading

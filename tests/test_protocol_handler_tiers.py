@@ -32,30 +32,30 @@ class TestProtocolHandlerTierStorage(unittest.TestCase):
         self.assertEqual(handlers[0][1], mock_handler, "Should store handler as second element")
         self.assertEqual(handlers[0][2], module_name, "Should store module name as third element")
 
-    def test_register_handler_within_tier_conflict(self):
-        """Registering same verb+tier with different handler raises error."""
-        verb = "take"
+    def test_register_handler_within_tier_multiple_handlers_allowed(self):
+        """Multiple handlers for same verb+tier are allowed (for different entity types)."""
+        verb = "climb"
         tier = 2
-        module1 = "module1"
-        module2 = "module2"
+        module1 = "spatial"
+        module2 = "exits"
 
         def handler1(accessor, action):
-            return HandlerResult(success=True, message="Handler 1")
+            return HandlerResult(success=True, message="Climb item (spatial)")
 
         def handler2(accessor, action):
-            return HandlerResult(success=True, message="Handler 2")
+            return HandlerResult(success=True, message="Climb exit (navigation)")
 
         # Register first handler
         self.manager._register_handler(verb, handler1, module1, tier)
 
-        # Attempt to register conflicting handler (same verb+tier, different module)
-        with self.assertRaises(ValueError) as cm:
-            self.manager._register_handler(verb, handler2, module2, tier)
+        # Register second handler (same verb+tier, different module) - should be allowed
+        self.manager._register_handler(verb, handler2, module2, tier)
 
-        error_msg = str(cm.exception)
-        self.assertIn("take", error_msg, "Error should mention verb")
-        self.assertIn("Tier 2", error_msg, "Error should mention tier")
-        self.assertIn("conflict", error_msg.lower(), "Error should mention conflict")
+        # Should have both handlers
+        handlers = self.manager._handlers.get(verb)
+        self.assertEqual(len(handlers), 2, "Should have both handlers in same tier")
+        self.assertEqual(handlers[0][2], module1, "First handler from module1")
+        self.assertEqual(handlers[1][2], module2, "Second handler from module2")
 
     def test_register_handler_same_module_same_tier_allowed(self):
         """Registering same verb+tier+module is allowed (no error)."""

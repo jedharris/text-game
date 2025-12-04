@@ -369,7 +369,19 @@ If only the trapdoor existed (no rug), skip the floor part:
 }
 ```
 
-The universal surface fallback handles "examine floor" automatically.
+**Universal Surfaces**: The spatial system includes built-in fallback support for common room features:
+- `ceiling` - "Nothing remarkable about the ceiling."
+- `floor` / `ground` - "Nothing remarkable about the floor."
+- `sky` - "The sky stretches above you."
+- `walls` - "The walls surround you."
+
+Players can examine these in any location without you creating explicit Part entities. However, creating explicit Parts allows you to:
+- Provide custom descriptions
+- Attach items to specific surfaces
+- Add behaviors for interactions
+- Create directional walls (north wall, south wall, etc.)
+
+Explicit Part entities always override the universal surface fallback.
 
 ### Pattern 4: Room Areas
 
@@ -569,6 +581,16 @@ You squeeze into the wardrobe and remain very still.
 > (Guard enters)
 The guard looks around but doesn't spot you.
 ```
+
+**Important: When Posture is Cleared**
+
+The `posture` property is automatically cleared when the actor's `focused_on` property changes to a different entity. More specifically:
+
+- **Cleared**: When examining or interacting with an entity that has `interaction_distance: "near"` (triggers movement and changes `focused_on`)
+- **Preserved**: When examining an entity with `interaction_distance: "any"` or the default (no movement, `focused_on` may change but posture remains)
+- **Replaced**: When using a different posture command (e.g., switching from "cover" to "climbing")
+
+This allows players to look around at distant objects without leaving cover, but moving to a different nearby entity clears the posture.
 
 ---
 

@@ -7,9 +7,15 @@
 - Property-based entities: Flexible properties dict, minimal core fields 
 
 ## Coding guidelines
-- NEVER build vocabulary into the code, instead ALWAYS use the merged vocabulary and WordEntry. 
+- NEVER build vocabulary into the code, instead ALWAYS use the merged vocabulary and WordEntry.
 - NEVER add local heuristics for word matching or special vocabulary
 - Vocabulary handling rules apply to testing as well as normal code
+
+## Handler design
+- Handlers should test positively for what they CAN handle, not negatively for what they CAN'T handle
+- Each handler should check if the target entity is the right type for that handler, then return failure if not
+- This maintains clean separation of concerns and avoids cross-module dependencies
+- Example: exits.py checks if target is an exit and rejects non-exits; spatial.py checks if target is climbable and rejects non-climbable items
 
 ## Role of game engine vs. LLM  
 - in any LLM augmented game, the game engine must be responsible for all state management, including all state changes caused by user commands.

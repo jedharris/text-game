@@ -97,8 +97,8 @@ class TestPhase4ModuleLoading(unittest.TestCase):
 
         self.assertIn("missing required field 'word'", str(cm.exception))
 
-    def test_handler_conflict_same_source_type(self):
-        """Test that duplicate handlers from same source type raise error."""
+    def test_handler_multiple_same_tier_allowed(self):
+        """Test that multiple handlers for same verb in same tier are allowed."""
         behavior_manager = BehaviorManager()
 
         # First module
@@ -116,13 +116,12 @@ class TestPhase4ModuleLoading(unittest.TestCase):
         # Load first module with tier=1
         behavior_manager.load_module(first_module, tier=1)
 
-        # Load second module with same tier - should raise ValueError
-        with self.assertRaises(ValueError) as cm:
-            behavior_manager.load_module(second_module, tier=1)
+        # Load second module with same tier - should be allowed now
+        behavior_manager.load_module(second_module, tier=1)
 
-        self.assertIn("Handler conflict", str(cm.exception))
-        self.assertIn("first_module", str(cm.exception))
-        self.assertIn("second_module", str(cm.exception))
+        # Both handlers should be registered
+        handlers = behavior_manager._handlers.get("test")
+        self.assertEqual(len(handlers), 2, "Should have both handlers registered")
 
     def test_handler_no_conflict_different_tiers(self):
         """Test that same verb from different tiers is allowed."""

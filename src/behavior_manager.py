@@ -25,8 +25,6 @@ class BehaviorManager:
         self._verb_event_map: Dict[str, List[tuple]] = {}  # verb/synonym -> [(tier, event_name)]
         # Track which module registered which verb+tier (for error messages)
         self._verb_tier_sources: Dict[tuple, str] = {}  # (verb, tier) -> module_name
-        # Track which module registered which handler+tier (for error messages)
-        self._handler_tier_sources: Dict[tuple, str] = {}  # (verb, tier) -> module_name
         # Store loaded modules for entity behavior invocation
         self._modules: Dict[str, Any] = {}  # module_name -> module object
 
@@ -142,30 +140,22 @@ class BehaviorManager:
             module_name: Module name (for error messages)
             tier: Tier number (1 = highest precedence)
 
-        Raises:
-            ValueError: If handler conflict detected (same verb+tier, different module)
         """
         if verb not in self._handlers:
             self._handlers[verb] = []
 
-        # Check for within-tier conflict (same as _register_verb_mapping)
+        # Check for duplicate registration (same verb+tier+module)
         for existing_tier, existing_handler, existing_module in self._handlers[verb]:
-            if existing_tier == tier and existing_module != module_name:
-                # Conflict: same verb+tier, different module
-                existing_handler_module = self._handler_tier_sources.get((verb, tier), "unknown")
-                raise ValueError(
-                    f"Handler conflict: verb '{verb}' in Tier {tier} already has handler "
-                    f"from {existing_handler_module}, cannot add from {module_name}"
-                )
-            elif existing_tier == tier and existing_module == module_name:
-                # Same verb+tier+module - allowed, but don't add duplicate
+            if existing_tier == tier and existing_module == module_name:
+                # Same verb+tier+module - don't add duplicate
                 return
 
-        # No conflict - add the handler
+        # Add the handler - multiple handlers per verb per tier are allowed
+        # Handlers are tried in order and the first successful one is used
         self._handlers[verb].append((tier, handler, module_name))
-        self._handler_tier_sources[(verb, tier)] = module_name
 
         # Keep list sorted by tier (lowest/highest precedence first)
+        # Within a tier, handlers are tried in registration order (deterministic based on module load order)
         self._handlers[verb].sort(key=lambda x: x[0])
 
     def _validate_vocabulary(self, vocabulary: Any, module_name: str) -> None:

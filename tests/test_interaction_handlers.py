@@ -189,7 +189,7 @@ class TestHandleClimb(unittest.TestCase):
 
     def test_climb_no_object(self):
         """Test climb without specifying object."""
-        from behaviors.core.exits import handle_climb
+        from behaviors.core.spatial import handle_climb
 
         action = {"actor_id": "player"}
         result = handle_climb(self.accessor, action)
@@ -199,7 +199,7 @@ class TestHandleClimb(unittest.TestCase):
 
     def test_climb_item_not_found(self):
         """Test climbing non-existent item."""
-        from behaviors.core.exits import handle_climb
+        from behaviors.core.spatial import handle_climb
 
         action = make_action(object="tree", actor_id="player")
         result = handle_climb(self.accessor, action)
@@ -209,7 +209,7 @@ class TestHandleClimb(unittest.TestCase):
 
     def test_climb_not_climbable(self):
         """Test climbing non-climbable item."""
-        from behaviors.core.exits import handle_climb
+        from behaviors.core.spatial import handle_climb
 
         action = make_action(object="rock", actor_id="player")
         result = handle_climb(self.accessor, action)
@@ -219,7 +219,7 @@ class TestHandleClimb(unittest.TestCase):
 
     def test_climb_success(self):
         """Test climbing a climbable item."""
-        from behaviors.core.exits import handle_climb
+        from behaviors.core.spatial import handle_climb
 
         action = make_action(object="ladder", actor_id="player")
         result = handle_climb(self.accessor, action)
@@ -512,6 +512,9 @@ class TestClimbWithAdjective(unittest.TestCase):
 
         self.accessor = StateAccessor(self.state, self.behavior_manager)
 
+        # Remove the original ladder from create_test_state()
+        self.state.items = [item for item in self.state.items if item.id != "item_ladder"]
+
         # Add two ladder items with different adjectives
         rope_ladder = Item(
             id="ladder_rope",
@@ -532,7 +535,7 @@ class TestClimbWithAdjective(unittest.TestCase):
 
     def test_climb_with_adjective_selects_correct_item(self):
         """Test that climb with adjective selects correct item."""
-        from behaviors.core.exits import handle_climb
+        from behaviors.core.spatial import handle_climb
 
         action = make_action(verb="climb", object="ladder", adjective="rope", actor_id="player")
         result = handle_climb(self.accessor, action)
@@ -544,7 +547,7 @@ class TestClimbWithAdjective(unittest.TestCase):
 
     def test_climb_with_different_adjective_selects_other_item(self):
         """Test that climb with different adjective selects other item."""
-        from behaviors.core.exits import handle_climb
+        from behaviors.core.spatial import handle_climb
 
         action = make_action(verb="climb", object="ladder", adjective="metal", actor_id="player")
         result = handle_climb(self.accessor, action)

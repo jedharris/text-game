@@ -279,19 +279,17 @@ def handle_climb(accessor, action):
             message=f"INCONSISTENT STATE: Actor {actor_id} not found"
         )
 
-    # First, try to find a climbable item
-    item = find_accessible_item(accessor, object_name, actor_id, adjective)
-    if item and item.properties.get("climbable", False):
-        # Found a climbable item - invoke behaviors and return
-        result = accessor.update(item, {}, verb=verb, actor_id=actor_id)
-        base_message = f"You {verb} the {item.name}."
-        data = serialize_for_handler_result(item)
-        if result.message:
-            return HandlerResult(success=True, message=f"{base_message} {result.message}", data=data)
-        return HandlerResult(success=True, message=base_message, data=data)
-
-    # No climbable item found - try to find an exit by name
+    # Try to find an exit by name
+    # NOTE: This handler only handles exit navigation.
+    # If the target isn't an exit, we return failure so other handlers can try.
     exit_result = find_exit_by_name(accessor, object_name, actor_id, adjective)
+    if not exit_result:
+        # Not an exit - return failure so other handlers can try
+        return HandlerResult(
+            success=False,
+            message=f"You don't see any exit called {object_name}."
+        )
+
     if exit_result:
         direction, exit_descriptor = exit_result
         destination_id = exit_descriptor.to

@@ -10,6 +10,7 @@ from src.state_accessor import HandlerResult
 from utilities.utils import find_accessible_item
 from utilities.handler_utils import find_action_target, find_openable_target
 from utilities.entity_serializer import serialize_for_handler_result
+from utilities.positioning import try_implicit_positioning, build_message_with_positioning
 
 
 # Vocabulary extension - adds interaction verbs
@@ -123,13 +124,20 @@ def handle_open(accessor, action):
     if error:
         return error
 
+    # Apply implicit positioning
+    moved, move_msg = try_implicit_positioning(accessor, actor_id, item)
+
     # Check if it's a door item
     if hasattr(item, 'is_door') and item.is_door:
         data = serialize_for_handler_result(item)
         if item.door_open:
+            message = build_message_with_positioning(
+                [f"The {item.name} is already open."],
+                move_msg
+            )
             return HandlerResult(
                 success=True,
-                message=f"The {item.name} is already open.",
+                message=message,
                 data=data
             )
         if item.door_locked:
@@ -138,9 +146,13 @@ def handle_open(accessor, action):
                 message=f"The {item.name} is locked."
             )
         item.door_open = True
+        message = build_message_with_positioning(
+            [f"You open the {item.name}."],
+            move_msg
+        )
         return HandlerResult(
             success=True,
-            message=f"You open the {item.name}.",
+            message=message,
             data=data
         )
 
@@ -154,9 +166,13 @@ def handle_open(accessor, action):
     # Check if already open
     if item.container.open:
         data = serialize_for_handler_result(item)
+        message = build_message_with_positioning(
+            [f"The {item.name} is already open."],
+            move_msg
+        )
         return HandlerResult(
             success=True,
-            message=f"The {item.name} is already open.",
+            message=message,
             data=data
         )
 
@@ -175,18 +191,16 @@ def handle_open(accessor, action):
         )
 
     # Build message - include behavior message if present
-    base_message = f"You open the {item.name}."
-    data = serialize_for_handler_result(item)
+    base_messages = [f"You open the {item.name}."]
     if result.message:
-        return HandlerResult(
-            success=True,
-            message=f"{base_message} {result.message}",
-            data=data
-        )
+        base_messages.append(result.message)
+
+    message = build_message_with_positioning(base_messages, move_msg)
+    data = serialize_for_handler_result(item)
 
     return HandlerResult(
         success=True,
-        message=base_message,
+        message=message,
         data=data
     )
 
@@ -211,19 +225,30 @@ def handle_close(accessor, action):
     if error:
         return error
 
+    # Apply implicit positioning
+    moved, move_msg = try_implicit_positioning(accessor, actor_id, item)
+
     # Check if it's a door item
     if hasattr(item, 'is_door') and item.is_door:
         data = serialize_for_handler_result(item)
         if not item.door_open:
+            message = build_message_with_positioning(
+                [f"The {item.name} is already closed."],
+                move_msg
+            )
             return HandlerResult(
                 success=True,
-                message=f"The {item.name} is already closed.",
+                message=message,
                 data=data
             )
         item.door_open = False
+        message = build_message_with_positioning(
+            [f"You close the {item.name}."],
+            move_msg
+        )
         return HandlerResult(
             success=True,
-            message=f"You close the {item.name}.",
+            message=message,
             data=data
         )
 
@@ -237,18 +262,26 @@ def handle_close(accessor, action):
     # Check if already closed
     data = serialize_for_handler_result(item)
     if not item.container.open:
+        message = build_message_with_positioning(
+            [f"The {item.name} is already closed."],
+            move_msg
+        )
         return HandlerResult(
             success=True,
-            message=f"The {item.name} is already closed.",
+            message=message,
             data=data
         )
 
     # Close the container
     item.container.open = False
 
+    message = build_message_with_positioning(
+        [f"You close the {item.name}."],
+        move_msg
+    )
     return HandlerResult(
         success=True,
-        message=f"You close the {item.name}.",
+        message=message,
         data=data
     )
 
