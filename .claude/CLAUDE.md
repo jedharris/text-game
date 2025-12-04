@@ -1,6 +1,10 @@
 ## Design priorities
 - Always maximize author capability and player agency, especially when they don't conflict
-- When adding features, do as much as necessary to make all relevant entities first-class citizens, participating fully in game narration and action. 
+- When adding features, do as much as necessary to make all relevant entities first-class citizens, participating fully in game narration and action.
+- Separation of concerns: Engine manages state, LLM narrates
+- Behavior-driven extension: New functionality via external modules, not core modifications
+- Validation over runtime checks: Fail fast during load, not during play
+- Property-based entities: Flexible properties dict, minimal core fields 
 
 ## Coding guidelines
 - NEVER build vocabulary into the code, instead ALWAYS use the merged vocabulary and WordEntry. 
