@@ -588,21 +588,26 @@ class TestVerbosityTracking(unittest.TestCase):
         narrate_call = narrator.calls[-1]
         self.assertIn('"verbosity": "brief"', narrate_call)
 
-    @unittest.skip("Verbosity test failing - unrelated to directions refactor")
-    def test_take_always_uses_brief_verbosity(self):
-        """Test that take actions always use brief verbosity."""
+    def test_take_uses_tracking_verbosity(self):
+        """Test that take uses tracking mode - full on first occurrence."""
         self.state.actors["player"].location = "loc_start"
+
+        # Load behavior module to get narration_mode
+        behavior_manager = BehaviorManager()
+        behavior_manager.load_module("behaviors.core.manipulation")
 
         responses = [
             '{"type": "command", "action": {"verb": "take", "object": "sword"}}',
             "You pick up the sword."
         ]
-        narrator = MockLLMNarrator(self.handler, responses)
+        narrator = MockLLMNarrator(self.handler, responses,
+                                   behavior_manager=behavior_manager)
 
         narrator.process_turn("take sword")
 
+        # First take should use full verbosity (tracking mode)
         narrate_call = narrator.calls[-1]
-        self.assertIn('"verbosity": "brief"', narrate_call)
+        self.assertIn('"verbosity": "full"', narrate_call)
 
     def test_drop_always_uses_brief_verbosity(self):
         """Test that drop actions always use brief verbosity."""
@@ -625,21 +630,32 @@ class TestVerbosityTracking(unittest.TestCase):
         narrate_call = narrator.calls[-1]
         self.assertIn('"verbosity": "brief"', narrate_call)
 
-    @unittest.skip("Verbosity test failing - unrelated to directions refactor")
-    def test_open_close_use_brief_verbosity(self):
-        """Test that open/close actions use brief verbosity."""
+    def test_open_uses_tracking_close_uses_brief(self):
+        """Test that open uses tracking (full on first) and close uses brief."""
         self.state.actors["player"].location = "loc_start"
+
+        # Load behavior modules to get narration_mode annotations
+        behavior_manager = BehaviorManager()
+        behavior_manager.load_module("behaviors.core.interaction")
 
         responses = [
             '{"type": "command", "action": {"verb": "open", "object": "door"}}',
-            "You open the door."
+            "You open the door.",
+            '{"type": "command", "action": {"verb": "close", "object": "door"}}',
+            "You close the door."
         ]
-        narrator = MockLLMNarrator(self.handler, responses)
+        narrator = MockLLMNarrator(self.handler, responses,
+                                   behavior_manager=behavior_manager)
 
+        # Open should use full verbosity (tracking mode, first occurrence)
         narrator.process_turn("open door")
+        open_call = narrator.calls[-1]
+        self.assertIn('"verbosity": "full"', open_call)
 
-        narrate_call = narrator.calls[-1]
-        self.assertIn('"verbosity": "brief"', narrate_call)
+        # Close should use brief verbosity
+        narrator.process_turn("close door")
+        close_call = narrator.calls[-1]
+        self.assertIn('"verbosity": "brief"', close_call)
 
     def test_opening_scene_marks_start_location_visited(self):
         """Test that get_opening marks the starting location as visited."""
@@ -849,16 +865,19 @@ class TestMergedVocabulary(unittest.TestCase):
         self.handler = LLMProtocolHandler(self.state)
 
     def test_vocabulary_section_includes_base_verbs(self):
-        """Test that vocabulary section includes base verbs from vocabulary.json."""
+        """Test that vocabulary section works with empty base verbs.
+
+        Note: Base vocabulary.json now contains only prepositions and articles.
+        All verbs (including meta-commands) come from behavior modules.
+        """
         narrator = MockLLMNarrator(self.handler, ["response"])
 
         # Build vocabulary section directly
         vocab_section = narrator._build_vocabulary_section()
 
-        # Should include base verbs from vocabulary.json
-        self.assertIn("inventory", vocab_section.lower())
-        self.assertIn("quit", vocab_section.lower())
-        self.assertIn("save", vocab_section.lower())
+        # Base vocabulary.json no longer contains verbs
+        # This test verifies that narrator handles empty verb list gracefully
+        self.assertIsNotNone(vocab_section)
 
     def test_vocabulary_section_includes_behavior_verbs_when_manager_provided(self):
         """Test that vocabulary includes verbs from behavior modules."""
@@ -877,32 +896,41 @@ class TestMergedVocabulary(unittest.TestCase):
         self.assertIn("close", vocab_section.lower())
 
     def test_vocabulary_section_without_behavior_manager_uses_base_only(self):
-        """Test that without behavior manager, only base vocabulary is used."""
+        """Test that without behavior manager, empty vocabulary message is returned.
+
+        Note: Base vocabulary.json now contains only prepositions and articles.
+        When vocabulary is empty, _build_vocabulary_section returns a message
+        indicating no verbs are available.
+        """
         narrator = MockLLMNarrator(self.handler, ["response"])
 
         vocab_section = narrator._build_vocabulary_section()
 
-        # Should have base verbs from vocabulary.json
-        self.assertIn("inventory", vocab_section.lower())
-        self.assertIn("quit", vocab_section.lower())
-        # But not behavior-defined verbs (open/close are only in containers.py)
-        # unless they're also in vocabulary.json
+        # With empty base vocabulary, should indicate no verbs available
+        self.assertIn("none", vocab_section.lower())
+        self.assertIn("behavior modules", vocab_section.lower())
 
     def test_merged_vocabulary_combines_all_sources(self):
-        """Test that merged vocabulary includes verbs from all sources."""
+        """Test that merged vocabulary includes verbs from all sources.
+
+        Note: Base vocabulary.json now contains only prepositions and articles.
+        Meta commands (quit, save, load) come from meta behavior module.
+        """
         behavior_manager = BehaviorManager()
         behavior_manager.load_module("behaviors.core.containers")
+        behavior_manager.load_module("behaviors.core.perception")
+        behavior_manager.load_module("behaviors.core.meta")  # Meta commands now here
 
         narrator = MockLLMNarrator(self.handler, ["response"],
                                    behavior_manager=behavior_manager)
 
         vocab_section = narrator._build_vocabulary_section()
 
-        # Should include both base verbs and behavior verbs
-        self.assertIn("inventory", vocab_section.lower())  # Base
-        self.assertIn("quit", vocab_section.lower())  # Base
-        self.assertIn("open", vocab_section.lower())  # Behavior
-        self.assertIn("close", vocab_section.lower())  # Behavior
+        # Should include verbs from behavior modules
+        self.assertIn("inventory", vocab_section.lower())  # Perception behavior
+        self.assertIn("quit", vocab_section.lower())  # Meta behavior
+        self.assertIn("open", vocab_section.lower())  # Container behavior
+        self.assertIn("close", vocab_section.lower())  # Container behavior
 
     def test_behavior_verb_includes_llm_context(self):
         """Test that behavior verbs include their llm_context."""

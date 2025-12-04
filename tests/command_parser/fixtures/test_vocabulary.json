@@ -4,7 +4,7 @@
     { "word": "drop", "synonyms": ["put", "place"], "value": 2 },
     { "word": "examine", "synonyms": ["look", "inspect", "x"], "value": 3 },
     { "word": "go", "synonyms": [], "value": 4 },
-    { "word": "open", "synonyms": [], "value": 5 },
+    { "word": "open", "word_type": ["verb", "adjective"], "synonyms": [], "value": 5 },
     { "word": "unlock", "synonyms": [], "value": 6 },
     { "word": "attack", "synonyms": ["hit", "strike", "kill"], "value": 7 },
     { "word": "use", "synonyms": [], "value": 8 },

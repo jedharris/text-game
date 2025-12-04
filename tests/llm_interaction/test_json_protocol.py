@@ -1153,23 +1153,6 @@ class TestQueryMessages(unittest.TestCase):
         self.assertIn("doors", result["data"])
         self.assertIn("exits", result["data"])
 
-    def test_query_inventory(self):
-        """Test inventory query."""
-        # Add items to inventory
-        self.state.actors["player"].inventory.append("item_sword")
-
-        message = {
-            "type": "query",
-            "query_type": "inventory"
-        }
-
-        result = self.handler.handle_message(message)
-
-        self.assertEqual(result["type"], "query_response")
-        self.assertEqual(result["query_type"], "inventory")
-        self.assertIn("items", result["data"])
-        self.assertEqual(len(result["data"]["items"]), 1)
-
     def test_query_specific_entity(self):
         """Test entity query for specific item."""
         message = {
@@ -1680,15 +1663,14 @@ class TestEndToEndInteractions(unittest.TestCase):
         })
         self.assertTrue(result["success"])
 
-        # Query inventory to confirm
+        # Use inventory command to confirm
         result = self.handler.handle_message({
-            "type": "query",
-            "query_type": "inventory"
+            "type": "command",
+            "action": {"verb": "inventory"}
         })
 
-        inv_items = result["data"]["items"]
-        inv_names = [i["name"] for i in inv_items]
-        self.assertIn("key", inv_names)
+        self.assertTrue(result["success"])
+        self.assertIn("key", result["message"].lower())
 
     def test_disambiguation_with_adjective(self):
         """Test using adjective to disambiguate doors."""

@@ -33,8 +33,8 @@ class TestVocabularyLoading(unittest.TestCase):
         self.assertIsNotNone(parser.word_table)
         self.assertGreater(len(parser.word_table), 0)
 
-        # Count word types (note: directions now have multi-valued type {NOUN, ADJECTIVE})
-        verbs = [w for w in parser.word_table if w.word_type == WordType.VERB]
+        # Count word types (note: directions have multi-valued type {NOUN, ADJECTIVE}, "open" has {VERB, ADJECTIVE})
+        verbs = [w for w in parser.word_table if w.word_type == WordType.VERB or (isinstance(w.word_type, set) and WordType.VERB in w.word_type)]
         nouns = [w for w in parser.word_table if w.word_type == WordType.NOUN or (isinstance(w.word_type, set) and WordType.NOUN in w.word_type)]
         adjectives = [w for w in parser.word_table if w.word_type == WordType.ADJECTIVE or (isinstance(w.word_type, set) and WordType.ADJECTIVE in w.word_type)]
         prepositions = [w for w in parser.word_table if w.word_type == WordType.PREPOSITION]
@@ -45,7 +45,7 @@ class TestVocabularyLoading(unittest.TestCase):
         # Verify all types are present
         self.assertEqual(len(verbs), 10)
         self.assertEqual(len(nouns), 22)  # 12 regular nouns + 10 directions (multi-valued)
-        self.assertEqual(len(adjectives), 20)  # 10 regular adjectives + 10 directions (multi-valued)
+        self.assertEqual(len(adjectives), 21)  # 10 regular adjectives + 10 directions (multi-valued) + 1 "open" (multi-valued from verb)
         self.assertEqual(len(prepositions), 8)
         self.assertEqual(len(directions), 10)
         self.assertEqual(len(articles), 3)

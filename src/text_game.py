@@ -230,54 +230,6 @@ def main(game_dir: str = None):
         if result.verb:
             verb = result.verb.word
 
-            # Quit
-            if verb == "quit":
-                print("Thanks for playing!")
-                break
-
-            # Save (needs file dialog support)
-            if verb == "save":
-                if result.direct_object:
-                    save_game(engine.game_state, result.direct_object.word)
-                elif result.object_missing:
-                    parts = result.raw.split(maxsplit=1)
-                    if len(parts) > 1:
-                        save_game(engine.game_state, parts[1].strip())
-                    else:
-                        filename = get_save_filename(default_dir=save_load_dir, default_filename="savegame.json")
-                        if filename:
-                            save_game(engine.game_state, filename)
-                        else:
-                            print("Save canceled.")
-                continue
-
-            # Load (needs file dialog support and state replacement)
-            if verb == "load":
-                filename = None
-                if result.direct_object:
-                    filename = result.direct_object.word
-                elif result.object_missing:
-                    parts = result.raw.split(maxsplit=1)
-                    if len(parts) > 1:
-                        filename = parts[1].strip()
-                    else:
-                        filename = get_load_filename(default_dir=save_load_dir)
-
-                if filename:
-                    loaded_state = load_game(filename)
-                    if loaded_state:
-                        # Reload state in engine
-                        engine.reload_state(loaded_state)
-                        response = engine.json_handler.handle_message({
-                            "type": "query",
-                            "query_type": "location",
-                            "include": ["items", "doors"]
-                        })
-                        print(format_location_query(response))
-                else:
-                    print("Load canceled.")
-                continue
-
             # Look/examine without object -> location query
             if verb in ("look", "examine") and not result.direct_object:
                 response = engine.json_handler.handle_message({
@@ -288,20 +240,11 @@ def main(game_dir: str = None):
                 print(format_location_query(response))
                 continue
 
-            # Examine/look with object -> use command (handlers find by name)
-            if verb in ("examine", "look") and result.direct_object:
+            # Examine/look/inventory with or without object -> use command
+            if verb in ("examine", "look", "inventory"):
                 json_cmd = parsed_to_json(result)
                 response = engine.json_handler.handle_message(json_cmd)
                 print(format_command_result(response))
-                continue
-
-            # Inventory -> inventory query
-            if verb == "inventory":
-                response = engine.json_handler.handle_message({
-                    "type": "query",
-                    "query_type": "inventory"
-                })
-                print(format_inventory_query(response))
                 continue
 
         # Handle direction-only input (bare "north", etc.)
@@ -314,6 +257,52 @@ def main(game_dir: str = None):
 
         # Execute via JSON protocol
         response = engine.json_handler.handle_message(json_cmd)
+
+        # Check for meta command signals (quit, save, load)
+        if response.get("success") and response.get("data", {}).get("signal"):
+            signal = response["data"]["signal"]
+
+            if signal == "quit":
+                print(response.get("message", "Thanks for playing!"))
+                break
+
+            elif signal == "save":
+                filename = response["data"].get("filename")
+                if not filename:
+                    # Prompt for filename using file dialog
+                    filename = get_save_filename(default_dir=save_load_dir,
+                                                default_filename="savegame.json")
+                if filename:
+                    save_game(engine.game_state, filename)
+                    print(f"Game saved to {filename}")
+                else:
+                    print("Save canceled.")
+                continue
+
+            elif signal == "load":
+                filename = response["data"].get("filename")
+                if not filename:
+                    # Prompt for filename using file dialog
+                    filename = get_load_filename(default_dir=save_load_dir)
+                if filename:
+                    loaded_state = load_game(filename)
+                    if loaded_state:
+                        # Reload state in engine
+                        engine.reload_state(loaded_state)
+                        # Show new location
+                        response = engine.json_handler.handle_message({
+                            "type": "query",
+                            "query_type": "location",
+                            "include": ["items", "doors"]
+                        })
+                        print(format_location_query(response))
+                    else:
+                        print(f"Failed to load {filename}")
+                else:
+                    print("Load canceled.")
+                continue
+
+        # Normal command result
         print(format_command_result(response))
 
         # Check for win condition

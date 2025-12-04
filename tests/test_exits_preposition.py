@@ -1,10 +1,14 @@
 """Tests for preposition-based exit traversal (go through archway)."""
 
+import json
+import tempfile
 import unittest
+from pathlib import Path
 from src.state_manager import GameState, Location, Actor, ExitDescriptor, Metadata
 from src.state_accessor import StateAccessor
 from src.behavior_manager import BehaviorManager
-from src.parser import WordEntry, WordType
+from src.parser import Parser
+from src.llm_narrator import parsed_to_json
 from behaviors.core.exits import handle_go
 
 
@@ -12,7 +16,7 @@ class TestGoThroughPreposition(unittest.TestCase):
     """Test 'go through <exit name>' functionality."""
 
     def setUp(self):
-        """Set up test game state with named exits."""
+        """Set up test game state with named exits and parser."""
         self.state = GameState(
             metadata=Metadata(title="Test"),
             locations=[
@@ -68,23 +72,31 @@ class TestGoThroughPreposition(unittest.TestCase):
         self.behavior_manager.load_module(behaviors.core.exits)
         self.accessor = StateAccessor(self.state, self.behavior_manager)
 
+        # Create parser with merged vocabulary (base + behavior modules)
+        base_vocab_path = Path(__file__).parent.parent / "src" / "vocabulary.json"
+        with open(base_vocab_path, 'r') as f:
+            vocabulary = json.load(f)
+        merged_vocabulary = self.behavior_manager.get_merged_vocabulary(vocabulary)
+
+        # Write merged vocabulary to temp file for Parser
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            json.dump(merged_vocabulary, f)
+            self.vocab_path = f.name
+
+        self.parser = Parser(self.vocab_path)
+
+    def tearDown(self):
+        """Clean up temp vocabulary file."""
+        Path(self.vocab_path).unlink()
+
     def test_go_through_archway_traverses_exit(self):
         """Test 'go through archway' moves player to destination.
 
-        Uses WordEntry with synonyms as the actual game parser does.
+        Uses parser to convert natural language to action dict.
         """
-        # When player types "go through archway", parser creates WordEntry with synonyms
-        archway_entry = WordEntry(
-            word="archway",
-            word_type=WordType.NOUN,
-            synonyms=["arch"]
-        )
-        action = {
-            "actor_id": "player",
-            "verb": "go",
-            "preposition": "through",
-            "object": archway_entry
-        }
+        parsed = self.parser.parse_command("go through archway")
+        action = parsed_to_json(parsed)["action"]
+        action["actor_id"] = "player"
 
         result = handle_go(self.accessor, action)
 
@@ -95,17 +107,9 @@ class TestGoThroughPreposition(unittest.TestCase):
 
     def test_go_through_nonexistent_exit_fails(self):
         """Test 'go through' with non-existent exit name fails."""
-        portal_entry = WordEntry(
-            word="portal",
-            word_type=WordType.NOUN,
-            synonyms=[]
-        )
-        action = {
-            "actor_id": "player",
-            "verb": "go",
-            "preposition": "through",
-            "object": portal_entry
-        }
+        parsed = self.parser.parse_command("go through portal")
+        action = parsed_to_json(parsed)["action"]
+        action["actor_id"] = "player"
 
         result = handle_go(self.accessor, action)
 
@@ -117,17 +121,9 @@ class TestGoThroughPreposition(unittest.TestCase):
 
     def test_walk_through_uses_synonym(self):
         """Test 'walk through archway' works (walk is synonym of go)."""
-        archway_entry = WordEntry(
-            word="archway",
-            word_type=WordType.NOUN,
-            synonyms=["arch"]
-        )
-        action = {
-            "actor_id": "player",
-            "verb": "walk",
-            "preposition": "through",
-            "object": archway_entry
-        }
+        parsed = self.parser.parse_command("walk through archway")
+        action = parsed_to_json(parsed)["action"]
+        action["actor_id"] = "player"
 
         result = handle_go(self.accessor, action)
 
@@ -138,25 +134,15 @@ class TestGoThroughPreposition(unittest.TestCase):
     def test_go_through_stairs_traverses_exit(self):
         """Test 'go through stairs' finds exit by matching 'staircase'.
 
-        Uses WordEntry with synonyms - "stairs" has synonym "staircase" which
-        matches the exit name "spiral staircase".
+        Tests synonym matching in exit names.
         """
         # Move player to room3 first
         player = self.accessor.get_actor("player")
         self.accessor.update(player, {"location": "room3"})
 
-        # When player types "go through stairs", parser creates WordEntry with synonyms
-        stairs_entry = WordEntry(
-            word="stairs",
-            word_type=WordType.NOUN,
-            synonyms=["staircase", "stairway", "steps"]
-        )
-        action = {
-            "actor_id": "player",
-            "verb": "go",
-            "preposition": "through",
-            "object": stairs_entry
-        }
+        parsed = self.parser.parse_command("go through stairs")
+        action = parsed_to_json(parsed)["action"]
+        action["actor_id"] = "player"
 
         result = handle_go(self.accessor, action)
 
@@ -166,18 +152,9 @@ class TestGoThroughPreposition(unittest.TestCase):
 
     def test_go_through_full_name_works(self):
         """Test using full exit name 'stone archway' works."""
-        # Multi-word noun phrase - parser would handle as single object
-        archway_entry = WordEntry(
-            word="stone archway",
-            word_type=WordType.NOUN,
-            synonyms=[]
-        )
-        action = {
-            "actor_id": "player",
-            "verb": "go",
-            "preposition": "through",
-            "object": archway_entry
-        }
+        parsed = self.parser.parse_command("go through stone archway")
+        action = parsed_to_json(parsed)["action"]
+        action["actor_id"] = "player"
 
         result = handle_go(self.accessor, action)
 
@@ -187,11 +164,9 @@ class TestGoThroughPreposition(unittest.TestCase):
 
     def test_go_north_still_works(self):
         """Test direction-based 'go north' still works after adding preposition support."""
-        action = {
-            "actor_id": "player",
-            "verb": "go",
-            "object": "north"
-        }
+        parsed = self.parser.parse_command("go north")
+        action = parsed_to_json(parsed)["action"]
+        action["actor_id"] = "player"
 
         result = handle_go(self.accessor, action)
 

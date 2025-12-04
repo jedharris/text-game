@@ -50,6 +50,8 @@ def parsed_to_json(result: ParsedCommand) -> Dict[str, Any]:
         action["object"] = result.direct_object
     if result.direct_adjective:
         action["adjective"] = result.direct_adjective.word
+    if result.preposition:
+        action["preposition"] = result.preposition.word
     if result.indirect_object:
         # Pass full WordEntry to preserve synonyms for entity matching
         action["indirect_object"] = result.indirect_object
@@ -487,6 +489,6 @@ class LLMNarrator:
         directions = [d["word"] for d in vocab.get("directions", [])]
 
         if not verbs:
-            return "Available verbs: take, drop, examine, go, open, close, unlock, lock, look, inventory"
+            return "Available verbs: (none - behavior modules should provide verbs)"
 
         return f"Available verbs: {', '.join(verbs)}\nDirections: {', '.join(directions)}"

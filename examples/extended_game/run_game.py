@@ -243,11 +243,6 @@ def main():
         if result.verb:
             verb = result.verb.word
 
-            # Quit
-            if verb == "quit":
-                print("Thanks for playing!")
-                break
-
             # Help
             if verb == "help":
                 print("Available commands:")
@@ -285,6 +280,19 @@ def main():
 
         # Execute via JSON protocol
         response = json_handler.handle_message(json_cmd)
+
+        # Check for meta command signals (quit, save, load)
+        if response.get("success") and response.get("data", {}).get("signal"):
+            signal = response["data"]["signal"]
+
+            if signal == "quit":
+                print(response.get("message", "Thanks for playing!"))
+                break
+
+            # Note: extended_game doesn't have save/load functionality
+            # If needed in future, add signal handling here
+
+        # Normal command result
         print(format_command_result(response))
 
         # Check for win condition (getting to sanctum with the wand)

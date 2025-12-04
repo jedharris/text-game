@@ -23,6 +23,8 @@ class LLMProtocolHandler:
     """
 
     # Meta commands that should still work after state corruption
+    # These are handled by behavior modules but need to remain functional
+    # even when game state is corrupted
     META_COMMANDS = {"save", "quit", "help", "load"}
 
     def __init__(self, state: GameState, behavior_manager: Optional[BehaviorManager] = None):
@@ -258,8 +260,6 @@ class LLMProtocolHandler:
 
         if query_type == "location":
             return self._query_location(message)
-        elif query_type == "inventory":
-            return self._query_inventory(message)
         elif query_type == "entity":
             return self._query_entity(message)
         elif query_type == "entities":
@@ -304,35 +304,6 @@ class LLMProtocolHandler:
             "type": "query_response",
             "query_type": "location",
             "data": data
-        }
-
-    def _query_inventory(self, message: Dict) -> Dict:
-        """Query actor inventory.
-
-        Supports actor_id parameter for NPC inventory queries.
-        Defaults to player if not specified.
-        """
-        # Get actor_id from message, default to player
-        actor_id = message.get("actor_id", "player")
-
-        # Get the actor from unified actors dict
-        actor = self.state.actors.get(actor_id)
-        if not actor:
-            return {
-                "type": "error",
-                "message": f"Actor not found: {actor_id}"
-            }
-
-        items = []
-        for item_id in actor.inventory:
-            item = self._get_item_by_id(item_id)
-            if item:
-                items.append(self._entity_to_dict(item))
-
-        return {
-            "type": "query_response",
-            "query_type": "inventory",
-            "data": {"items": items}
         }
 
     def _query_entity(self, message: Dict) -> Dict:

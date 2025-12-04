@@ -1,7 +1,7 @@
 """
-Tests for inventory query refactoring (Phase I-4).
+Tests for inventory command refactoring.
 
-Reference: behavior_refactoring_testing.md lines 573-605 (NPC test pattern)
+Tests that inventory works as a command behavior instead of a query.
 """
 
 import unittest
@@ -11,33 +11,34 @@ from src.state_manager import Actor, Item
 from tests.conftest import create_test_state
 
 
-class TestInventoryQueryRefactoring(unittest.TestCase):
-    """Test inventory query supports actor_id."""
+class TestInventoryCommandRefactoring(unittest.TestCase):
+    """Test inventory command supports actor_id."""
 
     def setUp(self):
         """Set up test fixtures."""
         self.state = create_test_state()
         self.behavior_manager = BehaviorManager()
+        self.behavior_manager.load_module("behaviors.core.perception")
         self.handler = LLMProtocolHandler(self.state, self.behavior_manager)
 
-    def test_query_inventory_player_default(self):
-        """Test inventory query defaults to player."""
+    def test_inventory_command_player_default(self):
+        """Test inventory command defaults to player."""
         player = self.state.actors["player"]
         player.inventory.append("item_sword")
 
         message = {
-            "type": "query",
-            "query_type": "inventory"
+            "type": "command",
+            "action": {"verb": "inventory"}
         }
 
         result = self.handler.handle_message(message)
 
-        self.assertEqual(result["type"], "query_response")
-        item_ids = [i["id"] for i in result["data"]["items"]]
-        self.assertIn("item_sword", item_ids)
+        self.assertEqual(result["type"], "result")
+        self.assertTrue(result["success"])
+        self.assertIn("sword", result["message"].lower())
 
-    def test_query_inventory_npc(self):
-        """Test inventory query for NPC.
+    def test_inventory_command_npc(self):
+        """Test inventory command for NPC.
 
         NPC inventory should be separate from player inventory.
         """
@@ -57,32 +58,42 @@ class TestInventoryQueryRefactoring(unittest.TestCase):
         player.inventory.append("item_sword")
 
         message = {
-            "type": "query",
-            "query_type": "inventory",
-            "actor_id": "npc_guard"
+            "type": "command",
+            "action": {"verb": "inventory", "actor_id": "npc_guard"}
         }
 
         result = self.handler.handle_message(message)
 
-        item_ids = [i["id"] for i in result["data"]["items"]]
-        self.assertIn("item_key", item_ids)
-        self.assertNotIn("item_sword", item_ids)
+        self.assertTrue(result["success"])
+        self.assertIn("key", result["message"].lower())
+        self.assertNotIn("sword", result["message"].lower())
 
-    def test_query_inventory_explicit_player(self):
-        """Test inventory query with explicit player actor_id."""
+    def test_inventory_command_explicit_player(self):
+        """Test inventory command with explicit player actor_id."""
         player = self.state.actors["player"]
         player.inventory.append("item_sword")
 
         message = {
-            "type": "query",
-            "query_type": "inventory",
-            "actor_id": "player"
+            "type": "command",
+            "action": {"verb": "inventory", "actor_id": "player"}
         }
 
         result = self.handler.handle_message(message)
 
-        item_ids = [i["id"] for i in result["data"]["items"]]
-        self.assertIn("item_sword", item_ids)
+        self.assertTrue(result["success"])
+        self.assertIn("sword", result["message"].lower())
+
+    def test_inventory_command_empty(self):
+        """Test inventory command with no items."""
+        message = {
+            "type": "command",
+            "action": {"verb": "inventory"}
+        }
+
+        result = self.handler.handle_message(message)
+
+        self.assertTrue(result["success"])
+        self.assertIn("carrying nothing", result["message"].lower())
 
 
 if __name__ == '__main__':

@@ -54,6 +54,7 @@ vocabulary = {
             "event": "on_inventory",
             "synonyms": ["i", "inv"],
             "object_required": False,
+            "narration_mode": "brief",
             "llm_context": {
                 "traits": ["shows carried items", "personal status"]
             }
@@ -264,10 +265,13 @@ def handle_examine(accessor, action):
         indirect_object = action.get("indirect_object")
         indirect_adjective = action.get("indirect_adjective")
 
+        # Use adjective as direction if no explicit direction (e.g., "examine east lock")
+        lock_direction = adjective or direction
+
         lock = find_lock_by_context(
             accessor,
             location_id=location.id,
-            direction=direction,
+            direction=lock_direction,
             door_name=indirect_object,
             door_adjective=indirect_adjective,
             actor_id=actor_id
@@ -287,10 +291,10 @@ def handle_examine(accessor, action):
             )
 
         # Lock lookup failed - provide helpful error message
-        if direction:
+        if lock_direction:
             return HandlerResult(
                 success=False,
-                message=f"There's no lock to the {direction}."
+                message=f"There's no lock to the {lock_direction}."
             )
         elif indirect_object:
             return HandlerResult(

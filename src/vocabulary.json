@@ -1,40 +1,7 @@
 {
-  "verbs": [
-    {
-      "word": "quit",
-      "synonyms": ["exit"],
-      "object_required": false,
-      "llm_context": {
-        "traits": ["ends game session", "meta-command"]
-      }
-    },
-    {
-      "word": "load",
-      "synonyms": ["restore"],
-      "object_required": "optional",
-      "llm_context": {
-        "traits": ["restores saved game", "meta-command"]
-      }
-    },
-    {
-      "word": "save",
-      "synonyms": [],
-      "object_required": "optional",
-      "llm_context": {
-        "traits": ["saves current progress", "meta-command"]
-      }
-    },
-    {
-      "word": "inventory",
-      "synonyms": ["inv", "i"],
-      "object_required": false,
-      "llm_context": {
-        "traits": ["lists carried items", "meta-command"]
-      }
-    }
-  ],
+  "verbs": [],
   "nouns": [],
   "adjectives": [],
-  "prepositions": ["with", "to", "in", "on", "under", "behind", "from", "into", "onto"],
+  "prepositions": ["with", "to", "in", "on", "under", "behind", "from", "into", "onto", "through"],
   "articles": ["the", "a", "an"]
 }

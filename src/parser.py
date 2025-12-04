@@ -64,9 +64,13 @@ class Parser:
 
         # Process verbs
         for verb_data in vocab.get('verbs', []):
+            # Handle multi-valued word_type if specified (like "open" as verb+adjective)
+            word_type_raw = verb_data.get('word_type', 'verb')
+            word_type = self._parse_word_type(word_type_raw)
+
             entry = WordEntry(
                 word=verb_data['word'],
-                word_type=WordType.VERB,
+                word_type=word_type,
                 synonyms=verb_data.get('synonyms', []),
                 value=verb_data.get('value'),
                 object_required=verb_data.get('object_required', True)
@@ -388,6 +392,10 @@ class Parser:
         E.g., [ADJ, ADJ, NOUN] becomes [ADJ, NOUN] where the first ADJ
         contains combined words like "rough wooden".
 
+        Multi-type words (like "open" with VERB+ADJ) are context-sensitive:
+        - At position 0: treated as VERB, not collapsed
+        - After a VERB: treated as ADJECTIVE, can be collapsed
+
         Args:
             entries: List of WordEntry objects
 
@@ -401,12 +409,29 @@ class Parser:
         i = 0
 
         while i < len(entries):
-            if self._matches_type(entries[i], WordType.ADJECTIVE):
+            # Check if this entry can act as an adjective
+            is_adjective = self._matches_type(entries[i], WordType.ADJECTIVE)
+
+            # Multi-type entries with VERB are context-sensitive
+            has_verb_type = isinstance(entries[i].word_type, set) and WordType.VERB in entries[i].word_type
+
+            # If at position 0 and has VERB type, treat as VERB (don't collapse)
+            if i == 0 and has_verb_type:
+                result.append(entries[i])
+                i += 1
+                continue
+
+            # If after a VERB and is an adjective, allow collapsing (even if multi-type)
+            if is_adjective:
                 # Collect consecutive adjectives
                 adj_words = [entries[i].word]
                 first_entry = entries[i]
                 j = i + 1
-                while j < len(entries) and self._matches_type(entries[j], WordType.ADJECTIVE):
+                while j < len(entries):
+                    # Check if next entry is an adjective (allow multi-type if not at position 0)
+                    is_next_adj = self._matches_type(entries[j], WordType.ADJECTIVE)
+                    if not is_next_adj:
+                        break
                     adj_words.append(entries[j].word)
                     j += 1
 

@@ -222,12 +222,15 @@ class TestLookupTableOptimization(unittest.TestCase):
 
     def test_lookup_table_size(self):
         """Verify lookup table has correct number of entries."""
-        # Count main words + synonyms
-        expected_count = 0
+        # Count unique main words + synonyms
+        # (words may appear multiple times in word_table with different types, e.g., "open")
+        seen_words = set()
         for entry in self.parser.word_table:
-            expected_count += 1  # The main word
-            expected_count += len(entry.synonyms)  # All synonyms
+            seen_words.add(entry.word)  # The main word
+            for synonym in entry.synonyms:
+                seen_words.add(synonym)  # All synonyms
 
+        expected_count = len(seen_words)
         self.assertEqual(len(self.parser.word_lookup), expected_count)
 
 

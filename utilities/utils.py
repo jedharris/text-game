@@ -511,8 +511,8 @@ def _matches_adjective(adjective: str, entity) -> bool:
     Check if an adjective matches an entity's id, description, or state properties.
 
     Matching is case-insensitive and looks for the adjective as a word
-    in the entity's id or description. For door items, also checks state
-    properties: "locked", "unlocked", "open", "closed".
+    in the entity's id or description. For door items and containers, also
+    checks state properties: "locked", "unlocked", "open", "closed".
 
     Args:
         adjective: The adjective to match
@@ -532,6 +532,13 @@ def _matches_adjective(adjective: str, entity) -> bool:
         if adj_lower == "open" and entity.door_open:
             return True
         if adj_lower == "closed" and not entity.door_open:
+            return True
+
+    # For container items, check container state
+    if hasattr(entity, 'container') and entity.container:
+        if adj_lower == "open" and entity.container.open:
+            return True
+        if adj_lower == "closed" and not entity.container.open:
             return True
 
     # Check if adjective appears in ID
