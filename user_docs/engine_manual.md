@@ -358,10 +358,18 @@ def invoke_handler(self, verb: str, accessor: StateAccessor,
 def get_merged_vocabulary(self, base_vocab: Dict) -> Dict:
     """Merge base vocabulary with all loaded module vocabularies.
 
-    Ensures no duplicate words across modules.
+    Automatically creates multi-type entries when the same word appears
+    with different grammatical types from different sources.
+
     Returns unified vocabulary with all verbs, nouns, directions.
     """
 ```
+
+**Multi-Type Detection**: The merging process automatically handles vocabulary conflicts:
+- When "stand" appears as a noun in game state and as a verb in a behavior, it becomes multi-type
+- When "north" appears as both noun (in directions) and adjective (in exits), it becomes multi-type
+- The merged entry contains a set of types: `word_type: {"noun", "verb"}`
+- No manual `word_type: ["type1", "type2"]` markup needed - all automatic
 
 ### Handler Precedence
 
@@ -436,12 +444,18 @@ All vocabulary uses WordEntry (never bare strings):
 ```python
 @dataclass
 class WordEntry:
-    word: str                    # Primary word
-    word_type: WordType          # VERB, NOUN, DIRECTION, etc.
-    synonyms: List[str]          # Alternative forms
-    object_required: bool = False   # For verbs
-    narration_mode: str = "tracking"  # "brief" or "tracking"
+    word: str                              # Primary word
+    word_type: Union[WordType, Set[WordType]]  # Single type or set for multi-type words
+    synonyms: List[str]                    # Alternative forms
+    object_required: bool | str = True     # For verbs: True, False, or "optional"
+    narration_mode: str = "tracking"       # "brief" or "tracking"
 ```
+
+**Multi-Type Words**: Some words function as multiple grammatical types:
+- `word_type` can be a single `WordType` enum or a `Set[WordType]` for words like "north" (noun + adjective)
+- The vocabulary merging system automatically creates multi-type entries when the same word appears with different types from different sources
+- Example: "stand" as both a noun (furniture item) and verb (action) becomes multi-type automatically
+- The parser uses grammatical context to disambiguate which type applies in each command
 
 ### Parsing Flow
 

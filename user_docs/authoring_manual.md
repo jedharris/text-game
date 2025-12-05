@@ -2671,19 +2671,26 @@ VOCABULARY = {
     "nouns": [
         {
             "word": "key",
-            "synonyms": ["passkey"],
-            "word_type": "noun"
+            "synonyms": ["passkey"]
+            # word_type is inferred from section ("nouns" -> noun)
         }
     ],
     "directions": [
         {
             "word": "north",
-            "synonyms": ["n"],
-            "word_type": ["noun", "adjective"]  # Multi-valued for directions
+            "synonyms": ["n"]
+            # Directions automatically become multi-type (noun + adjective)
         }
     ]
 }
 ```
+
+**Multi-Type Words**: The engine automatically detects when the same word appears with different grammatical types across multiple vocabulary sources. For example:
+- If "stand" appears as a **noun** in your game state (item name) and as a **verb** in a behavior module, it becomes a multi-type word
+- **Directions** ("north", "south", etc.) are automatically multi-type because they function as both nouns (for the `go` command) and adjectives (for modifying exits)
+- The parser uses grammar rules to disambiguate which type to use in context
+
+You never need to manually specify `word_type: ["type1", "type2"]` - the merging system handles this automatically.
 
 ### Adding Custom Vocabulary
 
@@ -2709,8 +2716,8 @@ VOCABULARY = {
     "nouns": [
         {
             "word": "spell",
-            "synonyms": ["incantation", "magic"],
-            "word_type": "noun"
+            "synonyms": ["incantation", "magic"]
+            # word_type inferred from "nouns" section
         }
     ]
 }
