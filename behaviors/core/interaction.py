@@ -18,7 +18,6 @@ vocabulary = {
     "verbs": [
         {
             "word": "open",
-            "word_type": ["verb", "adjective"],
             "event": "on_open",
             "synonyms": [],
             "object_required": True,
@@ -99,7 +98,10 @@ vocabulary = {
         }
     ],
     "nouns": [],
-    "adjectives": [],
+    "adjectives": [
+        # "open" as adjective (e.g., "open door")
+        {"word": "open", "synonyms": []}
+    ],
     "directions": []
 }
 

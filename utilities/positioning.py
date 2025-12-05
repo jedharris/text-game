@@ -37,17 +37,24 @@ def try_implicit_positioning(accessor, actor_id: str, target_entity) -> Tuple[bo
     if not actor:
         return (False, None)
 
-    # Check if already focused on this entity
+    # Check if already focused on this entity or its container
     current_focus = actor.properties.get("focused_on")
     already_focused = (current_focus == target_entity.id)
+
+    # Also check if focused on the target's container (e.g., taking item from tree while climbing tree)
+    focused_on_container = False
+    if hasattr(target_entity, 'location') and current_focus == target_entity.location:
+        focused_on_container = True
 
     # Get interaction distance (defaults to "any")
     distance = target_entity.properties.get("interaction_distance", "any")
 
     # If entity doesn't require "near", just update focus without movement
+    # UNLESS we're focused on its container - then keep container focus
     if distance != "near":
-        # Update focus (even if same - keeps state consistent)
-        actor.properties["focused_on"] = target_entity.id
+        if not focused_on_container:
+            # Update focus (even if same - keeps state consistent)
+            actor.properties["focused_on"] = target_entity.id
         return (False, None)
 
     # Entity requires "near" - check if movement needed

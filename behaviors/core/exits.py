@@ -54,19 +54,31 @@ vocabulary = {
         {"word": "corridor", "synonyms": ["hallway", "hall"]},
         {"word": "tunnel", "synonyms": ["passageway"]},
 
-        # Direction nouns (multi-type: noun + adjective)
-        {"word": "north", "word_type": ["noun", "adjective"], "synonyms": ["n"]},
-        {"word": "south", "word_type": ["noun", "adjective"], "synonyms": ["s"]},
-        {"word": "east", "word_type": ["noun", "adjective"], "synonyms": ["e"]},
-        {"word": "west", "word_type": ["noun", "adjective"], "synonyms": ["w"]},
-        {"word": "up", "word_type": ["noun", "adjective"], "synonyms": ["u"]},
-        {"word": "down", "word_type": ["noun", "adjective"], "synonyms": ["d"]},
-        {"word": "northeast", "word_type": ["noun", "adjective"], "synonyms": ["ne"]},
-        {"word": "northwest", "word_type": ["noun", "adjective"], "synonyms": ["nw"]},
-        {"word": "southeast", "word_type": ["noun", "adjective"], "synonyms": ["se"]},
-        {"word": "southwest", "word_type": ["noun", "adjective"], "synonyms": ["sw"]}
+        # Direction nouns
+        {"word": "north", "synonyms": ["n"]},
+        {"word": "south", "synonyms": ["s"]},
+        {"word": "east", "synonyms": ["e"]},
+        {"word": "west", "synonyms": ["w"]},
+        {"word": "up", "synonyms": ["u"]},
+        {"word": "down", "synonyms": ["d"]},
+        {"word": "northeast", "synonyms": ["ne"]},
+        {"word": "northwest", "synonyms": ["nw"]},
+        {"word": "southeast", "synonyms": ["se"]},
+        {"word": "southwest", "synonyms": ["sw"]}
     ],
-    "adjectives": [],
+    "adjectives": [
+        # Directions also work as adjectives (e.g., "north door")
+        {"word": "north", "synonyms": []},
+        {"word": "south", "synonyms": []},
+        {"word": "east", "synonyms": []},
+        {"word": "west", "synonyms": []},
+        {"word": "up", "synonyms": []},
+        {"word": "down", "synonyms": []},
+        {"word": "northeast", "synonyms": []},
+        {"word": "northwest", "synonyms": []},
+        {"word": "southeast", "synonyms": []},
+        {"word": "southwest", "synonyms": []}
+    ],
     "directions": []
 }
 
@@ -284,10 +296,10 @@ def handle_climb(accessor, action):
     # If the target isn't an exit, we return failure so other handlers can try.
     exit_result = find_exit_by_name(accessor, object_name, actor_id, adjective)
     if not exit_result:
-        # Not an exit - return failure so other handlers can try
+        # Not an exit - return failure silently so other handlers can try
         return HandlerResult(
             success=False,
-            message=f"You don't see any exit called {object_name}."
+            message=""
         )
 
     if exit_result:

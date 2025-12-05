@@ -102,13 +102,20 @@ def main(game_dir: str = None, debug: bool = False, show_traits: bool = False):
 def cli_main():
     """Entry point for console script."""
     parser = argparse.ArgumentParser(description='LLM-powered text adventure game')
-    parser.add_argument('game_dir', nargs='?', help='Path to game directory containing game_state.json')
+    parser.add_argument('game_dir', help='Game name (from examples/) or full path to game directory')
     parser.add_argument('--debug', '-d', action='store_true',
                         help='Enable debug logging (shows API cache statistics)')
     parser.add_argument('--show-traits', '-t', action='store_true',
                         help='Print llm_context traits before each LLM narration')
     args = parser.parse_args()
-    sys.exit(main(game_dir=args.game_dir, debug=args.debug, show_traits=args.show_traits))
+
+    # If it's just a name (no path separators), prefix with examples/
+    if '/' not in args.game_dir and not Path(args.game_dir).is_absolute():
+        game_path = Path('examples') / args.game_dir
+    else:
+        game_path = Path(args.game_dir)
+
+    sys.exit(main(game_dir=str(game_path), debug=args.debug, show_traits=args.show_traits))
 
 
 if __name__ == "__main__":

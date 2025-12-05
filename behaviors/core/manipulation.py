@@ -213,9 +213,10 @@ def handle_take(accessor, action):
     result = accessor.update(item, changes, verb="take", actor_id=actor_id)
 
     if not result.success:
+        # Behavior denied the action - this is normal, not an inconsistent state
         return HandlerResult(
             success=False,
-            message=f"INCONSISTENT STATE: Failed to update item location: {result.message}"
+            message=result.message
         )
 
     # Add to inventory
@@ -310,9 +311,10 @@ def handle_drop(accessor, action):
     result = accessor.update(item, changes, verb="drop", actor_id=actor_id)
 
     if not result.success:
+        # Behavior denied the action - this is normal, not an inconsistent state
         return HandlerResult(
             success=False,
-            message=f"INCONSISTENT STATE: Failed to update item location: {result.message}"
+            message=result.message
         )
 
     # Remove from inventory
@@ -427,9 +429,10 @@ def handle_give(accessor, action):
     result = accessor.update(item, changes)
 
     if not result.success:
+        # Behavior denied the action - this is normal, not an inconsistent state
         return HandlerResult(
             success=False,
-            message=f"INCONSISTENT STATE: Failed to update item location: {result.message}"
+            message=result.message
         )
 
     # Remove from giver's inventory

@@ -378,9 +378,11 @@ def handle_climb(accessor, action):
 
     if not climbable:
         # Not found - return failure so exits.py can try exit navigation
+        # Extract word from WordEntry for display
+        display_name = object_name.word if hasattr(object_name, 'word') else object_name
         return HandlerResult(
             success=False,
-            message=f"You don't see any {object_name} here."
+            message=f"You don't see any {display_name} here."
         )
 
     # Check if entity is climbable

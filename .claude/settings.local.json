@@ -9,7 +9,9 @@
       "Bash(gh issue:*)",
       "Bash(python -m unittest discover:*)",
       "Bash(python -m unittest:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(python test_stand_vocab.py:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []

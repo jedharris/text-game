@@ -16,7 +16,7 @@ vocabulary = {
             "word": "stand",
             "event": "on_stand",
             "synonyms": ["get on"],
-            "indirect_object_required": True,
+            "object_required": True,
             "llm_context": {
                 "traits": ["positioning", "surface interaction"],
                 "usage": ["stand on <surface>", "get on <surface>"]
@@ -26,7 +26,7 @@ vocabulary = {
             "word": "sit",
             "event": "on_sit",
             "synonyms": [],
-            "indirect_object_required": True,
+            "object_required": True,
             "llm_context": {
                 "traits": ["positioning", "surface interaction"],
                 "usage": ["sit on <surface>"]
@@ -53,9 +53,9 @@ def _handle_surface_action(accessor, action: Dict[str, Any], action_verb: str,
                            posture: str) -> HandlerResult:
     """Common logic for stand/sit on surface."""
     actor_id = action.get("actor_id", "player")
-    # Parser may put surface in object or indirect_object depending on pattern
-    surface_name = action.get("indirect_object") or action.get("object")
-    adjective = action.get("indirect_adjective") or action.get("adjective")
+    # Surface is the object of the prepositional phrase
+    surface_name = action.get("object")
+    adjective = action.get("adjective")
 
     if not surface_name:
         return HandlerResult(success=False, message=f"What do you want to {action_verb}?")

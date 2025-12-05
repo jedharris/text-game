@@ -316,9 +316,16 @@ def main(game_dir: str = None):
 def cli_main():
     """Entry point for console script."""
     parser = argparse.ArgumentParser(description='Text adventure game')
-    parser.add_argument('game_dir', nargs='?', help='Path to game directory containing game_state.json')
+    parser.add_argument('game_dir', help='Game name (from examples/) or full path to game directory')
     args = parser.parse_args()
-    sys.exit(main(game_dir=args.game_dir) or 0)
+
+    # If it's just a name (no path separators), prefix with examples/
+    if '/' not in args.game_dir and not Path(args.game_dir).is_absolute():
+        game_path = Path('examples') / args.game_dir
+    else:
+        game_path = Path(args.game_dir)
+
+    sys.exit(main(game_dir=str(game_path)) or 0)
 
 
 if __name__ == '__main__':

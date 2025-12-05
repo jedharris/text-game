@@ -155,7 +155,9 @@
         "type": "object",
         "portable": false,
         "climbable": true,
-        "interaction_distance": "near"
+        "container": {
+          "is_surface": true
+        }
       },
       "behaviors": [
         "behaviors.magic_star"

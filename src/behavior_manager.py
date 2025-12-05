@@ -300,9 +300,104 @@ class BehaviorManager:
         """Return set of loaded module names for validation."""
         return set(self._modules.keys())
 
+    def _merge_types(self, type1, type2) -> list:
+        """
+        Merge two word_type values into a multi-type list.
+
+        Args:
+            type1, type2: Can be strings, lists, or None
+
+        Returns:
+            Sorted list of unique types
+        """
+        types = set()
+
+        # Add type1
+        if isinstance(type1, list):
+            types.update(type1)
+        elif type1:
+            types.add(type1)
+
+        # Add type2
+        if isinstance(type2, list):
+            types.update(type2)
+        elif type2:
+            types.add(type2)
+
+        return sorted(list(types))
+
+    def _section_to_type(self, section: str) -> str:
+        """
+        Map vocabulary section name to type string.
+
+        Args:
+            section: Section name (verbs, nouns, adjectives, directions)
+
+        Returns:
+            Type string (verb, noun, adjective)
+        """
+        mapping = {
+            "verbs": "verb",
+            "nouns": "noun",
+            "adjectives": "adjective",
+            "directions": "noun"  # Directions are nouns by default
+        }
+        return mapping.get(section, "noun")
+
+    def _rebuild_vocab_from_map(self, word_map: Dict) -> Dict:
+        """
+        Rebuild vocabulary dict from word map.
+
+        For multi-type words, uses the first type encountered in the original
+        vocabulary (stored in _original_section) to determine placement.
+        For single-type words, uses the word_type field.
+
+        Args:
+            word_map: Dict mapping word -> entry dict
+
+        Returns:
+            Vocabulary dict with verbs, nouns, adjectives sections
+        """
+        vocab = {
+            "verbs": [],
+            "nouns": [],
+            "adjectives": [],
+            "directions": [],
+            "prepositions": [],
+            "articles": []
+        }
+
+        for word, entry in word_map.items():
+            word_type = entry.get("word_type")
+            original_section = entry.get("_original_section", None)
+
+            # Use original section if available (for multi-type words)
+            if original_section:
+                vocab[original_section].append(entry)
+            else:
+                # Determine section from type
+                if isinstance(word_type, list):
+                    # Multi-type without original section - shouldn't happen, but handle it
+                    primary_type = word_type[0]
+                else:
+                    primary_type = word_type
+
+                # Map type to section
+                if primary_type == "verb":
+                    vocab["verbs"].append(entry)
+                elif primary_type == "noun":
+                    vocab["nouns"].append(entry)
+                elif primary_type == "adjective":
+                    vocab["adjectives"].append(entry)
+
+        return vocab
+
     def get_merged_vocabulary(self, base_vocab: Dict) -> Dict:
         """
         Merge base vocabulary with vocabulary from all loaded modules.
+
+        Automatically creates multi-type entries when the same word appears
+        with different types from different modules.
 
         Args:
             base_vocab: Base vocabulary dict from vocabulary.json
@@ -310,15 +405,22 @@ class BehaviorManager:
         Returns:
             Merged vocabulary dict
         """
-        result = {
-            "verbs": list(base_vocab.get("verbs", [])),
-            "nouns": list(base_vocab.get("nouns", [])),
-            "adjectives": list(base_vocab.get("adjectives", [])),
-            "directions": list(base_vocab.get("directions", [])),
-            "prepositions": list(base_vocab.get("prepositions", [])),
-            "articles": list(base_vocab.get("articles", []))
-        }
+        # Build word -> entry map
+        word_map = {}
 
+        # Add base vocab
+        for section in ["verbs", "nouns", "adjectives", "directions"]:
+            for entry in base_vocab.get(section, []):
+                word = entry["word"]
+                entry_copy = entry.copy()
+                # Set word_type if not present
+                if "word_type" not in entry_copy:
+                    entry_copy["word_type"] = self._section_to_type(section)
+                # Track original section for placement
+                entry_copy["_original_section"] = section
+                word_map[word] = entry_copy
+
+        # Merge module vocabularies
         for module in self._modules.values():
             if not hasattr(module, 'vocabulary') or not module.vocabulary:
                 continue
@@ -326,33 +428,52 @@ class BehaviorManager:
             if not isinstance(ext, dict):
                 continue
 
-            # Merge verbs (avoid duplicates by word)
-            existing_words = {v["word"] for v in result["verbs"]}
-            for verb in ext.get("verbs", []):
-                if verb["word"] not in existing_words:
-                    result["verbs"].append(verb)
-                    existing_words.add(verb["word"])
+            for section in ["verbs", "nouns", "adjectives", "directions"]:
+                for entry in ext.get(section, []):
+                    word = entry["word"]
+                    entry_copy = entry.copy()
 
-            # Merge nouns
-            existing_nouns = {n["word"] for n in result["nouns"]}
-            for noun in ext.get("nouns", []):
-                if noun["word"] not in existing_nouns:
-                    result["nouns"].append(noun)
-                    existing_nouns.add(noun["word"])
+                    # Set word_type if not present
+                    if "word_type" not in entry_copy:
+                        entry_copy["word_type"] = self._section_to_type(section)
 
-            # Merge adjectives
-            existing_adjs = {a["word"] for a in result["adjectives"]}
-            for adj in ext.get("adjectives", []):
-                if adj["word"] not in existing_adjs:
-                    result["adjectives"].append(adj)
-                    existing_adjs.add(adj["word"])
+                    if word in word_map:
+                        # Merge types
+                        existing_entry = word_map[word]
+                        existing_type = existing_entry.get("word_type")
+                        new_type = entry_copy.get("word_type")
 
-            # Merge directions
-            existing_dirs = {d["word"] for d in result["directions"]}
-            for direction in ext.get("directions", []):
-                if direction["word"] not in existing_dirs:
-                    result["directions"].append(direction)
-                    existing_dirs.add(direction["word"])
+                        # Only merge if types are different
+                        if existing_type != new_type:
+                            merged_type = self._merge_types(existing_type, new_type)
+                            existing_entry["word_type"] = merged_type
+
+                        # Merge synonyms
+                        existing_syns = set(existing_entry.get("synonyms", []))
+                        new_syns = set(entry_copy.get("synonyms", []))
+                        existing_entry["synonyms"] = list(existing_syns | new_syns)
+
+                        # Copy other properties from new entry if not present
+                        for key, value in entry_copy.items():
+                            if key not in existing_entry and key not in ["word", "word_type", "synonyms", "_original_section"]:
+                                existing_entry[key] = value
+                    else:
+                        # Track original section for placement
+                        entry_copy["_original_section"] = section
+                        word_map[word] = entry_copy
+
+        # Rebuild vocabulary sections
+        result = self._rebuild_vocab_from_map(word_map)
+
+        # Clean up internal tracking fields
+        for section in ["verbs", "nouns", "adjectives", "directions"]:
+            for entry in result[section]:
+                if "_original_section" in entry:
+                    del entry["_original_section"]
+
+        # Add prepositions and articles (no merging needed)
+        result["prepositions"] = list(base_vocab.get("prepositions", []))
+        result["articles"] = list(base_vocab.get("articles", []))
 
         return result
 
@@ -561,14 +682,18 @@ class BehaviorManager:
 
         # Try handlers in tier order
         result = None
+        last_message_result = None  # Track last result with a non-empty message
         for tier, handler, module in handlers:
             result = handler(accessor, action)
             if result and result.success:
                 return result  # Success, stop trying deeper tiers
+            # Track last failure with a message for better error reporting
+            if result and not result.success and result.message:
+                last_message_result = result
             # Continue to next tier on failure
 
-        # All tiers failed, return last result (or None if all returned None)
-        return result
+        # All tiers failed - return last result with message, or last result if all empty
+        return last_message_result if last_message_result else result
 
     def clear_cache(self):
         """Clear behavior cache (useful for hot reload)."""
