@@ -13,7 +13,7 @@ vocabulary = {
     "verbs": [
         {
             "word": "quit",
-            "synonyms": ["exit"],
+            "synonyms": ["exit", "q"],
             "object_required": False,
             "llm_context": {
                 "traits": ["ends game session", "meta-command"]

@@ -723,14 +723,15 @@ class TestClimbExit(unittest.TestCase):
         self.assertEqual(player.location, "loc_tower")
 
     def test_climb_nonexistent_exit_fails(self):
-        """Test climbing non-existent exit fails with helpful message."""
+        """Test climbing non-existent exit fails silently (for handler chaining)."""
         from behaviors.core.exits import handle_climb
 
         action = make_action(verb="climb", object="tree", actor_id="player")
         result = handle_climb(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.message.lower())
+        # Should return empty message to allow other handlers to try
+        self.assertEqual(result.message, "")
 
     def test_climb_unnamed_exit_does_not_match(self):
         """Test climbing something that doesn't match an exit name fails."""
