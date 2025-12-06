@@ -8,7 +8,7 @@ from typing import Any, Dict
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
 from utilities.utils import find_item_in_inventory
-from utilities.handler_utils import validate_actor_and_location
+from utilities.handler_utils import get_display_name, validate_actor_and_location
 
 
 # Vocabulary extension - adds eat and drink verbs
@@ -73,7 +73,7 @@ def _handle_consume(accessor, action, property_name: str, verb: str) -> HandlerR
     if not item:
         return HandlerResult(
             success=False,
-            message=f"You're not carrying any {object_name}."
+            message=f"You're not carrying any {get_display_name(object_name)}."
         )
 
     # Check if item has the required property

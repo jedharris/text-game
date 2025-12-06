@@ -230,7 +230,7 @@ def handle_go(accessor, action):
         if not exit_result:
             return HandlerResult(
                 success=False,
-                message=f"You don't see any {object_name} here to go through."
+                message=f"You don't see any {get_display_name(object_name)} here to go through."
             )
         direction, exit_descriptor = exit_result
     else:
@@ -248,7 +248,7 @@ def handle_go(accessor, action):
                 # Not found as direction or exit name
                 return HandlerResult(
                     success=False,
-                    message=f"You can't go {object_name} from here."
+                    message=f"You can't go {get_display_name(object_name)} from here."
                 )
             direction, exit_descriptor = exit_result
 

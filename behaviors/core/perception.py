@@ -27,7 +27,7 @@ from utilities.positioning import (
     find_and_position_part,
     build_message_with_positioning
 )
-from utilities.handler_utils import validate_actor_and_location
+from utilities.handler_utils import get_display_name, validate_actor_and_location
 
 
 # Vocabulary extension - adds perception verbs
@@ -403,7 +403,7 @@ def handle_examine(accessor, action):
 
     return HandlerResult(
         success=False,
-        message=f"You don't see any {object_name} here."
+        message=f"You don't see any {get_display_name(object_name)} here."
     )
 
 

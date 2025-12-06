@@ -8,7 +8,7 @@ from typing import Dict, Any
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
 from utilities.utils import find_accessible_item, name_matches
-from utilities.handler_utils import validate_actor_and_location
+from utilities.handler_utils import get_display_name, validate_actor_and_location
 
 
 # Vocabulary extension - adds attack verb
@@ -96,5 +96,5 @@ def handle_attack(accessor, action):
     # Target not found
     return HandlerResult(
         success=False,
-        message=f"You don't see any {target_name} here."
+        message=f"You don't see any {get_display_name(target_name)} here."
     )

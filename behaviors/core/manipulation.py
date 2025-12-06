@@ -16,7 +16,7 @@ from utilities.utils import (
 )
 from utilities.entity_serializer import serialize_for_handler_result
 from utilities.positioning import try_implicit_positioning, build_message_with_positioning
-from utilities.handler_utils import validate_actor_and_location
+from utilities.handler_utils import get_display_name, validate_actor_and_location
 
 
 # Vocabulary extension - adds take and drop verbs
@@ -135,7 +135,7 @@ def handle_take(accessor, action):
                     )
             return HandlerResult(
                 success=False,
-                message=f"You don't see any {container_name} here."
+                message=f"You don't see any {get_display_name(container_name)} here."
             )
 
         # Check if enclosed container is open
@@ -153,7 +153,7 @@ def handle_take(accessor, action):
             preposition = "on" if is_surface else "in"
             return HandlerResult(
                 success=False,
-                message=f"You don't see any {object_name} {preposition} the {container.name}."
+                message=f"You don't see any {get_display_name(object_name)} {preposition} the {container.name}."
             )
     else:
         # No container specified - find item anywhere accessible
@@ -163,7 +163,7 @@ def handle_take(accessor, action):
     if not item:
         return HandlerResult(
             success=False,
-            message=f"You don't see any {object_name} here."
+            message=f"You don't see any {get_display_name(object_name)} here."
         )
 
     # Apply implicit positioning
@@ -265,7 +265,7 @@ def handle_drop(accessor, action):
     if not item:
         return HandlerResult(
             success=False,
-            message=f"You don't have any {object_name}."
+            message=f"You don't have any {get_display_name(object_name)}."
         )
 
     # Perform state changes
@@ -347,7 +347,7 @@ def handle_give(accessor, action):
     if not item:
         return HandlerResult(
             success=False,
-            message=f"You don't have any {object_name}."
+            message=f"You don't have any {get_display_name(object_name)}."
         )
 
     # Search for recipient in current location
@@ -360,7 +360,7 @@ def handle_give(accessor, action):
     if not recipient:
         return HandlerResult(
             success=False,
-            message=f"You don't see any {recipient_name} here."
+            message=f"You don't see any {get_display_name(recipient_name)} here."
         )
 
     # Perform state changes
@@ -446,7 +446,7 @@ def handle_put(accessor, action):
     if not item:
         return HandlerResult(
             success=False,
-            message=f"You don't have the {object_name}."
+            message=f"You don't have the {get_display_name(object_name)}."
         )
 
     # Search for container
@@ -459,7 +459,7 @@ def handle_put(accessor, action):
     if not container:
         return HandlerResult(
             success=False,
-            message=f"You don't see any {container_name} here."
+            message=f"You don't see any {get_display_name(container_name)} here."
         )
 
     # Check if target is a container
