@@ -16,6 +16,7 @@ from utilities.utils import (
 )
 from utilities.entity_serializer import serialize_for_handler_result
 from utilities.positioning import try_implicit_positioning, build_message_with_positioning
+from utilities.handler_utils import validate_actor_and_location
 
 
 # Vocabulary extension - adds take and drop verbs
@@ -104,34 +105,18 @@ def handle_take(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    # CRITICAL: Extract actor_id at the top
-    actor_id = action.get("actor_id", "player")
+    # Validate actor and location
+    actor_id, actor, location, error = validate_actor_and_location(
+        accessor, action, require_object=True
+    )
+    if error:
+        return error
+
+    # Extract remaining action parameters
     object_name = action.get("object")
     adjective = action.get("adjective")
     container_name = action.get("indirect_object")
     container_adjective = action.get("indirect_adjective")
-
-    if not object_name:
-        return HandlerResult(
-            success=False,
-            message="What do you want to take?"
-        )
-
-    # Get the actor
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
-
-    # Get current location
-    location = accessor.get_current_location(actor_id)
-    if not location:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Cannot find location for actor {actor_id}"
-        )
 
     # If container specified, validate it and search only within it
     if container_name:
@@ -265,23 +250,14 @@ def handle_drop(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    # CRITICAL: Extract actor_id at the top
-    actor_id = action.get("actor_id", "player")
+    # Validate actor and location
+    actor_id, actor, location, error = validate_actor_and_location(
+        accessor, action, require_object=True
+    )
+    if error:
+        return error
+
     object_name = action.get("object")
-
-    if not object_name:
-        return HandlerResult(
-            success=False,
-            message="What do you want to drop?"
-        )
-
-    # Get the actor
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
 
     # Find the item in actor's inventory
     item = find_item_in_inventory(accessor, object_name, actor_id)
@@ -290,14 +266,6 @@ def handle_drop(accessor, action):
         return HandlerResult(
             success=False,
             message=f"You don't have any {object_name}."
-        )
-
-    # Get current location
-    location = accessor.get_current_location(actor_id)
-    if not location:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Cannot find location for actor {actor_id}"
         )
 
     # Perform state changes
@@ -363,30 +331,15 @@ def handle_give(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    # CRITICAL: Extract actor_id at the top
-    actor_id = action.get("actor_id", "player")
+    # Validate actor and location
+    actor_id, giver, location, error = validate_actor_and_location(
+        accessor, action, require_object=True, require_indirect_object=True
+    )
+    if error:
+        return error
+
     object_name = action.get("object")
     recipient_name = action.get("indirect_object")
-
-    if not object_name:
-        return HandlerResult(
-            success=False,
-            message="What do you want to give?"
-        )
-
-    if not recipient_name:
-        return HandlerResult(
-            success=False,
-            message="Give it to whom?"
-        )
-
-    # Get the giver actor
-    giver = accessor.get_actor(actor_id)
-    if not giver:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
 
     # Find the item in giver's inventory
     item = find_item_in_inventory(accessor, object_name, actor_id)
@@ -395,14 +348,6 @@ def handle_give(accessor, action):
         return HandlerResult(
             success=False,
             message=f"You don't have any {object_name}."
-        )
-
-    # Find recipient actor in same location
-    location = accessor.get_current_location(actor_id)
-    if not location:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Cannot find location for actor {actor_id}"
         )
 
     # Search for recipient in current location
@@ -486,29 +431,15 @@ def handle_put(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    actor_id = action.get("actor_id", "player")
+    # Validate actor and location
+    actor_id, actor, location, error = validate_actor_and_location(
+        accessor, action, require_object=True, require_indirect_object=True
+    )
+    if error:
+        return error
+
     object_name = action.get("object")
     container_name = action.get("indirect_object")
-
-    if not object_name:
-        return HandlerResult(
-            success=False,
-            message="What do you want to put?"
-        )
-
-    if not container_name:
-        return HandlerResult(
-            success=False,
-            message="Where do you want to put it?"
-        )
-
-    # Get the actor
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
 
     # Find item in actor's inventory
     item = find_item_in_inventory(accessor, object_name, actor_id)
@@ -516,14 +447,6 @@ def handle_put(accessor, action):
         return HandlerResult(
             success=False,
             message=f"You don't have the {object_name}."
-        )
-
-    # Find container in current location
-    location = accessor.get_current_location(actor_id)
-    if not location:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Cannot find location for actor {actor_id}"
         )
 
     # Search for container

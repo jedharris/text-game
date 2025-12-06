@@ -8,6 +8,7 @@ from typing import Dict, Any
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
 from utilities.utils import find_accessible_item, name_matches
+from utilities.handler_utils import validate_actor_and_location
 
 
 # Vocabulary extension - adds attack verb
@@ -51,31 +52,14 @@ def handle_attack(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    # CRITICAL: Extract actor_id at the top
-    actor_id = action.get("actor_id", "player")
+    # Validate actor and location
+    actor_id, attacker, location, error = validate_actor_and_location(
+        accessor, action, require_object=True
+    )
+    if error:
+        return error
+
     target_name = action.get("object")
-
-    if not target_name:
-        return HandlerResult(
-            success=False,
-            message="What do you want to attack?"
-        )
-
-    # Get the attacking actor
-    attacker = accessor.get_actor(actor_id)
-    if not attacker:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
-
-    # Get attacker's location
-    location = accessor.get_current_location(actor_id)
-    if not location:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Location not found for {actor_id}"
-        )
 
     # Look for target NPC in same location
     target_actor = None

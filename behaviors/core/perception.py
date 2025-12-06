@@ -27,6 +27,7 @@ from utilities.positioning import (
     find_and_position_part,
     build_message_with_positioning
 )
+from utilities.handler_utils import validate_actor_and_location
 
 
 # Vocabulary extension - adds perception verbs
@@ -96,24 +97,12 @@ def handle_look(accessor, action):
     if object_name:
         return handle_examine(accessor, action)
 
-    # CRITICAL: Extract actor_id at the top
-    actor_id = action.get("actor_id", "player")
-
-    # Get the actor
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
-
-    # Get current location
-    location = accessor.get_current_location(actor_id)
-    if not location:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Cannot find location for actor {actor_id}"
-        )
+    # Validate actor and location
+    actor_id, actor, location, error = validate_actor_and_location(
+        accessor, action, require_object=False
+    )
+    if error:
+        return error
 
     # Use shared utility to build location description
     message_parts = describe_location(accessor, location, actor_id)
@@ -146,34 +135,17 @@ def handle_examine(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    # CRITICAL: Extract actor_id at the top
-    actor_id = action.get("actor_id", "player")
+    # Validate actor and location
+    actor_id, actor, location, error = validate_actor_and_location(
+        accessor, action, require_object=True
+    )
+    if error:
+        return error
+
     object_name = action.get("object")
     adjective = action.get("adjective")
     # Direction can act as adjective (e.g., "examine east door")
     direction = action.get("direction")
-
-    if not object_name:
-        return HandlerResult(
-            success=False,
-            message="What do you want to examine?"
-        )
-
-    # Get the actor
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
-
-    # Get current location
-    location = accessor.get_current_location(actor_id)
-    if not location:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Cannot find location for actor {actor_id}"
-        )
 
     # Try to find an item first
     # Use direction as adjective if no explicit adjective (e.g., "examine east door")
@@ -451,10 +423,8 @@ def handle_inventory(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    # CRITICAL: Extract actor_id at the top
+    # Validate actor (location not needed for inventory)
     actor_id = action.get("actor_id", "player")
-
-    # Get the actor
     actor = accessor.get_actor(actor_id)
     if not actor:
         return HandlerResult(

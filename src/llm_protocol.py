@@ -49,17 +49,16 @@ class LLMProtocolHandler:
 
     def handle_message(self, message: Dict) -> Dict:
         """Route message to appropriate handler based on type."""
-        msg_type = message.get("type")
-
-        if msg_type == "command":
-            return self.handle_command(message)
-        elif msg_type == "query":
-            return self.handle_query(message)
-        else:
-            return {
-                "type": "error",
-                "message": f"Unknown message type: {msg_type}"
-            }
+        match message.get("type"):
+            case "command":
+                return self.handle_command(message)
+            case "query":
+                return self.handle_query(message)
+            case _:
+                return {
+                    "type": "error",
+                    "message": f"Unknown message type: {message.get('type')}"
+                }
 
     def handle_json_string(self, json_str: str) -> Dict:
         """Parse JSON string and handle the message."""
@@ -256,23 +255,22 @@ class LLMProtocolHandler:
 
     def handle_query(self, message: Dict) -> Dict:
         """Process a query message and return response."""
-        query_type = message.get("query_type")
-
-        if query_type == "location":
-            return self._query_location(message)
-        elif query_type == "entity":
-            return self._query_entity(message)
-        elif query_type == "entities":
-            return self._query_entities(message)
-        elif query_type == "vocabulary":
-            return self._query_vocabulary(message)
-        elif query_type == "metadata":
-            return self._query_metadata(message)
-        else:
-            return {
-                "type": "error",
-                "message": f"Unknown query type: {query_type}"
-            }
+        match message.get("query_type"):
+            case "location":
+                return self._query_location(message)
+            case "entity":
+                return self._query_entity(message)
+            case "entities":
+                return self._query_entities(message)
+            case "vocabulary":
+                return self._query_vocabulary(message)
+            case "metadata":
+                return self._query_metadata(message)
+            case _:
+                return {
+                    "type": "error",
+                    "message": f"Unknown query type: {message.get('query_type')}"
+                }
 
     # Query handlers
 
@@ -311,23 +309,19 @@ class LLMProtocolHandler:
         entity_type = message.get("entity_type")
         entity_id = message.get("entity_id")
 
+        # Map entity types to (getter, converter) tuples
+        entity_handlers = {
+            "item": (self._get_item_by_id, self._entity_to_dict),
+            "door": (self._get_door_by_id, self._door_to_dict),
+            "npc": (self._get_actor_by_id, self._actor_to_dict),
+            "location": (self._get_location_by_id, self._location_to_dict),
+        }
+
         entity = None
-        if entity_type == "item":
-            entity = self._get_item_by_id(entity_id)
-            if entity:
-                entity = self._entity_to_dict(entity)
-        elif entity_type == "door":
-            entity = self._get_door_by_id(entity_id)
-            if entity:
-                entity = self._door_to_dict(entity)
-        elif entity_type == "npc":
-            entity = self._get_actor_by_id(entity_id)
-            if entity:
-                entity = self._actor_to_dict(entity)
-        elif entity_type == "location":
-            entity = self._get_location_by_id(entity_id)
-            if entity:
-                entity = self._location_to_dict(entity)
+        if handler := entity_handlers.get(entity_type):
+            getter, converter = handler
+            if raw_entity := getter(entity_id):
+                entity = converter(raw_entity)
 
         if not entity:
             return {
@@ -347,29 +341,28 @@ class LLMProtocolHandler:
         location_id = message.get("location_id")
 
         entities = []
+        loc = self._get_location_by_id(location_id) if location_id else self._get_current_location()
 
-        if entity_type == "door":
-            loc = self._get_location_by_id(location_id) if location_id else self._get_current_location()
-            seen_door_ids = set()
-            # Check for door items through exits
-            for direction, exit_desc in loc.exits.items():
-                if exit_desc.door_id:
-                    door = self._get_door_by_id(exit_desc.door_id)
-                    if door and exit_desc.door_id not in seen_door_ids:
-                        seen_door_ids.add(exit_desc.door_id)
-                        door_dict = self._door_to_dict(door)
-                        door_dict["direction"] = direction
-                        entities.append(door_dict)
-        elif entity_type == "item":
-            loc = self._get_location_by_id(location_id) if location_id else self._get_current_location()
-            for item in self.state.items:
-                if item.location == loc.id:
-                    entities.append(self._entity_to_dict(item))
-        elif entity_type == "npc":
-            loc = self._get_location_by_id(location_id) if location_id else self._get_current_location()
-            for actor_id, actor in self.state.actors.items():
-                if actor_id != "player" and actor.location == loc.id:
-                    entities.append(self._actor_to_dict(actor))
+        match entity_type:
+            case "door":
+                seen_door_ids = set()
+                # Check for door items through exits
+                for direction, exit_desc in loc.exits.items():
+                    if exit_desc.door_id:
+                        door = self._get_door_by_id(exit_desc.door_id)
+                        if door and exit_desc.door_id not in seen_door_ids:
+                            seen_door_ids.add(exit_desc.door_id)
+                            door_dict = self._door_to_dict(door)
+                            door_dict["direction"] = direction
+                            entities.append(door_dict)
+            case "item":
+                for item in self.state.items:
+                    if item.location == loc.id:
+                        entities.append(self._entity_to_dict(item))
+            case "npc":
+                for actor_id, actor in self.state.actors.items():
+                    if actor_id != "player" and actor.location == loc.id:
+                        entities.append(self._actor_to_dict(actor))
 
         return {
             "type": "query_response",
@@ -415,20 +408,21 @@ class LLMProtocolHandler:
                 "object_required": verb_data.get("object_required", False)
             }
 
-        # Extract directions from nouns (directions have multi-valued word_type)
-        # Directions are nouns with word_type containing both "noun" and "adjective"
+        # Extract directions (directions have multi-valued word_type with "noun" and "adjective")
+        # Check all sections since merged words might end up in verbs or nouns section
         directions = {}
-        for noun_data in vocab.get("nouns", []):
-            word_type = noun_data.get("word_type")
-            # Check if word_type is a list containing both "noun" and "adjective"
-            if isinstance(word_type, list):
-                word_type_lower = [wt.lower() for wt in word_type]
-                if "noun" in word_type_lower and "adjective" in word_type_lower:
-                    # This is a direction
-                    word = noun_data["word"]
-                    directions[word] = {
-                        "synonyms": noun_data.get("synonyms", [])
-                    }
+        for section in ["verbs", "nouns"]:
+            for word_data in vocab.get(section, []):
+                word_type = word_data.get("word_type")
+                # Check if word_type is a list containing both "noun" and "adjective"
+                if isinstance(word_type, list):
+                    word_type_lower = [wt.lower() for wt in word_type]
+                    if "noun" in word_type_lower and "adjective" in word_type_lower:
+                        # This is a direction
+                        word = word_data["word"]
+                        directions[word] = {
+                            "synonyms": word_data.get("synonyms", [])
+                        }
 
         return {
             "type": "query_response",

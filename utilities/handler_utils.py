@@ -6,9 +6,96 @@ Provides shared preamble utilities for item-targeting handlers.
 
 from typing import Tuple, Optional, Dict, Any, Union
 
-from src.state_accessor import HandlerResult
+from src.state_accessor import HandlerResult, StateAccessor
 from src.word_entry import WordEntry
 from utilities.utils import find_accessible_item, find_door_with_adjective
+
+
+def validate_actor_and_location(
+    accessor: StateAccessor,
+    action: Dict[str, Any],
+    require_object: bool = True,
+    require_direction: bool = False,
+    require_indirect_object: bool = False
+) -> Tuple[Optional[str], Optional[Any], Optional[Any], Optional[HandlerResult]]:
+    """
+    Standard handler preamble: validates actor, location, and required action fields.
+
+    Args:
+        accessor: StateAccessor instance
+        action: Action dictionary from parser
+        require_object: If True, validates 'object' field is present
+        require_direction: If True, validates 'direction' field is present
+        require_indirect_object: If True, validates 'indirect_object' field is present
+
+    Returns:
+        Tuple of (actor_id, actor, location, error_result):
+        - If valid: (actor_id, actor, location, None)
+        - If error: (None, None, None, HandlerResult with error message)
+
+    Example:
+        actor_id, actor, location, error = validate_actor_and_location(
+            accessor, action, require_object=True
+        )
+        if error:
+            return error
+
+        # Continue with handler logic using actor_id, actor, location
+    """
+    # Extract actor_id with default
+    actor_id = action.get("actor_id", "player")
+
+    # Validate required fields
+    verb = action.get("verb", "do something")
+
+    if require_object and not action.get("object"):
+        return None, None, None, HandlerResult(
+            success=False,
+            message=f"What do you want to {verb}?"
+        )
+
+    if require_direction and not action.get("direction"):
+        return None, None, None, HandlerResult(
+            success=False,
+            message="Which direction do you want to go?"
+        )
+
+    if require_indirect_object and not action.get("indirect_object"):
+        # Context-specific message based on verb
+        if verb == "put":
+            return None, None, None, HandlerResult(
+                success=False,
+                message="Where do you want to put it?"
+            )
+        elif verb == "give":
+            return None, None, None, HandlerResult(
+                success=False,
+                message="Give it to whom?"
+            )
+        else:
+            obj_name = get_display_name(action.get("object"))
+            return None, None, None, HandlerResult(
+                success=False,
+                message=f"What do you want to {verb} {obj_name} with?"
+            )
+
+    # Validate actor exists
+    actor = accessor.get_actor(actor_id)
+    if not actor:
+        return None, None, None, HandlerResult(
+            success=False,
+            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
+        )
+
+    # Validate location exists
+    location = accessor.get_current_location(actor_id)
+    if not location:
+        return None, None, None, HandlerResult(
+            success=False,
+            message=f"INCONSISTENT STATE: Cannot find location for actor {actor_id}"
+        )
+
+    return actor_id, actor, location, None
 
 
 def get_object_word(object_name: Union[str, WordEntry, None]) -> Optional[str]:

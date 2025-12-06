@@ -776,7 +776,7 @@ class TestMovementThroughDoorItems(unittest.TestCase):
         """Movement blocked by closed door."""
         from behaviors.core.exits import handle_go
 
-        action = {"verb": "go", "object": "north", "actor_id": "player"}
+        action = make_action(verb="go", object="north", actor_id="player")
         result = handle_go(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -790,7 +790,7 @@ class TestMovementThroughDoorItems(unittest.TestCase):
         door = self.accessor.get_item("door_1")
         door.door_open = True
 
-        action = {"verb": "go", "object": "north", "actor_id": "player"}
+        action = make_action(verb="go", object="north", actor_id="player")
         result = handle_go(self.accessor, action)
 
         self.assertTrue(result.success)

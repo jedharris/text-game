@@ -8,15 +8,15 @@ import unittest
 from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
 from src.state_manager import Actor, Item
-from tests.conftest import create_test_state
+from tests.conftest import BaseTestCase
 
 
-class TestInventoryCommandRefactoring(unittest.TestCase):
+class TestInventoryCommandRefactoring(BaseTestCase):
     """Test inventory command supports actor_id."""
 
     def setUp(self):
         """Set up test fixtures."""
-        self.state = create_test_state()
+        super().setUp()
         self.behavior_manager = BehaviorManager()
         self.behavior_manager.load_module("behaviors.core.perception")
         self.handler = LLMProtocolHandler(self.state, self.behavior_manager)

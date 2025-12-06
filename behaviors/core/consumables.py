@@ -8,6 +8,7 @@ from typing import Any, Dict
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
 from utilities.utils import find_item_in_inventory
+from utilities.handler_utils import validate_actor_and_location
 
 
 # Vocabulary extension - adds eat and drink verbs
@@ -46,6 +47,59 @@ vocabulary = {
 }
 
 
+def _handle_consume(accessor, action, property_name: str, verb: str) -> HandlerResult:
+    """
+    Generic consumable handler for drinkable/edible items.
+
+    Args:
+        accessor: StateAccessor instance
+        action: Action dict with verb, object, actor_id
+        property_name: Property to check ("drinkable" or "edible")
+        verb: Verb for messages ("drink" or "eat")
+
+    Returns:
+        HandlerResult with success flag and message
+    """
+    # Validate actor (location not needed for inventory-based action)
+    actor_id, actor, location, error = validate_actor_and_location(
+        accessor, action, require_object=True
+    )
+    if error:
+        return error
+
+    object_name = action.get("object")
+
+    item = find_item_in_inventory(accessor, object_name, actor_id)
+    if not item:
+        return HandlerResult(
+            success=False,
+            message=f"You're not carrying any {object_name}."
+        )
+
+    # Check if item has the required property
+    if not item.properties.get(property_name, False):
+        return HandlerResult(
+            success=False,
+            message=f"You can't {verb} the {item.name}."
+        )
+
+    # Invoke entity behaviors - behaviors decide what happens
+    result = accessor.update(item, {}, verb=verb, actor_id=actor_id)
+
+    if not result.success:
+        return HandlerResult(
+            success=False,
+            message=result.message or f"You can't {verb} the {item.name}."
+        )
+
+    # Build message - include behavior message if present
+    base_message = f"You {verb} the {item.name}."
+    if result.message:
+        return HandlerResult(success=True, message=f"{base_message} {result.message}")
+
+    return HandlerResult(success=True, message=base_message)
+
+
 def handle_drink(accessor, action):
     """
     Handle drink command.
@@ -60,51 +114,7 @@ def handle_drink(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    actor_id = action.get("actor_id", "player")
-    object_name = action.get("object")
-
-    if not object_name:
-        return HandlerResult(
-            success=False,
-            message="What do you want to drink?"
-        )
-
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
-
-    item = find_item_in_inventory(accessor, object_name, actor_id)
-    if not item:
-        return HandlerResult(
-            success=False,
-            message=f"You're not carrying any {object_name}."
-        )
-
-    # Check if item is drinkable
-    if not item.properties.get("drinkable", False):
-        return HandlerResult(
-            success=False,
-            message=f"You can't drink the {item.name}."
-        )
-
-    # Invoke entity behaviors (on_drink) - behaviors decide what happens
-    result = accessor.update(item, {}, verb="drink", actor_id=actor_id)
-
-    if not result.success:
-        return HandlerResult(
-            success=False,
-            message=result.message or f"You can't drink the {item.name}."
-        )
-
-    # Build message - include behavior message if present
-    base_message = f"You drink the {item.name}."
-    if result.message:
-        return HandlerResult(success=True, message=f"{base_message} {result.message}")
-
-    return HandlerResult(success=True, message=base_message)
+    return _handle_consume(accessor, action, "drinkable", "drink")
 
 
 def handle_eat(accessor, action):
@@ -121,51 +131,7 @@ def handle_eat(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    actor_id = action.get("actor_id", "player")
-    object_name = action.get("object")
-
-    if not object_name:
-        return HandlerResult(
-            success=False,
-            message="What do you want to eat?"
-        )
-
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
-
-    item = find_item_in_inventory(accessor, object_name, actor_id)
-    if not item:
-        return HandlerResult(
-            success=False,
-            message=f"You're not carrying any {object_name}."
-        )
-
-    # Check if item is edible
-    if not item.properties.get("edible", False):
-        return HandlerResult(
-            success=False,
-            message=f"You can't eat the {item.name}."
-        )
-
-    # Invoke entity behaviors (on_eat) - behaviors decide what happens
-    result = accessor.update(item, {}, verb="eat", actor_id=actor_id)
-
-    if not result.success:
-        return HandlerResult(
-            success=False,
-            message=result.message or f"You can't eat the {item.name}."
-        )
-
-    # Build message - include behavior message if present
-    base_message = f"You eat the {item.name}."
-    if result.message:
-        return HandlerResult(success=True, message=f"{base_message} {result.message}")
-
-    return HandlerResult(success=True, message=base_message)
+    return _handle_consume(accessor, action, "edible", "eat")
 
 
 def on_drink_health_potion(entity: Any, state: Any, context: Dict) -> EventResult:

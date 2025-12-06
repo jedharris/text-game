@@ -8,6 +8,7 @@ from typing import Dict, Any
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
 from utilities.entity_serializer import serialize_for_handler_result
+from utilities.handler_utils import validate_actor_and_location
 
 
 # Vocabulary extension - adds spatial positioning verbs and universal surfaces
@@ -52,6 +53,26 @@ vocabulary = {
                 "traits": ["vertical movement", "positioning"],
                 "usage": ["climb <object>"]
             }
+        },
+        {
+            "word": "down",
+            "event": "on_down",
+            "synonyms": [],
+            "object_required": False,
+            "llm_context": {
+                "traits": ["return to ground level", "descend from elevated position"],
+                "usage": ["down"]
+            }
+        },
+        {
+            "word": "up",
+            "event": "on_up",
+            "synonyms": [],
+            "object_required": False,
+            "llm_context": {
+                "traits": ["return to ground level", "get down from elevated position"],
+                "usage": ["up"]
+            }
         }
     ],
     "nouns": [
@@ -93,6 +114,109 @@ vocabulary = {
 }
 
 
+def _handle_positioning(accessor, action, object_field: str, required_property: str = None,
+                        posture: str = None, verb_phrase: str = "move to",
+                        failure_message_builder=None, invoke_behaviors: bool = False) -> HandlerResult:
+    """
+    Generic positioning handler for approach, cover, hide, climb operations.
+
+    Args:
+        accessor: StateAccessor instance
+        action: Action dict with actor_id, object/indirect_object
+        object_field: "object" or "indirect_object" - which field to read
+        required_property: Optional property to validate (e.g., "climbable")
+        posture: Optional posture to set ("climbing", "cover", "concealed", None)
+        verb_phrase: Verb phrase for success message (e.g., "move to", "take cover behind")
+        failure_message_builder: Optional function(property_name, target_name) for custom failure messages
+        invoke_behaviors: Whether to invoke entity behaviors before positioning
+
+    Returns:
+        HandlerResult with success flag and message
+    """
+    # Validate actor and location
+    require_object = (object_field == "object")
+    require_indirect = (object_field == "indirect_object")
+    actor_id, actor, location, error = validate_actor_and_location(
+        accessor, action, require_object=require_object, require_indirect_object=require_indirect
+    )
+    if error:
+        return error
+
+    object_name = action.get(object_field)
+    adjective = action.get("adjective")
+
+    # Find target entity in current location
+    target = _find_entity_in_location(accessor, location.id, object_name, adjective)
+
+    if not target:
+        display_name = object_name.word if hasattr(object_name, 'word') else object_name
+        return HandlerResult(
+            success=False,
+            message=f"You don't see any {display_name} here."
+        )
+
+    # Check if target is accessible
+    if not _is_accessible(accessor, actor, target):
+        return HandlerResult(
+            success=False,
+            message=f"You can't reach the {target.name} from here."
+        )
+
+    # Check required property if specified
+    if required_property and not target.properties.get(required_property, False):
+        if failure_message_builder:
+            message = failure_message_builder(required_property, target.name)
+        else:
+            # Default failure message based on property
+            if required_property == "provides_cover":
+                message = f"The {target.name} doesn't provide cover."
+            elif required_property == "allows_concealment":
+                message = f"You can't hide in the {target.name}."
+            elif required_property == "climbable":
+                message = f"You can't climb the {target.name}."
+            else:
+                message = f"The {target.name} doesn't allow that."
+        return HandlerResult(success=False, message=message)
+
+    # Invoke entity behaviors if requested (e.g., for climb)
+    behavior_message = None
+    if invoke_behaviors:
+        verb = action.get("verb", "interact")
+        result = accessor.update(target, {}, verb=verb, actor_id=actor_id)
+        if not result.success:
+            return HandlerResult(success=False, message=result.message)
+        behavior_message = result.message
+
+    # Check if already positioned here (for approach-like operations without posture change)
+    old_focus = actor.properties.get("focused_on")
+    already_there = (old_focus == target.id and posture is None)
+
+    # Set positioning state
+    actor.properties["focused_on"] = target.id
+
+    # Set or clear posture
+    if posture:
+        actor.properties["posture"] = posture
+    elif "posture" in actor.properties:
+        # Clear posture for simple movement
+        del actor.properties["posture"]
+
+    # Build message
+    if already_there:
+        message = f"You're already at the {target.name}."
+    else:
+        message = f"You {verb_phrase} the {target.name}."
+        if behavior_message:
+            message = f"{message}\n{behavior_message}"
+
+    # Serialize target for LLM consumption
+    data = serialize_for_handler_result(target)
+    if posture:
+        data["posture"] = posture
+
+    return HandlerResult(success=True, message=message, data=data)
+
+
 def handle_approach(accessor, action):
     """
     Handle approach command for explicit positioning.
@@ -110,69 +234,7 @@ def handle_approach(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    actor_id = action.get("actor_id", "player")
-    object_name = action.get("object")
-    adjective = action.get("adjective")
-
-    if not object_name:
-        return HandlerResult(
-            success=False,
-            message="What do you want to approach?"
-        )
-
-    # Get the actor
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
-
-    # Get current location
-    location = accessor.get_current_location(actor_id)
-    if not location:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Cannot find location for actor {actor_id}"
-        )
-
-    # Find target entity in current location
-    target = _find_entity_in_location(accessor, location.id, object_name, adjective)
-
-    if not target:
-        return HandlerResult(
-            success=False,
-            message=f"You don't see any {object_name} here."
-        )
-
-    # Check if target is accessible
-    if not _is_accessible(accessor, actor, target):
-        return HandlerResult(
-            success=False,
-            message=f"You can't reach the {target.name} from here."
-        )
-
-    # Check if already focused on this entity
-    old_focus = actor.properties.get("focused_on")
-    already_there = (old_focus == target.id)
-
-    # Update focus
-    actor.properties["focused_on"] = target.id
-
-    # Clear posture when moving (even if just confirming position)
-    if "posture" in actor.properties:
-        del actor.properties["posture"]
-
-    # Build message
-    if already_there:
-        message = f"You're already at the {target.name}."
-    else:
-        message = f"You move to the {target.name}."
-
-    # Serialize target for LLM consumption
-    data = serialize_for_handler_result(target)
-
-    return HandlerResult(success=True, message=message, data=data)
+    return _handle_positioning(accessor, action, object_field="object", verb_phrase="move to")
 
 
 def handle_take_cover(accessor, action):
@@ -191,65 +253,20 @@ def handle_take_cover(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    actor_id = action.get("actor_id", "player")
-    indirect_object = action.get("indirect_object")
-
-    if not indirect_object:
+    # Check for missing indirect_object with custom message
+    if not action.get("indirect_object"):
         return HandlerResult(
             success=False,
             message="Take cover behind what?"
         )
 
-    # Get the actor
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
-
-    # Get current location
-    location = accessor.get_current_location(actor_id)
-    if not location:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Cannot find location for actor {actor_id}"
-        )
-
-    # Find cover entity in current location
-    cover = _find_entity_in_location(accessor, location.id, indirect_object)
-
-    if not cover:
-        return HandlerResult(
-            success=False,
-            message=f"You don't see any {indirect_object} here."
-        )
-
-    # Check if entity provides cover
-    if not cover.properties.get("provides_cover", False):
-        return HandlerResult(
-            success=False,
-            message=f"The {cover.name} doesn't provide cover."
-        )
-
-    # Check if target is accessible
-    if not _is_accessible(accessor, actor, cover):
-        return HandlerResult(
-            success=False,
-            message=f"You can't reach the {cover.name} from here."
-        )
-
-    # Set cover state
-    actor.properties["focused_on"] = cover.id
-    actor.properties["posture"] = "cover"
-
-    message = f"You take cover behind the {cover.name}."
-
-    # Serialize cover entity for LLM consumption
-    data = serialize_for_handler_result(cover)
-    data["posture"] = "cover"
-
-    return HandlerResult(success=True, message=message, data=data)
+    return _handle_positioning(
+        accessor, action,
+        object_field="indirect_object",
+        required_property="provides_cover",
+        posture="cover",
+        verb_phrase="take cover behind"
+    )
 
 
 def handle_hide_in(accessor, action):
@@ -268,65 +285,20 @@ def handle_hide_in(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    actor_id = action.get("actor_id", "player")
-    indirect_object = action.get("indirect_object")
-
-    if not indirect_object:
+    # Check for missing indirect_object with custom message
+    if not action.get("indirect_object"):
         return HandlerResult(
             success=False,
             message="Hide in what?"
         )
 
-    # Get the actor
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
-
-    # Get current location
-    location = accessor.get_current_location(actor_id)
-    if not location:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Cannot find location for actor {actor_id}"
-        )
-
-    # Find hiding spot in current location
-    hiding_spot = _find_entity_in_location(accessor, location.id, indirect_object)
-
-    if not hiding_spot:
-        return HandlerResult(
-            success=False,
-            message=f"You don't see any {indirect_object} here."
-        )
-
-    # Check if entity allows concealment
-    if not hiding_spot.properties.get("allows_concealment", False):
-        return HandlerResult(
-            success=False,
-            message=f"You can't hide in the {hiding_spot.name}."
-        )
-
-    # Check if target is accessible
-    if not _is_accessible(accessor, actor, hiding_spot):
-        return HandlerResult(
-            success=False,
-            message=f"You can't reach the {hiding_spot.name} from here."
-        )
-
-    # Set concealed state
-    actor.properties["focused_on"] = hiding_spot.id
-    actor.properties["posture"] = "concealed"
-
-    message = f"You hide in the {hiding_spot.name}."
-
-    # Serialize hiding spot for LLM consumption
-    data = serialize_for_handler_result(hiding_spot)
-    data["posture"] = "concealed"
-
-    return HandlerResult(success=True, message=message, data=data)
+    return _handle_positioning(
+        accessor, action,
+        object_field="indirect_object",
+        required_property="allows_concealment",
+        posture="concealed",
+        verb_phrase="hide in"
+    )
 
 
 def handle_climb(accessor, action):
@@ -346,39 +318,22 @@ def handle_climb(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    actor_id = action.get("actor_id", "player")
+    # Validate actor and location
+    actor_id, actor, location, error = validate_actor_and_location(
+        accessor, action, require_object=True
+    )
+    if error:
+        return error
+
     object_name = action.get("object")
     adjective = action.get("adjective")
 
-    if not object_name:
-        return HandlerResult(
-            success=False,
-            message="What do you want to climb?"
-        )
-
-    # Get the actor
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
-
-    # Get current location
-    location = accessor.get_current_location(actor_id)
-    if not location:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Cannot find location for actor {actor_id}"
-        )
-
-    # Find climbable entity in current location
+    # Use find_accessible_item for climb to support adjectives properly
     from utilities.utils import find_accessible_item
     climbable = find_accessible_item(accessor, object_name, actor_id, adjective)
 
     if not climbable:
         # Not found - return failure so exits.py can try exit navigation
-        # Extract word from WordEntry for display
         display_name = object_name.word if hasattr(object_name, 'word') else object_name
         return HandlerResult(
             success=False,
@@ -423,6 +378,59 @@ def handle_climb(accessor, action):
     data["posture"] = "climbing"
 
     return HandlerResult(success=True, message=message, data=data)
+
+
+def handle_down(accessor, action):
+    """
+    Handler for 'down' command to return to ground level.
+
+    When actor has a posture (climbing, cover, concealed), this clears it
+    and returns them to normal standing. When actor has no posture, this
+    returns failure so exits.py can handle it as directional movement.
+
+    Args:
+        accessor: StateAccessor instance
+        action: Action dict with actor_id
+
+    Returns:
+        HandlerResult with success flag and message, or failure if no posture
+    """
+    # Validate actor and location
+    actor_id, actor, location, error = validate_actor_and_location(
+        accessor, action, require_object=False
+    )
+    if error:
+        return error
+
+    # Check if actor has a posture to clear
+    current_posture = actor.properties.get("posture")
+
+    if not current_posture:
+        # No posture - return failure so exits.py can handle 'down' as direction
+        return HandlerResult(
+            success=False,
+            message=""  # Empty message means "not handled, try next handler"
+        )
+
+    # Clear positioning state
+    actor.properties.pop("posture", None)
+    actor.properties.pop("focused_on", None)
+
+    # Generate appropriate message based on previous posture
+    posture_messages = {
+        "climbing": "You climb down and return to ground level.",
+        "cover": "You stand up from cover.",
+        "concealed": "You emerge from hiding."
+    }
+
+    message = posture_messages.get(current_posture, "You return to ground level.")
+
+    return HandlerResult(success=True, message=message)
+
+
+def handle_up(accessor, action):
+    """Alias for handle_down - 'up' also works to get down from elevated positions."""
+    return handle_down(accessor, action)
 
 
 def _find_entity_in_location(accessor, location_id: str, object_name, adjective=None):

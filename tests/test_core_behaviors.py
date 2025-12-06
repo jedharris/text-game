@@ -1,6 +1,6 @@
-"""Tests for core behavior modules (Phase 5).
+"""Tests for core behavior modules.
 
-Tests the migration of hardcoded behaviors to modular behavior files:
+Tests consumable items, light sources, and container behaviors:
 - consumables.py (drink, eat)
 - light_sources.py (lantern auto-light)
 - containers.py (chest win condition)

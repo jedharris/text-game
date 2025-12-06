@@ -248,7 +248,7 @@ class TestInteractionHandlersLlmContext(unittest.TestCase):
         """Test handle_use returns item llm_context."""
         from behaviors.core.interaction import handle_use
 
-        action = make_action(object="sword", actor_id="player")
+        action = make_action(verb="use", object="sword", actor_id="player")
         result = handle_use(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -259,7 +259,7 @@ class TestInteractionHandlersLlmContext(unittest.TestCase):
         """Test handle_read returns item llm_context."""
         from behaviors.core.interaction import handle_read
 
-        action = make_action(object="book", actor_id="player")
+        action = make_action(verb="read", object="book", actor_id="player")
         result = handle_read(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -270,7 +270,7 @@ class TestInteractionHandlersLlmContext(unittest.TestCase):
         """Test handle_climb returns item llm_context."""
         from behaviors.core.spatial import handle_climb
 
-        action = make_action(object="ladder", actor_id="player")
+        action = make_action(verb="climb", object="ladder", actor_id="player")
         result = handle_climb(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -281,7 +281,7 @@ class TestInteractionHandlersLlmContext(unittest.TestCase):
         """Test handle_pull returns item llm_context."""
         from behaviors.core.interaction import handle_pull
 
-        action = make_action(object="lever", actor_id="player")
+        action = make_action(verb="pull", object="lever", actor_id="player")
         result = handle_pull(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -292,7 +292,7 @@ class TestInteractionHandlersLlmContext(unittest.TestCase):
         """Test handle_push returns item llm_context."""
         from behaviors.core.interaction import handle_push
 
-        action = make_action(object="lever", actor_id="player")
+        action = make_action(verb="push", object="lever", actor_id="player")
         result = handle_push(self.accessor, action)
 
         self.assertTrue(result.success)

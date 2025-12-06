@@ -288,6 +288,55 @@ def handle_close(accessor, action):
     )
 
 
+def _handle_generic_interaction(accessor, action, required_property: str = None, base_message_builder=None) -> HandlerResult:
+    """
+    Generic interaction handler for use, pull, push, read, and similar verbs.
+
+    Args:
+        accessor: StateAccessor instance
+        action: Action dict with actor_id, object, adjective, verb
+        required_property: Optional property to validate (e.g., "readable")
+        base_message_builder: Optional function(item, verb) to build custom message
+
+    Returns:
+        HandlerResult with success flag and message
+    """
+    item, error = find_action_target(accessor, action)
+    if error:
+        return error
+
+    verb = action.get("verb")
+    if not verb:
+        return HandlerResult(
+            success=False,
+            message="INCONSISTENT STATE: verb not provided in action"
+        )
+
+    actor_id = action.get("actor_id", "player")
+
+    # Property validation if required
+    if required_property and not item.properties.get(required_property, False):
+        return HandlerResult(
+            success=False,
+            message=f"You can't {verb} the {item.name}."
+        )
+
+    # Invoke entity behaviors
+    result = accessor.update(item, {}, verb=verb, actor_id=actor_id)
+
+    # Build base message
+    if base_message_builder:
+        base_message = base_message_builder(item, verb)
+    else:
+        base_message = f"You {verb} the {item.name}."
+
+    data = serialize_for_handler_result(item)
+    if result.message:
+        return HandlerResult(success=True, message=f"{base_message} {result.message}", data=data)
+
+    return HandlerResult(success=True, message=base_message, data=data)
+
+
 def handle_use(accessor, action):
     """
     Handle use command.
@@ -305,22 +354,7 @@ def handle_use(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    item, error = find_action_target(accessor, action)
-    if error:
-        return error
-
-    verb = action.get("verb", "use")
-    actor_id = action.get("actor_id", "player")
-
-    # Invoke entity behaviors (on_use)
-    result = accessor.update(item, {}, verb=verb, actor_id=actor_id)
-
-    base_message = f"You {verb} the {item.name}."
-    data = serialize_for_handler_result(item)
-    if result.message:
-        return HandlerResult(success=True, message=f"{base_message} {result.message}", data=data)
-
-    return HandlerResult(success=True, message=base_message, data=data)
+    return _handle_generic_interaction(accessor, action)
 
 
 def handle_read(accessor, action):
@@ -339,35 +373,15 @@ def handle_read(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    item, error = find_action_target(accessor, action)
-    if error:
-        return error
+    def build_read_message(item, verb):
+        """Custom message builder that includes text content."""
+        text = item.properties.get("text", "")
+        if text:
+            return f"You {verb} the {item.name}: {text}"
+        else:
+            return f"You {verb} the {item.name}."
 
-    # Property validation specific to this verb
-    if not item.properties.get("readable", False):
-        return HandlerResult(
-            success=False,
-            message=f"You can't read the {item.name}."
-        )
-
-    verb = action.get("verb", "read")
-    actor_id = action.get("actor_id", "player")
-
-    # Invoke entity behaviors (on_read)
-    result = accessor.update(item, {}, verb=verb, actor_id=actor_id)
-
-    # Get text content if available
-    text = item.properties.get("text", "")
-    if text:
-        base_message = f"You {verb} the {item.name}: {text}"
-    else:
-        base_message = f"You {verb} the {item.name}."
-
-    data = serialize_for_handler_result(item)
-    if result.message:
-        return HandlerResult(success=True, message=f"{base_message} {result.message}", data=data)
-
-    return HandlerResult(success=True, message=base_message, data=data)
+    return _handle_generic_interaction(accessor, action, required_property="readable", base_message_builder=build_read_message)
 
 
 def handle_pull(accessor, action):
@@ -386,22 +400,7 @@ def handle_pull(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    item, error = find_action_target(accessor, action)
-    if error:
-        return error
-
-    verb = action.get("verb", "pull")
-    actor_id = action.get("actor_id", "player")
-
-    # Invoke entity behaviors (on_pull)
-    result = accessor.update(item, {}, verb=verb, actor_id=actor_id)
-
-    base_message = f"You {verb} the {item.name}."
-    data = serialize_for_handler_result(item)
-    if result.message:
-        return HandlerResult(success=True, message=f"{base_message} {result.message}", data=data)
-
-    return HandlerResult(success=True, message=base_message, data=data)
+    return _handle_generic_interaction(accessor, action)
 
 
 def handle_push(accessor, action):
@@ -420,19 +419,4 @@ def handle_push(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    item, error = find_action_target(accessor, action)
-    if error:
-        return error
-
-    verb = action.get("verb", "push")
-    actor_id = action.get("actor_id", "player")
-
-    # Invoke entity behaviors (on_push)
-    result = accessor.update(item, {}, verb=verb, actor_id=actor_id)
-
-    base_message = f"You {verb} the {item.name}."
-    data = serialize_for_handler_result(item)
-    if result.message:
-        return HandlerResult(success=True, message=f"{base_message} {result.message}", data=data)
-
-    return HandlerResult(success=True, message=base_message, data=data)
+    return _handle_generic_interaction(accessor, action)

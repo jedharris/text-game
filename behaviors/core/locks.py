@@ -50,6 +50,137 @@ vocabulary = {
 }
 
 
+def _handle_lock_operation(accessor, action, verb: str, target_state: bool) -> HandlerResult:
+    """
+    Generic lock/unlock handler for doors and containers.
+
+    Args:
+        accessor: StateAccessor instance
+        action: Action dict with actor_id, object, adjective
+        verb: "lock" or "unlock" for messages
+        target_state: True for locked, False for unlocked
+
+    Returns:
+        HandlerResult with success flag and message
+    """
+    item, actor_id, error = find_openable_target(accessor, action, verb)
+    if error:
+        return error
+
+    # Get actor for key checking
+    actor = accessor.get_actor(actor_id)
+
+    # Check if it's a door item
+    if hasattr(item, 'is_door') and item.is_door:
+        data = serialize_for_handler_result(item)
+
+        # Check for special case: can't lock an open door
+        if target_state and item.door_open:
+            return HandlerResult(
+                success=False,
+                message=f"You must close the {item.name} first."
+            )
+
+        # Check if already in target state
+        if item.door_locked == target_state:
+            already_msg = "already locked" if target_state else "already unlocked"
+            return HandlerResult(
+                success=True,
+                message=f"The {item.name} is {already_msg}.",
+                data=data
+            )
+
+        # Check for lock_id
+        if not item.door_lock_id:
+            return HandlerResult(
+                success=False,
+                message=f"The {item.name} has no lock."
+            )
+
+        # Get lock and validate
+        lock = accessor.get_lock(item.door_lock_id)
+        if not lock:
+            return HandlerResult(
+                success=False,
+                message=f"INCONSISTENT STATE: Lock {item.door_lock_id} not found"
+            )
+
+        # Check for key
+        has_key = any(key_id in actor.inventory for key_id in lock.opens_with)
+        if not has_key:
+            return HandlerResult(
+                success=False,
+                message=f"You don't have the right key to {verb} the {item.name}."
+            )
+
+        # Update state
+        item.door_locked = target_state
+        return HandlerResult(
+            success=True,
+            message=f"You {verb} the {item.name}.",
+            data=data
+        )
+
+    # Check if it's a container
+    if not item.container:
+        return HandlerResult(
+            success=False,
+            message=f"The {item.name} has no lock."
+        )
+
+    data = serialize_for_handler_result(item)
+
+    # Check for special case: can't lock an open container
+    if target_state and item.container.open:
+        return HandlerResult(
+            success=False,
+            message=f"You must close the {item.name} first."
+        )
+
+    # Check if already in target state
+    locked = item.container.get("locked", False)
+    if locked == target_state:
+        already_msg = "already locked" if target_state else "already unlocked"
+        return HandlerResult(
+            success=True,
+            message=f"The {item.name} is {already_msg}.",
+            data=data
+        )
+
+    # Check if container has a lock_id
+    lock_id = item.container.get("lock_id")
+    if not lock_id:
+        return HandlerResult(
+            success=False,
+            message=f"The {item.name} has no lock."
+        )
+
+    # Get lock and validate
+    lock = accessor.get_lock(lock_id)
+    if not lock:
+        return HandlerResult(
+            success=False,
+            message=f"INCONSISTENT STATE: Lock {lock_id} not found"
+        )
+
+    # Check for key
+    has_key = any(key_id in actor.inventory for key_id in lock.opens_with)
+    if not has_key:
+        return HandlerResult(
+            success=False,
+            message=f"You don't have the right key to {verb} the {item.name}."
+        )
+
+    # Update state
+    item.container._data["locked"] = target_state
+
+    return HandlerResult(
+        success=True,
+        message=f"You {verb} the {item.name}.",
+        data=data
+    )
+
+
 def handle_unlock(accessor, action):
     """
     Handle unlock command.
@@ -66,93 +197,7 @@ def handle_unlock(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    item, actor_id, error = find_openable_target(accessor, action, "unlock")
-    if error:
-        return error
-
-    # Get actor for key checking
-    actor = accessor.get_actor(actor_id)
-
-    # Check if it's a door item
-    if hasattr(item, 'is_door') and item.is_door:
-        data = serialize_for_handler_result(item)
-        if not item.door_locked:
-            return HandlerResult(
-                success=True,
-                message=f"The {item.name} is already unlocked.",
-                data=data
-            )
-        if not item.door_lock_id:
-            return HandlerResult(
-                success=False,
-                message=f"The {item.name} has no lock."
-            )
-        lock = accessor.get_lock(item.door_lock_id)
-        if not lock:
-            return HandlerResult(
-                success=False,
-                message=f"INCONSISTENT STATE: Lock {item.door_lock_id} not found"
-            )
-        has_key = any(key_id in actor.inventory for key_id in lock.opens_with)
-        if not has_key:
-            return HandlerResult(
-                success=False,
-                message=f"You don't have the right key to unlock the {item.name}."
-            )
-        item.door_locked = False
-        return HandlerResult(
-            success=True,
-            message=f"You unlock the {item.name}.",
-            data=data
-        )
-
-    # Check if it's a container
-    if not item.container:
-        return HandlerResult(
-            success=False,
-            message=f"The {item.name} has no lock."
-        )
-
-    data = serialize_for_handler_result(item)
-
-    # Check if locked
-    locked = item.container.get("locked", False)
-    if not locked:
-        return HandlerResult(
-            success=True,
-            message=f"The {item.name} is already unlocked.",
-            data=data
-        )
-
-    # Check if container has a lock_id
-    lock_id = item.container.get("lock_id")
-    if not lock_id:
-        return HandlerResult(
-            success=False,
-            message=f"The {item.name} has no lock."
-        )
-
-    lock = accessor.get_lock(lock_id)
-    if not lock:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Lock {lock_id} not found"
-        )
-
-    has_key = any(key_id in actor.inventory for key_id in lock.opens_with)
-    if not has_key:
-        return HandlerResult(
-            success=False,
-            message=f"You don't have the right key to unlock the {item.name}."
-        )
-
-    item.container._data["locked"] = False
-
-    return HandlerResult(
-        success=True,
-        message=f"You unlock the {item.name}.",
-        data=data
-    )
+    return _handle_lock_operation(accessor, action, "unlock", False)
 
 
 def handle_lock(accessor, action):
@@ -171,102 +216,4 @@ def handle_lock(accessor, action):
     Returns:
         HandlerResult with success flag and message
     """
-    item, actor_id, error = find_openable_target(accessor, action, "lock")
-    if error:
-        return error
-
-    # Get actor for key checking
-    actor = accessor.get_actor(actor_id)
-
-    # Check if it's a door item
-    if hasattr(item, 'is_door') and item.is_door:
-        data = serialize_for_handler_result(item)
-        if item.door_open:
-            return HandlerResult(
-                success=False,
-                message=f"You must close the {item.name} first."
-            )
-        if item.door_locked:
-            return HandlerResult(
-                success=True,
-                message=f"The {item.name} is already locked.",
-                data=data
-            )
-        if not item.door_lock_id:
-            return HandlerResult(
-                success=False,
-                message=f"The {item.name} has no lock."
-            )
-        lock = accessor.get_lock(item.door_lock_id)
-        if not lock:
-            return HandlerResult(
-                success=False,
-                message=f"INCONSISTENT STATE: Lock {item.door_lock_id} not found"
-            )
-        has_key = any(key_id in actor.inventory for key_id in lock.opens_with)
-        if not has_key:
-            return HandlerResult(
-                success=False,
-                message=f"You don't have the right key to lock the {item.name}."
-            )
-        item.door_locked = True
-        return HandlerResult(
-            success=True,
-            message=f"You lock the {item.name}.",
-            data=data
-        )
-
-    # Check if it's a container
-    if not item.container:
-        return HandlerResult(
-            success=False,
-            message=f"The {item.name} has no lock."
-        )
-
-    data = serialize_for_handler_result(item)
-
-    # Check if container is open (can't lock an open container)
-    if item.container.open:
-        return HandlerResult(
-            success=False,
-            message=f"You must close the {item.name} first."
-        )
-
-    # Check if already locked
-    locked = item.container.get("locked", False)
-    if locked:
-        return HandlerResult(
-            success=True,
-            message=f"The {item.name} is already locked.",
-            data=data
-        )
-
-    # Check if container has a lock_id
-    lock_id = item.container.get("lock_id")
-    if not lock_id:
-        return HandlerResult(
-            success=False,
-            message=f"The {item.name} has no lock."
-        )
-
-    lock = accessor.get_lock(lock_id)
-    if not lock:
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Lock {lock_id} not found"
-        )
-
-    has_key = any(key_id in actor.inventory for key_id in lock.opens_with)
-    if not has_key:
-        return HandlerResult(
-            success=False,
-            message=f"You don't have the right key to lock the {item.name}."
-        )
-
-    item.container._data["locked"] = True
-
-    return HandlerResult(
-        success=True,
-        message=f"You lock the {item.name}.",
-        data=data
-    )
+    return _handle_lock_operation(accessor, action, "lock", True)

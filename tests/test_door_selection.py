@@ -15,24 +15,16 @@ import sys
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.state_manager import load_game_state
-from src.behavior_manager import BehaviorManager
-from src.state_accessor import StateAccessor
 from utilities.utils import find_door_with_adjective, actor_has_key_for_door
-from tests.conftest import make_word_entry, make_action
+from tests.conftest import SimpleGameTestCase, make_word_entry, make_action
 
 
-class TestDoorSelection(unittest.TestCase):
+class TestDoorSelection(SimpleGameTestCase):
     """Test smart door selection for unlock/open/close commands."""
 
     def setUp(self):
         """Set up test fixtures."""
-        self.state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
-        self.behavior_manager = BehaviorManager()
-        behaviors_dir = project_root / "behaviors"
-        modules = self.behavior_manager.discover_modules(str(behaviors_dir))
-        self.behavior_manager.load_modules(modules)
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        super().setUp()
 
         # Move player to hallway where there are two doors
         player = self.accessor.get_actor("player")
@@ -68,12 +60,9 @@ class TestDoorSelection(unittest.TestCase):
     def test_open_prefers_closed_unlocked_door(self):
         """Test that 'open door' prefers a closed but unlocked door."""
         # Close the wooden door (it's unlocked)
-        # Use get_door_item for unified model, fallback to get_door for old model
-        wooden_door = self.accessor.get_door_item("door_wooden") or self.accessor.get_door("door_wooden")
-        if wooden_door and hasattr(wooden_door, 'door_open'):
+        wooden_door = self.accessor.get_door_item("door_wooden")
+        if wooden_door:
             wooden_door.door_open = False
-        elif wooden_door:
-            self.accessor.update(wooden_door, {"open": False})
 
         # Now we have:
         # - door_wooden: closed, unlocked (actionable!)
@@ -89,12 +78,9 @@ class TestDoorSelection(unittest.TestCase):
     def test_open_locked_door_fails_appropriately(self):
         """Test that 'open door' on locked door fails with locked message."""
         # Ensure wooden door is open, treasure door is locked
-        # Use get_door_item for unified model, fallback to get_door for old model
-        wooden_door = self.accessor.get_door_item("door_wooden") or self.accessor.get_door("door_wooden")
-        if wooden_door and hasattr(wooden_door, 'door_open'):
+        wooden_door = self.accessor.get_door_item("door_wooden")
+        if wooden_door:
             wooden_door.door_open = True
-        elif wooden_door:
-            self.accessor.update(wooden_door, {"open": True})
 
         # Now only door_treasure is closed (and locked)
         action = make_action(object="door", actor_id="player")
@@ -121,12 +107,9 @@ class TestDoorSelection(unittest.TestCase):
     def test_close_prefers_open_door(self):
         """Test that 'close door' prefers an open door."""
         # Ensure wooden door is open, treasure door is closed
-        # Use get_door_item for unified model, fallback to get_door for old model
-        wooden_door = self.accessor.get_door_item("door_wooden") or self.accessor.get_door("door_wooden")
-        if wooden_door and hasattr(wooden_door, 'door_open'):
+        wooden_door = self.accessor.get_door_item("door_wooden")
+        if wooden_door:
             wooden_door.door_open = True
-        elif wooden_door:
-            self.accessor.update(wooden_door, {"open": True})
 
         action = make_action(object="door", actor_id="player")
         result = self.behavior_manager.invoke_handler("close", self.accessor, action)
@@ -136,22 +119,13 @@ class TestDoorSelection(unittest.TestCase):
         self.assertIn("close", result.message.lower())
 
 
-class TestDoorSelectionUtility(unittest.TestCase):
+class TestDoorSelectionUtility(SimpleGameTestCase):
     """Test the find_door_with_adjective utility function improvements."""
-
-    def setUp(self):
-        """Set up test fixtures."""
-        self.state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
-        self.behavior_manager = BehaviorManager()
-        behaviors_dir = project_root / "behaviors"
-        modules = self.behavior_manager.discover_modules(str(behaviors_dir))
-        self.behavior_manager.load_modules(modules)
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
 
     def test_actor_has_key_for_door(self):
         """Test the actor_has_key_for_door utility."""
-        # Get door (unified model or old model)
-        door = self.accessor.get_door_item("door_treasure") or self.accessor.get_door("door_treasure")
+        # Get door
+        door = self.accessor.get_door_item("door_treasure")
 
         # Player without key
         result = actor_has_key_for_door(self.accessor, "player", door)

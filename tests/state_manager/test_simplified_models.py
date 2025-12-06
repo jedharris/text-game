@@ -1321,11 +1321,11 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
         self.assertEqual(registry["npc_1"], "npc")
 
 
-class TestBackwardCompatibility(unittest.TestCase):
-    """Test that game files with unified door items load correctly."""
+class TestFixtureLoading(unittest.TestCase):
+    """Test that game files load correctly and serialize consistently."""
 
     def test_load_valid_world_fixture(self):
-        """Load existing valid_world.json fixture with unified door items."""
+        """Load existing valid_world.json fixture."""
         from src.state_manager import load_game_state
 
         fixture_path = Path(__file__).parent / "fixtures" / "valid_world.json"

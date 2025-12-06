@@ -3,9 +3,13 @@ Pytest configuration and shared test fixtures.
 
 Based on behavior_refactoring_testing.md lines 14-106
 """
+import unittest
+from pathlib import Path
 from dataclasses import field
 from typing import Dict, List, Any
-from src.state_manager import GameState, Item, Location, Actor, Metadata
+from src.state_manager import GameState, Item, Location, Actor, Metadata, load_game_state
+from src.behavior_manager import BehaviorManager
+from src.state_accessor import StateAccessor
 from src.word_entry import WordEntry, WordType
 
 
@@ -209,3 +213,68 @@ def make_action(verb: str = None, object: str = None, adjective: str = None,
     action.update(kwargs)
 
     return action
+
+
+# Base test classes for common setUp patterns
+
+class BaseTestCase(unittest.TestCase):
+    """
+    Base test case with minimal state setup.
+
+    Provides:
+    - self.state: Minimal test GameState via create_test_state()
+    - self.accessor: StateAccessor with no behavior manager
+
+    Use this for tests that don't need behavior loading.
+    """
+
+    def setUp(self):
+        self.state = create_test_state()
+        self.accessor = StateAccessor(self.state, None)
+
+
+class BehaviorTestCase(unittest.TestCase):
+    """
+    Base test case with behaviors loaded.
+
+    Provides:
+    - self.state: Minimal test GameState via create_test_state()
+    - self.behavior_manager: BehaviorManager with all behaviors loaded from behaviors/ dir
+    - self.accessor: StateAccessor with behavior manager
+
+    Use this for tests that need to invoke handlers or behaviors.
+    """
+
+    def setUp(self):
+        self.state = create_test_state()
+        self.behavior_manager = BehaviorManager()
+
+        # Load all behaviors from behaviors directory
+        project_root = Path(__file__).parent.parent
+        behaviors_dir = project_root / "behaviors"
+        modules = self.behavior_manager.discover_modules(str(behaviors_dir))
+        self.behavior_manager.load_modules(modules)
+
+        self.accessor = StateAccessor(self.state, self.behavior_manager)
+
+
+class SimpleGameTestCase(unittest.TestCase):
+    """
+    Base test case using the simple_game example.
+
+    Provides:
+    - self.state: Full game state from examples/simple_game/game_state.json
+    - self.behavior_manager: BehaviorManager with all behaviors loaded
+    - self.accessor: StateAccessor with behavior manager
+
+    Use this for integration tests that need a complete game world.
+    """
+
+    def setUp(self):
+        project_root = Path(__file__).parent.parent
+        self.state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
+        self.behavior_manager = BehaviorManager()
+        behaviors_dir = project_root / "behaviors"
+        modules = self.behavior_manager.discover_modules(str(behaviors_dir))
+        self.behavior_manager.load_modules(modules)
+        self.accessor = StateAccessor(self.state, self.behavior_manager)

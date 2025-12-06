@@ -115,7 +115,7 @@ class TestHandleUse(unittest.TestCase):
         """Test using a usable item."""
         from behaviors.core.interaction import handle_use
 
-        action = make_action(object="key", actor_id="player")
+        action = make_action(verb="use", object="key", actor_id="player")
         result = handle_use(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -158,7 +158,7 @@ class TestHandleRead(unittest.TestCase):
         """Test reading non-readable item."""
         from behaviors.core.interaction import handle_read
 
-        action = make_action(object="rock", actor_id="player")
+        action = make_action(verb="read", object="rock", actor_id="player")
         result = handle_read(self.accessor, action)
 
         self.assertFalse(result.success)
@@ -168,7 +168,7 @@ class TestHandleRead(unittest.TestCase):
         """Test reading a readable item."""
         from behaviors.core.interaction import handle_read
 
-        action = make_action(object="book", actor_id="player")
+        action = make_action(verb="read", object="book", actor_id="player")
         result = handle_read(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -264,7 +264,7 @@ class TestHandlePull(unittest.TestCase):
         """Test pulling a pullable item."""
         from behaviors.core.interaction import handle_pull
 
-        action = make_action(object="lever", actor_id="player")
+        action = make_action(verb="pull", object="lever", actor_id="player")
         result = handle_pull(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -307,7 +307,7 @@ class TestHandlePush(unittest.TestCase):
         """Test pushing a pushable item."""
         from behaviors.core.interaction import handle_push
 
-        action = make_action(object="button", actor_id="player")
+        action = make_action(verb="push", object="button", actor_id="player")
         result = handle_push(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -349,7 +349,7 @@ class TestPushWithAdjective(unittest.TestCase):
         """Test that push with adjective selects correct door."""
         from behaviors.core.interaction import handle_push
 
-        action = make_action(object="door", adjective="iron", actor_id="player")
+        action = make_action(verb="push", object="door", adjective="iron", actor_id="player")
         result = handle_push(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -364,7 +364,7 @@ class TestPushWithAdjective(unittest.TestCase):
         """Test that push with different adjective selects other door."""
         from behaviors.core.interaction import handle_push
 
-        action = make_action(object="door", adjective="wooden", actor_id="player")
+        action = make_action(verb="push", object="door", adjective="wooden", actor_id="player")
         result = handle_push(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -376,7 +376,7 @@ class TestPushWithAdjective(unittest.TestCase):
         """Test that push without adjective returns first match."""
         from behaviors.core.interaction import handle_push
 
-        action = make_action(object="door", actor_id="player")
+        action = make_action(verb="push", object="door", actor_id="player")
         result = handle_push(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -418,7 +418,7 @@ class TestPullWithAdjective(unittest.TestCase):
         """Test that pull with adjective selects correct lever."""
         from behaviors.core.interaction import handle_pull
 
-        action = make_action(object="lever", adjective="brass", actor_id="player")
+        action = make_action(verb="pull", object="lever", adjective="brass", actor_id="player")
         result = handle_pull(self.accessor, action)
 
         self.assertTrue(result.success)
@@ -430,7 +430,7 @@ class TestPullWithAdjective(unittest.TestCase):
         """Test that pull with different adjective selects other lever."""
         from behaviors.core.interaction import handle_pull
 
-        action = make_action(object="lever", adjective="copper", actor_id="player")
+        action = make_action(verb="pull", object="lever", adjective="copper", actor_id="player")
         result = handle_pull(self.accessor, action)
 
         self.assertTrue(result.success)

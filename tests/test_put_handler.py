@@ -118,7 +118,7 @@ class TestHandlePut(unittest.TestCase):
         """Test put without specifying container."""
         from behaviors.core.manipulation import handle_put
 
-        action = make_action(object="key", actor_id="player")
+        action = make_action(verb="put", object="key", actor_id="player")
         result = handle_put(self.accessor, action)
 
         self.assertFalse(result.success)
