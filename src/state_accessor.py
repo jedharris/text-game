@@ -264,6 +264,40 @@ class StateAccessor:
 
         return self.get_entity(focused_id)
 
+    def get_actor_part(self, actor):
+        """
+        Get the spatial part an actor currently occupies.
+
+        Resolution order:
+        1. If actor has focused_on pointing to a Part, return that part
+        2. If actor's location has a default_part, return that part
+        3. Otherwise return None (non-spatial location)
+
+        Args:
+            actor: The Actor object (not actor_id)
+
+        Returns:
+            Part or None if actor is not in a spatial context
+        """
+        if not actor:
+            return None
+
+        # Check if focused_on references a part
+        focused_id = actor.properties.get("focused_on")
+        if focused_id:
+            part = self.get_part(focused_id)
+            if part:
+                return part
+
+        # Fall back to location's default part
+        location = self.get_location(actor.location)
+        if location:
+            default_part_id = location.properties.get("default_part")
+            if default_part_id:
+                return self.get_part(default_part_id)
+
+        return None
+
     def get_visible_exits(self, location_id: str, actor_id: str) -> dict:
         """
         Get all visible exits for a location.

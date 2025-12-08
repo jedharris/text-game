@@ -153,7 +153,7 @@ Stone golems activate when player enters the hall center. Player can hide behind
     "armor": 20,
     "immunities": ["poison", "disease", "bleeding"],
     "ai": {
-      "hostile": false,
+      "disposition": "neutral",
       "activation_trigger": "player_enters_center",
       "morale": 100
     }
@@ -190,7 +190,7 @@ Stone golems activate when player enters the hall center. Player can hide behind
 
 1. **Activation Trigger**:
    - When player uses `approach part_hall_center`
-   - All golems in location with `activation_trigger: "player_enters_center"` become `hostile: true`
+   - All golems in location with `activation_trigger: "player_enters_center"` become `disposition: "hostile"`
    - Golem takes action after player command completes
 
 2. **Cover Mechanics**:
@@ -262,7 +262,7 @@ Starving wolves are desperate but can be pacified with food. If combat starts, t
       }
     ],
     "ai": {
-      "hostile": true,
+      "disposition": "hostile",
       "pack_role": "alpha",
       "pack_id": "winter_wolves",
       "morale": 60,
@@ -295,7 +295,7 @@ Starving wolves are desperate but can be pacified with food. If combat starts, t
       }
     ],
     "ai": {
-      "hostile": true,
+      "disposition": "hostile",
       "pack_role": "follower",
       "pack_id": "winter_wolves",
       "follows_alpha": "npc_wolf_alpha",
@@ -322,7 +322,7 @@ Starving wolves are desperate but can be pacified with food. If combat starts, t
 
 1. **Simple Pack Coordination**:
    - After each turn, pack members check if `follows_alpha` is set
-   - Copy alpha's `ai.hostile` state
+   - Copy alpha's `ai.disposition` state
    - If alpha flees, followers flee too
    - No complex tactics - just follow-the-leader
 
@@ -330,7 +330,7 @@ Starving wolves are desperate but can be pacified with food. If combat starts, t
    - Player: `give venison to alpha`
    - Wolf's `on_receive` behavior checks if item has `satisfies: "hungry"`
    - Sets wolf's `ai.needs.hungry = false`
-   - Reduces `ai.hostile` to false
+   - Sets `ai.disposition` to `"neutral"`
    - Increments `relationships.player.gratitude` by 1
 
 3. **Morale-Based Fleeing**:
@@ -341,7 +341,7 @@ Starving wolves are desperate but can be pacified with food. If combat starts, t
 
 4. **Progressive Relationship**:
    - Each feeding increments `relationships.player.gratitude`
-   - When gratitude ≥ 3: wolf becomes permanently non-hostile
+   - When gratitude ≥ 3: wolf's disposition becomes permanently `"friendly"`
    - Wolf may follow player or accept simple commands
    - Simple counter, no complex reputation
 
@@ -781,7 +781,7 @@ Giant spiders hunt in web-covered areas. They're individually weak but venomous.
       }
     ],
     "ai": {
-      "hostile": false,
+      "disposition": "neutral",
       "pack_id": "gallery_spiders",
       "follows_alpha": "npc_spider_alpha",
       "alerted_by": "web_damage"
@@ -811,7 +811,7 @@ Giant spiders hunt in web-covered areas. They're individually weak but venomous.
       }
     ],
     "ai": {
-      "hostile": false,
+      "disposition": "neutral",
       "pack_role": "alpha",
       "pack_id": "gallery_spiders",
       "alerted_by": "web_damage"
@@ -946,7 +946,7 @@ A magical statue can be activated to guard an area or provide information. It's 
       "mansion_history": true
     },
     "ai": {
-      "hostile": false,
+      "disposition": "neutral",
       "current_duty": "idle"
     }
   }
@@ -1082,8 +1082,9 @@ A magical statue can be activated to guard an area or provide information. It's 
     }
   },
   "ai": {
-    "hostile": boolean,
+    "disposition": "friendly|neutral|hostile|desperate|grateful",
     "pack_id": string (optional),
+    "pack_role": "alpha|follower" (optional),
     "follows_alpha": string (optional),
     "morale": number,
     "flee_threshold": number,
@@ -1105,8 +1106,7 @@ A magical statue can be activated to guard an area or provide information. It's 
       "gratitude": number
     }
   },
-  "knows": [string],
-  "disposition": string
+  "knows": [string]
 }
 ```
 

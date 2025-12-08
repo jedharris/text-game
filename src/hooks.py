@@ -17,3 +17,10 @@ LOCATION_ENTERED = "location_entered"
 
 # Visibility events
 VISIBILITY_CHECK = "visibility_check"
+
+# Turn phase hooks (fire after successful player command)
+# These hooks fire in order after each successful command to progress game time.
+NPC_ACTION = "npc_action"
+ENVIRONMENTAL_EFFECT = "environmental_effect"
+CONDITION_TICK = "condition_tick"
+DEATH_CHECK = "death_check"

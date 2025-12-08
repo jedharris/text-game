@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional
 from .state_manager import GameState
 from .behavior_manager import BehaviorManager
 from .word_entry import WordEntry, WordType
+from . import hooks
 
 
 class LLMProtocolHandler:
@@ -26,6 +27,15 @@ class LLMProtocolHandler:
     # These are handled by behavior modules but need to remain functional
     # even when game state is corrupted
     META_COMMANDS = {"save", "quit", "help", "load"}
+
+    # Turn phase hooks fire in this order after successful commands
+    # Each hook may have an event registered that processes the phase
+    TURN_PHASE_HOOKS = [
+        hooks.NPC_ACTION,
+        hooks.ENVIRONMENTAL_EFFECT,
+        hooks.CONDITION_TICK,
+        hooks.DEATH_CHECK,
+    ]
 
     def __init__(self, state: GameState, behavior_manager: Optional[BehaviorManager] = None):
         self.state = state
@@ -167,6 +177,12 @@ class LLMProtocolHandler:
                 # Include optional data (e.g., llm_context for examine)
                 if result.data:
                     response["data"] = result.data
+
+                # Fire turn phase hooks after successful command
+                turn_messages = self._fire_turn_phases(accessor, action)
+                if turn_messages:
+                    response["turn_phase_messages"] = turn_messages
+
                 return response
             else:
                 return {
@@ -245,6 +261,44 @@ class LLMProtocolHandler:
                 result["entity"] = self._entity_to_dict(entity_obj)
 
         return result
+
+    def _fire_turn_phases(self, accessor, action: Dict) -> List[str]:
+        """
+        Fire turn phase hooks after a successful command.
+
+        Turn phases run in order: NPC_ACTION, ENVIRONMENTAL_EFFECT,
+        CONDITION_TICK, DEATH_CHECK. Each phase may have an event
+        registered via vocabulary that handles the phase logic.
+
+        Args:
+            accessor: StateAccessor for state queries
+            action: The action dict from the command
+
+        Returns:
+            List of messages from turn phase handlers
+        """
+        messages = []
+
+        for hook_name in self.TURN_PHASE_HOOKS:
+            event_name = self.behavior_manager.get_event_for_hook(hook_name)
+            if event_name:
+                # Build context for the turn phase
+                context = {
+                    "hook": hook_name,
+                    "actor_id": action.get("actor_id", "player"),
+                }
+
+                # Invoke behaviors registered for this event
+                # Note: For turn phases, we don't have a specific entity target,
+                # so we pass None and let the behavior handle iteration
+                result = self.behavior_manager.invoke_behavior(
+                    None, event_name, accessor, context
+                )
+
+                if result and result.message:
+                    messages.append(result.message)
+
+        return messages
 
     def handle_query(self, message: Dict) -> Dict:
         """Process a query message and return response."""
