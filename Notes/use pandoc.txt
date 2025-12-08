@@ -1,0 +1,12 @@
+$ myfilename="exits_implementation_summary.docx"
+$ pandoc \
+-t markdown_strict \
+--extract-media='./attachments/$myfilename' \
+$myfilename.docx \
+-o $myfilename.md
+
+$ myfilename="Notes/exits_implementation_summary"
+$ pandoc \
+-t markdown_strict \
+$myfilename.docx \
+-o $myfilename.md

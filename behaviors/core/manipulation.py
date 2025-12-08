@@ -65,6 +65,7 @@ vocabulary = {
         {
             "word": "put",
             "event": "on_put",
+            "fallback_event": "on_drop",
             "synonyms": ["set"],
             "object_required": True,
             "narration_mode": "brief",

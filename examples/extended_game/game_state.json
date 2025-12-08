@@ -5,7 +5,7 @@
     "description": "A custom game demonstrating engine extensibility.",
     "start_location": "loc_garden",
     "author": "Extended Game Example",
-    "schema_version": "v_0.02"
+    "schema_version": "v_0.03"
   },
   "locations": [
     {

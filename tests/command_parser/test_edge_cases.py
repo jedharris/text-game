@@ -138,11 +138,15 @@ class TestErrorHandling(unittest.TestCase):
         """
         Test EH-012: Two directions.
 
-        Verify that commands with two directions return None.
+        With directions now being verbs, "north south" parses as verb+noun.
+        The handler would fail at runtime, but the parser accepts it.
         """
         result = self.parser.parse_command("north south")
 
-        self.assertIsNone(result)
+        # Now parses as verb "north" with direct_object "south"
+        self.assertIsNotNone(result)
+        self.assertEqual(result.verb.word, "north")
+        self.assertEqual(result.direct_object.word, "south")
 
 
 class TestEdgeCases(unittest.TestCase):

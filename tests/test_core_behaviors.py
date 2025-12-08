@@ -455,10 +455,10 @@ class TestCoreModulesLoading(unittest.TestCase):
         from behaviors.core import consumables
 
         # Should have behavior functions
-        self.assertTrue(hasattr(consumables, 'on_drink_health_potion'))
-        self.assertTrue(callable(consumables.on_drink_health_potion))
-        self.assertTrue(hasattr(consumables, 'on_eat_food'))
-        self.assertTrue(callable(consumables.on_eat_food))
+        self.assertTrue(hasattr(consumables, 'on_drink'))
+        self.assertTrue(callable(consumables.on_drink))
+        self.assertTrue(hasattr(consumables, 'on_eat'))
+        self.assertTrue(callable(consumables.on_eat))
 
     def test_light_sources_module_structure(self):
         """Test that light_sources module has correct structure."""
@@ -475,20 +475,21 @@ class TestCoreModulesLoading(unittest.TestCase):
         from behaviors.core import containers
 
         # Should have behavior functions
-        self.assertTrue(hasattr(containers, 'on_open_treasure_chest'))
-        self.assertTrue(callable(containers.on_open_treasure_chest))
+        self.assertTrue(hasattr(containers, 'on_open'))
+        self.assertTrue(callable(containers.on_open))
 
 
 class TestBehaviorFunctionSignatures(unittest.TestCase):
     """Test that behavior functions return correct EventResult."""
 
-    def test_on_drink_health_potion_returns_event_result(self):
-        """Test that on_drink_health_potion returns EventResult."""
-        from behaviors.core.consumables import on_drink_health_potion
+    def test_on_drink_returns_event_result_for_drinkable(self):
+        """Test that on_drink returns EventResult for drinkable items."""
+        from behaviors.core.consumables import on_drink
 
         # Create mock entity and state
         entity = Mock()
         entity.id = "health_potion"
+        entity.properties = {"drinkable": True}
         entity.states = {}
 
         player_mock = Mock()
@@ -500,18 +501,36 @@ class TestBehaviorFunctionSignatures(unittest.TestCase):
 
         context = {"location": "room1", "verb": "drink"}
 
-        result = on_drink_health_potion(entity, state, context)
+        result = on_drink(entity, state, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
         self.assertIsNotNone(result.message)
 
-    def test_on_eat_food_returns_event_result(self):
-        """Test that on_eat_food returns EventResult."""
-        from behaviors.core.consumables import on_eat_food
+    def test_on_drink_returns_none_for_non_drinkable(self):
+        """Test that on_drink returns None for non-drinkable entities."""
+        from behaviors.core.consumables import on_drink
+
+        entity = Mock()
+        entity.id = "rock"
+        entity.properties = {}
+        entity.states = {}
+
+        state = Mock()
+        context = {"location": "room1", "verb": "drink"}
+
+        result = on_drink(entity, state, context)
+
+        # Should return None to allow other handlers to process
+        self.assertIsNone(result)
+
+    def test_on_eat_returns_event_result_for_edible(self):
+        """Test that on_eat returns EventResult for edible items."""
+        from behaviors.core.consumables import on_eat
 
         entity = Mock()
         entity.id = "bread"
+        entity.properties = {"edible": True}
         entity.states = {}
 
         player_mock = Mock()
@@ -523,11 +542,28 @@ class TestBehaviorFunctionSignatures(unittest.TestCase):
 
         context = {"location": "room1", "verb": "eat"}
 
-        result = on_eat_food(entity, state, context)
+        result = on_eat(entity, state, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
         self.assertIsNotNone(result.message)
+
+    def test_on_eat_returns_none_for_non_edible(self):
+        """Test that on_eat returns None for non-edible entities."""
+        from behaviors.core.consumables import on_eat
+
+        entity = Mock()
+        entity.id = "rock"
+        entity.properties = {}
+        entity.states = {}
+
+        state = Mock()
+        context = {"location": "room1", "verb": "eat"}
+
+        result = on_eat(entity, state, context)
+
+        # Should return None to allow other handlers to process
+        self.assertIsNone(result)
 
     def test_on_take_light_source_returns_event_result(self):
         """Test that on_take returns EventResult."""
@@ -561,11 +597,12 @@ class TestBehaviorFunctionSignatures(unittest.TestCase):
         self.assertTrue(result.allow)
         self.assertIsNotNone(result.message)
 
-    def test_on_open_treasure_chest_returns_event_result(self):
-        """Test that on_open_treasure_chest returns EventResult."""
-        from behaviors.core.containers import on_open_treasure_chest
+    def test_on_open_returns_event_result_for_treasure_chest(self):
+        """Test that on_open returns EventResult for treasure chest."""
+        from behaviors.core.containers import on_open
 
         entity = Mock()
+        entity.id = "treasure_chest"
         entity.states = {}
 
         player_mock = Mock()
@@ -576,11 +613,32 @@ class TestBehaviorFunctionSignatures(unittest.TestCase):
 
         context = {"location": "room2", "verb": "open"}
 
-        result = on_open_treasure_chest(entity, state, context)
+        result = on_open(entity, state, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
         self.assertIsNotNone(result.message)
+
+    def test_on_open_returns_none_for_non_treasure_chest(self):
+        """Test that on_open returns None for non-treasure-chest entities."""
+        from behaviors.core.containers import on_open
+
+        entity = Mock()
+        entity.id = "other_chest"
+        entity.states = {}
+
+        player_mock = Mock()
+        player_mock.flags = {}
+
+        state = Mock()
+        state.actors = {"player": player_mock}
+
+        context = {"location": "room2", "verb": "open"}
+
+        result = on_open(entity, state, context)
+
+        # Should return None to allow other handlers to process
+        self.assertIsNone(result)
 
 
 if __name__ == '__main__':

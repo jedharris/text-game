@@ -136,7 +136,7 @@ class TestBehaviorsLoading(unittest.TestCase):
                     "type": "tool",
                     "portable": True,
                     "location": "room1",
-                    "behaviors": ["behaviors.consumables:on_drink_health_potion"]
+                    "behaviors": ["behaviors.core.consumables:on_drink"]
                 }
             ]
         )
@@ -144,7 +144,7 @@ class TestBehaviorsLoading(unittest.TestCase):
         state = load_game_state(game_data)
 
         item = state.get_item("potion")
-        self.assertIn("behaviors.consumables:on_drink_health_potion", item.behaviors)
+        self.assertIn("behaviors.core.consumables:on_drink", item.behaviors)
 
     def test_load_item_without_behaviors(self):
         """Test loading item without behaviors field defaults to empty dict."""

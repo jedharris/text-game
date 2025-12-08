@@ -131,6 +131,10 @@ class TestIsObservableWithBehaviors(unittest.TestCase):
         """Set up test fixtures."""
         self.accessor = Mock()
         self.behavior_manager = BehaviorManager()
+        # Register the visibility_check hook so behaviors are invoked
+        self.behavior_manager._register_event(
+            "on_observe", "test_module", tier=1, hook="visibility_check"
+        )
 
     def test_behavior_returning_allow_false_hides_entity(self):
         """Custom on_observe behavior returning allow=False hides entity."""
@@ -299,6 +303,10 @@ class TestIsObservableBehaviorPrecedence(unittest.TestCase):
         """Set up test fixtures."""
         self.accessor = Mock()
         self.behavior_manager = BehaviorManager()
+        # Register visibility_check hook for testing
+        self.behavior_manager._register_event(
+            "on_observe", "test_module", tier=1, hook="visibility_check"
+        )
 
     def test_hidden_checked_before_behaviors(self):
         """Hidden state is checked first, but behaviors can override."""

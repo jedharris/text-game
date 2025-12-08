@@ -5,7 +5,7 @@
     "description": "A simple adventure game demonstrating the state manager.",
     "start_location": "loc_start",
     "author": "Text Game Example",
-    "schema_version": "v_0.02"
+    "schema_version": "v_0.03"
   },
   "locations": [
     {

@@ -3,7 +3,7 @@
 Vocabulary, handlers and entity behaviors for consumable items like potions and food.
 """
 
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
@@ -134,20 +134,25 @@ def handle_eat(accessor, action):
     return _handle_consume(accessor, action, "edible", "eat")
 
 
-def on_drink_health_potion(entity: Any, state: Any, context: Dict) -> EventResult:
+def on_drink(entity: Any, state: Any, context: Dict) -> Optional[EventResult]:
     """
-    Health potion drinking behavior.
+    Handle drink event for drinkable items.
 
-    Heals the player and removes the potion from inventory.
+    Heals the player and removes the item from inventory.
+    Returns None for non-drinkable entities.
 
     Args:
-        entity: The potion being drunk
+        entity: The entity being drunk
         state: GameState object
         context: Context dict with location, verb
 
     Returns:
-        EventResult with allow and message
+        EventResult if entity is drinkable, None otherwise
     """
+    # Check if entity is drinkable
+    if not entity.properties.get("drinkable", False):
+        return None
+
     player = state.actors.get("player")
     if not player:
         return EventResult(allow=False, message="No player found.")
@@ -173,20 +178,25 @@ def on_drink_health_potion(entity: Any, state: Any, context: Dict) -> EventResul
     )
 
 
-def on_eat_food(entity: Any, state: Any, context: Dict) -> EventResult:
+def on_eat(entity: Any, state: Any, context: Dict) -> Optional[EventResult]:
     """
-    Generic food eating behavior.
+    Handle eat event for food items.
 
     Removes the food from inventory and provides a satisfying message.
+    Returns None for non-food entities.
 
     Args:
-        entity: The food being eaten
+        entity: The entity being eaten
         state: GameState object
         context: Context dict with location, verb
 
     Returns:
-        EventResult with allow and message
+        EventResult if entity is edible, None otherwise
     """
+    # Check if entity is edible
+    if not entity.properties.get("edible", False):
+        return None
+
     player = state.actors.get("player")
     if not player:
         return EventResult(allow=False, message="No player found.")

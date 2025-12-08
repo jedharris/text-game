@@ -83,11 +83,15 @@ class Parser:
             word_type_raw = noun_data.get('word_type', 'noun')
             word_type = self._parse_word_type(word_type_raw)
 
+            # If noun has VERB type (like directions), also get object_required
+            object_required = noun_data.get('object_required', True)
+
             entry = WordEntry(
                 word=noun_data['word'],
                 word_type=word_type,
                 synonyms=noun_data.get('synonyms', []),
-                value=noun_data.get('value')
+                value=noun_data.get('value'),
+                object_required=object_required
             )
             self.word_table.append(entry)
 
@@ -262,24 +266,16 @@ class Parser:
 
         # Single word patterns
         if length == 1:
-            # VERB (only if object not required)
+            # VERB (only if object not required or optional)
             if self._matches_type(entries[0], WordType.VERB):
                 verb = entries[0]
                 if verb.object_required == False:
                     return ParsedCommand(verb=verb)
                 elif verb.object_required == "optional":
                     return ParsedCommand(verb=verb, object_missing=True)
-                # If object_required == True, return None (current behavior)
+                # If object_required == True, fall through to return None
 
-            # Direction NOUN (multi-type: both noun and adjective)
-            # Bare directions like "north" are accepted as implicit "go north"
-            # Regular nouns like "sword" are not accepted alone
-            if self._matches_type(entries[0], WordType.NOUN):
-                # Check if it's also an adjective (multi-type, i.e., a direction)
-                if self._matches_type(entries[0], WordType.ADJECTIVE):
-                    return ParsedCommand(direct_object=entries[0])
-                # Regular noun alone is not valid
-                return None
+            return None
 
         # Two word patterns
         if length == 2:

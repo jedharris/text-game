@@ -19,7 +19,7 @@ from src.state_manager import load_game_state
 from src.behavior_manager import BehaviorManager
 from src.llm_protocol import LLMProtocolHandler
 from src.vocabulary_generator import extract_nouns_from_state, merge_vocabulary
-from src.text_game import format_location_query
+from src.text_game import format_command_result
 
 
 class TestVocabularyMerging(unittest.TestCase):
@@ -154,15 +154,14 @@ class TestLocationQuery(unittest.TestCase):
         # Move player to hallway where table with lantern is
         self.state.actors["player"].location = "loc_hallway"
 
-    def test_location_query_shows_items_on_surfaces(self):
-        """Test that location query shows items on surface containers."""
+    def test_look_command_shows_items_on_surfaces(self):
+        """Test that look command shows items on surface containers."""
         response = self.handler.handle_message({
-            "type": "query",
-            "query_type": "location",
-            "include": ["items", "doors"]
+            "type": "command",
+            "action": {"verb": "look"}
         })
 
-        output = format_location_query(response)
+        output = format_command_result(response)
 
         # Should show the table
         self.assertIn("table", output.lower())

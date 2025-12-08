@@ -8,7 +8,7 @@ import unittest
 import json
 from pathlib import Path
 
-from src.text_game import format_command_result, format_location_query, format_inventory_query
+from src.text_game import format_command_result, format_inventory_query
 from src.state_manager import load_game_state
 from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
@@ -218,17 +218,6 @@ class TestFormatFunctions(unittest.TestCase):
         result = {"success": False, "error": {"code": "NOTFOUND", "message": "Item not found."}}
         output = format_command_result(result)
         self.assertEqual(output, "Item not found.")
-
-    def test_format_location_query_basic(self):
-        """Test formatting basic location query."""
-        self.state.actors["player"].location = "loc_hallway"
-        response = self.handler.handle_message({
-            "type": "query",
-            "query_type": "location",
-            "include": ["items", "doors"]
-        })
-        output = format_location_query(response)
-        self.assertIn("Hallway", output)
 
     def test_format_inventory_query_empty(self):
         """Test formatting empty inventory."""

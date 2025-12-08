@@ -70,7 +70,15 @@ vocabulary = {
     ],
     "nouns": [],
     "adjectives": [],
-    "directions": []
+    "directions": [],
+    "events": [
+        {
+            "event": "on_observe",
+            "hook": "visibility_check",
+            "description": "Called to check if entity is visible. "
+                          "Return allow=False to hide entity."
+        }
+    ]
 }
 
 

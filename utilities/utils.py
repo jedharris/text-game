@@ -11,6 +11,7 @@ from typing import Optional, List, Tuple, Dict, Any, Union
 
 from src.state_accessor import EventResult
 from src.word_entry import WordEntry
+from src.hooks import VISIBILITY_CHECK
 from utilities.entity_serializer import serialize_for_handler_result
 
 
@@ -183,16 +184,19 @@ def is_observable(
     # Get the entity's states dict
     states = _get_entity_states(entity)
 
-    # If entity has on_observe behaviors, invoke them
+    # If entity has behaviors and visibility_check hook is registered, invoke it
     # Behaviors can override the hidden check (e.g., reveal on search)
-    if hasattr(entity, 'behaviors') and entity.behaviors:
+    event = None
+    if behavior_manager is not None:
+        event = behavior_manager.get_event_for_hook(VISIBILITY_CHECK)
+    if event and hasattr(entity, 'behaviors') and entity.behaviors:
         context = {"actor_id": actor_id, "method": method}
-        result = behavior_manager.invoke_behavior(entity, "on_observe", accessor, context)
+        result = behavior_manager.invoke_behavior(entity, event, accessor, context)
 
         if result is not None:
             return (result.allow, result.message)
 
-    # No behavior or behavior didn't handle on_observe
+    # No behavior or behavior didn't handle visibility check
     # Use core hidden state check
     if states.get("hidden", False):
         return (False, None)
@@ -941,7 +945,7 @@ def gather_location_contents(accessor, location_id: str, actor_id: str) -> dict:
 
 def describe_location(accessor, location, actor_id: str) -> List[str]:
     """
-    Build a text description of a location including items and actors.
+    Build a text description of a location including items, actors, and exits.
 
     Uses gather_location_contents for data, then formats as text.
 
@@ -972,6 +976,17 @@ def describe_location(accessor, location, actor_id: str) -> List[str]:
     if contents["actors"]:
         actor_names = ", ".join([a.name for a in contents["actors"]])
         message_parts.append(f"\nAlso here: {actor_names}")
+
+    # Add visible exits
+    visible_exits = accessor.get_visible_exits(location.id, actor_id)
+    if visible_exits:
+        exit_descriptions = []
+        for direction, exit_desc in visible_exits.items():
+            if hasattr(exit_desc, 'name') and exit_desc.name:
+                exit_descriptions.append(f"{exit_desc.name} ({direction})")
+            else:
+                exit_descriptions.append(direction)
+        message_parts.append(f"\nExits: {', '.join(exit_descriptions)}")
 
     return message_parts
 

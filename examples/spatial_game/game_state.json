@@ -5,7 +5,7 @@
     "description": "A custom game demonstrating engine extensibility.",
     "start_location": "loc_garden",
     "author": "Extended Game Example",
-    "schema_version": "v_0.02"
+    "schema_version": "v_0.03"
   },
   "locations": [
     {
@@ -30,7 +30,7 @@
     {
       "id": "loc_tower_entrance",
       "name": "Tower Entrance",
-      "description": "You are in the entrance hall of a tall stone tower. Dust motes dance in shafts of light from narrow windows. A spiral staircase leads up, and a wooden door leads east. The garden is to the south.",
+      "description": "You are in the entrance hall of a tall stone tower. Dust motes dance in shafts of light from narrow windows. A wooden door leads east. The garden is to the south.",
       "exits": {
         "south": {
           "type": "open",
@@ -42,7 +42,13 @@
           "type": "open",
           "to": "loc_library",
           "name": "spiral staircase",
-          "description": "A worn spiral staircase of grey stone winds upward into the tower."
+          "description": "A worn spiral staircase of grey stone winds upward into the tower.",
+          "behaviors": ["behaviors.magic_staircase"],
+          "properties": {
+            "states": {
+              "hidden": true
+            }
+          }
         },
         "east": {
           "type": "door",
@@ -56,6 +62,7 @@
         "item_welcome_mat",
         "item_umbrella_stand"
       ],
+      "behaviors": ["behaviors.tower_entrance"],
       "tags": []
     },
     {

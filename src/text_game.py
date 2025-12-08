@@ -10,9 +10,11 @@ import sys
 from pathlib import Path
 from typing import Dict, Any, Optional
 
-# Add project root to path so we can import from src
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
+# Add project root to path when run as script (not when imported as module)
+if __name__ == '__main__':
+    project_root = Path(__file__).parent.parent
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
 
 from src.parser import ParsedCommand
 from src.state_manager import load_game_state, save_game_state, GameState
@@ -41,56 +43,6 @@ def parsed_to_json(result: ParsedCommand) -> Dict[str, Any]:
         action["indirect_adjective"] = result.indirect_adjective.word
 
     return {"type": "command", "action": action}
-
-
-def format_location_query(response: Dict[str, Any]) -> str:
-    """Format a location query response as text."""
-    data = response.get("data", {})
-    location = data.get("location", {})
-    lines = []
-
-    # Location name and description
-    lines.append(location.get("name", "Unknown Location"))
-    lines.append(location.get("description", ""))
-
-    # Items - separate direct items from items on surfaces
-    items = data.get("items", [])
-    direct_items = []
-    surface_items = {}  # container_name -> [item_names]
-
-    for item in items:
-        on_surface = item.get("on_surface")
-        if on_surface:
-            if on_surface not in surface_items:
-                surface_items[on_surface] = []
-            surface_items[on_surface].append(item.get("name", "item"))
-        else:
-            direct_items.append(item.get("name", "item"))
-
-    if direct_items:
-        lines.append(f"You see: {', '.join(direct_items)}")
-
-    for container_name, item_names in surface_items.items():
-        lines.append(f"On the {container_name}: {', '.join(item_names)}")
-
-    # Doors with state
-    doors = data.get("doors", [])
-    if doors:
-        door_descriptions = []
-        for door in doors:
-            direction = door.get("direction", "")
-            state_parts = []
-            if door.get("locked"):
-                state_parts.append("locked")
-            if door.get("open"):
-                state_parts.append("open")
-            else:
-                state_parts.append("closed")
-            state_str = ", ".join(state_parts)
-            door_descriptions.append(f"door ({state_str}) to the {direction}")
-        lines.append(f"Exits: {', '.join(door_descriptions)}")
-
-    return "\n".join(lines)
 
 
 def format_item_query(response: Dict[str, Any]) -> str:
@@ -195,13 +147,12 @@ def main(game_dir: str = None):
     print("Type 'quit' to exit, 'help' for commands.")
     print()
 
-    # Show initial location via query
+    # Show initial location via look command
     response = engine.json_handler.handle_message({
-        "type": "query",
-        "query_type": "location",
-        "include": ["items", "doors"]
+        "type": "command",
+        "action": {"verb": "look"}
     })
-    print(format_location_query(response))
+    print(format_command_result(response))
     print()
 
     while True:
@@ -230,30 +181,16 @@ def main(game_dir: str = None):
         if result.verb:
             verb = result.verb.word
 
-            # Look/examine without object -> location query
-            if verb in ("look", "examine") and not result.direct_object:
-                response = engine.json_handler.handle_message({
-                    "type": "query",
-                    "query_type": "location",
-                    "include": ["items", "doors"]
-                })
-                print(format_location_query(response))
-                continue
-
-            # Examine/look/inventory with or without object -> use command
+            # Examine/look/inventory -> use command handler
+            # (handle_look calls describe_location which includes all visible exits)
             if verb in ("examine", "look", "inventory"):
                 json_cmd = parsed_to_json(result)
                 response = engine.json_handler.handle_message(json_cmd)
                 print(format_command_result(response))
                 continue
 
-        # Handle direction-only input (bare "north", etc.)
-        # Directions are now in direct_object as nouns
-        if result.direct_object and not result.verb:
-            json_cmd = {"type": "command", "action": {"verb": "go", "object": result.direct_object}}
-        else:
-            # Convert parsed command to JSON
-            json_cmd = parsed_to_json(result)
+        # Convert parsed command to JSON
+        json_cmd = parsed_to_json(result)
 
         # Execute via JSON protocol
         response = engine.json_handler.handle_message(json_cmd)
@@ -291,11 +228,10 @@ def main(game_dir: str = None):
                         engine.reload_state(loaded_state)
                         # Show new location
                         response = engine.json_handler.handle_message({
-                            "type": "query",
-                            "query_type": "location",
-                            "include": ["items", "doors"]
+                            "type": "command",
+                            "action": {"verb": "look"}
                         })
-                        print(format_location_query(response))
+                        print(format_command_result(response))
                     else:
                         print(f"Failed to load {filename}")
                 else:

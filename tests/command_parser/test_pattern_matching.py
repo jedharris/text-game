@@ -26,7 +26,7 @@ class TestPatternMatching12Words(unittest.TestCase):
         Test PM-001: Single direction word.
 
         Verify that a single direction word is parsed correctly
-        with only the direction field populated.
+        as a verb (directions are now verbs with object_required=False).
         """
         # Look up the words
         north = self.parser._lookup_word("north")
@@ -40,17 +40,17 @@ class TestPatternMatching12Words(unittest.TestCase):
         # Verify result
         self.assertIsNotNone(result)
         self.assertIsInstance(result, ParsedCommand)
-        # Directions are now treated as nouns in direct_object
-        self.assertEqual(result.direct_object, north)
-        self.assertEqual(result.direct_object.word, "north")
-        self.assertIsNone(result.verb)
+        # Directions are now verbs with object_required=False
+        self.assertEqual(result.verb, north)
+        self.assertEqual(result.verb.word, "north")
+        self.assertIsNone(result.direct_object)
 
     def test_direction_synonym(self):
         """
         Test PM-002: Direction synonym.
 
         Verify that a direction synonym (like "n" for "north")
-        is resolved and parsed correctly.
+        is resolved and parsed correctly as a verb.
         """
         # Look up by synonym
         n = self.parser._lookup_word("n")
@@ -63,9 +63,9 @@ class TestPatternMatching12Words(unittest.TestCase):
 
         # Verify result
         self.assertIsNotNone(result)
-        # Directions are now treated as nouns in direct_object
-        self.assertEqual(result.direct_object, n)
-        self.assertEqual(result.direct_object.word, "north")
+        # Directions are now verbs with object_required=False
+        self.assertEqual(result.verb, n)
+        self.assertEqual(result.verb.word, "north")
 
     def test_verb_noun(self):
         """

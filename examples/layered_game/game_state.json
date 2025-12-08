@@ -5,7 +5,7 @@
     "description": "A three-tier behavior demonstration with puzzle mechanics.",
     "start_location": "loc_entrance",
     "author": "Layered Game Example",
-    "schema_version": "v_0.02"
+    "schema_version": "v_0.03"
   },
   "locations": [
     {

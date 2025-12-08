@@ -198,7 +198,7 @@ class TestHardcodedChestRemoval(unittest.TestCase):
                         "capacity": 10
                     },
                     "behaviors": {
-                        "on_open": "behaviors.core.containers:on_open_treasure_chest"
+                        "on_open": "behaviors.core.containers:on_open"
                     }
                 },
                 {
@@ -214,7 +214,7 @@ class TestHardcodedChestRemoval(unittest.TestCase):
                         "capacity": 5
                     },
                     "behaviors": {
-                        "on_open": "behaviors.core.containers:on_open_treasure_chest"
+                        "on_open": "behaviors.core.containers:on_open"
                     }
                 },
                 {
@@ -318,7 +318,7 @@ class TestBehaviorDrivenApproach(unittest.TestCase):
                     "drinkable": True,
                     "location": "room1",
                     "behaviors": {
-                        "on_drink": "behaviors.core.consumables:on_drink_health_potion"
+                        "on_drink": "behaviors.core.consumables:on_drink"
                     }
                 },
                 {

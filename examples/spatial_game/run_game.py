@@ -60,64 +60,6 @@ def parsed_to_json(result: ParsedCommand) -> dict:
     return {"type": "command", "action": action}
 
 
-def format_location_query(response: dict) -> str:
-    """Format a location query response as text."""
-    data = response.get("data", {})
-    location = data.get("location", {})
-    lines = []
-
-    lines.append(location.get("name", "Unknown Location"))
-    lines.append(location.get("description", ""))
-
-    # Items - separate direct items from items on surfaces/in containers
-    items = data.get("items", [])
-    direct_items = []
-    surface_items = {}
-    contained_items = {}
-
-    for item in items:
-        on_surface = item.get("on_surface")
-        in_container = item.get("in_container")
-        if on_surface:
-            if on_surface not in surface_items:
-                surface_items[on_surface] = []
-            surface_items[on_surface].append(item.get("name", "item"))
-        elif in_container:
-            if in_container not in contained_items:
-                contained_items[in_container] = []
-            contained_items[in_container].append(item.get("name", "item"))
-        else:
-            direct_items.append(item.get("name", "item"))
-
-    if direct_items:
-        lines.append(f"You see: {', '.join(direct_items)}")
-
-    for container_name, item_names in surface_items.items():
-        lines.append(f"On the {container_name}: {', '.join(item_names)}")
-
-    for container_name, item_names in contained_items.items():
-        lines.append(f"In the {container_name}: {', '.join(item_names)}")
-
-    # Doors with state
-    doors = data.get("doors", [])
-    if doors:
-        door_descriptions = []
-        for door in doors:
-            direction = door.get("direction", "")
-            state_parts = []
-            if door.get("locked"):
-                state_parts.append("locked")
-            if door.get("open"):
-                state_parts.append("open")
-            else:
-                state_parts.append("closed")
-            state_str = ", ".join(state_parts)
-            door_descriptions.append(f"door ({state_str}) to the {direction}")
-        lines.append(f"Exits: {', '.join(door_descriptions)}")
-
-    return "\n".join(lines)
-
-
 def format_inventory_query(response: dict) -> str:
     """Format an inventory query response as text."""
     data = response.get("data", {})
@@ -210,13 +152,12 @@ def main():
     print("Try: read, peer, wave, examine")
     print()
 
-    # Show initial location
+    # Show initial location via look command
     response = json_handler.handle_message({
-        "type": "query",
-        "query_type": "location",
-        "include": ["items", "doors"]
+        "type": "command",
+        "action": {"verb": "look"}
     })
-    print(format_location_query(response))
+    print(format_command_result(response))
     print()
 
     # Main game loop
@@ -252,14 +193,13 @@ def main():
                 print("  Other: inventory, quit, help")
                 continue
 
-            # Look without object -> location query
+            # Look without object -> use command handler
             if verb in ("look", "examine") and not result.direct_object:
                 response = json_handler.handle_message({
-                    "type": "query",
-                    "query_type": "location",
-                    "include": ["items", "doors"]
+                    "type": "command",
+                    "action": {"verb": "look"}
                 })
-                print(format_location_query(response))
+                print(format_command_result(response))
                 continue
 
             # Inventory

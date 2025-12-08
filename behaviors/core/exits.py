@@ -9,6 +9,7 @@ from typing import Dict, Any
 
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
+from src.hooks import LOCATION_ENTERED
 from utilities.utils import find_accessible_item, find_exit_by_name, describe_location
 from utilities.handler_utils import get_display_name, validate_actor_and_location
 from utilities.entity_serializer import serialize_for_handler_result
@@ -44,7 +45,18 @@ vocabulary = {
                     "not_climbable": "can't climb that"
                 }
             }
-        }
+        },
+        # Direction verbs - bare directions like "north" invoke these handlers
+        {"word": "north", "synonyms": ["n"], "object_required": False},
+        {"word": "south", "synonyms": ["s"], "object_required": False},
+        {"word": "east", "synonyms": ["e"], "object_required": False},
+        {"word": "west", "synonyms": ["w"], "object_required": False},
+        {"word": "up", "synonyms": ["u"], "object_required": False},
+        {"word": "down", "synonyms": ["d"], "object_required": False},
+        {"word": "northeast", "synonyms": ["ne"], "object_required": False},
+        {"word": "northwest", "synonyms": ["nw"], "object_required": False},
+        {"word": "southeast", "synonyms": ["se"], "object_required": False},
+        {"word": "southwest", "synonyms": ["sw"], "object_required": False},
     ],
     "nouns": [
         # Exit structure nouns (single type)
@@ -79,7 +91,15 @@ vocabulary = {
         {"word": "southeast", "synonyms": []},
         {"word": "southwest", "synonyms": []}
     ],
-    "directions": []
+    "directions": [],
+    "events": [
+        {
+            "event": "on_enter",
+            "hook": "location_entered",
+            "description": "Called when an actor enters a location. "
+                          "Context includes actor_id and from_direction."
+        }
+    ]
 }
 
 
@@ -140,12 +160,13 @@ def _perform_exit_movement(accessor, actor, actor_id: str, exit_descriptor, dire
             message=f"INCONSISTENT STATE: Failed to move actor: {result.message}"
         )
 
-    # Invoke on_enter event if destination location has behaviors
+    # Invoke location_entered hook if destination location has behaviors
     on_enter_message = None
-    if hasattr(destination, 'behaviors') and destination.behaviors:
+    event = accessor.behavior_manager.get_event_for_hook(LOCATION_ENTERED)
+    if event and hasattr(destination, 'behaviors') and destination.behaviors:
         context = {"actor_id": actor_id, "from_direction": direction}
         behavior_result = accessor.behavior_manager.invoke_behavior(
-            destination, "on_enter", accessor, context
+            destination, event, accessor, context
         )
         if behavior_result and behavior_result.message:
             on_enter_message = behavior_result.message
@@ -316,3 +337,89 @@ def handle_climb(accessor, action):
         success=False,
         message=f"You don't see any {get_display_name(object_name)} here to climb."
     )
+
+
+# Direction handlers - each delegates to shared helper
+def _handle_direction(accessor, action, direction: str) -> HandlerResult:
+    """
+    Shared helper for direction movement commands.
+
+    Handles bare direction commands like "north", "up", etc.
+    Looks up the exit in that direction and performs movement if found.
+
+    Args:
+        accessor: StateAccessor instance
+        action: Action dict with actor_id
+        direction: The direction to move (e.g., "north", "up")
+
+    Returns:
+        HandlerResult with success flag and message
+    """
+    actor_id = action.get("actor_id", "player")
+    actor = accessor.get_actor(actor_id)
+    if not actor:
+        return HandlerResult(success=False, message="No actor found.")
+
+    location = accessor.get_location(actor.location)
+    if not location:
+        return HandlerResult(success=False, message="Actor has no location.")
+
+    visible_exits = accessor.get_visible_exits(location.id, actor_id)
+    if direction not in visible_exits:
+        return HandlerResult(
+            success=False,
+            message=f"You can't go {direction} from here."
+        )
+
+    exit_descriptor = visible_exits[direction]
+    return _perform_exit_movement(accessor, actor, actor_id, exit_descriptor, direction, f"go {direction}")
+
+
+def handle_north(accessor, action):
+    """Handle bare 'north' command."""
+    return _handle_direction(accessor, action, "north")
+
+
+def handle_south(accessor, action):
+    """Handle bare 'south' command."""
+    return _handle_direction(accessor, action, "south")
+
+
+def handle_east(accessor, action):
+    """Handle bare 'east' command."""
+    return _handle_direction(accessor, action, "east")
+
+
+def handle_west(accessor, action):
+    """Handle bare 'west' command."""
+    return _handle_direction(accessor, action, "west")
+
+
+def handle_up(accessor, action):
+    """Handle bare 'up' command."""
+    return _handle_direction(accessor, action, "up")
+
+
+def handle_down(accessor, action):
+    """Handle bare 'down' command."""
+    return _handle_direction(accessor, action, "down")
+
+
+def handle_northeast(accessor, action):
+    """Handle bare 'northeast' command."""
+    return _handle_direction(accessor, action, "northeast")
+
+
+def handle_northwest(accessor, action):
+    """Handle bare 'northwest' command."""
+    return _handle_direction(accessor, action, "northwest")
+
+
+def handle_southeast(accessor, action):
+    """Handle bare 'southeast' command."""
+    return _handle_direction(accessor, action, "southeast")
+
+
+def handle_southwest(accessor, action):
+    """Handle bare 'southwest' command."""
+    return _handle_direction(accessor, action, "southwest")

@@ -1,13 +1,22 @@
 """Behavior management system for entity events."""
 
 from typing import Optional, Dict, Any, List, Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import importlib
 import os
 from pathlib import Path
 
 # Import EventResult from state_accessor to avoid duplication
 from src.state_accessor import EventResult
+
+
+@dataclass
+class EventInfo:
+    """Metadata about a registered event type."""
+    event_name: str                              # e.g., "on_damage"
+    registered_by: List[str] = field(default_factory=list)  # Module names that register this event
+    description: Optional[str] = None            # Optional documentation
+    hook: Optional[str] = None                   # Engine hook name, if any
 
 
 class BehaviorManager:
@@ -27,6 +36,12 @@ class BehaviorManager:
         self._verb_tier_sources: Dict[tuple, str] = {}  # (verb, tier) -> module_name
         # Store loaded modules for entity behavior invocation
         self._modules: Dict[str, Any] = {}  # module_name -> module object
+        # Event registry: event_name -> EventInfo
+        self._event_registry: Dict[str, EventInfo] = {}
+        # Hook to event mapping: hook_name -> (event_name, tier)
+        self._hook_to_event: Dict[str, tuple] = {}
+        # Event fallbacks: event_name -> fallback_event_name
+        self._fallback_events: Dict[str, str] = {}
 
     def _calculate_tier(self, behavior_file_path: str, base_behavior_dir: str) -> int:
         """
@@ -75,22 +90,91 @@ class BehaviorManager:
         Raises:
             ValueError: If vocabulary conflicts detected
         """
-        if "verbs" not in vocabulary:
-            return
-
-        for verb_spec in vocabulary["verbs"]:
+        # Register verbs and their events
+        for verb_spec in vocabulary.get("verbs", []):
             word = verb_spec["word"]
             event = verb_spec.get("event")  # Event is optional
 
             # Register main word
             if event:
                 self._register_verb_mapping(word, event, module_name, tier)
+                # Also register the event in the event registry
+                self._register_event(event, module_name, tier)
+                # Register fallback relationship if specified
+                if fallback := verb_spec.get("fallback_event"):
+                    self._fallback_events[event] = fallback
 
             # Register synonyms
             if "synonyms" in verb_spec:
                 for synonym in verb_spec["synonyms"]:
                     if event:
                         self._register_verb_mapping(synonym, event, module_name, tier)
+
+        # Register explicit events (with optional hooks)
+        for event_spec in vocabulary.get("events", []):
+            event_name = event_spec["event"]
+            self._register_event(
+                event_name,
+                module_name,
+                tier,
+                description=event_spec.get("description"),
+                hook=event_spec.get("hook")
+            )
+
+    def _register_event(
+        self,
+        event_name: str,
+        module_name: str,
+        tier: int,
+        description: Optional[str] = None,
+        hook: Optional[str] = None
+    ) -> None:
+        """
+        Register an event in the event registry.
+
+        Args:
+            event_name: The event name (e.g., "on_take")
+            module_name: Module name registering this event
+            tier: Tier number (1 = highest precedence)
+            description: Optional documentation for the event
+            hook: Optional engine hook name
+
+        Raises:
+            ValueError: If hook conflict detected at same tier
+        """
+        if event_name not in self._event_registry:
+            self._event_registry[event_name] = EventInfo(
+                event_name=event_name,
+                registered_by=[module_name],
+                description=description,
+                hook=hook
+            )
+        else:
+            info = self._event_registry[event_name]
+            if module_name not in info.registered_by:
+                info.registered_by.append(module_name)
+            # First description wins
+            if description and not info.description:
+                info.description = description
+
+        # Register hook mapping with tier-based precedence
+        if hook:
+            if hook in self._hook_to_event:
+                existing_event, existing_tier = self._hook_to_event[hook]
+                if existing_event != event_name:
+                    if existing_tier == tier:
+                        # Same tier, different events = conflict
+                        raise ValueError(
+                            f"Hook '{hook}' conflict at tier {tier}: "
+                            f"already mapped to '{existing_event}', "
+                            f"cannot also map to '{event_name}'"
+                        )
+                    elif tier < existing_tier:
+                        # New registration has higher precedence (lower tier)
+                        self._hook_to_event[hook] = (event_name, tier)
+                    # else: existing has higher precedence, keep it
+            else:
+                self._hook_to_event[hook] = (event_name, tier)
 
     def _register_verb_mapping(self, verb: str, event: str, module_name: str, tier: int) -> None:
         """
@@ -536,6 +620,59 @@ class BehaviorManager:
         """Check if a handler is registered for this verb."""
         return verb in self._handlers
 
+    # Event registry query methods
+
+    def get_registered_events(self) -> List[str]:
+        """Return list of all registered event names."""
+        return list(self._event_registry.keys())
+
+    def get_event_info(self, event_name: str) -> Optional[EventInfo]:
+        """Get metadata for a registered event."""
+        return self._event_registry.get(event_name)
+
+    def has_event(self, event_name: str) -> bool:
+        """Check if an event is registered."""
+        return event_name in self._event_registry
+
+    def get_event_for_hook(self, hook_name: str) -> Optional[str]:
+        """Get event name for an engine hook. Returns None if hook not registered."""
+        entry = self._hook_to_event.get(hook_name)
+        return entry[0] if entry else None
+
+    def get_fallback_event(self, event_name: str) -> Optional[str]:
+        """Get fallback event for an event. Returns None if no fallback."""
+        return self._fallback_events.get(event_name)
+
+    def get_hooks(self) -> List[str]:
+        """Return list of all registered hook names."""
+        return list(self._hook_to_event.keys())
+
+    def validate_on_prefix_usage(self) -> None:
+        """
+        Ensure all on_* functions correspond to registered events.
+
+        Validates that behavior modules don't define on_* functions without
+        registering the corresponding event. This catches:
+        - Typos: on_tke instead of on_take
+        - Misunderstanding: Using on_ for non-event helpers
+        - Missing event registration: Forgot to add event to vocabulary
+
+        Raises:
+            ValueError: If any on_* function is not a registered event.
+                       Fail fast - this is a load-time error.
+        """
+        registered = set(self.get_registered_events())
+
+        for module_name, module in self._modules.items():
+            for name in dir(module):
+                if name.startswith("on_") and callable(getattr(module, name)):
+                    if name not in registered:
+                        raise ValueError(
+                            f"Module '{module_name}' defines '{name}' but this event "
+                            f"is not registered. Either register the event in vocabulary "
+                            f"or rename the function to not use 'on_' prefix."
+                        )
+
     def load_behavior(self, behavior_path: str) -> Optional[Callable]:
         """
         Load a behavior function from module path.
@@ -568,11 +705,44 @@ class BehaviorManager:
         context: Dict[str, Any]
     ) -> Optional[EventResult]:
         """
-        Invoke entity behaviors for an event.
+        Invoke entity behaviors for an event, with fallback support.
 
         Invokes all behaviors attached to the entity that define the event handler.
         Multiple behaviors are combined with AND logic (all must allow) and
         messages are concatenated.
+
+        If no behavior responds to event_name and a fallback is registered,
+        tries the fallback event (recursively, supporting fallback chains).
+
+        Args:
+            entity: Entity object with 'behaviors' field (list or dict)
+            event_name: Event name (e.g., "on_take")
+            accessor: StateAccessor instance
+            context: Event context dict with actor_id, changes, verb
+
+        Returns:
+            EventResult with combined allow/message, or None if no behaviors
+        """
+        # Try primary event
+        result = self._invoke_behavior_internal(entity, event_name, accessor, context)
+
+        # If no result and fallback exists, try fallback (recursive for chains)
+        if result is None:
+            fallback = self.get_fallback_event(event_name)
+            if fallback:
+                result = self.invoke_behavior(entity, fallback, accessor, context)
+
+        return result
+
+    def _invoke_behavior_internal(
+        self,
+        entity: Any,
+        event_name: str,
+        accessor: Any,
+        context: Dict[str, Any]
+    ) -> Optional[EventResult]:
+        """
+        Internal implementation of behavior invocation (no fallback handling).
 
         Args:
             entity: Entity object with 'behaviors' field (list or dict)

@@ -43,15 +43,17 @@ class TestVocabularyLoading(unittest.TestCase):
         articles = [w for w in parser.word_table if w.word_type == WordType.ARTICLE]
 
         # Verify all types are present
-        self.assertEqual(len(verbs), 10)
+        # Directions now have multi-valued type {NOUN, ADJECTIVE, VERB}
+        self.assertEqual(len(verbs), 20)  # 10 regular verbs + 10 directions (multi-valued)
         self.assertEqual(len(nouns), 22)  # 12 regular nouns + 10 directions (multi-valued)
         self.assertEqual(len(adjectives), 21)  # 10 regular adjectives + 10 directions (multi-valued) + 1 "open" (multi-valued from verb)
         self.assertEqual(len(prepositions), 8)
-        self.assertEqual(len(directions), 10)
+        self.assertEqual(len(directions), 0)  # Directions now have {NOUN, ADJECTIVE, VERB}, not just {NOUN, ADJECTIVE}
         self.assertEqual(len(articles), 3)
 
         # Verify total count
-        self.assertEqual(len(parser.word_table), 53)  # 12 regular nouns + 10 directions + 10 verbs + 10 adjectives + 8 preps + 3 articles
+        # 12 regular nouns + 10 directions + 10 verbs + 10 adjectives + 8 preps + 3 articles = 53
+        self.assertEqual(len(parser.word_table), 53)
 
     def test_load_minimal_vocabulary(self):
         """
@@ -159,22 +161,28 @@ class TestVocabularyLoading(unittest.TestCase):
         vocab_file = os.path.join(self.fixtures_path, 'test_vocabulary.json')
         parser = Parser(vocab_file)
 
-        # Find the "north" direction (now has multi-valued type {NOUN, ADJECTIVE})
+        # Find the "north" direction (now has multi-valued type {NOUN, ADJECTIVE, VERB})
         north_dir = None
         for entry in parser.word_table:
-            if entry.word == "north" and isinstance(entry.word_type, set) and entry.word_type == {WordType.NOUN, WordType.ADJECTIVE}:
+            if entry.word == "north" and isinstance(entry.word_type, set) and WordType.NOUN in entry.word_type:
                 north_dir = entry
                 break
 
         # Verify it was found
         self.assertIsNotNone(north_dir)
 
+        # Verify it has NOUN, ADJECTIVE, and VERB types
+        self.assertIn(WordType.NOUN, north_dir.word_type)
+        self.assertIn(WordType.ADJECTIVE, north_dir.word_type)
+        self.assertIn(WordType.VERB, north_dir.word_type)
+
         # Verify synonyms
         self.assertIn("n", north_dir.synonyms)
         self.assertEqual(len(north_dir.synonyms), 1)
 
-        # Verify value
+        # Verify value and object_required
         self.assertEqual(north_dir.value, 1)
+        self.assertFalse(north_dir.object_required)
 
     def test_preposition_loading(self):
         """
@@ -314,7 +322,8 @@ class TestVocabularyLoading(unittest.TestCase):
 
         # Verify word table size matches
         self.assertEqual(len(parser.word_table), expected_count)
-        self.assertEqual(len(parser.word_table), 53)  # 12 regular nouns + 10 directions + 10 verbs + 10 adjectives + 8 preps + 3 articles
+        # 12 regular nouns + 10 directions + 10 verbs + 10 adjectives + 8 preps + 3 articles = 53
+        self.assertEqual(len(parser.word_table), 53)
 
 
 class TestVocabularyDetails(unittest.TestCase):

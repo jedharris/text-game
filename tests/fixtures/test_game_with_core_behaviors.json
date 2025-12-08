@@ -28,7 +28,7 @@
       "drinkable": true,
       "location": "room1",
       "behaviors": {
-        "on_drink": "behaviors.core.consumables:on_drink_health_potion"
+        "on_drink": "behaviors.core.consumables:on_drink"
       }
     },
     {
@@ -40,7 +40,7 @@
       "edible": true,
       "location": "room1",
       "behaviors": {
-        "on_eat": "behaviors.core.consumables:on_eat_food"
+        "on_eat": "behaviors.core.consumables:on_eat"
       }
     },
     {
@@ -72,7 +72,7 @@
         "capacity": 10
       },
       "behaviors": {
-        "on_open": "behaviors.core.containers:on_open_treasure_chest"
+        "on_open": "behaviors.core.containers:on_open"
       }
     },
     {

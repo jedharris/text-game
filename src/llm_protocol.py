@@ -222,17 +222,10 @@ class LLMProtocolHandler:
             "verb": verb
         }
 
-        # Invoke behavior
+        # Invoke behavior (fallbacks are handled automatically by invoke_behavior)
         behavior_result = self.behavior_manager.invoke_behavior(
             entity_obj, event_name, self.state, context
         )
-
-        # If no behavior found for "put", try "drop" as fallback
-        # (putting an item down is semantically similar to dropping it)
-        if not behavior_result and verb == "put":
-            behavior_result = self.behavior_manager.invoke_behavior(
-                entity_obj, "on_drop", self.state, context
-            )
 
         # Remove entity_obj from result before returning
         result = {k: v for k, v in result.items() if k != "entity_obj"}
