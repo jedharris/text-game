@@ -402,6 +402,7 @@ class GameState:
     actors: Dict[str, Actor] = field(default_factory=dict)
     parts: List[Part] = field(default_factory=list)
     extra: Dict[str, Any] = field(default_factory=dict)
+    turn_count: int = 0
 
     def get_actor(self, actor_id: str) -> Actor:
         """Get actor by ID."""
@@ -483,6 +484,14 @@ class GameState:
             flags = player.properties.get("flags", {})
             return flags.get(flag_name, default)
         return default
+
+    def increment_turn(self) -> int:
+        """Increment turn counter and return new value.
+
+        Called after each successful player command, before turn phases fire.
+        """
+        self.turn_count += 1
+        return self.turn_count
 
     def build_id_registry(self) -> Dict[str, str]:
         """Build registry of all entity IDs to their types."""
@@ -682,37 +691,17 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
         )
         parts.append(part)
 
-    # Parse actors - support both old and new formats
+    # Parse actors from actors dict (required format - no legacy support)
     actors = {}
 
-    # New format: actors dict
-    if 'actors' in data:
-        for actor_id, actor_data in data['actors'].items():
-            actors[actor_id] = _parse_actor(actor_data, actor_id=actor_id)
-    else:
-        # Old format: separate player and npcs fields
-        # Parse player state (support both 'player_state' and 'player' keys)
-        if 'player_state' in data:
-            actors['player'] = _parse_actor(data['player_state'], actor_id='player')
-        elif 'player' in data:
-            actors['player'] = _parse_actor(data['player'], actor_id='player')
-        elif metadata.start_location:
-            # Create default player state from metadata.start_location
-            # Note: name must not be "player" - that's a prohibited name
-            actors['player'] = Actor(
-                id='player',
-                name='Adventurer',
-                description='The player character',
-                location=metadata.start_location,
-                inventory=[],
-                properties={},
-                behaviors=[]
-            )
+    if 'actors' not in data:
+        raise ValueError("game_state.json must have 'actors' dict")
 
-        # Parse NPCs
-        for npc_data in data.get('npcs', []):
-            npc = _parse_actor(npc_data)
-            actors[npc.id] = npc
+    for actor_id, actor_data in data['actors'].items():
+        actors[actor_id] = _parse_actor(actor_data, actor_id=actor_id)
+
+    if 'player' not in actors:
+        raise ValueError("actors dict must contain 'player' entry")
 
     state = GameState(
         metadata=metadata,
@@ -720,7 +709,9 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
         items=items,
         locks=locks,
         actors=actors,
-        parts=parts
+        parts=parts,
+        turn_count=data.get('turn_count', 0),
+        extra=data.get('extra', {})
     )
 
     # Validate after loading
@@ -822,13 +813,19 @@ def game_state_to_dict(state: GameState) -> Dict[str, Any]:
 
     Note: Doors are stored as items with properties.door.
     """
-    return {
+    result = {
         'metadata': _serialize_metadata(state.metadata),
         'locations': [_serialize_location(loc) for loc in state.locations],
         'items': [_serialize_item(item) for item in state.items],
         'locks': [_serialize_lock(lock) for lock in state.locks],
         'actors': {actor_id: _serialize_actor(actor) for actor_id, actor in state.actors.items()}
     }
+
+    # Only include turn_count if non-zero (for cleaner save files)
+    if state.turn_count > 0:
+        result['turn_count'] = state.turn_count
+
+    return result
 
 
 def save_game_state(state: GameState, path: Union[str, Path]) -> None:

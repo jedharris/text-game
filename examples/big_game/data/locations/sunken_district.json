@@ -1,0 +1,298 @@
+{
+  "locations": [
+    {
+      "id": "loc_sd_flooded_streets",
+      "name": "Flooded Plaza",
+      "description": "The entry point to the sunken district. Murky water reaches waist-deep here, with debris floating on the surface. A makeshift camp of survivors clings to elevated platforms built from salvaged materials. Improvised bridges connect the higher ground.",
+      "exits": {
+        "north": {
+          "type": "open",
+          "to": "loc_sd_submerged_library",
+          "name": "flooded street",
+          "description": "A partially flooded street leads north toward a grand building that was once a library."
+        },
+        "east": {
+          "type": "open",
+          "to": "loc_sd_air_pocket_chamber",
+          "name": "underwater passage",
+          "description": "A submerged passage leads east. You'd need to swim to traverse it."
+        },
+        "west": {
+          "type": "open",
+          "to": "loc_mn_nexus_chamber",
+          "name": "rising path",
+          "description": "A path rises out of the water and leads west toward the Meridian Nexus."
+        }
+      },
+      "items": [],
+      "tags": [],
+      "properties": {
+        "region": "sunken_district",
+        "water_level": "waist",
+        "light_level": "bright"
+      },
+      "llm_context": {
+        "traits": [
+          "debris floating in murky water",
+          "improvised bridges between rubble",
+          "desperate resourcefulness",
+          "constant splashing echoes",
+          "survivor camp on raised platforms",
+          "smell of damp and decay",
+          "salvaged materials everywhere"
+        ],
+        "state_variants": {
+          "first_arrival": "The water is cold, the smell unpleasant, but there's life here - survivors have made this their refuge.",
+          "camp_thriving": "The camp is busy with activity, survivors moving between platforms with renewed hope.",
+          "camp_struggling": "The camp feels subdued, fewer people visible, morale clearly low."
+        },
+        "atmosphere": "desperate, resourceful, community"
+      }
+    },
+    {
+      "id": "loc_sd_submerged_library",
+      "name": "Submerged Library",
+      "description": "A scholarly institution now half-underwater. The upper level remains above the waterline with soggy but readable books, while the flooded stacks below contain valuable but harder to reach texts. Fish swim between the shelves, and ink bleeds from ruined pages.",
+      "exits": {
+        "south": {
+          "type": "open",
+          "to": "loc_sd_flooded_streets",
+          "name": "flooded street",
+          "description": "A flooded street leads south back to the plaza."
+        },
+        "down": {
+          "type": "open",
+          "to": "loc_sd_sunken_shrine",
+          "name": "submerged stairs",
+          "description": "Stairs descend into completely flooded depths. Swimming would be required."
+        }
+      },
+      "items": ["item_sd_soggy_book", "item_sd_preserved_text"],
+      "tags": [],
+      "properties": {
+        "region": "sunken_district",
+        "water_level": "variable",
+        "light_level": "dim"
+      },
+      "parts": ["part_sd_library_surface", "part_sd_library_flooded", "part_sd_library_deep"],
+      "llm_context": {
+        "traits": [
+          "ink bleeding from ruined pages",
+          "fish swimming through shelves",
+          "eerie preservation bubbles around some texts",
+          "mechanical clicking from somewhere below",
+          "smell of wet paper and mold",
+          "shafts of light through murky water",
+          "knowledge drowning in the depths"
+        ],
+        "state_variants": {
+          "exploring_surface": "The upper level is damp but passable. Many books are ruined, but some remain legible.",
+          "diving_stacks": "You swim between submerged bookshelves, lungs burning, searching for valuable texts.",
+          "deep_archive": "The pressure here is intense. Your breathing equipment struggles against the depth."
+        },
+        "atmosphere": "scholarly, tragic, mysterious"
+      }
+    },
+    {
+      "id": "loc_sd_air_pocket_chamber",
+      "name": "Air Pocket Chamber",
+      "description": "A large underground chamber where trapped air has created a breathable pocket. The ceiling curves above the waterline, and survivors have established a secondary refuge here. The water around the chamber is dark and deep.",
+      "exits": {
+        "west": {
+          "type": "open",
+          "to": "loc_sd_flooded_streets",
+          "name": "underwater passage",
+          "description": "An underwater passage leads west back to the flooded plaza."
+        },
+        "north": {
+          "type": "open",
+          "to": "loc_sd_drainage_controls",
+          "name": "dry tunnel",
+          "description": "A tunnel above the waterline leads north to some kind of control room."
+        },
+        "down": {
+          "type": "open",
+          "to": "loc_sd_drowning_cave",
+          "name": "deep water",
+          "description": "Dark water leads down to underwater caves. Bubbles rise from somewhere below."
+        }
+      },
+      "items": ["item_sd_breathing_reed"],
+      "tags": [],
+      "properties": {
+        "region": "sunken_district",
+        "water_level": "surface",
+        "light_level": "dim",
+        "breathable": true
+      },
+      "llm_context": {
+        "traits": [
+          "trapped air creating refuge",
+          "curved ceiling above water",
+          "echoes amplified strangely",
+          "cool damp atmosphere",
+          "faint bioluminescence in water",
+          "sound of dripping water",
+          "secondary survivor camp"
+        ],
+        "state_variants": {
+          "safe": "The air pocket provides blessed relief from the underwater passage.",
+          "bubbles_rising": "Bubbles rise urgently from below. Someone is in trouble down there."
+        },
+        "atmosphere": "sheltered, tense, hopeful"
+      }
+    },
+    {
+      "id": "loc_sd_drainage_controls",
+      "name": "Drainage Controls",
+      "description": "An ancient control room for the district's water management system. Massive bronze wheels and lever mechanisms line the walls, though many are rusted or broken. If the drainage could be restored, much of the district could be reclaimed.",
+      "exits": {
+        "south": {
+          "type": "open",
+          "to": "loc_sd_air_pocket_chamber",
+          "name": "tunnel",
+          "description": "A tunnel leads south back to the air pocket chamber."
+        }
+      },
+      "items": ["item_sd_drainage_wheel", "item_sd_rusted_mechanism"],
+      "tags": [],
+      "properties": {
+        "region": "sunken_district",
+        "water_level": "none",
+        "light_level": "dark",
+        "requires_light": true
+      },
+      "llm_context": {
+        "traits": [
+          "massive bronze wheels",
+          "rusted lever mechanisms",
+          "engineering diagrams on walls",
+          "dust and grime everywhere",
+          "potential for restoration",
+          "ancient but solid construction",
+          "echoes of rushing water"
+        ],
+        "state_variants": {
+          "non_functional": "The mechanisms are seized with rust, the controls unresponsive.",
+          "partially_restored": "Some wheels turn now, and water gurgles in distant pipes.",
+          "fully_operational": "The drainage system hums with restored power, water levels dropping throughout the district."
+        },
+        "atmosphere": "mechanical, potential, challenging"
+      }
+    },
+    {
+      "id": "loc_sd_sunken_shrine",
+      "name": "Sunken Shrine",
+      "description": "An ancient shrine now completely submerged. The water here is crystal clear, preserved by some residual magic. Statues of forgotten deities stand in silent vigil, their stone faces serene despite the flooding. Air bladders are essential here.",
+      "exits": {
+        "up": {
+          "type": "open",
+          "to": "loc_sd_submerged_library",
+          "name": "stairs",
+          "description": "Stairs lead up to the library above."
+        }
+      },
+      "items": ["item_sd_shrine_offering", "item_sd_waterlogged_tome"],
+      "tags": [],
+      "properties": {
+        "region": "sunken_district",
+        "water_level": "submerged",
+        "light_level": "dim",
+        "breathable": false,
+        "breathing_item_works": true,
+        "magical_preservation": true
+      },
+      "llm_context": {
+        "traits": [
+          "crystal clear water",
+          "statues of forgotten deities",
+          "serene despite flooding",
+          "preserved by residual magic",
+          "peaceful silence",
+          "shafts of filtered light",
+          "ancient devotional offerings"
+        ],
+        "state_variants": {
+          "diving": "You swim through the preserved shrine, awed by its peaceful beauty.",
+          "offering_made": "The statues seem to glow faintly with approval.",
+          "treasure_found": "Behind the altar, something glitters in the magical light."
+        },
+        "atmosphere": "sacred, peaceful, preserved"
+      }
+    },
+    {
+      "id": "loc_sd_drowning_cave",
+      "name": "Drowning Sailor Cave",
+      "description": "An underwater cave where a sailor is trapped, desperately struggling to stay afloat. Air bubbles rise from their position, growing fewer by the moment. Time is critical - this person will drown without immediate intervention.",
+      "exits": {
+        "up": {
+          "type": "open",
+          "to": "loc_sd_air_pocket_chamber",
+          "name": "water column",
+          "description": "The water column leads up to the air pocket chamber."
+        }
+      },
+      "items": [],
+      "tags": [],
+      "properties": {
+        "region": "sunken_district",
+        "water_level": "submerged",
+        "light_level": "dark",
+        "breathable": false,
+        "breathing_item_works": true,
+        "time_critical": true
+      },
+      "llm_context": {
+        "traits": [
+          "bubbles rising desperately",
+          "fingers scraping rock",
+          "muffled cries",
+          "current pulling toward the deep",
+          "dim light from above",
+          "frantic movement",
+          "life hanging by a thread"
+        ],
+        "state_variants": {
+          "sailor_drowning": "The sailor's movements are growing weaker. Every moment counts.",
+          "rescue_in_progress": "You reach the sailor just as their strength fails.",
+          "sailor_rescued": "The cave is empty now, only still water remaining."
+        },
+        "atmosphere": "urgent, terrifying, desperate"
+      }
+    }
+  ],
+  "parts": [
+    {
+      "id": "part_sd_library_surface",
+      "name": "Library Surface Level",
+      "part_of": "loc_sd_submerged_library",
+      "properties": {
+        "description": "The upper level of the library, above the waterline. Books are soggy but readable.",
+        "water_level": "none",
+        "breathable": true
+      }
+    },
+    {
+      "id": "part_sd_library_flooded",
+      "name": "Flooded Stacks",
+      "part_of": "loc_sd_submerged_library",
+      "properties": {
+        "description": "The main floor, now underwater. Valuable texts wait here for those who can reach them.",
+        "water_level": "submerged",
+        "breathable": false,
+        "breathing_item_works": true
+      }
+    },
+    {
+      "id": "part_sd_library_deep",
+      "name": "Deep Archive",
+      "part_of": "loc_sd_submerged_library",
+      "properties": {
+        "description": "The deepest level of the library. The pressure here makes breathing equipment less effective.",
+        "water_level": "deep",
+        "breathable": false,
+        "breathing_item_works": false
+      }
+    }
+  ]
+}

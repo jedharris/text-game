@@ -1,0 +1,113 @@
+{
+  "verbs": [],
+  "nouns": [
+    {
+      "word": "silvermoss",
+      "synonyms": ["moss"],
+      "description": "Antifungal silvermoss plant"
+    },
+    {
+      "word": "scholar",
+      "synonyms": ["aldric"],
+      "description": "Scholar Aldric NPC"
+    },
+    {
+      "word": "wolf",
+      "synonyms": ["wolves", "alpha"],
+      "description": "Wolf pack members"
+    },
+    {
+      "word": "venison",
+      "synonyms": ["meat", "deer"],
+      "description": "Deer meat food item"
+    },
+    {
+      "word": "sailor",
+      "synonyms": [],
+      "description": "Drowning sailor NPC"
+    },
+    {
+      "word": "golem",
+      "synonyms": ["construct", "guardian"],
+      "description": "Golem NPCs (diving, guardian)"
+    },
+    {
+      "word": "bladder",
+      "synonyms": ["air"],
+      "description": "Air bladder breathing equipment"
+    },
+    {
+      "word": "sword",
+      "synonyms": ["weapon", "blade"],
+      "description": "Rusty sword weapon"
+    },
+    {
+      "word": "pillar",
+      "synonyms": ["cover", "column"],
+      "description": "Stone pillar for cover"
+    },
+    {
+      "word": "nightshade",
+      "synonyms": ["poison", "toxic"],
+      "description": "Toxic nightshade plant"
+    },
+    {
+      "word": "herb",
+      "synonyms": ["healing", "plant"],
+      "description": "Healing herb plant"
+    },
+    {
+      "word": "healer",
+      "synonyms": ["mira"],
+      "description": "Healer Mira NPC"
+    },
+    {
+      "word": "gold",
+      "synonyms": ["coins", "money"],
+      "description": "Gold coins for payment"
+    },
+    {
+      "word": "merchant",
+      "synonyms": ["trader"],
+      "description": "Injured merchant NPC"
+    },
+    {
+      "word": "bandages",
+      "synonyms": ["bandage", "cloth"],
+      "description": "Medical bandages for bleeding"
+    },
+    {
+      "word": "pouch",
+      "synonyms": ["bag", "reward"],
+      "description": "Merchant's reward pouch"
+    },
+    {
+      "word": "spider",
+      "synonyms": ["queen", "spiders"],
+      "description": "Spider pack members"
+    },
+    {
+      "word": "torch",
+      "synonyms": ["fire", "flame"],
+      "description": "Fire torch for burning webs"
+    },
+    {
+      "word": "web",
+      "synonyms": ["webs", "silk"],
+      "description": "Spider webs"
+    },
+    {
+      "word": "statue",
+      "synonyms": ["warrior", "construct"],
+      "description": "Broken stone statue construct"
+    },
+    {
+      "word": "chisel",
+      "synonyms": ["tool", "repair"],
+      "description": "Stone chisel for repairs"
+    }
+  ],
+  "adjectives": [],
+  "prepositions": ["at", "with", "to", "in", "on", "under", "behind", "from", "into", "onto", "through", "of", "out"],
+  "articles": ["the", "a", "an"]
+}

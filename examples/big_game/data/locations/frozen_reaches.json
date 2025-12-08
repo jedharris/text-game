@@ -1,0 +1,251 @@
+{
+  "locations": [
+    {
+      "id": "loc_fr_frozen_pass",
+      "name": "Frozen Pass",
+      "description": "A treacherous mountain pass where the disaster locked winter in place. Snow never melts here, and the wind carries whispers of those who didn't make it through. Frozen travelers stand as monuments along the path, their final moments preserved in ice.",
+      "exits": {
+        "north": {
+          "type": "open",
+          "to": "loc_fr_temple_sanctum",
+          "name": "stone path",
+          "description": "A partially cleared stone path leads north toward an ancient temple."
+        },
+        "east": {
+          "type": "open",
+          "to": "loc_fr_ice_caves",
+          "name": "cave entrance",
+          "description": "A dark opening in the ice leads east into natural caves."
+        },
+        "south": {
+          "type": "open",
+          "to": "loc_mn_nexus_chamber",
+          "name": "mountain trail",
+          "description": "A winding trail leads south back toward the Meridian Nexus."
+        }
+      },
+      "items": ["item_fr_cold_weather_gear", "item_fr_frozen_supplies"],
+      "tags": [],
+      "properties": {
+        "region": "frozen_reaches",
+        "temperature": "cold",
+        "light_level": "bright"
+      },
+      "llm_context": {
+        "traits": [
+          "biting wind that cuts through clothing",
+          "snow that doesn't melt even in sunlight",
+          "ice crystals suspended in the air",
+          "impossible silence between gusts",
+          "frozen travelers as grim warnings",
+          "abandoned supply caches half-buried in snow",
+          "signs of rushed evacuation long ago"
+        ],
+        "state_variants": {
+          "first_visit": "The cold hits you like a wall. Your breath crystallizes instantly.",
+          "wearing_cold_gear": "Your warm gear holds back the worst of the cold, but the chill still seeps in.",
+          "hypothermic": "You can barely feel your extremities. Each step is agony."
+        },
+        "atmosphere": "desolate, haunting, survivalist"
+      }
+    },
+    {
+      "id": "loc_fr_temple_sanctum",
+      "name": "Temple Sanctum",
+      "description": "An ancient temple carved into the mountainside, its entrance guarded by massive stone golems. Glowing runes pulse faintly on every surface, their protective enchantments still active after centuries. The interior offers some shelter from the wind.",
+      "exits": {
+        "south": {
+          "type": "open",
+          "to": "loc_fr_frozen_pass",
+          "name": "stone path",
+          "description": "The stone path leads south back to the frozen pass."
+        },
+        "down": {
+          "type": "open",
+          "to": "loc_fr_ice_caves",
+          "name": "temple stairs",
+          "description": "Ancient stairs descend into caves beneath the temple."
+        }
+      },
+      "items": ["item_fr_mounting_bracket", "item_fr_lore_tablet"],
+      "tags": [],
+      "properties": {
+        "region": "frozen_reaches",
+        "temperature": "cold",
+        "light_level": "dim"
+      },
+      "llm_context": {
+        "traits": [
+          "ancient carved stone faces watching from walls",
+          "glowing runes in geometric patterns",
+          "grinding stone echoes from guardian footsteps",
+          "eternal vigilance frozen in place",
+          "altar dusted with frost crystals",
+          "inscriptions warning of temple guardians",
+          "partial shelter from the bitter wind"
+        ],
+        "state_variants": {
+          "golems_hostile": "The golems' eyes flare with red light as you enter. They begin to move.",
+          "golems_deactivated": "The golems stand motionless, their runic eyes dark and inactive.",
+          "golems_friendly": "The golems incline their heads slightly as you pass, recognizing you as no threat."
+        },
+        "atmosphere": "ancient, protected, foreboding"
+      }
+    },
+    {
+      "id": "loc_fr_ice_caves",
+      "name": "Ice Caves",
+      "description": "A natural cave system where every surface gleams with ice. The floor is treacherous, with thin ice over deep crevasses and hidden pools. Crystal formations catch what little light enters, creating an otherworldly blue glow. The cold here is intense.",
+      "exits": {
+        "west": {
+          "type": "open",
+          "to": "loc_fr_frozen_pass",
+          "name": "cave entrance",
+          "description": "The cave entrance leads west back to the frozen pass."
+        },
+        "up": {
+          "type": "open",
+          "to": "loc_fr_temple_sanctum",
+          "name": "temple stairs",
+          "description": "Ancient stairs lead up into the temple above."
+        },
+        "east": {
+          "type": "open",
+          "to": "loc_fr_hot_springs",
+          "name": "warm passage",
+          "description": "A passage leading east shows signs of condensation. Warmth beckons."
+        }
+      },
+      "items": ["item_fr_crystal_lens", "item_fr_ice_crystal"],
+      "tags": [],
+      "properties": {
+        "region": "frozen_reaches",
+        "temperature": "freezing",
+        "light_level": "dim"
+      },
+      "parts": ["part_fr_ice_caves_entrance", "part_fr_ice_caves_depths"],
+      "llm_context": {
+        "traits": [
+          "crystal blue walls that glow faintly",
+          "breath freezing instantly in the air",
+          "cracking sounds underfoot",
+          "beautiful deadly ice formations",
+          "thin ice over dark water",
+          "ice bridges requiring careful movement",
+          "hidden crevasses beneath snow patches"
+        ],
+        "state_variants": {
+          "exploring_carefully": "Each step is deliberate, testing the ice before committing.",
+          "slipped": "The ice gives way beneath you, plunging you into frigid water.",
+          "found_treasure": "Behind a formation of ice, something glitters."
+        },
+        "atmosphere": "treacherous, beautiful, freezing"
+      }
+    },
+    {
+      "id": "loc_fr_hot_springs",
+      "name": "Hot Springs Refuge",
+      "description": "A miraculous warm zone where volcanic activity from deep below heats natural pools. Steam rises constantly, creating a fog that obscures the boundaries. The temperature here is almost comfortable, a stark contrast to the frozen wasteland outside. Colorful mineral deposits line the pools.",
+      "exits": {
+        "west": {
+          "type": "open",
+          "to": "loc_fr_ice_caves",
+          "name": "cold passage",
+          "description": "A passage leads west back into the frigid ice caves."
+        },
+        "up": {
+          "type": "open",
+          "to": "loc_fr_frozen_observatory",
+          "name": "mountain path",
+          "description": "A steep path climbs up through the steam toward the observatory peak."
+        }
+      },
+      "items": [],
+      "tags": [],
+      "properties": {
+        "region": "frozen_reaches",
+        "temperature": "normal",
+        "light_level": "dim",
+        "healing_zone": true
+      },
+      "llm_context": {
+        "traits": [
+          "sulfurous mist rising from pools",
+          "warmth like a welcome embrace",
+          "multicolored mineral deposits",
+          "lazy steam creature movements",
+          "relief from the bitter cold",
+          "natural healing properties of the waters",
+          "safe haven in a frozen world"
+        ],
+        "state_variants": {
+          "first_arrival": "The warmth hits you like a blessing. Your frozen limbs begin to thaw.",
+          "resting": "The hot water soothes your aches. You feel strength returning.",
+          "salamanders_present": "Fiery salamanders bask on the warm rocks, watching you with curious eyes."
+        },
+        "atmosphere": "restorative, peaceful, sanctuary"
+      }
+    },
+    {
+      "id": "loc_fr_frozen_observatory",
+      "name": "Frozen Observatory",
+      "description": "A stone platform at the highest peak of the Frozen Reaches, where an ancient telescope points at the heavens. The cold here is beyond description - staying long without protection is impossible. But the view is breathtaking, and the telescope, if repaired, could reveal secrets of the entire shattered world.",
+      "exits": {
+        "down": {
+          "type": "open",
+          "to": "loc_fr_hot_springs",
+          "name": "mountain path",
+          "description": "A path descends through the steam back to the hot springs."
+        }
+      },
+      "items": ["item_fr_damaged_telescope"],
+      "tags": [],
+      "properties": {
+        "region": "frozen_reaches",
+        "temperature": "freezing",
+        "light_level": "bright",
+        "exposure_limit": 3
+      },
+      "llm_context": {
+        "traits": [
+          "wind trying to tear you from the peak",
+          "stars visible even during day",
+          "impossible distances revealed below",
+          "frost forming on your eyelashes",
+          "ancient astronomical instruments",
+          "lens housing cracked from cold",
+          "panoramic view of the shattered lands"
+        ],
+        "state_variants": {
+          "telescope_broken": "The telescope's lens housing is cracked, its crystal lens missing.",
+          "telescope_repaired": "The repaired telescope hums with restored power, ready to reveal secrets.",
+          "viewing": "Through the telescope, you can see details of distant regions with impossible clarity."
+        },
+        "atmosphere": "exposed, majestic, urgent"
+      }
+    }
+  ],
+  "parts": [
+    {
+      "id": "part_fr_ice_caves_entrance",
+      "name": "Cave Entrance",
+      "part_of": "loc_fr_ice_caves",
+      "properties": {
+        "description": "The entrance area where light still reaches. The ice is more stable here.",
+        "temperature": "freezing",
+        "ice_stability": "stable"
+      }
+    },
+    {
+      "id": "part_fr_ice_caves_depths",
+      "name": "Deep Caves",
+      "part_of": "loc_fr_ice_caves",
+      "properties": {
+        "description": "The deeper caves where the ice is treacherous and crevasses hidden.",
+        "temperature": "freezing",
+        "ice_stability": "dangerous",
+        "hazard": "thin_ice"
+      }
+    }
+  ]
+}

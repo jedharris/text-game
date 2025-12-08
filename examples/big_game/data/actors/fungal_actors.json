@@ -1,0 +1,582 @@
+{
+  "actors": {
+    "npc_fd_scholar_aldric": {
+      "id": "npc_fd_scholar_aldric",
+      "name": "Scholar Aldric",
+      "description": "A frail scholar with pale, sweating skin. Visible fungal patches mark his arms and neck. His trembling hands clutch a worn notebook as desperate eyes search for hope of a cure.",
+      "location": "loc_fd_cavern_entrance",
+      "inventory": ["item_fd_aldric_journal"],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 40,
+        "max_health": 100,
+        "body": {
+          "form": "humanoid",
+          "material": "flesh"
+        },
+        "ai": {
+          "disposition": "friendly"
+        },
+        "conditions": {
+          "fungal_infection": {
+            "severity": 80,
+            "contagious_range": "touch",
+            "damage_per_turn": 2,
+            "progression_rate": 3
+          }
+        },
+        "dialog_topics": {
+          "greeting": {
+            "keywords": ["hello", "greetings", "talk"],
+            "summary": "'Please... I don't have much time. The infection spreads with each passing moment.'",
+            "unlocks_topics": ["infection", "cure"],
+            "one_time": false
+          },
+          "infection": {
+            "keywords": ["infection", "sick", "illness", "fungal", "disease"],
+            "summary": "'The spores came from deep below, from the Spore Heart. The Spore Mother is the source - but she suffers too. This was not her doing.'",
+            "unlocks_topics": ["spore_mother", "spore_heart"],
+            "sets_flags": {"knows_infection_source": true},
+            "one_time": false
+          },
+          "cure": {
+            "keywords": ["cure", "remedy", "healing", "help", "save"],
+            "summary": "'Silvermoss can slow the infection, but only heartmoss from the deep caverns can truly cure it. The Myconids might know more.'",
+            "unlocks_topics": ["silvermoss", "heartmoss", "myconids"],
+            "sets_flags": {"knows_cure_components": true},
+            "one_time": false
+          },
+          "spore_mother": {
+            "keywords": ["spore mother", "source", "creature", "entity"],
+            "summary": "'She was once a guardian of these depths, but something corrupted her. She spreads disease not from malice, but from pain. If she could be healed...'",
+            "requires_flags": {"knows_infection_source": true},
+            "sets_flags": {"knows_spore_mother_truth": true},
+            "one_time": false
+          },
+          "spore_heart": {
+            "keywords": ["spore heart", "heart", "center", "source"],
+            "summary": "'The Spore Heart is where the contamination is worst. Without protection, you'll be infected in moments. The Myconids can help with that.'",
+            "requires_flags": {"knows_infection_source": true},
+            "one_time": false
+          },
+          "silvermoss": {
+            "keywords": ["silvermoss", "silver moss", "moss"],
+            "summary": "'Silvermoss grows in the Luminous Grotto. It glows with a soft blue light. Apply it directly to slow the infection's spread.'",
+            "requires_flags": {"knows_cure_components": true},
+            "one_time": false
+          },
+          "heartmoss": {
+            "keywords": ["heartmoss", "heart moss", "deep moss"],
+            "summary": "'Heartmoss grows only in the Deep Root Caverns. The air there is not breathable - you'll need equipment. But it's the only true cure.'",
+            "requires_flags": {"knows_cure_components": true},
+            "one_time": false
+          },
+          "myconids": {
+            "keywords": ["myconid", "myconids", "mushroom folk", "mushroom people"],
+            "summary": "'The Myconids maintain a sanctuary to the east. They're neutral unless you've harmed fungi. They can cure the infection and teach resistance.'",
+            "requires_flags": {"knows_cure_components": true},
+            "one_time": false
+          },
+          "thanks": {
+            "keywords": ["cured", "thank", "grateful"],
+            "summary": "'You've saved my life. I know these caves better than anyone now - their safe paths, their secrets. I'm at your service.'",
+            "requires_flags": {"aldric_cured": true},
+            "grants": "knows_mycology",
+            "one_time": true
+          }
+        },
+        "default_topic_summary": "The scholar winces in pain. 'Please, I haven't much time. Ask about the infection, or the cure.'",
+        "services": {
+          "teach_mycology": {
+            "accepts": ["gratitude"],
+            "amount_required": 1,
+            "grants": "knows_mycology",
+            "requires_flags": {"aldric_cured": true},
+            "description": "Knowledge of fungal caves - safe paths, spore patterns, and fungal behaviors."
+          }
+        },
+        "relationships": {}
+      },
+      "llm_context": {
+        "traits": [
+          "pale and sweating",
+          "trembling hands",
+          "desperate eyes",
+          "visible fungal patches",
+          "rasping cough",
+          "scholarly demeanor despite illness",
+          "clutching notebook protectively"
+        ],
+        "state_variants": {
+          "infected": "His skin is mottled with fungal growth. Each breath seems labored.",
+          "cured": "Color has returned to his cheeks. Though scars remain where the infection was, his eyes are clear and grateful.",
+          "dying": "He can barely speak now. The fungal growth has spread across his face."
+        }
+      }
+    },
+    "npc_fd_myconid_elder": {
+      "id": "npc_fd_myconid_elder",
+      "name": "Myconid Elder",
+      "description": "A tall, stately mushroom being with a wide cap marked by concentric rings of age. It communicates through deliberate puffs of luminescent spores that somehow convey meaning.",
+      "location": "loc_fd_myconid_sanctuary",
+      "inventory": [],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 80,
+        "max_health": 80,
+        "body": {
+          "form": "humanoid",
+          "material": "fungal",
+          "features": ["spore_puffs"]
+        },
+        "ai": {
+          "disposition": "neutral",
+          "faction": "myconid"
+        },
+        "immunities": ["fungal_infection", "poison"],
+        "dialog_topics": {
+          "greeting": {
+            "keywords": ["hello", "greetings", "talk"],
+            "summary": "*A complex pattern of spores forms images in the air - a stranger at the threshold, question marks* 'Why do you come to the Circle of Quiet Growth?'",
+            "unlocks_topics": ["sanctuary", "spore_mother"],
+            "one_time": false
+          },
+          "sanctuary": {
+            "keywords": ["sanctuary", "safe", "place", "colony"],
+            "summary": "*Spores form images of mushrooms tending gardens* 'We maintain the Balance. The corrupted air does not reach here. We offer services to those who respect the Growth.'",
+            "unlocks_topics": ["services", "trade"],
+            "one_time": false
+          },
+          "spore_mother": {
+            "keywords": ["spore mother", "corruption", "cure", "heal"],
+            "summary": "*Spores show a great being in pain, then heartmoss* 'The Mother suffers. She was wounded by something from Outside. Heartmoss from the Deep Roots could heal her. Heal the Mother, heal the Depths.'",
+            "sets_flags": {"knows_spore_mother_cure": true},
+            "one_time": false
+          },
+          "services": {
+            "keywords": ["services", "help", "cure", "teach"],
+            "summary": "*Spores form images of healing, then items exchanging* 'We can cleanse the infection. We can teach resistance to spores. In exchange, we accept healing items or rare minerals from the deep.'",
+            "one_time": false
+          },
+          "trade": {
+            "keywords": ["trade", "buy", "sell", "offer"],
+            "summary": "*Spores show a spore lantern and breathing mask* 'We craft tools for those who would traverse the Depths. Spore lanterns for light, breathing masks for the Deep Roots.'",
+            "one_time": false
+          },
+          "trust": {
+            "keywords": ["trust", "friend", "ally"],
+            "summary": "*Spores form a complex pattern of interconnected roots* 'Trust grows slowly, like mycelium through stone. Heal our Mother, respect the Growth, and we shall remember.'",
+            "requires_flags": {"myconid_trust_high": true},
+            "one_time": false
+          }
+        },
+        "default_topic_summary": "*The Elder releases a questioning puff of spores, waiting*",
+        "services": {
+          "cure_fungal_infection": {
+            "accepts": ["item_fd_healing_herb", "item_fd_rare_mineral", "gold"],
+            "amount_required": 5,
+            "cure_amount": 100,
+            "description": "Complete removal of fungal infection through Myconid healing ritual."
+          },
+          "teach_spore_resistance": {
+            "accepts": ["item_fd_rare_mineral", "gold"],
+            "amount_required": 10,
+            "grants": "spore_resistance",
+            "description": "Grants partial immunity to spore exposure."
+          }
+        },
+        "relationships": {}
+      },
+      "llm_context": {
+        "traits": [
+          "tall and stately",
+          "wide cap with age rings",
+          "luminescent spore communication",
+          "patient and ancient",
+          "deliberate movements",
+          "alien wisdom",
+          "communal presence"
+        ],
+        "state_variants": {
+          "neutral": "The Elder observes you with detached interest, spores drifting lazily.",
+          "friendly": "Warm spore-patterns form welcoming images. You are known here.",
+          "hostile": "The Elder's spores turn dark and agitated. You are not welcome."
+        }
+      }
+    },
+    "npc_fd_myconid_guard": {
+      "id": "npc_fd_myconid_guard",
+      "name": "Myconid Guard",
+      "description": "A sturdy mushroom being with a thick, armored cap. It stands motionless until threats appear, then releases stunning spore clouds.",
+      "location": "loc_fd_myconid_sanctuary",
+      "inventory": [],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 100,
+        "max_health": 100,
+        "body": {
+          "form": "humanoid",
+          "material": "fungal",
+          "features": ["armored_cap", "spore_puffs"],
+          "size": "medium"
+        },
+        "ai": {
+          "disposition": "neutral",
+          "faction": "myconid",
+          "guards": "loc_fd_myconid_sanctuary"
+        },
+        "immunities": ["fungal_infection", "poison", "stun"],
+        "attacks": [
+          {
+            "name": "stunning_spores",
+            "damage": 5,
+            "accuracy": 90,
+            "applies_condition": {
+              "name": "stunned",
+              "severity": 60,
+              "duration": 2,
+              "effect": "cannot_attack"
+            }
+          },
+          {
+            "name": "cap_slam",
+            "damage": 15,
+            "accuracy": 70
+          }
+        ],
+        "armor": 10,
+        "relationships": {}
+      },
+      "llm_context": {
+        "traits": [
+          "sturdy build",
+          "thick armored cap",
+          "motionless vigilance",
+          "defensive posture",
+          "protective presence"
+        ]
+      }
+    },
+    "npc_fd_myconid_healer": {
+      "id": "npc_fd_myconid_healer",
+      "name": "Myconid Healer",
+      "description": "A slender mushroom being with a delicate, spotted cap. Healing spores constantly drift from its form, creating a soothing aura.",
+      "location": "loc_fd_myconid_sanctuary",
+      "inventory": [],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 50,
+        "max_health": 50,
+        "body": {
+          "form": "humanoid",
+          "material": "fungal",
+          "features": ["spotted_cap", "healing_spores"]
+        },
+        "ai": {
+          "disposition": "friendly",
+          "faction": "myconid"
+        },
+        "immunities": ["fungal_infection", "poison"],
+        "services": {
+          "heal": {
+            "accepts": ["gold", "item_fd_healing_herb"],
+            "amount_required": 3,
+            "restore_amount": 30,
+            "description": "Restore health through healing spore application."
+          }
+        },
+        "relationships": {}
+      },
+      "llm_context": {
+        "traits": [
+          "slender and graceful",
+          "delicate spotted cap",
+          "drifting healing spores",
+          "soothing presence",
+          "gentle movements"
+        ]
+      }
+    },
+    "creature_fd_spore_mother": {
+      "id": "creature_fd_spore_mother",
+      "name": "Spore Mother",
+      "description": "A massive fungal entity at the heart of the depths. Her form pulses with sickly light, and she writhes in constant pain. Clouds of infectious spores emanate from her corrupted body.",
+      "location": "loc_fd_spore_heart",
+      "inventory": [],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 60,
+        "max_health": 200,
+        "body": {
+          "form": "fungal_mass",
+          "material": "fungal",
+          "features": ["spore_clouds", "tendrils"],
+          "size": "huge"
+        },
+        "ai": {
+          "disposition": "desperate",
+          "pack_id": "spore_creatures",
+          "pack_role": "alpha",
+          "needs": {
+            "healing": true
+          }
+        },
+        "conditions": {
+          "corruption": {
+            "severity": 90,
+            "damage_per_turn": 1,
+            "effect": "causes_spore_spread"
+          }
+        },
+        "immunities": ["fungal_infection", "poison"],
+        "attacks": [
+          {
+            "name": "spore_burst",
+            "damage": 10,
+            "accuracy": 95,
+            "area": true,
+            "applies_condition": {
+              "name": "fungal_infection",
+              "severity": 30,
+              "contagious_range": "touch",
+              "damage_per_turn": 1,
+              "progression_rate": 2
+            }
+          },
+          {
+            "name": "tendril_lash",
+            "damage": 20,
+            "accuracy": 60
+          }
+        ],
+        "regeneration": 5,
+        "armor": 5,
+        "relationships": {}
+      },
+      "llm_context": {
+        "traits": [
+          "massive pulsing form",
+          "sickly bioluminescence",
+          "constant writhing",
+          "clouds of spores",
+          "sense of ancient pain",
+          "not malicious but suffering",
+          "desperate for relief"
+        ],
+        "state_variants": {
+          "corrupted": "She thrashes in agony, spores pouring from wounds that won't heal. Her pain is the region's poison.",
+          "healed": "She rests peacefully now, her form glowing with healthy light. The spores she releases are clean, even beneficial.",
+          "hostile": "Driven mad by pain, she lashes out at everything nearby.",
+          "grateful": "She pulses gently with recognition. You are the one who ended her suffering."
+        }
+      }
+    },
+    "creature_fd_sporeling_1": {
+      "id": "creature_fd_sporeling_1",
+      "name": "Sporeling",
+      "description": "A small fungal creature spawned by the Spore Mother. It skitters about erratically, leaving trails of spores.",
+      "location": "loc_fd_spore_heart",
+      "inventory": [],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 25,
+        "max_health": 25,
+        "body": {
+          "form": "quadruped",
+          "material": "fungal",
+          "features": ["spore_trail"],
+          "size": "small"
+        },
+        "ai": {
+          "disposition": "hostile",
+          "pack_id": "spore_creatures",
+          "pack_role": "follower",
+          "follows_alpha": "creature_fd_spore_mother",
+          "morale": 40,
+          "flee_threshold": 20
+        },
+        "immunities": ["fungal_infection", "poison"],
+        "attacks": [
+          {
+            "name": "spore_touch",
+            "damage": 5,
+            "accuracy": 80,
+            "applies_condition": {
+              "name": "fungal_infection",
+              "severity": 15,
+              "damage_per_turn": 1
+            }
+          }
+        ],
+        "relationships": {}
+      },
+      "llm_context": {
+        "traits": [
+          "small and skittering",
+          "erratic movement",
+          "spore trail",
+          "mimics mother's distress"
+        ]
+      }
+    },
+    "creature_fd_sporeling_2": {
+      "id": "creature_fd_sporeling_2",
+      "name": "Sporeling",
+      "description": "A small fungal creature spawned by the Spore Mother. It skitters about erratically, leaving trails of spores.",
+      "location": "loc_fd_spore_heart",
+      "inventory": [],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 25,
+        "max_health": 25,
+        "body": {
+          "form": "quadruped",
+          "material": "fungal",
+          "features": ["spore_trail"],
+          "size": "small"
+        },
+        "ai": {
+          "disposition": "hostile",
+          "pack_id": "spore_creatures",
+          "pack_role": "follower",
+          "follows_alpha": "creature_fd_spore_mother",
+          "morale": 40,
+          "flee_threshold": 20
+        },
+        "immunities": ["fungal_infection", "poison"],
+        "attacks": [
+          {
+            "name": "spore_touch",
+            "damage": 5,
+            "accuracy": 80,
+            "applies_condition": {
+              "name": "fungal_infection",
+              "severity": 15,
+              "damage_per_turn": 1
+            }
+          }
+        ],
+        "relationships": {}
+      },
+      "llm_context": {
+        "traits": [
+          "small and skittering",
+          "erratic movement",
+          "spore trail",
+          "mimics mother's distress"
+        ]
+      }
+    },
+    "creature_fd_sporeling_3": {
+      "id": "creature_fd_sporeling_3",
+      "name": "Sporeling",
+      "description": "A small fungal creature spawned by the Spore Mother. It skitters about erratically, leaving trails of spores.",
+      "location": "loc_fd_spore_heart",
+      "inventory": [],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 25,
+        "max_health": 25,
+        "body": {
+          "form": "quadruped",
+          "material": "fungal",
+          "features": ["spore_trail"],
+          "size": "small"
+        },
+        "ai": {
+          "disposition": "hostile",
+          "pack_id": "spore_creatures",
+          "pack_role": "follower",
+          "follows_alpha": "creature_fd_spore_mother",
+          "morale": 40,
+          "flee_threshold": 20
+        },
+        "immunities": ["fungal_infection", "poison"],
+        "attacks": [
+          {
+            "name": "spore_touch",
+            "damage": 5,
+            "accuracy": 80,
+            "applies_condition": {
+              "name": "fungal_infection",
+              "severity": 15,
+              "damage_per_turn": 1
+            }
+          }
+        ],
+        "relationships": {}
+      },
+      "llm_context": {
+        "traits": [
+          "small and skittering",
+          "erratic movement",
+          "spore trail",
+          "mimics mother's distress"
+        ]
+      }
+    },
+    "creature_fd_glowing_crawler": {
+      "id": "creature_fd_glowing_crawler",
+      "name": "Glowing Crawler",
+      "description": "A bioluminescent fungal creature that crawls along cave walls. Its glow attracts prey, and its bite spreads infection.",
+      "location": "loc_fd_luminous_grotto",
+      "inventory": [],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 35,
+        "max_health": 35,
+        "body": {
+          "form": "insectoid",
+          "material": "fungal",
+          "features": ["bioluminescence", "mandibles"],
+          "size": "small"
+        },
+        "ai": {
+          "disposition": "hostile",
+          "morale": 30,
+          "flee_threshold": 15
+        },
+        "immunities": ["fungal_infection", "poison"],
+        "attacks": [
+          {
+            "name": "infectious_bite",
+            "damage": 8,
+            "accuracy": 75,
+            "applies_condition": {
+              "name": "fungal_infection",
+              "severity": 20,
+              "damage_per_turn": 1
+            }
+          }
+        ],
+        "relationships": {}
+      },
+      "llm_context": {
+        "traits": [
+          "bioluminescent body",
+          "crawls on walls",
+          "deceptively beautiful",
+          "quick and aggressive"
+        ]
+      }
+    }
+  }
+}

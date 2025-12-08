@@ -277,6 +277,9 @@ class LLMProtocolHandler:
         Returns:
             List of messages from turn phase handlers
         """
+        # Increment turn counter before processing phases
+        self.state.increment_turn()
+
         messages = []
 
         for hook_name in self.TURN_PHASE_HOOKS:

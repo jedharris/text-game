@@ -1,0 +1,328 @@
+{
+  "items": [
+    {
+      "id": "item_bw_venison",
+      "name": "venison",
+      "description": "A haunch of fresh deer meat. The scent would be irresistible to any hungry carnivore.",
+      "location": "loc_bw_forest_edge",
+      "properties": {
+        "type": "food",
+        "portable": true,
+        "satisfies": ["hunger"],
+        "consumable": true
+      },
+      "llm_context": {
+        "traits": [
+          "fresh red meat",
+          "tempting scent",
+          "wrapped in leaves"
+        ]
+      }
+    },
+    {
+      "id": "item_bw_venison_2",
+      "name": "venison haunch",
+      "description": "Another portion of deer meat, properly butchered and ready to use as food or bait.",
+      "location": "loc_bw_forest_edge",
+      "properties": {
+        "type": "food",
+        "portable": true,
+        "satisfies": ["hunger"],
+        "consumable": true
+      }
+    },
+    {
+      "id": "item_bw_healing_herbs",
+      "name": "healing herbs",
+      "description": "A bundle of medicinal herbs gathered from the forest. Their leaves have potent curative properties.",
+      "location": "loc_bw_forest_edge",
+      "properties": {
+        "type": "plant",
+        "portable": true,
+        "cures": ["wilderness_fever", "injured_leg"],
+        "cure_amount": 100,
+        "consumable": true
+      },
+      "llm_context": {
+        "traits": [
+          "pungent medicinal smell",
+          "carefully bundled",
+          "green and fresh"
+        ]
+      }
+    },
+    {
+      "id": "item_bw_wolf_token",
+      "name": "wolf token",
+      "description": "A braided cord of wolf fur, given by a pack that has accepted you. It marks you as friend to wolves.",
+      "location": null,
+      "properties": {
+        "type": "token",
+        "portable": true,
+        "grants_trust": "winter_wolves",
+        "trust_amount": 3
+      },
+      "llm_context": {
+        "traits": [
+          "braided grey fur",
+          "faint wild scent",
+          "symbol of acceptance"
+        ]
+      }
+    },
+    {
+      "id": "item_bw_royal_honey",
+      "name": "royal honey",
+      "description": "Golden honey from the Bee Queen's personal stores. It glows faintly and pulses with healing energy.",
+      "location": null,
+      "properties": {
+        "type": "consumable",
+        "portable": true,
+        "heals": 100,
+        "cures": ["all"],
+        "cure_amount": 100,
+        "consumable": true,
+        "rare": true
+      },
+      "llm_context": {
+        "traits": [
+          "golden glow",
+          "thick and viscous",
+          "impossibly sweet scent",
+          "warmth radiating from within"
+        ]
+      }
+    },
+    {
+      "id": "item_bw_honey",
+      "name": "honey",
+      "description": "A small pot of golden honey from the giant bees. Sweet and restorative.",
+      "location": "loc_bw_bee_grove",
+      "properties": {
+        "type": "consumable",
+        "portable": true,
+        "heals": 30,
+        "consumable": true
+      },
+      "llm_context": {
+        "traits": [
+          "golden sweetness",
+          "clay pot container",
+          "sticky and thick"
+        ]
+      }
+    },
+    {
+      "id": "item_bw_rare_flower",
+      "name": "rare flower",
+      "description": "A beautiful flower with delicate purple petals. The Bee Queen would likely appreciate such an offering.",
+      "location": "loc_bw_predator_den",
+      "properties": {
+        "type": "offering",
+        "portable": true,
+        "accepted_by": "creature_bw_bee_queen"
+      },
+      "llm_context": {
+        "traits": [
+          "delicate purple petals",
+          "sweet fragrance",
+          "rare and beautiful"
+        ]
+      }
+    },
+    {
+      "id": "item_bw_moonpetal",
+      "name": "moonpetal",
+      "description": "A luminescent flower that blooms only under moonlight. Its petals shimmer with an inner light.",
+      "location": "loc_bw_wolf_clearing",
+      "properties": {
+        "type": "offering",
+        "portable": true,
+        "accepted_by": "creature_bw_bee_queen",
+        "provides_light": true,
+        "rare": true
+      },
+      "llm_context": {
+        "traits": [
+          "luminescent white petals",
+          "shimmering inner light",
+          "cool to the touch"
+        ]
+      }
+    },
+    {
+      "id": "item_bw_spider_silk",
+      "name": "spider silk",
+      "description": "A bundle of incredibly strong silk harvested from the spider nest. Valuable for crafting.",
+      "location": "loc_bw_spider_nest",
+      "properties": {
+        "type": "material",
+        "portable": true,
+        "crafting_material": true,
+        "value": 25
+      },
+      "llm_context": {
+        "traits": [
+          "impossibly thin strands",
+          "stronger than steel",
+          "slightly sticky"
+        ]
+      }
+    },
+    {
+      "id": "item_bw_venom_sac",
+      "name": "venom sac",
+      "description": "A bulging sac of spider venom extracted from a dead spider. Useful for alchemy or coating weapons.",
+      "location": "loc_bw_spider_nest",
+      "properties": {
+        "type": "alchemical",
+        "portable": true,
+        "poison_coating": true,
+        "poison_damage": 3,
+        "poison_duration": 5,
+        "value": 15
+      },
+      "llm_context": {
+        "traits": [
+          "translucent membrane",
+          "sickly green liquid",
+          "acrid smell"
+        ]
+      }
+    },
+    {
+      "id": "item_bw_beast_pelt_wolf",
+      "name": "wolf pelt",
+      "description": "A thick grey wolf pelt. It would provide excellent protection from cold.",
+      "location": null,
+      "properties": {
+        "type": "material",
+        "portable": true,
+        "cold_resistance": 30,
+        "value": 20
+      },
+      "llm_context": {
+        "traits": [
+          "thick grey fur",
+          "warm to the touch",
+          "well-preserved"
+        ]
+      }
+    },
+    {
+      "id": "item_bw_beast_pelt_bear",
+      "name": "bear pelt",
+      "description": "A massive dark bear pelt. Its thick fur would provide significant warmth in cold environments.",
+      "location": null,
+      "properties": {
+        "type": "material",
+        "portable": true,
+        "cold_resistance": 50,
+        "value": 40
+      },
+      "llm_context": {
+        "traits": [
+          "massive dark fur",
+          "heavy weight",
+          "incredible warmth"
+        ]
+      }
+    },
+    {
+      "id": "item_bw_hunters_journal",
+      "name": "hunter's journal",
+      "description": "A weathered leather journal filled with observations about the Beast Wilds' inhabitants. Detailed sketches show animal behaviors and patrol routes.",
+      "location": "loc_bw_forest_edge",
+      "properties": {
+        "type": "readable",
+        "portable": true,
+        "read_text": "The wolves patrol in a predictable pattern - clearing to den and back. They're territorial but can be placated with fresh meat. The alpha makes all decisions. Note: Giant bees respond to flower offerings. The Bee Queen may grant her honey to those who show respect. Warning: The dire bear's cubs are sick. She'll kill anyone who approaches without good reason."
+      },
+      "llm_context": {
+        "traits": [
+          "weathered leather cover",
+          "detailed sketches",
+          "careful handwriting"
+        ]
+      }
+    },
+    {
+      "id": "item_bw_tracking_equipment",
+      "name": "tracking equipment",
+      "description": "A set of tools used by experienced hunters: marked stakes, string, and charcoal for noting tracks.",
+      "location": "loc_bw_forest_edge",
+      "properties": {
+        "type": "tool",
+        "portable": true,
+        "aids_tracking": true
+      },
+      "llm_context": {
+        "traits": [
+          "practical tools",
+          "well-used condition",
+          "leather pouch"
+        ]
+      }
+    },
+    {
+      "id": "item_bw_hunters_bow",
+      "name": "hunter's bow",
+      "description": "A well-crafted longbow made from forest wood. It's seen extensive use but remains in good condition.",
+      "location": "npc_bw_hunter_sira",
+      "properties": {
+        "type": "weapon",
+        "portable": true,
+        "damage": 12,
+        "weapon_type": "ranged"
+      },
+      "llm_context": {
+        "traits": [
+          "forest wood construction",
+          "worn grip",
+          "true aim"
+        ]
+      }
+    },
+    {
+      "id": "item_bw_antidote",
+      "name": "antidote",
+      "description": "A small vial of bluish liquid that neutralizes most common poisons and venoms.",
+      "location": "loc_bw_bee_grove",
+      "properties": {
+        "type": "consumable",
+        "portable": true,
+        "cures": ["spider_venom", "bee_venom", "poison"],
+        "cure_amount": 100,
+        "consumable": true
+      },
+      "llm_context": {
+        "traits": [
+          "bluish liquid",
+          "small glass vial",
+          "faint medicinal smell"
+        ]
+      }
+    },
+    {
+      "id": "item_bw_smoke_bomb",
+      "name": "smoke bomb",
+      "description": "A small clay pot filled with smoldering herbs. When broken, it releases thick smoke that confuses insects and burns webs.",
+      "location": "loc_bw_forest_edge",
+      "properties": {
+        "type": "tool",
+        "portable": true,
+        "burns_webs": true,
+        "web_burn_amount": 40,
+        "repels_insects": true,
+        "consumable": true
+      },
+      "llm_context": {
+        "traits": [
+          "small clay pot",
+          "faint smoke wisps",
+          "herbal smell"
+        ]
+      }
+    }
+  ]
+}

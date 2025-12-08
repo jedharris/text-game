@@ -1,0 +1,180 @@
+{
+  "locations": [
+    {
+      "id": "loc_cr_town_gate",
+      "name": "Town Gate",
+      "description": "The fortified entrance to the Civilized Remnants, where weary guards screen travelers for signs of infection or hostile intent.",
+      "exits": {
+        "up": "loc_mn_nexus_chamber",
+        "south": "loc_cr_market_square"
+      },
+      "properties": {
+        "region": "civilized_remnants",
+        "light_level": "bright",
+        "spore_level": "none",
+        "guard_alert": "normal"
+      },
+      "llm_context": {
+        "traits": [
+          "weathered wooden walls reinforced with scavenged metal",
+          "suspicious eyes watching from guard posts",
+          "controlled desperation in every face",
+          "smell of smoke and close-packed humanity",
+          "makeshift barricades blocking all but the main path"
+        ],
+        "state_variants": {
+          "spore_level": {
+            "low": "Guards wear cloth masks, eyeing travelers with heightened suspicion.",
+            "none": "The guards maintain their watchful routine."
+          },
+          "guard_alert": {
+            "high": "Extra guards patrol the walls, tension thick in the air.",
+            "normal": "The usual guard complement maintains their posts."
+          }
+        }
+      },
+      "behaviors": []
+    },
+    {
+      "id": "loc_cr_market_square",
+      "name": "Market Square",
+      "description": "The bustling heart of the settlement, where merchants hawk wares and rumors flow as freely as coin.",
+      "exits": {
+        "north": "loc_cr_town_gate",
+        "east": "loc_cr_healers_sanctuary",
+        "west": "loc_cr_council_hall",
+        "south": "loc_cr_statue_hall"
+      },
+      "properties": {
+        "region": "civilized_remnants",
+        "light_level": "bright",
+        "market_open": true
+      },
+      "llm_context": {
+        "traits": [
+          "loud bargaining voices competing for attention",
+          "exotic scents from a dozen different stalls",
+          "desperation mixed with stubborn hope",
+          "watchful militia presence at every corner",
+          "goods both precious and mundane spread on worn blankets"
+        ],
+        "state_variants": {
+          "market_open": {
+            "true": "Vendors call out their wares, the square alive with commerce.",
+            "false": "The market stands empty, stalls shuttered and silent."
+          }
+        }
+      },
+      "behaviors": []
+    },
+    {
+      "id": "loc_cr_healers_sanctuary",
+      "name": "Healer's Sanctuary",
+      "description": "Healer Elara's place of practice, a haven of clean medicine and quiet competence amid the chaos.",
+      "exits": {
+        "west": "loc_cr_market_square",
+        "south": "loc_cr_garden"
+      },
+      "properties": {
+        "region": "civilized_remnants",
+        "light_level": "bright"
+      },
+      "llm_context": {
+        "traits": [
+          "dried herbs hanging in careful bundles",
+          "rhythmic sound of mortar and pestle",
+          "smell of clean medicine and healing salves",
+          "quiet competence in every movement",
+          "patients resting on simple cots along the walls"
+        ]
+      },
+      "behaviors": []
+    },
+    {
+      "id": "loc_cr_garden",
+      "name": "Healer's Garden",
+      "description": "A carefully tended plot behind the sanctuary, where medicinal herbs grow alongside dangerous specimens.",
+      "exits": {
+        "north": "loc_cr_healers_sanctuary"
+      },
+      "properties": {
+        "region": "civilized_remnants",
+        "light_level": "bright",
+        "has_toxic_plants": true
+      },
+      "llm_context": {
+        "traits": [
+          "orderly rows of healing herbs",
+          "warning markers around dangerous specimens",
+          "bees buzzing among medicinal flowers",
+          "earthy smell of rich cultivated soil",
+          "labels in neat handwriting identifying each plant"
+        ],
+        "state_variants": {
+          "has_toxic_plants": {
+            "true": "A section of purple-flowered nightshade grows behind rope barriers."
+          }
+        }
+      },
+      "behaviors": []
+    },
+    {
+      "id": "loc_cr_council_hall",
+      "name": "Council Hall",
+      "description": "Where the settlement's leaders gather to make impossible decisions, their debates echoing through worn stone halls.",
+      "exits": {
+        "east": "loc_cr_market_square"
+      },
+      "properties": {
+        "region": "civilized_remnants",
+        "light_level": "bright",
+        "council_in_session": false
+      },
+      "llm_context": {
+        "traits": [
+          "heated debates echoing off stone walls",
+          "exhausted leadership hunched over maps and ledgers",
+          "weight of impossible decisions hanging in the air",
+          "hope struggling visibly against despair",
+          "worn wooden benches bearing witness to countless arguments"
+        ],
+        "state_variants": {
+          "council_in_session": {
+            "true": "The councilors are engaged in intense debate, voices raised.",
+            "false": "The council chamber stands quiet between sessions."
+          }
+        }
+      },
+      "behaviors": []
+    },
+    {
+      "id": "loc_cr_statue_hall",
+      "name": "Broken Statue Hall",
+      "description": "A once-grand hall dominated by a damaged stone guardian, its protective magic long dormant.",
+      "exits": {
+        "north": "loc_cr_market_square"
+      },
+      "properties": {
+        "region": "civilized_remnants",
+        "light_level": "dim",
+        "guardian_repaired": false
+      },
+      "llm_context": {
+        "traits": [
+          "towering stone figure frozen mid-stride",
+          "cracks running through ancient stonework",
+          "faded runes that once glowed with power",
+          "dust motes drifting in shafts of light",
+          "the sense of sleeping power waiting to wake"
+        ],
+        "state_variants": {
+          "guardian_repaired": {
+            "true": "The Stone Guardian stands alert, its runes glowing with restored power.",
+            "false": "The Stone Guardian looms motionless, its eyes dark and lifeless."
+          }
+        }
+      },
+      "behaviors": []
+    }
+  ]
+}

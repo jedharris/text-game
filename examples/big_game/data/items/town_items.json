@@ -1,0 +1,192 @@
+{
+  "items": [
+    {
+      "id": "item_cr_guard_spear",
+      "name": "guard's spear",
+      "description": "A simple but well-maintained weapon, its shaft worn smooth by countless hours of patrol.",
+      "location": null,
+      "properties": {
+        "portable": true,
+        "weapon": true,
+        "damage": 15
+      },
+      "llm_context": {
+        "traits": [
+          "iron tip kept sharp",
+          "leather grip worn to fit the guard's hand"
+        ]
+      },
+      "behaviors": []
+    },
+    {
+      "id": "item_cr_healing_herbs",
+      "name": "healing herbs",
+      "description": "A bundle of dried medicinal plants, carefully preserved for their curative properties.",
+      "location": "loc_cr_market_square",
+      "properties": {
+        "portable": true,
+        "consumable": true,
+        "heals": 25,
+        "value": 15
+      },
+      "llm_context": {
+        "traits": [
+          "earthy aromatic scent",
+          "leaves still green despite drying"
+        ]
+      },
+      "behaviors": []
+    },
+    {
+      "id": "item_cr_antidote",
+      "name": "antidote vial",
+      "description": "A small glass vial containing a murky green liquid that neutralizes common poisons.",
+      "location": "loc_cr_market_square",
+      "properties": {
+        "portable": true,
+        "consumable": true,
+        "cures_condition": "contact_poison",
+        "value": 30
+      },
+      "llm_context": {
+        "traits": [
+          "bitter smell even through the stopper",
+          "liquid that seems to move on its own"
+        ]
+      },
+      "behaviors": []
+    },
+    {
+      "id": "item_cr_healer_kit",
+      "name": "healer's kit",
+      "description": "A leather satchel containing bandages, salves, and surgical implements. Clearly the tools of a practiced healer.",
+      "location": null,
+      "properties": {
+        "portable": true,
+        "provides_healing": true
+      },
+      "llm_context": {
+        "traits": [
+          "compartments organized with precision",
+          "smell of clean medicine",
+          "well-worn but immaculate"
+        ]
+      },
+      "behaviors": []
+    },
+    {
+      "id": "item_cr_precision_tools",
+      "name": "precision tools",
+      "description": "A set of delicate instruments for fine mechanical work. Essential for repairing complex devices.",
+      "location": "loc_cr_market_square",
+      "properties": {
+        "portable": true,
+        "tool": true,
+        "value": 75
+      },
+      "llm_context": {
+        "traits": [
+          "tools of various sizes in a leather roll",
+          "gleaming metal despite obvious age",
+          "each tool perfectly fitted to its purpose"
+        ]
+      },
+      "behaviors": []
+    },
+    {
+      "id": "item_cr_stone_chisel",
+      "name": "stone chisel",
+      "description": "A heavy chisel designed for working stone, its edge still sharp despite years of use.",
+      "location": "loc_cr_statue_hall",
+      "properties": {
+        "portable": true,
+        "tool": true
+      },
+      "llm_context": {
+        "traits": [
+          "worn wooden handle",
+          "blade marked with use on ancient stone"
+        ]
+      },
+      "behaviors": []
+    },
+    {
+      "id": "item_cr_nightshade",
+      "name": "nightshade",
+      "description": "A deadly plant with purple flowers. Beautiful but extremely toxic to touch without proper knowledge.",
+      "location": "loc_cr_garden",
+      "properties": {
+        "portable": false,
+        "toxic": true,
+        "requires_skill": "herbalism",
+        "poison_on_touch": "contact_poison"
+      },
+      "llm_context": {
+        "traits": [
+          "dark purple flowers",
+          "glossy black berries",
+          "deceptively beautiful appearance"
+        ]
+      },
+      "behaviors": []
+    },
+    {
+      "id": "item_cr_medicinal_herbs",
+      "name": "medicinal herbs",
+      "description": "Fresh herbs from Elara's garden, carefully cultivated for their healing properties.",
+      "location": "loc_cr_garden",
+      "properties": {
+        "portable": true,
+        "consumable": true,
+        "heals": 15,
+        "can_harvest": true
+      },
+      "llm_context": {
+        "traits": [
+          "fresh green leaves",
+          "pleasant herbal scent",
+          "labeled with neat tags"
+        ]
+      },
+      "behaviors": []
+    },
+    {
+      "id": "item_cr_council_seal",
+      "name": "council seal",
+      "description": "An official seal bearing the mark of the Town Council. It grants authority to speak on behalf of the settlement.",
+      "location": null,
+      "properties": {
+        "portable": true,
+        "key_item": true,
+        "grants_authority": true
+      },
+      "llm_context": {
+        "traits": [
+          "heavy bronze disk",
+          "intricate seal design",
+          "ribbon showing official status"
+        ]
+      },
+      "behaviors": []
+    },
+    {
+      "id": "item_cr_trade_goods",
+      "name": "trade goods",
+      "description": "A bundle of valuable commodities useful for barter throughout the regions.",
+      "location": "loc_cr_market_square",
+      "properties": {
+        "portable": true,
+        "value": 50,
+        "tradeable": true
+      },
+      "llm_context": {
+        "traits": [
+          "assorted valuable items",
+          "wrapped in protective cloth",
+          "suitable for trade anywhere"
+        ]
+      },
+      "behaviors": []
+    }
+  ]
+}

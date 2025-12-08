@@ -13,6 +13,65 @@ This document provides detailed designs for behavior library modules that implem
 
 ---
 
+## Implementation Status
+
+This section documents what is implemented in the library vs what requires custom game behaviors.
+
+### Library-Provided Features
+
+The library modules provide these core capabilities:
+
+| Feature | Module | Status |
+|---------|--------|--------|
+| Condition apply/remove/tick | conditions.py | ✅ Implemented |
+| Condition effect queries | conditions.py | ✅ Implemented |
+| Severity stacking with cap | conditions.py | ✅ Implemented |
+| Immunity checking | conditions.py | ✅ Implemented |
+| Breath tracking | environment.py | ✅ Implemented |
+| Spore/temperature effects | environment.py | ✅ Implemented |
+| Part entry events | environment.py | ✅ Implemented |
+| Item-based treatment | treatment.py | ✅ Implemented |
+| `treats` alias for `cures` | treatment.py | ✅ Implemented |
+| Service execution | services.py | ✅ Implemented |
+| Service-on-receive | services.py | ✅ Implemented |
+| Trust discounts | services.py | ✅ Implemented |
+| Relationship tracking | relationships.py | ✅ Implemented |
+| Attack selection/execution | combat.py | ✅ Implemented |
+| Attack verb handler | combat.py | ✅ Implemented |
+| Cover mechanics | combat.py | ✅ Implemented |
+| Death checking | combat.py | ✅ Implemented |
+| Dynamic morale calculation | morale.py | ✅ Implemented |
+| Flee execution | morale.py | ✅ Implemented |
+| Pack member tracking | packs.py | ✅ Implemented |
+| Disposition sync | packs.py | ✅ Implemented |
+| Follower sync in NPC phase | npc_actions.py | ✅ Implemented |
+| Use-on-target verb | treatment.py | ✅ Implemented |
+
+### Custom Behavior Requirements
+
+The following features are **not** in the library and must be implemented as custom behaviors for specific use cases. This is intentional - they demonstrate how game-specific behaviors integrate with library code.
+
+| Feature | Use Case | Notes |
+|---------|----------|-------|
+| Resistance calculation | UC1 | Custom behavior reduces condition severity based on `resistances` property |
+| Contagion spread | UC1 | Custom behavior checks `contagious_range` and spreads conditions to nearby actors |
+| Feeding/satisfies | UC3 | Custom `on_receive` checks `satisfies` property against actor `needs` |
+| Morale update on damage | UC3 | Custom `on_damage` behavior updates morale based on health |
+| Directed flee destination | UC3 | Custom flee behavior uses `flee_destination` property |
+| Alert propagation | UC7 | Custom behavior propagates `alerted_by` triggers to pack members |
+
+### Design Decisions
+
+**Morale Calculation**: The library calculates morale dynamically from health percentage, ally count, and enemy count rather than storing it as a static value. This provides richer behavior without author configuration.
+
+**Flee Destination**: Fleeing actors choose a random unlocked exit rather than requiring a configured destination. Authors can override with custom behaviors if directed flee is needed.
+
+**Temperature Conditions**: The library uses `hypothermia` and `burning` as condition names (not `heat_exhaustion`).
+
+**Spore Severity**: Spore levels map to severity values: "low"=5, "medium"=15, "high"=30.
+
+---
+
 ## Module Overview
 
 ### Critical Priority (Foundation)

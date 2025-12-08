@@ -1,0 +1,316 @@
+{
+  "items": [
+    {
+      "id": "item_fr_cold_weather_gear",
+      "name": "cold weather gear",
+      "description": "A bundle of warm clothing left behind by previous travelers: a fur-lined cloak, wool gloves, and a warm hood. Essential for surviving the frozen reaches.",
+      "location": "loc_fr_frozen_pass",
+      "properties": {
+        "type": "equipment",
+        "portable": true,
+        "provides_cold_resistance": true,
+        "cold_resistance_amount": 50
+      },
+      "llm_context": {
+        "traits": [
+          "fur-lined cloak",
+          "thick wool gloves",
+          "warm hood",
+          "well-made but worn",
+          "left by previous travelers"
+        ]
+      }
+    },
+    {
+      "id": "item_fr_frozen_supplies",
+      "name": "frozen supplies",
+      "description": "A cache of supplies abandoned during the evacuation: preserved food, rope, and basic tools. All frozen solid but still usable if thawed.",
+      "location": "loc_fr_frozen_pass",
+      "properties": {
+        "type": "supplies",
+        "portable": true,
+        "contains": ["food", "rope", "tools"]
+      },
+      "llm_context": {
+        "traits": [
+          "ice-encrusted packaging",
+          "preserved by cold",
+          "signs of hasty abandonment",
+          "still usable if thawed"
+        ]
+      }
+    },
+    {
+      "id": "item_fr_mounting_bracket",
+      "name": "mounting bracket",
+      "description": "A precision-crafted metal bracket from the temple's astronomical equipment. This appears to be the mounting bracket needed to repair the frozen observatory's telescope.",
+      "location": "loc_fr_temple_sanctum",
+      "properties": {
+        "type": "repair_part",
+        "portable": true,
+        "repairs": "telescope",
+        "quest_item": true
+      },
+      "llm_context": {
+        "traits": [
+          "precision-crafted metal",
+          "astronomical equipment",
+          "ancient craftsmanship",
+          "frost-resistant alloy",
+          "calibration markings"
+        ]
+      }
+    },
+    {
+      "id": "item_fr_lore_tablet",
+      "name": "lore tablet",
+      "description": "A stone tablet covered in ancient script. It describes the temple's purpose and contains partial instructions for controlling the guardian golems.",
+      "location": "loc_fr_temple_sanctum",
+      "properties": {
+        "type": "lore",
+        "portable": true,
+        "readable": true,
+        "grants_knowledge": "golem_password_partial"
+      },
+      "llm_context": {
+        "traits": [
+          "ancient carved script",
+          "worn but legible",
+          "protective runes on edges",
+          "cold to the touch",
+          "faint magical glow"
+        ]
+      }
+    },
+    {
+      "id": "item_fr_crystal_lens",
+      "name": "crystal lens",
+      "description": "A perfectly clear crystal lens of extraordinary quality. This is the missing lens needed to repair the frozen observatory's telescope. It's remarkably cold to the touch but does not frost over.",
+      "location": "loc_fr_ice_caves",
+      "properties": {
+        "type": "repair_part",
+        "portable": true,
+        "repairs": "telescope",
+        "quest_item": true
+      },
+      "llm_context": {
+        "traits": [
+          "perfectly clear crystal",
+          "extraordinary optical quality",
+          "cold to the touch",
+          "doesn't frost over",
+          "ancient craftsmanship",
+          "slight inner glow"
+        ]
+      }
+    },
+    {
+      "id": "item_fr_ice_crystal",
+      "name": "ice crystal",
+      "description": "A naturally formed crystal of pure ice that never melts. It pulses with cold magical energy and could be useful as an alchemical ingredient or focus.",
+      "location": "loc_fr_ice_caves",
+      "properties": {
+        "type": "magical",
+        "portable": true,
+        "alchemical_ingredient": true,
+        "magical_focus": "cold"
+      },
+      "llm_context": {
+        "traits": [
+          "pure crystalline ice",
+          "never melts",
+          "pulsing cold energy",
+          "faint blue glow",
+          "perfectly formed facets"
+        ]
+      }
+    },
+    {
+      "id": "item_fr_damaged_telescope",
+      "name": "damaged telescope",
+      "description": "An ancient telescope of remarkable craftsmanship, now damaged by centuries of exposure. The lens is missing and the mounting bracket is broken, but if repaired, it could reveal secrets of the shattered world.",
+      "location": "loc_fr_frozen_observatory",
+      "properties": {
+        "type": "equipment",
+        "portable": false,
+        "repairable": true,
+        "repair_requirements": ["crystal_lens", "mounting_bracket", "cleaning_supplies"],
+        "functional": false
+      },
+      "llm_context": {
+        "traits": [
+          "ancient craftsmanship",
+          "damaged by exposure",
+          "lens housing cracked",
+          "mounting unstable",
+          "potential for revelation",
+          "covered in frost"
+        ],
+        "state_variants": {
+          "broken": "The telescope sits useless, its lens missing and mounting broken.",
+          "repaired": "The restored telescope gleams, ready to reveal distant secrets."
+        }
+      }
+    },
+    {
+      "id": "item_fr_scholar_notes",
+      "name": "scholar's notes",
+      "description": "Research notes preserved with the frozen scholar. They contain observations about the temple, the golems, and partial theories about how the perpetual winter was caused.",
+      "location": "npc_fr_frozen_scholar_1",
+      "properties": {
+        "type": "lore",
+        "portable": true,
+        "readable": true,
+        "grants_knowledge": "temple_history"
+      },
+      "llm_context": {
+        "traits": [
+          "careful handwriting",
+          "detailed observations",
+          "preserved by cold",
+          "marginalia with corrections",
+          "diagrams of golem mechanisms"
+        ]
+      }
+    },
+    {
+      "id": "item_fr_ancient_scrolls",
+      "name": "ancient scrolls",
+      "description": "Scrolls that the frozen archivist was protecting. They contain the full password to command the temple golems, as well as historical records of the region before the disaster.",
+      "location": "npc_fr_frozen_scholar_2",
+      "properties": {
+        "type": "lore",
+        "portable": true,
+        "readable": true,
+        "grants_knowledge": "golem_password_full",
+        "quest_item": true
+      },
+      "llm_context": {
+        "traits": [
+          "ancient parchment",
+          "protected in scroll case",
+          "arcane command words",
+          "historical records",
+          "maps of old region"
+        ]
+      }
+    },
+    {
+      "id": "item_fr_temple_key",
+      "name": "temple key",
+      "description": "An ancient key carved from a single piece of enchanted ice. It never melts and glows with a faint blue light. The temple keeper guards it carefully.",
+      "location": "npc_fr_temple_keeper",
+      "properties": {
+        "type": "key",
+        "portable": true,
+        "opens": "temple_inner_sanctum",
+        "magical": true
+      },
+      "llm_context": {
+        "traits": [
+          "carved from enchanted ice",
+          "never melts",
+          "faint blue glow",
+          "intricate carved patterns",
+          "cold to the touch"
+        ]
+      }
+    },
+    {
+      "id": "item_fr_heat_stone",
+      "name": "heat stone",
+      "description": "A smooth stone that radiates constant warmth. The steam salamanders seem to have created it, and it could be used to thaw frozen objects or people.",
+      "location": "loc_fr_hot_springs",
+      "properties": {
+        "type": "tool",
+        "portable": true,
+        "provides_warmth": true,
+        "thaws_frozen": true,
+        "heat_duration": 20
+      },
+      "llm_context": {
+        "traits": [
+          "smooth warm surface",
+          "constant gentle heat",
+          "salamander creation",
+          "faint orange glow",
+          "comfortable to hold"
+        ]
+      }
+    },
+    {
+      "id": "item_fr_warmth_amulet",
+      "name": "warmth amulet",
+      "description": "An amulet given by befriended steam salamanders. It provides a constant aura of warmth, granting immunity to cold and hypothermia while worn.",
+      "location": "creature_fr_steam_salamander_2",
+      "properties": {
+        "type": "equipment",
+        "portable": true,
+        "provides_cold_immunity": true,
+        "warmth_aura": true,
+        "gift_from": "salamanders"
+      },
+      "states": {
+        "hidden": true
+      },
+      "llm_context": {
+        "traits": [
+          "salamander-crafted",
+          "constant warm glow",
+          "comfortable heat",
+          "beautiful fire patterns",
+          "feels alive with warmth"
+        ]
+      }
+    },
+    {
+      "id": "item_fr_frozen_artifact",
+      "name": "frozen artifact",
+      "description": "An artifact of unknown purpose, frozen in a block of magical ice. Its true nature will only be revealed once thawed. Strange runes glow within the ice.",
+      "location": "loc_fr_ice_caves",
+      "properties": {
+        "type": "artifact",
+        "portable": true,
+        "magical": true,
+        "requires_thawing": true
+      },
+      "states": {
+        "frozen": true
+      },
+      "llm_context": {
+        "traits": [
+          "encased in magical ice",
+          "glowing runes visible within",
+          "unknown purpose",
+          "ancient origin",
+          "powerful emanations"
+        ],
+        "state_variants": {
+          "frozen": "The artifact remains locked within the magical ice.",
+          "thawed": "Freed from the ice, the artifact reveals its true form."
+        }
+      }
+    },
+    {
+      "id": "item_fr_cold_resistance_potion",
+      "name": "cold resistance potion",
+      "description": "A potion brewed from hot springs minerals and fire salamander essence. Drinking it provides temporary immunity to cold and hypothermia.",
+      "location": "loc_fr_hot_springs",
+      "properties": {
+        "type": "consumable",
+        "portable": true,
+        "grants_immunity": "cold",
+        "duration": 10,
+        "consumable": true
+      },
+      "llm_context": {
+        "traits": [
+          "warm to the touch",
+          "orange-red liquid",
+          "faint sulfur scent",
+          "gently steaming"
+        ]
+      }
+    }
+  ]
+}
