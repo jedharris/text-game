@@ -102,6 +102,7 @@ src/
 ├── parser.py               # Fast local command parser
 ├── parsed_command.py       # Parser output structure
 ├── word_entry.py           # Vocabulary entry type
+├── hooks.py                # Engine hook constants
 ├── vocabulary.json         # Base vocabulary
 └── narrator_protocol.txt   # LLM protocol specification
 
@@ -112,9 +113,27 @@ behaviors/core/             # Core behavior modules
 ├── interaction.py          # open, close, unlock, etc.
 └── meta.py                 # help, save, load, quit
 
+behaviors/actors/           # Actor interaction systems
+├── combat.py               # Combat resolution
+├── conditions.py           # Condition application/ticking
+├── effects.py              # Immediate effect application
+├── environment.py          # Environmental effects
+├── morale.py               # Morale and fleeing
+├── npc_actions.py          # NPC turn actions
+├── packs.py                # Pack coordination
+├── relationships.py        # Relationship management
+├── services.py             # Services NPCs provide
+└── treatment.py            # Condition treatment/curing
+
 behavior_libraries/         # Shared reusable behaviors
-├── puzzle_lib/
-└── offering_lib/
+├── companion_lib/          # Companion following
+├── crafting_lib/           # Item crafting/combining
+├── darkness_lib/           # Visibility/light enforcement
+├── dialog_lib/             # NPC conversation
+├── npc_movement_lib/       # NPC patrol/wandering
+├── offering_lib/           # Offering/sacrifice
+├── puzzle_lib/             # Puzzle patterns
+└── timing_lib/             # Turn counter/scheduled events
 
 utilities/                  # Helper functions
 ├── entity_serializer.py    # Entity → dict conversion
@@ -187,6 +206,17 @@ class ExitDescriptor:
     description: str                  # Prose description
     properties: Dict[str, Any]
     behaviors: List[str]
+
+@dataclass
+class GameState:
+    metadata: Metadata
+    locations: List[Location]
+    items: List[Item]
+    locks: List[Lock]
+    actors: Dict[str, Actor]          # Actor ID → Actor
+    parts: List[Part]
+    extra: Dict[str, Any]             # Non-player global data
+    turn_count: int                   # Game turn counter
 ```
 
 ### Property Accessors
@@ -208,6 +238,64 @@ actor.states → properties.get("states", {})
 # Lock
 lock.opens_with → properties.get("opens_with", [])
 lock.auto_unlock → properties.get("auto_unlock", False)
+```
+
+### GameState Methods
+
+**Entity Queries:**
+```python
+def get_actor(self, actor_id: str) -> Actor
+def get_item(self, item_id: str) -> Item
+def get_location(self, location_id: str) -> Location
+def get_lock(self, lock_id: str) -> Lock
+```
+
+**State Management:**
+```python
+def move_item(self, item_id: str, to_player: bool = False,
+              to_location: Optional[str] = None,
+              to_container: Optional[str] = None) -> None
+    """Move item to new location."""
+
+def set_player_location(self, location_id: str) -> None
+    """Set player's current location."""
+```
+
+**Flag System:**
+```python
+def set_flag(self, flag_name: str, value: Any) -> None
+    """Set a player flag.
+
+    Flags are stored in player.properties["flags"] and persist across saves.
+    Used for tracking game progression, quest states, etc.
+    """
+
+def get_flag(self, flag_name: str, default: Any = None) -> Any
+    """Get a player flag value."""
+```
+
+**Turn Management:**
+```python
+def increment_turn(self) -> int
+    """Increment turn counter and return new value.
+
+    Called after each successful player command, before turn phases fire.
+    Turn counter starts at 0 and increments by 1 each turn.
+    """
+```
+
+**Extra Data:**
+
+The `extra` dict provides storage for non-player global game state:
+```python
+# Example: Store global puzzle state
+state.extra["ancient_seal_broken"] = True
+
+# Example: Track scheduled events
+state.extra["scheduled_events"] = [
+    {"turn": 10, "event": "earthquake"},
+    {"turn": 20, "event": "meteor_falls"}
+]
 ```
 
 ### Loading and Saving
@@ -361,6 +449,8 @@ def get_merged_vocabulary(self, base_vocab: Dict) -> Dict:
     Automatically creates multi-type entries when the same word appears
     with different grammatical types from different sources.
 
+    Merges verbs, nouns, adjectives, directions, and events/hooks.
+
     Returns unified vocabulary with all verbs, nouns, directions.
     """
 ```
@@ -370,6 +460,22 @@ def get_merged_vocabulary(self, base_vocab: Dict) -> Dict:
 - When "north" appears as both noun (in directions) and adjective (in exits), it becomes multi-type
 - The merged entry contains a set of types: `word_type: {"noun", "verb"}`
 - No manual `word_type: ["type1", "type2"]` markup needed - all automatic
+
+**Hook Registration**: Vocabulary can register events with engine hooks:
+```python
+vocabulary = {
+    "events": [
+        {
+            "event": "on_npc_turn",
+            "hook": "npc_action",
+            "description": "NPC takes action during turn phase"
+        }
+    ]
+}
+```
+
+Hooks provide stable engine contracts. Modules wire events to hooks via vocabulary.
+Hook names are defined in `src/hooks.py`.
 
 ### Handler Precedence
 
@@ -551,6 +657,47 @@ def _convert_action_strings_to_wordentry(action: Dict) -> Dict:
 Meta commands (save, load, quit, help) must work even if state is corrupted.
 Protocol handler checks for state corruption and blocks non-meta commands.
 
+### Turn Phase Execution
+
+After each successful command, the protocol handler fires turn phase hooks in order:
+
+```python
+TURN_PHASE_HOOKS = [
+    hooks.NPC_ACTION,           # NPCs take actions
+    hooks.ENVIRONMENTAL_EFFECT, # Environmental effects trigger
+    hooks.CONDITION_TICK,       # Conditions advance (poison, etc.)
+    hooks.DEATH_CHECK,          # Check for actor deaths
+]
+```
+
+**Turn Phase Flow:**
+1. Command succeeds
+2. `state.increment_turn()` advances turn counter
+3. For each hook in order:
+   - Look up event registered for hook via `behavior_manager.get_event_for_hook(hook)`
+   - If event found, invoke behaviors registered for that event
+   - Collect messages from behaviors
+4. Return messages in `turn_phase_messages` field of result
+
+**Example:**
+```python
+# behaviors/actors/npc_actions.py
+vocabulary = {
+    "events": [
+        {
+            "event": "on_npc_turn",
+            "hook": "npc_action",
+            "description": "NPCs take turn actions"
+        }
+    ]
+}
+
+def on_npc_turn(entity, accessor, context):
+    """Called for each NPC during npc_action phase."""
+    # NPC logic here
+    return EventResult(allow=True, message="The guard patrols.")
+```
+
 ## 2.6 LLM Narrator (llm_narrator.py)
 
 **Purpose:** Bridge between natural language and JSON protocol
@@ -636,9 +783,364 @@ def _load_system_prompt(self, prompt_file: Path) -> str:
 
 ---
 
-# 3. Data Flow and Execution
+# 3. Turn Phase System
 
-## 3.1 Game Initialization
+## 3.1 Overview
+
+The turn phase system provides a structured way to process game time advancement after each successful player command. Turn phases fire automatically after command execution, allowing NPCs to act, environmental effects to trigger, conditions to progress, etc.
+
+**Key Concepts:**
+- **Turn Counter**: `state.turn_count` tracks elapsed game turns, increments after each successful command
+- **Phase Hooks**: Stable engine contracts defined in `src/hooks.py`
+- **Events**: Behavior modules register events and wire them to hooks via vocabulary
+- **Execution Order**: Phases fire in defined order (NPC_ACTION → ENVIRONMENTAL_EFFECT → CONDITION_TICK → DEATH_CHECK)
+
+## 3.2 Hook Constants
+
+Defined in `src/hooks.py`:
+
+```python
+# Turn phase hooks (fire after successful player command)
+NPC_ACTION = "npc_action"                   # NPCs take turn actions
+ENVIRONMENTAL_EFFECT = "environmental_effect"  # Environment affects actors
+CONDITION_TICK = "condition_tick"           # Conditions progress (poison, etc.)
+DEATH_CHECK = "death_check"                 # Check for actor deaths
+
+# Other engine hooks
+LOCATION_ENTERED = "location_entered"       # Actor enters location
+VISIBILITY_CHECK = "visibility_check"       # Check if entity visible
+```
+
+## 3.3 Hook Registration
+
+Behavior modules register events for hooks via vocabulary:
+
+```python
+# behaviors/actors/npc_actions.py
+vocabulary = {
+    "events": [
+        {
+            "event": "on_npc_turn",
+            "hook": "npc_action",
+            "description": "NPCs take turn actions"
+        }
+    ]
+}
+
+def on_npc_turn(entity, accessor, context):
+    """Process NPC turn action.
+
+    Called by engine for each NPC during npc_action phase.
+    Entity is None for phase hooks - handler iterates actors.
+    """
+    # Iterate NPCs and process their actions
+    for actor_id, actor in accessor.state.actors.items():
+        if actor_id != "player":
+            # NPC logic here
+            pass
+    return EventResult(allow=True, message="NPCs take their turns.")
+```
+
+## 3.4 Phase Execution Flow
+
+```
+1. Player command executes successfully
+   ↓
+2. state.increment_turn()
+   - turn_count: 0 → 1
+   ↓
+3. For each TURN_PHASE_HOOK:
+   ├─ Look up event: behavior_manager.get_event_for_hook(hook)
+   ├─ If event registered:
+   │  ├─ Build context: {hook: hook_name, actor_id: "player"}
+   │  ├─ Invoke: behavior_manager.invoke_behavior(None, event, accessor, context)
+   │  └─ Collect message if returned
+   └─ Continue to next hook
+   ↓
+4. Return result with turn_phase_messages: [...]
+```
+
+## 3.5 Implementing Turn Phase Behaviors
+
+**Step 1: Register event with hook**
+```python
+vocabulary = {
+    "events": [
+        {"event": "on_my_phase", "hook": "environmental_effect"}
+    ]
+}
+```
+
+**Step 2: Implement handler**
+```python
+def on_my_phase(entity, accessor, context):
+    """Handler for environmental_effect phase.
+
+    Args:
+        entity: None for phase hooks
+        accessor: StateAccessor for state queries/updates
+        context: {hook: "environmental_effect", actor_id: "player"}
+
+    Returns:
+        EventResult with allow=True and optional message
+    """
+    # Phase logic here
+    messages = []
+
+    # Example: Check all actors for environmental damage
+    for actor_id, actor in accessor.state.actors.items():
+        if actor.location == "loc_toxic_room":
+            messages.append(f"{actor.name} chokes on toxic fumes!")
+
+    return EventResult(
+        allow=True,
+        message="\n".join(messages) if messages else None
+    )
+```
+
+## 3.6 Turn Counter Usage
+
+The turn counter enables time-based events:
+
+```python
+# Check if enough turns have passed
+if accessor.state.turn_count >= 10:
+    # Trigger timed event
+    pass
+
+# Schedule future event
+accessor.state.extra.setdefault("scheduled_events", []).append({
+    "turn": accessor.state.turn_count + 5,
+    "event": "explosion"
+})
+
+# Check scheduled events
+for event in accessor.state.extra.get("scheduled_events", []):
+    if event["turn"] == accessor.state.turn_count:
+        # Process event
+        pass
+```
+
+See `behavior_libraries/timing_lib/` for reusable scheduled event utilities.
+
+---
+
+# 4. Actor Behavior Modules
+
+## 4.1 Overview
+
+The `behaviors/actors/` directory contains reusable actor interaction systems. These modules implement complex actor behaviors like combat, conditions, relationships, and services.
+
+**Design Principles:**
+- **Event-driven**: Respond to turn phase hooks and entity events
+- **Data-driven**: Configuration in actor properties
+- **Stateful**: Track state in `actor.properties` and `actor.states`
+- **Composable**: Multiple behaviors can be combined on one actor
+
+## 4.2 Module Descriptions
+
+### combat.py
+
+Implements combat resolution between actors.
+
+**Key Functions:**
+- `resolve_combat(attacker, defender, accessor)`: Resolve attack
+- Damage calculation based on stats
+- Hit/miss determination
+- Death handling
+
+**Actor Properties:**
+```python
+actor.properties["stats"] = {
+    "attack": 5,
+    "defense": 3,
+    "health": 20,
+    "max_health": 20
+}
+```
+
+### conditions.py
+
+Manages condition application, ticking, and effects.
+
+**Conditions:**
+- Poison (periodic damage)
+- Disease (stat reduction)
+- Blessing (stat bonus)
+- Custom conditions via configuration
+
+**Properties:**
+```python
+actor.properties["conditions"] = [
+    {
+        "type": "poison",
+        "damage": 2,
+        "duration": 5,
+        "turns_remaining": 3
+    }
+]
+```
+
+**Hook:** Registers `on_condition_tick` → `hooks.CONDITION_TICK`
+
+### relationships.py
+
+Tracks relationships between actors (domestication, hostility, etc.).
+
+**Properties:**
+```python
+actor.properties["relationships"] = {
+    "npc_wolf": {
+        "type": "domesticated",
+        "level": 0.8  # 0.0-1.0
+    }
+}
+```
+
+**Functions:**
+- `get_relationship(actor, target_id)`: Query relationship
+- `set_relationship(actor, target_id, type, level)`: Update relationship
+- Relationship affects combat behavior, following, etc.
+
+### services.py
+
+Enables NPCs to provide services (healing, trading, etc.).
+
+**Properties:**
+```python
+npc.properties["services"] = {
+    "healing": {
+        "cost": 10,
+        "amount": 20,
+        "stat": "health"
+    }
+}
+```
+
+**Verbs:** Adds `use_service` command
+
+### morale.py
+
+Implements morale and fleeing behavior.
+
+**Properties:**
+```python
+actor.properties["morale"] = {
+    "current": 10,
+    "max": 10,
+    "flee_threshold": 3
+}
+```
+
+**Hook:** Checks morale during combat, triggers flee
+
+### packs.py
+
+Coordinates pack behavior for grouped NPCs.
+
+**Properties:**
+```python
+actor.properties["pack"] = {
+    "id": "wolf_pack_1",
+    "role": "member"  # or "alpha"
+}
+```
+
+**Behaviors:**
+- Pack attacks together
+- Alpha death affects morale
+- Pack movement coordination
+
+### treatment.py
+
+Implements condition curing and treatment.
+
+**Verbs:** Adds `cure`, `treat` commands
+
+**Properties:**
+```python
+item.properties["treatment"] = {
+    "condition": "poison",
+    "effectiveness": 1.0  # Full cure
+}
+```
+
+### environment.py
+
+Environmental effects on actors (location-based).
+
+**Location Properties:**
+```python
+location.properties["environment"] = {
+    "damage_per_turn": 2,
+    "condition": "poison",
+    "damage_type": "fire"
+}
+```
+
+**Hook:** Registers `on_environment_tick` → `hooks.ENVIRONMENTAL_EFFECT`
+
+### npc_actions.py
+
+Generic NPC turn actions.
+
+**Hook:** Registers `on_npc_turn` → `hooks.NPC_ACTION`
+
+Delegates to specific NPC behaviors based on NPC type/properties.
+
+### effects.py
+
+Immediate effect application (healing, damage, stat changes).
+
+**Functions:**
+- `apply_effect(actor, effect_spec, accessor)`: Apply immediate effect
+- Used by items, spells, traps, etc.
+
+**Effect Spec:**
+```python
+{
+    "type": "heal",
+    "amount": 10,
+    "stat": "health"
+}
+```
+
+## 4.3 Integration Example
+
+Combining multiple actor behaviors:
+
+```python
+# NPC with conditions, morale, and pack behavior
+{
+    "id": "npc_wolf_alpha",
+    "name": "Alpha Wolf",
+    "location": "loc_forest",
+    "properties": {
+        "stats": {"attack": 6, "defense": 4, "health": 30},
+        "morale": {"current": 10, "max": 10, "flee_threshold": 3},
+        "pack": {"id": "wolf_pack_1", "role": "alpha"},
+        "conditions": []
+    },
+    "behaviors": [
+        "behaviors.actors.combat",
+        "behaviors.actors.conditions",
+        "behaviors.actors.morale",
+        "behaviors.actors.packs"
+    ]
+}
+```
+
+Turn phase execution:
+1. NPC_ACTION: Wolf moves/attacks (packs.py coordinates pack)
+2. ENVIRONMENTAL_EFFECT: Check for environmental damage (environment.py)
+3. CONDITION_TICK: Process poison/disease (conditions.py)
+4. DEATH_CHECK: Check health <= 0 (combat.py)
+
+---
+
+# 5. Data Flow and Execution
+
+## 5.1 Game Initialization
 
 ```
 1. llm_game.py main()
@@ -658,7 +1160,7 @@ def _load_system_prompt(self, prompt_file: Path) -> str:
    └─ Enter game loop
 ```
 
-## 3.2 Command Execution Flow
+## 5.2 Command Execution Flow
 
 ```
 Player Input: "take the red key from the wooden box"
@@ -740,7 +1242,7 @@ Player Input: "take the red key from the wooden box"
     gleam along its length."
 ```
 
-## 3.3 Query Flow (Location)
+## 5.3 Query Flow (Location)
 
 ```
 Request: {"type": "query", "query_type": "location", "include": ["items", "doors", "exits"]}
@@ -765,9 +1267,9 @@ Request: {"type": "query", "query_type": "location", "include": ["items", "doors
 
 ---
 
-# 4. Extension Points
+# 6. Extension Points
 
-## 4.1 Adding Core Behaviors
+## 6.1 Adding Core Behaviors
 
 **When to extend core:**
 - Fundamental game mechanic needed by most games
@@ -839,7 +1341,7 @@ def handle_climb(accessor: StateAccessor, action: Dict) -> EventResult:
                       data={"id": entity.id, "name": entity.name})
 ```
 
-## 4.2 Creating Behavior Libraries
+## 6.2 Creating Behavior Libraries
 
 **Purpose:** Reusable behavior packages for common game patterns
 
@@ -908,7 +1410,7 @@ def on_play(entity, accessor, context):
     return EventResult(allow=True)
 ```
 
-## 4.3 Extending the Parser
+## 6.3 Extending the Parser
 
 **Adding new token types:**
 
@@ -954,7 +1456,7 @@ def _try_parse_with_adverb(self, tokens: List[WordEntry]) -> Optional[ParsedComm
     # Implementation...
 ```
 
-## 4.4 Protocol Extensions
+## 6.4 Protocol Extensions
 
 **Adding new query types:**
 
@@ -1005,9 +1507,9 @@ LLM narrator will have access to all fields.
 
 ---
 
-# 5. Testing
+# 7. Testing
 
-## 5.1 Test Organization
+## 7.1 Test Organization
 
 ```
 tests/
@@ -1026,7 +1528,7 @@ tests/
     └── test_vocabulary.json
 ```
 
-## 5.2 Test Utilities
+## 7.2 Test Utilities
 
 **Creating test state:**
 ```python
@@ -1060,7 +1562,7 @@ def setUp(self):
     self.accessor = StateAccessor(self.state, self.manager)
 ```
 
-## 5.3 Testing Behaviors
+## 7.3 Testing Behaviors
 
 **Command handler tests:**
 ```python
@@ -1112,7 +1614,7 @@ def test_on_take_behavior(self):
     self.assertTrue(item.states.get("glowing", False))
 ```
 
-## 5.4 Integration Tests
+## 7.4 Integration Tests
 
 **End-to-end command flow:**
 ```python
@@ -1150,7 +1652,7 @@ def test_integration_take_from_container(self):
     self.assertIn("item_key", self.state.actors["player"].inventory)
 ```
 
-## 5.5 Test Coverage
+## 7.5 Test Coverage
 
 **Target coverage:** 80% for new code
 
@@ -1171,9 +1673,9 @@ open htmlcov/index.html
 
 ---
 
-# 6. Debugging and Observability
+# 8. Debugging and Observability
 
-## 6.1 Debug Flags
+## 8.1 Debug Flags
 
 **Command-line flags:**
 ```bash
@@ -1195,7 +1697,7 @@ Shows:
 - Handler invocation
 - API cache statistics
 
-## 6.2 Trait Inspection
+## 8.2 Trait Inspection
 
 **--show-traits flag:**
 
@@ -1211,7 +1713,7 @@ Useful for:
 - Verifying trait randomization
 - Understanding what LLM sees
 
-## 6.3 State Inspection
+## 8.3 State Inspection
 
 **During test:**
 ```python
@@ -1237,7 +1739,7 @@ def handle_take(accessor, action):
     # ... rest of handler
 ```
 
-## 6.4 Common Issues
+## 8.4 Common Issues
 
 **"Handler not found"**
 - Behavior module not loaded
@@ -1265,9 +1767,9 @@ def handle_take(accessor, action):
 
 ---
 
-# 7. Performance Considerations
+# 9. Performance Considerations
 
-## 7.1 Parser Optimization
+## 9.1 Parser Optimization
 
 **Fast path:**
 - Trie-based vocabulary lookup: O(n) where n = input length
@@ -1278,7 +1780,7 @@ def handle_take(accessor, action):
 - LLM parsing for complex input: 200-500ms
 - Only used when local parser returns None
 
-## 7.2 LLM Call Optimization
+## 9.2 LLM Call Optimization
 
 **Prompt caching:**
 - System prompt cached for 5 minutes
@@ -1295,7 +1797,7 @@ def handle_take(accessor, action):
 - Cache system prompts
 - Keep result JSON compact
 
-## 7.3 State Access Patterns
+## 9.3 State Access Patterns
 
 **Efficient:**
 ```python
@@ -1316,7 +1818,7 @@ for verb in all_verbs:
 handlers = {v: behavior_manager.get_handler(v) for v in verbs}
 ```
 
-## 7.4 Scaling Considerations
+## 9.4 Scaling Considerations
 
 **Current limits:**
 - ~1000 entities: No performance issues
@@ -1330,9 +1832,9 @@ handlers = {v: behavior_manager.get_handler(v) for v in verbs}
 
 ---
 
-# 8. Code Style and Conventions
+# 10. Code Style and Conventions
 
-## 8.1 Python Style
+## 10.1 Python Style
 
 **Follow:**
 - PEP 8 for formatting
@@ -1357,7 +1859,7 @@ def get_item(self, item_id: str) -> Optional[Item]:
     return None
 ```
 
-## 8.2 Naming Conventions
+## 10.2 Naming Conventions
 
 **Functions:**
 - Command handlers: `handle_<verb>()` (e.g., `handle_take`)
@@ -1375,7 +1877,7 @@ def get_item(self, item_id: str) -> Optional[Item]:
 - Examples: `loc_tower`, `item_key`, `door_entrance`, `npc_guard`
 - Special: `"player"` (reserved singleton)
 
-## 8.3 Error Handling
+## 10.3 Error Handling
 
 **Design principle:** Fail fast during load, not during play
 
@@ -1401,7 +1903,7 @@ if not isinstance(entity, Item):
     raise TypeError(f"Expected Item, got {type(entity)}")
 ```
 
-## 8.4 Testing Conventions
+## 10.4 Testing Conventions
 
 **Test naming:**
 ```python
@@ -1438,9 +1940,9 @@ def test_something(self):
 
 ---
 
-# 9. Contributing
+# 11. Contributing
 
-## 9.1 Development Workflow
+## 11.1 Development Workflow
 
 1. **Create issue** describing the feature/bug
 2. **Discuss approach** in issue comments
@@ -1451,7 +1953,7 @@ def test_something(self):
 7. **Code review** and iteration
 8. **Merge** when approved
 
-## 9.2 Pull Request Guidelines
+## 11.2 Pull Request Guidelines
 
 **PR must include:**
 - Clear description of changes
@@ -1467,7 +1969,7 @@ def test_something(self):
 - Debug print statements
 - Formatting-only changes mixed with logic
 
-## 9.3 Code Review Checklist
+## 11.3 Code Review Checklist
 
 **Functionality:**
 - [ ] Does it solve the stated problem?
@@ -1497,9 +1999,9 @@ def test_something(self):
 
 ---
 
-# 10. Advanced Topics
+# 12. Advanced Topics
 
-## 10.1 Custom Validators
+## 12.1 Custom Validators
 
 Add custom validation beyond structural checks:
 
@@ -1527,7 +2029,7 @@ if errors:
     raise ValidationError("Custom validation failed", errors)
 ```
 
-## 10.2 Custom Entity Types
+## 12.2 Custom Entity Types
 
 While not recommended (use properties instead), you can add entity types:
 
@@ -1559,7 +2061,7 @@ class StateAccessor:
         return None
 ```
 
-## 10.3 State Migration Tools
+## 12.3 State Migration Tools
 
 Create migration tools for schema changes:
 
@@ -1593,7 +2095,7 @@ if __name__ == "__main__":
         json.dump(new, f, indent=2)
 ```
 
-## 10.4 Performance Profiling
+## 12.4 Performance Profiling
 
 Profile engine performance:
 
@@ -1622,7 +2124,7 @@ result = profile_command(handler, message)
 
 ---
 
-# 11. Glossary
+# 13. Glossary
 
 **Actor** - Player or NPC entity with location and inventory
 
@@ -1631,6 +2133,8 @@ result = profile_command(handler, message)
 **Behavior Manager** - System that loads and manages behavior modules
 
 **Behavior Module** - Python file that exports vocabulary, handlers, and/or behaviors
+
+**Hook** - Stable engine contract that behaviors can register events for (e.g., npc_action, condition_tick)
 
 **Command Handler** - Function that processes a verb command (handle_*)
 
@@ -1666,6 +2170,10 @@ result = profile_command(handler, message)
 
 **Three-tier Hierarchy** - Game > Library > Core behavior precedence
 
+**Turn Counter** - `state.turn_count` tracks elapsed game turns
+
+**Turn Phase** - Automatic processing stage after successful command (NPC_ACTION, etc.)
+
 **UpdateResult** - Return value from state updates
 
 **Verbosity** - Narration detail level (full/brief)
@@ -1674,9 +2182,9 @@ result = profile_command(handler, message)
 
 ---
 
-# 12. References
+# 14. References
 
-## 12.1 Key Design Documents
+## 14.1 Key Design Documents
 
 - `docs/behavior_refactoring.md` - Behavior system design (historical)
 - `docs/layered_game_design.md` - Three-tier hierarchy design
@@ -1684,7 +2192,7 @@ result = profile_command(handler, message)
 - `docs/game_state_example.md` - JSON format examples
 - `Archive/entity_behaviors.md` - Original behavior design
 
-## 12.2 Example Code
+## 14.2 Example Code
 
 - `examples/simple_game/` - Basic game demonstrating core features
 - `examples/extended_game/` - Advanced features and behaviors
@@ -1692,7 +2200,7 @@ result = profile_command(handler, message)
 - `behaviors/core/` - Core behavior implementations
 - `behavior_libraries/` - Reusable behavior libraries
 
-## 12.3 Test Examples
+## 14.3 Test Examples
 
 - `tests/test_integration_*.py` - End-to-end test patterns
 - `tests/test_behavior_*.py` - Behavior system test patterns
@@ -1714,13 +2222,24 @@ llm_game.py
             ├── llm_protocol.py
             │   ├── state_manager.py
             │   ├── behavior_manager.py
-            │   └── state_accessor.py
+            │   ├── state_accessor.py
+            │   └── hooks.py (engine hook constants)
             └── parser.py
                 ├── word_entry.py
                 └── parsed_command.py
 
 behaviors/core/*
     ├── state_accessor.py (imported by all)
+    └── word_entry.py (for VOCABULARY)
+
+behaviors/actors/*
+    ├── state_accessor.py (imported by all)
+    ├── hooks.py (for turn phase registration)
+    └── word_entry.py (for VOCABULARY)
+
+behavior_libraries/*
+    ├── state_accessor.py (imported by all)
+    ├── hooks.py (optional, for turn phases)
     └── word_entry.py (for VOCABULARY)
 
 utilities/*

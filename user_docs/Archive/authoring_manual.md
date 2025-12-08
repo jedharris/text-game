@@ -649,11 +649,93 @@ The LLM uses the appropriate state variant based on current entity state.
 
 ---
 
-# 4. The Behavior System
+# 4. Actors and Interactions
+
+This section provides an overview of the actor system. For detailed documentation, see the companion chapters:
+
+- **[Authoring Actors](authoring_actors.md)** - Fundamentals of creating actors: properties, health, conditions, AI, relationships
+- **[Authoring Actor Interactions](authoring_actor_interactions.md)** - Combat, services, environmental effects, pack coordination
+
+## 4.1 What Are Actors?
+
+Actors are entities that can act in the game world:
+
+- **Player** - The protagonist controlled by the player
+- **NPCs** - Non-player characters like merchants, guards, healers
+- **Creatures** - Animals and monsters like wolves, spiders, golems
+- **Constructs** - Animated objects like statues, automata, magical guardians
+
+All actors share the same structure - they differ only in their properties and behaviors.
+
+## 4.2 Basic Actor Structure
+
+```json
+{
+  "id": "npc_merchant",
+  "name": "Traveling Merchant",
+  "description": "A jovial merchant with a ready smile.",
+  "location": "loc_market",
+  "inventory": ["item_coins"],
+  "properties": {
+    "health": 80,
+    "max_health": 80,
+    "ai": {
+      "disposition": "friendly"
+    }
+  }
+}
+```
+
+**Core fields:**
+- `id` - Unique identifier
+- `name` - Display name
+- `description` - What players see when examining
+- `location` - Current location ID
+- `inventory` - List of item IDs the actor carries
+
+## 4.3 Key Actor Capabilities
+
+The actor system supports:
+
+- **Health and conditions** - Actors can be injured, poisoned, diseased
+- **Combat** - Attacks, damage, armor, morale, fleeing
+- **Relationships** - Trust, gratitude, fear with threshold effects
+- **Services** - NPCs can offer services for payment
+- **Pack coordination** - Groups of actors that act together
+- **Environmental effects** - Breath, temperature, spore exposure
+
+## 4.4 The Turn System
+
+After each successful player command, the engine executes turn phases:
+
+1. **NPC Action Phase** - NPCs attack, flee, or help
+2. **Environmental Effects Phase** - Apply breath, spores, temperature
+3. **Condition Progression Phase** - Conditions deal damage and progress
+4. **Death Check Phase** - Check for actor deaths
+
+Failed commands don't advance time.
+
+## 4.5 Where to Learn More
+
+For comprehensive documentation on actors:
+
+| Topic | See |
+|-------|-----|
+| Actor properties (health, body, AI) | [Authoring Actors - Core Properties](authoring_actors.md#2-core-actor-properties) |
+| Conditions and immunities | [Authoring Actors - Conditions](authoring_actors.md#23-conditions) |
+| Combat system | [Actor Interactions - Combat](authoring_actor_interactions.md#4-combat) |
+| NPC services | [Actor Interactions - Services](authoring_actor_interactions.md#5-services-framework) |
+| Relationships and domestication | [Actor Interactions - Relationships](authoring_actor_interactions.md#6-relationships-and-domestication) |
+| Environmental hazards | [Actor Interactions - Environmental Effects](authoring_actor_interactions.md#7-environmental-effects) |
+| Pack coordination | [Actor Interactions - Packs](authoring_actor_interactions.md#9-pack-coordination) |
+
+---
+
+# 5. The Behavior System
 
 The behavior system is how you extend the game with new functionality. This is the most powerful feature of the framework.
 
-## 4.1 What Are Behaviors?
+## 5.1 What Are Behaviors?
 
 **Behaviors are Python modules that provide:**
 
@@ -692,7 +774,7 @@ def on_take(entity, accessor, context):
     return EventResult(allow=True)
 ```
 
-## 3.2 Three-Tier Hierarchy
+## 5.2 Three-Tier Hierarchy
 
 Behaviors are organized in three tiers:
 
@@ -771,7 +853,7 @@ behaviors/
       core/ -> engine  # Tier 4 (deeply nested)
 ```
 
-## 3.3 Using Core Behaviors
+## 5.3 Using Core Behaviors
 
 Core behaviors provide standard adventure game commands:
 
@@ -816,7 +898,7 @@ ln -s ../../../behaviors/core core
 
 That's it! Core behaviors are automatically loaded.
 
-## 3.4 Using Behavior Libraries
+## 5.4 Using Behavior Libraries
 
 Behavior libraries are reusable behavior packages for common patterns.
 
@@ -861,7 +943,7 @@ def on_turn(entity, accessor, context):
                      message=f"The music box plays a {note} note.")
 ```
 
-## 3.5 Writing Custom Behaviors
+## 5.5 Writing Custom Behaviors
 
 This is where you create unique mechanics for your game.
 
@@ -1039,7 +1121,7 @@ To attach a behavior to a specific entity, add the module path to its `behaviors
 
 Now when someone interacts with the mirror (peer, examine, touch, etc.), your behavior functions will be called.
 
-## 3.6 Behavior Precedence and Chaining
+## 5.6 Behavior Precedence and Chaining
 
 When multiple modules provide handlers for the same verb, they form a chain:
 
@@ -1083,9 +1165,9 @@ def handle_take(accessor, action):
 
 ---
 
-# 5. Common Patterns and Recipes
+# 6. Common Patterns and Recipes
 
-## 5.1 Puzzles
+## 6.1 Puzzles
 
 ### Hidden Items (Revelation)
 
@@ -1245,7 +1327,7 @@ def on_put(entity, accessor, context):
         return EventResult(allow=True, message=feedback)
 ```
 
-## 5.2 Interactive Objects
+## 6.2 Interactive Objects
 
 ### Containers (Chests, Boxes, Surfaces)
 
@@ -1369,7 +1451,7 @@ def on_read(entity, accessor, context):
     return EventResult(allow=True)
 ```
 
-## 5.3 NPCs and Dialogue
+## 6.3 NPCs and Dialogue
 
 ### Creating NPCs
 
@@ -1499,7 +1581,7 @@ def handle_trade(accessor, action):
                      message="The merchant isn't interested in that.")
 ```
 
-## 5.4 Locations and Navigation
+## 6.4 Locations and Navigation
 
 ### Exit Types
 
@@ -1640,11 +1722,11 @@ def on_go(entity, accessor, context):
 
 ---
 
-# 6. Spatial Rooms and Positioning
+# 7. Spatial Rooms and Positioning
 
 This section shows you how to design and implement spatial awareness in your text adventure games using the Part entity system.
 
-## 6.1 When to Use Spatial Structure
+## 7.1 When to Use Spatial Structure
 
 ### Use Spatial Structure When:
 
@@ -1664,7 +1746,7 @@ This section shows you how to design and implement spatial awareness in your tex
 
 ❌ **Single item per feature** - "One tapestry in room" doesn't need a wall part
 
-## 6.2 Quick Start with Spatial Rooms
+## 7.2 Quick Start with Spatial Rooms
 
 ### Step 1: Design Your Room
 
@@ -1727,7 +1809,7 @@ The spatial system provides:
 - Lists items by their spatial location in `look` output when items are at parts
 - Optional implicit positioning when you set `interaction_distance: "near"` on entities
 
-## 6.3 Understanding Parts
+## 7.3 Understanding Parts
 
 ### What is a Part?
 
@@ -1761,7 +1843,7 @@ A **Part** represents a spatial component of another entity (room, item, or cont
 4. **Items can be located at parts** - Use `"location": "part_id"`
 5. **Actors use focused_on** - Actor position tracked via `properties.focused_on`, not location
 
-## 6.4 Common Spatial Patterns
+## 7.4 Common Spatial Patterns
 
 ### Pattern 1: Wall-Mounted Items
 
@@ -2083,7 +2165,7 @@ def on_examine(entity, accessor, context):
     return EventResult(allow=True)
 ```
 
-## 6.5 Positioning and Movement
+## 7.5 Positioning and Movement
 
 ### How Positioning Works
 
@@ -2212,7 +2294,7 @@ The `posture` property is automatically cleared when the actor's `focused_on` pr
 
 This allows players to look around at distant objects without leaving cover, but moving to a different nearby entity clears the posture.
 
-## 6.6 Advanced Spatial Techniques
+## 7.6 Advanced Spatial Techniques
 
 ### Blocking Access to Parts
 
@@ -2302,7 +2384,7 @@ def has_line_of_sight(accessor, observer_id, target_id):
     return True
 ```
 
-## 6.7 Spatial Rooms Troubleshooting
+## 7.7 Spatial Rooms Troubleshooting
 
 ### Common Mistakes
 
@@ -2446,7 +2528,7 @@ Do you need spatial positioning?
     └─ 2+ OR special behaviors → Create the part
 ```
 
-## 6.8 Complete Spatial Room Example
+## 7.8 Complete Spatial Room Example
 
 Here's a complete spatial room showing multiple patterns:
 
@@ -2565,7 +2647,7 @@ You carefully mix the powder with water.
 You take cover behind the bench.
 ```
 
-## 6.9 Spatial Rooms Summary
+## 7.9 Spatial Rooms Summary
 
 **Key Points**:
 1. Use spatial structure when position matters for gameplay
@@ -2584,9 +2666,9 @@ For more technical details, see the [Spatial Structure Design Document](../docs/
 
 ---
 
-# 7. The Parser and Commands
+# 8. The Parser and Commands
 
-## 7.1 How Commands Work
+## 8.1 How Commands Work
 
 When a player types a command, here's what happens:
 
@@ -2620,7 +2702,7 @@ Player sees: "You reach into the weathered chest and carefully
 **Fast parser handles:** ~70% of commands (directions, common verbs, simple structure)
 **LLM fallback handles:** ~30% (complex phrasing, ambiguity, conversational input)
 
-## 7.2 Command Structure
+## 8.2 Command Structure
 
 Commands follow this pattern:
 
@@ -2647,7 +2729,7 @@ Commands follow this pattern:
 - `up`
 - `down`
 
-## 7.3 Vocabulary Management
+## 8.3 Vocabulary Management
 
 The game uses a merged vocabulary from multiple sources:
 
@@ -2743,9 +2825,9 @@ Now players can use:
 
 ---
 
-# 8. LLM Integration
+# 9. LLM Integration
 
-## 8.1 How the LLM Works
+## 9.1 How the LLM Works
 
 **Key principle:** The LLM is a narrator, not a game master.
 
@@ -2780,7 +2862,7 @@ Now players can use:
 └─────────────────────────────────┘
 ```
 
-## 8.2 Customizing Narration
+## 9.2 Customizing Narration
 
 ### narrator_style.txt
 
@@ -2884,7 +2966,7 @@ VOCABULARY = {
 }
 ```
 
-## 8.3 Debugging Narration
+## 9.3 Debugging Narration
 
 ### Show Traits Flag
 
@@ -2947,9 +3029,9 @@ Shows:
 
 ---
 
-# 9. Testing and Debugging
+# 10. Testing and Debugging
 
-## 9.1 Validating Game State
+## 10.1 Validating Game State
 
 **Validate your game state:**
 ```bash
@@ -2976,7 +3058,7 @@ python -m src.game_engine my_first_game --validate
 6. **"Door has no location"** - Door not attached to exit
    - Solution: Set door location to `"exit:loc_id:direction"`
 
-## 8.2 Testing Behaviors
+## 10.2 Testing Behaviors
 
 ### Manual Testing
 
@@ -3055,7 +3137,7 @@ if __name__ == "__main__":
 python -m unittest tests/test_my_behavior.py
 ```
 
-## 8.3 Debugging Commands
+## 10.3 Debugging Commands
 
 ### Understanding Errors
 
@@ -3118,9 +3200,9 @@ All should work if synonyms are defined properly.
 
 ---
 
-# 10. Save/Load System
+# 11. Save/Load System
 
-## 10.1 How Saves Work
+## 11.1 How Saves Work
 
 **What is saved:**
 - Current game state (all entity data)
@@ -3157,7 +3239,7 @@ All should work if synonyms are defined properly.
 python -m src.llm_game my_game --load saved_game.json
 ```
 
-## 10.2 Schema Versioning
+## 11.2 Schema Versioning
 
 **Current schema:** `v_0.01`
 
@@ -3203,9 +3285,9 @@ python tools/migrate_v001_to_v002.py old_save.json new_save.json
 
 ---
 
-# 11. Advanced Topics
+# 12. Advanced Topics
 
-## 11.1 Handler Chaining in Depth
+## 12.1 Handler Chaining in Depth
 
 Handler chaining allows you to extend or override core functionality.
 
@@ -3276,7 +3358,7 @@ def handle_examine(accessor, action):
     return result
 ```
 
-## 11.2 StateAccessor Advanced Features
+## 12.2 StateAccessor Advanced Features
 
 ### Update with Behaviors
 
@@ -3326,7 +3408,7 @@ has_key = any(
 )
 ```
 
-## 11.3 Creating Behavior Libraries
+## 12.3 Creating Behavior Libraries
 
 If you create reusable behavior patterns, package them as a library.
 
@@ -3440,9 +3522,9 @@ def on_turn(entity, accessor, context):
 
 ---
 
-# 12. Tips and Best Practices
+# 13. Tips and Best Practices
 
-## 12.1 Game Design
+## 13.1 Game Design
 
 1. **Start small** - Begin with 3-5 locations, add more as you learn
 2. **Test frequently** - Play your game after every change
@@ -3452,7 +3534,7 @@ def on_turn(entity, accessor, context):
 6. **Consistent tone** - Maintain atmosphere throughout
 7. **Iterative design** - Build, test, refine, repeat
 
-## 12.2 World Building
+## 13.2 World Building
 
 1. **Logical geography** - Exits should make spatial sense
 2. **Appropriate scale** - Match location detail to importance
@@ -3460,7 +3542,7 @@ def on_turn(entity, accessor, context):
 4. **Purposeful items** - Every item should have a reason to exist
 5. **Living world** - NPCs with goals, not just quest dispensers
 
-## 12.3 Writing Behaviors
+## 13.3 Writing Behaviors
 
 1. **Start with core** - Use core behaviors as examples
 2. **One behavior = one feature** - Keep modules focused
@@ -3470,7 +3552,7 @@ def on_turn(entity, accessor, context):
 6. **Test thoroughly** - Write unit tests for complex behaviors
 7. **Document your code** - Future you will thank you
 
-## 12.4 LLM Context
+## 13.4 LLM Context
 
 1. **Quality over quantity** - 5 good traits better than 10 mediocre
 2. **Sensory details** - Engage all senses, not just sight
@@ -3479,7 +3561,7 @@ def on_turn(entity, accessor, context):
 5. **State variants for key states** - Open/closed, lit/unlit, etc.
 6. **Test narration** - Use --show-traits to verify
 
-## 12.5 Common Pitfalls
+## 13.5 Common Pitfalls
 
 **Don't:**
 - Hard-code item names in behavior code (use IDs)
@@ -3501,16 +3583,16 @@ def on_turn(entity, accessor, context):
 
 ---
 
-# 13. Getting Help
+# 14. Getting Help
 
-## 13.1 Documentation
+## 14.1 Documentation
 
 - **This guide** - Game creation and behaviors
 - **Developer Documentation** (`docs/engine_documentation.md`) - Engine internals
 - **Example games** (`examples/`) - Working examples to study
 - **Design documents** (`docs/`) - Detailed design documentation
 
-## 13.2 Example Games
+## 14.2 Example Games
 
 **simple_game** - Basic features
 - Minimal world (3 locations)
@@ -3531,7 +3613,7 @@ def on_turn(entity, accessor, context):
 - Handler chaining
 - Advanced patterns
 
-## 13.3 Troubleshooting
+## 14.3 Troubleshooting
 
 1. **Validation fails** - Fix errors in game_state.json first
 2. **Command not recognized** - Check VOCABULARY exported from behavior
@@ -3539,7 +3621,7 @@ def on_turn(entity, accessor, context):
 4. **Poor narration** - Improve llm_context and narrator_style.txt
 5. **State corruption** - Check for invalid references in game_state.json
 
-## 13.4 Community
+## 14.4 Community
 
 - **GitHub Issues** - Bug reports and feature requests
 - **Discussions** - Questions and sharing games
