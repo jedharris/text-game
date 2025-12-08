@@ -60,9 +60,8 @@ class TestHardcodedLightSourceRemoval(unittest.TestCase):
                     }
                 }
             ],
-            "doors": [],
-            "npcs": [],
-            "locks": []
+            "locks": [],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
         }
 
         self.state = load_game_state(self.game_data)
@@ -227,9 +226,8 @@ class TestHardcodedChestRemoval(unittest.TestCase):
                     # Not a container, no behavior - should NOT be openable
                 }
             ],
-            "doors": [],
-            "npcs": [],
-            "locks": []
+            "locks": [],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
         }
 
         self.state = load_game_state(self.game_data)
@@ -332,14 +330,19 @@ class TestBehaviorDrivenApproach(unittest.TestCase):
                     # No behavior - but still drinkable
                 }
             ],
-            "doors": [],
-            "npcs": [],
             "locks": [],
-            "player": {
-                "location": "room1",
-                "inventory": [],
-                "flags": {},
-                "stats": {"health": 50, "max_health": 100}
+            "actors": {
+                "player": {
+                    "id": "player",
+                    "name": "Adventurer",
+                    "description": "The player",
+                    "location": "room1",
+                    "inventory": [],
+                    "properties": {
+                        "flags": {},
+                        "stats": {"health": 50, "max_health": 100}
+                    }
+                }
             }
         }
 

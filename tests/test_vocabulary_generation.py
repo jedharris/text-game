@@ -28,9 +28,8 @@ class TestExtractNounsFromState(unittest.TestCase):
                 {"id": "item2", "name": "sword", "description": "A sword",
                  "type": "weapon", "portable": True, "location": "room1"}
             ],
-            "doors": [],
-            "npcs": [],
-            "locks": []
+            "locks": [],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
         }
         state = load_game_state(game_data)
         nouns = extract_nouns_from_state(state)
@@ -45,14 +44,12 @@ class TestExtractNounsFromState(unittest.TestCase):
             "metadata": {"title": "Test", "start_location": "room1"},
             "locations": [{"id": "room1", "name": "Room", "description": "A room"}],
             "items": [],
-            "doors": [],
-            "npcs": [
-                {"id": "npc1", "name": "goblin", "description": "A goblin",
-                 "location": "room1"},
-                {"id": "npc2", "name": "wizard", "description": "A wizard",
-                 "location": "room1"}
-            ],
-            "locks": []
+            "locks": [],
+            "actors": {
+                "player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"},
+                "npc1": {"id": "npc1", "name": "goblin", "description": "A goblin", "location": "room1"},
+                "npc2": {"id": "npc2", "name": "wizard", "description": "A wizard", "location": "room1"}
+            }
         }
         state = load_game_state(game_data)
         nouns = extract_nouns_from_state(state)
@@ -72,9 +69,8 @@ class TestExtractNounsFromState(unittest.TestCase):
                 {"id": "item2", "name": "iron key", "description": "A key",
                  "type": "tool", "portable": True, "location": "room1"}
             ],
-            "doors": [],
-            "npcs": [],
-            "locks": []
+            "locks": [],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
         }
         state = load_game_state(game_data)
         nouns = extract_nouns_from_state(state)
@@ -94,9 +90,8 @@ class TestExtractNounsFromState(unittest.TestCase):
                 {"id": "item2", "name": "key", "description": "An iron key",
                  "type": "tool", "portable": True, "location": "room1"}
             ],
-            "doors": [],
-            "npcs": [],
-            "locks": []
+            "locks": [],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
         }
         state = load_game_state(game_data)
         nouns = extract_nouns_from_state(state)
@@ -111,9 +106,8 @@ class TestExtractNounsFromState(unittest.TestCase):
             "metadata": {"title": "Test", "start_location": "room1"},
             "locations": [{"id": "room1", "name": "Room", "description": "A room"}],
             "items": [],
-            "doors": [],
-            "npcs": [],
-            "locks": []
+            "locks": [],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
         }
         state = load_game_state(game_data)
         nouns = extract_nouns_from_state(state)
@@ -129,9 +123,8 @@ class TestExtractNounsFromState(unittest.TestCase):
                 {"id": "item1", "name": "lantern", "description": "A lantern",
                  "type": "tool", "portable": True, "location": "room1"}
             ],
-            "doors": [],
-            "npcs": [],
-            "locks": []
+            "locks": [],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
         }
         state = load_game_state(game_data)
         nouns = extract_nouns_from_state(state)
@@ -266,9 +259,8 @@ class TestParserWithMergedVocabulary(unittest.TestCase):
                 {"id": "item1", "name": "lantern", "description": "A lantern",
                  "type": "tool", "portable": True, "location": "room1"}
             ],
-            "doors": [],
-            "npcs": [],
-            "locks": []
+            "locks": [],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
         }
         state = load_game_state(game_data)
         extracted_nouns = extract_nouns_from_state(state)
@@ -316,9 +308,8 @@ class TestParserWithMergedVocabulary(unittest.TestCase):
                 {"id": "item1", "name": "duck", "description": "A rubber duck",
                  "type": "tool", "portable": True, "location": "room1"}
             ],
-            "doors": [],
-            "npcs": [],
-            "locks": []
+            "locks": [],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
         }
         state = load_game_state(game_data)
         extracted_nouns = extract_nouns_from_state(state)

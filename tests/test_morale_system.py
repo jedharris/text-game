@@ -55,7 +55,7 @@ class TestGetMorale(unittest.TestCase):
 
     def test_morale_full_health(self):
         """Full health gives full health morale component."""
-        from behaviors.library.actors.morale import get_morale
+        from behaviors.actors.morale import get_morale
 
         self.npc.properties["health"] = 100
 
@@ -77,7 +77,7 @@ class TestGetMorale(unittest.TestCase):
 
     def test_morale_reduced_by_health(self):
         """Low health reduces morale proportionally."""
-        from behaviors.library.actors.morale import get_morale
+        from behaviors.actors.morale import get_morale
 
         self.npc.properties["health"] = 50  # 50% health
 
@@ -99,7 +99,7 @@ class TestGetMorale(unittest.TestCase):
 
     def test_morale_boosted_by_allies(self):
         """Allies in location boost morale."""
-        from behaviors.library.actors.morale import get_morale
+        from behaviors.actors.morale import get_morale
 
         self.npc.properties["pack_id"] = "goblin_pack"
         self.npc.properties["health"] = 100
@@ -125,7 +125,7 @@ class TestGetMorale(unittest.TestCase):
 
     def test_morale_reduced_by_enemies(self):
         """Enemies in location reduce morale."""
-        from behaviors.library.actors.morale import get_morale
+        from behaviors.actors.morale import get_morale
 
         self.npc.properties["health"] = 100
 
@@ -150,7 +150,7 @@ class TestGetMorale(unittest.TestCase):
 
     def test_morale_alpha_presence_bonus(self):
         """Pack alpha presence boosts morale."""
-        from behaviors.library.actors.morale import get_morale
+        from behaviors.actors.morale import get_morale
 
         self.npc.properties["pack_id"] = "goblin_pack"
         self.npc.properties["pack_role"] = "follower"
@@ -189,7 +189,7 @@ class TestGetMorale(unittest.TestCase):
 
     def test_morale_default_base(self):
         """Uses default base_morale if not specified."""
-        from behaviors.library.actors.morale import get_morale, DEFAULT_BASE_MORALE
+        from behaviors.actors.morale import get_morale, DEFAULT_BASE_MORALE
 
         del self.npc.properties["base_morale"]
         self.npc.properties["health"] = 100
@@ -211,7 +211,7 @@ class TestGetMorale(unittest.TestCase):
 
     def test_morale_clamped_minimum(self):
         """Morale doesn't go below 0."""
-        from behaviors.library.actors.morale import get_morale
+        from behaviors.actors.morale import get_morale
 
         self.npc.properties["health"] = 10  # Very low health
         self.npc.properties["base_morale"] = 20
@@ -271,7 +271,7 @@ class TestCheckFleeCondition(unittest.TestCase):
 
     def test_should_flee_low_morale(self):
         """Returns True when morale below threshold."""
-        from behaviors.library.actors.morale import check_flee_condition
+        from behaviors.actors.morale import check_flee_condition
 
         self.npc.properties["health"] = 20  # 20% health = 20 morale
 
@@ -292,7 +292,7 @@ class TestCheckFleeCondition(unittest.TestCase):
 
     def test_should_not_flee_high_morale(self):
         """Returns False when morale above threshold."""
-        from behaviors.library.actors.morale import check_flee_condition
+        from behaviors.actors.morale import check_flee_condition
 
         self.npc.properties["health"] = 100
 
@@ -313,7 +313,7 @@ class TestCheckFleeCondition(unittest.TestCase):
 
     def test_default_flee_threshold(self):
         """Uses default threshold if not specified."""
-        from behaviors.library.actors.morale import check_flee_condition, DEFAULT_FLEE_THRESHOLD
+        from behaviors.actors.morale import check_flee_condition, DEFAULT_FLEE_THRESHOLD
 
         del self.npc.properties["flee_threshold"]
         self.npc.properties["health"] = 100
@@ -336,7 +336,7 @@ class TestCheckFleeCondition(unittest.TestCase):
 
     def test_no_flee_for_fearless(self):
         """Actors with fearless property never flee."""
-        from behaviors.library.actors.morale import check_flee_condition
+        from behaviors.actors.morale import check_flee_condition
 
         self.npc.properties["health"] = 10
         self.npc.properties["fearless"] = True
@@ -391,7 +391,7 @@ class TestAttemptFlee(unittest.TestCase):
 
     def test_flee_success_moves_actor(self):
         """Successful flee moves actor to adjacent location."""
-        from behaviors.library.actors.morale import attempt_flee
+        from behaviors.actors.morale import attempt_flee
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_cave"),
@@ -412,7 +412,7 @@ class TestAttemptFlee(unittest.TestCase):
 
     def test_flee_no_exits(self):
         """Cannot flee when no exits available."""
-        from behaviors.library.actors.morale import attempt_flee
+        from behaviors.actors.morale import attempt_flee
 
         # Location with no exits
         dead_end = Location(
@@ -442,7 +442,7 @@ class TestAttemptFlee(unittest.TestCase):
 
     def test_flee_failure_stays_in_place(self):
         """Failed flee keeps actor in current location."""
-        from behaviors.library.actors.morale import attempt_flee
+        from behaviors.actors.morale import attempt_flee
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_cave"),
@@ -463,7 +463,7 @@ class TestAttemptFlee(unittest.TestCase):
 
     def test_flee_avoids_locked_exits(self):
         """Flee doesn't use locked exits (via door item)."""
-        from behaviors.library.actors.morale import attempt_flee
+        from behaviors.actors.morale import attempt_flee
         from src.state_manager import Item
 
         # Only exit has a locked door
@@ -499,7 +499,7 @@ class TestFleeResult(unittest.TestCase):
 
     def test_flee_result_creation(self):
         """FleeResult can be created with all fields."""
-        from behaviors.library.actors.morale import FleeResult
+        from behaviors.actors.morale import FleeResult
 
         result = FleeResult(
             success=True,
@@ -566,7 +566,7 @@ class TestGetAlliesAndEnemies(unittest.TestCase):
 
     def test_get_allies_same_pack(self):
         """Allies are actors in same pack at same location."""
-        from behaviors.library.actors.morale import get_allies
+        from behaviors.actors.morale import get_allies
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_cave"),
@@ -590,7 +590,7 @@ class TestGetAlliesAndEnemies(unittest.TestCase):
 
     def test_get_enemies_hostile_disposition(self):
         """Enemies are non-pack actors at same location."""
-        from behaviors.library.actors.morale import get_enemies
+        from behaviors.actors.morale import get_enemies
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_cave"),
@@ -614,7 +614,7 @@ class TestGetAlliesAndEnemies(unittest.TestCase):
 
     def test_neutral_not_counted_as_enemy(self):
         """Neutral actors are not counted as enemies."""
-        from behaviors.library.actors.morale import get_enemies
+        from behaviors.actors.morale import get_enemies
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_cave"),
@@ -640,7 +640,7 @@ class TestMoraleVocabulary(unittest.TestCase):
 
     def test_vocabulary_has_events(self):
         """Vocabulary exports events."""
-        from behaviors.library.actors.morale import vocabulary
+        from behaviors.actors.morale import vocabulary
 
         self.assertIn("events", vocabulary)
 

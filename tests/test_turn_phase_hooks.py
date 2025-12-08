@@ -197,7 +197,7 @@ class TestEffectRegistry(unittest.TestCase):
 
     def test_all_standard_effects_registered(self):
         """All standard effect constants are in REGISTERED_EFFECTS."""
-        from behaviors.library.actors import effects
+        from behaviors.actors import effects
 
         standard_effects = [
             effects.CANNOT_MOVE,
@@ -218,14 +218,14 @@ class TestEffectRegistry(unittest.TestCase):
 
     def test_is_valid_effect_valid(self):
         """is_valid_effect returns True for registered effects."""
-        from behaviors.library.actors.effects import is_valid_effect, CANNOT_MOVE
+        from behaviors.actors.effects import is_valid_effect, CANNOT_MOVE
 
         self.assertTrue(is_valid_effect(CANNOT_MOVE))
         self.assertTrue(is_valid_effect("blinded"))
 
     def test_is_valid_effect_invalid(self):
         """is_valid_effect returns False for unregistered effects."""
-        from behaviors.library.actors.effects import is_valid_effect
+        from behaviors.actors.effects import is_valid_effect
 
         self.assertFalse(is_valid_effect("flying"))
         self.assertFalse(is_valid_effect("super_strength"))
@@ -233,7 +233,7 @@ class TestEffectRegistry(unittest.TestCase):
 
     def test_get_effects_from_actor(self):
         """get_effects returns all effect strings from actor conditions."""
-        from behaviors.library.actors.effects import get_effects
+        from behaviors.actors.effects import get_effects
 
         mock_actor = Mock()
         mock_actor.properties = {
@@ -252,7 +252,7 @@ class TestEffectRegistry(unittest.TestCase):
 
     def test_get_effects_no_conditions(self):
         """get_effects returns empty list for actor with no conditions."""
-        from behaviors.library.actors.effects import get_effects
+        from behaviors.actors.effects import get_effects
 
         mock_actor = Mock()
         mock_actor.properties = {}
@@ -263,7 +263,7 @@ class TestEffectRegistry(unittest.TestCase):
 
     def test_get_effects_none_actor(self):
         """get_effects returns empty list for None actor."""
-        from behaviors.library.actors.effects import get_effects
+        from behaviors.actors.effects import get_effects
 
         effects_list = get_effects(None)
 
@@ -271,7 +271,7 @@ class TestEffectRegistry(unittest.TestCase):
 
     def test_has_effect_true(self):
         """has_effect returns True when actor has the effect."""
-        from behaviors.library.actors.effects import has_effect
+        from behaviors.actors.effects import has_effect
 
         mock_actor = Mock()
         mock_actor.properties = {
@@ -284,7 +284,7 @@ class TestEffectRegistry(unittest.TestCase):
 
     def test_has_effect_false(self):
         """has_effect returns False when actor doesn't have the effect."""
-        from behaviors.library.actors.effects import has_effect
+        from behaviors.actors.effects import has_effect
 
         mock_actor = Mock()
         mock_actor.properties = {
@@ -297,7 +297,7 @@ class TestEffectRegistry(unittest.TestCase):
 
     def test_validate_condition_effects_valid(self):
         """validate_condition_effects returns None for valid effects."""
-        from behaviors.library.actors.effects import validate_condition_effects
+        from behaviors.actors.effects import validate_condition_effects
 
         conditions = {
             "poison": {"effect": "agility_reduced"},
@@ -310,7 +310,7 @@ class TestEffectRegistry(unittest.TestCase):
 
     def test_validate_condition_effects_invalid(self):
         """validate_condition_effects returns error for invalid effects."""
-        from behaviors.library.actors.effects import validate_condition_effects
+        from behaviors.actors.effects import validate_condition_effects
 
         conditions = {
             "poison": {"effect": "agility_reduced"},
@@ -325,7 +325,7 @@ class TestEffectRegistry(unittest.TestCase):
 
     def test_vocabulary_has_effects_section(self):
         """Module exports vocabulary with effects documentation."""
-        from behaviors.library.actors.effects import vocabulary
+        from behaviors.actors.effects import vocabulary
 
         self.assertIn("effects", vocabulary)
         self.assertTrue(len(vocabulary["effects"]) > 0)

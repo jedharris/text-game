@@ -13,7 +13,7 @@ class TestGetAttacks(unittest.TestCase):
 
     def test_get_attacks_returns_list(self):
         """get_attacks returns actor's attacks array."""
-        from behaviors.library.actors.combat import get_attacks
+        from behaviors.actors.combat import get_attacks
 
         actor = Actor(
             id="npc_wolf",
@@ -37,7 +37,7 @@ class TestGetAttacks(unittest.TestCase):
 
     def test_get_attacks_empty_list(self):
         """get_attacks returns empty list if no attacks."""
-        from behaviors.library.actors.combat import get_attacks
+        from behaviors.actors.combat import get_attacks
 
         actor = Actor(
             id="npc_scholar",
@@ -54,7 +54,7 @@ class TestGetAttacks(unittest.TestCase):
 
     def test_get_attacks_none_actor(self):
         """get_attacks returns empty list for None actor."""
-        from behaviors.library.actors.combat import get_attacks
+        from behaviors.actors.combat import get_attacks
 
         attacks = get_attacks(None)
 
@@ -96,7 +96,7 @@ class TestSelectAttack(unittest.TestCase):
 
     def test_select_attack_prefers_knockdown_healthy_target(self):
         """Prefers knockdown attack against healthy target."""
-        from behaviors.library.actors.combat import select_attack
+        from behaviors.actors.combat import select_attack
 
         context = {}
 
@@ -106,7 +106,7 @@ class TestSelectAttack(unittest.TestCase):
 
     def test_select_attack_prefers_condition_not_present(self):
         """Prefers condition attack if target doesn't have it."""
-        from behaviors.library.actors.combat import select_attack
+        from behaviors.actors.combat import select_attack
 
         # Target is injured (below 50% health), so knockdown not preferred
         self.target.properties["health"] = 40
@@ -119,7 +119,7 @@ class TestSelectAttack(unittest.TestCase):
 
     def test_select_attack_skips_condition_if_present(self):
         """Doesn't prefer condition attack if target already has it."""
-        from behaviors.library.actors.combat import select_attack
+        from behaviors.actors.combat import select_attack
 
         # Target is injured and already poisoned
         self.target.properties["health"] = 40
@@ -134,7 +134,7 @@ class TestSelectAttack(unittest.TestCase):
 
     def test_select_attack_falls_back_to_highest_damage(self):
         """Falls back to highest damage attack."""
-        from behaviors.library.actors.combat import select_attack
+        from behaviors.actors.combat import select_attack
 
         # Attacker with no special attacks
         simple_attacker = Actor(
@@ -157,7 +157,7 @@ class TestSelectAttack(unittest.TestCase):
 
     def test_select_attack_no_attacks(self):
         """Returns None if attacker has no attacks."""
-        from behaviors.library.actors.combat import select_attack
+        from behaviors.actors.combat import select_attack
 
         peaceful = Actor(
             id="npc_scholar",
@@ -198,7 +198,7 @@ class TestCalculateDamage(unittest.TestCase):
 
     def test_calculate_damage_base(self):
         """Base damage is applied correctly."""
-        from behaviors.library.actors.combat import calculate_damage
+        from behaviors.actors.combat import calculate_damage
 
         attack = {"name": "bite", "damage": 15}
         context = {}
@@ -209,7 +209,7 @@ class TestCalculateDamage(unittest.TestCase):
 
     def test_calculate_damage_armor_reduces(self):
         """Armor reduces damage."""
-        from behaviors.library.actors.combat import calculate_damage
+        from behaviors.actors.combat import calculate_damage
 
         attack = {"name": "bite", "damage": 15}
         self.target.properties["armor"] = 5
@@ -221,7 +221,7 @@ class TestCalculateDamage(unittest.TestCase):
 
     def test_calculate_damage_armor_minimum_zero(self):
         """Damage can't go below zero from armor."""
-        from behaviors.library.actors.combat import calculate_damage
+        from behaviors.actors.combat import calculate_damage
 
         attack = {"name": "nibble", "damage": 2}
         self.target.properties["armor"] = 10
@@ -233,7 +233,7 @@ class TestCalculateDamage(unittest.TestCase):
 
     def test_calculate_damage_with_cover(self):
         """Cover reduces damage by percentage."""
-        from behaviors.library.actors.combat import calculate_damage
+        from behaviors.actors.combat import calculate_damage
 
         attack = {"name": "bite", "damage": 20}
 
@@ -249,7 +249,7 @@ class TestCalculateDamage(unittest.TestCase):
 
     def test_calculate_damage_cover_and_armor(self):
         """Cover and armor both apply."""
-        from behaviors.library.actors.combat import calculate_damage
+        from behaviors.actors.combat import calculate_damage
 
         attack = {"name": "bite", "damage": 20}
         self.target.properties["armor"] = 5
@@ -297,7 +297,7 @@ class TestExecuteAttack(unittest.TestCase):
 
     def test_execute_attack_applies_damage(self):
         """Attack applies damage to target."""
-        from behaviors.library.actors.combat import execute_attack
+        from behaviors.actors.combat import execute_attack
 
         attack = {"name": "bite", "damage": 15}
 
@@ -309,7 +309,7 @@ class TestExecuteAttack(unittest.TestCase):
 
     def test_execute_attack_armor_reduces_damage(self):
         """Armor reduces damage in attack execution."""
-        from behaviors.library.actors.combat import execute_attack
+        from behaviors.actors.combat import execute_attack
 
         attack = {"name": "bite", "damage": 15}
         self.target.properties["armor"] = 5
@@ -321,7 +321,7 @@ class TestExecuteAttack(unittest.TestCase):
 
     def test_execute_attack_applies_condition(self):
         """Attack with condition applies it to target."""
-        from behaviors.library.actors.combat import execute_attack
+        from behaviors.actors.combat import execute_attack
 
         attack = {
             "name": "poison_bite",
@@ -340,7 +340,7 @@ class TestExecuteAttack(unittest.TestCase):
 
     def test_execute_attack_returns_message(self):
         """Attack returns descriptive message."""
-        from behaviors.library.actors.combat import execute_attack
+        from behaviors.actors.combat import execute_attack
 
         attack = {"name": "bite", "damage": 15}
 
@@ -352,7 +352,7 @@ class TestExecuteAttack(unittest.TestCase):
 
     def test_execute_attack_fires_on_damage_behavior(self):
         """Attack invokes on_damage behavior on target."""
-        from behaviors.library.actors.combat import execute_attack
+        from behaviors.actors.combat import execute_attack
 
         attack = {"name": "bite", "damage": 15}
 
@@ -370,7 +370,7 @@ class TestExecuteAttack(unittest.TestCase):
 
     def test_execute_attack_with_cover(self):
         """Attack respects target's cover."""
-        from behaviors.library.actors.combat import execute_attack
+        from behaviors.actors.combat import execute_attack
 
         attack = {"name": "bite", "damage": 20}
         self.target.properties["posture"] = "cover"
@@ -403,7 +403,7 @@ class TestOnDeathCheck(unittest.TestCase):
 
     def test_death_check_triggers_at_zero(self):
         """Death check triggers on_death when health <= 0."""
-        from behaviors.library.actors.combat import on_death_check
+        from behaviors.actors.combat import on_death_check
 
         self.actor.properties["health"] = 0
 
@@ -423,7 +423,7 @@ class TestOnDeathCheck(unittest.TestCase):
 
     def test_death_check_triggers_negative_health(self):
         """Death check triggers when health is negative."""
-        from behaviors.library.actors.combat import on_death_check
+        from behaviors.actors.combat import on_death_check
 
         self.actor.properties["health"] = -10
 
@@ -437,7 +437,7 @@ class TestOnDeathCheck(unittest.TestCase):
 
     def test_death_check_skips_alive(self):
         """Death check skips actors with health > 0."""
-        from behaviors.library.actors.combat import on_death_check
+        from behaviors.actors.combat import on_death_check
 
         self.actor.properties["health"] = 10
 
@@ -451,7 +451,7 @@ class TestOnDeathCheck(unittest.TestCase):
 
     def test_death_check_skips_no_health(self):
         """Death check skips actors without health property."""
-        from behaviors.library.actors.combat import on_death_check
+        from behaviors.actors.combat import on_death_check
 
         actor = Actor(
             id="item_statue",
@@ -470,7 +470,7 @@ class TestOnDeathCheck(unittest.TestCase):
 
     def test_death_check_uses_on_death_behavior_message(self):
         """Death check uses message from on_death behavior if provided."""
-        from behaviors.library.actors.combat import on_death_check
+        from behaviors.actors.combat import on_death_check
         from src.state_accessor import EventResult
 
         self.actor.properties["health"] = 0
@@ -492,7 +492,7 @@ class TestOnDeathCheckAll(unittest.TestCase):
 
     def test_death_check_all_checks_all_actors(self):
         """on_death_check_all checks all actors."""
-        from behaviors.library.actors.combat import on_death_check_all
+        from behaviors.actors.combat import on_death_check_all
         from src.state_accessor import StateAccessor
 
         alive_actor = Actor(
@@ -540,7 +540,7 @@ class TestAttackResult(unittest.TestCase):
 
     def test_attack_result_creation(self):
         """AttackResult can be created with all fields."""
-        from behaviors.library.actors.combat import AttackResult
+        from behaviors.actors.combat import AttackResult
 
         result = AttackResult(
             success=True,
@@ -560,13 +560,13 @@ class TestCombatVocabulary(unittest.TestCase):
 
     def test_vocabulary_has_events(self):
         """Vocabulary exports events."""
-        from behaviors.library.actors.combat import vocabulary
+        from behaviors.actors.combat import vocabulary
 
         self.assertIn("events", vocabulary)
 
     def test_vocabulary_registers_death_hook(self):
         """Vocabulary registers on_death_check_all with death_check hook."""
-        from behaviors.library.actors.combat import vocabulary
+        from behaviors.actors.combat import vocabulary
 
         events = vocabulary["events"]
 

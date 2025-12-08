@@ -12,7 +12,7 @@ class TestNeedsBreath(unittest.TestCase):
 
     def test_needs_breath_normal_actor(self):
         """Normal actors need to breathe."""
-        from behaviors.library.actors.environment import needs_breath
+        from behaviors.actors.environment import needs_breath
 
         actor = Actor(
             id="player",
@@ -27,7 +27,7 @@ class TestNeedsBreath(unittest.TestCase):
 
     def test_needs_breath_construct(self):
         """Constructs don't need to breathe."""
-        from behaviors.library.actors.environment import needs_breath
+        from behaviors.actors.environment import needs_breath
 
         actor = Actor(
             id="golem",
@@ -42,7 +42,7 @@ class TestNeedsBreath(unittest.TestCase):
 
     def test_needs_breath_none_actor(self):
         """None actor returns False."""
-        from behaviors.library.actors.environment import needs_breath
+        from behaviors.actors.environment import needs_breath
 
         self.assertFalse(needs_breath(None))
 
@@ -81,7 +81,7 @@ class TestCheckBreath(unittest.TestCase):
 
     def test_check_breath_breathable_restores(self):
         """Breath restores to max in breathable area."""
-        from behaviors.library.actors.environment import check_breath
+        from behaviors.actors.environment import check_breath
 
         self.actor.properties["breath"] = 30
 
@@ -92,7 +92,7 @@ class TestCheckBreath(unittest.TestCase):
 
     def test_check_breath_underwater_decreases(self):
         """Breath decreases by 10 in non-breathable area."""
-        from behaviors.library.actors.environment import check_breath
+        from behaviors.actors.environment import check_breath
 
         result = check_breath(self.actor, self.underwater_part)
 
@@ -102,7 +102,7 @@ class TestCheckBreath(unittest.TestCase):
 
     def test_check_breath_depleted_causes_damage(self):
         """When breath depleted, take drowning damage."""
-        from behaviors.library.actors.environment import check_breath
+        from behaviors.actors.environment import check_breath
 
         self.actor.properties["breath"] = 5
 
@@ -116,7 +116,7 @@ class TestCheckBreath(unittest.TestCase):
 
     def test_check_breath_already_depleted(self):
         """Actor with zero breath continues taking damage."""
-        from behaviors.library.actors.environment import check_breath
+        from behaviors.actors.environment import check_breath
 
         self.actor.properties["breath"] = 0
 
@@ -127,7 +127,7 @@ class TestCheckBreath(unittest.TestCase):
 
     def test_check_breath_construct_immune(self):
         """Constructs don't need to track breath."""
-        from behaviors.library.actors.environment import check_breath
+        from behaviors.actors.environment import check_breath
 
         construct = Actor(
             id="golem",
@@ -144,7 +144,7 @@ class TestCheckBreath(unittest.TestCase):
 
     def test_check_breath_with_breathing_item(self):
         """Actor with breathing item doesn't lose breath."""
-        from behaviors.library.actors.environment import check_breath
+        from behaviors.actors.environment import check_breath
 
         # Give actor a breathing reed
         self.actor.inventory = ["item_reed"]
@@ -163,7 +163,7 @@ class TestCheckBreath(unittest.TestCase):
 
     def test_check_breath_breathing_item_blocked(self):
         """Breathing item doesn't work if part blocks it."""
-        from behaviors.library.actors.environment import check_breath
+        from behaviors.actors.environment import check_breath
 
         self.actor.inventory = ["item_reed"]
 
@@ -187,7 +187,7 @@ class TestCheckBreath(unittest.TestCase):
 
     def test_check_breath_no_breath_property(self):
         """Actor without breath property gets default max_breath."""
-        from behaviors.library.actors.environment import check_breath
+        from behaviors.actors.environment import check_breath
 
         actor = Actor(
             id="player",
@@ -221,7 +221,7 @@ class TestCheckSpores(unittest.TestCase):
 
     def test_check_spores_none(self):
         """No spores means no effect."""
-        from behaviors.library.actors.environment import check_spores
+        from behaviors.actors.environment import check_spores
 
         part = Part(
             id="part_safe",
@@ -237,7 +237,7 @@ class TestCheckSpores(unittest.TestCase):
 
     def test_check_spores_low(self):
         """Low spores apply/increase fungal_infection by 5."""
-        from behaviors.library.actors.environment import check_spores
+        from behaviors.actors.environment import check_spores
 
         part = Part(
             id="part_low",
@@ -257,7 +257,7 @@ class TestCheckSpores(unittest.TestCase):
 
     def test_check_spores_medium(self):
         """Medium spores apply/increase fungal_infection by 15."""
-        from behaviors.library.actors.environment import check_spores
+        from behaviors.actors.environment import check_spores
 
         part = Part(
             id="part_med",
@@ -275,7 +275,7 @@ class TestCheckSpores(unittest.TestCase):
 
     def test_check_spores_high(self):
         """High spores apply/increase fungal_infection by 30."""
-        from behaviors.library.actors.environment import check_spores
+        from behaviors.actors.environment import check_spores
 
         part = Part(
             id="part_high",
@@ -293,7 +293,7 @@ class TestCheckSpores(unittest.TestCase):
 
     def test_check_spores_stacks(self):
         """Spore exposure stacks on existing infection."""
-        from behaviors.library.actors.environment import check_spores
+        from behaviors.actors.environment import check_spores
 
         # Already infected
         self.actor.properties["conditions"] = {
@@ -316,7 +316,7 @@ class TestCheckSpores(unittest.TestCase):
 
     def test_check_spores_construct_immune(self):
         """Constructs are immune to spores."""
-        from behaviors.library.actors.environment import check_spores
+        from behaviors.actors.environment import check_spores
 
         construct = Actor(
             id="golem",
@@ -341,7 +341,7 @@ class TestCheckSpores(unittest.TestCase):
 
     def test_check_spores_no_level_property(self):
         """Part without spore_level has no effect."""
-        from behaviors.library.actors.environment import check_spores
+        from behaviors.actors.environment import check_spores
 
         part = Part(
             id="part_normal",
@@ -371,7 +371,7 @@ class TestCheckTemperature(unittest.TestCase):
 
     def test_check_temperature_normal(self):
         """Normal temperature has no effect."""
-        from behaviors.library.actors.environment import check_temperature
+        from behaviors.actors.environment import check_temperature
 
         part = Part(
             id="part_normal",
@@ -386,7 +386,7 @@ class TestCheckTemperature(unittest.TestCase):
 
     def test_check_temperature_freezing(self):
         """Freezing temperature applies hypothermia."""
-        from behaviors.library.actors.environment import check_temperature
+        from behaviors.actors.environment import check_temperature
 
         part = Part(
             id="part_cold",
@@ -403,7 +403,7 @@ class TestCheckTemperature(unittest.TestCase):
 
     def test_check_temperature_burning(self):
         """Burning temperature applies burning condition."""
-        from behaviors.library.actors.environment import check_temperature
+        from behaviors.actors.environment import check_temperature
 
         part = Part(
             id="part_hot",
@@ -418,7 +418,7 @@ class TestCheckTemperature(unittest.TestCase):
 
     def test_check_temperature_construct_immune_to_cold(self):
         """Constructs are immune to temperature effects."""
-        from behaviors.library.actors.environment import check_temperature
+        from behaviors.actors.environment import check_temperature
 
         construct = Actor(
             id="golem",
@@ -442,7 +442,7 @@ class TestCheckTemperature(unittest.TestCase):
 
     def test_check_temperature_no_property(self):
         """Part without temperature property has no effect."""
-        from behaviors.library.actors.environment import check_temperature
+        from behaviors.actors.environment import check_temperature
 
         part = Part(
             id="part_normal",
@@ -487,7 +487,7 @@ class TestApplyEnvironmentalEffects(unittest.TestCase):
 
     def test_apply_all_effects(self):
         """All environmental effects are applied."""
-        from behaviors.library.actors.environment import apply_environmental_effects
+        from behaviors.actors.environment import apply_environmental_effects
 
         messages = apply_environmental_effects(self.actor, self.hazardous_part)
 
@@ -503,7 +503,7 @@ class TestApplyEnvironmentalEffects(unittest.TestCase):
 
     def test_apply_effects_none_actor(self):
         """None actor returns empty list."""
-        from behaviors.library.actors.environment import apply_environmental_effects
+        from behaviors.actors.environment import apply_environmental_effects
 
         messages = apply_environmental_effects(None, self.hazardous_part)
 
@@ -511,7 +511,7 @@ class TestApplyEnvironmentalEffects(unittest.TestCase):
 
     def test_apply_effects_none_part(self):
         """None part returns empty list."""
-        from behaviors.library.actors.environment import apply_environmental_effects
+        from behaviors.actors.environment import apply_environmental_effects
 
         messages = apply_environmental_effects(self.actor, None)
 
@@ -523,7 +523,7 @@ class TestOnEnvironmentalEffect(unittest.TestCase):
 
     def test_on_environmental_effect_applies_to_all_actors(self):
         """Environmental effects apply to all actors in appropriate parts."""
-        from behaviors.library.actors.environment import on_environmental_effect
+        from behaviors.actors.environment import on_environmental_effect
         from src.state_accessor import StateAccessor
 
         # Create actors
@@ -593,7 +593,7 @@ class TestOnEnvironmentalEffect(unittest.TestCase):
 
     def test_on_environmental_effect_actor_not_in_spatial_location(self):
         """Actors not in spatial locations are skipped."""
-        from behaviors.library.actors.environment import on_environmental_effect
+        from behaviors.actors.environment import on_environmental_effect
         from src.state_accessor import StateAccessor
 
         player = Actor(
@@ -631,7 +631,7 @@ class TestOnEnvironmentalEffect(unittest.TestCase):
 
     def test_vocabulary_registers_hook(self):
         """Vocabulary registers on_environmental_effect with environmental_effect hook."""
-        from behaviors.library.actors.environment import vocabulary
+        from behaviors.actors.environment import vocabulary
 
         self.assertIn("events", vocabulary)
         events = vocabulary["events"]
@@ -652,7 +652,7 @@ class TestSporeLevelValues(unittest.TestCase):
 
     def test_spore_level_values(self):
         """Verify spore level severity values."""
-        from behaviors.library.actors.environment import SPORE_LEVEL_SEVERITY
+        from behaviors.actors.environment import SPORE_LEVEL_SEVERITY
 
         self.assertEqual(SPORE_LEVEL_SEVERITY.get("none", 0), 0)
         self.assertEqual(SPORE_LEVEL_SEVERITY.get("low"), 5)
@@ -665,7 +665,7 @@ class TestTemperatureConditions(unittest.TestCase):
 
     def test_temperature_conditions(self):
         """Verify temperature to condition mappings."""
-        from behaviors.library.actors.environment import TEMPERATURE_CONDITIONS
+        from behaviors.actors.environment import TEMPERATURE_CONDITIONS
 
         self.assertIn("freezing", TEMPERATURE_CONDITIONS)
         self.assertIn("burning", TEMPERATURE_CONDITIONS)

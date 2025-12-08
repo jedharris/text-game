@@ -12,7 +12,7 @@ class TestGetAvailableServices(unittest.TestCase):
 
     def test_get_services_returns_dict(self):
         """Returns services dict from NPC properties."""
-        from behaviors.library.actors.services import get_available_services
+        from behaviors.actors.services import get_available_services
 
         npc = Actor(
             id="npc_healer",
@@ -36,7 +36,7 @@ class TestGetAvailableServices(unittest.TestCase):
 
     def test_get_services_empty(self):
         """Returns empty dict if NPC has no services."""
-        from behaviors.library.actors.services import get_available_services
+        from behaviors.actors.services import get_available_services
 
         npc = Actor(
             id="npc_guard",
@@ -53,7 +53,7 @@ class TestGetAvailableServices(unittest.TestCase):
 
     def test_get_services_none_actor(self):
         """Returns empty dict for None actor."""
-        from behaviors.library.actors.services import get_available_services
+        from behaviors.actors.services import get_available_services
 
         services = get_available_services(None)
 
@@ -89,7 +89,7 @@ class TestGetServiceCost(unittest.TestCase):
 
     def test_get_service_cost_base(self):
         """Returns base cost when no relationship."""
-        from behaviors.library.actors.services import get_service_cost
+        from behaviors.actors.services import get_service_cost
 
         cost = get_service_cost(self.npc, "cure", self.customer)
 
@@ -97,7 +97,7 @@ class TestGetServiceCost(unittest.TestCase):
 
     def test_get_service_cost_trust_discount(self):
         """High trust gives 50% discount."""
-        from behaviors.library.actors.services import get_service_cost
+        from behaviors.actors.services import get_service_cost
 
         # NPC trusts customer
         self.npc.properties["relationships"] = {
@@ -110,7 +110,7 @@ class TestGetServiceCost(unittest.TestCase):
 
     def test_get_service_cost_low_trust_no_discount(self):
         """Trust below threshold gives no discount."""
-        from behaviors.library.actors.services import get_service_cost
+        from behaviors.actors.services import get_service_cost
 
         self.npc.properties["relationships"] = {
             "player": {"trust": 2}
@@ -122,7 +122,7 @@ class TestGetServiceCost(unittest.TestCase):
 
     def test_get_service_cost_unknown_service(self):
         """Returns 0 for unknown service."""
-        from behaviors.library.actors.services import get_service_cost
+        from behaviors.actors.services import get_service_cost
 
         cost = get_service_cost(self.npc, "unknown_service", self.customer)
 
@@ -172,7 +172,7 @@ class TestCanAffordService(unittest.TestCase):
 
     def test_can_afford_with_enough_gold(self):
         """Returns True when customer has enough payment."""
-        from behaviors.library.actors.services import can_afford_service
+        from behaviors.actors.services import can_afford_service
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_test"),
@@ -191,7 +191,7 @@ class TestCanAffordService(unittest.TestCase):
 
     def test_cannot_afford_insufficient_gold(self):
         """Returns False when customer doesn't have enough."""
-        from behaviors.library.actors.services import can_afford_service
+        from behaviors.actors.services import can_afford_service
 
         self.gold.properties["amount"] = 2  # Less than required 5
 
@@ -213,7 +213,7 @@ class TestCanAffordService(unittest.TestCase):
 
     def test_cannot_afford_wrong_payment_type(self):
         """Returns False when customer has wrong payment type."""
-        from behaviors.library.actors.services import can_afford_service
+        from behaviors.actors.services import can_afford_service
 
         # Customer only has herbs, but service accepts gold
         herb = Item(
@@ -293,7 +293,7 @@ class TestExecuteService(unittest.TestCase):
 
     def test_execute_service_cure(self):
         """Cure service removes conditions."""
-        from behaviors.library.actors.services import execute_service
+        from behaviors.actors.services import execute_service
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_test"),
@@ -314,7 +314,7 @@ class TestExecuteService(unittest.TestCase):
 
     def test_execute_service_teach(self):
         """Teaching service grants knowledge."""
-        from behaviors.library.actors.services import execute_service
+        from behaviors.actors.services import execute_service
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_test"),
@@ -335,7 +335,7 @@ class TestExecuteService(unittest.TestCase):
 
     def test_execute_service_heal(self):
         """Healing service restores health."""
-        from behaviors.library.actors.services import execute_service
+        from behaviors.actors.services import execute_service
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_test"),
@@ -356,7 +356,7 @@ class TestExecuteService(unittest.TestCase):
 
     def test_execute_service_heal_capped(self):
         """Healing doesn't exceed max health."""
-        from behaviors.library.actors.services import execute_service
+        from behaviors.actors.services import execute_service
 
         self.customer.properties["health"] = 80  # Only needs 20
 
@@ -379,7 +379,7 @@ class TestExecuteService(unittest.TestCase):
 
     def test_execute_service_payment_accepted(self):
         """Correct payment type is accepted."""
-        from behaviors.library.actors.services import execute_service
+        from behaviors.actors.services import execute_service
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_test"),
@@ -398,7 +398,7 @@ class TestExecuteService(unittest.TestCase):
 
     def test_execute_service_payment_rejected(self):
         """Wrong payment type is rejected."""
-        from behaviors.library.actors.services import execute_service
+        from behaviors.actors.services import execute_service
 
         # Payment item that service doesn't accept
         herb = Item(
@@ -429,7 +429,7 @@ class TestExecuteService(unittest.TestCase):
 
     def test_execute_service_insufficient_payment(self):
         """Insufficient payment amount is rejected."""
-        from behaviors.library.actors.services import execute_service
+        from behaviors.actors.services import execute_service
 
         self.gold.properties["amount"] = 1  # Less than required
 
@@ -451,7 +451,7 @@ class TestExecuteService(unittest.TestCase):
 
     def test_execute_service_unknown_service(self):
         """Unknown service is rejected."""
-        from behaviors.library.actors.services import execute_service
+        from behaviors.actors.services import execute_service
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_test"),
@@ -471,7 +471,7 @@ class TestExecuteService(unittest.TestCase):
 
     def test_execute_service_consumes_payment(self):
         """Payment item is consumed after service."""
-        from behaviors.library.actors.services import execute_service
+        from behaviors.actors.services import execute_service
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_test"),
@@ -496,7 +496,7 @@ class TestServiceResult(unittest.TestCase):
 
     def test_service_result_creation(self):
         """ServiceResult can be created with all fields."""
-        from behaviors.library.actors.services import ServiceResult
+        from behaviors.actors.services import ServiceResult
 
         result = ServiceResult(
             success=True,
@@ -513,7 +513,7 @@ class TestServicesVocabulary(unittest.TestCase):
 
     def test_vocabulary_has_events(self):
         """Vocabulary exports events."""
-        from behaviors.library.actors.services import vocabulary
+        from behaviors.actors.services import vocabulary
 
         self.assertIn("events", vocabulary)
 

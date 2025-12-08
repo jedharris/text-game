@@ -38,7 +38,9 @@ class TestBackwardCompatibilityParts(unittest.TestCase):
                     "location": "loc_start"
                 }
             ],
-            "actors": {},
+            "actors": {
+                "player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_start"}
+            },
             "locks": []
             # Note: No 'parts' field - should default to empty list
         }
@@ -69,7 +71,9 @@ class TestBackwardCompatibilityParts(unittest.TestCase):
             "metadata": {"title": "Test", "start_location": "loc_1"},
             "locations": [{"id": "loc_1", "name": "Room", "description": "A room", "exits": {}}],
             "items": [],
-            "actors": {},
+            "actors": {
+                "player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_1"}
+            },
             "locks": [],
             "parts": []  # Explicit empty list
         }

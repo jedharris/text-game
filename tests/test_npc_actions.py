@@ -62,7 +62,7 @@ class TestNPCTakeAction(unittest.TestCase):
 
     def test_npc_action_hostile_attacks(self):
         """Hostile NPC in same location attacks player."""
-        from behaviors.library.actors.npc_actions import npc_take_action
+        from behaviors.actors.npc_actions import npc_take_action
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_room"),
@@ -93,7 +93,7 @@ class TestNPCTakeAction(unittest.TestCase):
 
     def test_npc_action_neutral_skips(self):
         """Neutral NPC does nothing."""
-        from behaviors.library.actors.npc_actions import npc_take_action
+        from behaviors.actors.npc_actions import npc_take_action
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_room"),
@@ -120,7 +120,7 @@ class TestNPCTakeAction(unittest.TestCase):
 
     def test_npc_action_different_location(self):
         """NPC in different location does nothing."""
-        from behaviors.library.actors.npc_actions import npc_take_action
+        from behaviors.actors.npc_actions import npc_take_action
 
         # Move wolf to different location
         self.hostile_npc.location = "loc_hallway"
@@ -147,7 +147,7 @@ class TestNPCTakeAction(unittest.TestCase):
 
     def test_npc_action_no_attacks(self):
         """Hostile NPC without attacks does nothing."""
-        from behaviors.library.actors.npc_actions import npc_take_action
+        from behaviors.actors.npc_actions import npc_take_action
 
         # Hostile but no attacks defined
         unarmed_hostile = Actor(
@@ -181,7 +181,7 @@ class TestNPCTakeAction(unittest.TestCase):
 
     def test_npc_action_no_ai_property(self):
         """NPC without ai property is treated as neutral."""
-        from behaviors.library.actors.npc_actions import npc_take_action
+        from behaviors.actors.npc_actions import npc_take_action
 
         no_ai_npc = Actor(
             id="npc_guard",
@@ -253,7 +253,7 @@ class TestFireNPCActions(unittest.TestCase):
 
     def test_fire_npc_actions_processes_all_locations(self):
         """NPCs in all locations are processed."""
-        from behaviors.library.actors.npc_actions import fire_npc_actions
+        from behaviors.actors.npc_actions import fire_npc_actions
 
         location1 = Location(id="loc_room1", name="Room 1", description="Room 1")
         location2 = Location(id="loc_room2", name="Room 2", description="Room 2")
@@ -287,7 +287,7 @@ class TestFireNPCActions(unittest.TestCase):
 
     def test_fire_npc_actions_alpha_first(self):
         """Alphas are processed before followers."""
-        from behaviors.library.actors.npc_actions import fire_npc_actions
+        from behaviors.actors.npc_actions import fire_npc_actions
 
         # Create pack with alpha and follower
         alpha = Actor(
@@ -352,7 +352,7 @@ class TestFireNPCActions(unittest.TestCase):
 
     def test_fire_npc_actions_skips_player(self):
         """Player is not processed as NPC."""
-        from behaviors.library.actors.npc_actions import fire_npc_actions
+        from behaviors.actors.npc_actions import fire_npc_actions
 
         location = Location(id="loc_room1", name="Room", description="Room")
 
@@ -376,7 +376,7 @@ class TestFireNPCActions(unittest.TestCase):
 
     def test_fire_npc_actions_collects_messages(self):
         """Messages from all NPC actions are collected."""
-        from behaviors.library.actors.npc_actions import fire_npc_actions
+        from behaviors.actors.npc_actions import fire_npc_actions
 
         # Two hostile NPCs in same room
         wolf2 = Actor(
@@ -422,13 +422,13 @@ class TestNPCActionVocabulary(unittest.TestCase):
 
     def test_vocabulary_has_events(self):
         """Vocabulary exports events."""
-        from behaviors.library.actors.npc_actions import vocabulary
+        from behaviors.actors.npc_actions import vocabulary
 
         self.assertIn("events", vocabulary)
 
     def test_vocabulary_registers_npc_action_hook(self):
         """Vocabulary registers npc_take_action with npc_action hook."""
-        from behaviors.library.actors.npc_actions import vocabulary
+        from behaviors.actors.npc_actions import vocabulary
 
         events = vocabulary["events"]
 

@@ -170,9 +170,8 @@ class TestFullVocabularyMerging(unittest.TestCase):
                 {"id": "item2", "name": "lantern", "description": "A lantern",
                  "type": "tool", "portable": True, "location": "room1"}
             ],
-            "doors": [],
-            "npcs": [],
-            "locks": []
+            "locks": [],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
         }
 
         # Step 1: Extract nouns from game state
@@ -228,9 +227,8 @@ class TestFullVocabularyMerging(unittest.TestCase):
                 {"id": "item1", "name": "duck", "description": "A rubber duck",
                  "type": "tool", "portable": True, "location": "room1"}
             ],
-            "doors": [],
-            "npcs": [],
-            "locks": []
+            "locks": [],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
         }
 
         # Full merge pipeline

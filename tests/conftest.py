@@ -127,6 +127,64 @@ def create_test_state() -> GameState:
     return state
 
 
+def make_game_data(
+    locations=None,
+    items=None,
+    actors=None,
+    metadata=None,
+    locks=None,
+    parts=None,
+    extra=None
+) -> Dict[str, Any]:
+    """
+    Create valid game state dict for load_game_state().
+
+    All game state JSON must have 'actors' dict with 'player' entry.
+    This helper ensures valid structure while allowing customization.
+
+    Args:
+        locations: List of location dicts (defaults to single room)
+        items: List of item dicts (optional)
+        actors: Dict of actor_id -> actor dict (defaults to player only)
+        metadata: Metadata dict (defaults to minimal valid metadata)
+        locks: List of lock dicts (optional)
+        parts: List of part dicts (optional)
+        extra: Dict of extra game data (optional)
+
+    Returns:
+        Dict suitable for passing to load_game_state()
+
+    Examples:
+        >>> data = make_game_data()  # Minimal valid state
+        >>> data = make_game_data(items=[{"id": "sword", ...}])
+        >>> data = make_game_data(actors={"player": {...}, "guard": {...}})
+    """
+    default_loc = {"id": "loc_1", "name": "Room", "description": "A room", "exits": {}}
+    default_player = {
+        "id": "player",
+        "name": "Adventurer",
+        "description": "The player",
+        "location": "loc_1"
+    }
+
+    result = {
+        "metadata": metadata or {"title": "Test", "version": "1.0", "start_location": "loc_1"},
+        "locations": locations if locations is not None else [default_loc],
+        "actors": actors if actors is not None else {"player": default_player}
+    }
+
+    if items is not None:
+        result["items"] = items
+    if locks is not None:
+        result["locks"] = locks
+    if parts is not None:
+        result["parts"] = parts
+    if extra is not None:
+        result["extra"] = extra
+
+    return result
+
+
 def make_word_entry(word: str, word_type: WordType = WordType.NOUN, synonyms: List[str] = None) -> WordEntry:
     """
     Create a WordEntry for testing.

@@ -113,7 +113,9 @@ class TestPartJSONLoading(unittest.TestCase):
                 }
             ],
             "items": [],
-            "actors": {},
+            "actors": {
+                "player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_room"}
+            },
             "locks": []
         }
 
@@ -140,7 +142,9 @@ class TestPartJSONLoading(unittest.TestCase):
             "metadata": {"title": "Test", "start_location": "loc_1"},
             "locations": [{"id": "loc_1", "name": "Room", "description": "A room"}],
             "items": [],
-            "actors": {},
+            "actors": {
+                "player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_1"}
+            },
             "locks": []
             # No parts field
         }

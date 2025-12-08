@@ -158,7 +158,8 @@ class TestMultipleAdjectiveDisambiguation(unittest.TestCase):
                     "door": {"open": False, "locked": False}
                 }
             ],
-            "locks": []
+            "locks": [],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
         }
 
         self.state = load_game_state(self.game_data)
@@ -249,9 +250,8 @@ class TestItemDisambiguation(unittest.TestCase):
                     "location": "room1"
                 }
             ],
-            "doors": [],
-            "npcs": [],
-            "locks": []
+            "locks": [],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
         }
 
         self.state = load_game_state(self.game_data)
@@ -332,9 +332,8 @@ class TestGracefulErrorHandling(unittest.TestCase):
                     "location": "room1"
                 }
             ],
-            "doors": [],
-            "npcs": [],
-            "locks": []
+            "locks": [],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
         }
 
         self.state = load_game_state(self.game_data)

@@ -15,7 +15,8 @@
       "mcp__claude-context__search_code",
       "Bash(for f in /Users/jed/Development/text-game/examples/*/game_state.json)",
       "Bash(do)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(wc:*)"
     ],
     "deny": [],
     "ask": []

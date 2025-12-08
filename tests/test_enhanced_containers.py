@@ -41,7 +41,8 @@ class TestPhase1DataModel(unittest.TestCase):
                 "portable": False,
                 "location": "loc_test",
                 "pushable": True
-            }]
+            }],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_test"}}
         }
 
         state = load_game_state(game_data)
@@ -62,7 +63,8 @@ class TestPhase1DataModel(unittest.TestCase):
                 "type": "object",
                 "portable": True,
                 "location": "loc_test"
-            }]
+            }],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_test"}}
         }
 
         state = load_game_state(game_data)
@@ -96,7 +98,8 @@ class TestPhase1DataModel(unittest.TestCase):
                     "is_surface": True,
                     "capacity": 5
                 }
-            }]
+            }],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_test"}}
         }
 
         state = load_game_state(game_data)
@@ -124,7 +127,8 @@ class TestPhase1DataModel(unittest.TestCase):
                     "open": False,
                     "capacity": 10
                 }
-            }]
+            }],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_test"}}
         }
 
         state = load_game_state(game_data)
@@ -160,7 +164,8 @@ class TestPhase1DataModel(unittest.TestCase):
                     "portable": True,
                     "location": "item_pedestal"
                 }
-            ]
+            ],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_test"}}
         }
 
         state = load_game_state(game_data)
@@ -222,10 +227,10 @@ class TestPhase3EnhancedTake(unittest.TestCase):
                     "portable": True,
                     "location": "item_chest"
                 }
-            ]
+            ],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_test"}}
         }
         self.state = load_game_state(self.game_data)
-        self.state.actors["player"].location = "loc_test"
 
         self.manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
@@ -530,10 +535,10 @@ class TestPhase6RoomDescriptions(unittest.TestCase):
                     "portable": True,
                     "location": "item_chest"
                 }
-            ]
+            ],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_test"}}
         }
         self.state = load_game_state(self.game_data)
-        self.state.actors["player"].location = "loc_test"
 
         self.handler = LLMProtocolHandler(self.state)
 
@@ -716,11 +721,14 @@ class TestPhase2PutCommand(unittest.TestCase):
                     "location": "player"
                 }
             ],
-            "player_state": {
-                "location": "loc_test",
-                "inventory": ["item_key", "item_coin"],
-                "flags": {},
-                "stats": {}
+            "actors": {
+                "player": {
+                    "id": "player",
+                    "name": "Adventurer",
+                    "description": "The player",
+                    "location": "loc_test",
+                    "inventory": ["item_key", "item_coin"]
+                }
             }
         }
         self.state = load_game_state(self.game_data)
@@ -921,10 +929,10 @@ class TestPhase4PushCommand(unittest.TestCase):
                     "portable": True,
                     "location": "loc_test"
                 }
-            ]
+            ],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_test"}}
         }
         self.state = load_game_state(self.game_data)
-        self.state.actors["player"].location = "loc_test"
         self.handler = LLMProtocolHandler(self.state)
 
     def test_push_pushable_item_succeeds(self):
@@ -1021,10 +1029,10 @@ class TestContainerCapacity(unittest.TestCase):
                     "portable": True,
                     "location": "item_pedestal"
                 }
-            ]
+            ],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_test"}}
         }
         self.state = load_game_state(self.game_data)
-        self.state.actors["player"].location = "loc_test"
 
         self.handler = LLMProtocolHandler(self.state)
 

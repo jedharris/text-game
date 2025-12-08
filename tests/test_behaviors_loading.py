@@ -120,7 +120,14 @@ class TestBehaviorsLoading(unittest.TestCase):
                 }
             ],
             "items": [],
-            "npcs": []
+            "actors": {
+                "player": {
+                    "id": "player",
+                    "name": "Adventurer",
+                    "description": "The player",
+                    "location": "room1"
+                }
+            }
         }
         state.update(kwargs)
         return state
@@ -193,15 +200,21 @@ class TestBehaviorsLoading(unittest.TestCase):
     def test_load_npc_with_behaviors(self):
         """Test loading NPC with behaviors field from JSON."""
         game_data = self._create_minimal_game_state(
-            npcs=[
-                {
+            actors={
+                "player": {
+                    "id": "player",
+                    "name": "Adventurer",
+                    "description": "The player",
+                    "location": "room1"
+                },
+                "wizard": {
                     "id": "wizard",
                     "name": "wizard",
                     "description": "A wise old wizard",
                     "location": "room1",
                     "behaviors": ["behaviors.npcs:on_talk_wizard"]
                 }
-            ]
+            }
         )
 
         state = load_game_state(game_data)
@@ -212,14 +225,20 @@ class TestBehaviorsLoading(unittest.TestCase):
     def test_load_npc_without_behaviors(self):
         """Test loading NPC without behaviors defaults to empty dict."""
         game_data = self._create_minimal_game_state(
-            npcs=[
-                {
+            actors={
+                "player": {
+                    "id": "player",
+                    "name": "Adventurer",
+                    "description": "The player",
+                    "location": "room1"
+                },
+                "guard": {
                     "id": "guard",
                     "name": "guard",
                     "description": "A bored guard",
                     "location": "room1"
                 }
-            ]
+            }
         )
 
         state = load_game_state(game_data)
@@ -410,7 +429,8 @@ class TestBehaviorsAndOtherFields(unittest.TestCase):
                     "behaviors": ["behaviors:toggle_light"],
                     "provides_light": True
                 }
-            ]
+            ],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
         }
 
         state = load_game_state(game_data)
@@ -441,7 +461,8 @@ class TestBehaviorsAndOtherFields(unittest.TestCase):
                     "llm_context": "This is a magical healing potion",
                     "behaviors": ["behaviors:heal"]
                 }
-            ]
+            ],
+            "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
         }
 
         state = load_game_state(game_data)

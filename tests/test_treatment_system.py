@@ -12,7 +12,7 @@ class TestGetTreatableConditions(unittest.TestCase):
 
     def test_get_treatable_conditions_returns_list(self):
         """Returns list of conditions from cures property."""
-        from behaviors.library.actors.treatment import get_treatable_conditions
+        from behaviors.actors.treatment import get_treatable_conditions
 
         item = Item(
             id="item_antidote",
@@ -24,11 +24,12 @@ class TestGetTreatableConditions(unittest.TestCase):
 
         conditions = get_treatable_conditions(item)
 
-        self.assertEqual(conditions, ["poison", "venom"])
+        # Use set comparison since order is not guaranteed (implementation uses set)
+        self.assertEqual(set(conditions), {"poison", "venom"})
 
     def test_get_treatable_conditions_empty(self):
         """Returns empty list if no cures property."""
-        from behaviors.library.actors.treatment import get_treatable_conditions
+        from behaviors.actors.treatment import get_treatable_conditions
 
         item = Item(
             id="item_sword",
@@ -44,7 +45,7 @@ class TestGetTreatableConditions(unittest.TestCase):
 
     def test_get_treatable_conditions_none_item(self):
         """Returns empty list for None item."""
-        from behaviors.library.actors.treatment import get_treatable_conditions
+        from behaviors.actors.treatment import get_treatable_conditions
 
         conditions = get_treatable_conditions(None)
 
@@ -56,7 +57,7 @@ class TestCanTreat(unittest.TestCase):
 
     def test_can_treat_matching(self):
         """Returns True when item can treat condition."""
-        from behaviors.library.actors.treatment import can_treat
+        from behaviors.actors.treatment import can_treat
 
         item = Item(
             id="item_antidote",
@@ -70,7 +71,7 @@ class TestCanTreat(unittest.TestCase):
 
     def test_can_treat_no_match(self):
         """Returns False when item cannot treat condition."""
-        from behaviors.library.actors.treatment import can_treat
+        from behaviors.actors.treatment import can_treat
 
         item = Item(
             id="item_antidote",
@@ -84,7 +85,7 @@ class TestCanTreat(unittest.TestCase):
 
     def test_can_treat_no_cures(self):
         """Returns False when item has no cures property."""
-        from behaviors.library.actors.treatment import can_treat
+        from behaviors.actors.treatment import can_treat
 
         item = Item(
             id="item_sword",
@@ -132,7 +133,7 @@ class TestTreatCondition(unittest.TestCase):
 
     def test_treat_removes_condition(self):
         """Treatment removes condition completely."""
-        from behaviors.library.actors.treatment import apply_treatment
+        from behaviors.actors.treatment import apply_treatment
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_test"),
@@ -154,7 +155,7 @@ class TestTreatCondition(unittest.TestCase):
 
     def test_treat_reduces_severity(self):
         """Partial cure reduces severity."""
-        from behaviors.library.actors.treatment import apply_treatment
+        from behaviors.actors.treatment import apply_treatment
 
         # Item with partial cure
         weak_antidote = Item(
@@ -188,7 +189,7 @@ class TestTreatCondition(unittest.TestCase):
 
     def test_treat_consumes_item(self):
         """Consumable items are consumed after use."""
-        from behaviors.library.actors.treatment import apply_treatment
+        from behaviors.actors.treatment import apply_treatment
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_test"),
@@ -210,7 +211,7 @@ class TestTreatCondition(unittest.TestCase):
 
     def test_treat_non_consumable_not_consumed(self):
         """Non-consumable items are not consumed."""
-        from behaviors.library.actors.treatment import apply_treatment
+        from behaviors.actors.treatment import apply_treatment
 
         healing_staff = Item(
             id="item_staff",
@@ -242,7 +243,7 @@ class TestTreatCondition(unittest.TestCase):
 
     def test_treat_no_matching_condition(self):
         """Treatment fails if actor doesn't have treatable condition."""
-        from behaviors.library.actors.treatment import apply_treatment
+        from behaviors.actors.treatment import apply_treatment
 
         # Actor with different condition
         self.actor.properties["conditions"] = {
@@ -268,7 +269,7 @@ class TestTreatCondition(unittest.TestCase):
 
     def test_treat_specific_condition(self):
         """Can specify which condition to treat."""
-        from behaviors.library.actors.treatment import apply_treatment
+        from behaviors.actors.treatment import apply_treatment
 
         # Actor with multiple conditions
         self.actor.properties["conditions"] = {
@@ -309,7 +310,7 @@ class TestTreatCondition(unittest.TestCase):
 
     def test_treat_multiple_conditions(self):
         """Item can treat multiple conditions at once."""
-        from behaviors.library.actors.treatment import apply_treatment
+        from behaviors.actors.treatment import apply_treatment
 
         # Actor with multiple conditions
         self.actor.properties["conditions"] = {
@@ -352,7 +353,7 @@ class TestTreatmentResult(unittest.TestCase):
 
     def test_treatment_result_creation(self):
         """TreatmentResult can be created with all fields."""
-        from behaviors.library.actors.treatment import TreatmentResult
+        from behaviors.actors.treatment import TreatmentResult
 
         result = TreatmentResult(
             success=True,
@@ -371,7 +372,7 @@ class TestOnReceiveTreatment(unittest.TestCase):
 
     def test_on_receive_auto_treats(self):
         """Receiving curative item auto-treats matching condition."""
-        from behaviors.library.actors.treatment import on_receive_treatment
+        from behaviors.actors.treatment import on_receive_treatment
         from src.state_accessor import EventResult
 
         actor = Actor(
@@ -417,7 +418,7 @@ class TestOnReceiveTreatment(unittest.TestCase):
 
     def test_on_receive_no_matching_condition(self):
         """No auto-treatment if actor doesn't have matching condition."""
-        from behaviors.library.actors.treatment import on_receive_treatment
+        from behaviors.actors.treatment import on_receive_treatment
 
         actor = Actor(
             id="player",
@@ -457,7 +458,7 @@ class TestOnReceiveTreatment(unittest.TestCase):
 
     def test_on_receive_non_curative_item(self):
         """No auto-treatment for non-curative items."""
-        from behaviors.library.actors.treatment import on_receive_treatment
+        from behaviors.actors.treatment import on_receive_treatment
 
         actor = Actor(
             id="player",
@@ -502,13 +503,13 @@ class TestTreatmentVocabulary(unittest.TestCase):
 
     def test_vocabulary_has_events(self):
         """Vocabulary exports events."""
-        from behaviors.library.actors.treatment import vocabulary
+        from behaviors.actors.treatment import vocabulary
 
         self.assertIn("events", vocabulary)
 
     def test_vocabulary_has_on_receive_event(self):
         """Vocabulary includes on_receive_treatment event."""
-        from behaviors.library.actors.treatment import vocabulary
+        from behaviors.actors.treatment import vocabulary
 
         events = vocabulary["events"]
         event_names = [e["event"] for e in events]
