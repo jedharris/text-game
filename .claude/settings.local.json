@@ -11,7 +11,11 @@
       "Bash(python -m unittest:*)",
       "Bash(grep:*)",
       "Bash(python test_stand_vocab.py:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "mcp__claude-context__search_code",
+      "Bash(for f in /Users/jed/Development/text-game/examples/*/game_state.json)",
+      "Bash(do)",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

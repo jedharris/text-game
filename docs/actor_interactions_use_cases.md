@@ -1238,9 +1238,681 @@ A damaged clockwork servant in a mansion needs repairs and reprogramming. It can
 
 ---
 
+## Use Case 9: Guardian Statue Hall (Tactical Construct Combat)
+
+### Scenario
+Stone golems stand dormant in a grand hall. When the player approaches the center, they activate and attack. The player can take cover behind pillars, deactivate golems via wall runes, or fight them directly. Golems are limbless constructs with powerful attacks and immunity to biological effects.
+
+### Spatial Context (from Room #2)
+- `part_hall_entrance`: Safe zone, `safe_distance: true`
+- `part_hall_center`: Combat zone, `exposed: true`
+- Multiple `item_pillar` entities with `provides_cover: true`
+- `part_hall_north_wall`: Has deactivation rune
+
+### Actor Properties
+
+**Stone Golem NPC:**
+```json
+{
+  "id": "npc_golem_1",
+  "name": "stone golem",
+  "location": "part_hall_center",
+  "properties": {
+    "health": 200,
+    "max_health": 200,
+    "body": {
+      "form": "construct",
+      "material": "stone",
+      "limbs": [],
+      "features": ["massive_body"],
+      "size": "large"
+    },
+    "attacks": [
+      {
+        "name": "charge",
+        "damage": 30,
+        "range": "near",
+        "description": "The golem charges forward with crushing force"
+      },
+      {
+        "name": "slam",
+        "damage": 50,
+        "range": "touch",
+        "description": "A devastating overhead slam"
+      }
+    ],
+    "armor": 20,
+    "immunities": ["poison", "disease", "bleeding"],
+    "ai": {
+      "hostile": false,
+      "activation_trigger": "player_enters_center",
+      "morale": 100,
+      "target_priority": "nearest_exposed"
+    }
+  }
+}
+```
+
+**Pillar Item:**
+```json
+{
+  "id": "item_pillar_1",
+  "name": "marble pillar",
+  "location": "loc_guardian_hall",
+  "properties": {
+    "portable": false,
+    "cover_value": 80,
+    "destructible": true,
+    "health": 100
+  }
+}
+```
+
+**Wall Part with Rune:**
+```json
+{
+  "id": "part_hall_north_wall",
+  "properties": {
+    "has_rune": true,
+    "rune_effect": "deactivate_golems"
+  }
+}
+```
+
+### Interactions
+
+1. **Activation Trigger**:
+   - When player uses `approach part_hall_center`
+   - All golems with `activation_trigger: "player_enters_center"` become `hostile: true`
+   - Golems take action after player command completes
+
+2. **Golem Attacks Player**:
+   - Golem behavior selects attack based on range
+   - "charge" used if player is "near", "slam" if at "touch" range
+   - If player has `posture: "cover"`:
+     - Attack damage reduced by pillar's `cover_value` percentage
+     - Excess damage may damage pillar's `health`
+   - Damage applied: attack damage - player armor
+
+3. **Player Attacks Golem**:
+   - Player uses `attack golem` command
+   - Golem's `armor` reduces incoming damage
+   - Golem's `body.material: "stone"` provides natural armor
+   - Golem's `immunities` prevent biological conditions
+
+4. **Pillar Destruction**:
+   - After taking damage, pillar's `health` decreases
+   - If `health ≤ 0`, pillar collapses
+   - Player loses cover, `posture` clears to null
+   - Player must find another pillar
+
+5. **Strategic Positioning**:
+   - Player can `approach` different pillars to maintain cover
+   - Player: `hide behind pillar` sets posture to "cover"
+   - Moving costs turns, golem may attack during movement
+   - AI checks player's `focused_on` to determine if player is exposed
+
+6. **Non-Combat Solution**:
+   - Player: `examine north wall` (reveals rune inscription)
+   - Player: `activate rune` (requires being near wall)
+   - Wall's `on_activate` behavior: sets all golems' `ai.hostile = false`
+   - Golems return to starting positions
+
+### Design Questions Raised
+
+- **Construct body type**: How do non-living constructs differ mechanically?
+- **Material-based immunities**: Should material auto-grant immunities?
+- **Attack selection AI**: Simple range-based or more complex?
+- **Cover mechanics**: How is damage redirected to cover objects?
+- **Environmental deactivation**: Generic pattern for shutting down enemies?
+
+---
+
+## Use Case 10: Spider-Infested Gallery (Swarm Combat with Environment)
+
+### Scenario
+Giant spiders inhabit a web-covered gallery. Individual spiders are weak but venomous and work in packs. Damaging webs alerts the swarm. Player can burn webs to remove spider advantages, use repellent, or navigate carefully. Spiders use web-based tactics and coordinate through simple pack behavior.
+
+### Spatial Context (from Room #6)
+- `part_gallery_north_wall`: `web_density: "heavy"`, `web_bonus_attacks: 20`
+- `part_gallery_east_wall`: Heavy webs, spider nests
+- `part_gallery_center`: `web_density: "light"`
+
+### Actor Properties
+
+**Giant Spider NPC:**
+```json
+{
+  "id": "npc_spider_1",
+  "name": "giant spider",
+  "location": "part_gallery_north_wall",
+  "properties": {
+    "health": 20,
+    "max_health": 20,
+    "body": {
+      "form": "arachnid",
+      "features": ["fangs", "spinnerets"],
+      "size": "large",
+      "movement": ["climb", "web_swing"]
+    },
+    "attacks": [
+      {
+        "name": "venomous_bite",
+        "damage": 8,
+        "applies_condition": {
+          "name": "spider_venom",
+          "severity": 40,
+          "effect": "agility_reduced",
+          "damage_per_turn": 1,
+          "duration": 10
+        }
+      },
+      {
+        "name": "web_spray",
+        "damage": 0,
+        "applies_condition": {
+          "name": "entangled",
+          "severity": 50,
+          "effect": "cannot_move",
+          "break_difficulty": 30
+        }
+      }
+    ],
+    "ai": {
+      "hostile": false,
+      "pack_id": "gallery_spiders",
+      "follows_alpha": "npc_spider_alpha",
+      "alerted_by": "web_damage",
+      "morale": 50,
+      "flee_threshold": 10
+    }
+  }
+}
+```
+
+**Spider Alpha:**
+```json
+{
+  "id": "npc_spider_alpha",
+  "name": "broodmother",
+  "properties": {
+    "health": 40,
+    "max_health": 40,
+    "body": {
+      "form": "arachnid",
+      "size": "huge"
+    },
+    "attacks": [
+      {
+        "name": "venomous_bite",
+        "damage": 12,
+        "applies_condition": {
+          "name": "spider_venom",
+          "severity": 60,
+          "damage_per_turn": 2,
+          "duration": 15
+        }
+      }
+    ],
+    "ai": {
+      "hostile": false,
+      "pack_role": "alpha",
+      "pack_id": "gallery_spiders",
+      "alerted_by": "web_damage",
+      "morale": 80
+    }
+  }
+}
+```
+
+**Gallery Part with Webs:**
+```json
+{
+  "id": "part_gallery_north_wall",
+  "properties": {
+    "web_density": "heavy",
+    "web_bonus_attacks": 20,
+    "web_integrity": 100,
+    "burnable": true
+  }
+}
+```
+
+**Torch Item:**
+```json
+{
+  "id": "item_torch",
+  "name": "torch",
+  "properties": {
+    "light_source": true,
+    "damage_type": "fire",
+    "damages_webs": true,
+    "burn_amount": 50
+  }
+}
+```
+
+**Repellent Item:**
+```json
+{
+  "id": "item_repellent",
+  "name": "pungent incense",
+  "properties": {
+    "repels": ["arachnid"],
+    "duration": 10,
+    "radius": "near"
+  }
+}
+```
+
+### Interactions
+
+1. **Web Detection**:
+   - When player approaches web-covered part
+   - If player moves carefully (uses `sneak`): not detected
+   - Otherwise: spiders with `alerted_by: "web_damage"` become hostile
+   - Deterministic - no random detection
+
+2. **Pack Coordination**:
+   - After alert, followers check alpha's hostility
+   - If alpha is hostile, all followers become hostile
+   - Followers copy alpha's target selection
+   - Simple follow-the-leader behavior
+
+3. **Venomous Bite Attack**:
+   - Spider uses "venomous_bite" attack
+   - Applies immediate damage (8 or 12)
+   - Adds `spider_venom` condition from `applies_condition`
+   - Condition deals damage per turn and reduces agility
+   - Multiple bites stack severity
+
+4. **Web Spray Entanglement**:
+   - Spider uses "web_spray" attack
+   - Applies `entangled` condition
+   - Effect: `cannot_move` prevents location changes
+   - Player must `break free` (costs turn, automatic success)
+   - Or take damage to break out faster
+
+5. **Web Environmental Advantage**:
+   - Spiders in parts with heavy `web_density` get bonus
+   - Part's `web_bonus_attacks` adds 20% to spider damage
+   - Player movement slowed in heavy webs (costs extra turn)
+   - Spiders can use `movement: "web_swing"` for repositioning
+
+6. **Burning Webs**:
+   - Player: `use torch on webs` or `burn webs`
+   - Torch has `damages_webs: true`
+   - Reduces part's `web_integrity` by torch's `burn_amount`
+   - If integrity ≤ 0: `web_density` reduced from "heavy" to "light"
+   - Removes spider bonuses
+   - Alerts all spiders immediately
+
+7. **Repellent Strategy**:
+   - Player: `use repellent`
+   - Applies condition to player: `repelling_arachnids` for 10 turns
+   - Spiders with `body.form: "arachnid"` won't approach player
+   - Allows safe passage through gallery
+   - Deterministic protection - no failure chance
+
+8. **Morale and Retreat**:
+   - When spider takes damage bringing health below threshold
+   - If `health < (max_health * flee_threshold / 100)`: morale drops to 0
+   - Spider attempts to flee to nest location
+   - If alpha flees, all followers flee too
+
+### Design Questions Raised
+
+- **Condition stacking**: How do multiple venomous bites accumulate?
+- **Break free mechanics**: Deterministic or contested?
+- **Pack coordination scope**: How far can pack communication reach?
+- **Environmental bonuses**: Generic system for terrain modifiers?
+- **Alert propagation**: How do pack members learn of threats?
+
+---
+
+## Use Case 11: Bank Vault Infiltration (Stealth & Guard AI)
+
+### Scenario
+A bank vault with multiple guards on patrol. The player can infiltrate via stealth, social engineering, or combat. Guards have morale - they may flee if outnumbered or after witnessing violence. Guards coordinate to some degree. Player can hide behind pillars and in shadows.
+
+### Spatial Context (from Room #81)
+- `part_vault_entrance`: High visibility, guard station
+- `part_vault_main`: Medium visibility, safety deposit boxes
+- `part_vault_ceiling`: Vent access for stealth entry
+- Multiple pillars providing cover
+
+### Actor Properties
+
+**Guard NPC:**
+```json
+{
+  "id": "npc_guard_1",
+  "name": "security guard",
+  "location": "part_vault_entrance",
+  "properties": {
+    "health": 80,
+    "max_health": 80,
+    "body": {
+      "form": "humanoid",
+      "size": "medium"
+    },
+    "attacks": [
+      {
+        "name": "baton_strike",
+        "damage": 15,
+        "applies_condition": {
+          "name": "stunned",
+          "severity": 30,
+          "duration": 2
+        }
+      }
+    ],
+    "ai": {
+      "hostile": false,
+      "pack_id": "bank_guards",
+      "pack_role": "patrol",
+      "follows_alpha": "npc_guard_chief",
+      "morale": 70,
+      "flee_threshold": 30,
+      "detection_radius": "same_part",
+      "alerted_by": "player_visible"
+    },
+    "disposition": "professional"
+  }
+}
+```
+
+**Guard Chief:**
+```json
+{
+  "id": "npc_guard_chief",
+  "name": "chief guard",
+  "properties": {
+    "health": 100,
+    "max_health": 100,
+    "attacks": [
+      {
+        "name": "baton_strike",
+        "damage": 20
+      }
+    ],
+    "ai": {
+      "hostile": false,
+      "pack_role": "alpha",
+      "pack_id": "bank_guards",
+      "morale": 90,
+      "flee_threshold": 20
+    }
+  }
+}
+```
+
+**Vault Part:**
+```json
+{
+  "id": "part_vault_entrance",
+  "properties": {
+    "visibility": "high",
+    "guard_patrol": true,
+    "alert_level": 0
+  }
+}
+```
+
+**Pillar (Cover):**
+```json
+{
+  "id": "item_pillar_1",
+  "properties": {
+    "portable": false,
+    "cover_value": 70,
+    "blocks_line_of_sight": true
+  }
+}
+```
+
+### Interactions
+
+1. **Detection System**:
+   - Guards check if player is in `detection_radius` (same part)
+   - If player has `posture: "cover"` behind pillar: not detected
+   - If player has `posture: "sneaking"` and part visibility is "low": not detected
+   - Otherwise: guard becomes hostile, alerts pack
+
+2. **Pack Alert Propagation**:
+   - When one guard detects player, sets `ai.hostile: true`
+   - Guard shouts alert (flavor)
+   - All guards with same `pack_id` become hostile
+   - Simple broadcast - all pack members alerted instantly
+
+3. **Combat Engagement**:
+   - Guard uses `baton_strike` attack
+   - Moderate damage but may apply `stunned` condition
+   - Stunned reduces player actions (flavor only or skip turn)
+
+4. **Morale System**:
+   - Each guard tracks individual `morale`
+   - When guard takes damage: `morale -= damage_taken / 2`
+   - When ally is defeated: all guards `morale -= 10`
+   - If `morale < flee_threshold`: guard flees to exit
+   - Alpha fleeing causes mass rout (all followers flee)
+
+5. **Intimidation**:
+   - Player can `intimidate guards` (new command)
+   - Reduces all visible guards' morale by 20
+   - If morale drops below threshold: guards flee
+   - Non-lethal solution to encounter
+
+6. **Stealth Entry**:
+   - Player enters via `part_vault_ceiling` vent
+   - Sets player position in vault without entering through entrance
+   - Bypasses entrance guards entirely
+   - Requires finding and opening vent externally
+
+7. **Cover Tactics**:
+   - Player: `hide behind pillar`
+   - Sets `posture: "cover"`, `focused_on: pillar_id`
+   - Pillar's `blocks_line_of_sight` prevents detection
+   - Player can peek out to observe guards
+
+8. **Social Engineering** (simplified):
+   - Player with guard uniform (item) reduces detection chance
+   - If player's `disposition` with guards is "friendly": not attacked
+   - Guards check relationship before engaging
+   - Allows talking way past security
+
+### Design Questions Raised
+
+- **Visibility system**: How are line-of-sight and detection modeled?
+- **Alert states**: Global alarm vs individual guard awareness?
+- **Morale calculation**: Linear reduction or thresholds?
+- **Non-lethal options**: Stun, intimidate, befriend - how to balance?
+- **Stealth posture**: How does sneaking interact with normal movement?
+
+---
+
+## Use Case 12: Multi-Phase Boss Arena (Environmental Boss Fight)
+
+### Scenario
+A powerful elemental boss in an arena with multiple platforms and environmental hazards. The boss has different attacks based on its health/phase. Player must activate elemental vents to damage the boss while avoiding its attacks. Boss behavior changes as it takes damage. Cover and positioning are critical.
+
+### Spatial Context (from Room #91)
+- `part_arena_center_platform`: Main fighting area, stable
+- `part_arena_north_platform`: Near fire vent, unstable
+- `part_arena_south_platform`: Near ice vent, stable
+- Multiple pillars for cover
+
+### Actor Properties
+
+**Elemental Boss:**
+```json
+{
+  "id": "npc_boss_inferno",
+  "name": "Inferno Titan",
+  "location": "part_arena_center_platform",
+  "properties": {
+    "health": 500,
+    "max_health": 500,
+    "body": {
+      "form": "elemental",
+      "material": "living_flame",
+      "size": "huge"
+    },
+    "attacks": [
+      {
+        "name": "flame_breath",
+        "damage": 30,
+        "range": "area",
+        "applies_condition": {
+          "name": "burning",
+          "severity": 40,
+          "damage_per_turn": 5,
+          "duration": 5
+        }
+      },
+      {
+        "name": "ground_pound",
+        "damage": 40,
+        "range": "area",
+        "effect": "knockback"
+      },
+      {
+        "name": "flame_whip",
+        "damage": 25,
+        "range": "melee"
+      }
+    ],
+    "immunities": ["burning", "poison"],
+    "weaknesses": {
+      "ice": 200
+    },
+    "ai": {
+      "hostile": true,
+      "morale": 100,
+      "phase": 1,
+      "berserk_threshold": 30
+    }
+  }
+}
+```
+
+**Arena Part (North Platform):**
+```json
+{
+  "id": "part_arena_north_platform",
+  "properties": {
+    "stable": false,
+    "element_active": false,
+    "hazard_condition": {
+      "name": "burning",
+      "damage_per_turn": 5
+    },
+    "vent_id": "item_fire_vent"
+  }
+}
+```
+
+**Fire Vent:**
+```json
+{
+  "id": "item_fire_vent",
+  "name": "fire vent",
+  "location": "part_arena_north_platform",
+  "properties": {
+    "portable": false,
+    "activatable": true,
+    "element": "fire",
+    "affects_area": "part_arena_center_platform",
+    "damage_to_area": 50
+  }
+}
+```
+
+**Ice Vent:**
+```json
+{
+  "id": "item_ice_vent",
+  "name": "ice vent",
+  "location": "part_arena_south_platform",
+  "properties": {
+    "portable": false,
+    "activatable": true,
+    "element": "ice",
+    "affects_area": "part_arena_center_platform",
+    "damage_to_boss": 100,
+    "applies_condition": {
+      "name": "frozen",
+      "severity": 50,
+      "effect": "slowed"
+    }
+  }
+}
+```
+
+### Interactions
+
+1. **Phase-Based Combat**:
+   - Boss starts in phase 1 (full health)
+   - Phase 2 triggers at health < 66%: adds ground_pound to rotation
+   - Phase 3 triggers at health < 33%: berserk mode, all attacks
+   - Boss behaviors check current phase to select attacks
+
+2. **Environmental Hazard Activation**:
+   - Player must approach platform with vent
+   - Player: `activate fire vent`
+   - Vent damages boss (if weakness matches element)
+   - Vent activates hazard on platform (burning damage per turn)
+   - Player must leave platform quickly
+
+3. **Boss Attack Selection**:
+   - Normal phase: mostly flame_breath and flame_whip
+   - Phase 2: adds ground_pound (area damage)
+   - Berserk (health < berserk_threshold): uses most damaging attack available
+   - Behavior selects based on player position and phase
+
+4. **Burning Condition**:
+   - Boss's flame_breath applies `burning` condition
+   - Player takes damage per turn from burning
+   - Can be extinguished with ice vent (applying ice to self)
+   - Multiple flame breaths stack severity
+
+5. **Weakness Exploitation**:
+   - Boss has `weaknesses.ice: 200` (damage multiplier: 200%)
+   - Ice vent deals 100 base * 2.0 = 200 damage
+   - Fire vent deals normal damage (boss immune to burning)
+   - Strategy: use ice vent despite personal risk
+
+6. **Cover Mechanics**:
+   - Player: `hide behind pillar`
+   - Reduces damage from flame_breath (area attack)
+   - Ground_pound ignores cover (shockwave)
+   - Flame_whip can't reach player behind cover
+
+7. **Platform Instability**:
+   - North platform has `stable: false`
+   - After activating fire vent, platform begins crumbling
+   - Player has 2 turns to leave or takes fall damage
+   - Creates time pressure on vent activation
+
+8. **Boss Morale** (unusual for boss):
+   - Boss starts with morale: 100 (never flees)
+   - Morale drops when weaknesses exploited
+   - At very low morale: boss uses desperate final attack
+   - Still fights to death (flee_threshold: 0)
+
+### Design Questions Raised
+
+- **Phase transitions**: Triggered by health, time, or player actions?
+- **Weakness system**: Elemental types, damage multipliers, or special vulnerabilities?
+- **Area attacks**: How are they resolved? All targets in area?
+- **Platform hazards**: Damage per turn based on position?
+- **Boss-specific mechanics**: How much to generalize vs hardcode?
+
+---
+
 ## Cross-Cutting Design Themes
 
-After analyzing these eight use cases, several cross-cutting themes emerge:
+After analyzing these twelve use cases, several cross-cutting themes emerge:
 
 ### 1. **Health vs Other Vital Stats**
 - Health is insufficient for many scenarios

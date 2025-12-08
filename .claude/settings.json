@@ -1,5 +1,8 @@
 {
     "includeCoAuthoredBy": true,
+    "allowedTools": [
+      "mcp__claude-context"
+    ]
     "permissions": {
       "allow": [
         "gh:*",
