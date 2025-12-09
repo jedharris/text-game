@@ -356,8 +356,8 @@ class LLMProtocolHandler:
 
     def _query_entity(self, message: Dict) -> Dict:
         """Query a specific entity."""
-        entity_type = message.get("entity_type")
-        entity_id = message.get("entity_id")
+        entity_type: str = message.get("entity_type", "")
+        entity_id: str = message.get("entity_id", "")
 
         # Map entity types to (getter, converter) tuples
         entity_handlers = {

@@ -4,7 +4,7 @@ Structural validators for simplified state manager.
 Validates structural integrity: IDs, references, cycles.
 Does not validate behavior-specific properties.
 """
-from typing import Dict, List, Set, Any, TYPE_CHECKING
+from typing import Dict, List, Set, Any, Optional, TYPE_CHECKING
 
 # Prohibited actor names (case-insensitive)
 # These create ambiguity with self-reference or generic terms
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 class ValidationError(Exception):
     """Raised when validation fails."""
 
-    def __init__(self, message: str, errors: List[str] = None):
+    def __init__(self, message: str, errors: Optional[List[str]] = None):
         self.errors = errors or [message]
         if len(self.errors) == 1:
             super().__init__(self.errors[0])
@@ -26,7 +26,7 @@ class ValidationError(Exception):
                            "\n".join(f"  - {e}" for e in self.errors))
 
 
-def validate_game_state(state: "GameState", loaded_modules: Set[str] = None) -> None:
+def validate_game_state(state: "GameState", loaded_modules: Optional[Set[str]] = None) -> None:
     """Validate structural integrity of game state.
 
     Args:

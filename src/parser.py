@@ -409,7 +409,8 @@ class Parser:
             is_adjective = self._matches_type(entries[i], WordType.ADJECTIVE)
 
             # Multi-type entries with VERB are context-sensitive
-            has_verb_type = isinstance(entries[i].word_type, set) and WordType.VERB in entries[i].word_type
+            word_type = entries[i].word_type
+            has_verb_type = isinstance(word_type, set) and WordType.VERB in word_type
 
             # If at position 0 and has VERB type, treat as VERB (don't collapse)
             if i == 0 and has_verb_type:

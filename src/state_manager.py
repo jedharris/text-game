@@ -617,7 +617,7 @@ def _parse_lock(raw: Dict[str, Any]) -> Lock:
     )
 
 
-def _parse_actor(raw: Dict[str, Any], actor_id: str = None) -> Actor:
+def _parse_actor(raw: Dict[str, Any], actor_id: Optional[str] = None) -> Actor:
     """Parse Actor from JSON dict.
 
     Args:
@@ -725,7 +725,7 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
 def _serialize_entity(
     entity,
     required_fields: List[str],
-    optional_fields: List[str] = None
+    optional_fields: Optional[List[str]] = None
 ) -> Dict[str, Any]:
     """Generic entity serializer.
 
@@ -813,7 +813,7 @@ def game_state_to_dict(state: GameState) -> Dict[str, Any]:
 
     Note: Doors are stored as items with properties.door.
     """
-    result = {
+    result: Dict[str, Any] = {
         'metadata': _serialize_metadata(state.metadata),
         'locations': [_serialize_location(loc) for loc in state.locations],
         'items': [_serialize_item(item) for item in state.items],

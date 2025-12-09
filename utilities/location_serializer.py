@@ -35,7 +35,7 @@ def serialize_location_for_llm(accessor, location, actor_id: str) -> Dict[str, A
             "actors": [{"id": str, "name": str, ...}, ...]
         }
     """
-    result = {}
+    result: Dict[str, Any] = {}
 
     # Serialize location
     result["location"] = entity_to_dict(location)

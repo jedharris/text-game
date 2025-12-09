@@ -67,8 +67,12 @@ def _handle_lock_operation(accessor, action, verb: str, target_state: bool) -> H
     if error:
         return error
 
+    # Type narrowing: if no error, item and actor_id must be set
+    assert item is not None and actor_id is not None
+
     # Get actor for key checking
     actor = accessor.get_actor(actor_id)
+    assert actor is not None, f"Actor {actor_id} not found"
 
     # Check if it's a door item
     if hasattr(item, 'is_door') and item.is_door:

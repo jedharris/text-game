@@ -28,8 +28,11 @@ def parsed_to_json(result: ParsedCommand) -> Dict[str, Any]:
     Passes WordEntry objects for object/indirect_object to preserve
     vocabulary synonyms for entity matching. Verbs and adjectives use
     .word since they don't need synonym matching.
+
+    Requires: result.verb is not None (caller must ensure parsing succeeded)
     """
-    action = {"verb": result.verb.word}
+    assert result.verb is not None, "parsed_to_json requires a verb"
+    action: Dict[str, Any] = {"verb": result.verb.word}
 
     if result.direct_object:
         # Pass full WordEntry to preserve synonyms for entity matching
@@ -119,7 +122,7 @@ def load_game(filename: str) -> Optional[GameState]:
         return None
 
 
-def main(game_dir: str = None):
+def main(game_dir: Optional[str] = None):
     """Run the game.
 
     Args:

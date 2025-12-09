@@ -10,6 +10,7 @@ import logging
 import os
 import sys
 from pathlib import Path
+from typing import Optional
 
 # Add project root to path when run as script (not when imported as module)
 if __name__ == '__main__':
@@ -20,7 +21,7 @@ if __name__ == '__main__':
 from src.game_engine import GameEngine
 
 
-def main(game_dir: str = None, debug: bool = False, show_traits: bool = False):
+def main(game_dir: Optional[str] = None, debug: bool = False, show_traits: bool = False):
     """Run the LLM-powered text adventure.
 
     Args:

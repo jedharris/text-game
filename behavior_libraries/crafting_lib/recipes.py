@@ -127,7 +127,7 @@ def execute_craft(accessor, recipe: Dict, item_ids: List[str]) -> CraftResult:
                 id=result_id,
                 name=template.get('name', result_id),
                 description=template.get('description', 'A crafted item'),
-                location=None,  # Will be in inventory
+                location="",  # Will be in inventory
                 properties=template.get('properties', {})
             )
             accessor.game_state.items.append(new_item)

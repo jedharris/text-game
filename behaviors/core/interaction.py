@@ -3,7 +3,7 @@
 Vocabulary for general object interactions.
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
@@ -288,7 +288,7 @@ def handle_close(accessor, action):
     )
 
 
-def _handle_generic_interaction(accessor, action, required_property: str = None, base_message_builder=None) -> HandlerResult:
+def _handle_generic_interaction(accessor, action, required_property: Optional[str] = None, base_message_builder=None) -> HandlerResult:
     """
     Generic interaction handler for use, pull, push, read, and similar verbs.
 
@@ -304,6 +304,9 @@ def _handle_generic_interaction(accessor, action, required_property: str = None,
     item, error = find_action_target(accessor, action)
     if error:
         return error
+
+    # Type narrowing: if no error, item must be set
+    assert item is not None
 
     verb = action.get("verb")
     if not verb:
