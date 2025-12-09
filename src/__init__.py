@@ -12,3 +12,5 @@ from src.types import (
     EventName,
     HookName,
 )
+
+from src.state_manager import Entity

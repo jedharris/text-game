@@ -15,32 +15,6 @@ from src.hooks import VISIBILITY_CHECK
 from utilities.entity_serializer import serialize_for_handler_result
 
 
-def ensure_word_entry(name: Union[str, WordEntry, None]) -> Optional[WordEntry]:
-    """
-    Convert a string to WordEntry if needed.
-
-    NOTE: With ActionDict enforcement, handlers should receive WordEntry directly
-    from action.get("object"). This function is kept for:
-    - Test utilities that need to create WordEntry from strings
-    - Edge cases where string conversion is still needed
-
-    For normal handler code, prefer accessing WordEntry directly from action dict.
-
-    Args:
-        name: Either a string, WordEntry, or None
-
-    Returns:
-        WordEntry instance (created from string if needed), or None if input was None
-    """
-    if name is None:
-        return None
-    if isinstance(name, WordEntry):
-        return name
-    # Create a basic WordEntry from the string
-    from src.word_entry import WordType
-    return WordEntry(word=name, synonyms=[], word_type=WordType.NOUN)
-
-
 def find_actor_by_name(
     accessor,
     name: WordEntry,

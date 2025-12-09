@@ -8,7 +8,13 @@ standard preamble for all handlers.
 import unittest
 from tests.conftest import BaseTestCase
 from src.state_manager import Actor
+from src.word_entry import WordEntry, WordType
 from utilities.handler_utils import validate_actor_and_location
+
+
+def make_word(word: str) -> WordEntry:
+    """Helper to create WordEntry for tests."""
+    return WordEntry(word=word, synonyms=[], word_type=WordType.NOUN)
 
 
 class TestValidateActorAndLocation(BaseTestCase):
@@ -16,7 +22,7 @@ class TestValidateActorAndLocation(BaseTestCase):
 
     def test_valid_action_with_object(self):
         """Should return actor, location, no error for valid action"""
-        action = {"actor_id": "player", "verb": "take", "object": "sword"}
+        action = {"actor_id": "player", "verb": "take", "object": make_word("sword")}
         actor_id, actor, location, error = validate_actor_and_location(
             self.accessor, action, require_object=True
         )
@@ -133,7 +139,7 @@ class TestValidateActorAndLocation(BaseTestCase):
 
     def test_require_indirect_object_missing(self):
         """Should return error when indirect_object required but missing"""
-        action = {"actor_id": "player", "verb": "unlock", "object": "door"}
+        action = {"actor_id": "player", "verb": "unlock", "object": make_word("door")}
         actor_id, actor, location, error = validate_actor_and_location(
             self.accessor, action,
             require_object=True,

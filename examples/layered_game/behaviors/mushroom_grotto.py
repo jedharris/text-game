@@ -9,7 +9,8 @@ Demonstrates:
 from typing import Dict, Any
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
-from utilities.utils import find_item_in_inventory, find_accessible_item, ensure_word_entry
+from src.word_entry import WordEntry, WordType
+from utilities.utils import find_item_in_inventory, find_accessible_item
 
 # Import library functions
 import sys
@@ -58,8 +59,8 @@ def handle_water(accessor, action: Dict) -> HandlerResult:
         return HandlerResult(success=False, message=f"You don't see any {obj_name} here.")
 
     # Check if player has the bucket
-    bucket_word = ensure_word_entry("bucket")
-    bucket = find_item_in_inventory(accessor, bucket_word, actor_id) if bucket_word else None
+    bucket_word = WordEntry(word="bucket", synonyms=[], word_type=WordType.NOUN)
+    bucket = find_item_in_inventory(accessor, bucket_word, actor_id)
     if not bucket:
         return HandlerResult(
             success=False,

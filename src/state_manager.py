@@ -394,6 +394,21 @@ class Actor:
         self.properties["llm_context"] = value
 
 
+# Entity type alias - union of all game entities
+Entity = Location | Item | Lock | Part | Actor | ExitDescriptor
+"""Union type for any game entity.
+
+Entities share a common structure:
+- id: Entity-specific typed ID (LocationId, ItemId, etc.)
+- name: Display name
+- properties: Dict for extensible properties
+- behaviors: List of behavior module paths
+- states: Dict within properties for state flags
+
+Use this type when a function can accept any entity type.
+"""
+
+
 @dataclass
 class GameState:
     """Complete game state."""

@@ -1,6 +1,6 @@
 """Behavior management system for entity events."""
 
-from typing import Optional, Dict, Any, List, Callable
+from typing import Optional, Dict, Any, List, Callable, TYPE_CHECKING
 from dataclasses import dataclass, field
 import importlib
 import os
@@ -9,6 +9,10 @@ from pathlib import Path
 # Import EventResult from state_accessor to avoid duplication
 from src.state_accessor import EventResult
 from src.types import EventName, HookName
+
+if TYPE_CHECKING:
+    from src.state_accessor import StateAccessor
+    from src.state_manager import Entity
 
 
 @dataclass
@@ -699,9 +703,9 @@ class BehaviorManager:
 
     def invoke_behavior(
         self,
-        entity: Any,
+        entity: "Entity",
         event_name: EventName,
-        accessor: Any,
+        accessor: "StateAccessor",
         context: Dict[str, Any]
     ) -> Optional[EventResult]:
         """
@@ -736,9 +740,9 @@ class BehaviorManager:
 
     def _invoke_behavior_internal(
         self,
-        entity: Any,
+        entity: "Entity",
         event_name: EventName,
-        accessor: Any,
+        accessor: "StateAccessor",
         context: Dict[str, Any]
     ) -> Optional[EventResult]:
         """

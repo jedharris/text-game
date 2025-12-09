@@ -4,7 +4,12 @@ StateAccessor - Clean API for state queries and mutations with automatic behavio
 This module provides the core abstraction for accessing and modifying game state.
 """
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
+
+from src.types import LocationId, ActorId, ItemId, LockId, PartId, EntityId
+from src.state_manager import (
+    GameState, Location, Item, Actor, Lock, Part, ExitDescriptor, Entity
+)
 
 
 @dataclass
@@ -52,7 +57,7 @@ class StateAccessor:
     are properly invoked.
     """
 
-    def __init__(self, game_state, behavior_manager):
+    def __init__(self, game_state: GameState, behavior_manager):
         """
         Initialize StateAccessor.
 
@@ -65,7 +70,7 @@ class StateAccessor:
 
     # Getter methods
 
-    def get_item(self, item_id: str):
+    def get_item(self, item_id: ItemId) -> Optional[Item]:
         """
         Get item by ID.
 
@@ -80,7 +85,7 @@ class StateAccessor:
                 return item
         return None
 
-    def get_actor(self, actor_id: str):
+    def get_actor(self, actor_id: ActorId) -> Optional[Actor]:
         """
         Get actor by ID.
 
@@ -92,7 +97,7 @@ class StateAccessor:
         """
         return self.game_state.actors.get(actor_id)
 
-    def get_location(self, location_id: str):
+    def get_location(self, location_id: LocationId) -> Optional[Location]:
         """
         Get location by ID.
 
@@ -108,7 +113,7 @@ class StateAccessor:
         return None
 
 
-    def get_lock(self, lock_id: str):
+    def get_lock(self, lock_id: LockId) -> Optional[Lock]:
         """
         Get lock by ID.
 
@@ -123,7 +128,7 @@ class StateAccessor:
                 return lock
         return None
 
-    def get_door_item(self, door_id: str):
+    def get_door_item(self, door_id: ItemId) -> Optional[Item]:
         """
         Get a door item by ID. Returns None if not found or not a door.
 
@@ -141,7 +146,7 @@ class StateAccessor:
             return item
         return None
 
-    def get_door_for_exit(self, location_id: str, direction: str):
+    def get_door_for_exit(self, location_id: LocationId, direction: str) -> Optional[Item]:
         """
         Get the door item for an exit, if any.
 
@@ -163,7 +168,7 @@ class StateAccessor:
             return None
         return self.get_door_item(exit_desc.door_id)
 
-    def get_part(self, part_id: str):
+    def get_part(self, part_id: PartId) -> Optional[Part]:
         """
         Get part by ID.
 
@@ -178,7 +183,7 @@ class StateAccessor:
                 return part
         return None
 
-    def get_parts_of(self, entity_id: str):
+    def get_parts_of(self, entity_id: EntityId) -> List[Part]:
         """
         Get all parts belonging to an entity.
 
@@ -190,7 +195,7 @@ class StateAccessor:
         """
         return [p for p in self.game_state.parts if p.part_of == entity_id]
 
-    def get_items_at_part(self, part_id: str):
+    def get_items_at_part(self, part_id: PartId) -> List[Item]:
         """
         Get items located at a part.
 
@@ -202,7 +207,7 @@ class StateAccessor:
         """
         return [i for i in self.game_state.items if i.location == part_id]
 
-    def get_entity(self, entity_id: str):
+    def get_entity(self, entity_id: EntityId) -> Optional[Entity]:
         """
         Get any entity by ID regardless of type.
 
@@ -241,7 +246,7 @@ class StateAccessor:
 
         return None
 
-    def get_focused_entity(self, actor_id: str):
+    def get_focused_entity(self, actor_id: ActorId) -> Optional[Entity]:
         """
         Get entity actor is focused on.
 
@@ -264,7 +269,7 @@ class StateAccessor:
 
         return self.get_entity(focused_id)
 
-    def get_actor_part(self, actor):
+    def get_actor_part(self, actor: Actor) -> Optional[Part]:
         """
         Get the spatial part an actor currently occupies.
 
@@ -298,7 +303,7 @@ class StateAccessor:
 
         return None
 
-    def get_visible_exits(self, location_id: str, actor_id: str) -> dict:
+    def get_visible_exits(self, location_id: LocationId, actor_id: ActorId) -> Dict[str, ExitDescriptor]:
         """
         Get all visible exits for a location.
 
@@ -330,7 +335,7 @@ class StateAccessor:
 
     # Collection methods
 
-    def get_current_location(self, actor_id: str):
+    def get_current_location(self, actor_id: ActorId) -> Optional[Location]:
         """
         Get the current location of an actor.
 
@@ -346,7 +351,7 @@ class StateAccessor:
 
         return self.get_location(actor.location)
 
-    def get_items_in_location(self, location_id: str):
+    def get_items_in_location(self, location_id: LocationId) -> List[Item]:
         """
         Get all items in a location.
 
@@ -362,7 +367,7 @@ class StateAccessor:
                 items.append(item)
         return items
 
-    def get_actors_in_location(self, location_id: str):
+    def get_actors_in_location(self, location_id: LocationId) -> List[Actor]:
         """
         Get all actors in a location.
 
@@ -521,7 +526,7 @@ class StateAccessor:
         except ValueError:
             return f"Value not in list '{final_field}'"
 
-    def update(self, entity, changes: dict, verb: Optional[str] = None, actor_id: str = "player") -> UpdateResult:
+    def update(self, entity: Entity, changes: Dict[str, Any], verb: Optional[str] = None, actor_id: ActorId = ActorId("player")) -> UpdateResult:
         """
         Apply state changes to an entity.
 

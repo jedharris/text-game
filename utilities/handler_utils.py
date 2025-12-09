@@ -4,7 +4,7 @@ Handler utility functions.
 Provides shared preamble utilities for item-targeting handlers.
 """
 
-from typing import Tuple, Optional, Dict, Any, Union
+from typing import Tuple, Optional, Dict, Any
 
 from src.state_accessor import HandlerResult, StateAccessor
 from src.word_entry import WordEntry
@@ -98,38 +98,34 @@ def validate_actor_and_location(
     return actor_id, actor, location, None
 
 
-def get_object_word(object_name: Union[str, WordEntry, None]) -> Optional[str]:
+def get_object_word(object_name: Optional[WordEntry]) -> Optional[str]:
     """
-    Extract the word string from an object name that may be a string or WordEntry.
+    Extract the word string from a WordEntry.
 
     Args:
-        object_name: Either a string, WordEntry, or None
+        object_name: WordEntry or None (from action.get("object"))
 
     Returns:
         The lowercase word string, or None if object_name is None
     """
     if object_name is None:
         return None
-    if isinstance(object_name, WordEntry):
-        return object_name.word.lower()
-    return object_name.lower()
+    return object_name.word.lower()
 
 
-def get_display_name(object_name: Union[str, WordEntry, None]) -> str:
+def get_display_name(object_name: Optional[WordEntry]) -> str:
     """
-    Extract a display-friendly name from an object name that may be a string or WordEntry.
+    Extract a display-friendly name from a WordEntry.
 
     Args:
-        object_name: Either a string, WordEntry, or None
+        object_name: WordEntry or None (from action.get("object"))
 
     Returns:
         The word string suitable for display in messages
     """
     if object_name is None:
         return "something"
-    if isinstance(object_name, WordEntry):
-        return object_name.word
-    return object_name
+    return object_name.word
 
 
 def find_action_target(

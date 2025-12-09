@@ -4,6 +4,12 @@ import unittest
 from unittest.mock import Mock, MagicMock
 
 from behavior_libraries.offering_lib import offering_handler, blessing_manager, alignment_tracker
+from src.word_entry import WordEntry, WordType
+
+
+def make_word(word: str) -> WordEntry:
+    """Helper to create WordEntry for tests."""
+    return WordEntry(word=word, synonyms=[], word_type=WordType.NOUN)
 
 
 class TestOfferingHandler(unittest.TestCase):
@@ -24,7 +30,7 @@ class TestOfferingHandler(unittest.TestCase):
         accessor = Mock()
         action = {
             "actor_id": "player",
-            "object": "flower"
+            "object": make_word("flower")
         }
 
         result = offering_handler.handle_offer(accessor, action)
