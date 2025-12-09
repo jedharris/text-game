@@ -226,4 +226,4 @@ def npc_take_action(entity, accessor, context: dict) -> EventResult:
 
 # No vocabulary needed - this module provides an npc_take_action behavior
 # that overrides the default hostile attack behavior for The Echo
-vocabulary = {}
+vocabulary: dict = {}

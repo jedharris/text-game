@@ -23,7 +23,7 @@ from behaviors.actors.combat import get_attacks, select_attack, execute_attack
 from behaviors.actors.packs import sync_follower_disposition
 
 
-def npc_take_action(entity, accessor, context) -> Optional:
+def npc_take_action(entity, accessor, context):
     """
     Default NPC action behavior.
 
