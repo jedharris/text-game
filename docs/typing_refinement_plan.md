@@ -41,9 +41,16 @@ Following the completion of the initial typing plan (Issue #166), this document 
 2. Update utilities/handler_utils.py function signatures
 3. Add return type annotations
 
-### Phase 6: Behavior Handler Annotations
-1. Add type annotations to all handle_* functions in behaviors/core/
-2. Add type annotations to behavior library handlers
+### Phase 6: Behavior Handler Annotations (DEFERRED)
+**Status**: Deferred - adding type annotations to handlers exposes numerous mypy errors
+throughout the codebase due to `action.get()` returning `Optional` values that are
+passed to functions expecting non-optional parameters. Fixing this would require
+extensive changes to either:
+- Add null checks/assertions throughout handler code
+- Change function signatures to accept Optional parameters
+- Use TypedDict with Required/NotRequired fields
+
+This is better handled as a separate, larger effort.
 
 ## Keep As-Is
 

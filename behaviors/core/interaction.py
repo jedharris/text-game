@@ -3,13 +3,10 @@
 Vocabulary for general object interactions.
 """
 
-from typing import Dict, Any, Optional, TYPE_CHECKING
+from typing import Dict, Any, Optional
 
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
-
-if TYPE_CHECKING:
-    from src.state_accessor import StateAccessor
 from utilities.utils import find_accessible_item
 from utilities.handler_utils import find_action_target, find_openable_target
 from utilities.entity_serializer import serialize_for_handler_result
@@ -108,7 +105,7 @@ vocabulary = {
 }
 
 
-def handle_open(accessor: "StateAccessor", action: Dict[str, Any]) -> HandlerResult:
+def handle_open(accessor, action):
     """
     Handle open command.
 
@@ -209,7 +206,7 @@ def handle_open(accessor: "StateAccessor", action: Dict[str, Any]) -> HandlerRes
     )
 
 
-def handle_close(accessor: "StateAccessor", action: Dict[str, Any]) -> HandlerResult:
+def handle_close(accessor, action):
     """
     Handle close command.
 
@@ -342,7 +339,7 @@ def _handle_generic_interaction(accessor, action, required_property: Optional[st
     return HandlerResult(success=True, message=base_message, data=data)
 
 
-def handle_use(accessor: "StateAccessor", action: Dict[str, Any]) -> HandlerResult:
+def handle_use(accessor, action):
     """
     Handle use command.
 
@@ -362,7 +359,7 @@ def handle_use(accessor: "StateAccessor", action: Dict[str, Any]) -> HandlerResu
     return _handle_generic_interaction(accessor, action)
 
 
-def handle_read(accessor: "StateAccessor", action: Dict[str, Any]) -> HandlerResult:
+def handle_read(accessor, action):
     """
     Handle read command.
 
@@ -389,7 +386,7 @@ def handle_read(accessor: "StateAccessor", action: Dict[str, Any]) -> HandlerRes
     return _handle_generic_interaction(accessor, action, required_property="readable", base_message_builder=build_read_message)
 
 
-def handle_pull(accessor: "StateAccessor", action: Dict[str, Any]) -> HandlerResult:
+def handle_pull(accessor, action):
     """
     Handle pull command.
 
@@ -408,7 +405,7 @@ def handle_pull(accessor: "StateAccessor", action: Dict[str, Any]) -> HandlerRes
     return _handle_generic_interaction(accessor, action)
 
 
-def handle_push(accessor: "StateAccessor", action: Dict[str, Any]) -> HandlerResult:
+def handle_push(accessor, action):
     """
     Handle push command.
 

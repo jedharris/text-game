@@ -3,14 +3,11 @@
 Vocabulary and handlers for examining objects and surroundings.
 """
 
-from typing import Dict, Any, TYPE_CHECKING
+from typing import Dict, Any
 
 from src.action_types import ActionDict
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
-
-if TYPE_CHECKING:
-    from src.state_accessor import StateAccessor
 from utilities.utils import (
     find_accessible_item,
     find_door_with_adjective,
@@ -85,7 +82,7 @@ vocabulary = {
 }
 
 
-def handle_look(accessor: "StateAccessor", action: Dict[str, Any]) -> HandlerResult:
+def handle_look(accessor, action):
     """
     Handle look command.
 
@@ -128,7 +125,7 @@ def handle_look(accessor: "StateAccessor", action: Dict[str, Any]) -> HandlerRes
     )
 
 
-def handle_examine(accessor: "StateAccessor", action: Dict[str, Any]) -> HandlerResult:
+def handle_examine(accessor, action):
     """
     Handle examine command.
 
@@ -418,7 +415,7 @@ def handle_examine(accessor: "StateAccessor", action: Dict[str, Any]) -> Handler
     )
 
 
-def handle_inventory(accessor: "StateAccessor", action: Dict[str, Any]) -> HandlerResult:
+def handle_inventory(accessor, action):
     """
     Handle inventory command.
 

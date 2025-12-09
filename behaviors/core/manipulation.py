@@ -3,14 +3,11 @@
 Vocabulary and handlers for basic item manipulation.
 """
 
-from typing import Dict, Any, TYPE_CHECKING
+from typing import Dict, Any
 
 from src.action_types import ActionDict
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
-
-if TYPE_CHECKING:
-    from src.state_accessor import StateAccessor
 from utilities.utils import (
     find_accessible_item,
     find_item_in_inventory,
@@ -89,7 +86,7 @@ vocabulary = {
 }
 
 
-def handle_take(accessor: "StateAccessor", action: Dict[str, Any]) -> HandlerResult:
+def handle_take(accessor, action):
     """
     Handle take/get/grab command.
 
@@ -237,7 +234,7 @@ def handle_take(accessor: "StateAccessor", action: Dict[str, Any]) -> HandlerRes
     )
 
 
-def handle_drop(accessor: "StateAccessor", action: Dict[str, Any]) -> HandlerResult:
+def handle_drop(accessor, action):
     """
     Handle drop command.
 
@@ -319,7 +316,7 @@ def handle_drop(accessor: "StateAccessor", action: Dict[str, Any]) -> HandlerRes
     )
 
 
-def handle_give(accessor: "StateAccessor", action: Dict[str, Any]) -> HandlerResult:
+def handle_give(accessor, action):
     """
     Handle give command.
 
@@ -438,7 +435,7 @@ def handle_give(accessor: "StateAccessor", action: Dict[str, Any]) -> HandlerRes
     )
 
 
-def handle_put(accessor: "StateAccessor", action: Dict[str, Any]) -> HandlerResult:
+def handle_put(accessor, action):
     """
     Handle put/place command.
 

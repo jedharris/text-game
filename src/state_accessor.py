@@ -4,7 +4,7 @@ StateAccessor - Clean API for state queries and mutations with automatic behavio
 This module provides the core abstraction for accessing and modifying game state.
 """
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 from src.types import LocationId, ActorId, ItemId, LockId, PartId, EntityId
 from src.state_manager import (
@@ -219,30 +219,33 @@ class StateAccessor:
         Returns:
             Entity or None if not found
         """
+        # Cast entity_id to each specific type for lookup
+        # At runtime these are all strings, but NewType requires explicit casts
+
         # Check locations
-        entity = self.get_location(entity_id)
-        if entity:
-            return entity
+        result: Optional[Entity] = self.get_location(cast(LocationId, entity_id))
+        if result:
+            return result
 
         # Check items
-        entity = self.get_item(entity_id)
-        if entity:
-            return entity
+        result = self.get_item(cast(ItemId, entity_id))
+        if result:
+            return result
 
         # Check actors
-        entity = self.get_actor(entity_id)
-        if entity:
-            return entity
+        result = self.get_actor(cast(ActorId, entity_id))
+        if result:
+            return result
 
         # Check locks
-        entity = self.get_lock(entity_id)
-        if entity:
-            return entity
+        result = self.get_lock(cast(LockId, entity_id))
+        if result:
+            return result
 
         # Check parts
-        entity = self.get_part(entity_id)
-        if entity:
-            return entity
+        result = self.get_part(cast(PartId, entity_id))
+        if result:
+            return result
 
         return None
 
