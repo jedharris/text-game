@@ -5,6 +5,7 @@ Vocabulary and handlers for examining objects and surroundings.
 
 from typing import Dict, Any
 
+from src.action_types import ActionDict
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
 from utilities.utils import (
@@ -16,7 +17,7 @@ from utilities.utils import (
     format_inventory,
     describe_location,
     name_matches,
-    is_observable
+    is_observable,
 )
 from utilities.location_serializer import serialize_location_for_llm
 from utilities.entity_serializer import serialize_for_handler_result

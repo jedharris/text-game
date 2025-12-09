@@ -28,6 +28,7 @@ Usage:
 
 from typing import Dict, List, Optional
 
+# Import from main behaviors directory
 from behaviors.actors.relationships import (
     get_relationship, modify_relationship
 )
@@ -183,7 +184,7 @@ def sync_faction_reputation(
     if not faction_def:
         return []
 
-    messages = []
+    messages: List[str] = []
 
     # Get faction representative's current value
     rep_actor_id = faction_def.get('representative')

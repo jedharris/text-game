@@ -195,6 +195,12 @@ from behavior_libraries.timing_lib import schedule_event
 
 **Purpose:** Schedule events to fire at specific turns.
 
+**Architecture:** This library provides **scheduling infrastructure only**. It tracks when events should fire and removes them from the queue, but does not implement what those events DO. Your game must provide a handler that processes fired events.
+
+The system has two layers:
+1. **timing_lib** - Generic infrastructure: stores events, checks deadlines, fires events
+2. **Your game's event handler** - Game-specific logic: implements what each event actually does
+
 **API:**
 ```python
 from behavior_libraries.timing_lib import (
@@ -218,19 +224,64 @@ events = get_scheduled_events(accessor)
 
 **Storage:** Events stored in `state.extra['scheduled_events']`.
 
-**Example - Time bomb:**
+**IMPORTANT: Implementing Event Handlers**
+
+When `on_check_scheduled_events` fires an event, it logs "Event 'X' triggered" but doesn't know what X should DO. You must implement a handler that processes fired events:
+
 ```python
+# In your game's behaviors (e.g., world_events.py)
+def on_world_event_check(entity, accessor, context: dict) -> EventResult:
+    """Process scheduled world events when they fire."""
+    event_name = context.get('event_name', '')
+    data = context.get('data', {})
+
+    messages = []
+
+    if event_name == "on_cave_collapse":
+        # Implement what happens when cave collapses
+        location_id = data.get('location')
+        messages.append("The cave collapses with a thunderous roar!")
+        # Block exits, damage players, etc.
+
+    elif event_name == "on_bomb_explode":
+        location = data.get('location')
+        messages.append("BOOM! The bomb explodes!")
+        # Implement explosion effects
+
+    return EventResult(allow=True, message='\n'.join(messages))
+```
+
+**Complete Example - Time Bomb with Handler:**
+
+```python
+# Step 1: Schedule the event when bomb is taken
 def on_take(entity, accessor, context):
     """Start countdown when bomb is taken."""
     if entity.id == "item_bomb":
         current_turn = accessor.state.turn_count
-        schedule_event(accessor, "on_bomb_explode",
+        schedule_event(accessor, "bomb_explode",
                       trigger_turn=current_turn + 10,
                       data={"location": entity.location})
         return EventResult(allow=True,
             message="The bomb starts ticking ominously!")
     return EventResult(allow=True)
+
+# Step 2: Handle the event when it fires
+def on_scheduled_event(entity, accessor, context):
+    """Process scheduled events."""
+    event_name = context.get('event_name', '')
+    data = context.get('data', {})
+
+    if event_name == "bomb_explode":
+        loc_id = data.get('location')
+        # Destroy items in location, damage player, etc.
+        return EventResult(allow=True,
+            message="BOOM! The bomb explodes, destroying everything nearby!")
+
+    return EventResult(allow=True)
 ```
+
+**Integration:** To connect your handler to the scheduled events system, you need to call your handler when events fire. See `big_game/behaviors/world_events.py` for a complete example.
 
 ---
 

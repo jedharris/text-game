@@ -5,6 +5,7 @@ Vocabulary, handlers and entity behaviors for consumable items like potions and 
 
 from typing import Any, Dict, Optional
 
+from src.action_types import ActionDict
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
 from utilities.utils import find_item_in_inventory
@@ -66,6 +67,7 @@ def _handle_consume(accessor, action, property_name: str, verb: str) -> HandlerR
     )
     if error:
         return error
+    assert actor_id is not None  # Guaranteed by validate_actor_and_location
 
     object_name = action.get("object")
 

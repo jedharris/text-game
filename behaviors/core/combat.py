@@ -5,6 +5,7 @@ Vocabulary and handlers for combat actions.
 
 from typing import Dict, Any
 
+from src.action_types import ActionDict
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
 from utilities.utils import find_accessible_item, name_matches

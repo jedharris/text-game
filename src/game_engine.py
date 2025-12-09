@@ -63,7 +63,15 @@ class GameEngine:
         # Initialize behavior manager and load modules
         self.behavior_manager = BehaviorManager()
 
-        # Add game directory to sys.path so game-specific modules can be imported
+        # Add project root to sys.path so behavior_libraries can be imported
+        # This is needed when running via installed package (llm-game command)
+        project_root = Path(__file__).parent.parent
+        project_root_str = str(project_root)
+        if project_root_str not in sys.path:
+            sys.path.append(project_root_str)
+
+        # Add game directory to sys.path FIRST so game-specific behaviors take precedence
+        # This is critical because both game dir and project root have behaviors/ packages
         game_dir_str = str(self.game_dir)
         if game_dir_str not in sys.path:
             sys.path.insert(0, game_dir_str)

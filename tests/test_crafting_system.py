@@ -5,6 +5,7 @@ from unittest.mock import Mock
 
 from src.state_manager import Actor, Item, Location, GameState, Metadata
 from src.state_accessor import StateAccessor
+from tests.conftest import make_word_entry
 
 
 class TestFindRecipe(unittest.TestCase):
@@ -370,8 +371,8 @@ class TestHandleCombine(unittest.TestCase):
         accessor = StateAccessor(state, Mock())
         action = {
             'verb': 'combine',
-            'object': 'herb',
-            'target': 'water',
+            'object': make_word_entry('herb'),
+            'target': make_word_entry('water'),
             'actor_id': 'player'
         }
 
@@ -397,8 +398,8 @@ class TestHandleCombine(unittest.TestCase):
         accessor = StateAccessor(state, Mock())
         action = {
             'verb': 'combine',
-            'object': 'rock',
-            'target': 'stick',
+            'object': make_word_entry('rock'),
+            'target': make_word_entry('stick'),
             'actor_id': 'player'
         }
 
@@ -428,8 +429,8 @@ class TestHandleCombine(unittest.TestCase):
         accessor = StateAccessor(state, Mock())
         action = {
             'verb': 'combine',
-            'object': 'herb',
-            'target': 'water',
+            'object': make_word_entry('herb'),
+            'target': make_word_entry('water'),
             'actor_id': 'player'
         }
 

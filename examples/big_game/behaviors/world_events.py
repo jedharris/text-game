@@ -6,8 +6,7 @@ Uses timing_lib for scheduling. Event definitions stored in GameState.extra:
 {
     "world_event_config": {
         "spore_spread_turn": 100,
-        "cold_spread_turn": 150,
-        "flood_deadline_turn": 50
+        "cold_spread_turn": 150
     }
 }
 
@@ -23,7 +22,7 @@ from typing import Dict, List
 from behavior_libraries.timing_lib.scheduled_events import (
     schedule_event, cancel_event, get_scheduled_events
 )
-from behaviors.regions import (
+from .regions import (
     corrupt_region, purify_region, is_region_purified,
     REGION_FUNGAL_DEPTHS, REGION_BEAST_WILDS, REGION_FROZEN_REACHES,
     REGION_CIVILIZED_REMNANTS
@@ -298,6 +297,20 @@ def on_quest_complete(entity, accessor, context: dict) -> EventResult:
         ending_state = check_ending_conditions(accessor)
         if ending_state['crystals_restored'] == 3:
             messages.append("All three crystals are restored! The Meridian's power awakens!")
+
+    elif quest_id == 'pacify_beast_wilds':
+        # Purify Beast Wilds when wildlife is pacified
+        # Triggered when: wolf pack domesticated + bear cubs healed + spider queen dealt with
+        messages.extend(purify_region(accessor, REGION_BEAST_WILDS))
+        accessor.game_state.extra.setdefault('flags', {})['beast_wilds_pacified'] = True
+        messages.append("The Beast Wilds grows calm. The creatures accept your presence.")
+
+    elif quest_id == 'restore_frozen_reaches':
+        # Purify Frozen Reaches when temple is secured and salamanders allied
+        # Triggered when: golems deactivated + salamander alliance formed
+        messages.extend(purify_region(accessor, REGION_FROZEN_REACHES))
+        accessor.game_state.extra.setdefault('flags', {})['frozen_reaches_restored'] = True
+        messages.append("The Frozen Reaches begins to thaw. Ancient warmth returns.")
 
     return EventResult(allow=True, message='\n'.join(messages))
 

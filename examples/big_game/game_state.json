@@ -1,8 +1,10 @@
 {
   "metadata": {
     "schema_version": "v_0.01",
+    "title": "The Shattered Meridian",
     "game_name": "The Shattered Meridian",
-    "description": "A large demonstration game showcasing the full capabilities of the game engine."
+    "description": "A large demonstration game showcasing the full capabilities of the game engine.",
+    "start_location": "loc_mn_nexus_chamber"
   },
   "locations": [
     {
@@ -927,38 +929,38 @@
         "north": {
           "type": "open",
           "to": "loc_fr_frozen_pass",
-          "name": "north",
-          "description": "Exit leading north."
+          "name": "frozen trail",
+          "description": "A frost-covered trail leads north toward the frozen reaches."
         },
         "south": {
           "type": "open",
           "to": "loc_bw_forest_edge",
-          "name": "south",
-          "description": "Exit leading south."
+          "name": "forest path",
+          "description": "A winding path leads south into the Beast Wilds."
         },
         "east": {
           "type": "open",
           "to": "loc_sd_flooded_streets",
-          "name": "east",
-          "description": "Exit leading east."
+          "name": "flooded passage",
+          "description": "A waterlogged passage leads east toward the Sunken District."
         },
         "west": {
           "type": "open",
           "to": "loc_fd_cavern_entrance",
-          "name": "west",
-          "description": "Exit leading west."
+          "name": "cavern entrance",
+          "description": "A dark opening leads west into the Fungal Depths."
         },
         "down": {
           "type": "open",
           "to": "loc_cr_town_gate",
-          "name": "down",
-          "description": "Exit leading down."
+          "name": "stone stairs",
+          "description": "Worn stone stairs descend toward the Civilized Remnants."
         },
         "up": {
           "type": "open",
           "to": "loc_mn_observatory_platform",
-          "name": "up",
-          "description": "Exit leading up."
+          "name": "spiral stairs",
+          "description": "A spiral staircase ascends to the Observatory Platform."
         }
       },
       "properties": {
@@ -991,14 +993,14 @@
         "down": {
           "type": "open",
           "to": "loc_mn_nexus_chamber",
-          "name": "down",
-          "description": "Exit leading down."
+          "name": "spiral stairs",
+          "description": "A spiral staircase descends to the Nexus Chamber."
         },
         "east": {
           "type": "open",
           "to": "loc_mn_keepers_quarters",
-          "name": "east",
-          "description": "Exit leading east."
+          "name": "arched doorway",
+          "description": "An ornate arched doorway leads east to the Keeper's Quarters."
         }
       },
       "properties": {
@@ -1031,14 +1033,14 @@
         "west": {
           "type": "open",
           "to": "loc_mn_observatory_platform",
-          "name": "west",
-          "description": "Exit leading west."
+          "name": "arched doorway",
+          "description": "An ornate arched doorway leads west to the Observatory Platform."
         },
         "south": {
           "type": "open",
           "to": "loc_mn_crystal_garden",
-          "name": "south",
-          "description": "Exit leading south."
+          "name": "crystal-lined passage",
+          "description": "A passage lined with crystal fragments leads south to the Crystal Garden."
         }
       },
       "properties": {
@@ -1071,14 +1073,14 @@
         "north": {
           "type": "open",
           "to": "loc_mn_keepers_quarters",
-          "name": "north",
-          "description": "Exit leading north."
+          "name": "crystal-lined passage",
+          "description": "A passage lined with crystal fragments leads north to the Keeper's Quarters."
         },
         "west": {
           "type": "open",
           "to": "loc_mn_nexus_chamber",
-          "name": "west",
-          "description": "Exit leading west."
+          "name": "shimmering archway",
+          "description": "A shimmering archway leads west back to the Nexus Chamber."
         }
       },
       "properties": {
@@ -4521,6 +4523,67 @@
       },
       "behaviors": []
     },
+    "faction_myconid": {
+      "id": "faction_myconid",
+      "name": "Myconid Collective",
+      "description": "The collective will of the Myconid colony in the Fungal Depths.",
+      "location": null,
+      "inventory": [],
+      "properties": {
+        "is_faction": true,
+        "relationships": {
+          "player": {
+            "trust": 0,
+            "gratitude": 0,
+            "fear": 0
+          }
+        },
+        "members": [
+          "npc_fd_myconid_elder",
+          "npc_fd_myconid_guard",
+          "npc_fd_myconid_healer"
+        ]
+      },
+      "behaviors": []
+    },
+    "faction_beasts": {
+      "id": "faction_beasts",
+      "name": "Beast Spirits",
+      "description": "The awakened consciousness of the Beast Wilds.",
+      "location": null,
+      "inventory": [],
+      "properties": {
+        "is_faction": true,
+        "relationships": {
+          "player": {
+            "trust": 0,
+            "gratitude": 0,
+            "fear": 0
+          }
+        },
+        "members": []
+      },
+      "behaviors": []
+    },
+    "faction_frozen": {
+      "id": "faction_frozen",
+      "name": "Frozen Keepers",
+      "description": "The ancient guardians of the Frozen Reaches.",
+      "location": null,
+      "inventory": [],
+      "properties": {
+        "is_faction": true,
+        "relationships": {
+          "player": {
+            "trust": 0,
+            "gratitude": 0,
+            "fear": 0
+          }
+        },
+        "members": []
+      },
+      "behaviors": []
+    },
     "player": {
       "id": "player",
       "name": "Wanderer",
@@ -4819,7 +4882,10 @@
         "type": "weapon",
         "portable": true,
         "damage": 12,
-        "weapon_type": "ranged"
+        "weapon_type": "ranged",
+        "states": {
+          "equipped": true
+        }
       },
       "llm_context": {
         "traits": [
@@ -5043,7 +5109,10 @@
         "type": "lore",
         "portable": true,
         "readable": true,
-        "grants_knowledge": "temple_history"
+        "grants_knowledge": "temple_history",
+        "states": {
+          "equipped": true
+        }
       },
       "llm_context": {
         "traits": [
@@ -5065,7 +5134,10 @@
         "portable": true,
         "readable": true,
         "grants_knowledge": "golem_password_full",
-        "quest_item": true
+        "quest_item": true,
+        "states": {
+          "equipped": true
+        }
       },
       "llm_context": {
         "traits": [
@@ -5086,7 +5158,10 @@
         "type": "key",
         "portable": true,
         "opens": "temple_inner_sanctum",
-        "magical": true
+        "magical": true,
+        "states": {
+          "equipped": true
+        }
       },
       "llm_context": {
         "traits": [
@@ -5319,7 +5394,10 @@
         "portable": true,
         "readable": true,
         "grants_knowledge": "fungal_depths_routes",
-        "text": "The Fungal Depths hold many secrets. The luminous grotto is relatively safe if one avoids the crawler nests. The Myconid sanctuary lies east - they are peaceful unless provoked.\n\nThe Spore Heart should only be entered with protection. The Myconids can provide resistance training, or one can use a breathing mask in areas of high concentration.\n\nThe Deep Root Caverns are treacherous. The air there cannot sustain human life. But the heartmoss that grows there... it may be the key to everything."
+        "text": "The Fungal Depths hold many secrets. The luminous grotto is relatively safe if one avoids the crawler nests. The Myconid sanctuary lies east - they are peaceful unless provoked.\n\nThe Spore Heart should only be entered with protection. The Myconids can provide resistance training, or one can use a breathing mask in areas of high concentration.\n\nThe Deep Root Caverns are treacherous. The air there cannot sustain human life. But the heartmoss that grows there... it may be the key to everything.",
+        "states": {
+          "equipped": true
+        }
       },
       "llm_context": {
         "traits": [
@@ -5893,7 +5971,10 @@
         "type": "map",
         "portable": true,
         "readable": true,
-        "reveals_location": "sunken_treasure"
+        "reveals_location": "sunken_treasure",
+        "states": {
+          "equipped": true
+        }
       },
       "llm_context": {
         "traits": [
@@ -5953,7 +6034,10 @@
         "type": "recipe",
         "portable": true,
         "readable": true,
-        "creates": "preservation_solution"
+        "creates": "preservation_solution",
+        "states": {
+          "equipped": true
+        }
       },
       "llm_context": {
         "traits": [
@@ -6047,7 +6131,10 @@
       "properties": {
         "portable": true,
         "weapon": true,
-        "damage": 15
+        "damage": 15,
+        "states": {
+          "equipped": true
+        }
       },
       "llm_context": {
         "traits": [
@@ -6066,7 +6153,10 @@
         "portable": true,
         "consumable": true,
         "heals": 25,
-        "value": 15
+        "value": 15,
+        "states": {
+          "equipped": true
+        }
       },
       "llm_context": {
         "traits": [
@@ -6085,7 +6175,10 @@
         "portable": true,
         "consumable": true,
         "cures_condition": "contact_poison",
-        "value": 30
+        "value": 30,
+        "states": {
+          "equipped": true
+        }
       },
       "llm_context": {
         "traits": [
@@ -6102,7 +6195,10 @@
       "location": null,
       "properties": {
         "portable": true,
-        "provides_healing": true
+        "provides_healing": true,
+        "states": {
+          "equipped": true
+        }
       },
       "llm_context": {
         "traits": [

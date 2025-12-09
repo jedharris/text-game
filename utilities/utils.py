@@ -15,6 +15,32 @@ from src.hooks import VISIBILITY_CHECK
 from utilities.entity_serializer import serialize_for_handler_result
 
 
+def ensure_word_entry(name: Union[str, WordEntry, None]) -> Optional[WordEntry]:
+    """
+    Convert a string to WordEntry if needed.
+
+    NOTE: With ActionDict enforcement, handlers should receive WordEntry directly
+    from action.get("object"). This function is kept for:
+    - Test utilities that need to create WordEntry from strings
+    - Edge cases where string conversion is still needed
+
+    For normal handler code, prefer accessing WordEntry directly from action dict.
+
+    Args:
+        name: Either a string, WordEntry, or None
+
+    Returns:
+        WordEntry instance (created from string if needed), or None if input was None
+    """
+    if name is None:
+        return None
+    if isinstance(name, WordEntry):
+        return name
+    # Create a basic WordEntry from the string
+    from src.word_entry import WordType
+    return WordEntry(word=name, synonyms=[], word_type=WordType.NOUN)
+
+
 def find_actor_by_name(
     accessor,
     name: WordEntry,
@@ -71,10 +97,14 @@ def format_inventory(
     """
     Format an actor's inventory for display.
 
+    When for_self=True (examining yourself), shows all inventory items.
+    When for_self=False (examining another actor), only shows equipped items.
+
     Args:
         accessor: StateAccessor instance
         actor: Actor whose inventory to format
-        for_self: If True, use "You are carrying"; if False, use "Carrying"
+        for_self: If True, use "You are carrying" and show all items;
+                  if False, use "Carrying" and only show equipped items
 
     Returns:
         Tuple of (message string or None if empty, list of serialized items)
@@ -87,6 +117,9 @@ def format_inventory(
     for item_id in actor.inventory:
         item = accessor.get_item(item_id)
         if item:
+            # When examining others, only show equipped items
+            if not for_self and not item.states.get("equipped", False):
+                continue
             item_names.append(item.name)
             items_data.append(serialize_for_handler_result(item))
 
@@ -100,7 +133,7 @@ def format_inventory(
 def name_matches(
     search_term: WordEntry,
     target_name: str,
-    match_in_phrase: bool = False
+    match_in_phrase: bool = True
 ) -> bool:
     """
     Check if search_term matches target_name, considering vocabulary synonyms.
@@ -109,12 +142,15 @@ def name_matches(
     using the vocabulary's synonym definitions to match player input against
     entity names.
 
+    IMPORTANT: search_term MUST be a WordEntry, not a string. With ActionDict
+    enforcement, action.get("object") already returns WordEntry.
+
     Args:
-        search_term: WordEntry with canonical word and synonyms
+        search_term: WordEntry with canonical word and synonyms (NOT a string)
         target_name: The entity's name field to match against
-        match_in_phrase: If True, also match if any search word appears
+        match_in_phrase: If True (default), also match if any search word appears
                         as a complete word within target_name (for multi-word
-                        names like "spiral staircase")
+                        names like "spiral staircase" or "Gate Guard Harmon")
 
     Returns:
         True if any form of search_term matches target_name
@@ -125,10 +161,10 @@ def name_matches(
         True
         >>> name_matches(entry, "staircase")  # Synonym match
         True
-        >>> name_matches(entry, "spiral staircase")  # No match without phrase
-        False
-        >>> name_matches(entry, "spiral staircase", match_in_phrase=True)
+        >>> name_matches(entry, "spiral staircase")  # Phrase match (default)
         True  # "staircase" is a word in the phrase
+        >>> name_matches(entry, "spiral staircase", match_in_phrase=False)
+        False  # Exact match only
     """
     # Extract all words to check (canonical + synonyms)
     match_words = [search_term.word] + search_term.synonyms
@@ -295,6 +331,23 @@ def find_accessible_item(
             if visible:
                 matching_items.append(item)
 
+    # Check equipped items of other visible actors in same location
+    # This allows examining items that NPCs are visibly carrying
+    for other_actor in accessor.get_actors_in_location(location.id):
+        if other_actor.id == actor_id:
+            continue  # Already checked player's inventory above
+        # Check if actor is visible
+        actor_visible, _ = is_observable(
+            other_actor, accessor, accessor.behavior_manager,
+            actor_id=actor_id, method="look"
+        )
+        if actor_visible:
+            for item_id in other_actor.inventory:
+                item = accessor.get_item(item_id)
+                # Only include equipped items from other actors
+                if item and item.states.get("equipped", False) and name_matches(name, item.name):
+                    matching_items.append(item)
+
     # Check containers in location
     # Get visible items that are containers
     visible_items = [item for item in accessor.game_state.items
@@ -333,6 +386,7 @@ def find_accessible_item(
         return matching_items[0]
 
     # Filter by adjective
+    assert adjective is not None  # Guaranteed by has_adjective check
     for item in matching_items:
         if _matches_adjective(adjective, item):
             return item
@@ -557,24 +611,6 @@ def _matches_adjective(adjective: str, entity) -> bool:
     return False
 
 
-def find_accessible_item_with_adjective(
-    accessor, name: str, adjective: Optional[str], actor_id: str
-):
-    """
-    DEPRECATED: Use find_accessible_item(accessor, name, actor_id, adjective) instead.
-
-    This function exists for backwards compatibility and will be removed in a future version.
-    """
-    import warnings
-    warnings.warn(
-        "find_accessible_item_with_adjective() is deprecated. "
-        "Use find_accessible_item(accessor, name, actor_id, adjective) instead.",
-        DeprecationWarning,
-        stacklevel=2
-    )
-    return find_accessible_item(accessor, name, actor_id, adjective)
-
-
 def find_container_with_adjective(
     accessor, name: WordEntry, adjective: Optional[str], location_id: str
 ):
@@ -616,6 +652,7 @@ def find_container_with_adjective(
         return matching_containers[0]
 
     # Filter by adjective
+    assert adjective is not None  # Guaranteed by has_adjective check
     for container in matching_containers:
         if _matches_adjective(adjective, container):
             return container
@@ -656,6 +693,7 @@ def find_item_in_container(
         return matching_items[0]
 
     # Filter by adjective
+    assert adjective is not None  # Guaranteed by has_adjective check
     for item in matching_items:
         if _matches_adjective(adjective, item):
             return item
@@ -712,9 +750,8 @@ def find_door_with_adjective(
         if not _is_item_visible_in_location(item, location_id, accessor, actor_id, verb or "look"):
             continue
         # Check if name matches - for door items, check name and description
-        # Use match_in_phrase=True since door names/descriptions can be multi-word
-        if name_matches(name, item.name, match_in_phrase=True) or \
-           name_matches(name, item.description, match_in_phrase=True):
+        if name_matches(name, item.name) or \
+           name_matches(name, item.description):
             matching_doors.append(item)
 
     # If no matches, return None
@@ -723,6 +760,7 @@ def find_door_with_adjective(
 
     # If adjective provided, filter by it
     if has_adjective:
+        assert adjective is not None  # Guaranteed by has_adjective check
         adj_lower = adjective.lower().strip()
 
         # Check if adjective is a direction (e.g., "north door", "east door")
@@ -1102,7 +1140,7 @@ DIRECTION_ABBREVIATIONS = {
 
 def find_exit_by_name(
     accessor, name: WordEntry, actor_id: str, adjective: Optional[str] = None
-) -> Optional[Tuple[str, Any]]:
+) -> Union[Tuple[str, Any], Tuple[None, List[str]], None]:
     """
     Find an exit in the current location by name, direction, or adjective.
 
@@ -1121,7 +1159,9 @@ def find_exit_by_name(
         adjective: Optional adjective/direction to filter by
 
     Returns:
-        Tuple of (direction, ExitDescriptor) if found, None otherwise
+        - Tuple of (direction, ExitDescriptor) if exactly one match found
+        - Tuple of (None, list_of_exit_names) if multiple ambiguous matches found
+        - None if no match found
     """
     location = accessor.get_current_location(actor_id)
     if not location:
@@ -1155,21 +1195,30 @@ def find_exit_by_name(
             direction = next(iter(visible_exits))
             return (direction, visible_exits[direction])
 
-    # 3. Search by exit.name field using name_matches (handles synonyms)
-    for direction, exit_desc in visible_exits.items():
-        if exit_desc.name:
-            # Use match_in_phrase=True for multi-word exit names like "spiral staircase"
-            if name_matches(name, exit_desc.name, match_in_phrase=True):
-                return (direction, exit_desc)
-
-    # 4. If adjective provided, check for adjective + name combination
-    # This handles cases like "examine north exit" where adjective="north", name="exit"
+    # 3. If adjective provided, check for adjective + name combination first
+    # This handles cases like "spiral stairs" where adjective="spiral", name="stairs"
+    # Must check this BEFORE simple name match to avoid "stairs" matching wrong exit
     if adjective:
-        # For adjective combinations, we need to match the full phrase
+        adj_lower = adjective.lower().strip()
         canonical = name.word
-        full_search = f"{adjective} {canonical}".lower()
+        full_search = f"{adj_lower} {canonical}".lower()
         for direction, exit_desc in visible_exits.items():
             if exit_desc.name and full_search in exit_desc.name.lower():
                 return (direction, exit_desc)
+
+    # 4. Search by exit.name field using name_matches (handles synonyms)
+    # Collect ALL matches to detect ambiguity
+    matches = []
+    for direction, exit_desc in visible_exits.items():
+        if exit_desc.name:
+            if name_matches(name, exit_desc.name):
+                matches.append((direction, exit_desc))
+
+    if len(matches) == 1:
+        return matches[0]
+    elif len(matches) > 1:
+        # Return ambiguity indicator with list of matching exit names
+        exit_names = [exit_desc.name for _, exit_desc in matches]
+        return (None, exit_names)
 
     return None

@@ -917,11 +917,11 @@ accessor.state.extra.setdefault("scheduled_events", []).append({
 # Check scheduled events
 for event in accessor.state.extra.get("scheduled_events", []):
     if event["turn"] == accessor.state.turn_count:
-        # Process event
+        # Process event - YOUR CODE implements what "explosion" does
         pass
 ```
 
-See `behavior_libraries/timing_lib/` for reusable scheduled event utilities.
+**Important:** The `timing_lib` provides scheduling infrastructure (storing events, checking deadlines, removing fired events) but does NOT implement what events DO. Your game must provide a handler that processes fired events. See the Authoring Manual section on timing_lib for complete examples, and `big_game/behaviors/world_events.py` for a working implementation.
 
 ---
 

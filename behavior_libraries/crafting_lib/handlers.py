@@ -12,9 +12,13 @@ Usage:
     )
 """
 
-from typing import Dict
+from typing import Dict, Optional
 
+from src.action_types import ActionDict
 from src.state_accessor import HandlerResult
+from src.word_entry import WordEntry
+from utilities.utils import name_matches
+from utilities.handler_utils import get_display_name
 from behavior_libraries.crafting_lib.recipes import (
     find_recipe, check_requirements, execute_craft
 )
@@ -55,13 +59,13 @@ def handle_combine(accessor, action: Dict) -> HandlerResult:
     """
     actor_id = action.get('actor_id', 'player')
     item1_name = action.get('object')
-    item2_name = action.get('target')
+    item2_name = action.get('indirect_object') or action.get('target')
 
     if not item1_name:
         return HandlerResult(success=False, message="Combine what?")
 
     if not item2_name:
-        return HandlerResult(success=False, message=f"Combine {item1_name} with what?")
+        return HandlerResult(success=False, message=f"Combine {get_display_name(item1_name)} with what?")
 
     player = accessor.get_actor(actor_id)
     if not player:
@@ -72,10 +76,10 @@ def handle_combine(accessor, action: Dict) -> HandlerResult:
     item2_id = _find_item_in_inventory(accessor, player, item2_name)
 
     if not item1_id:
-        return HandlerResult(success=False, message=f"You don't have any {item1_name}.")
+        return HandlerResult(success=False, message=f"You don't have any {get_display_name(item1_name)}.")
 
     if not item2_id:
-        return HandlerResult(success=False, message=f"You don't have any {item2_name}.")
+        return HandlerResult(success=False, message=f"You don't have any {get_display_name(item2_name)}.")
 
     # Find matching recipe
     recipe = find_recipe(accessor, [item1_id, item2_id])
@@ -83,7 +87,7 @@ def handle_combine(accessor, action: Dict) -> HandlerResult:
     if not recipe:
         return HandlerResult(
             success=False,
-            message=f"You can't combine {item1_name} and {item2_name}."
+            message=f"You can't combine {get_display_name(item1_name)} and {get_display_name(item2_name)}."
         )
 
     # Check requirements
@@ -118,14 +122,15 @@ def handle_craft(accessor, action: Dict) -> HandlerResult:
     if not player:
         return HandlerResult(success=False, message="No player found.")
 
-    # Find recipe by name
+    # Find recipe by name - use the word string for lookup
+    recipe_name_str = recipe_name.word
     recipes = accessor.game_state.extra.get('recipes', {})
-    recipe = recipes.get(recipe_name)
+    recipe = recipes.get(recipe_name_str)
 
     if not recipe:
         return HandlerResult(
             success=False,
-            message=f"You don't know how to craft {recipe_name}."
+            message=f"You don't know how to craft {get_display_name(recipe_name)}."
         )
 
     # Check if player has all ingredients
@@ -154,20 +159,28 @@ def handle_craft(accessor, action: Dict) -> HandlerResult:
     return HandlerResult(success=result.success, message=result.message)
 
 
-def _find_item_in_inventory(accessor, actor, name: str) -> str:
+def _find_item_in_inventory(accessor, actor, name: WordEntry) -> Optional[str]:
     """
     Find an item in actor's inventory by name or ID.
 
-    Returns item ID if found, None otherwise.
-    """
-    # First try exact ID match
-    if name in actor.inventory:
-        return name
+    Args:
+        accessor: StateAccessor instance
+        actor: Actor object
+        name: WordEntry for item to find
 
-    # Then try name match
+    Returns:
+        Item ID if found, None otherwise
+    """
+    name_str = name.word
+
+    # First try exact ID match
+    if name_str in actor.inventory:
+        return name_str
+
+    # Then try name match using name_matches
     for item_id in actor.inventory:
         item = accessor.get_item(item_id)
-        if item and item.name.lower() == name.lower():
+        if item and name_matches(name, item.name):
             return item_id
 
     return None

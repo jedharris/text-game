@@ -38,12 +38,13 @@ def parsed_to_json(result: ParsedCommand) -> Dict[str, Any]:
     adjectives use .word since they don't need synonym matching.
 
     Args:
-        result: Parsed command from the Parser
+        result: Parsed command from the Parser (must have a verb)
 
     Returns:
         JSON protocol dict for the command
     """
-    action = {"verb": result.verb.word}
+    assert result.verb is not None  # Caller must ensure verb is present
+    action: Dict[str, Any] = {"verb": result.verb.word}
 
     if result.direct_object:
         # Pass full WordEntry to preserve synonyms for entity matching
@@ -70,7 +71,7 @@ class LLMNarrator:
 
     def __init__(self, api_key: str, json_handler: LLMProtocolHandler,
                  model: str = "claude-3-5-haiku-20241022",
-                 prompt_file: Path = None,
+                 prompt_file: Optional[Path] = None,
                  behavior_manager: Optional[BehaviorManager] = None,
                  vocabulary: Optional[Dict[str, Any]] = None,
                  show_traits: bool = False):
@@ -100,6 +101,7 @@ class LLMNarrator:
         # Store merged vocabulary for narration mode lookup (must be before _load_system_prompt)
         self.merged_vocabulary = self._get_merged_vocabulary(vocabulary)
         self.parser = self._create_parser(self.merged_vocabulary)
+        assert prompt_file is not None, "prompt_file is required"
         self.system_prompt = self._load_system_prompt(prompt_file)
 
         # Visit tracking for verbosity control
@@ -123,7 +125,7 @@ class LLMNarrator:
 
         def collect_traits(obj: Any, prefix: str = "") -> list:
             """Recursively collect traits from nested structures."""
-            collected = []
+            collected: list[tuple[str, list]] = []
             if not isinstance(obj, dict):
                 return collected
 
@@ -207,6 +209,7 @@ class LLMNarrator:
         """
         # 1. Try fast local parsing first
         parsed = self.parser.parse_command(player_input)
+        json_cmd: Dict[str, Any]
 
         if parsed is not None:
             # Convert ParsedCommand to JSON protocol format
@@ -223,10 +226,11 @@ class LLMNarrator:
             command_response = self._call_llm(
                 f"Player says: {player_input}\n\nRespond with a JSON command."
             )
-            json_cmd = self._extract_json(command_response)
+            extracted = self._extract_json(command_response)
 
-            if json_cmd is None:
+            if extracted is None:
                 return "I don't understand what you want to do."
+            json_cmd = extracted
 
         # 2. Execute command via game engine
         result = self.handler.handle_message(json_cmd)
@@ -336,11 +340,11 @@ class LLMNarrator:
         Returns:
             Narrative description of the opening scene
         """
-        # Query current location
+        # Query current location with all relevant details for opening scene
         result = self.handler.handle_message({
             "type": "query",
             "query_type": "location",
-            "include": ["items", "doors", "npcs"]
+            "include": ["items", "doors", "exits", "actors"]
         })
 
         # Mark starting location as visited
@@ -393,7 +397,11 @@ class LLMNarrator:
                 f"API call - input: {usage.input_tokens}, output: {usage.output_tokens}, "
                 f"cache_read: {cache_read}, cache_creation: {cache_creation}"
             )
-            return response.content[0].text
+            # Extract text from first content block (should be TextBlock for our usage)
+            content_block = response.content[0]
+            if hasattr(content_block, 'text'):
+                return content_block.text
+            return "[Unexpected response format]"
         except anthropic.RateLimitError:
             time.sleep(1)
             return self._call_llm(user_message)  # Simple retry

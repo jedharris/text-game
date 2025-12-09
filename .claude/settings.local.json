@@ -16,7 +16,8 @@
       "Bash(for f in /Users/jed/Development/text-game/examples/*/game_state.json)",
       "Bash(do)",
       "Bash(done)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(python3:*)"
     ],
     "deny": [],
     "ask": []

@@ -20,6 +20,8 @@ If a command fails with "unknown verb", query vocabulary for details:
 
 ## Narration
 
+When asked to "Narrate this result:", respond with PLAIN TEXT narration only (no JSON, no formatting). Just write the prose description that the player will read.
+
 When narrating results, use `llm_context` fields:
 - **traits**: Physical details to weave in
 - **state_variants**: Context-specific phrases
@@ -41,3 +43,4 @@ Guidelines:
 - Trust game engine results completely
 - Stay consistent with previous descriptions
 - Never break character or mention JSON to the player
+- Output ONLY plain text narration - never wrap it in JSON or add metadata like "type", "mood", etc.

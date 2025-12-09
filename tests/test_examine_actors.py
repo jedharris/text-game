@@ -154,8 +154,8 @@ class TestFormatInventory(unittest.TestCase):
                 {"id": "loc_start", "name": "Start", "description": "A room", "exits": {}}
             ],
             "items": [
-                {"id": "sword", "name": "sword", "description": "A rusty sword", "location": "player", "properties": {"portable": True}},
-                {"id": "key", "name": "key", "description": "An iron key", "location": "player", "properties": {"portable": True}}
+                {"id": "sword", "name": "sword", "description": "A rusty sword", "location": "player", "properties": {"portable": True}, "states": {"equipped": True}},
+                {"id": "key", "name": "key", "description": "An iron key", "location": "player", "properties": {"portable": True}, "states": {"equipped": True}}
             ],
             "locks": [],
             "actors": {
@@ -230,7 +230,7 @@ class TestHandleExamineActors(unittest.TestCase):
                 {"id": "loc_start", "name": "Start", "description": "A room", "exits": {}}
             ],
             "items": [
-                {"id": "sword", "name": "sword", "description": "A rusty sword", "location": "player", "properties": {"portable": True}}
+                {"id": "sword", "name": "sword", "description": "A rusty sword", "location": "player", "properties": {"portable": True}, "states": {"equipped": True}}
             ],
             "locks": [],
             "actors": {

@@ -33,12 +33,18 @@ class TestNameMatchesBasic(unittest.TestCase):
         self.assertFalse(name_matches(sword, "key"))
         self.assertFalse(name_matches(sword, "swords"))  # Plural different
 
-    def test_phrase_match_disabled_by_default(self):
-        """Without match_in_phrase, partial match in phrase fails."""
+    def test_phrase_match_enabled_by_default(self):
+        """Phrase matching is enabled by default."""
         staircase = make_word_entry("staircase")
-        self.assertFalse(name_matches(staircase, "spiral staircase"))
+        self.assertTrue(name_matches(staircase, "spiral staircase"))
 
-    def test_phrase_match_enabled(self):
+    def test_phrase_match_can_be_disabled(self):
+        """Phrase matching can be disabled explicitly."""
+        staircase = make_word_entry("staircase")
+        self.assertFalse(name_matches(staircase, "spiral staircase",
+                                      match_in_phrase=False))
+
+    def test_phrase_match_explicit(self):
         """With match_in_phrase, word in phrase matches."""
         staircase = make_word_entry("staircase")
         self.assertTrue(name_matches(staircase, "spiral staircase",
@@ -118,10 +124,17 @@ class TestNameMatchesWithWordEntry(unittest.TestCase):
         self.assertTrue(name_matches(self.stairs_entry, "hidden stairway",
                                      match_in_phrase=True))
 
+    def test_phrase_match_enabled_by_default_with_synonyms(self):
+        """Phrase matching is enabled by default and works with synonyms."""
+        self.assertTrue(name_matches(self.stairs_entry, "spiral staircase"))
+        self.assertTrue(name_matches(self.stairs_entry, "stone steps"))
+
     def test_phrase_match_disabled_no_synonym_match(self):
-        """Without match_in_phrase, synonyms don't match phrases."""
-        self.assertFalse(name_matches(self.stairs_entry, "spiral staircase"))
-        self.assertFalse(name_matches(self.stairs_entry, "stone steps"))
+        """With match_in_phrase=False, synonyms don't match phrases."""
+        self.assertFalse(name_matches(self.stairs_entry, "spiral staircase",
+                                      match_in_phrase=False))
+        self.assertFalse(name_matches(self.stairs_entry, "stone steps",
+                                      match_in_phrase=False))
 
 
 class TestNameMatchesEdgeCases(unittest.TestCase):

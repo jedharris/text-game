@@ -3,8 +3,9 @@
 Vocabulary and handlers for spatial positioning and movement within a location.
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
+from src.action_types import ActionDict
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
 from utilities.entity_serializer import serialize_for_handler_result
@@ -114,8 +115,8 @@ vocabulary = {
 }
 
 
-def _handle_positioning(accessor, action, object_field: str, required_property: str = None,
-                        posture: str = None, verb_phrase: str = "move to",
+def _handle_positioning(accessor, action, object_field: str, required_property: Optional[str] = None,
+                        posture: Optional[str] = None, verb_phrase: str = "move to",
                         failure_message_builder=None, invoke_behaviors: bool = False) -> HandlerResult:
     """
     Generic positioning handler for approach, cover, hide, climb operations.
@@ -141,6 +142,7 @@ def _handle_positioning(accessor, action, object_field: str, required_property: 
     )
     if error:
         return error
+    assert actor is not None and location is not None  # Guaranteed by validate_actor_and_location
 
     object_name = action.get(object_field)
     adjective = action.get("adjective")

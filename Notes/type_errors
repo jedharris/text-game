@@ -1,0 +1,43 @@
+025-12-08 21:32:34.410 [info] Running mypy on staged Python files...
+behaviors/core/consumables.py:73: error: Argument 3 to "find_item_in_inventory" has incompatible type "str | None"; expected "str"  [arg-type]
+behaviors/core/spatial.py:118: error: Incompatible default for argument "required_property" (default has type "None", argument has type "str")  [assignment]
+behaviors/core/spatial.py:118: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+behaviors/core/spatial.py:118: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+behaviors/core/spatial.py:119: error: Incompatible default for argument "posture" (default has type "None", argument has type "str")  [assignment]
+behaviors/core/spatial.py:119: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+behaviors/core/spatial.py:119: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+behaviors/core/spatial.py:150: error: Item "None" of "Any | None" has no attribute "id"  [union-attr]
+behaviors/core/spatial.py:192: error: Item "None" of "Any | None" has no attribute "properties"  [union-attr]
+behaviors/core/spatial.py:196: error: Item "None" of "Any | None" has no attribute "properties"  [union-attr]
+behaviors/core/spatial.py:200: error: Item "None" of "Any | None" has no attribute "properties"  [union-attr]
+behaviors/core/spatial.py:201: error: Item "None" of "Any | None" has no attribute "properties"  [union-attr]
+behaviors/core/spatial.py:203: error: Item "None" of "Any | None" has no attribute "properties"  [union-attr]
+examples/big_game/behaviors/factions.py:187: error: Need type annotation for "messages" (hint: "messages: list[<type>] = ...")  [var-annotated]
+src/llm_narrator.py:46: error: Item "None" of "WordEntry | None" has no attribute "word"  [union-attr]
+src/llm_narrator.py:73: error: Incompatible default for argument "prompt_file" (default has type "None", argument has type "Path")  [assignment]
+src/llm_narrator.py:73: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+src/llm_narrator.py:73: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+src/llm_narrator.py:126: error: Need type annotation for "collected" (hint: "collected: list[<type>] = ...")  [var-annotated]
+src/llm_narrator.py:226: error: Incompatible types in assignment (expression has type "dict[Any, Any] | None", variable has type "dict[str, Collection[str]]")  [assignment]
+src/llm_narrator.py:396: error: Item "ThinkingBlock" of "TextBlock | ThinkingBlock | RedactedThinkingBlock | ToolUseBlock | ServerToolUseBlock | WebSearchToolResultBlock" has no attribute "text"  [union-attr]
+src/llm_narrator.py:396: error: Item "RedactedThinkingBlock" of "TextBlock | ThinkingBlock | RedactedThinkingBlock | ToolUseBlock | ServerToolUseBlock | WebSearchToolResultBlock" has no attribute "text"  [union-attr]
+src/llm_narrator.py:396: error: Item "ToolUseBlock" of "TextBlock | ThinkingBlock | RedactedThinkingBlock | ToolUseBlock | ServerToolUseBlock | WebSearchToolResultBlock" has no attribute "text"  [union-attr]
+src/llm_narrator.py:396: error: Item "ServerToolUseBlock" of "TextBlock | ThinkingBlock | RedactedThinkingBlock | ToolUseBlock | ServerToolUseBlock | WebSearchToolResultBlock" has no attribute "text"  [union-attr]
+src/llm_narrator.py:396: error: Item "WebSearchToolResultBlock" of "TextBlock | ThinkingBlock | RedactedThinkingBlock | ToolUseBlock | ServerToolUseBlock | WebSearchToolResultBlock" has no attribute "text"  [union-attr]
+src/vocabulary_generator.py:82: error: Dict entry 1 has incompatible type "str": "list[str]"; expected "str": "str"  [dict-item]
+tests/_big_game_integration_impl.py:246: error: "object" has no attribute "turn_count"  [attr-defined]
+tests/_big_game_integration_impl.py:260: error: "object" has no attribute "extra"  [attr-defined]
+tests/_big_game_integration_impl.py:288: error: "object" has no attribute "extra"  [attr-defined]
+tests/_big_game_integration_impl.py:292: error: "object" has no attribute "extra"  [attr-defined]
+tests/_big_game_integration_impl.py:340: error: Value of type "Any | None" is not indexable  [index]
+utilities/positioning.py:99: error: Argument "word_type" to "WordEntry" has incompatible type "None"; expected "WordType | set[WordType]"  [arg-type]
+utilities/positioning.py:137: error: Function "builtins.any" is not valid as a type  [valid-type]
+utilities/positioning.py:137: note: Perhaps you meant "typing.Any" instead of "any"?
+utilities/positioning.py:178: error: Function "builtins.any" is not valid as a type  [valid-type]
+utilities/positioning.py:178: note: Perhaps you meant "typing.Any" instead of "any"?
+utilities/utils.py:390: error: Argument 1 to "_matches_adjective" has incompatible type "str | None"; expected "str"  [arg-type]
+utilities/utils.py:628: error: Argument 2 to "find_accessible_item" has incompatible type "str"; expected "WordEntry"  [arg-type]
+utilities/utils.py:673: error: Argument 1 to "_matches_adjective" has incompatible type "str | None"; expected "str"  [arg-type]
+utilities/utils.py:713: error: Argument 1 to "_matches_adjective" has incompatible type "str | None"; expected "str"  [arg-type]
+utilities/utils.py:778: error: Item "None" of "str | None" has no attribute "lower"  [union-attr]
+utilities/utils.py:799: error: Argument 1 to "_matches_adjective" has incompatible type "str | None"; expected "str"  [arg-type]

@@ -4,7 +4,7 @@ Positioning utilities for spatial structure.
 Handles implicit positioning (automatic movement to entities).
 Provides helper functions to reduce code duplication across handlers.
 """
-from typing import Optional, Tuple, List
+from typing import Any, Optional, Tuple, List
 
 
 def try_implicit_positioning(accessor, actor_id: str, target_entity) -> Tuple[bool, Optional[str]]:
@@ -92,11 +92,11 @@ def find_part_by_name(accessor, part_name, location_id: str):
         Part if found, None otherwise
     """
     from utilities.utils import name_matches
-    from src.word_entry import WordEntry
+    from src.word_entry import WordEntry, WordType
 
-    # Convert string to WordEntry if needed
+    # Convert string to WordEntry if needed (parts are nouns)
     if isinstance(part_name, str):
-        part_name = WordEntry(word=part_name, word_type=None, synonyms=[])
+        part_name = WordEntry(word=part_name, word_type=WordType.NOUN, synonyms=[])
 
     # Extract search string for fallback matching
     search_str = part_name.word if hasattr(part_name, 'word') else str(part_name)
@@ -104,17 +104,12 @@ def find_part_by_name(accessor, part_name, location_id: str):
     # Get all parts in location (parts of location itself)
     location_parts = accessor.get_parts_of(location_id)
 
-    # First try exact/synonym match
+    # Try matching with name_matches (handles synonyms and phrase matching by default)
     for part in location_parts:
         if name_matches(part_name, part.name):
             return part
 
-    # Then try phrase match (for multi-word names)
-    for part in location_parts:
-        if name_matches(part_name, part.name, match_in_phrase=True):
-            return part
-
-    # Check for exact case-insensitive string match (fallback for multi-word phrases)
+    # Fallback: exact case-insensitive string match for multi-word phrases
     for part in location_parts:
         if part.name.lower() == search_str.lower():
             return part
@@ -124,20 +119,14 @@ def find_part_by_name(accessor, part_name, location_id: str):
                          if item.location == location_id]
 
     for item in items_in_location:
-        # Check parts of each item - same 3-tier matching
+        # Check parts of each item
         item_parts = accessor.get_parts_of(item.id)
 
-        # First try exact/synonym match
         for part in item_parts:
             if name_matches(part_name, part.name):
                 return part
 
-        # Then try phrase match
-        for part in item_parts:
-            if name_matches(part_name, part.name, match_in_phrase=True):
-                return part
-
-        # Finally try exact case-insensitive string match
+        # Fallback: exact case-insensitive string match
         for part in item_parts:
             if part.name.lower() == search_str.lower():
                 return part
@@ -145,7 +134,7 @@ def find_part_by_name(accessor, part_name, location_id: str):
     return None
 
 
-def find_and_position_item(accessor, actor_id: str, object_name, adjective: Optional[str] = None) -> Tuple[Optional[any], Optional[str]]:
+def find_and_position_item(accessor, actor_id: str, object_name, adjective: Optional[str] = None) -> Tuple[Optional[Any], Optional[str]]:
     """
     Find accessible item and apply implicit positioning.
 
@@ -186,7 +175,7 @@ def find_and_position_item(accessor, actor_id: str, object_name, adjective: Opti
     return (item, move_message)
 
 
-def find_and_position_part(accessor, actor_id: str, object_name, location_id: str) -> Tuple[Optional[any], Optional[str]]:
+def find_and_position_part(accessor, actor_id: str, object_name, location_id: str) -> Tuple[Optional[Any], Optional[str]]:
     """
     Find part and apply implicit positioning.
 

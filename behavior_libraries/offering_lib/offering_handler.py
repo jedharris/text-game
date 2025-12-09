@@ -8,9 +8,12 @@ if offering-based puzzles become a common pattern across many games.
 """
 
 from typing import Dict, Any
+
+from src.action_types import ActionDict
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
 from utilities.utils import find_item_in_inventory, find_accessible_item
+from utilities.handler_utils import get_display_name
 
 
 # Vocabulary extension - adds "offer" verb
@@ -47,7 +50,7 @@ def handle_offer(accessor, action: Dict) -> HandlerResult:
     """
     actor_id = action.get("actor_id", "player")
     item_name = action.get("object")
-    target_name = action.get("target")
+    target_name = action.get("indirect_object") or action.get("target")
 
     if not item_name:
         return HandlerResult(success=False, message="Offer what?")
@@ -55,7 +58,7 @@ def handle_offer(accessor, action: Dict) -> HandlerResult:
     if not target_name:
         return HandlerResult(
             success=False,
-            message=f"Offer the {item_name} to what?"
+            message=f"Offer the {get_display_name(item_name)} to what?"
         )
 
     # Find the item - must be in inventory or accessible
@@ -66,7 +69,7 @@ def handle_offer(accessor, action: Dict) -> HandlerResult:
     if not item:
         return HandlerResult(
             success=False,
-            message=f"You don't have any {item_name} to offer."
+            message=f"You don't have any {get_display_name(item_name)} to offer."
         )
 
     # Find the target (altar, shrine, well, etc.)
@@ -75,7 +78,7 @@ def handle_offer(accessor, action: Dict) -> HandlerResult:
     if not target:
         return HandlerResult(
             success=False,
-            message=f"You don't see any {target_name} here."
+            message=f"You don't see any {get_display_name(target_name)} here."
         )
 
     # Check if target accepts offerings (has on_receive_offering behavior)

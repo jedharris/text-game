@@ -5,6 +5,7 @@ Vocabulary and handlers for basic item manipulation.
 
 from typing import Dict, Any
 
+from src.action_types import ActionDict
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
 from utilities.utils import (
@@ -12,7 +13,7 @@ from utilities.utils import (
     find_item_in_inventory,
     find_container_with_adjective,
     find_item_in_container,
-    name_matches
+    name_matches,
 )
 from utilities.entity_serializer import serialize_for_handler_result
 from utilities.positioning import try_implicit_positioning, build_message_with_positioning
@@ -113,7 +114,7 @@ def handle_take(accessor, action):
     if error:
         return error
 
-    # Extract remaining action parameters
+    # Extract remaining action parameters and ensure WordEntry
     object_name = action.get("object")
     adjective = action.get("adjective")
     container_name = action.get("indirect_object")
@@ -272,8 +273,10 @@ def handle_drop(accessor, action):
     # Perform state changes
     # 1. Change item location to current room
     # 2. Remove item from actor's inventory
+    # 3. Clear equipped state (item is no longer being carried)
     changes = {
-        "location": location.id
+        "location": location.id,
+        "states.equipped": False
     }
 
     # Pass verb and actor_id to trigger entity behaviors (on_drop)
@@ -368,8 +371,10 @@ def handle_give(accessor, action):
     # 1. Change item location to recipient
     # 2. Remove item from giver's inventory
     # 3. Add item to recipient's inventory
+    # 4. Clear equipped state (item is changing hands)
     changes = {
-        "location": recipient.id
+        "location": recipient.id,
+        "states.equipped": False
     }
 
     result = accessor.update(item, changes)

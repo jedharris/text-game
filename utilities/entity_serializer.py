@@ -75,6 +75,10 @@ def _serialize_core_fields(entity) -> Dict[str, Any]:
     if hasattr(entity, 'provides_light') and entity.provides_light:
         result["provides_light"] = True
 
+    # Exit-specific fields (destination)
+    if hasattr(entity, 'to') and entity.to:
+        result["destination"] = entity.to
+
     return result
 
 

@@ -10,7 +10,7 @@ Modules:
 - npc_specifics: Unique NPC behaviors (The Echo, etc.)
 """
 
-from behaviors.regions import (
+from .regions import (
     get_region_for_location,
     get_region_state,
     purify_region,
@@ -18,14 +18,14 @@ from behaviors.regions import (
     is_region_purified,
 )
 
-from behaviors.factions import (
+from .factions import (
     get_faction_reputation,
     modify_faction_reputation,
     get_faction_for_actor,
     get_faction_disposition,
 )
 
-from behaviors.world_events import (
+from .world_events import (
     initialize_world_events,
     check_ending_conditions,
     cancel_spore_spread,

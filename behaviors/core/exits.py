@@ -7,6 +7,7 @@ Exits can be referenced by direction (north, up) or by structure name
 
 from typing import Dict, Any
 
+from src.action_types import ActionDict
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
 from src.hooks import LOCATION_ENTERED
@@ -254,6 +255,14 @@ def handle_go(accessor, action):
                 message=f"You don't see any {get_display_name(object_name)} here to go through."
             )
         direction, exit_descriptor = exit_result
+        # Check for ambiguity
+        if direction is None and isinstance(exit_descriptor, list):
+            exit_names = exit_descriptor
+            names_str = " or ".join(f'"{name}"' for name in exit_names)
+            return HandlerResult(
+                success=False,
+                message=f"Which {object_name} do you mean: {names_str}?"
+            )
     else:
         # Try to match as a compass direction first
         visible_exits = accessor.get_visible_exits(current_location.id, actor_id)
@@ -272,6 +281,14 @@ def handle_go(accessor, action):
                     message=f"You can't go {get_display_name(object_name)} from here."
                 )
             direction, exit_descriptor = exit_result
+            # Check for ambiguity
+            if direction is None and isinstance(exit_descriptor, list):
+                exit_names = exit_descriptor
+                names_str = " or ".join(f'"{name}"' for name in exit_names)
+                return HandlerResult(
+                    success=False,
+                    message=f"Which {object_name} do you mean: {names_str}?"
+                )
 
     # Perform the movement using shared helper
     return _perform_exit_movement(accessor, actor, actor_id, exit_descriptor, direction, f"go {direction}")
@@ -284,9 +301,10 @@ def handle_climb(accessor, action):
     Allows an actor to climb a climbable object or exit (like stairs).
 
     Search order:
-    1. Look for a climbable Item (property "climbable": true)
-    2. Look for an exit by name (e.g., "stairs" matches "spiral staircase")
+    1. Look for an exit by name (e.g., "stairs" matches "spiral staircase")
        - If exit found, move the actor to that destination
+    2. If not an exit, return empty failure so other handlers can try
+       (e.g., spatial.py handles climbable items)
 
     Args:
         accessor: StateAccessor instance
@@ -307,12 +325,12 @@ def handle_climb(accessor, action):
 
     object_name = action.get("object")
     adjective = action.get("adjective")
-    verb = action.get("verb", "climb")
 
     # Try to find an exit by name
     # NOTE: This handler only handles exit navigation.
     # If the target isn't an exit, we return failure so other handlers can try.
     exit_result = find_exit_by_name(accessor, object_name, actor_id, adjective)
+
     if not exit_result:
         # Not an exit - return failure silently so other handlers can try
         return HandlerResult(
@@ -320,23 +338,19 @@ def handle_climb(accessor, action):
             message=""
         )
 
-    if exit_result:
-        direction, exit_descriptor = exit_result
-        # Perform the movement using shared helper
-        return _perform_exit_movement(accessor, actor, actor_id, exit_descriptor, direction, "climb the")
-
-    # Neither climbable item nor exit found
-    if item:
-        # Found an item but it's not climbable
+    # Check for ambiguity - exit_result is (None, list_of_names) when ambiguous
+    direction, exit_descriptor = exit_result
+    if direction is None and isinstance(exit_descriptor, list):
+        # Ambiguous - multiple exits match
+        exit_names = exit_descriptor
+        names_str = " or ".join(f'"{name}"' for name in exit_names)
         return HandlerResult(
             success=False,
-            message=f"You can't climb the {item.name}."
+            message=f"Which stairs do you mean: {names_str}?"
         )
 
-    return HandlerResult(
-        success=False,
-        message=f"You don't see any {get_display_name(object_name)} here to climb."
-    )
+    # Perform the movement using shared helper
+    return _perform_exit_movement(accessor, actor, actor_id, exit_descriptor, direction, "climb the")
 
 
 # Direction handlers - each delegates to shared helper
