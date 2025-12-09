@@ -9,6 +9,7 @@ import json
 import random
 from typing import Any, Dict, List, Optional
 
+from .types import ActorId, EventName, HookName
 from .state_manager import GameState
 from .behavior_manager import BehaviorManager
 from .word_entry import WordEntry, WordType
@@ -231,8 +232,8 @@ class LLMProtocolHandler:
             return result
 
         # Build event name and context
-        event_name = f"on_{verb}"
-        player = self.state.actors.get("player")
+        event_name = EventName(f"on_{verb}")
+        player = self.state.actors.get(ActorId("player"))
         context = {
             "location": player.location if player else "",
             "verb": verb
@@ -283,7 +284,7 @@ class LLMProtocolHandler:
         messages = []
 
         for hook_name in self.TURN_PHASE_HOOKS:
-            event_name = self.behavior_manager.get_event_for_hook(hook_name)
+            event_name = self.behavior_manager.get_event_for_hook(HookName(hook_name))
             if event_name:
                 # Build context for the turn phase
                 context = {
@@ -483,7 +484,7 @@ class LLMProtocolHandler:
 
     def _get_current_location(self):
         """Get current location object."""
-        player = self.state.actors.get("player")
+        player = self.state.actors.get(ActorId("player"))
         if not player:
             return None
         for loc in self.state.locations:
@@ -516,7 +517,7 @@ class LLMProtocolHandler:
         """Get actor by ID (excludes player)."""
         if actor_id == "player":
             return None
-        return self.state.actors.get(actor_id)
+        return self.state.actors.get(ActorId(actor_id))
 
     def _get_lock_by_id(self, lock_id: str):
         """Get lock by ID."""

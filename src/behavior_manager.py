@@ -8,6 +8,7 @@ from pathlib import Path
 
 # Import EventResult from state_accessor to avoid duplication
 from src.state_accessor import EventResult
+from src.types import EventName, HookName
 
 
 @dataclass
@@ -628,22 +629,23 @@ class BehaviorManager:
         """Get metadata for a registered event."""
         return self._event_registry.get(event_name)
 
-    def has_event(self, event_name: str) -> bool:
+    def has_event(self, event_name: EventName) -> bool:
         """Check if an event is registered."""
         return event_name in self._event_registry
 
-    def get_event_for_hook(self, hook_name: str) -> Optional[str]:
+    def get_event_for_hook(self, hook_name: HookName) -> Optional[EventName]:
         """Get event name for an engine hook. Returns None if hook not registered."""
         entry = self._hook_to_event.get(hook_name)
-        return entry[0] if entry else None
+        return EventName(entry[0]) if entry else None
 
-    def get_fallback_event(self, event_name: str) -> Optional[str]:
+    def get_fallback_event(self, event_name: EventName) -> Optional[EventName]:
         """Get fallback event for an event. Returns None if no fallback."""
-        return self._fallback_events.get(event_name)
+        fallback = self._fallback_events.get(event_name)
+        return EventName(fallback) if fallback else None
 
-    def get_hooks(self) -> List[str]:
+    def get_hooks(self) -> List[HookName]:
         """Return list of all registered hook names."""
-        return list(self._hook_to_event.keys())
+        return [HookName(k) for k in self._hook_to_event.keys()]
 
     def validate_on_prefix_usage(self) -> None:
         """
@@ -698,7 +700,7 @@ class BehaviorManager:
     def invoke_behavior(
         self,
         entity: Any,
-        event_name: str,
+        event_name: EventName,
         accessor: Any,
         context: Dict[str, Any]
     ) -> Optional[EventResult]:
@@ -735,7 +737,7 @@ class BehaviorManager:
     def _invoke_behavior_internal(
         self,
         entity: Any,
-        event_name: str,
+        event_name: EventName,
         accessor: Any,
         context: Dict[str, Any]
     ) -> Optional[EventResult]:

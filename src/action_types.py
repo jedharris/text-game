@@ -11,6 +11,7 @@ appears, it indicates a bug in the calling code.
 from typing import Optional
 from typing_extensions import TypedDict
 
+from src.types import ActorId
 from src.word_entry import WordEntry
 
 
@@ -35,7 +36,7 @@ class ActionDict(TypedDict, total=False):
         - 'indirect_object' is always WordEntry or absent (never str)
         - Adjectives and prepositions remain as str
     """
-    actor_id: str
+    actor_id: ActorId
     verb: str
     object: Optional[WordEntry]
     adjective: str

@@ -6,6 +6,8 @@ Does not validate behavior-specific properties.
 """
 from typing import Dict, List, Set, Any, Optional, TYPE_CHECKING
 
+from src.types import ActorId, ItemId
+
 # Prohibited actor names (case-insensitive)
 # These create ambiguity with self-reference or generic terms
 PROHIBITED_ACTOR_NAMES = {"player", "npc", "self", "me", "myself"}
@@ -254,7 +256,7 @@ def _validate_metadata(state: "GameState", registry: Dict[str, str],
 def _validate_player_state(state: "GameState", registry: Dict[str, str],
                            errors: List[str]) -> None:
     """Validate player state references."""
-    player = state.actors.get("player")
+    player = state.actors.get(ActorId("player"))
     if not player:
         return
 
@@ -292,8 +294,8 @@ def _validate_container_cycles(state: "GameState", errors: List[str]) -> None:
     for item in state.items:
         if item.location in item_ids:
             # This item is inside another item, check for cycle
-            visited: Set[str] = set()
-            current = item.id
+            visited: Set[ItemId] = set()
+            current: Optional[ItemId] = item.id
 
             while current:
                 if current in visited:
@@ -308,7 +310,7 @@ def _validate_container_cycles(state: "GameState", errors: List[str]) -> None:
                     (i for i in state.items if i.id == current), None
                 )
                 if current_item and current_item.location in item_ids:
-                    current = current_item.location
+                    current = ItemId(current_item.location)
                 else:
                     break
 

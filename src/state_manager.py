@@ -8,6 +8,8 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Union
 from pathlib import Path
 
+from src.types import LocationId, ActorId, ItemId, LockId, PartId, ExitId
+
 
 # Exceptions
 class ValidationError(Exception):
@@ -64,22 +66,22 @@ class Metadata:
 class ExitDescriptor:
     """Exit descriptor for location connections."""
     type: str  # "open" or "door"
-    to: Optional[str] = None
-    door_id: Optional[str] = None
+    to: Optional[LocationId] = None
+    door_id: Optional[ItemId] = None
     name: str = ""  # User-facing name e.g. "spiral staircase", "stone archway"
     description: str = ""  # Prose description for examine
     properties: Dict[str, Any] = field(default_factory=dict)
     behaviors: List[str] = field(default_factory=list)
     # Internal fields for id synthesis - set by parser
     _direction: str = field(default="", repr=False)
-    _location_id: str = field(default="", repr=False)
+    _location_id: LocationId = field(default=LocationId(""), repr=False)
 
     @property
-    def id(self) -> str:
+    def id(self) -> ExitId:
         """Synthesized ID from location and direction."""
         if self._location_id and self._direction:
-            return f"exit:{self._location_id}:{self._direction}"
-        return ""
+            return ExitId(f"exit:{self._location_id}:{self._direction}")
+        return ExitId("")
 
     @property
     def states(self) -> Dict[str, Any]:
@@ -107,11 +109,11 @@ class ExitDescriptor:
 @dataclass
 class Location:
     """Location in the game world."""
-    id: str
+    id: LocationId
     name: str
     description: str
     exits: Dict[str, ExitDescriptor] = field(default_factory=dict)
-    items: List[str] = field(default_factory=list)
+    items: List[ItemId] = field(default_factory=list)
     properties: Dict[str, Any] = field(default_factory=dict)
     behaviors: List[str] = field(default_factory=list)
 
@@ -141,10 +143,10 @@ class Location:
 @dataclass
 class Item:
     """Item in the game world."""
-    id: str
+    id: ItemId
     name: str
     description: str
-    location: str
+    location: str  # Can be LocationId, ActorId, ItemId (container), or exit string
     properties: Dict[str, Any] = field(default_factory=dict)
     behaviors: List[str] = field(default_factory=list)
 
@@ -253,14 +255,14 @@ class Item:
 @dataclass
 class Lock:
     """Lock mechanism."""
-    id: str
+    id: LockId
     name: str
     description: str
     properties: Dict[str, Any] = field(default_factory=dict)
     behaviors: List[str] = field(default_factory=list)
 
     @property
-    def opens_with(self) -> List[str]:
+    def opens_with(self) -> List[ItemId]:
         """Access opens_with from properties."""
         return self.properties.get("opens_with", [])
 
@@ -305,9 +307,9 @@ class Lock:
 @dataclass
 class Part:
     """A spatial component of another entity (room, item, container, actor)."""
-    id: str
+    id: PartId
     name: str
-    part_of: str  # Parent entity ID
+    part_of: str  # Parent entity ID (can be LocationId, ItemId, or ActorId)
     properties: Dict[str, Any] = field(default_factory=dict)
     behaviors: List[str] = field(default_factory=list)
 
@@ -337,11 +339,11 @@ class Part:
 @dataclass
 class Actor:
     """Unified actor (player or NPC)."""
-    id: str
+    id: ActorId
     name: str
     description: str
-    location: str
-    inventory: List[str] = field(default_factory=list)
+    location: LocationId
+    inventory: List[ItemId] = field(default_factory=list)
     properties: Dict[str, Any] = field(default_factory=dict)
     behaviors: List[str] = field(default_factory=list)
 
@@ -399,45 +401,45 @@ class GameState:
     locations: List[Location] = field(default_factory=list)
     items: List[Item] = field(default_factory=list)
     locks: List[Lock] = field(default_factory=list)
-    actors: Dict[str, Actor] = field(default_factory=dict)
+    actors: Dict[ActorId, Actor] = field(default_factory=dict)
     parts: List[Part] = field(default_factory=list)
     extra: Dict[str, Any] = field(default_factory=dict)
     turn_count: int = 0
 
-    def get_actor(self, actor_id: str) -> Actor:
+    def get_actor(self, actor_id: ActorId) -> Actor:
         """Get actor by ID."""
         actor = self.actors.get(actor_id)
         if actor:
             return actor
         raise KeyError(f"Actor not found: {actor_id}")
 
-    def get_item(self, item_id: str) -> Item:
+    def get_item(self, item_id: ItemId) -> Item:
         """Get item by ID."""
         for item in self.items:
             if item.id == item_id:
                 return item
         raise KeyError(f"Item not found: {item_id}")
 
-    def get_location(self, location_id: str) -> Location:
+    def get_location(self, location_id: LocationId) -> Location:
         """Get location by ID."""
         for loc in self.locations:
             if loc.id == location_id:
                 return loc
         raise KeyError(f"Location not found: {location_id}")
 
-    def get_lock(self, lock_id: str) -> Lock:
+    def get_lock(self, lock_id: LockId) -> Lock:
         """Get lock by ID."""
         for lock in self.locks:
             if lock.id == lock_id:
                 return lock
         raise KeyError(f"Lock not found: {lock_id}")
 
-    def move_item(self, item_id: str, to_player: bool = False,
-                  to_location: Optional[str] = None, to_container: Optional[str] = None) -> None:
+    def move_item(self, item_id: ItemId, to_player: bool = False,
+                  to_location: Optional[LocationId] = None, to_container: Optional[ItemId] = None) -> None:
         """Move item to new location."""
         item = self.get_item(item_id)
         old_location = item.location
-        player = self.actors.get("player")
+        player = self.actors.get(ActorId("player"))
 
         # Remove from old location
         if old_location == "player" and player:
@@ -463,15 +465,15 @@ class GameState:
         elif to_container:
             item.location = to_container
 
-    def set_player_location(self, location_id: str) -> None:
+    def set_player_location(self, location_id: LocationId) -> None:
         """Set player's current location."""
-        player = self.actors.get("player")
+        player = self.actors.get(ActorId("player"))
         if player:
             player.location = location_id
 
     def set_flag(self, flag_name: str, value: Any) -> None:
         """Set a player flag."""
-        player = self.actors.get("player")
+        player = self.actors.get(ActorId("player"))
         if player:
             if "flags" not in player.properties:
                 player.properties["flags"] = {}
@@ -479,7 +481,7 @@ class GameState:
 
     def get_flag(self, flag_name: str, default: Any = None) -> Any:
         """Get a player flag."""
-        player = self.actors.get("player")
+        player = self.actors.get(ActorId("player"))
         if player:
             flags = player.properties.get("flags", {})
             return flags.get(flag_name, default)
@@ -524,16 +526,19 @@ def _parse_exit(direction: str, raw: Dict[str, Any], location_id: str = "") -> E
     """
     core_fields = {'type', 'to', 'door_id', 'name', 'description', 'behaviors'}
 
+    to_loc = raw.get('to')
+    door = raw.get('door_id')
+
     return ExitDescriptor(
         type=raw.get('type', 'open'),
-        to=raw.get('to'),
-        door_id=raw.get('door_id'),
+        to=LocationId(to_loc) if to_loc else None,
+        door_id=ItemId(door) if door else None,
         name=raw.get('name', direction),  # Default to direction if no name
         description=raw.get('description', ''),
         properties=_parse_properties(raw, core_fields),
         behaviors=raw.get('behaviors', []),
         _direction=direction,
-        _location_id=location_id
+        _location_id=LocationId(location_id) if location_id else LocationId("")
     )
 
 
@@ -552,13 +557,14 @@ def _parse_location(raw: Dict[str, Any]) -> Location:
 
     # Parse behaviors - keep as-is (supports both dict and list)
     behaviors = raw.get('behaviors', [])
+    items = raw.get('items', [])
 
     return Location(
-        id=location_id,
+        id=LocationId(location_id),
         name=raw.get('name', ''),
         description=raw.get('description', ''),
         exits=exits,
-        items=raw.get('items', []),
+        items=[ItemId(i) for i in items],
         properties=_parse_properties(raw, core_fields),
         behaviors=behaviors
     )
@@ -594,10 +600,10 @@ def _parse_item(raw: Dict[str, Any]) -> Item:
     behaviors = raw.get('behaviors', [])
 
     return Item(
-        id=raw['id'],
+        id=ItemId(raw['id']),
         name=raw.get('name', ''),
         description=raw.get('description', ''),
-        location=raw.get('location', ''),
+        location=raw.get('location', ''),  # Keep as str - can be various ID types
         properties=_parse_properties(raw, core_fields),
         behaviors=behaviors
     )
@@ -609,7 +615,7 @@ def _parse_lock(raw: Dict[str, Any]) -> Lock:
 
     lock_id = raw['id']
     return Lock(
-        id=lock_id,
+        id=LockId(lock_id),
         name=raw.get('name', lock_id),  # Default to id if no name
         description=raw.get('description', ''),
         properties=_parse_properties(raw, core_fields),
@@ -632,12 +638,14 @@ def _parse_actor(raw: Dict[str, Any], actor_id: Optional[str] = None) -> Actor:
     # Default name: use provided name, or "Adventurer" for player, or ID for others
     # "player" is a prohibited name, so we must use a different default
     default_name = "Adventurer" if effective_id == "player" else effective_id
+    location = raw.get('location', '')
+    inventory = raw.get('inventory', [])
     return Actor(
-        id=effective_id,
+        id=ActorId(effective_id),
         name=raw.get('name', default_name),
         description=raw.get('description', ''),
-        location=raw.get('location', ''),
-        inventory=raw.get('inventory', []),
+        location=LocationId(location) if location else LocationId(""),
+        inventory=[ItemId(i) for i in inventory],
         properties=_parse_properties(raw, core_fields),
         behaviors=raw.get('behaviors', [])
     )
@@ -683,24 +691,24 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
     parts = []
     for part_data in data.get('parts', []):
         part = Part(
-            id=part_data['id'],
+            id=PartId(part_data['id']),
             name=part_data['name'],
-            part_of=part_data['part_of'],
+            part_of=part_data['part_of'],  # Keep as str - can be various ID types
             properties=part_data.get('properties', {}),
             behaviors=part_data.get('behaviors', [])
         )
         parts.append(part)
 
     # Parse actors from actors dict (required format - no legacy support)
-    actors = {}
+    actors: Dict[ActorId, Actor] = {}
 
     if 'actors' not in data:
         raise ValueError("game_state.json must have 'actors' dict")
 
     for actor_id, actor_data in data['actors'].items():
-        actors[actor_id] = _parse_actor(actor_data, actor_id=actor_id)
+        actors[ActorId(actor_id)] = _parse_actor(actor_data, actor_id=actor_id)
 
-    if 'player' not in actors:
+    if ActorId('player') not in actors:
         raise ValueError("actors dict must contain 'player' entry")
 
     state = GameState(
