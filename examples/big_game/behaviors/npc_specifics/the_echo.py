@@ -165,31 +165,34 @@ def get_echo_message(accessor) -> Optional[str]:
     return '\n\n'.join(messages)
 
 
-def on_turn_end_echo_appearance(entity, accessor, context: dict) -> EventResult:
+def npc_take_action(entity, accessor, context: dict) -> EventResult:
     """
-    Hook handler - The Echo appears intermittently in Nexus locations.
+    Entity behavior - The Echo appears intermittently in Nexus locations.
 
-    This should be registered for the NPC_ACTION hook.
+    This is called during the NPC action phase for The Echo specifically.
+    The Echo doesn't attack like other NPCs - instead it may appear or disappear.
 
     Args:
-        entity: Ignored (entity is None for turn phase hooks)
+        entity: The Echo actor (must be npc_mn_the_echo)
         accessor: StateAccessor instance
         context: Context dict
 
     Returns:
         EventResult with appearance message if Echo appears
     """
-    player = accessor.get_actor('player')
-    echo = accessor.get_actor('npc_mn_the_echo')
+    # Only handle The Echo
+    if not entity or entity.id != 'npc_mn_the_echo':
+        return EventResult(allow=True, message='')
 
-    if not player or not echo:
+    player = accessor.get_actor('player')
+    if not player:
         return EventResult(allow=True, message='')
 
     # Only appear in Nexus locations
     if player.location not in NEXUS_LOCATIONS:
         # If Echo was visible, hide it
-        if echo.location is not None:
-            echo.location = None
+        if entity.location is not None:
+            entity.location = None
         return EventResult(allow=True, message='')
 
     # Calculate appearance chance
@@ -198,12 +201,10 @@ def on_turn_end_echo_appearance(entity, accessor, context: dict) -> EventResult:
     # Roll for appearance
     if random.random() < chance:
         # Echo appears!
-        old_location = echo.location
-        echo.location = player.location
+        entity.location = player.location
 
         # Set flag for first meeting
         flags = accessor.game_state.extra.setdefault('flags', {})
-        first_meeting = not flags.get('met_the_echo', False)
         flags['met_the_echo'] = True
 
         # Get appropriate message
@@ -213,8 +214,8 @@ def on_turn_end_echo_appearance(entity, accessor, context: dict) -> EventResult:
 
     else:
         # Echo doesn't appear (or disappears if was present)
-        if echo.location is not None:
-            echo.location = None
+        if entity.location is not None:
+            entity.location = None
             return EventResult(
                 allow=True,
                 message="The Echo's form flickers and fades from view."
@@ -223,13 +224,6 @@ def on_turn_end_echo_appearance(entity, accessor, context: dict) -> EventResult:
     return EventResult(allow=True, message='')
 
 
-# Vocabulary extension
-vocabulary = {
-    "events": [
-        {
-            "event": "on_turn_end_echo_appearance",
-            "hook": "npc_action",
-            "description": "The Echo appears intermittently in Nexus locations"
-        }
-    ]
-}
+# No vocabulary needed - this module provides an npc_take_action behavior
+# that overrides the default hostile attack behavior for The Echo
+vocabulary = {}

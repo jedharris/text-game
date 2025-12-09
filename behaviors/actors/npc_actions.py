@@ -78,6 +78,10 @@ def fire_npc_actions(entity, accessor, context):
     This is called by the NPC_ACTION hook after each successful command.
     It fires npc_take_action on all NPCs, with alphas processed first.
 
+    For each NPC, this first tries to invoke the npc_take_action behavior
+    on the entity (allowing custom behaviors like The Echo's appearance).
+    If no entity behavior handles it, falls back to the default hostile attack.
+
     Args:
         entity: Not used (turn phase has no specific entity)
         accessor: StateAccessor for querying actors
@@ -109,7 +113,16 @@ def fire_npc_actions(entity, accessor, context):
         # (alphas already processed first due to sorting)
         sync_follower_disposition(accessor, npc)
 
-        result = npc_take_action(npc, accessor, context)
+        # First try entity-specific behavior via behavior manager
+        # This allows NPCs like The Echo to have custom action behaviors
+        result = accessor.behavior_manager.invoke_behavior(
+            npc, "npc_take_action", accessor, context
+        )
+
+        # If no entity behavior handled it, use default hostile attack logic
+        if not result or not result.message:
+            result = npc_take_action(npc, accessor, context)
+
         if result and result.message:
             messages.append(result.message)
 

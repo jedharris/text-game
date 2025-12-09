@@ -3497,7 +3497,7 @@
         ]
       },
       "behaviors": [
-        "big_game.behaviors.npc_specifics.the_echo"
+        "behaviors.npc_specifics.the_echo"
       ]
     },
     "faction_keepers": {
@@ -6520,10 +6520,10 @@
     "behavior_libraries.crafting_lib",
     "behavior_libraries.darkness_lib",
     "behavior_libraries.npc_movement_lib",
-    "big_game.behaviors.regions",
-    "big_game.behaviors.factions",
-    "big_game.behaviors.world_events",
-    "big_game.behaviors.npc_specifics.the_echo"
+    "behaviors.regions",
+    "behaviors.factions",
+    "behaviors.world_events",
+    "behaviors.npc_specifics.the_echo"
   ],
   "parts": [
     {
