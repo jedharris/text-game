@@ -415,7 +415,7 @@ class BehaviorManager:
         Map vocabulary section name to type string.
 
         Args:
-            section: Section name (verbs, nouns, adjectives, directions)
+            section: Section name (verbs, nouns, adjectives)
 
         Returns:
             Type string (verb, noun, adjective)
@@ -424,7 +424,6 @@ class BehaviorManager:
             "verbs": "verb",
             "nouns": "noun",
             "adjectives": "adjective",
-            "directions": "noun"  # Directions are nouns by default
         }
         return mapping.get(section, "noun")
 
@@ -446,7 +445,6 @@ class BehaviorManager:
             "verbs": [],
             "nouns": [],
             "adjectives": [],
-            "directions": [],
             "prepositions": [],
             "articles": []
         }
@@ -493,7 +491,7 @@ class BehaviorManager:
         word_map = {}
 
         # Add base vocab
-        for section in ["verbs", "nouns", "adjectives", "directions"]:
+        for section in ["verbs", "nouns", "adjectives"]:
             for entry in base_vocab.get(section, []):
                 word = entry["word"]
                 entry_copy = entry.copy()
@@ -512,7 +510,7 @@ class BehaviorManager:
             if not isinstance(ext, dict):
                 continue
 
-            for section in ["verbs", "nouns", "adjectives", "directions"]:
+            for section in ["verbs", "nouns", "adjectives"]:
                 for entry in ext.get(section, []):
                     word = entry["word"]
                     entry_copy = entry.copy()
@@ -550,7 +548,7 @@ class BehaviorManager:
         result = self._rebuild_vocab_from_map(word_map)
 
         # Clean up internal tracking fields
-        for section in ["verbs", "nouns", "adjectives", "directions"]:
+        for section in ["verbs", "nouns", "adjectives"]:
             for entry in result[section]:
                 if "_original_section" in entry:
                     del entry["_original_section"]

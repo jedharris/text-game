@@ -43,8 +43,7 @@ vocabulary = {
         }
     ],
     "nouns": [],
-    "adjectives": [],
-    "directions": []
+    "adjectives": []
 }
 
 

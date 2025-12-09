@@ -62,11 +62,6 @@ class TestSectionToType(unittest.TestCase):
         bm = BehaviorManager()
         self.assertEqual(bm._section_to_type("adjectives"), "adjective")
 
-    def test_directions_section(self):
-        """Directions section maps to 'noun'."""
-        bm = BehaviorManager()
-        self.assertEqual(bm._section_to_type("directions"), "noun")
-
     def test_unknown_section(self):
         """Unknown section defaults to 'noun'."""
         bm = BehaviorManager()
@@ -144,7 +139,6 @@ class TestGetMergedVocabulary(unittest.TestCase):
             "verbs": [{"word": "take", "synonyms": []}],
             "nouns": [{"word": "sword", "synonyms": []}],
             "adjectives": [],
-            "directions": [],
             "prepositions": [],
             "articles": []
         }
@@ -167,7 +161,6 @@ class TestGetMergedVocabulary(unittest.TestCase):
             "verbs": [],
             "nouns": [{"word": "stand", "synonyms": []}],
             "adjectives": [],
-            "directions": [],
             "prepositions": [],
             "articles": []
         }
@@ -177,8 +170,7 @@ class TestGetMergedVocabulary(unittest.TestCase):
             vocabulary = {
                 "verbs": [{"word": "stand", "event": "on_stand", "synonyms": []}],
                 "nouns": [],
-                "adjectives": [],
-                "directions": []
+                "adjectives": []
             }
 
         bm._modules = {"mock": MockModule()}
@@ -192,14 +184,13 @@ class TestGetMergedVocabulary(unittest.TestCase):
         self.assertEqual(stand_entry["event"], "on_stand")  # Preserves verb properties
 
     def test_noun_adjective_conflict(self):
-        """Noun-adjective conflict (directions) creates multi-type entry."""
+        """Noun-adjective conflict creates multi-type entry."""
         bm = BehaviorManager()
 
         base_vocab = {
             "verbs": [],
             "nouns": [],
             "adjectives": [],
-            "directions": [],
             "prepositions": [],
             "articles": []
         }
@@ -209,8 +200,7 @@ class TestGetMergedVocabulary(unittest.TestCase):
             vocabulary = {
                 "verbs": [],
                 "nouns": [{"word": "north", "synonyms": ["n"]}],
-                "adjectives": [{"word": "north", "synonyms": []}],
-                "directions": []
+                "adjectives": [{"word": "north", "synonyms": []}]
             }
 
         bm._modules = {"mock": MockModule()}
@@ -236,7 +226,6 @@ class TestGetMergedVocabulary(unittest.TestCase):
             "verbs": [],
             "nouns": [{"word": "stand", "synonyms": ["pedestal"]}],
             "adjectives": [],
-            "directions": [],
             "prepositions": [],
             "articles": []
         }
@@ -245,8 +234,7 @@ class TestGetMergedVocabulary(unittest.TestCase):
             vocabulary = {
                 "verbs": [{"word": "stand", "synonyms": ["get on"], "event": "on_stand"}],
                 "nouns": [],
-                "adjectives": [],
-                "directions": []
+                "adjectives": []
             }
 
         bm._modules = {"mock": MockModule()}

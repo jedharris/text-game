@@ -71,7 +71,6 @@ vocabulary = {
     ],
     "nouns": [],
     "adjectives": [],
-    "directions": [],
     "events": [
         {
             "event": "on_observe",

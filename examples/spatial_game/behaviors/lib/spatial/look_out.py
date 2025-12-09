@@ -10,11 +10,10 @@ from src.state_accessor import HandlerResult
 
 
 # No vocabulary needed - relies on handler chaining with core look handler
-vocabulary = {
+vocabulary: Dict[str, Any] = {
     "verbs": [],
     "nouns": [],
-    "adjectives": [],
-    "directions": []
+    "adjectives": []
 }
 
 

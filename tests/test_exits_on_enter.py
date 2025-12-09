@@ -76,7 +76,7 @@ class TestOnEnterEvent(unittest.TestCase):
             )
 
         windy_room_module.on_enter = on_enter
-        windy_room_module.vocabulary = {"verbs": [], "nouns": [], "adjectives": [], "directions": []}
+        windy_room_module.vocabulary = {"verbs": [], "nouns": [], "adjectives": []}
 
         # Register the behavior module
         self.behavior_manager._modules["windy_room"] = windy_room_module

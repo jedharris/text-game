@@ -101,8 +101,7 @@ vocabulary = {
     "adjectives": [
         # "open" as adjective (e.g., "open door")
         {"word": "open", "synonyms": []}
-    ],
-    "directions": []
+    ]
 }
 
 

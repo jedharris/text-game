@@ -424,11 +424,11 @@ class LLMProtocolHandler:
         """Query game vocabulary.
 
         Returns merged vocabulary from vocabulary.json and behavior modules.
-        Includes verbs with their synonyms, required parameters, and directions.
+        Includes verbs with their synonyms and required parameters.
 
-        NOTE: Directions are now first-class nouns with multi-valued word_type.
-        They are extracted from the nouns list by checking for word_type containing
-        both "noun" and "adjective".
+        NOTE: Directions are regular nouns defined in behaviors/core/exits.py
+        with multi-valued word_type ["noun", "adjective", "verb"]. They appear
+        in the verbs list since they can be used as bare commands (e.g., "north").
         """
         from pathlib import Path
         import json
@@ -458,28 +458,11 @@ class LLMProtocolHandler:
                 "object_required": verb_data.get("object_required", False)
             }
 
-        # Extract directions (directions have multi-valued word_type with "noun" and "adjective")
-        # Check all sections since merged words might end up in verbs or nouns section
-        directions = {}
-        for section in ["verbs", "nouns"]:
-            for word_data in vocab.get(section, []):
-                word_type = word_data.get("word_type")
-                # Check if word_type is a list containing both "noun" and "adjective"
-                if isinstance(word_type, list):
-                    word_type_lower = [wt.lower() for wt in word_type]
-                    if "noun" in word_type_lower and "adjective" in word_type_lower:
-                        # This is a direction
-                        word = word_data["word"]
-                        directions[word] = {
-                            "synonyms": word_data.get("synonyms", [])
-                        }
-
         return {
             "type": "query_response",
             "query_type": "vocabulary",
             "data": {
-                "verbs": verbs,
-                "directions": directions
+                "verbs": verbs
             }
         }
 

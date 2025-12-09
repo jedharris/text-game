@@ -148,7 +148,6 @@ class TestMetaVocabulary(unittest.TestCase):
         self.assertIn("verbs", vocab)
         self.assertIn("nouns", vocab)
         self.assertIn("adjectives", vocab)
-        self.assertIn("directions", vocab)
 
     def test_vocabulary_has_quit_verb(self):
         """Test vocabulary includes quit verb with synonyms."""
@@ -188,7 +187,6 @@ class TestMetaVocabulary(unittest.TestCase):
 
         self.assertEqual(vocab["nouns"], [])
         self.assertEqual(vocab["adjectives"], [])
-        self.assertEqual(vocab["directions"], [])
 
 
 class TestMetaBehaviorLoading(unittest.TestCase):

@@ -83,7 +83,7 @@ class TestBehaviorManagerLoadModule(unittest.TestCase):
         with patch('importlib.import_module', return_value=mock_module):
             manager.load_module("test.module")
 
-        base_vocab = {"verbs": [], "directions": []}
+        base_vocab = {"verbs": []}
         merged = manager.get_merged_vocabulary(base_vocab)
 
         self.assertTrue(any(v["word"] == "squeeze" for v in merged["verbs"]))
@@ -313,15 +313,14 @@ class TestBehaviorManagerVocabulary(unittest.TestCase):
 
         mock_module = MagicMock()
         mock_module.vocabulary = {
-            "verbs": [{"word": "squeeze", "object_required": True}],
-            "directions": []
+            "verbs": [{"word": "squeeze", "object_required": True}]
         }
         mock_module.__dir__ = lambda self=None: []
 
         with patch('importlib.import_module', return_value=mock_module):
             manager.load_module("test.module")
 
-        base = {"verbs": [], "directions": []}
+        base = {"verbs": []}
         merged = manager.get_merged_vocabulary(base)
 
         self.assertEqual(len(merged["verbs"]), 1)
@@ -341,8 +340,7 @@ class TestBehaviorManagerVocabulary(unittest.TestCase):
             manager.load_module("test.module")
 
         base = {
-            "verbs": [{"word": "take"}, {"word": "drop"}],
-            "directions": [{"word": "north"}]
+            "verbs": [{"word": "take"}, {"word": "drop"}]
         }
         merged = manager.get_merged_vocabulary(base)
 
@@ -350,7 +348,6 @@ class TestBehaviorManagerVocabulary(unittest.TestCase):
         self.assertIn("take", words)
         self.assertIn("drop", words)
         self.assertIn("squeeze", words)
-        self.assertEqual(len(merged["directions"]), 1)
 
     def test_merge_vocabulary_no_duplicates(self):
         """Test that duplicate verbs are not added."""
@@ -365,7 +362,7 @@ class TestBehaviorManagerVocabulary(unittest.TestCase):
         with patch('importlib.import_module', return_value=mock_module):
             manager.load_module("test.module")
 
-        base = {"verbs": [{"word": "take"}], "directions": []}
+        base = {"verbs": [{"word": "take"}]}
         merged = manager.get_merged_vocabulary(base)
 
         # Should still only have one "take"
@@ -391,33 +388,12 @@ class TestBehaviorManagerVocabulary(unittest.TestCase):
             # load_modules expects list of (module_path, source_type) tuples
             manager.load_modules([("module1", "regular"), ("module2", "regular")])
 
-        base = {"verbs": [], "directions": []}
+        base = {"verbs": []}
         merged = manager.get_merged_vocabulary(base)
 
         words = [v["word"] for v in merged["verbs"]]
         self.assertIn("squeeze", words)
         self.assertIn("shake", words)
-
-    def test_merge_vocabulary_with_directions(self):
-        """Test merging vocabulary that includes directions."""
-        manager = BehaviorManager()
-
-        mock_module = MagicMock()
-        mock_module.vocabulary = {
-            "verbs": [],
-            "directions": [{"word": "teleport", "synonyms": ["warp"]}]
-        }
-        mock_module.__dir__ = lambda self=None: []
-
-        with patch('importlib.import_module', return_value=mock_module):
-            manager.load_module("test.module")
-
-        base = {"verbs": [], "directions": [{"word": "north"}]}
-        merged = manager.get_merged_vocabulary(base)
-
-        dirs = [d["word"] for d in merged["directions"]]
-        self.assertIn("north", dirs)
-        self.assertIn("teleport", dirs)
 
 
 class TestBehaviorManagerHandlers(unittest.TestCase):
@@ -623,7 +599,7 @@ class TestBehaviorManagerIntegration(unittest.TestCase):
             self.assertTrue(manager.has_handler("squeeze"))
 
             # Verify vocabulary merged
-            merged = manager.get_merged_vocabulary({"verbs": [], "directions": []})
+            merged = manager.get_merged_vocabulary({"verbs": []})
             self.assertTrue(any(v["word"] == "squeeze" for v in merged["verbs"]))
 
             # Invoke behavior

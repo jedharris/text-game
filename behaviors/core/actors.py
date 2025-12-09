@@ -15,6 +15,5 @@ vocabulary = {
             }
         }
     ],
-    "adjectives": [],
-    "directions": []
+    "adjectives": []
 }

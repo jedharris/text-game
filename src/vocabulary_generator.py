@@ -101,7 +101,6 @@ def merge_vocabulary(base_vocab: Dict[str, Any], extracted_nouns: List[Dict[str,
         "verbs": list(base_vocab.get("verbs", [])),
         "nouns": list(base_vocab.get("nouns", [])),
         "adjectives": list(base_vocab.get("adjectives", [])),
-        "directions": list(base_vocab.get("directions", [])),
         "prepositions": list(base_vocab.get("prepositions", [])),
         "articles": list(base_vocab.get("articles", []))
     }

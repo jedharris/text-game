@@ -143,8 +143,7 @@ class TestMergeVocabulary(unittest.TestCase):
         base_vocab = {
             "verbs": [{"word": "take", "object_required": True}],
             "nouns": [{"word": "door", "value": 101}],
-            "adjectives": [],
-            "directions": []
+            "adjectives": []
         }
         extracted_nouns = [
             {"word": "lantern"},
@@ -163,8 +162,7 @@ class TestMergeVocabulary(unittest.TestCase):
         base_vocab = {
             "verbs": [{"word": "take", "object_required": True}],
             "nouns": [{"word": "door", "value": 101, "llm_context": {"traits": ["passage"]}}],
-            "adjectives": [{"word": "iron"}],
-            "directions": [{"word": "north"}]
+            "adjectives": [{"word": "iron"}]
         }
         extracted_nouns = [{"word": "lantern"}]
 
@@ -177,9 +175,6 @@ class TestMergeVocabulary(unittest.TestCase):
         # Adjectives preserved
         self.assertEqual(len(merged["adjectives"]), 1)
 
-        # Directions preserved
-        self.assertEqual(len(merged["directions"]), 1)
-
         # Base noun preserved with llm_context
         door_noun = next(n for n in merged["nouns"] if n["word"] == "door")
         self.assertEqual(door_noun["value"], 101)
@@ -190,8 +185,7 @@ class TestMergeVocabulary(unittest.TestCase):
         base_vocab = {
             "verbs": [],
             "nouns": [{"word": "key", "value": 102}],
-            "adjectives": [],
-            "directions": []
+            "adjectives": []
         }
         extracted_nouns = [
             {"word": "key"},  # Already in base
@@ -210,8 +204,7 @@ class TestMergeVocabulary(unittest.TestCase):
         base_vocab = {
             "verbs": [{"word": "take"}],
             "nouns": [{"word": "door"}],
-            "adjectives": [],
-            "directions": []
+            "adjectives": []
         }
 
         merged = merge_vocabulary(base_vocab, [])
@@ -224,8 +217,7 @@ class TestMergeVocabulary(unittest.TestCase):
         base_vocab = {
             "verbs": [{"word": "take"}],
             "nouns": [],
-            "adjectives": [],
-            "directions": []
+            "adjectives": []
         }
         extracted_nouns = [{"word": "lantern"}]
 
@@ -247,8 +239,7 @@ class TestParserWithMergedVocabulary(unittest.TestCase):
                 {"word": "take", "synonyms": ["get", "grab"], "object_required": True}
             ],
             "nouns": [{"word": "door", "value": 101}],
-            "adjectives": [],
-            "directions": []
+            "adjectives": []
         }
 
         # Extract nouns from game state
@@ -297,8 +288,7 @@ class TestParserWithMergedVocabulary(unittest.TestCase):
                 {"word": "take", "synonyms": ["get"], "object_required": True}
             ],
             "nouns": [],
-            "adjectives": [{"word": "rubber"}],  # Add as adjective for now
-            "directions": []
+            "adjectives": [{"word": "rubber"}]  # Add as adjective for now
         }
 
         game_data = {

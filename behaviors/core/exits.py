@@ -92,7 +92,6 @@ vocabulary = {
         {"word": "southeast", "synonyms": []},
         {"word": "southwest", "synonyms": []}
     ],
-    "directions": [],
     "events": [
         {
             "event": "on_enter",

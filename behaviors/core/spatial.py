@@ -110,8 +110,7 @@ vocabulary = {
             }
         }
     ],
-    "adjectives": [],
-    "directions": []
+    "adjectives": []
 }
 
 

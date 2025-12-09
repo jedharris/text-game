@@ -497,29 +497,30 @@ class _LLMProtocolHandlerReference:
         loc = self._get_current_location()
         include = message.get("include", [])
 
-        data = {
+        data: dict = {
             "location": self._location_to_dict(loc)
         }
 
         if "items" in include or not include:
-            items = []
+            items_list = []
             for item in self.state.items:
                 if item.location == loc.id:
-                    items.append(self._entity_to_dict(item))
-            data["items"] = items
+                    items_list.append(self._entity_to_dict(item))
+            data["items"] = items_list
 
         if "doors" in include or not include:
-            doors = []
-            for door in self.state.doors:
-                if loc.id in door.locations:
-                    door_dict = self._door_to_dict(door)
-                    # Add direction
-                    for direction, exit_desc in loc.exits.items():
-                        if exit_desc.door_id == door.id:
-                            door_dict["direction"] = direction
-                            break
-                    doors.append(door_dict)
-            data["doors"] = doors
+            doors_list = []
+            seen_door_ids = set()
+            # Doors are found via exits
+            for direction, exit_desc in loc.exits.items():
+                if exit_desc.door_id and exit_desc.door_id not in seen_door_ids:
+                    door = self._get_door_by_id(exit_desc.door_id)
+                    if door:
+                        seen_door_ids.add(exit_desc.door_id)
+                        door_dict = self._door_to_dict(door)
+                        door_dict["direction"] = direction
+                        doors_list.append(door_dict)
+            data["doors"] = doors_list
 
         if "exits" in include or not include:
             exits = {}
@@ -533,11 +534,11 @@ class _LLMProtocolHandlerReference:
             data["exits"] = exits
 
         if "npcs" in include or not include:
-            npcs = []
+            npcs_list = []
             for actor_id, actor in self.state.actors.items():
                 if actor_id != "player" and actor.location == loc.id:
-                    npcs.append(self._npc_to_dict(actor))
-            data["npcs"] = npcs
+                    npcs_list.append(self._npc_to_dict(actor))
+            data["npcs"] = npcs_list
 
         return {
             "type": "query_response",
@@ -563,6 +564,12 @@ class _LLMProtocolHandlerReference:
         """Query a specific entity."""
         entity_type = message.get("entity_type")
         entity_id = message.get("entity_id")
+
+        if not entity_id:
+            return {
+                "type": "error",
+                "message": "Missing entity_id"
+            }
 
         entity = None
         if entity_type == "item":
@@ -603,20 +610,23 @@ class _LLMProtocolHandlerReference:
 
         if entity_type == "door":
             loc = self._get_location_by_id(location_id) if location_id else self._get_current_location()
-            for door in self.state.doors:
-                if loc.id in door.locations:
-                    door_dict = self._door_to_dict(door)
-                    # Add direction
-                    for direction, exit_desc in loc.exits.items():
-                        if exit_desc.door_id == door.id:
+            if loc:
+                seen_door_ids = set()
+                # Doors are found via exits
+                for direction, exit_desc in loc.exits.items():
+                    if exit_desc.door_id and exit_desc.door_id not in seen_door_ids:
+                        door = self._get_door_by_id(exit_desc.door_id)
+                        if door:
+                            seen_door_ids.add(exit_desc.door_id)
+                            door_dict = self._door_to_dict(door)
                             door_dict["direction"] = direction
-                            break
-                    entities.append(door_dict)
+                            entities.append(door_dict)
         elif entity_type == "item":
             loc = self._get_location_by_id(location_id) if location_id else self._get_current_location()
-            for item in self.state.items:
-                if item.location == loc.id:
-                    entities.append(self._entity_to_dict(item))
+            if loc:
+                for item in self.state.items:
+                    if item.location == loc.id:
+                        entities.append(self._entity_to_dict(item))
 
         return {
             "type": "query_response",
@@ -632,8 +642,7 @@ class _LLMProtocolHandlerReference:
             "query_type": "vocabulary",
             "data": {
                 "verbs": ["take", "drop", "examine", "go", "open", "close", "unlock", "inventory"],
-                "nouns": ["sword", "key", "potion", "chest", "door"],
-                "directions": ["north", "south", "east", "west", "up", "down"]
+                "nouns": ["sword", "key", "potion", "chest", "door"]
             }
         }
 
@@ -674,10 +683,10 @@ class _LLMProtocolHandlerReference:
         return None
 
     def _get_door_by_id(self, door_id: str):
-        """Get door by ID."""
-        for door in self.state.doors:
-            if door.id == door_id:
-                return door
+        """Get door by ID. Doors are items with is_door property."""
+        for item in self.state.items:
+            if item.id == door_id and item.is_door:
+                return item
         return None
 
     def _get_npc_by_id(self, npc_id: str):
@@ -1202,7 +1211,7 @@ class TestQueryMessages(unittest.TestCase):
         self.assertEqual(result["data"]["title"], "LLM Test Game")
 
     def test_query_vocabulary(self):
-        """Test vocabulary query returns verbs and directions."""
+        """Test vocabulary query returns verbs."""
         message = {
             "type": "query",
             "query_type": "vocabulary"
@@ -1213,7 +1222,6 @@ class TestQueryMessages(unittest.TestCase):
         self.assertEqual(result["type"], "query_response")
         self.assertEqual(result["query_type"], "vocabulary")
         self.assertIn("verbs", result["data"])
-        self.assertIn("directions", result["data"])
 
     def test_query_vocabulary_includes_core_verbs(self):
         """Test vocabulary query includes verbs from behavior modules."""
@@ -1248,24 +1256,6 @@ class TestQueryMessages(unittest.TestCase):
         self.assertIn("take", verbs)
         self.assertIn("synonyms", verbs["take"])
         self.assertIsInstance(verbs["take"]["synonyms"], list)
-
-    def test_query_vocabulary_directions(self):
-        """Test vocabulary query includes directions."""
-        message = {
-            "type": "query",
-            "query_type": "vocabulary"
-        }
-
-        result = self.handler.handle_message(message)
-
-        directions = result["data"]["directions"]
-        # Should include standard directions
-        self.assertIn("north", directions)
-        self.assertIn("south", directions)
-        self.assertIn("east", directions)
-        self.assertIn("west", directions)
-        self.assertIn("up", directions)
-        self.assertIn("down", directions)
 
     def test_query_nonexistent_entity(self):
         """Test query for non-existent entity."""
@@ -1352,9 +1342,7 @@ class TestVocabularyQueryProtocol(unittest.TestCase):
         # Check data structure
         data = result["data"]
         self.assertIn("verbs", data)
-        self.assertIn("directions", data)
         self.assertIsInstance(data["verbs"], dict)
-        self.assertIsInstance(data["directions"], dict)
 
     def test_vocabulary_verb_entry_structure(self):
         """Test each verb entry has correct structure."""
@@ -1370,19 +1358,6 @@ class TestVocabularyQueryProtocol(unittest.TestCase):
         self.assertIn("object_required", take_entry)
         self.assertIsInstance(take_entry["synonyms"], list)
         self.assertIsInstance(take_entry["object_required"], bool)
-
-    def test_vocabulary_direction_entry_structure(self):
-        """Test each direction entry has correct structure."""
-        message = {"type": "query", "query_type": "vocabulary"}
-        result = self.handler.handle_message(message)
-
-        directions = result["data"]["directions"]
-        # Check at least one direction has the expected structure
-        self.assertIn("north", directions)
-        north_entry = directions["north"]
-
-        self.assertIn("synonyms", north_entry)
-        self.assertIsInstance(north_entry["synonyms"], list)
 
     def test_vocabulary_includes_behavior_module_verbs(self):
         """Test vocabulary merges verbs from behavior modules."""
@@ -1411,21 +1386,6 @@ class TestVocabularyQueryProtocol(unittest.TestCase):
         examine_synonyms = verbs["examine"]["synonyms"]
         self.assertTrue(len(examine_synonyms) > 0, "examine should have synonyms")
 
-    def test_vocabulary_direction_synonyms_populated(self):
-        """Test directions have their synonyms populated."""
-        message = {"type": "query", "query_type": "vocabulary"}
-        result = self.handler.handle_message(message)
-
-        directions = result["data"]["directions"]
-
-        # 'north' should have synonym 'n'
-        north_synonyms = directions["north"]["synonyms"]
-        self.assertIn("n", north_synonyms)
-
-        # 'south' should have synonym 's'
-        south_synonyms = directions["south"]["synonyms"]
-        self.assertIn("s", south_synonyms)
-
     def test_vocabulary_object_required_varies(self):
         """Test object_required varies appropriately between verbs.
 
@@ -1447,19 +1407,6 @@ class TestVocabularyQueryProtocol(unittest.TestCase):
 
         # 'inventory' does not require an object
         self.assertEqual(verbs["inventory"]["object_required"], False)
-
-    def test_vocabulary_all_cardinal_directions(self):
-        """Test all cardinal and vertical directions are present."""
-        message = {"type": "query", "query_type": "vocabulary"}
-        result = self.handler.handle_message(message)
-
-        directions = result["data"]["directions"]
-
-        cardinal = ["north", "south", "east", "west"]
-        vertical = ["up", "down"]
-
-        for direction in cardinal + vertical:
-            self.assertIn(direction, directions, f"Missing direction: {direction}")
 
     def test_vocabulary_query_is_idempotent(self):
         """Test vocabulary query returns same result on repeated calls."""

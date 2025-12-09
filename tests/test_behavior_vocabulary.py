@@ -29,10 +29,7 @@ class TestBehaviorVocabularyMerging(unittest.TestCase):
                 {"word": "quit", "synonyms": ["exit"], "object_required": False}
             ],
             "nouns": [],
-            "adjectives": [],
-            "directions": [
-                {"word": "north", "synonyms": ["n"]}
-            ]
+            "adjectives": []
         }
 
     def test_behavior_manager_collects_vocabulary_extensions(self):
@@ -77,8 +74,7 @@ class TestBehaviorVocabularyMerging(unittest.TestCase):
                 {"word": "attack", "synonyms": [], "object_required": True}
             ],
             "nouns": [],
-            "adjectives": [],
-            "directions": []
+            "adjectives": []
         }
 
         manager = BehaviorManager()
@@ -105,8 +101,7 @@ class TestBehaviorVocabularyMerging(unittest.TestCase):
             "nouns": [
                 {"word": "wolf"}
             ],
-            "adjectives": [],
-            "directions": []
+            "adjectives": []
         }
 
         # Merge behavior vocabulary
@@ -153,10 +148,7 @@ class TestFullVocabularyMerging(unittest.TestCase):
                 {"word": "inventory", "synonyms": ["i"], "object_required": False}
             ],
             "nouns": [],
-            "adjectives": [{"word": "rubber"}],
-            "directions": [
-                {"word": "north", "synonyms": ["n"]}
-            ]
+            "adjectives": [{"word": "rubber"}]
         }
 
         # Game state with items
@@ -202,10 +194,6 @@ class TestFullVocabularyMerging(unittest.TestCase):
         # Verbs from behaviors
         self.assertIn("attack", verb_words)
 
-        # Directions preserved
-        dir_words = [d["word"] for d in final_vocab["directions"]]
-        self.assertIn("north", dir_words)
-
     def test_parser_works_with_full_merge(self):
         """Test that parser works with fully merged vocabulary."""
         # Base vocab with adjectives
@@ -214,8 +202,7 @@ class TestFullVocabularyMerging(unittest.TestCase):
                 {"word": "take", "synonyms": ["get"], "object_required": True}
             ],
             "nouns": [],
-            "adjectives": [{"word": "gray"}],
-            "directions": []
+            "adjectives": [{"word": "gray"}]
         }
 
         # Game state
@@ -272,8 +259,7 @@ class TestVocabularyFromBehaviorModules(unittest.TestCase):
         merged = manager.get_merged_vocabulary({
             "verbs": [],
             "nouns": [],
-            "adjectives": [],
-            "directions": []
+            "adjectives": []
         })
 
         verb_words = [v["word"] for v in merged["verbs"]]

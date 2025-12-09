@@ -34,8 +34,8 @@ def parsed_to_json(result: ParsedCommand) -> Dict[str, Any]:
     """Convert ParsedCommand to JSON protocol format.
 
     Passes WordEntry objects for object/indirect_object to preserve
-    vocabulary synonyms for entity matching. Verbs, directions, and
-    adjectives use .word since they don't need synonym matching.
+    vocabulary synonyms for entity matching. Verbs and adjectives use
+    .word since they don't need synonym matching.
 
     Args:
         result: Parsed command from the Parser (must have a verb)
@@ -167,9 +167,9 @@ class LLMNarrator:
                 try:
                     vocabulary = json.loads(DEFAULT_VOCABULARY_FILE.read_text())
                 except (json.JSONDecodeError, IOError):
-                    vocabulary = {"verbs": [], "nouns": [], "directions": []}
+                    vocabulary = {"verbs": [], "nouns": []}
             else:
-                vocabulary = {"verbs": [], "nouns": [], "directions": []}
+                vocabulary = {"verbs": [], "nouns": []}
 
             # Merge with behavior module vocabulary if available
             if self.behavior_manager:
@@ -198,8 +198,8 @@ class LLMNarrator:
     def process_turn(self, player_input: str) -> str:
         """Process one turn: input -> command -> result -> narrative.
 
-        Uses a fast local parser for simple commands (directions, common verbs)
-        and falls back to LLM for complex/ambiguous input.
+        Uses a fast local parser for simple commands and falls back to
+        LLM for complex/ambiguous input.
 
         Args:
             player_input: Natural language input from player
@@ -492,11 +492,10 @@ class LLMNarrator:
         # Use the already-merged vocabulary
         vocab = self.merged_vocabulary
 
-        # Just list verb names
+        # Just list verb names (directions are included as verbs since they can be bare commands)
         verbs = [v["word"] for v in vocab.get("verbs", [])]
-        directions = [d["word"] for d in vocab.get("directions", [])]
 
         if not verbs:
             return "Available verbs: (none - behavior modules should provide verbs)"
 
-        return f"Available verbs: {', '.join(verbs)}\nDirections: {', '.join(directions)}"
+        return f"Available verbs: {', '.join(verbs)}"
