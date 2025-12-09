@@ -849,9 +849,7 @@
         }
       },
       "items": [
-        "item_fd_myconid_offering_bowl",
-        "item_fd_spore_lantern",
-        "item_fd_breathing_mask"
+        "item_fd_myconid_offering_bowl"
       ],
       "properties": {
         "region": "fungal_depths",
@@ -2848,7 +2846,10 @@
       "name": "Myconid Elder",
       "description": "A tall, stately mushroom being with a wide cap marked by concentric rings of age. It communicates through deliberate puffs of luminescent spores that somehow convey meaning.",
       "location": "loc_fd_myconid_sanctuary",
-      "inventory": [],
+      "inventory": [
+        "item_fd_spore_lantern",
+        "item_fd_breathing_mask"
+      ],
       "flags": {},
       "stats": {},
       "states": {},
@@ -2966,7 +2967,17 @@
             "description": "Grants partial immunity to spore exposure."
           }
         },
-        "relationships": {}
+        "relationships": {},
+        "trades": {
+          "item_fd_healing_herb": {
+            "gives": "item_fd_spore_lantern",
+            "message": "*Spores form images of exchange* 'Healing gift accepted. Light gift given.'"
+          },
+          "item_fd_rare_mineral": {
+            "gives": "item_fd_breathing_mask",
+            "message": "*Spores shimmer with approval* 'Deep earth treasure for deep earth protection.'"
+          }
+        }
       },
       "llm_context": {
         "traits": [
@@ -2983,7 +2994,10 @@
           "friendly": "Warm spore-patterns form welcoming images. You are known here.",
           "hostile": "The Elder's spores turn dark and agitated. You are not welcome."
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actors.trading"
+      ]
     },
     "npc_fd_myconid_guard": {
       "id": "npc_fd_myconid_guard",
@@ -4200,7 +4214,7 @@
               "wares",
               "herbs"
             ],
-            "summary": "'I've got healing herbs, antidotes, even some rarer specimens if you've got the coin. What catches your eye?'",
+            "summary": "'I've got healing herbs, antidotes, even some rarer specimens. I'm always looking for rare ingredients to trade. What catches your eye?'",
             "one_time": false
           },
           "rare": {
@@ -4209,7 +4223,7 @@
               "special",
               "unusual"
             ],
-            "summary": "'Rare goods? Well, if you can bring me silvermoss from the fungal depths, I'll pay handsomely. Same for ice crystals from the north. Can't get those myself, you understand.'",
+            "summary": "'Rare goods? Well, if you can bring me silvermoss from the fungal depths, I'll trade you well for it. Same for ice crystals from the north. Can't get those myself, you understand.'",
             "sets_flags": {
               "herbalist_wants_rare": true
             },
@@ -4225,7 +4239,17 @@
             "one_time": false
           }
         },
-        "default_topic_summary": "The herbalist shrugs. 'Not my area of expertise. Try someone else.'"
+        "default_topic_summary": "The herbalist shrugs. 'Not my area of expertise. Try someone else.'",
+        "trades": {
+          "item_fd_silvermoss": {
+            "gives": "item_cr_healing_herbs",
+            "message": "'Silvermoss! This is exactly what I need. Here, take these healing herbs - fair trade.'"
+          },
+          "item_fr_ice_crystal": {
+            "gives": "item_cr_antidote",
+            "message": "'Ice crystals from the north! These will make fine remedies. Take this antidote in trade.'"
+          }
+        }
       },
       "llm_context": {
         "traits": [
@@ -4236,7 +4260,8 @@
         ]
       },
       "behaviors": [
-        "behavior_libraries.dialog_lib"
+        "behavior_libraries.dialog_lib",
+        "behaviors.actors.trading"
       ]
     },
     "npc_cr_healer_elara": {
@@ -4291,7 +4316,7 @@
               "cure",
               "service"
             ],
-            "summary": "'I can cure poisons, treat infections, and heal wounds. I ask for payment only because supplies are scarce - herbs for trade or gold for restocking.'",
+            "summary": "'I can cure poisons, treat infections, and heal wounds. I ask for herbs in trade only because supplies are scarce.'",
             "one_time": false
           },
           "infection": {
@@ -5441,7 +5466,7 @@
       "id": "item_fd_spore_lantern",
       "name": "spore lantern",
       "description": "A Myconid-crafted lantern containing perpetually glowing spores. It provides steady light without fire or fuel.",
-      "location": "loc_fd_myconid_sanctuary",
+      "location": "npc_fd_myconid_elder",
       "properties": {
         "type": "light_source",
         "portable": true,
@@ -5466,7 +5491,7 @@
       "id": "item_fd_breathing_mask",
       "name": "breathing mask",
       "description": "A mask crafted by the Myconids that filters harmful spores and allows breathing in toxic environments. Essential for the Deep Root Caverns.",
-      "location": "loc_fd_myconid_sanctuary",
+      "location": "npc_fd_myconid_elder",
       "properties": {
         "type": "equipment",
         "portable": true,
@@ -5513,7 +5538,7 @@
     {
       "id": "item_fd_healing_herb",
       "name": "healing herb",
-      "description": "A leafy plant with curative properties. It grows in patches throughout the Fungal Depths and is accepted as payment by the Myconids.",
+      "description": "A leafy plant with curative properties. It grows in patches throughout the Fungal Depths and is accepted for trade by the Myconids.",
       "location": "loc_fd_luminous_grotto",
       "properties": {
         "type": "plant",

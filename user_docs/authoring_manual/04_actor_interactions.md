@@ -21,7 +21,8 @@ The framework provides a library of behavior modules for common actor interactio
 | `conditions.py` | Condition lifecycle (apply, progress, cure) |
 | `environment.py` | Environmental effects (breath, spores, temperature) |
 | `treatment.py` | Item-based condition treatment |
-| `services.py` | NPC services (cure, teach, heal, trade) |
+| `services.py` | NPC services (cure, teach, heal) |
+| `trading.py` | Item-for-item barter exchanges |
 | `relationships.py` | Trust, gratitude, fear tracking |
 | `combat.py` | Attack selection, damage, death checking |
 | `morale.py` | Morale calculation, fleeing |
@@ -588,11 +589,188 @@ From the Healer use case:
 
 ---
 
-## 6. Relationships and Domestication
+## 6. Barter Trading
+
+NPCs can exchange items directly with the player - item-for-item barter without currency.
+
+### 6.1 Defining Trades
+
+Trades are defined in an actor's `properties.trades`:
+
+```json
+{
+  "properties": {
+    "trades": {
+      "item_fd_silvermoss": {
+        "gives": "item_cr_healing_herbs",
+        "message": "'Silvermoss! Here, take these healing herbs in trade.'"
+      },
+      "item_fr_ice_crystal": {
+        "gives": "item_cr_antidote",
+        "message": "'Ice crystals! These will make fine remedies. Take this antidote.'"
+      }
+    }
+  }
+}
+```
+
+**Trade properties:**
+
+| Property | Type | Description |
+|----------|------|-------------|
+| key | string | Item ID the NPC accepts |
+| `gives` | string | Item ID the NPC gives in return |
+| `message` | string | NPC's response when trade completes |
+
+### 6.2 How Trading Works
+
+When a player gives an item to an NPC, the `on_receive_item` behavior checks:
+
+1. Does the NPC have a trade defined for this item?
+2. Does the NPC have the counter-item in their inventory?
+3. If both: execute the trade (transfer counter-item to player)
+
+**Command**: `give silvermoss to Maren`
+
+**Result**:
+```
+You give the silvermoss to Herbalist Maren.
+'Silvermoss! Here, take these healing herbs in trade.'
+```
+
+The player loses silvermoss, gains healing herbs.
+
+### 6.3 NPC Inventory for Trades
+
+Trade items must be in the NPC's inventory:
+
+```json
+{
+  "id": "npc_herbalist",
+  "name": "Herbalist Maren",
+  "inventory": [
+    "item_cr_healing_herbs",
+    "item_cr_antidote"
+  ],
+  "properties": {
+    "trades": {
+      "item_fd_silvermoss": {
+        "gives": "item_cr_healing_herbs",
+        "message": "'Silvermoss! Here, take these healing herbs in trade.'"
+      }
+    }
+  },
+  "behaviors": [
+    "behaviors.actors.trading"
+  ]
+}
+```
+
+**Important**: Include `behaviors.actors.trading` in the NPC's behaviors list.
+
+If the NPC doesn't have the counter-item when a trade is attempted, they accept the item but apologize that they can't provide anything in return.
+
+### 6.4 Trades vs Services
+
+**Trades** and **Services** serve different purposes:
+
+| Aspect | Trades | Services |
+|--------|--------|----------|
+| Purpose | Item exchange | Perform action |
+| Config | `trades` | `services` |
+| Payment | Specific item ID | Item type or amount |
+| Result | Player gets item | Effect applied (heal, teach, cure) |
+| Threshold | N/A (1:1 exchange) | `amount_required` |
+
+Use **trades** when:
+- NPC barters goods (merchant, craftsman)
+- Player exchanges rare finds for useful items
+- 1:1 item swaps
+
+Use **services** when:
+- NPC performs an action (healing, teaching)
+- Payment is consumable or has amount
+- Effect is applied to player, not item transfer
+
+### 6.5 Trading Example: The Herbalist
+
+**Scenario**: A merchant trades healing supplies for rare ingredients.
+
+**Herbalist:**
+
+```json
+{
+  "id": "npc_herbalist",
+  "name": "Herbalist Maren",
+  "location": "loc_market",
+  "inventory": [
+    "item_healing_herbs",
+    "item_antidote"
+  ],
+  "properties": {
+    "trades": {
+      "item_silvermoss": {
+        "gives": "item_healing_herbs",
+        "message": "'Silvermoss! This is exactly what I need. Here, take these healing herbs - fair trade.'"
+      },
+      "item_ice_crystal": {
+        "gives": "item_antidote",
+        "message": "'Ice crystals from the north! Take this antidote in trade.'"
+      }
+    },
+    "dialog_topics": {
+      "wares": {
+        "keywords": ["buy", "sell", "trade", "wares"],
+        "summary": "'I've got healing herbs and antidotes. I'm always looking for rare ingredients to trade.'"
+      }
+    }
+  },
+  "behaviors": [
+    "behaviors.actors.trading",
+    "behavior_libraries.dialog_lib"
+  ]
+}
+```
+
+**Interaction flow:**
+1. Player: `ask Maren about wares`
+2. Maren explains what she has and wants
+3. Player finds silvermoss in dangerous area
+4. Player: `give silvermoss to Maren`
+5. Trade executes - player gets healing herbs
+
+### 6.6 Non-Trade Items
+
+When a player gives an item that doesn't match any trade or service, the NPC accepts it with a generic message:
+
+```
+> give rock to Maren
+You give the rock to Herbalist Maren.
+Herbalist Maren accepts the rock.
+```
+
+The item is transferred but no counter-trade occurs.
+
+### 6.7 Trading Library API
+
+```python
+from behaviors.actors.trading import (
+    on_receive_item  # Called when NPC receives any item via give
+)
+```
+
+The `on_receive_item` behavior:
+1. Checks `trades` config for matching item
+2. Falls back to `on_receive_for_service` for service payments
+3. Returns generic acceptance if no trade/service matches
+
+---
+
+## 7. Relationships and Domestication
 
 The relationship system tracks progressive bonds between actors, enabling domestication, discounts, and alliances.
 
-### 6.1 Relationship Tracking
+### 7.1 Relationship Tracking
 
 Relationships are stored in `properties.relationships`:
 
@@ -615,7 +793,7 @@ Relationships are stored in `properties.relationships`:
 - `gratitude` - Earned through gifts, rescue, healing
 - `fear` - Created through intimidation, violence
 
-### 6.2 Threshold Effects
+### 7.2 Threshold Effects
 
 When metrics cross thresholds, behavior changes:
 
@@ -626,7 +804,7 @@ When metrics cross thresholds, behavior changes:
 | `trust >= 5` | Loyalty | NPC offers special help |
 | `fear >= 5` | Intimidation | NPC may flee or comply |
 
-### 6.3 Domestication
+### 7.3 Domestication
 
 Domestication turns hostile creatures into friendly companions through repeated positive interactions.
 
@@ -670,7 +848,7 @@ Domestication turns hostile creatures into friendly companions through repeated 
 7. When `gratitude >= 3`: disposition becomes "friendly"
 8. Wolf follows player, pack follows alpha
 
-### 6.4 Relationships Library API
+### 7.4 Relationships Library API
 
 ```python
 from behaviors.library.actors.relationships import (
@@ -683,11 +861,11 @@ from behaviors.library.actors.relationships import (
 
 ---
 
-## 7. Environmental Effects
+## 8. Environmental Effects
 
 Location parts can have properties that affect actors each turn.
 
-### 7.1 Parts
+### 8.1 Parts
 
 Parts are sub-areas within a location (see [Spatial Rooms](07_spatial.md) for full details). They have properties that can affect actors.
 
@@ -718,7 +896,7 @@ Parts are sub-areas within a location (see [Spatial Rooms](07_spatial.md) for fu
 }
 ```
 
-### 7.2 Breath Tracking
+### 8.2 Breath Tracking
 
 For drowning scenarios, parts can be non-breathable:
 
@@ -749,7 +927,7 @@ For drowning scenarios, parts can be non-breathable:
 
 An actor holding this item doesn't lose breath. Parts can disable this with `breathing_item_works: false` for deep water.
 
-### 7.3 Spore Effects
+### 8.3 Spore Effects
 
 Parts can have spore contamination:
 
@@ -772,7 +950,7 @@ Parts can have spore contamination:
 
 Each turn in a spore area, actors gain/increase `fungal_infection` condition (reduced by disease resistance).
 
-### 7.4 Temperature Effects
+### 8.4 Temperature Effects
 
 Parts can have temperature extremes:
 
@@ -794,7 +972,7 @@ Parts can have temperature extremes:
 | `"hot"` | heat_exhaustion | 5 |
 | `"burning"` | heat_exhaustion | 10 |
 
-### 7.5 Cover Values
+### 8.5 Cover Values
 
 Parts can provide cover in combat:
 
@@ -809,7 +987,7 @@ Parts can provide cover in combat:
 
 Actors in this part get 50% damage reduction from attacks.
 
-### 7.6 Environmental Effects Example: Flooded Tunnel
+### 8.6 Environmental Effects Example: Flooded Tunnel
 
 From the Drowning Sailor use case:
 
@@ -874,7 +1052,7 @@ From the Drowning Sailor use case:
 4. Sailor can't rescue themselves (cannot_swim effect)
 5. Player must pull them to safety
 
-### 7.7 Environment Library API
+### 8.7 Environment Library API
 
 ```python
 from behaviors.library.actors.environment import (
@@ -887,11 +1065,11 @@ from behaviors.library.actors.environment import (
 
 ---
 
-## 8. Morale and Fleeing
+## 9. Morale and Fleeing
 
 Actors can flee when injured or demoralized.
 
-### 8.1 Morale Tracking
+### 9.1 Morale Tracking
 
 Morale is tracked in `properties.ai.morale`:
 
@@ -906,7 +1084,7 @@ Morale is tracked in `properties.ai.morale`:
 }
 ```
 
-### 8.2 Morale Calculation
+### 9.2 Morale Calculation
 
 The library calculates morale dynamically from health:
 
@@ -914,7 +1092,7 @@ The library calculates morale dynamically from health:
 - Health 30-50%: morale halved
 - Health < 30%: morale drops to 0
 
-### 8.3 Fleeing
+### 9.3 Fleeing
 
 When `morale < flee_threshold`, the actor flees:
 - Moves toward a random unlocked exit
@@ -934,7 +1112,7 @@ When `morale < flee_threshold`, the actor flees:
 }
 ```
 
-### 8.4 Morale Library API
+### 9.4 Morale Library API
 
 ```python
 from behaviors.library.actors.morale import (
@@ -947,11 +1125,11 @@ from behaviors.library.actors.morale import (
 
 ---
 
-## 9. Pack Coordination
+## 10. Pack Coordination
 
 Packs allow coordinated behavior where followers copy the alpha.
 
-### 9.1 Pack Setup
+### 10.1 Pack Setup
 
 **Alpha:**
 
@@ -984,7 +1162,7 @@ Packs allow coordinated behavior where followers copy the alpha.
 }
 ```
 
-### 9.2 Pack Behavior
+### 10.2 Pack Behavior
 
 During the NPC action phase:
 1. Alphas are processed first
@@ -993,7 +1171,7 @@ During the NPC action phase:
 4. If alpha becomes friendly (domesticated), followers become friendly
 5. If alpha flees, followers flee
 
-### 9.3 Pack Use Cases
+### 10.3 Pack Use Cases
 
 **Combat coordination:**
 - Alpha wolf attacks, pack follows
@@ -1008,7 +1186,7 @@ During the NPC action phase:
 - Alert spider queen (alpha)
 - All worker spiders become hostile
 
-### 9.4 Packs Library API
+### 10.4 Packs Library API
 
 ```python
 from behaviors.library.actors.packs import (
@@ -1021,11 +1199,11 @@ from behaviors.library.actors.packs import (
 
 ---
 
-## 10. Worked Examples
+## 11. Worked Examples
 
 These examples demonstrate complete interactions using the patterns above.
 
-### 10.1 The Infected Scholar (UC1)
+### 11.1 The Infected Scholar (UC1)
 
 **Scenario**: A scholar has a fungal infection. Player can cure them with silvermoss or become infected through proximity.
 
@@ -1102,7 +1280,7 @@ These examples demonstrate complete interactions using the patterns above.
 - Entering basement center - Spore exposure (environmental)
 - Player's 30% resistance reduces incoming severity
 
-### 10.2 The Wolf Pack (UC3)
+### 11.2 The Wolf Pack (UC3)
 
 **Scenario**: Hungry wolves can be fought or domesticated through feeding.
 
@@ -1184,7 +1362,7 @@ These examples demonstrate complete interactions using the patterns above.
 - Alpha becomes friendly
 - Pack follows alpha's new disposition
 
-### 10.3 The Healer's Garden (UC4)
+### 11.3 The Healer's Garden (UC4)
 
 **Scenario**: Garden has toxic and curative plants. Healer offers services.
 
@@ -1257,7 +1435,7 @@ These examples demonstrate complete interactions using the patterns above.
 - `give golden_root to healer` pays for cure service
 - Building trust unlocks discounts
 
-### 10.4 The Spider Swarm (UC7)
+### 11.4 The Spider Swarm (UC7)
 
 **Scenario**: Spiders coordinate attacks, have venomous bites, and get bonuses in web-covered areas.
 
@@ -1360,11 +1538,11 @@ These examples demonstrate complete interactions using the patterns above.
 
 ---
 
-## 11. Custom Behaviors
+## 12. Custom Behaviors
 
 While the library handles common patterns, you can write custom behaviors for unique interactions.
 
-### 11.1 When to Write Custom Behaviors
+### 12.1 When to Write Custom Behaviors
 
 Write custom behaviors when you need:
 - Game-specific mechanics not covered by the library
@@ -1372,7 +1550,7 @@ Write custom behaviors when you need:
 - Unique NPC responses
 - Special item interactions
 
-### 11.2 Extending Library Behaviors
+### 12.2 Extending Library Behaviors
 
 You can extend library behaviors rather than replacing them:
 
@@ -1396,7 +1574,7 @@ def on_receive(entity, accessor, context):
     return None
 ```
 
-### 11.3 Registering Custom Events
+### 12.3 Registering Custom Events
 
 For custom verbs and events, register them in your behavior's vocabulary:
 
@@ -1451,7 +1629,7 @@ def on_pet(entity, accessor, context):
 
 ---
 
-## 12. Property Reference
+## 13. Property Reference
 
 ### Item Properties for Actor Interactions
 

@@ -409,12 +409,29 @@ def handle_give(accessor, action):
             message=f"INCONSISTENT STATE: Failed to add item to recipient inventory: {add_result.message}"
         )
 
+    # Build base message
+    base_message = f"You give the {item.name} to {recipient.name}."
+
+    # Invoke recipient's on_receive_item behavior (for trades/services)
+    receive_context = {
+        "item_id": item.id,
+        "item": item,
+        "giver_id": actor_id
+    }
+    receive_result = accessor.behavior_manager.invoke_behavior(
+        recipient, "on_receive_item", accessor, receive_context
+    )
+    if receive_result and receive_result.message:
+        message = f"{base_message}\n{receive_result.message}"
+    else:
+        message = base_message
+
     # Use unified serializer for llm_context with trait randomization
     data = serialize_for_handler_result(item)
 
     return HandlerResult(
         success=True,
-        message=f"You give the {item.name} to {recipient.name}.",
+        message=message,
         data=data
     )
 
