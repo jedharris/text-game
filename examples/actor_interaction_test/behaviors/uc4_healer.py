@@ -13,7 +13,7 @@ Library modules used:
 - services.py: get_available_services, get_service_cost, execute_service
 """
 
-from typing import Optional
+from typing import Any, Optional
 
 
 def check_toxic_touch(item, actor) -> bool:
@@ -44,7 +44,7 @@ def apply_toxic_effect(item, actor) -> Optional[str]:
     Returns:
         Message describing the effect, or None if item not toxic
     """
-    from behaviors.actors.conditions import apply_condition
+    from behavior_libraries.actor_lib.conditions import apply_condition
 
     if not check_toxic_touch(item, actor):
         return None
@@ -127,7 +127,7 @@ def grant_knowledge(actor, knowledge: str) -> str:
     return f"You have learned {knowledge}!"
 
 
-def on_take_toxic(entity, accessor, context) -> Optional:
+def on_take_toxic(entity, accessor, context) -> Optional[Any]:
     """
     Handle taking a toxic item.
 
@@ -163,7 +163,7 @@ def on_take_toxic(entity, accessor, context) -> Optional:
     return None
 
 
-def on_examine_with_knowledge(entity, accessor, context) -> Optional:
+def on_examine_with_knowledge(entity, accessor, context) -> Optional[Any]:
     """
     Handle examining an item with knowledge-gated description.
 
@@ -208,7 +208,7 @@ def get_service_with_discount(npc, service_name: str, customer) -> dict:
     Returns:
         Dict with service info and effective cost
     """
-    from behaviors.actors.services import get_available_services, get_service_cost
+    from behavior_libraries.actor_lib.services import get_available_services, get_service_cost
 
     services = get_available_services(npc)
     service = services.get(service_name, {})

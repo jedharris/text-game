@@ -13,7 +13,7 @@ Library modules used:
 - combat.py: get_attacks, select_attack, execute_attack, calculate_damage
 """
 
-from typing import Optional, Dict, List
+from typing import Any, Optional, Dict, List
 
 
 def take_cover(accessor, actor, cover_item) -> str:
@@ -176,7 +176,7 @@ def golem_select_attack(golem, target) -> Optional[Dict]:
     Returns:
         Selected attack dict, or None
     """
-    from behaviors.actors.combat import get_attacks
+    from behavior_libraries.actor_lib.combat import get_attacks
 
     attacks = get_attacks(golem)
     if not attacks:
@@ -205,7 +205,7 @@ def golem_counterattack(accessor, golem, attacker) -> Optional[str]:
     Returns:
         Message describing counterattack, or None
     """
-    from behaviors.actors.combat import execute_attack
+    from behavior_libraries.actor_lib.combat import execute_attack
 
     # Only counterattack if not dead
     if golem.properties.get("health", 0) <= 0:
@@ -221,7 +221,7 @@ def golem_counterattack(accessor, golem, attacker) -> Optional[str]:
     return f"The golem counterattacks! {result.message}"
 
 
-def on_golem_damaged(entity, accessor, context) -> Optional:
+def on_golem_damaged(entity, accessor, context) -> Optional[Any]:
     """
     Handle golem being damaged - triggers counterattack.
 

@@ -82,7 +82,7 @@ class TestUC4ToxicPlant(unittest.TestCase):
     def test_apply_toxic_effect(self):
         """apply_toxic_effect applies contact poison."""
         from behaviors.uc4_healer import apply_toxic_effect
-        from behaviors.actors.conditions import has_condition
+        from behavior_libraries.actor_lib.conditions import has_condition
 
         # Player shouldn't have poison initially
         self.assertFalse(has_condition(self.player, 'contact_poison'))
@@ -98,7 +98,7 @@ class TestUC4ToxicPlant(unittest.TestCase):
     def test_on_take_toxic_handler(self):
         """on_take_toxic event handler applies effect."""
         from behaviors.uc4_healer import on_take_toxic
-        from behaviors.actors.conditions import has_condition
+        from behavior_libraries.actor_lib.conditions import has_condition
 
         accessor = _create_accessor(self.engine)
         context = {'item_id': 'item_nightshade'}
@@ -196,22 +196,22 @@ class TestUC4CureService(unittest.TestCase):
 
     def test_healer_has_cure_service(self):
         """Healer offers cure service."""
-        from behaviors.actors.services import get_available_services
+        from behavior_libraries.actor_lib.services import get_available_services
 
         services = get_available_services(self.healer)
         self.assertIn('cure', services)
 
     def test_cure_service_cost(self):
         """Cure service costs 5 gold."""
-        from behaviors.actors.services import get_service_cost
+        from behavior_libraries.actor_lib.services import get_service_cost
 
         cost = get_service_cost(self.healer, 'cure', self.player)
         self.assertEqual(cost, 5)
 
     def test_execute_cure_service(self):
         """Execute cure removes conditions."""
-        from behaviors.actors.services import execute_service
-        from behaviors.actors.conditions import apply_condition, has_condition
+        from behavior_libraries.actor_lib.services import execute_service
+        from behavior_libraries.actor_lib.conditions import apply_condition, has_condition
 
         # Give player a condition
         apply_condition(self.player, 'contact_poison', {'severity': 50})
@@ -250,21 +250,21 @@ class TestUC4TeachService(unittest.TestCase):
 
     def test_healer_has_teach_service(self):
         """Healer offers teach_herbalism service."""
-        from behaviors.actors.services import get_available_services
+        from behavior_libraries.actor_lib.services import get_available_services
 
         services = get_available_services(self.healer)
         self.assertIn('teach_herbalism', services)
 
     def test_teach_service_cost(self):
         """Teach service costs 8 gold."""
-        from behaviors.actors.services import get_service_cost
+        from behavior_libraries.actor_lib.services import get_service_cost
 
         cost = get_service_cost(self.healer, 'teach_herbalism', self.player)
         self.assertEqual(cost, 8)
 
     def test_execute_teach_service(self):
         """Execute teach grants herbalism knowledge."""
-        from behaviors.actors.services import execute_service
+        from behavior_libraries.actor_lib.services import execute_service
         from behaviors.uc4_healer import has_knowledge
 
         # Player shouldn't know herbalism
@@ -295,14 +295,14 @@ class TestUC4TrustDiscount(unittest.TestCase):
 
     def test_no_discount_without_trust(self):
         """No discount when trust is 0."""
-        from behaviors.actors.services import get_service_cost
+        from behavior_libraries.actor_lib.services import get_service_cost
 
         cost = get_service_cost(self.healer, 'cure', self.player)
         self.assertEqual(cost, 5)  # Base cost
 
     def test_discount_with_high_trust(self):
         """50% discount when trust >= 3."""
-        from behaviors.actors.services import get_service_cost
+        from behavior_libraries.actor_lib.services import get_service_cost
 
         # Set trust to 3
         self.healer.properties.setdefault('relationships', {})
@@ -313,7 +313,7 @@ class TestUC4TrustDiscount(unittest.TestCase):
 
     def test_trust_builds_with_transactions(self):
         """Trust increases after service transaction."""
-        from behaviors.actors.services import execute_service
+        from behavior_libraries.actor_lib.services import execute_service
 
         accessor = _create_accessor(self.engine)
 

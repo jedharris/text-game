@@ -23,7 +23,7 @@ Actor environmental properties:
 }
 
 Usage:
-    from behaviors.actors.environment import (
+    from behavior_libraries.actor_lib.environment import (
         apply_environmental_effects, check_breath, check_spores,
         check_temperature, needs_breath
     )

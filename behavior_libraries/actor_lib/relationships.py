@@ -18,7 +18,7 @@ Threshold effects:
 - Fear >= 5: "intimidation" - NPC will comply with demands
 
 Usage:
-    from behaviors.actors.relationships import (
+    from behavior_libraries.actor_lib.relationships import (
         get_relationship, modify_relationship,
         check_threshold, get_disposition_from_relationships
     )

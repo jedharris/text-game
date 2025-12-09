@@ -11,12 +11,12 @@ Standard effects:
 
 Usage:
     # Check if actor has an effect
-    from behaviors.actors.effects import has_effect
+    from behavior_libraries.actor_lib.effects import has_effect
     if has_effect(actor, CANNOT_MOVE):
         return HandlerResult(False, "You can't move while entangled.")
 
     # Get all effects on an actor
-    from behaviors.actors.effects import get_effects
+    from behavior_libraries.actor_lib.effects import get_effects
     effects = get_effects(actor)
 """
 

@@ -12,7 +12,7 @@ class TestGetRelationship(unittest.TestCase):
 
     def test_get_relationship_existing(self):
         """Returns existing relationship values."""
-        from behaviors.actors.relationships import get_relationship
+        from behavior_libraries.actor_lib.relationships import get_relationship
 
         actor = Actor(
             id="npc_healer",
@@ -35,7 +35,7 @@ class TestGetRelationship(unittest.TestCase):
 
     def test_get_relationship_new(self):
         """Creates default relationship entry if missing."""
-        from behaviors.actors.relationships import get_relationship
+        from behavior_libraries.actor_lib.relationships import get_relationship
 
         actor = Actor(
             id="npc_healer",
@@ -55,7 +55,7 @@ class TestGetRelationship(unittest.TestCase):
 
     def test_get_relationship_none_actor(self):
         """Returns empty dict for None actor."""
-        from behaviors.actors.relationships import get_relationship
+        from behavior_libraries.actor_lib.relationships import get_relationship
 
         rel = get_relationship(None, "player")
 
@@ -84,7 +84,7 @@ class TestModifyRelationship(unittest.TestCase):
 
     def test_modify_relationship_increase(self):
         """Increases metric value."""
-        from behaviors.actors.relationships import modify_relationship
+        from behavior_libraries.actor_lib.relationships import modify_relationship
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_test"),
@@ -108,7 +108,7 @@ class TestModifyRelationship(unittest.TestCase):
 
     def test_modify_relationship_decrease(self):
         """Decreases metric value."""
-        from behaviors.actors.relationships import modify_relationship
+        from behavior_libraries.actor_lib.relationships import modify_relationship
 
         self.actor.properties["relationships"] = {
             "player": {"trust": 5, "gratitude": 0, "fear": 0}
@@ -132,7 +132,7 @@ class TestModifyRelationship(unittest.TestCase):
 
     def test_modify_relationship_bounds_max(self):
         """Values clamped at maximum 10."""
-        from behaviors.actors.relationships import modify_relationship
+        from behavior_libraries.actor_lib.relationships import modify_relationship
 
         self.actor.properties["relationships"] = {
             "player": {"trust": 9, "gratitude": 0, "fear": 0}
@@ -155,7 +155,7 @@ class TestModifyRelationship(unittest.TestCase):
 
     def test_modify_relationship_bounds_min(self):
         """Values clamped at minimum 0."""
-        from behaviors.actors.relationships import modify_relationship
+        from behavior_libraries.actor_lib.relationships import modify_relationship
 
         self.actor.properties["relationships"] = {
             "player": {"trust": 2, "gratitude": 0, "fear": 0}
@@ -199,7 +199,7 @@ class TestThresholdCrossing(unittest.TestCase):
 
     def test_threshold_domestication(self):
         """Gratitude >= 3 triggers domestication threshold."""
-        from behaviors.actors.relationships import modify_relationship
+        from behavior_libraries.actor_lib.relationships import modify_relationship
 
         self.actor.properties["relationships"] = {
             "player": {"trust": 0, "gratitude": 2, "fear": 0}
@@ -222,7 +222,7 @@ class TestThresholdCrossing(unittest.TestCase):
 
     def test_threshold_discount(self):
         """Trust >= 3 triggers discount threshold."""
-        from behaviors.actors.relationships import modify_relationship
+        from behavior_libraries.actor_lib.relationships import modify_relationship
 
         self.actor.properties["relationships"] = {
             "player": {"trust": 2, "gratitude": 0, "fear": 0}
@@ -245,7 +245,7 @@ class TestThresholdCrossing(unittest.TestCase):
 
     def test_threshold_loyalty(self):
         """Trust >= 5 triggers loyalty threshold."""
-        from behaviors.actors.relationships import modify_relationship
+        from behavior_libraries.actor_lib.relationships import modify_relationship
 
         self.actor.properties["relationships"] = {
             "player": {"trust": 4, "gratitude": 0, "fear": 0}
@@ -268,7 +268,7 @@ class TestThresholdCrossing(unittest.TestCase):
 
     def test_threshold_intimidation(self):
         """Fear >= 5 triggers intimidation threshold."""
-        from behaviors.actors.relationships import modify_relationship
+        from behavior_libraries.actor_lib.relationships import modify_relationship
 
         self.actor.properties["relationships"] = {
             "player": {"trust": 0, "gratitude": 0, "fear": 4}
@@ -291,7 +291,7 @@ class TestThresholdCrossing(unittest.TestCase):
 
     def test_no_threshold_crossing(self):
         """No threshold crossed when staying below."""
-        from behaviors.actors.relationships import modify_relationship
+        from behavior_libraries.actor_lib.relationships import modify_relationship
 
         self.actor.properties["relationships"] = {
             "player": {"trust": 0, "gratitude": 0, "fear": 0}
@@ -314,7 +314,7 @@ class TestThresholdCrossing(unittest.TestCase):
 
     def test_threshold_not_recrossed(self):
         """Threshold not reported when already above."""
-        from behaviors.actors.relationships import modify_relationship
+        from behavior_libraries.actor_lib.relationships import modify_relationship
 
         # Already at trust 5
         self.actor.properties["relationships"] = {
@@ -343,7 +343,7 @@ class TestCheckThreshold(unittest.TestCase):
 
     def test_check_threshold_met(self):
         """Returns True when threshold is met."""
-        from behaviors.actors.relationships import check_threshold
+        from behavior_libraries.actor_lib.relationships import check_threshold
 
         actor = Actor(
             id="npc_healer",
@@ -363,7 +363,7 @@ class TestCheckThreshold(unittest.TestCase):
 
     def test_check_threshold_not_met(self):
         """Returns False when threshold is not met."""
-        from behaviors.actors.relationships import check_threshold
+        from behavior_libraries.actor_lib.relationships import check_threshold
 
         actor = Actor(
             id="npc_healer",
@@ -382,7 +382,7 @@ class TestCheckThreshold(unittest.TestCase):
 
     def test_check_threshold_no_relationship(self):
         """Returns False when no relationship exists."""
-        from behaviors.actors.relationships import check_threshold
+        from behavior_libraries.actor_lib.relationships import check_threshold
 
         actor = Actor(
             id="npc_healer",
@@ -401,7 +401,7 @@ class TestGetDispositionFromRelationships(unittest.TestCase):
 
     def test_disposition_hostile_from_fear(self):
         """High fear makes NPC hostile."""
-        from behaviors.actors.relationships import get_disposition_from_relationships
+        from behavior_libraries.actor_lib.relationships import get_disposition_from_relationships
 
         actor = Actor(
             id="npc_guard",
@@ -423,7 +423,7 @@ class TestGetDispositionFromRelationships(unittest.TestCase):
 
     def test_disposition_friendly_from_trust(self):
         """High trust makes NPC friendly."""
-        from behaviors.actors.relationships import get_disposition_from_relationships
+        from behavior_libraries.actor_lib.relationships import get_disposition_from_relationships
 
         actor = Actor(
             id="npc_healer",
@@ -444,7 +444,7 @@ class TestGetDispositionFromRelationships(unittest.TestCase):
 
     def test_disposition_neutral_default(self):
         """Low values default to neutral."""
-        from behaviors.actors.relationships import get_disposition_from_relationships
+        from behavior_libraries.actor_lib.relationships import get_disposition_from_relationships
 
         actor = Actor(
             id="npc_merchant",
@@ -465,7 +465,7 @@ class TestGetDispositionFromRelationships(unittest.TestCase):
 
     def test_disposition_no_relationship(self):
         """No relationship defaults to neutral."""
-        from behaviors.actors.relationships import get_disposition_from_relationships
+        from behavior_libraries.actor_lib.relationships import get_disposition_from_relationships
 
         actor = Actor(
             id="npc_stranger",
@@ -486,7 +486,7 @@ class TestRelationshipResult(unittest.TestCase):
 
     def test_relationship_result_creation(self):
         """RelationshipResult can be created with all fields."""
-        from behaviors.actors.relationships import RelationshipResult
+        from behavior_libraries.actor_lib.relationships import RelationshipResult
 
         result = RelationshipResult(
             old_value=2,
@@ -504,7 +504,7 @@ class TestRelationshipsVocabulary(unittest.TestCase):
 
     def test_vocabulary_has_events(self):
         """Vocabulary exports events."""
-        from behaviors.actors.relationships import vocabulary
+        from behavior_libraries.actor_lib.relationships import vocabulary
 
         self.assertIn("events", vocabulary)
 

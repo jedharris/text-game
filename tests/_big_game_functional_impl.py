@@ -1017,7 +1017,7 @@ class TestFactionSystemExtended(unittest.TestCase):
         from big_game.behaviors.factions import (
             modify_faction_reputation, sync_faction_reputation, get_faction_reputation
         )
-        from behaviors.actors.relationships import get_relationship
+        from behavior_libraries.actor_lib.relationships import get_relationship
 
         # Modify myconid faction trust
         modify_faction_reputation(self.accessor, "myconid_collective", "trust", 5)

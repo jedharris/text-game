@@ -73,7 +73,7 @@ class TestUC1Infection(unittest.TestCase):
 
     def test_spore_exposure_low_level(self):
         """Low spore exposure applies low severity infection."""
-        from behaviors.actors.environment import check_spores
+        from behavior_libraries.actor_lib.environment import check_spores
 
         # Get the low spore part
         part = None
@@ -100,7 +100,7 @@ class TestUC1Infection(unittest.TestCase):
 
     def test_spore_exposure_high_level(self):
         """High spore exposure applies high severity infection."""
-        from behaviors.actors.environment import check_spores
+        from behavior_libraries.actor_lib.environment import check_spores
 
         # Get the high spore part
         part = None
@@ -123,7 +123,7 @@ class TestUC1Infection(unittest.TestCase):
 
     def test_spore_exposure_stacks(self):
         """Repeated spore exposure increases severity."""
-        from behaviors.actors.environment import check_spores
+        from behavior_libraries.actor_lib.environment import check_spores
 
         # Get the low spore part
         part = None
@@ -228,7 +228,7 @@ class TestUC1Cure(unittest.TestCase):
 
     def test_silvermoss_can_treat_infection(self):
         """Silvermoss item can treat fungal_infection."""
-        from behaviors.actors.treatment import can_treat, get_treatable_conditions
+        from behavior_libraries.actor_lib.treatment import can_treat, get_treatable_conditions
 
         silvermoss = None
         for item in self.engine.game_state.items:
@@ -242,7 +242,7 @@ class TestUC1Cure(unittest.TestCase):
 
     def test_treatment_cures_scholar(self):
         """Applying silvermoss treatment cures the scholar."""
-        from behaviors.actors.treatment import apply_treatment
+        from behavior_libraries.actor_lib.treatment import apply_treatment
 
         silvermoss = None
         for item in self.engine.game_state.items:
@@ -266,7 +266,7 @@ class TestUC1Cure(unittest.TestCase):
 
     def test_consumable_item_removed(self):
         """Consumable treatment items are removed after use."""
-        from behaviors.actors.treatment import apply_treatment
+        from behavior_libraries.actor_lib.treatment import apply_treatment
 
         silvermoss = None
         for item in self.engine.game_state.items:
@@ -372,7 +372,7 @@ class TestUC1Progression(unittest.TestCase):
 
     def test_condition_tick_applies_damage(self):
         """Condition tick applies damage_per_turn to health."""
-        from behaviors.actors.conditions import tick_conditions
+        from behavior_libraries.actor_lib.conditions import tick_conditions
 
         initial_health = self.scholar.properties['health']
         damage_per_turn = self.scholar.properties['conditions']['fungal_infection']['damage_per_turn']
@@ -386,7 +386,7 @@ class TestUC1Progression(unittest.TestCase):
 
     def test_condition_tick_increases_severity(self):
         """Condition tick increases severity by progression_rate."""
-        from behaviors.actors.conditions import tick_conditions
+        from behavior_libraries.actor_lib.conditions import tick_conditions
 
         initial_severity = self.scholar.properties['conditions']['fungal_infection']['severity']
         progression_rate = self.scholar.properties['conditions']['fungal_infection']['progression_rate']
@@ -400,7 +400,7 @@ class TestUC1Progression(unittest.TestCase):
 
     def test_multiple_ticks_cumulative(self):
         """Multiple condition ticks have cumulative effect."""
-        from behaviors.actors.conditions import tick_conditions
+        from behavior_libraries.actor_lib.conditions import tick_conditions
 
         initial_health = self.scholar.properties['health']
         damage_per_turn = self.scholar.properties['conditions']['fungal_infection']['damage_per_turn']

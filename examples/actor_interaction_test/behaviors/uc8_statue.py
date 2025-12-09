@@ -13,7 +13,7 @@ Library modules used:
 - conditions.py: has_condition, apply_condition
 """
 
-from typing import Optional, List
+from typing import Any, Optional, List
 
 
 def can_repair(item, target) -> bool:
@@ -217,7 +217,7 @@ def perform_guard_attack(accessor, guard, target) -> str:
     Returns:
         Message describing the attack
     """
-    from behaviors.actors.combat import get_attacks, execute_attack
+    from behavior_libraries.actor_lib.combat import get_attacks, execute_attack
 
     attacks = get_attacks(guard)
     if not attacks:
@@ -243,7 +243,7 @@ def on_guard_duty(accessor, guard) -> List[str]:
     Returns:
         List of action messages
     """
-    messages = []
+    messages: List[str] = []
 
     if not is_functional(guard):
         return messages
@@ -261,7 +261,7 @@ def on_guard_duty(accessor, guard) -> List[str]:
     return messages
 
 
-def on_use_repair_item(entity, accessor, context) -> Optional:
+def on_use_repair_item(entity, accessor, context) -> Optional[Any]:
     """
     Handle using repair item on construct.
 

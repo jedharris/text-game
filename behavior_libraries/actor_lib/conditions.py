@@ -18,7 +18,7 @@ Condition data structure:
 }
 
 Usage:
-    from behaviors.actors.conditions import (
+    from behavior_libraries.actor_lib.conditions import (
         apply_condition, tick_conditions, treat_condition,
         remove_condition, is_immune, has_condition, has_effect,
         get_condition, get_condition_severity, MAX_SEVERITY

@@ -14,13 +14,13 @@ Actor pack properties:
 }
 
 Usage:
-    from behaviors.actors.packs import (
+    from behavior_libraries.actor_lib.packs import (
         get_pack_members, get_alpha, is_alpha,
         sync_pack_disposition, sync_follower_disposition
     )
 """
 
-from typing import List, Optional
+from typing import Any, List, Optional
 
 
 def get_pack_members(accessor, pack_id: str) -> List:
@@ -56,7 +56,7 @@ def is_alpha(actor) -> bool:
     return actor.properties.get("pack_role") == "alpha"
 
 
-def get_alpha(accessor, actor) -> Optional:
+def get_alpha(accessor, actor) -> Optional[Any]:
     """
     Get the alpha for an actor's pack.
 

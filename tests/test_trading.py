@@ -44,7 +44,7 @@ class TestTradingBehavior(unittest.TestCase):
                     }
                 }
             },
-            behaviors=["behaviors.actors.trading"]
+            behaviors=["behavior_libraries.actor_lib.trading"]
         )
         state.actors["npc_trader"] = trader
 
@@ -80,9 +80,9 @@ class TestTradingBehavior(unittest.TestCase):
         state = self._create_trading_state()
         behavior_manager = BehaviorManager()
         import behaviors.core.manipulation
-        import behaviors.actors.trading
+        import behavior_libraries.actor_lib.trading
         behavior_manager.load_module(behaviors.core.manipulation)
-        behavior_manager.load_module(behaviors.actors.trading)
+        behavior_manager.load_module(behavior_libraries.actor_lib.trading)
         accessor = StateAccessor(state, behavior_manager)
 
         from behaviors.core.manipulation import handle_give
@@ -98,9 +98,9 @@ class TestTradingBehavior(unittest.TestCase):
         state = self._create_trading_state()
         behavior_manager = BehaviorManager()
         import behaviors.core.manipulation
-        import behaviors.actors.trading
+        import behavior_libraries.actor_lib.trading
         behavior_manager.load_module(behaviors.core.manipulation)
-        behavior_manager.load_module(behaviors.actors.trading)
+        behavior_manager.load_module(behavior_libraries.actor_lib.trading)
         accessor = StateAccessor(state, behavior_manager)
 
         player = state.actors["player"]
@@ -128,9 +128,9 @@ class TestTradingBehavior(unittest.TestCase):
         state = self._create_trading_state()
         behavior_manager = BehaviorManager()
         import behaviors.core.manipulation
-        import behaviors.actors.trading
+        import behavior_libraries.actor_lib.trading
         behavior_manager.load_module(behaviors.core.manipulation)
-        behavior_manager.load_module(behaviors.actors.trading)
+        behavior_manager.load_module(behavior_libraries.actor_lib.trading)
         accessor = StateAccessor(state, behavior_manager)
 
         player = state.actors["player"]
@@ -153,9 +153,9 @@ class TestTradingBehavior(unittest.TestCase):
         state = self._create_trading_state()
         behavior_manager = BehaviorManager()
         import behaviors.core.manipulation
-        import behaviors.actors.trading
+        import behavior_libraries.actor_lib.trading
         behavior_manager.load_module(behaviors.core.manipulation)
-        behavior_manager.load_module(behaviors.actors.trading)
+        behavior_manager.load_module(behavior_libraries.actor_lib.trading)
         accessor = StateAccessor(state, behavior_manager)
 
         # Remove reward from trader inventory
@@ -213,8 +213,8 @@ class TestOnReceiveItemBehavior(unittest.TestCase):
         """Test on_receive_item finds and executes a trade."""
         state = create_test_state()
         behavior_manager = BehaviorManager()
-        import behaviors.actors.trading
-        behavior_manager.load_module(behaviors.actors.trading)
+        import behavior_libraries.actor_lib.trading
+        behavior_manager.load_module(behavior_libraries.actor_lib.trading)
         accessor = StateAccessor(state, behavior_manager)
 
         # Create trader with trade config
@@ -257,7 +257,7 @@ class TestOnReceiveItemBehavior(unittest.TestCase):
         )
         state.items.append(reward)
 
-        from behaviors.actors.trading import on_receive_item
+        from behavior_libraries.actor_lib.trading import on_receive_item
         context = {
             "item_id": "item_test",
             "item": test_item,
@@ -276,8 +276,8 @@ class TestOnReceiveItemBehavior(unittest.TestCase):
         """Test on_receive_item with no matching trade gives generic acceptance."""
         state = create_test_state()
         behavior_manager = BehaviorManager()
-        import behaviors.actors.trading
-        behavior_manager.load_module(behaviors.actors.trading)
+        import behavior_libraries.actor_lib.trading
+        behavior_manager.load_module(behavior_libraries.actor_lib.trading)
         accessor = StateAccessor(state, behavior_manager)
 
         # Create trader without trades for the given item
@@ -301,7 +301,7 @@ class TestOnReceiveItemBehavior(unittest.TestCase):
 
         sword = state.get_item("item_sword")
 
-        from behaviors.actors.trading import on_receive_item
+        from behavior_libraries.actor_lib.trading import on_receive_item
         context = {
             "item_id": "item_sword",
             "item": sword,

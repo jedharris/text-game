@@ -15,16 +15,16 @@ Item treatment properties:
 }
 
 Usage:
-    from behaviors.actors.treatment import (
+    from behavior_libraries.actor_lib.treatment import (
         can_treat, get_treatable_conditions, apply_treatment,
         TreatmentResult
     )
 """
 
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Any, List, Optional
 
-from behaviors.actors.conditions import treat_condition
+from behavior_libraries.actor_lib.conditions import treat_condition
 
 
 @dataclass
@@ -146,7 +146,7 @@ def apply_treatment(
     )
 
 
-def on_receive_treatment(entity, accessor, context) -> Optional:
+def on_receive_treatment(entity, accessor, context) -> Optional[Any]:
     """
     Auto-apply treatment when receiving curative item.
 
@@ -190,7 +190,7 @@ def on_receive_treatment(entity, accessor, context) -> Optional:
     return None
 
 
-def on_use_treatment(entity, accessor, context) -> Optional:
+def on_use_treatment(entity, accessor, context) -> Optional[Any]:
     """
     Handle using a treatment item on a target actor.
 

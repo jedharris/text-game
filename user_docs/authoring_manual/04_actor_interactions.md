@@ -661,12 +661,12 @@ Trade items must be in the NPC's inventory:
     }
   },
   "behaviors": [
-    "behaviors.actors.trading"
+    "behavior_libraries.actor_lib.trading"
   ]
 }
 ```
 
-**Important**: Include `behaviors.actors.trading` in the NPC's behaviors list.
+**Important**: Include `behavior_libraries.actor_lib.trading` in the NPC's behaviors list.
 
 If the NPC doesn't have the counter-item when a trade is attempted, they accept the item but apologize that they can't provide anything in return.
 
@@ -726,7 +726,7 @@ Use **services** when:
     }
   },
   "behaviors": [
-    "behaviors.actors.trading",
+    "behavior_libraries.actor_lib.trading",
     "behavior_libraries.dialog_lib"
   ]
 }
@@ -754,7 +754,7 @@ The item is transferred but no counter-trade occurs.
 ### 6.7 Trading Library API
 
 ```python
-from behaviors.actors.trading import (
+from behavior_libraries.actor_lib.trading import (
     on_receive_item  # Called when NPC receives any item via give
 )
 ```

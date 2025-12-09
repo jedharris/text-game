@@ -111,7 +111,7 @@ class TestUC7VenomAttack(unittest.TestCase):
 
     def test_queen_has_venomous_attack(self):
         """Spider queen has venomous_bite attack."""
-        from behaviors.actors.combat import get_attacks
+        from behavior_libraries.actor_lib.combat import get_attacks
 
         attacks = get_attacks(self.queen)
         venom_attacks = [a for a in attacks if a.get('applies_condition')]
@@ -121,7 +121,7 @@ class TestUC7VenomAttack(unittest.TestCase):
 
     def test_venom_attack_applies_condition(self):
         """Venomous attack defines spider_venom condition."""
-        from behaviors.actors.combat import get_attacks
+        from behavior_libraries.actor_lib.combat import get_attacks
 
         attacks = get_attacks(self.queen)
         venom_attack = [a for a in attacks if a.get('applies_condition')][0]
@@ -132,8 +132,8 @@ class TestUC7VenomAttack(unittest.TestCase):
 
     def test_execute_venom_attack(self):
         """Executing venom attack applies condition."""
-        from behaviors.actors.combat import get_attacks, execute_attack
-        from behaviors.actors.conditions import has_condition
+        from behavior_libraries.actor_lib.combat import get_attacks, execute_attack
+        from behavior_libraries.actor_lib.conditions import has_condition
 
         accessor = _create_accessor(self.engine)
 

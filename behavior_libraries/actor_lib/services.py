@@ -27,16 +27,16 @@ Service configuration in NPC properties:
 }
 
 Usage:
-    from behaviors.actors.services import (
+    from behavior_libraries.actor_lib.services import (
         get_available_services, get_service_cost,
         can_afford_service, execute_service
     )
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
-from behaviors.actors.conditions import remove_condition
+from behavior_libraries.actor_lib.conditions import remove_condition
 
 
 # Trust level required for 50% discount
@@ -236,7 +236,7 @@ def execute_service(
     )
 
 
-def on_receive_for_service(entity, accessor, context) -> Optional:
+def on_receive_for_service(entity, accessor, context) -> Optional[Any]:
     """
     Check if received item is payment for a service.
 

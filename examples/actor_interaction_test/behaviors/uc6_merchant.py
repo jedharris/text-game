@@ -14,7 +14,7 @@ Library modules used:
 - services.py: get_available_services
 """
 
-from typing import Optional, List
+from typing import Any, Optional, List
 
 
 def start_escort(accessor, npc, player) -> str:
@@ -192,7 +192,7 @@ def complete_escort(accessor, npc, player) -> str:
     return " ".join(messages)
 
 
-def on_player_move(entity, accessor, context) -> Optional:
+def on_player_move(entity, accessor, context) -> Optional[Any]:
     """
     Handle player moving - update following NPCs.
 
@@ -235,7 +235,7 @@ def on_player_move(entity, accessor, context) -> Optional:
     return None
 
 
-def on_guide_merchant(entity, accessor, context) -> Optional:
+def on_guide_merchant(entity, accessor, context) -> Optional[Any]:
     """
     Handle 'guide' command for starting escort.
 

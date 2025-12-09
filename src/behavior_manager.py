@@ -442,7 +442,7 @@ class BehaviorManager:
         Returns:
             Vocabulary dict with verbs, nouns, adjectives sections
         """
-        vocab = {
+        vocab: Dict[str, List[Dict[str, Any]]] = {
             "verbs": [],
             "nouns": [],
             "adjectives": [],

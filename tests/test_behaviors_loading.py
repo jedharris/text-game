@@ -349,13 +349,13 @@ class TestBehaviorsLoading(unittest.TestCase):
         game_data = self._create_minimal_game_state(
             items=[
                 {
-                    "id": "duck",
-                    "name": "rubber duck",
-                    "description": "A yellow rubber duck",
+                    "id": "lantern",
+                    "name": "brass lantern",
+                    "description": "A brass lantern",
                     "type": "tool",
                     "portable": True,
                     "location": "room1",
-                    "behaviors": ["behaviors.items.rubber_duck:on_squeeze"]
+                    "behaviors": ["behaviors.core.light:on_turn_on"]
                 }
             ]
         )
@@ -366,8 +366,8 @@ class TestBehaviorsLoading(unittest.TestCase):
 
         try:
             state = load_game_state(temp_path)
-            item = state.get_item("duck")
-            self.assertIn("behaviors.items.rubber_duck:on_squeeze", item.behaviors)
+            item = state.get_item("lantern")
+            self.assertIn("behaviors.core.light:on_turn_on", item.behaviors)
         finally:
             Path(temp_path).unlink()
 

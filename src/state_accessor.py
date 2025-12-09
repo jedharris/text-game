@@ -521,7 +521,7 @@ class StateAccessor:
         except ValueError:
             return f"Value not in list '{final_field}'"
 
-    def update(self, entity, changes: dict, verb: str = None, actor_id: str = "player") -> UpdateResult:
+    def update(self, entity, changes: dict, verb: Optional[str] = None, actor_id: str = "player") -> UpdateResult:
         """
         Apply state changes to an entity.
 

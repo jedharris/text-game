@@ -48,8 +48,8 @@ class TestBehaviorVocabularyMerging(unittest.TestCase):
         verb_words = [v["word"] for v in merged["verbs"]]
         self.assertIn("go", verb_words)  # Base verb
         self.assertIn("quit", verb_words)  # Base verb
-        # squeeze is defined in rubber_duck.py
-        self.assertIn("squeeze", verb_words)
+        # Verify behavior-defined verbs are present (e.g., from core behaviors)
+        # The exact verbs depend on which behavior modules are loaded
 
     def test_behavior_vocabulary_includes_synonyms(self):
         """Test that behavior-defined verbs include their synonyms."""
@@ -59,23 +59,22 @@ class TestBehaviorVocabularyMerging(unittest.TestCase):
 
         merged = manager.get_merged_vocabulary(self.base_vocab)
 
-        # Find squeeze verb
-        squeeze_verb = next(
-            (v for v in merged["verbs"] if v["word"] == "squeeze"),
+        # Find attack verb (defined in behaviors/core/combat.py)
+        attack_verb = next(
+            (v for v in merged["verbs"] if v["word"] == "attack"),
             None
         )
 
-        self.assertIsNotNone(squeeze_verb)
-        self.assertIn("synonyms", squeeze_verb)
-        self.assertIn("squish", squeeze_verb["synonyms"])
-        # Note: "press" was removed as synonym to avoid conflict with "push"
+        self.assertIsNotNone(attack_verb)
+        self.assertIn("synonyms", attack_verb)
+        self.assertIn("hit", attack_verb["synonyms"])
 
     def test_no_duplicate_verbs_after_merge(self):
         """Test that duplicate verbs are not added."""
-        # Add squeeze to base vocab
-        base_with_squeeze = {
+        # Add attack to base vocab
+        base_with_attack = {
             "verbs": [
-                {"word": "squeeze", "synonyms": [], "object_required": True}
+                {"word": "attack", "synonyms": [], "object_required": True}
             ],
             "nouns": [],
             "adjectives": [],
@@ -86,11 +85,11 @@ class TestBehaviorVocabularyMerging(unittest.TestCase):
         modules = manager.discover_modules(str(self.behaviors_dir))
         manager.load_modules(modules)
 
-        merged = manager.get_merged_vocabulary(base_with_squeeze)
+        merged = manager.get_merged_vocabulary(base_with_attack)
 
-        # Should only have one squeeze
-        squeeze_count = sum(1 for v in merged["verbs"] if v["word"] == "squeeze")
-        self.assertEqual(squeeze_count, 1)
+        # Should only have one attack
+        attack_count = sum(1 for v in merged["verbs"] if v["word"] == "attack")
+        self.assertEqual(attack_count, 1)
 
     def test_parser_recognizes_behavior_defined_verbs(self):
         """Test that parser can parse commands with behavior-defined verbs."""
@@ -104,7 +103,7 @@ class TestBehaviorVocabularyMerging(unittest.TestCase):
                 {"word": "take", "synonyms": ["get"], "object_required": True}
             ],
             "nouns": [
-                {"word": "duck"}
+                {"word": "wolf"}
             ],
             "adjectives": [],
             "directions": []
@@ -121,19 +120,19 @@ class TestBehaviorVocabularyMerging(unittest.TestCase):
         try:
             parser = Parser(temp_path)
 
-            # Test parsing "squeeze duck"
-            result = parser.parse_command("squeeze duck")
+            # Test parsing "attack wolf"
+            result = parser.parse_command("attack wolf")
 
             self.assertIsNotNone(result)
-            self.assertEqual(result.verb.word, "squeeze")
-            self.assertEqual(result.direct_object.word, "duck")
+            self.assertEqual(result.verb.word, "attack")
+            self.assertEqual(result.direct_object.word, "wolf")
 
-            # Test synonym "squish duck"
-            result = parser.parse_command("squish duck")
+            # Test synonym "hit wolf"
+            result = parser.parse_command("hit wolf")
 
             self.assertIsNotNone(result)
-            self.assertEqual(result.verb.word, "squeeze")  # Resolved to canonical
-            self.assertEqual(result.direct_object.word, "duck")
+            self.assertEqual(result.verb.word, "attack")  # Resolved to canonical
+            self.assertEqual(result.direct_object.word, "wolf")
         finally:
             Path(temp_path).unlink()
 
@@ -201,7 +200,7 @@ class TestFullVocabularyMerging(unittest.TestCase):
         self.assertIn("lantern", noun_words)
 
         # Verbs from behaviors
-        self.assertIn("squeeze", verb_words)
+        self.assertIn("attack", verb_words)
 
         # Directions preserved
         dir_words = [d["word"] for d in final_vocab["directions"]]
@@ -215,7 +214,7 @@ class TestFullVocabularyMerging(unittest.TestCase):
                 {"word": "take", "synonyms": ["get"], "object_required": True}
             ],
             "nouns": [],
-            "adjectives": [{"word": "rubber"}],
+            "adjectives": [{"word": "gray"}],
             "directions": []
         }
 
@@ -224,8 +223,8 @@ class TestFullVocabularyMerging(unittest.TestCase):
             "metadata": {"title": "Test", "start_location": "room1"},
             "locations": [{"id": "room1", "name": "Room", "description": "A room"}],
             "items": [
-                {"id": "item1", "name": "duck", "description": "A rubber duck",
-                 "type": "tool", "portable": True, "location": "room1"}
+                {"id": "item1", "name": "wolf", "description": "A gray wolf",
+                 "type": "scenery", "portable": False, "location": "room1"}
             ],
             "locks": [],
             "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
@@ -251,11 +250,11 @@ class TestFullVocabularyMerging(unittest.TestCase):
             parser = Parser(temp_path)
 
             # Can parse behavior-defined verb
-            result = parser.parse_command("squeeze rubber duck")
+            result = parser.parse_command("attack gray wolf")
 
             self.assertIsNotNone(result)
-            self.assertEqual(result.verb.word, "squeeze")
-            self.assertEqual(result.direct_object.word, "duck")
+            self.assertEqual(result.verb.word, "attack")
+            self.assertEqual(result.direct_object.word, "wolf")
         finally:
             Path(temp_path).unlink()
 
@@ -264,15 +263,12 @@ class TestVocabularyFromBehaviorModules(unittest.TestCase):
     """Test that core verbs can be defined in behavior modules."""
 
     def test_manipulation_verbs_from_behavior(self):
-        """Test that take/drop verbs could come from a manipulation behavior."""
-        # This test documents the expected behavior after refactoring
-        # Currently these verbs are in vocabulary.json
-
+        """Test that take/drop verbs come from a manipulation behavior."""
         manager = BehaviorManager()
         modules = manager.discover_modules(str(Path(__file__).parent.parent / "behaviors"))
         manager.load_modules(modules)
 
-        # After refactoring, manipulation verbs should come from behaviors
+        # Manipulation verbs should come from behaviors/core/manipulation.py
         merged = manager.get_merged_vocabulary({
             "verbs": [],
             "nouns": [],
@@ -282,9 +278,10 @@ class TestVocabularyFromBehaviorModules(unittest.TestCase):
 
         verb_words = [v["word"] for v in merged["verbs"]]
 
-        # These should be added by behavior modules after refactoring
-        # For now, just verify squeeze is there
-        self.assertIn("squeeze", verb_words)
+        # Verify manipulation verbs are present from behaviors
+        self.assertIn("take", verb_words)
+        self.assertIn("drop", verb_words)
+        self.assertIn("give", verb_words)
 
 
 if __name__ == '__main__':

@@ -12,7 +12,7 @@ Library modules used:
 - environment.py: check_breath, needs_breath, apply_environmental_effects
 """
 
-from typing import Optional
+from typing import Any, Optional
 
 
 # Breath warning thresholds and messages (ordered from most to least severe)
@@ -79,7 +79,7 @@ def rescue_to_surface(accessor, actor, surface_location: str) -> str:
     Returns:
         Message describing the rescue
     """
-    from behaviors.actors.environment import needs_breath
+    from behavior_libraries.actor_lib.environment import needs_breath
 
     if not actor:
         return "No one to rescue."
@@ -125,7 +125,7 @@ def give_breathing_item(accessor, item, actor) -> Optional[str]:
     return f"{actor.name} now has the {item.name} for breathing underwater."
 
 
-def on_enter_water(entity, accessor, context) -> Optional:
+def on_enter_water(entity, accessor, context) -> Optional[Any]:
     """
     Handle actor entering water.
 
@@ -141,7 +141,7 @@ def on_enter_water(entity, accessor, context) -> Optional:
         EventResult with warning if breath is low, None otherwise
     """
     from src.state_accessor import EventResult
-    from behaviors.actors.environment import needs_breath
+    from behavior_libraries.actor_lib.environment import needs_breath
 
     if not needs_breath(entity):
         return None

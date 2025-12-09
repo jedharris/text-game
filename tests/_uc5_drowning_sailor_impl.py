@@ -81,7 +81,7 @@ class TestUC5Breath(unittest.TestCase):
 
     def test_breath_decreases_underwater(self):
         """Breath decreases when in non-breathable area."""
-        from behaviors.actors.environment import check_breath
+        from behavior_libraries.actor_lib.environment import check_breath
 
         shallow = _get_part(self.engine, 'part_underwater_shallow')
         accessor = _create_accessor(self.engine)
@@ -98,7 +98,7 @@ class TestUC5Breath(unittest.TestCase):
 
     def test_breath_restores_on_surface(self):
         """Breath restores to max in breathable area."""
-        from behaviors.actors.environment import check_breath
+        from behavior_libraries.actor_lib.environment import check_breath
 
         # Use a breathable part (basement entrance has breathable=true)
         part = _get_part(self.engine, 'part_basement_entrance')
@@ -124,7 +124,7 @@ class TestUC5Drowning(unittest.TestCase):
 
     def test_drowning_damage(self):
         """Actor takes drowning damage when breath reaches 0."""
-        from behaviors.actors.environment import check_breath
+        from behavior_libraries.actor_lib.environment import check_breath
 
         shallow = _get_part(self.engine, 'part_underwater_shallow')
         accessor = _create_accessor(self.engine)
@@ -144,7 +144,7 @@ class TestUC5Drowning(unittest.TestCase):
 
     def test_continuous_drowning(self):
         """Actor continues taking damage each turn while at 0 breath."""
-        from behaviors.actors.environment import check_breath
+        from behavior_libraries.actor_lib.environment import check_breath
 
         shallow = _get_part(self.engine, 'part_underwater_shallow')
         accessor = _create_accessor(self.engine)
@@ -185,7 +185,7 @@ class TestUC5BreathingItem(unittest.TestCase):
 
     def test_breathing_item_works_in_shallow(self):
         """Air bladder prevents breath loss in shallow water."""
-        from behaviors.actors.environment import check_breath
+        from behavior_libraries.actor_lib.environment import check_breath
 
         shallow = _get_part(self.engine, 'part_underwater_shallow')
         accessor = _create_accessor(self.engine)
@@ -203,7 +203,7 @@ class TestUC5BreathingItem(unittest.TestCase):
 
     def test_breathing_item_fails_in_deep(self):
         """Air bladder doesn't work in deep water (breathing_item_works=false)."""
-        from behaviors.actors.environment import check_breath
+        from behavior_libraries.actor_lib.environment import check_breath
 
         deep = _get_part(self.engine, 'part_underwater_deep')
         accessor = _create_accessor(self.engine)
@@ -302,13 +302,13 @@ class TestUC5ConstructImmune(unittest.TestCase):
 
     def test_construct_does_not_need_breath(self):
         """Constructs are flagged as not needing breath."""
-        from behaviors.actors.environment import needs_breath
+        from behavior_libraries.actor_lib.environment import needs_breath
 
         self.assertFalse(needs_breath(self.golem))
 
     def test_construct_unaffected_by_water(self):
         """Constructs don't lose breath underwater."""
-        from behaviors.actors.environment import check_breath
+        from behavior_libraries.actor_lib.environment import check_breath
 
         shallow = _get_part(self.engine, 'part_underwater_shallow')
         accessor = _create_accessor(self.engine)
@@ -322,7 +322,7 @@ class TestUC5ConstructImmune(unittest.TestCase):
 
     def test_construct_immune_to_drowning(self):
         """Constructs cannot drown even with 0 breath."""
-        from behaviors.actors.environment import check_breath
+        from behavior_libraries.actor_lib.environment import check_breath
 
         shallow = _get_part(self.engine, 'part_underwater_shallow')
         accessor = _create_accessor(self.engine)

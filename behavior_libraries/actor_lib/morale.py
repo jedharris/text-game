@@ -19,7 +19,7 @@ Actor morale properties:
 }
 
 Usage:
-    from behaviors.actors.morale import (
+    from behavior_libraries.actor_lib.morale import (
         get_morale, check_flee_condition, attempt_flee,
         get_allies, get_enemies, FleeResult
     )

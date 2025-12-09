@@ -14,7 +14,7 @@ Library modules used:
 - conditions.py: apply_condition
 """
 
-from typing import Optional, List
+from typing import Any, Optional, List
 
 
 def is_spider_pack_member(actor, pack_id: str = "spider_swarm") -> bool:
@@ -199,7 +199,7 @@ def apply_venom_from_attack(accessor, attacker, target, attack) -> Optional[str]
     Returns:
         Message if venom applied, None otherwise
     """
-    from behaviors.actors.conditions import apply_condition, has_condition
+    from behavior_libraries.actor_lib.conditions import apply_condition, has_condition
 
     applies_condition = attack.get("applies_condition")
     if not applies_condition:
@@ -217,7 +217,7 @@ def apply_venom_from_attack(accessor, attacker, target, attack) -> Optional[str]
     return f"Venom courses through your veins! {msg}"
 
 
-def on_enter_spider_territory(entity, accessor, context) -> Optional:
+def on_enter_spider_territory(entity, accessor, context) -> Optional[Any]:
     """
     Handle entering spider territory - alerts swarm.
 
@@ -247,7 +247,7 @@ def on_enter_spider_territory(entity, accessor, context) -> Optional:
     return None
 
 
-def on_use_torch_on_webs(entity, accessor, context) -> Optional:
+def on_use_torch_on_webs(entity, accessor, context) -> Optional[Any]:
     """
     Handle using torch on webs.
 

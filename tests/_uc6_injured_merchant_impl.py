@@ -67,7 +67,7 @@ class TestUC6Treatment(unittest.TestCase):
 
     def test_merchant_has_bleeding(self):
         """Merchant has bleeding condition."""
-        from behaviors.actors.conditions import has_condition
+        from behavior_libraries.actor_lib.conditions import has_condition
 
         self.assertTrue(has_condition(self.merchant, 'bleeding'))
 
@@ -77,14 +77,14 @@ class TestUC6Treatment(unittest.TestCase):
 
     def test_bandages_treat_bleeding(self):
         """Bandages have treats property for bleeding."""
-        from behaviors.actors.treatment import can_treat
+        from behavior_libraries.actor_lib.treatment import can_treat
 
         self.assertTrue(can_treat(self.bandages, 'bleeding'))
 
     def test_apply_treatment(self):
         """Applying bandages removes bleeding."""
-        from behaviors.actors.treatment import apply_treatment
-        from behaviors.actors.conditions import has_condition
+        from behavior_libraries.actor_lib.treatment import apply_treatment
+        from behavior_libraries.actor_lib.conditions import has_condition
 
         accessor = _create_accessor(self.engine)
 
@@ -98,7 +98,7 @@ class TestUC6Treatment(unittest.TestCase):
 
     def test_treatment_consumes_bandages(self):
         """Using bandages consumes them."""
-        from behaviors.actors.treatment import apply_treatment
+        from behavior_libraries.actor_lib.treatment import apply_treatment
 
         accessor = _create_accessor(self.engine)
 
@@ -124,7 +124,7 @@ class TestUC6Trading(unittest.TestCase):
 
     def test_merchant_has_trade_service(self):
         """Merchant offers trade service."""
-        from behaviors.actors.services import get_available_services
+        from behavior_libraries.actor_lib.services import get_available_services
 
         services = get_available_services(self.merchant)
         self.assertIn('trade', services)
@@ -136,8 +136,8 @@ class TestUC6Trading(unittest.TestCase):
 
     def test_can_trade_while_injured(self):
         """Merchant can trade even while bleeding."""
-        from behaviors.actors.conditions import has_condition
-        from behaviors.actors.services import get_available_services
+        from behavior_libraries.actor_lib.conditions import has_condition
+        from behavior_libraries.actor_lib.services import get_available_services
 
         # Verify merchant is injured
         self.assertTrue(has_condition(self.merchant, 'bleeding'))

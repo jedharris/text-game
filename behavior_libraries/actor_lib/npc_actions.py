@@ -19,8 +19,8 @@ Usage:
 
 from typing import List, Optional
 
-from behaviors.actors.combat import get_attacks, select_attack, execute_attack
-from behaviors.actors.packs import sync_follower_disposition
+from behavior_libraries.actor_lib.combat import get_attacks, select_attack, execute_attack
+from behavior_libraries.actor_lib.packs import sync_follower_disposition
 
 
 def npc_take_action(entity, accessor, context):

@@ -1122,10 +1122,10 @@ Combining multiple actor behaviors:
         "conditions": []
     },
     "behaviors": [
-        "behaviors.actors.combat",
-        "behaviors.actors.conditions",
-        "behaviors.actors.morale",
-        "behaviors.actors.packs"
+        "behavior_libraries.actor_lib.combat",
+        "behavior_libraries.actor_lib.conditions",
+        "behavior_libraries.actor_lib.morale",
+        "behavior_libraries.actor_lib.packs"
     ]
 }
 ```

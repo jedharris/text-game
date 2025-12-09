@@ -1003,7 +1003,7 @@ class TestFactionReputationCascades(unittest.TestCase):
     def test_faction_reputation_syncs_to_members(self):
         """Test that reputation syncs to faction members."""
         from big_game.behaviors.factions import modify_faction_reputation
-        from behaviors.actors.relationships import get_relationship
+        from behavior_libraries.actor_lib.relationships import get_relationship
 
         modify_faction_reputation(
             self.accessor, "myconid_collective", "trust", 5

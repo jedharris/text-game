@@ -71,7 +71,7 @@ class TestGetPackMembers(unittest.TestCase):
 
     def test_get_pack_members_returns_all(self):
         """Returns all actors in a pack."""
-        from behaviors.actors.packs import get_pack_members
+        from behavior_libraries.actor_lib.packs import get_pack_members
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_forest"),
@@ -99,7 +99,7 @@ class TestGetPackMembers(unittest.TestCase):
 
     def test_get_pack_members_excludes_other_packs(self):
         """Does not include members of other packs."""
-        from behaviors.actors.packs import get_pack_members
+        from behavior_libraries.actor_lib.packs import get_pack_members
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_forest"),
@@ -122,7 +122,7 @@ class TestGetPackMembers(unittest.TestCase):
 
     def test_get_pack_members_empty_pack(self):
         """Returns empty list for unknown pack."""
-        from behaviors.actors.packs import get_pack_members
+        from behavior_libraries.actor_lib.packs import get_pack_members
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_forest"),
@@ -179,7 +179,7 @@ class TestGetAlpha(unittest.TestCase):
 
     def test_get_alpha_returns_alpha(self):
         """Returns the alpha of an actor's pack."""
-        from behaviors.actors.packs import get_alpha
+        from behavior_libraries.actor_lib.packs import get_alpha
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_forest"),
@@ -202,7 +202,7 @@ class TestGetAlpha(unittest.TestCase):
 
     def test_get_alpha_for_alpha_returns_self(self):
         """Alpha's alpha is itself."""
-        from behaviors.actors.packs import get_alpha
+        from behavior_libraries.actor_lib.packs import get_alpha
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_forest"),
@@ -222,7 +222,7 @@ class TestGetAlpha(unittest.TestCase):
 
     def test_get_alpha_no_pack(self):
         """Returns None for actor without pack."""
-        from behaviors.actors.packs import get_alpha
+        from behavior_libraries.actor_lib.packs import get_alpha
 
         loner = Actor(
             id="npc_loner",
@@ -250,7 +250,7 @@ class TestGetAlpha(unittest.TestCase):
 
     def test_get_alpha_pack_without_alpha(self):
         """Returns None for pack without alpha."""
-        from behaviors.actors.packs import get_alpha
+        from behavior_libraries.actor_lib.packs import get_alpha
 
         # Remove alpha role
         self.follower.properties["pack_role"] = "follower"
@@ -280,7 +280,7 @@ class TestIsAlpha(unittest.TestCase):
 
     def test_is_alpha_true(self):
         """Returns True for alpha actors."""
-        from behaviors.actors.packs import is_alpha
+        from behavior_libraries.actor_lib.packs import is_alpha
 
         alpha = Actor(
             id="npc_wolf_alpha",
@@ -298,7 +298,7 @@ class TestIsAlpha(unittest.TestCase):
 
     def test_is_alpha_false_for_follower(self):
         """Returns False for follower actors."""
-        from behaviors.actors.packs import is_alpha
+        from behavior_libraries.actor_lib.packs import is_alpha
 
         follower = Actor(
             id="npc_wolf_1",
@@ -316,7 +316,7 @@ class TestIsAlpha(unittest.TestCase):
 
     def test_is_alpha_false_no_role(self):
         """Returns False for actors without pack_role."""
-        from behaviors.actors.packs import is_alpha
+        from behavior_libraries.actor_lib.packs import is_alpha
 
         loner = Actor(
             id="npc_loner",
@@ -382,7 +382,7 @@ class TestSyncPackDisposition(unittest.TestCase):
 
     def test_sync_followers_to_alpha(self):
         """Followers sync to alpha's disposition."""
-        from behaviors.actors.packs import sync_pack_disposition
+        from behavior_libraries.actor_lib.packs import sync_pack_disposition
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_forest"),
@@ -407,7 +407,7 @@ class TestSyncPackDisposition(unittest.TestCase):
 
     def test_sync_no_change_if_already_synced(self):
         """No change if followers already match alpha."""
-        from behaviors.actors.packs import sync_pack_disposition
+        from behavior_libraries.actor_lib.packs import sync_pack_disposition
 
         self.follower1.properties["disposition"] = "hostile"
         self.follower2.properties["disposition"] = "hostile"
@@ -433,7 +433,7 @@ class TestSyncPackDisposition(unittest.TestCase):
 
     def test_sync_does_not_change_alpha(self):
         """Sync does not change alpha's disposition."""
-        from behaviors.actors.packs import sync_pack_disposition
+        from behavior_libraries.actor_lib.packs import sync_pack_disposition
 
         original_disposition = self.alpha.properties["disposition"]
 
@@ -457,7 +457,7 @@ class TestSyncPackDisposition(unittest.TestCase):
 
     def test_sync_no_alpha_returns_empty(self):
         """Returns empty list if pack has no alpha."""
-        from behaviors.actors.packs import sync_pack_disposition
+        from behavior_libraries.actor_lib.packs import sync_pack_disposition
 
         # Make alpha a follower
         self.alpha.properties["pack_role"] = "follower"
@@ -520,7 +520,7 @@ class TestSyncFollowerDisposition(unittest.TestCase):
 
     def test_sync_single_follower(self):
         """Syncs a single follower to alpha."""
-        from behaviors.actors.packs import sync_follower_disposition
+        from behavior_libraries.actor_lib.packs import sync_follower_disposition
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_forest"),
@@ -543,7 +543,7 @@ class TestSyncFollowerDisposition(unittest.TestCase):
 
     def test_sync_follower_no_change_if_synced(self):
         """Returns False if follower already synced."""
-        from behaviors.actors.packs import sync_follower_disposition
+        from behavior_libraries.actor_lib.packs import sync_follower_disposition
 
         self.follower.properties["disposition"] = "hostile"
 
@@ -567,7 +567,7 @@ class TestSyncFollowerDisposition(unittest.TestCase):
 
     def test_sync_follower_alpha_not_changed(self):
         """Alpha actors are not changed by sync."""
-        from behaviors.actors.packs import sync_follower_disposition
+        from behavior_libraries.actor_lib.packs import sync_follower_disposition
 
         game_state = GameState(
             metadata=Metadata(title="Test", start_location="loc_forest"),
@@ -590,7 +590,7 @@ class TestPackVocabulary(unittest.TestCase):
 
     def test_vocabulary_has_events(self):
         """Vocabulary exports events."""
-        from behaviors.actors.packs import vocabulary
+        from behavior_libraries.actor_lib.packs import vocabulary
 
         self.assertIn("events", vocabulary)
 

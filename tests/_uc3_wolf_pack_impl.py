@@ -83,7 +83,7 @@ class TestUC3PackSync(unittest.TestCase):
 
     def test_sync_pack_disposition(self):
         """Changing alpha disposition syncs to followers."""
-        from behaviors.actors.packs import sync_pack_disposition
+        from behavior_libraries.actor_lib.packs import sync_pack_disposition
 
         accessor = _create_accessor(self.engine)
 
@@ -104,7 +104,7 @@ class TestUC3PackSync(unittest.TestCase):
 
     def test_sync_single_follower(self):
         """Sync individual follower to alpha."""
-        from behaviors.actors.packs import sync_follower_disposition
+        from behavior_libraries.actor_lib.packs import sync_follower_disposition
 
         accessor = _create_accessor(self.engine)
 
@@ -196,7 +196,7 @@ class TestUC3MoraleFlee(unittest.TestCase):
 
     def test_healthy_wolf_high_morale(self):
         """Healthy wolf with allies has high morale."""
-        from behaviors.actors.morale import get_morale
+        from behavior_libraries.actor_lib.morale import get_morale
 
         accessor = _create_accessor(self.engine)
 
@@ -206,7 +206,7 @@ class TestUC3MoraleFlee(unittest.TestCase):
 
     def test_damaged_wolf_low_morale(self):
         """Damaged wolf has lower morale."""
-        from behaviors.actors.morale import get_morale
+        from behavior_libraries.actor_lib.morale import get_morale
 
         accessor = _create_accessor(self.engine)
 
@@ -219,7 +219,7 @@ class TestUC3MoraleFlee(unittest.TestCase):
 
     def test_flee_condition_triggered(self):
         """Low morale triggers flee condition when isolated."""
-        from behaviors.actors.morale import check_flee_condition
+        from behavior_libraries.actor_lib.morale import check_flee_condition
 
         accessor = _create_accessor(self.engine)
 
@@ -262,14 +262,14 @@ class TestUC3Relationship(unittest.TestCase):
 
     def test_no_initial_relationship(self):
         """Wolf starts with no relationship to player."""
-        from behaviors.actors.relationships import get_relationship
+        from behavior_libraries.actor_lib.relationships import get_relationship
 
         rel = get_relationship(self.alpha, 'player')
         self.assertEqual(rel, {})
 
     def test_feeding_builds_gratitude(self):
         """Feeding increases gratitude relationship."""
-        from behaviors.actors.relationships import modify_relationship
+        from behavior_libraries.actor_lib.relationships import modify_relationship
 
         accessor = _create_accessor(self.engine)
 
@@ -280,7 +280,7 @@ class TestUC3Relationship(unittest.TestCase):
 
     def test_multiple_feedings_stack(self):
         """Multiple feedings increase gratitude cumulatively."""
-        from behaviors.actors.relationships import modify_relationship, get_relationship
+        from behavior_libraries.actor_lib.relationships import modify_relationship, get_relationship
 
         accessor = _create_accessor(self.engine)
 
@@ -302,7 +302,7 @@ class TestUC3Domestication(unittest.TestCase):
 
     def test_domestication_threshold(self):
         """Gratitude >= 3 triggers domestication threshold."""
-        from behaviors.actors.relationships import modify_relationship
+        from behavior_libraries.actor_lib.relationships import modify_relationship
 
         accessor = _create_accessor(self.engine)
 
@@ -320,7 +320,7 @@ class TestUC3Domestication(unittest.TestCase):
     def test_check_domestication(self):
         """check_domestication returns true when threshold met."""
         from behaviors.uc3_wolf_pack import check_domestication
-        from behaviors.actors.relationships import modify_relationship
+        from behavior_libraries.actor_lib.relationships import modify_relationship
 
         accessor = _create_accessor(self.engine)
 

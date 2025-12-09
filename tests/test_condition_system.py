@@ -22,7 +22,7 @@ class TestApplyCondition(unittest.TestCase):
 
     def test_apply_condition_new(self):
         """Apply a new condition to an actor."""
-        from behaviors.actors.conditions import apply_condition
+        from behavior_libraries.actor_lib.conditions import apply_condition
 
         message = apply_condition(self.actor, "poison", {
             "severity": 50,
@@ -37,7 +37,7 @@ class TestApplyCondition(unittest.TestCase):
 
     def test_apply_condition_stack(self):
         """Applying existing condition increases severity."""
-        from behaviors.actors.conditions import apply_condition
+        from behavior_libraries.actor_lib.conditions import apply_condition
 
         # Apply first time
         apply_condition(self.actor, "poison", {"severity": 30})
@@ -49,7 +49,7 @@ class TestApplyCondition(unittest.TestCase):
 
     def test_apply_condition_immune_array(self):
         """Actor with immunity in array rejects condition."""
-        from behaviors.actors.conditions import apply_condition
+        from behavior_libraries.actor_lib.conditions import apply_condition
 
         self.actor.properties["immunities"] = ["poison", "disease"]
 
@@ -62,7 +62,7 @@ class TestApplyCondition(unittest.TestCase):
 
     def test_apply_condition_immune_construct(self):
         """Constructs are immune to disease and poison."""
-        from behaviors.actors.conditions import apply_condition
+        from behavior_libraries.actor_lib.conditions import apply_condition
 
         self.actor.properties["body"] = {"form": "construct"}
 
@@ -74,7 +74,7 @@ class TestApplyCondition(unittest.TestCase):
 
     def test_apply_condition_preserves_other_fields(self):
         """Stacking preserves non-severity fields from original."""
-        from behaviors.actors.conditions import apply_condition
+        from behavior_libraries.actor_lib.conditions import apply_condition
 
         apply_condition(self.actor, "poison", {
             "severity": 30,
@@ -113,7 +113,7 @@ class TestTickConditions(unittest.TestCase):
 
     def test_tick_conditions_damage(self):
         """Damage per turn is applied to health."""
-        from behaviors.actors.conditions import tick_conditions
+        from behavior_libraries.actor_lib.conditions import tick_conditions
 
         self.actor.properties["conditions"]["poison"] = {
             "severity": 50,
@@ -127,7 +127,7 @@ class TestTickConditions(unittest.TestCase):
 
     def test_tick_conditions_duration_decrements(self):
         """Duration decrements each tick."""
-        from behaviors.actors.conditions import tick_conditions
+        from behavior_libraries.actor_lib.conditions import tick_conditions
 
         self.actor.properties["conditions"]["stun"] = {
             "severity": 30,
@@ -140,7 +140,7 @@ class TestTickConditions(unittest.TestCase):
 
     def test_tick_conditions_duration_removes(self):
         """Condition removed when duration reaches zero."""
-        from behaviors.actors.conditions import tick_conditions
+        from behavior_libraries.actor_lib.conditions import tick_conditions
 
         self.actor.properties["conditions"]["stun"] = {
             "severity": 30,
@@ -155,7 +155,7 @@ class TestTickConditions(unittest.TestCase):
 
     def test_tick_conditions_progression_rate(self):
         """Severity increases by progression_rate."""
-        from behaviors.actors.conditions import tick_conditions
+        from behavior_libraries.actor_lib.conditions import tick_conditions
 
         self.actor.properties["conditions"]["infection"] = {
             "severity": 20,
@@ -168,7 +168,7 @@ class TestTickConditions(unittest.TestCase):
 
     def test_tick_conditions_no_conditions(self):
         """No error when actor has no conditions."""
-        from behaviors.actors.conditions import tick_conditions
+        from behavior_libraries.actor_lib.conditions import tick_conditions
 
         self.actor.properties["conditions"] = {}
 
@@ -178,7 +178,7 @@ class TestTickConditions(unittest.TestCase):
 
     def test_tick_conditions_multiple(self):
         """Multiple conditions all tick."""
-        from behaviors.actors.conditions import tick_conditions
+        from behavior_libraries.actor_lib.conditions import tick_conditions
 
         self.actor.properties["conditions"] = {
             "poison": {"severity": 50, "damage_per_turn": 2},
@@ -213,7 +213,7 @@ class TestTreatCondition(unittest.TestCase):
 
     def test_treat_condition_reduce(self):
         """Treatment reduces severity."""
-        from behaviors.actors.conditions import treat_condition
+        from behavior_libraries.actor_lib.conditions import treat_condition
 
         message = treat_condition(self.actor, "poison", 30)
 
@@ -222,7 +222,7 @@ class TestTreatCondition(unittest.TestCase):
 
     def test_treat_condition_remove_at_zero(self):
         """Condition removed when severity drops to zero or below."""
-        from behaviors.actors.conditions import treat_condition
+        from behavior_libraries.actor_lib.conditions import treat_condition
 
         message = treat_condition(self.actor, "poison", 60)
 
@@ -231,7 +231,7 @@ class TestTreatCondition(unittest.TestCase):
 
     def test_treat_condition_nonexistent(self):
         """Treating nonexistent condition returns appropriate message."""
-        from behaviors.actors.conditions import treat_condition
+        from behavior_libraries.actor_lib.conditions import treat_condition
 
         message = treat_condition(self.actor, "bleeding", 30)
 
@@ -258,7 +258,7 @@ class TestRemoveCondition(unittest.TestCase):
 
     def test_remove_condition(self):
         """Condition is completely removed."""
-        from behaviors.actors.conditions import remove_condition
+        from behavior_libraries.actor_lib.conditions import remove_condition
 
         message = remove_condition(self.actor, "poison")
 
@@ -267,7 +267,7 @@ class TestRemoveCondition(unittest.TestCase):
 
     def test_remove_condition_nonexistent(self):
         """Removing nonexistent condition is safe."""
-        from behaviors.actors.conditions import remove_condition
+        from behavior_libraries.actor_lib.conditions import remove_condition
 
         message = remove_condition(self.actor, "bleeding")
 
@@ -291,7 +291,7 @@ class TestIsImmune(unittest.TestCase):
 
     def test_is_immune_array_match(self):
         """Actor with condition in immunities array is immune."""
-        from behaviors.actors.conditions import is_immune
+        from behavior_libraries.actor_lib.conditions import is_immune
 
         self.actor.properties["immunities"] = ["poison", "disease"]
 
@@ -301,7 +301,7 @@ class TestIsImmune(unittest.TestCase):
 
     def test_is_immune_construct_disease(self):
         """Constructs are immune to disease."""
-        from behaviors.actors.conditions import is_immune
+        from behavior_libraries.actor_lib.conditions import is_immune
 
         self.actor.properties["body"] = {"form": "construct"}
 
@@ -309,7 +309,7 @@ class TestIsImmune(unittest.TestCase):
 
     def test_is_immune_construct_poison(self):
         """Constructs are immune to poison."""
-        from behaviors.actors.conditions import is_immune
+        from behavior_libraries.actor_lib.conditions import is_immune
 
         self.actor.properties["body"] = {"form": "construct"}
 
@@ -317,7 +317,7 @@ class TestIsImmune(unittest.TestCase):
 
     def test_is_immune_construct_not_bleeding(self):
         """Constructs are NOT immune to bleeding (mechanical damage)."""
-        from behaviors.actors.conditions import is_immune
+        from behavior_libraries.actor_lib.conditions import is_immune
 
         self.actor.properties["body"] = {"form": "construct"}
 
@@ -325,13 +325,13 @@ class TestIsImmune(unittest.TestCase):
 
     def test_is_immune_no_immunities(self):
         """Actor without immunities is not immune."""
-        from behaviors.actors.conditions import is_immune
+        from behavior_libraries.actor_lib.conditions import is_immune
 
         self.assertFalse(is_immune(self.actor, "poison"))
 
     def test_is_immune_none_actor(self):
         """None actor returns False."""
-        from behaviors.actors.conditions import is_immune
+        from behavior_libraries.actor_lib.conditions import is_immune
 
         self.assertFalse(is_immune(None, "poison"))
 
@@ -341,7 +341,7 @@ class TestGetConditions(unittest.TestCase):
 
     def test_get_conditions_returns_dict(self):
         """get_conditions returns conditions dict."""
-        from behaviors.actors.conditions import get_conditions
+        from behavior_libraries.actor_lib.conditions import get_conditions
 
         actor = Actor(
             id="player",
@@ -358,7 +358,7 @@ class TestGetConditions(unittest.TestCase):
 
     def test_get_conditions_empty(self):
         """get_conditions returns empty dict when no conditions."""
-        from behaviors.actors.conditions import get_conditions
+        from behavior_libraries.actor_lib.conditions import get_conditions
 
         actor = Actor(
             id="player",
@@ -375,7 +375,7 @@ class TestGetConditions(unittest.TestCase):
 
     def test_get_conditions_none_actor(self):
         """get_conditions returns empty dict for None actor."""
-        from behaviors.actors.conditions import get_conditions
+        from behavior_libraries.actor_lib.conditions import get_conditions
 
         conditions = get_conditions(None)
 
@@ -387,7 +387,7 @@ class TestHasCondition(unittest.TestCase):
 
     def test_has_condition_true(self):
         """has_condition returns True when actor has condition."""
-        from behaviors.actors.conditions import has_condition
+        from behavior_libraries.actor_lib.conditions import has_condition
 
         actor = Actor(
             id="player",
@@ -402,7 +402,7 @@ class TestHasCondition(unittest.TestCase):
 
     def test_has_condition_false(self):
         """has_condition returns False when actor doesn't have condition."""
-        from behaviors.actors.conditions import has_condition
+        from behavior_libraries.actor_lib.conditions import has_condition
 
         actor = Actor(
             id="player",
@@ -421,7 +421,7 @@ class TestOnConditionTickHandler(unittest.TestCase):
 
     def test_on_condition_tick_ticks_all_actors(self):
         """on_condition_tick processes conditions on all actors."""
-        from behaviors.actors.conditions import on_condition_tick
+        from behavior_libraries.actor_lib.conditions import on_condition_tick
         from src.state_manager import GameState, Metadata, Location
         from src.state_accessor import StateAccessor
 
@@ -473,7 +473,7 @@ class TestOnConditionTickHandler(unittest.TestCase):
 
     def test_vocabulary_registers_hook(self):
         """Vocabulary registers on_condition_tick with condition_tick hook."""
-        from behaviors.actors.conditions import vocabulary
+        from behavior_libraries.actor_lib.conditions import vocabulary
 
         self.assertIn("events", vocabulary)
         events = vocabulary["events"]

@@ -21,16 +21,16 @@ Attack data structure (in actor.properties["attacks"]):
 }
 
 Usage:
-    from behaviors.actors.combat import (
+    from behavior_libraries.actor_lib.combat import (
         get_attacks, select_attack, execute_attack,
         calculate_damage, on_death_check
     )
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
-from behaviors.actors.conditions import has_condition, apply_condition
+from behavior_libraries.actor_lib.conditions import has_condition, apply_condition
 
 
 @dataclass
@@ -201,7 +201,7 @@ def execute_attack(accessor, attacker, target, attack: Dict) -> AttackResult:
     )
 
 
-def on_death_check(entity, accessor, context) -> Optional:
+def on_death_check(entity, accessor, context) -> Optional[Any]:
     """
     Check if an actor's health <= 0 and invoke on_death behavior.
 
@@ -262,7 +262,7 @@ def on_death_check_all(entity, accessor, context):
     return EventResult(allow=True, message=None)
 
 
-def on_attack(entity, accessor, context) -> Optional:
+def on_attack(entity, accessor, context) -> Optional[Any]:
     """
     Handle player attack command.
 

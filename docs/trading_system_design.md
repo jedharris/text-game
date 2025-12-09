@@ -90,7 +90,7 @@ def on_receive_item(entity, accessor, context) -> EventResult:
         return execute_trade(accessor, entity, giver_id, item, trade)
 
     # Check for service payment (delegate to existing services.py)
-    from behaviors.actors.services import on_receive_for_service
+    from behavior_libraries.actor_lib.services import on_receive_for_service
     service_result = on_receive_for_service(entity, accessor, context)
     if service_result:
         return service_result

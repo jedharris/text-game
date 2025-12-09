@@ -12,7 +12,7 @@ Library modules used:
 - environment.py: check_spores (applies fungal_infection based on spore_level)
 """
 
-from typing import Optional
+from typing import Any, Optional
 
 
 def apply_resistance(base_severity: int, resistance_percent: int) -> int:
@@ -85,7 +85,7 @@ def apply_condition_with_resistance(actor, condition_name: str, condition_data: 
     Returns:
         Message describing what happened
     """
-    from behaviors.actors.conditions import apply_condition
+    from behavior_libraries.actor_lib.conditions import apply_condition
 
     # Get resistance
     resistance = get_actor_resistance(actor, condition_name)
@@ -123,7 +123,7 @@ def check_contagion(source_actor, target_actor, accessor) -> Optional[str]:
     Returns:
         Message if contagion spread, None otherwise
     """
-    from behaviors.actors.conditions import get_condition, has_condition
+    from behavior_libraries.actor_lib.conditions import get_condition, has_condition
 
     if not source_actor or not target_actor:
         return None
@@ -167,7 +167,7 @@ def check_contagion(source_actor, target_actor, accessor) -> Optional[str]:
     return "\n".join(messages) if messages else None
 
 
-def on_turn_end_contagion(entity, accessor, context) -> Optional:
+def on_turn_end_contagion(entity, accessor, context) -> Optional[Any]:
     """
     Turn phase handler for contagion spread.
 

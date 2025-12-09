@@ -82,7 +82,7 @@ class TestUC2GolemSetup(unittest.TestCase):
 
     def test_golems_have_attacks(self):
         """Golems have attacks defined."""
-        from behaviors.actors.combat import get_attacks
+        from behavior_libraries.actor_lib.combat import get_attacks
 
         stone_attacks = get_attacks(self.stone_golem)
         iron_attacks = get_attacks(self.iron_golem)
@@ -92,7 +92,7 @@ class TestUC2GolemSetup(unittest.TestCase):
 
     def test_stone_golem_has_area_attack(self):
         """Stone golem has area attack (ground_slam)."""
-        from behaviors.actors.combat import get_attacks
+        from behavior_libraries.actor_lib.combat import get_attacks
 
         attacks = get_attacks(self.stone_golem)
         area_attacks = [a for a in attacks if a.get('area')]
@@ -202,7 +202,7 @@ class TestUC2CoverMechanics(unittest.TestCase):
 
     def test_cover_reduces_damage(self):
         """Being in cover reduces incoming damage."""
-        from behaviors.actors.combat import calculate_damage
+        from behavior_libraries.actor_lib.combat import calculate_damage
         from behaviors.uc2_combat import take_cover
 
         accessor = _create_accessor(self.engine)

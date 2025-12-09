@@ -15,17 +15,17 @@
   ],
   "items": [
     {
-      "id": "rubber_duck",
-      "name": "rubber duck",
-      "description": "A yellow rubber duck. It looks squeezable.",
+      "id": "brass_lantern",
+      "name": "brass lantern",
+      "description": "A brass lantern that provides light.",
       "type": "tool",
       "portable": true,
       "location": "room1",
       "states": {
-        "squeaks": 0
+        "lit": false
       },
       "behaviors": {
-        "on_squeeze": "behaviors.items.rubber_duck:on_squeeze"
+        "on_turn_on": "behaviors.core.light:on_turn_on"
       }
     },
     {
