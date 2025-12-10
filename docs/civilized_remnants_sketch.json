@@ -1,0 +1,675 @@
+{
+  "region": "civilized_remnants",
+  "version": "0.1",
+  "type": "light_sketch",
+  "description": "The surviving settlement where refugees have gathered. Focuses on social interaction, services, reputation, and morally complex choices.",
+  "theme": "society, ethics, commerce, moral complexity",
+
+  "locations": {
+    "town_gate": {
+      "name": "Town Gate",
+      "description": "Entry checkpoint. Guards check for infection and contraband.",
+      "properties": {
+        "lighting": "daylight",
+        "danger_level": "social"
+      },
+      "exits": {
+        "north": "southern_trail",
+        "south": "market_square"
+      },
+      "actors": ["gate_guard_1", "gate_guard_2"],
+      "traits": ["weathered wooden walls", "suspicious eyes", "controlled desperation"]
+    },
+
+    "market_square": {
+      "name": "Market Square",
+      "description": "Central trading area. Multiple vendor stalls arranged around a dry fountain.",
+      "properties": {
+        "lighting": "daylight",
+        "commercial": true
+      },
+      "exits": {
+        "north": "town_gate",
+        "east": "healers_sanctuary",
+        "west": "council_hall",
+        "south": "broken_statue_hall",
+        "down": "undercity_entrance"
+      },
+      "actors": ["herbalist_vendor", "weaponsmith_vendor", "curiosity_dealer"],
+      "traits": ["loud bargaining", "exotic scents", "desperation mixed with hope", "watchful militia presence"]
+    },
+
+    "healers_sanctuary": {
+      "name": "Healer's Sanctuary",
+      "description": "Healer Elara's place of practice. Smells of clean medicine and dried herbs.",
+      "properties": {
+        "lighting": "bright",
+        "healing_available": true
+      },
+      "exits": {
+        "west": "market_square",
+        "back": "healers_garden"
+      },
+      "actors": ["healer_elara"],
+      "traits": ["dried herbs hanging everywhere", "mortar and pestle sounds", "quiet competence"]
+    },
+
+    "healers_garden": {
+      "name": "Healer's Garden",
+      "description": "A carefully tended garden behind the sanctuary. Both curative and toxic plants grow here.",
+      "properties": {
+        "lighting": "daylight",
+        "hazardous": "without_herbalism_skill"
+      },
+      "exits": {
+        "front": "healers_sanctuary"
+      },
+      "items": ["healing_herbs", "nightshade", "moonpetal", "various_herbs"],
+      "hazards": {
+        "nightshade": {
+          "without_herbalism": "Contact poison: 5 damage per turn for 3 turns",
+          "with_herbalism": "Can harvest safely, valuable ingredient"
+        }
+      },
+      "traits": ["orderly rows of plants", "warning markers on dangerous beds", "sweet and bitter scents mixed"]
+    },
+
+    "council_hall": {
+      "name": "Council Hall",
+      "description": "Governing body of survivors. Three councilors debate the town's future.",
+      "properties": {
+        "lighting": "dim",
+        "political": true
+      },
+      "exits": {
+        "east": "market_square"
+      },
+      "actors": ["councilor_pragmatist", "councilor_idealist", "councilor_merchant"],
+      "traits": ["heated debates", "exhausted leadership", "weight of impossible decisions"]
+    },
+
+    "broken_statue_hall": {
+      "name": "Broken Statue Hall",
+      "description": "Contains a damaged Stone Guardian. Once it protected the town.",
+      "properties": {
+        "lighting": "dim"
+      },
+      "exits": {
+        "north": "market_square"
+      },
+      "actors": ["damaged_guardian"],
+      "items": ["stone_chisel"],
+      "traits": ["shattered stone limbs", "faded inscription of purpose", "sense of patient waiting"]
+    },
+
+    "undercity_entrance": {
+      "name": "Undercity Entrance",
+      "description": "A hidden trapdoor leading to tunnels beneath the town.",
+      "properties": {
+        "lighting": "dark",
+        "hidden": true,
+        "requires_discovery": true
+      },
+      "discovery_methods": [
+        "High trust with curiosity dealer",
+        "Delvan's black market contact (if rescued)",
+        "Overhear conversation in market at night"
+      ],
+      "exits": {
+        "up": "market_square",
+        "down": "undercity"
+      }
+    },
+
+    "undercity": {
+      "name": "The Undercity",
+      "description": "Secret criminal network. Dim lanterns, whispered deals.",
+      "properties": {
+        "lighting": "dim",
+        "illegal": true
+      },
+      "exits": {
+        "up": "undercity_entrance"
+      },
+      "actors": ["fence", "information_broker", "assassin_contact"],
+      "traits": ["dim lantern light", "whispered negotiations", "dangerous competence"]
+    }
+  },
+
+  "actors": {
+    "gate_guard_1": {
+      "name": "Gate Guard",
+      "type": "human_npc",
+      "description": "A tired-looking guard in patched armor. He examines everyone entering.",
+      "properties": {
+        "role": "gatekeeper",
+        "checks_for": ["infection", "contraband", "dangerous_creatures"]
+      },
+      "state_machine": {
+        "states": ["suspicious", "neutral", "friendly"],
+        "initial": "suspicious",
+        "transitions": {
+          "suspicious->neutral": "Player passes inspection OR shows documentation",
+          "neutral->friendly": "Player has high town reputation OR bribe accepted"
+        }
+      },
+      "entry_conditions": {
+        "infected_player": "Denied entry. Must cure infection first.",
+        "wolf_companion": "Absolutely denied. 'No beasts in the town!'",
+        "salamander_companion": "Hesitant but allowed if player vouches"
+      },
+      "dialog_topics": {
+        "entry": {
+          "keywords": ["enter", "pass", "inspection"],
+          "summary": "'Stand still. Let me look at you. No visible infection, no dangerous items... fine, you may pass. But we'll be watching.'"
+        },
+        "wolves": {
+          "keywords": ["wolves", "pack", "companion"],
+          "summary": "The guard's hand goes to his weapon. 'Beasts aren't welcome here. Not after what happened. Leave them outside or turn back.'"
+        }
+      }
+    },
+
+    "gate_guard_2": {
+      "name": "Gate Guard",
+      "type": "human_npc",
+      "properties": {
+        "role": "gatekeeper"
+      },
+      "notes": "Shares state with gate_guard_1"
+    },
+
+    "herbalist_vendor": {
+      "name": "Herbalist Maren",
+      "type": "human_npc",
+      "description": "A lean woman with stained fingers and sharp eyes. She knows her plants.",
+      "properties": {
+        "role": "vendor"
+      },
+      "services": {
+        "sell_healing": {
+          "items": ["healing_potion", "antidote", "bandages"],
+          "prices": "Standard (10-30 gold)"
+        },
+        "buy_plants": {
+          "accepts": ["rare herbs", "nightshade", "moonpetal"],
+          "prices": "Fair"
+        },
+        "teach_basic_herbalism": {
+          "trust_required": 2,
+          "payment": "50 gold OR rare plant",
+          "effect": "Can identify dangerous plants by sight"
+        }
+      },
+      "reputation_effects": {
+        "good_reputation": "-10% prices",
+        "bad_reputation": "+20% prices"
+      }
+    },
+
+    "weaponsmith_vendor": {
+      "name": "Weaponsmith Toran",
+      "type": "human_npc",
+      "description": "A burly man with burn scars on his arms. He forges what the town needs.",
+      "properties": {
+        "role": "vendor"
+      },
+      "services": {
+        "sell_weapons": {
+          "items": ["sword", "dagger", "crossbow"],
+          "prices": "Standard (20-100 gold)"
+        },
+        "repair_weapons": {
+          "payment": "10-30 gold depending on damage",
+          "effect": "Restores weapon to full effectiveness"
+        },
+        "sell_armor": {
+          "items": ["leather_armor", "chain_shirt"],
+          "prices": "Standard (30-80 gold)"
+        }
+      },
+      "reputation_effects": {
+        "bad_reputation": "Refuses service entirely"
+      }
+    },
+
+    "curiosity_dealer": {
+      "name": "Curiosity Dealer Vex",
+      "type": "human_npc",
+      "description": "A thin person of indeterminate age with knowing eyes. They deal in oddities.",
+      "properties": {
+        "role": "vendor",
+        "knows_undercity": true
+      },
+      "services": {
+        "trade_rare_items": {
+          "accepts": ["spider_silk", "venom_sacs", "ice_crystals", "ancient_artifacts"],
+          "sells": ["unusual items not found elsewhere"],
+          "reputation_gated": true
+        },
+        "undercity_access": {
+          "trust_required": 3,
+          "provides": "Knowledge of undercity entrance location"
+        }
+      },
+      "reputation_effects": {
+        "trust_0-1": "Basic trades only",
+        "trust_2-3": "Rare items available",
+        "trust_4+": "Reveals undercity, offers special services"
+      }
+    },
+
+    "healer_elara": {
+      "name": "Healer Elara",
+      "type": "human_npc",
+      "description": "A middle-aged woman with gentle hands and tired eyes. She helps everyone she can.",
+      "properties": {
+        "role": "healer_teacher"
+      },
+      "services": {
+        "cure_poison": {
+          "payment": "rare herbs OR 20 gold",
+          "effect": "Removes poison condition"
+        },
+        "cure_disease": {
+          "payment": "specific items OR 30 gold",
+          "effect": "Removes disease conditions"
+        },
+        "heal_wounds": {
+          "payment": "10 gold",
+          "effect": "Restore 30 health"
+        },
+        "teach_herbalism": {
+          "trust_required": 3,
+          "payment": "Help in garden OR 50 gold",
+          "effect": "Full herbalism skill - safe handling of all plants"
+        }
+      },
+      "trust_effects": {
+        "trust_3": "50% discount on all services",
+        "trust_5": "Teaches advanced healing techniques, shares personal quest"
+      },
+      "impressed_by": {
+        "saved_aldric": "+1 trust ('You saved the scholar? Remarkable.')",
+        "healed_spore_mother": "+2 trust ('You healed a creature of the depths? You understand true medicine.')",
+        "saved_survivors": "+1 trust per survivor rescued"
+      },
+      "dialog_topics": {
+        "healing": {
+          "keywords": ["heal", "hurt", "wounded"],
+          "summary": "'Let me see. Yes, I can help with this. My services aren't free - supplies are scarce - but I turn no one away.'"
+        },
+        "garden": {
+          "keywords": ["garden", "plants", "herbs"],
+          "summary": "'My garden has everything we need - and some things we fear. Without proper knowledge, some plants are deadly. With knowledge, they're salvation.'"
+        },
+        "herbalism": {
+          "keywords": ["teach", "learn", "herbalism"],
+          "summary": "'Herbalism isn't just knowing which plants heal. It's knowing which kill, and how close those two things often are. Trust me first, and I'll teach you.'"
+        }
+      }
+    },
+
+    "councilor_pragmatist": {
+      "name": "Councilor Hurst",
+      "type": "human_npc",
+      "description": "A hard-faced man who speaks in practical terms.",
+      "properties": {
+        "role": "politician",
+        "philosophy": "results over methods"
+      },
+      "quest_preferences": {
+        "favors": "Efficient solutions, harsh but effective choices",
+        "opposes": "Idealistic choices that waste resources"
+      }
+    },
+
+    "councilor_idealist": {
+      "name": "Councilor Asha",
+      "type": "human_npc",
+      "description": "A young woman with fierce convictions about right and wrong.",
+      "properties": {
+        "role": "politician",
+        "philosophy": "ethics over efficiency"
+      },
+      "quest_preferences": {
+        "favors": "Ethical choices, protecting the vulnerable",
+        "opposes": "Cruel or expedient solutions"
+      }
+    },
+
+    "councilor_merchant": {
+      "name": "Councilor Varn",
+      "type": "human_npc",
+      "description": "A well-dressed man who counts everything in terms of trade value.",
+      "properties": {
+        "role": "politician",
+        "philosophy": "prosperity through commerce"
+      },
+      "quest_preferences": {
+        "favors": "Choices that increase trade, wealth, connections",
+        "opposes": "Isolation, waste of resources"
+      }
+    },
+
+    "damaged_guardian": {
+      "name": "Damaged Guardian",
+      "type": "construct",
+      "description": "An ancient stone construct, shattered but not destroyed. Runes flicker weakly.",
+      "properties": {
+        "construct": true,
+        "non_functional": true,
+        "repairable": true
+      },
+      "repair_requirements": {
+        "stone_chisel": "Found in hall",
+        "animator_crystal": "From Nexus (Crystal Garden)",
+        "ritual_knowledge": "From lore tablets in Frozen Reaches OR The Echo's guidance"
+      },
+      "when_repaired": {
+        "effects": [
+          "Becomes loyal guardian of town",
+          "Can defend settlement from external threats",
+          "Changes town's defensive posture",
+          "Council grateful (+reputation)"
+        ]
+      }
+    },
+
+    "fence": {
+      "name": "The Fence",
+      "type": "human_npc",
+      "description": "A figure in shadows who deals in items of questionable origin.",
+      "properties": {
+        "role": "criminal_vendor"
+      },
+      "services": {
+        "buy_stolen": {
+          "accepts": "Any item",
+          "prices": "50% of value, no questions"
+        },
+        "sell_rare": {
+          "items": ["lockpicks", "poison", "disguise_kit"],
+          "prices": "High but available"
+        }
+      }
+    },
+
+    "information_broker": {
+      "name": "Whisper",
+      "type": "human_npc",
+      "description": "A nondescript person who seems to know everything about everyone.",
+      "properties": {
+        "role": "information_seller"
+      },
+      "services": {
+        "sell_secrets": {
+          "about_npcs": "Weaknesses, locations, schedules",
+          "about_locations": "Hidden paths, treasure locations",
+          "prices": "20-100 gold depending on value"
+        }
+      }
+    },
+
+    "assassin_contact": {
+      "name": "Shadow",
+      "type": "human_npc",
+      "description": "You're not sure you've ever seen their face clearly.",
+      "properties": {
+        "role": "assassin",
+        "morally_complex": true
+      },
+      "services": {
+        "contracts": {
+          "description": "Will eliminate specific targets for payment",
+          "prices": "100-500 gold",
+          "consequences": "Murder is murder. May be discovered. Affects reputation everywhere."
+        }
+      },
+      "notes": "Using assassin services is a major moral choice with lasting consequences"
+    }
+  },
+
+  "items": {
+    "healing_herbs": {
+      "name": "healing herbs",
+      "description": "Medicinal plants carefully harvested.",
+      "properties": {
+        "portable": true,
+        "curative": true
+      },
+      "use": "Cures bear cubs' wasting sickness in Beast Wilds"
+    },
+
+    "nightshade": {
+      "name": "nightshade",
+      "description": "A deadly plant with dark berries.",
+      "properties": {
+        "portable": true,
+        "dangerous": true,
+        "poisonous": true
+      },
+      "handling": {
+        "without_herbalism": "Contact poison",
+        "with_herbalism": "Safe to handle, valuable"
+      }
+    },
+
+    "moonpetal": {
+      "name": "moonpetal",
+      "description": "A luminescent flower that blooms only at night.",
+      "properties": {
+        "portable": true,
+        "rare_flower": true
+      },
+      "use": "Trade item for Bee Queen in Beast Wilds"
+    },
+
+    "stone_chisel": {
+      "name": "stone chisel",
+      "description": "A specialized tool for working with enchanted stone.",
+      "properties": {
+        "portable": true,
+        "tool": true
+      },
+      "use": "Required for Guardian repair"
+    },
+
+    "town_seal": {
+      "name": "town seal",
+      "description": "The official seal of the Civilized Remnants, symbol of authority.",
+      "properties": {
+        "portable": true,
+        "quest_item": true
+      },
+      "source": "Reward from Council for completing major quest",
+      "use": "Required for waystone repair in Nexus"
+    }
+  },
+
+  "reputation_system": {
+    "town_reputation": {
+      "tracks": "Overall standing with the settlement",
+      "sources": {
+        "positive": [
+          "Completing council quests",
+          "Rescuing survivors",
+          "Repairing guardian",
+          "Helping NPCs",
+          "Trading fairly"
+        ],
+        "negative": [
+          "Stealing",
+          "Attacking townspeople",
+          "Using undercity services (if discovered)",
+          "Bringing infection or beasts into town",
+          "Failing council quests"
+        ]
+      },
+      "effects": {
+        "reputation_-5_or_below": "Exiled from town",
+        "reputation_-2_to_-4": "Guards suspicious, merchants refuse service",
+        "reputation_-1_to_1": "Neutral standing",
+        "reputation_2_to_4": "Discounts, friendlier NPCs",
+        "reputation_5+": "Hero status, special quests available"
+      }
+    },
+    "undercity_reputation": {
+      "tracks": "Standing with criminal element",
+      "separate_from": "town_reputation",
+      "can_conflict": "High undercity rep + discovery = town rep damage"
+    }
+  },
+
+  "council_quests": {
+    "infected_refugees": {
+      "dilemma": "Refugees arrive with fungal infection. Scarce medicine.",
+      "choices": {
+        "exile": "Turn them away. Pragmatist approves, Idealist furious.",
+        "treat": "Use scarce medicine. Idealist approves, Pragmatist warns of shortages.",
+        "compromise": "Quarantine and seek cure. All accept, requires player action."
+      },
+      "consequences": "Affects which councilor supports player in future"
+    },
+    "dangerous_traders": {
+      "dilemma": "Outsiders offer valuable goods but seem dangerous.",
+      "choices": {
+        "trade": "Accept the risk for prosperity. Merchant approves.",
+        "refuse": "Maintain safety. Idealist approves.",
+        "investigate": "Learn more before deciding. Pragmatist approves."
+      }
+    },
+    "criminal_punishment": {
+      "dilemma": "A thief is caught. Resources are scarce.",
+      "choices": {
+        "harsh": "Severe punishment deters others. Pragmatist approves.",
+        "mercy": "Understanding and rehabilitation. Idealist approves.",
+        "labor": "Put to work for community. Merchant approves."
+      }
+    }
+  },
+
+  "cross_region_connections": {
+    "to_beast_wilds": {
+      "exit": "north from town_gate",
+      "destination": "southern_trail",
+      "companion_restriction": "Wolf pack cannot enter (guards attack on sight)"
+    },
+    "cross_region_items": {
+      "healing_herbs": "To Beast Wilds for bear cubs",
+      "town_seal": "To Nexus for waystone repair",
+      "moonpetal": "To Beast Wilds for bee queen trade",
+      "animator_crystal": "From Nexus, needed for guardian repair"
+    },
+    "delvan_connection": {
+      "if_rescued_in_sunken_district": "Provides black market contacts, undercity access"
+    },
+    "aldric_relocation": {
+      "if_saved_in_fungal_depths": "May appear in town as teacher/adviser"
+    }
+  },
+
+  "persistent_effects": {
+    "guardian_repair": {
+      "town_effect": "Better defense, council grateful",
+      "cross_region": "Nexus crystal progress +1"
+    },
+    "council_decisions": {
+      "affects": "Town state, NPC availability, future quest options"
+    },
+    "reputation": {
+      "permanent": true,
+      "spreads": "NPCs in other regions may hear of player's reputation"
+    }
+  },
+
+  "narrative_role": {
+    "core_tension": "Civilization requires compromise. What will you sacrifice for safety?",
+    "moral_complexity": [
+      "No clearly 'right' answers to council dilemmas",
+      "Undercity services are useful but corrupt",
+      "Helping one faction may hurt another"
+    ],
+    "contrast_with_other_regions": "Unlike wilderness regions, danger here is social and ethical, not physical"
+  },
+
+  "commitment_system": {
+    "description": "Civilized Remnants has formal quest commitments through the Council, plus informal social commitments.",
+    "commitments_in_region": {
+      "council_quest_commitment": {
+        "trigger": "Accepting any council quest formally",
+        "note": "Council quests are EXPLICIT commitments - player actively agrees to help",
+        "fulfillment_bonus": "+2 reputation, favor with sponsoring councilor",
+        "withdrawal_response": {
+          "dialog_pragmatist": "'Understandable. Resources are limited. At least you're honest about your limitations.'",
+          "dialog_idealist": "'I... see. I thought you were different. Perhaps I was wrong.'",
+          "dialog_merchant": "'Business is business. No hard feelings. But others will hear of this.'",
+          "trust_effect": -1,
+          "can_recommit": "Depends on quest - some time-sensitive"
+        },
+        "abandonment_effects": {
+          "flag_set": "failed_council_quest",
+          "effect": "Reputation -2, sponsoring councilor will not support player",
+          "echo_reaction": "The Echo speaks formally. 'The town trusted you with their problems. Trust, once broken...'"
+        }
+      },
+      "elara_commitment": {
+        "trigger_phrases": ["I'll bring the herbs", "I'll find what you need", "I will help with healing"],
+        "target_npc": "healer_elara",
+        "goal": "Bring requested herbs or help with patients",
+        "hope_extends_survival": false,
+        "note": "Elara doesn't need saving - these are assistance commitments",
+        "fulfillment_bonus": "+2 trust. Unlocks advanced herbalism teaching.",
+        "withdrawal_response": {
+          "dialog": "Elara nods calmly. 'The wilds are unpredictable. I understand. But if you encounter any wounded on your travels... here.' She hands you basic bandages. 'Do what you can.'",
+          "gives_item": "bandages",
+          "trust_effect": 0,
+          "can_recommit": true
+        },
+        "abandonment_effects": {
+          "note": "Abandonment here means promising herbs for a specific patient, then patient dies",
+          "flag_set": "broke_promise_elara",
+          "echo_reaction": "The Echo's voice is soft. 'The healer asked for help. The patient waited. Neither knew the help would never come.'",
+          "elara_reaction": "'They died waiting. I don't blame you entirely - but I won't forget.'",
+          "trust_penalty": -2
+        }
+      },
+      "guardian_repair_commitment": {
+        "trigger_phrases": ["I'll repair the guardian", "I'll find what's needed", "I will restore it"],
+        "target_npc": "damaged_guardian",
+        "goal": "Repair the Damaged Guardian",
+        "note": "Guardian is construct - no time pressure, no hope mechanic",
+        "fulfillment_bonus": "+3 reputation. Council formally recognizes player.",
+        "withdrawal_response": {
+          "dialog": "The guardian's runes flicker. No response - it cannot understand disappointment. But the inscription on its base reads: 'To protect is to endure. To endure is to wait.'",
+          "trust_effect": 0,
+          "can_recommit": true
+        },
+        "abandonment_effects": {
+          "note": "Guardian doesn't die - abandonment means never returning",
+          "effect": "No direct penalty. Guardian remains broken. Town remains vulnerable.",
+          "long_term": "If town is attacked while guardian unrepaired, casualties occur, player blamed."
+        }
+      }
+    },
+    "social_fabric_note": "This region is where commitment consequences from OTHER regions often manifest. NPCs here learn of broken promises elsewhere and react."
+  },
+
+  "open_questions": [
+    {
+      "id": "Q-CIVIL-1",
+      "question": "Can player become a council member?",
+      "proposed": "No, but can become trusted advisor with hero reputation. Gives influence over decisions."
+    },
+    {
+      "id": "Q-CIVIL-2",
+      "question": "What happens if player is exiled?",
+      "proposed": "Can only enter through undercity. Surface NPCs hostile. Can work to restore reputation."
+    },
+    {
+      "id": "Q-CIVIL-3",
+      "question": "How does undercity discovery work?",
+      "proposed": "Using undercity services has chance of discovery (5% per use). Discovery damages town reputation by -2."
+    }
+  ]
+}
