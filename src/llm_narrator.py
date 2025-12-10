@@ -22,45 +22,13 @@ except ImportError:
 
 from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
+from src.command_utils import parsed_to_json
 from src.parser import Parser
-from src.parsed_command import ParsedCommand
+from src.vocabulary_service import load_base_vocabulary
 
 
 # Default vocabulary file location
 DEFAULT_VOCABULARY_FILE = Path(__file__).parent / "vocabulary.json"
-
-
-def parsed_to_json(result: ParsedCommand) -> Dict[str, Any]:
-    """Convert ParsedCommand to JSON protocol format.
-
-    Passes WordEntry objects for object/indirect_object to preserve
-    vocabulary synonyms for entity matching. Verbs and adjectives use
-    .word since they don't need synonym matching.
-
-    Args:
-        result: Parsed command from the Parser (must have a verb)
-
-    Returns:
-        JSON protocol dict for the command
-    """
-    assert result.verb is not None  # Caller must ensure verb is present
-    action: Dict[str, Any] = {"verb": result.verb.word}
-
-    if result.direct_object:
-        # Pass full WordEntry to preserve synonyms for entity matching
-        action["object"] = result.direct_object
-    if result.direct_adjective:
-        action["adjective"] = result.direct_adjective.word
-    if result.preposition:
-        action["preposition"] = result.preposition.word
-    if result.indirect_object:
-        # Pass full WordEntry to preserve synonyms for entity matching
-        action["indirect_object"] = result.indirect_object
-    if result.indirect_adjective:
-        action["indirect_adjective"] = result.indirect_adjective.word
-
-    return {"type": "command", "action": action}
-
 
 class LLMNarrator:
     """Translates between natural language and the JSON protocol."""
@@ -163,17 +131,11 @@ class LLMNarrator:
         """
         if vocabulary is None:
             # Load base vocabulary
-            if DEFAULT_VOCABULARY_FILE.exists():
-                try:
-                    vocabulary = json.loads(DEFAULT_VOCABULARY_FILE.read_text())
-                except (json.JSONDecodeError, IOError):
-                    vocabulary = {"verbs": [], "nouns": []}
-            else:
-                vocabulary = {"verbs": [], "nouns": []}
+            vocabulary = load_base_vocabulary(DEFAULT_VOCABULARY_FILE)
 
-            # Merge with behavior module vocabulary if available
-            if self.behavior_manager:
-                vocabulary = self.behavior_manager.get_merged_vocabulary(vocabulary)
+        # Merge with behavior module vocabulary if available
+        if self.behavior_manager:
+            vocabulary = self.behavior_manager.get_merged_vocabulary(vocabulary)
 
         return vocabulary
 
@@ -186,14 +148,7 @@ class LLMNarrator:
         Returns:
             Parser instance ready to parse commands
         """
-        # Write vocabulary to temp file for Parser (it requires a file path)
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-            json.dump(vocabulary, f)
-            vocab_path = f.name
-
-        parser = Parser(vocab_path)
-        Path(vocab_path).unlink()  # Clean up temp file
-        return parser
+        return Parser(vocabulary)
 
     def process_turn(self, player_input: str) -> str:
         """Process one turn: input -> command -> result -> narrative.

@@ -31,7 +31,7 @@ class TestMetaCommandSignalIntegration(unittest.TestCase):
         self.assertIsNotNone(parsed)
 
         # Convert to JSON protocol
-        from src.llm_narrator import parsed_to_json
+        from src.command_utils import parsed_to_json
         json_cmd = parsed_to_json(parsed)
 
         # Execute command
@@ -59,7 +59,7 @@ class TestMetaCommandSignalIntegration(unittest.TestCase):
         parsed = self.parser.parse_command("save")
         self.assertIsNotNone(parsed)
 
-        from src.llm_narrator import parsed_to_json
+        from src.command_utils import parsed_to_json
         json_cmd = parsed_to_json(parsed)
         response = self.engine.json_handler.handle_message(json_cmd)
 
@@ -72,7 +72,7 @@ class TestMetaCommandSignalIntegration(unittest.TestCase):
         parsed = self.parser.parse_command("save mygame.json")
         self.assertIsNotNone(parsed)
 
-        from src.llm_narrator import parsed_to_json
+        from src.command_utils import parsed_to_json
         json_cmd = parsed_to_json(parsed)
         response = self.engine.json_handler.handle_message(json_cmd)
 
@@ -85,7 +85,7 @@ class TestMetaCommandSignalIntegration(unittest.TestCase):
         parsed = self.parser.parse_command("load")
         self.assertIsNotNone(parsed)
 
-        from src.llm_narrator import parsed_to_json
+        from src.command_utils import parsed_to_json
         json_cmd = parsed_to_json(parsed)
         response = self.engine.json_handler.handle_message(json_cmd)
 
@@ -98,7 +98,7 @@ class TestMetaCommandSignalIntegration(unittest.TestCase):
         parsed = self.parser.parse_command("load savegame.json")
         self.assertIsNotNone(parsed)
 
-        from src.llm_narrator import parsed_to_json
+        from src.command_utils import parsed_to_json
         json_cmd = parsed_to_json(parsed)
         response = self.engine.json_handler.handle_message(json_cmd)
 
@@ -111,7 +111,7 @@ class TestMetaCommandSignalIntegration(unittest.TestCase):
         parsed = self.parser.parse_command("restore")
         self.assertIsNotNone(parsed)
 
-        from src.llm_narrator import parsed_to_json
+        from src.command_utils import parsed_to_json
         json_cmd = parsed_to_json(parsed)
         response = self.engine.json_handler.handle_message(json_cmd)
 

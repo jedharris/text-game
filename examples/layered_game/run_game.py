@@ -27,34 +27,17 @@ layered_game_dir = Path(__file__).parent
 sys.path.insert(0, str(layered_game_dir))
 
 # Now we can import from the engine
-from src.parser import Parser, ParsedCommand
+from src.command_utils import parsed_to_json
+from src.parser import Parser
 from src.state_manager import load_game_state, save_game_state, GameState
 from src.llm_protocol import LLMProtocolHandler
-from src.vocabulary_generator import extract_nouns_from_state, merge_vocabulary
+from src.vocabulary_service import build_merged_vocabulary
 from src.behavior_manager import BehaviorManager
 from src.validators import validate_game_state
 
 # Game-specific paths
 GAME_STATE_FILE = Path(__file__).parent / "game_state.json"
 CUSTOM_BEHAVIORS_DIR = Path(__file__).parent / "behaviors"
-
-
-def parsed_to_json(result: ParsedCommand) -> dict:
-    """Convert ParsedCommand to JSON protocol format.
-
-    Passes WordEntry objects for object/indirect_object to preserve
-    vocabulary synonyms for entity matching.
-    """
-    action = {"verb": result.verb.word}
-    if result.direct_object:
-        action["object"] = result.direct_object
-    if result.indirect_object:
-        action["target"] = result.indirect_object
-    if result.preposition:
-        action["preposition"] = result.preposition
-    if result.direct_adjective:
-        action["adjective"] = result.direct_adjective.word
-    return action
 
 
 def main():
@@ -91,22 +74,11 @@ def main():
     with open(vocab_path) as f:
         base_vocab = json.load(f)
 
-    # Extract nouns from game state and merge
-    extracted_nouns = extract_nouns_from_state(game_state)
-    vocab_with_nouns = merge_vocabulary(base_vocab, extracted_nouns)
+    # Build merged vocabulary (base + nouns + behaviors)
+    merged_vocab = build_merged_vocabulary(game_state, behavior_manager, base_vocab=base_vocab)
 
-    # Merge with behavior vocabulary extensions
-    merged_vocab = behavior_manager.get_merged_vocabulary(vocab_with_nouns)
-
-    # Write merged vocabulary to temp file for parser
-    import tempfile
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-        json.dump(merged_vocab, f)
-        merged_vocab_path = f.name
-
-    # Initialize parser and protocol handler
-    parser = Parser(merged_vocab_path)
-    Path(merged_vocab_path).unlink()  # Clean up temp file
+    # Initialize parser and protocol handler directly from in-memory vocabulary
+    parser = Parser(merged_vocab)
     protocol_handler = LLMProtocolHandler(game_state, behavior_manager=behavior_manager)
 
     # Main game loop
@@ -149,17 +121,20 @@ def main():
                 print("I don't understand that command.")
                 continue
 
-            # Convert to JSON protocol
-            action = parsed_to_json(parse_result)
-            action["actor_id"] = "player"
+            # Convert to JSON protocol and execute via JSON handler
+            message = parsed_to_json(parse_result)
+            response = protocol_handler.handle_message(message)
 
-            # Execute via behavior manager
-            result = behavior_manager.handle_action(game_state.accessor, action)
+            if response.get("type") == "error":
+                print(f"Error: {response.get('message', 'Unknown error')}")
+                continue
 
-            if result.message:
-                print(result.message)
-            elif not result.success:
-                print("You can't do that.")
+            if response.get("success"):
+                msg = response.get("message") or "Done."
+                print(msg)
+            else:
+                error_msg = response.get("error", {}).get("message", "You can't do that.")
+                print(error_msg)
 
         except KeyboardInterrupt:
             print("\nThanks for playing!")

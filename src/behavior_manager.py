@@ -1,14 +1,15 @@
 """Behavior management system for entity events."""
 
-from typing import Optional, Dict, Any, List, Callable, TYPE_CHECKING
+from typing import Optional, Dict, Any, List, Callable, TYPE_CHECKING, Tuple
 from dataclasses import dataclass, field
 import importlib
 import os
 from pathlib import Path
 
 # Import EventResult from state_accessor to avoid duplication
-from src.state_accessor import EventResult
+from src.state_accessor import EventResult, HandlerResult
 from src.types import EventName, HookName
+from src.action_types import ActionDict, HandlerCallable
 
 if TYPE_CHECKING:
     from src.state_accessor import StateAccessor
@@ -34,7 +35,7 @@ class BehaviorManager:
     def __init__(self):
         self._behavior_cache: Dict[str, Callable] = {}
         # Handler storage: verb -> list of (tier, handler, module_name) tuples (sorted by tier)
-        self._handlers: Dict[str, List[tuple]] = {}
+        self._handlers: Dict[str, List[Tuple[int, HandlerCallable, str]]] = {}
         # Track verb-to-event mappings with tiers: verb -> list of (tier, event_name) tuples
         self._verb_event_map: Dict[str, List[tuple]] = {}  # verb/synonym -> [(tier, event_name)]
         # Track which module registered which verb+tier (for error messages)
@@ -219,7 +220,7 @@ class BehaviorManager:
         # Keep list sorted by tier (lowest/highest precedence first)
         self._verb_event_map[verb].sort(key=lambda x: x[0])
 
-    def _register_handler(self, verb: str, handler: Callable, module_name: str, tier: int) -> None:
+    def _register_handler(self, verb: str, handler: HandlerCallable, module_name: str, tier: int) -> None:
         """
         Register a protocol handler with tier-based conflict detection.
 
@@ -703,7 +704,7 @@ class BehaviorManager:
 
     def invoke_behavior(
         self,
-        entity: "Entity",
+        entity: Optional["Entity"],
         event_name: EventName,
         accessor: "StateAccessor",
         context: Dict[str, Any]
@@ -727,6 +728,9 @@ class BehaviorManager:
         Returns:
             EventResult with combined allow/message, or None if no behaviors
         """
+        if entity is None:
+            return None
+
         # Try primary event
         result = self._invoke_behavior_internal(entity, event_name, accessor, context)
 
@@ -757,7 +761,7 @@ class BehaviorManager:
         Returns:
             EventResult with combined allow/message, or None if no behaviors
         """
-        if not hasattr(entity, 'behaviors') or not entity.behaviors:
+        if entity is None or not hasattr(entity, 'behaviors') or not entity.behaviors:
             return None
 
         # Handle both old (dict) and new (list) behaviors formats
@@ -835,7 +839,7 @@ class BehaviorManager:
             # Unknown format
             return None
 
-    def invoke_handler(self, verb: str, accessor, action: Dict[str, Any]):
+    def invoke_handler(self, verb: str, accessor, action: ActionDict) -> Optional[HandlerResult]:
         """
         Invoke protocol handlers in tier order until one succeeds.
 

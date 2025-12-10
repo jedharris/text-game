@@ -1,46 +1,61 @@
-"""Type definitions for action dictionaries.
+"""Type definitions for action dictionaries and protocol messages."""
 
-This module defines the ActionDict type that represents the structure of
-action dictionaries passed from the parser to handlers.
-
-The parser guarantees that 'object' and 'indirect_object' fields are WordEntry
-objects (or absent). Handlers should NOT need to convert strings - if a string
-appears, it indicates a bug in the calling code.
-"""
-
-from typing import Optional
-from typing_extensions import TypedDict
+from typing import Optional, TypedDict, Protocol, Union, Literal
 
 from src.types import ActorId
 from src.word_entry import WordEntry
+from src.state_accessor import HandlerResult
+
+
+# Actions flow from parser → protocol handler → behavior handlers. Objects are
+# usually WordEntry instances (parser output), but JSON callers may still send
+# plain strings, so we accept both and normalize in the protocol layer.
+WordLike = Union[WordEntry, str]
 
 
 class ActionDict(TypedDict, total=False):
-    """
-    Type definition for action dictionaries.
+    """Structured action payload passed to handlers."""
 
-    Required fields:
-        actor_id: ID of the actor performing the action (defaults to "player")
-
-    Optional fields (set by parser based on command structure):
-        verb: The verb string (e.g., "take", "go", "examine")
-        object: Direct object as WordEntry (e.g., the "key" in "take key")
-        adjective: Adjective for direct object as string (e.g., "brass" in "take brass key")
-        indirect_object: Indirect object as WordEntry (e.g., "box" in "put key in box")
-        indirect_adjective: Adjective for indirect object as string
-        preposition: Preposition string (e.g., "in", "on", "with")
-        raw_after_preposition: Raw user input after preposition (for dialog topics)
-
-    Type guarantees:
-        - 'object' is always WordEntry or absent (never str)
-        - 'indirect_object' is always WordEntry or absent (never str)
-        - Adjectives and prepositions remain as str
-    """
     actor_id: ActorId
     verb: str
-    object: Optional[WordEntry]
+    object: Optional[WordLike]
     adjective: str
-    indirect_object: Optional[WordEntry]
+    indirect_object: Optional[WordLike]
     indirect_adjective: str
     preposition: str
     raw_after_preposition: str
+    raw_input: str
+
+
+class CommandMessage(TypedDict):
+    """Protocol command message."""
+
+    type: Literal["command"]
+    action: ActionDict
+
+
+class ResultError(TypedDict, total=False):
+    """Error payload for unsuccessful results."""
+
+    message: str
+    fatal: bool
+
+
+class ResultMessage(TypedDict, total=False):
+    """Result payload returned by protocol handler."""
+
+    type: Literal["result", "error"]
+    success: bool
+    action: str
+    message: str
+    data: dict
+    error: ResultError
+    turn_phase_messages: list[str]
+    verbosity: str
+
+
+class HandlerCallable(Protocol):
+    """Signature for behavior handlers."""
+
+    def __call__(self, accessor, action: ActionDict) -> HandlerResult:
+        ...

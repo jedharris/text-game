@@ -14,7 +14,8 @@ sys.path.insert(0, str(project_root))
 
 from src.state_manager import load_game_state
 from src.llm_protocol import LLMProtocolHandler
-from src.llm_narrator import LLMNarrator, parsed_to_json
+from src.llm_narrator import LLMNarrator
+from src.command_utils import parsed_to_json
 from src.behavior_manager import BehaviorManager
 from tests.llm_interaction.mock_narrator import MockLLMNarrator
 

@@ -4,16 +4,15 @@ Provides a unified interface for initializing games, supporting both
 text-based (parser-only) and LLM-augmented game modes.
 """
 
-import json
 import sys
-import tempfile
+import json
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Union
 
 from src.state_manager import load_game_state, GameState
 from src.behavior_manager import BehaviorManager
 from src.llm_protocol import LLMProtocolHandler
-from src.vocabulary_generator import extract_nouns_from_state, merge_vocabulary
+from src.vocabulary_service import build_merged_vocabulary
 from src.parser import Parser
 
 
@@ -24,7 +23,7 @@ class GameEngine:
     LLM-augmented game modes.
     """
 
-    def __init__(self, game_dir: Path):
+    def __init__(self, game_dir: Union[str, Path]):
         """Initialize the game engine.
 
         Args:
@@ -81,13 +80,10 @@ class GameEngine:
         self.behavior_manager.load_modules(modules)
 
         # Load and merge vocabulary
-        vocab_path = Path(__file__).parent / 'vocabulary.json'
-        with open(vocab_path, 'r') as f:
-            base_vocab = json.load(f)
-
-        extracted_nouns = extract_nouns_from_state(self.game_state)
-        vocab_with_nouns = merge_vocabulary(base_vocab, extracted_nouns)
-        self.merged_vocabulary = self.behavior_manager.get_merged_vocabulary(vocab_with_nouns)
+        self.merged_vocabulary = build_merged_vocabulary(
+            game_state=self.game_state,
+            behavior_manager=self.behavior_manager
+        )
 
         # Create JSON protocol handler
         self.json_handler = LLMProtocolHandler(self.game_state, behavior_manager=self.behavior_manager)
@@ -98,14 +94,7 @@ class GameEngine:
         Returns:
             Parser instance ready for command parsing
         """
-        # Write merged vocabulary to temp file for Parser (it requires a file path)
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-            json.dump(self.merged_vocabulary, f)
-            vocab_path = f.name
-
-        parser = Parser(vocab_path)
-        Path(vocab_path).unlink()  # Clean up temp file
-        return parser
+        return Parser(self.merged_vocabulary)
 
     def create_narrator(self, api_key: str,
                        model: str = "claude-3-5-haiku-20241022",

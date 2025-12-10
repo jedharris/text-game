@@ -8,7 +8,7 @@ from src.state_manager import GameState, Location, Actor, ExitDescriptor, Metada
 from src.state_accessor import StateAccessor
 from src.behavior_manager import BehaviorManager
 from src.parser import Parser
-from src.llm_narrator import parsed_to_json
+from src.command_utils import parsed_to_json
 from behaviors.core.exits import handle_go
 
 

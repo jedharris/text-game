@@ -635,7 +635,7 @@ class TestExamineDirectionExitEndToEnd(unittest.TestCase):
 
     def test_full_flow_examine_north_exit(self):
         """Test full flow from parsing to examination."""
-        from src.text_game import parsed_to_json
+        from src.command_utils import parsed_to_json
 
         # Parse command
         parsed = self.parser.parse_command("examine north exit")

@@ -11,9 +11,7 @@ Usage:
 From the project root directory.
 """
 
-import json
 import sys
-import tempfile
 from pathlib import Path
 
 # Add project root to path for imports
@@ -26,38 +24,17 @@ extended_game_dir = Path(__file__).parent
 sys.path.insert(0, str(extended_game_dir))
 
 # Now we can import from the engine
-from src.parser import Parser, ParsedCommand
+from src.command_utils import parsed_to_json
+from src.parser import Parser
 from src.state_manager import load_game_state, save_game_state, GameState
 from src.llm_protocol import LLMProtocolHandler
-from src.vocabulary_generator import extract_nouns_from_state, merge_vocabulary
+from src.vocabulary_service import build_merged_vocabulary
 from src.behavior_manager import BehaviorManager
 from src.validators import validate_game_state
 
 # Game-specific paths
 GAME_STATE_FILE = Path(__file__).parent / "game_state.json"
 CUSTOM_BEHAVIORS_DIR = Path(__file__).parent / "behaviors"
-
-
-def parsed_to_json(result: ParsedCommand) -> dict:
-    """Convert ParsedCommand to JSON protocol format.
-
-    Passes WordEntry objects for object/indirect_object to preserve
-    vocabulary synonyms for entity matching.
-    """
-    action = {"verb": result.verb.word}
-
-    if result.direct_object:
-        # Pass full WordEntry to preserve synonyms for entity matching
-        action["object"] = result.direct_object
-    if result.direct_adjective:
-        action["adjective"] = result.direct_adjective.word
-    if result.indirect_object:
-        # Pass full WordEntry to preserve synonyms for entity matching
-        action["indirect_object"] = result.indirect_object
-    if result.indirect_adjective:
-        action["indirect_adjective"] = result.indirect_adjective.word
-
-    return {"type": "command", "action": action}
 
 
 def format_inventory_query(response: dict) -> str:
@@ -116,24 +93,10 @@ def main():
 
     # Step 5: Load and merge vocabulary
     print("Building vocabulary...")
-    vocab_path = project_root / 'src' / 'vocabulary.json'
-    with open(vocab_path, 'r') as f:
-        base_vocab = json.load(f)
+    merged_vocab = build_merged_vocabulary(state, behavior_manager)
 
-    # Extract nouns from our game state
-    extracted_nouns = extract_nouns_from_state(state)
-    vocab_with_nouns = merge_vocabulary(base_vocab, extracted_nouns)
-
-    # Merge with behavior vocabulary extensions
-    merged_vocab = behavior_manager.get_merged_vocabulary(vocab_with_nouns)
-
-    # Write merged vocabulary to temp file for parser
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-        json.dump(merged_vocab, f)
-        merged_vocab_path = f.name
-
-    parser = Parser(merged_vocab_path)
-    Path(merged_vocab_path).unlink()
+    # Initialize parser directly from in-memory vocabulary
+    parser = Parser(merged_vocab)
 
     # Show what verbs are available
     verb_words = [v["word"] for v in merged_vocab.get("verbs", [])]

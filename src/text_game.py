@@ -16,36 +16,10 @@ if __name__ == '__main__':
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
 
-from src.parser import ParsedCommand
+from src.command_utils import parsed_to_json
 from src.state_manager import load_game_state, save_game_state, GameState
 from src.file_dialogs import get_save_filename, get_load_filename
 from src.game_engine import GameEngine
-
-
-def parsed_to_json(result: ParsedCommand) -> Dict[str, Any]:
-    """Convert ParsedCommand to JSON protocol format.
-
-    Passes WordEntry objects for object/indirect_object to preserve
-    vocabulary synonyms for entity matching. Verbs and adjectives use
-    .word since they don't need synonym matching.
-
-    Requires: result.verb is not None (caller must ensure parsing succeeded)
-    """
-    assert result.verb is not None, "parsed_to_json requires a verb"
-    action: Dict[str, Any] = {"verb": result.verb.word}
-
-    if result.direct_object:
-        # Pass full WordEntry to preserve synonyms for entity matching
-        action["object"] = result.direct_object
-    if result.direct_adjective:
-        action["adjective"] = result.direct_adjective.word
-    if result.indirect_object:
-        # Pass full WordEntry to preserve synonyms for entity matching
-        action["indirect_object"] = result.indirect_object
-    if result.indirect_adjective:
-        action["indirect_adjective"] = result.indirect_adjective.word
-
-    return {"type": "command", "action": action}
 
 
 def format_item_query(response: Dict[str, Any]) -> str:

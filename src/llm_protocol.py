@@ -9,7 +9,8 @@ import json
 import random
 from typing import Any, Dict, List, Optional
 
-from .types import ActorId, EventName, HookName
+from src.action_types import ActionDict, CommandMessage, ResultMessage, WordLike
+from .types import ActorId, HookName
 from .state_manager import GameState
 from .behavior_manager import BehaviorManager
 from .word_entry import WordEntry, WordType
@@ -58,7 +59,7 @@ class LLMProtocolHandler:
         """Check if input is JSON (starts with '{' after stripping whitespace)."""
         return text.strip().startswith("{")
 
-    def handle_message(self, message: Dict) -> Dict:
+    def handle_message(self, message: Dict[str, Any]) -> Dict[str, Any]:
         """Route message to appropriate handler based on type."""
         match message.get("type"):
             case "command":
@@ -71,7 +72,7 @@ class LLMProtocolHandler:
                     "message": f"Unknown message type: {message.get('type')}"
                 }
 
-    def handle_json_string(self, json_str: str) -> Dict:
+    def handle_json_string(self, json_str: str) -> Dict[str, Any]:
         """Parse JSON string and handle the message."""
         try:
             message = json.loads(json_str)
@@ -82,7 +83,7 @@ class LLMProtocolHandler:
                 "message": f"Invalid JSON: {e}"
             }
 
-    def _convert_action_strings_to_wordentry(self, action: Dict) -> Dict:
+    def _convert_action_strings_to_wordentry(self, action: ActionDict) -> ActionDict:
         """
         Convert string fields in action dict to WordEntry objects.
 
@@ -115,11 +116,11 @@ class LLMProtocolHandler:
 
         return action
 
-    def handle_command(self, message: Dict) -> Dict:
+    def handle_command(self, message: Dict[str, Any]) -> Dict[str, Any]:
         """Process a command message and return result."""
         import sys
 
-        action = message.get("action", {})
+        action: ActionDict = message.get("action", {})
         verb = action.get("verb")
 
         if not verb:
@@ -142,71 +143,13 @@ class LLMProtocolHandler:
 
         # Ensure action has actor_id
         if "actor_id" not in action:
-            action["actor_id"] = "player"
+            action["actor_id"] = ActorId("player")
 
         # Convert string fields to WordEntry objects for handlers
         action = self._convert_action_strings_to_wordentry(action)
 
-        # Try new behavior system first (using invoke_handler)
-        if self.behavior_manager and self.behavior_manager.has_handler(verb):
-            from src.state_accessor import StateAccessor
-            accessor = StateAccessor(self.state, self.behavior_manager)
-
-            result = self.behavior_manager.invoke_handler(verb, accessor, action)
-
-            # Check for inconsistent state errors
-            if not result.success and result.message.startswith("INCONSISTENT STATE:"):
-                self.state_corrupted = True
-                print(f"ERROR: {verb}: {result.message}", file=sys.stderr)
-                return {
-                    "type": "result",
-                    "success": False,
-                    "action": verb,
-                    "error": {
-                        "message": result.message,
-                        "fatal": True
-                    }
-                }
-
-            if result.success:
-                response = {
-                    "type": "result",
-                    "success": True,
-                    "action": verb,
-                    "message": result.message
-                }
-                # Include optional data (e.g., llm_context for examine)
-                if result.data:
-                    response["data"] = result.data
-
-                # Fire turn phase hooks after successful command
-                turn_messages = self._fire_turn_phases(accessor, action)
-                if turn_messages:
-                    response["turn_phase_messages"] = turn_messages
-
-                return response
-            else:
-                return {
-                    "type": "result",
-                    "success": False,
-                    "action": verb,
-                    "error": {"message": result.message}
-                }
-
-        # Fall back to old _cmd_* methods for unimplemented verbs
-        handler = getattr(self, f"_cmd_{verb}", None)
-        if handler:
-            result = handler(action)
-
-            # Apply behavior if command succeeded and we have a behavior manager
-            if result.get("success") and self.behavior_manager:
-                result = self._apply_behavior(verb, result)
-            else:
-                # Remove entity_obj if present (internal reference, not JSON serializable)
-                result = {k: v for k, v in result.items() if k != "entity_obj"}
-
-            return result
-        else:
+        # Ensure we have a handler for the verb
+        if not self.behavior_manager or not self.behavior_manager.has_handler(verb):
             return {
                 "type": "result",
                 "success": False,
@@ -216,54 +159,59 @@ class LLMProtocolHandler:
                 }
             }
 
-    def _apply_behavior(self, verb: str, result: Dict) -> Dict:
-        """
-        Apply entity behavior after a successful command.
+        from src.state_accessor import StateAccessor
+        accessor = StateAccessor(self.state, self.behavior_manager)
 
-        Args:
-            verb: The command verb
-            result: The command result (must contain entity_obj for behavior invocation)
+        result = self.behavior_manager.invoke_handler(verb, accessor, action)
 
-        Returns:
-            Modified result with behavior applied
-        """
-        entity_obj = result.get("entity_obj")
-        if not entity_obj:
-            return result
+        if result is None:
+            return {
+                "type": "result",
+                "success": False,
+                "action": verb,
+                "error": {"message": "No handler registered for verb"}
+            }
 
-        # Build event name and context
-        event_name = EventName(f"on_{verb}")
-        player = self.state.actors.get(ActorId("player"))
-        context = {
-            "location": player.location if player else "",
-            "verb": verb
+        # Check for inconsistent state errors
+        if not result.success and result.message.startswith("INCONSISTENT STATE:"):
+            self.state_corrupted = True
+            print(f"ERROR: {verb}: {result.message}", file=sys.stderr)
+            return {
+                "type": "result",
+                "success": False,
+                "action": verb,
+                "error": {
+                    "message": result.message,
+                    "fatal": True
+                }
+            }
+
+        if result.success:
+            response = {
+                "type": "result",
+                "success": True,
+                "action": verb,
+                "message": result.message
+            }
+            # Include optional data (e.g., llm_context for examine)
+            if result.data:
+                response["data"] = result.data
+
+            # Fire turn phase hooks after successful command
+            turn_messages = self._fire_turn_phases(accessor, action)
+            if turn_messages:
+                response["turn_phase_messages"] = turn_messages
+
+            return response
+
+        return {
+            "type": "result",
+            "success": False,
+            "action": verb,
+            "error": {"message": result.message}
         }
 
-        # Invoke behavior (fallbacks are handled automatically by invoke_behavior)
-        behavior_result = self.behavior_manager.invoke_behavior(
-            entity_obj, event_name, self.state, context
-        )
-
-        # Remove entity_obj from result before returning
-        result = {k: v for k, v in result.items() if k != "entity_obj"}
-
-        if behavior_result:
-            if behavior_result.message:
-                result["message"] = behavior_result.message
-
-            if not behavior_result.allow:
-                # Behavior prevented the action - revert changes
-                result["success"] = False
-                # Note: The actual state reversion would need to be handled
-                # by the specific command or behavior
-
-            # Rebuild entity dict to reflect state changes made by behavior
-            if "entity" in result:
-                result["entity"] = self._entity_to_dict(entity_obj)
-
-        return result
-
-    def _fire_turn_phases(self, accessor, action: Dict) -> List[str]:
+    def _fire_turn_phases(self, accessor, action: ActionDict) -> List[str]:
         """
         Fire turn phase hooks after a successful command.
 
@@ -287,7 +235,7 @@ class LLMProtocolHandler:
             event_name = self.behavior_manager.get_event_for_hook(HookName(hook_name))
             if event_name:
                 # Build context for the turn phase
-                context = {
+                context: Dict[str, Any] = {
                     "hook": hook_name,
                     "actor_id": action.get("actor_id", "player"),
                 }
@@ -519,14 +467,6 @@ class LLMProtocolHandler:
             return None
         return self.state.actors.get(ActorId(actor_id))
 
-    def _get_lock_by_id(self, lock_id: str):
-        """Get lock by ID."""
-        for lock in self.state.locks:
-            if lock.id == lock_id:
-                return lock
-        return None
-
-
     def _get_container_for_item(self, item):
         """Get the container that holds this item, if any."""
         if item.location.startswith("item_"):
@@ -535,16 +475,20 @@ class LLMProtocolHandler:
                 return container
         return None
 
-    def _get_adjectives(self, action: Dict):
+    def _get_adjectives(self, action: ActionDict):
         """Extract adjectives from action, supporting both single and multiple."""
         # Support both 'adjective' (string) and 'adjectives' (list)
-        adjectives = action.get("adjectives", [])
-        if not adjectives:
+        raw_adjs = action.get("adjectives")
+        adjectives: list[str] = []
+        if isinstance(raw_adjs, list):
+            adjectives = [str(a).lower() for a in raw_adjs if a]
+        elif isinstance(raw_adjs, str):
+            adjectives = [a for a in raw_adjs.lower().split() if a]
+        else:
             adj = action.get("adjective")
-            if adj:
-                # Handle space-separated adjectives (from parser)
-                adjectives = adj.split()
-        return [a.lower() for a in adjectives if a]
+            if isinstance(adj, str):
+                adjectives = [a for a in adj.lower().split() if a]
+        return adjectives
 
     def _matches_adjectives(self, description: str, adjectives: list) -> bool:
         """Check if all adjectives appear in description."""
@@ -570,30 +514,16 @@ class LLMProtocolHandler:
                     return door
                 # Check if any adjective is a direction
                 loc = self._get_current_location()
-                for direction, exit_desc in loc.exits.items():
-                    if exit_desc.door_id == door.id and direction in adjectives:
-                        return door
+                if loc:
+                    for direction, exit_desc in loc.exits.items():
+                        if exit_desc.door_id == door.id and direction in adjectives:
+                            return door
 
         # Default: prioritize locked/closed doors
         for door in doors:
             if door.properties.get("locked", False) or not door.properties.get("open", False):
                 return door
         return doors[0]
-
-    def _add_llm_context(self, result: Dict, properties: Dict) -> None:
-        """Add llm_context to result dict, randomizing traits for narration variety.
-
-        DEPRECATED: Use utilities.entity_serializer.entity_to_dict() instead.
-        Kept for exit descriptor handling in _query_location which needs
-        to work with dict properties rather than entity objects.
-        """
-        from utilities.entity_serializer import _add_llm_context, _get_llm_context
-        # Create a minimal object-like wrapper for the properties
-        class PropsWrapper:
-            def __init__(self, props):
-                self.properties = props
-        wrapper = PropsWrapper(properties)
-        _add_llm_context(result, wrapper)
 
     def _entity_to_dict(self, item) -> Dict:
         """Convert item to dict with llm_context.

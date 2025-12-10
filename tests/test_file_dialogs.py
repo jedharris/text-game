@@ -11,6 +11,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 import wx
 
+
 # Check if we can create a wx.App (requires display on macOS)
 def can_create_wx_app():
     """Check if we can create a wx.App without a display."""
@@ -20,11 +21,48 @@ def can_create_wx_app():
         return True
     except SystemExit:
         return False
+    except Exception:
+        # Some platforms raise a wx-specific exception instead of SystemExit
+        return False
+
 
 HAS_DISPLAY = can_create_wx_app()
 
 
-@unittest.skipIf(not HAS_DISPLAY, "wxPython requires display access on this platform")
+class HeadlessFileDialog:
+    """Minimal stand-in for wx.FileDialog when no display is available."""
+
+    def __init__(self, parent, message="", defaultDir="", defaultFile="", wildcard="", style=0):
+        self.parent = parent
+        self._message = message
+        self._defaultDir = defaultDir
+        self._defaultFile = defaultFile
+        self._wildcard = wildcard
+        self._style = style
+        self._path = ""
+
+    def ShowModal(self):
+        return wx.ID_CANCEL
+
+    def GetPath(self):
+        return self._path
+
+    def GetMessage(self):
+        return self._message
+
+    def GetDirectory(self):
+        return self._defaultDir
+
+    def GetFilename(self):
+        return self._defaultFile
+
+    def GetWildcard(self):
+        return self._wildcard
+
+    def Destroy(self):
+        return None
+
+
 class TestFileDialogsHeadless(unittest.TestCase):
     """
     Test file dialog functions with real wxPython components in headless mode.
@@ -35,8 +73,17 @@ class TestFileDialogsHeadless(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures - create headless wx.App."""
+        self._patchers = []
+        if not HAS_DISPLAY:
+            # Patch wx.App and wx.FileDialog so we can run without a GUI/display
+            app_patcher = patch('wx.App', return_value=MagicMock())
+            dialog_patcher = patch('wx.FileDialog', HeadlessFileDialog)
+            self._patchers.extend([app_patcher, dialog_patcher])
+            for patcher in self._patchers:
+                patcher.start()
+
         # Create app in headless mode (False = don't redirect stdout)
-        # This allows testing with real wx components without showing windows
+        # This allows testing with real wx components (or the headless stub) without showing windows
         self.app = wx.App(False)
 
     def tearDown(self):
@@ -44,6 +91,9 @@ class TestFileDialogsHeadless(unittest.TestCase):
         if self.app:
             self.app.Destroy()
             self.app = None
+        # Stop any headless patches
+        for patcher in reversed(getattr(self, "_patchers", [])):
+            patcher.stop()
 
     @patch('wx.FileDialog.ShowModal')
     @patch('wx.FileDialog.GetPath')
@@ -441,12 +491,19 @@ class TestFileDialogHelpers(unittest.TestCase):
         self.assertIsNone(result)
 
 
-@unittest.skipIf(not HAS_DISPLAY, "wxPython requires display access on this platform")
 class TestFileDialogErrorHandling(unittest.TestCase):
     """Test error handling in file dialog operations."""
 
     def setUp(self):
         """Set up test fixtures."""
+        self._patchers = []
+        if not HAS_DISPLAY:
+            app_patcher = patch('wx.App', return_value=MagicMock())
+            dialog_patcher = patch('wx.FileDialog', HeadlessFileDialog)
+            self._patchers.extend([app_patcher, dialog_patcher])
+            for patcher in self._patchers:
+                patcher.start()
+
         self.app = wx.App(False)
 
     def tearDown(self):
@@ -454,6 +511,8 @@ class TestFileDialogErrorHandling(unittest.TestCase):
         if self.app:
             self.app.Destroy()
             self.app = None
+        for patcher in reversed(getattr(self, "_patchers", [])):
+            patcher.stop()
 
     @patch('wx.FileDialog.ShowModal')
     def test_dialog_exception_handling(self, mock_show_modal):

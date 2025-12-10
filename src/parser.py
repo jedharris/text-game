@@ -1,6 +1,6 @@
 """Main parser implementation."""
 
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any, Union
 import json
 
 from src.word_entry import WordEntry, WordType
@@ -15,20 +15,23 @@ class Parser:
     structured ParsedCommand objects.
     """
 
-    def __init__(self, vocabulary_file: str):
+    def __init__(self, vocabulary: Union[str, Dict[str, Any]]):
         """
-        Initialize parser with vocabulary file.
+        Initialize parser with vocabulary data.
 
         Args:
-            vocabulary_file: Path to JSON vocabulary file
+            vocabulary: Path to JSON vocabulary file or in-memory vocabulary dict
 
         Raises:
             FileNotFoundError: If vocabulary file doesn't exist
             json.JSONDecodeError: If vocabulary file is invalid JSON
+            TypeError: If vocabulary is not a str or dict
         """
         self.word_table: List[WordEntry] = []
         self.word_lookup: Dict[str, WordEntry] = {}
-        self._load_vocabulary(vocabulary_file)
+
+        vocab_data = self._load_vocabulary_source(vocabulary)
+        self._populate_word_entries(vocab_data)
         self._build_lookup_table()
 
     def _parse_word_type(self, word_type_data):
@@ -48,19 +51,17 @@ class Parser:
             # Single type
             return WordType[word_type_data.upper()]
 
-    def _load_vocabulary(self, filename: str):
-        """
-        Load and parse the vocabulary JSON file.
+    def _load_vocabulary_source(self, source: Union[str, Dict[str, Any]]) -> Dict[str, Any]:
+        """Load vocabulary from a filename or return the provided dict."""
+        if isinstance(source, str):
+            with open(source, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        if isinstance(source, dict):
+            return source
+        raise TypeError("vocabulary must be a file path or a dict")
 
-        Args:
-            filename: Path to vocabulary JSON file
-
-        Raises:
-            FileNotFoundError: If file doesn't exist
-            json.JSONDecodeError: If JSON is malformed
-        """
-        with open(filename, 'r', encoding='utf-8') as f:
-            vocab = json.load(f)
+    def _populate_word_entries(self, vocab: Dict[str, Any]) -> None:
+        """Populate word entries from a vocabulary dict."""
 
         # Process verbs
         for verb_data in vocab.get('verbs', []):
