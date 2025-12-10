@@ -2,14 +2,24 @@
 Tests for handler utility functions.
 
 Tests the validate_actor_and_location() utility that provides
-standard preamble for all handlers.
+standard preamble for all handlers, plus new consolidation helpers.
 """
 
 import unittest
+from unittest.mock import Mock, MagicMock, patch
 from tests.conftest import BaseTestCase
-from src.state_manager import Actor
+from src.state_manager import Actor, Item, Lock
+from src.state_accessor import UpdateResult
 from src.word_entry import WordEntry, WordType
-from utilities.handler_utils import validate_actor_and_location
+from utilities.handler_utils import (
+    validate_actor_and_location,
+    execute_entity_action,
+    transfer_item_to_actor,
+    transfer_item_from_actor,
+    validate_container_accessible,
+    check_actor_has_key,
+    build_action_result
+)
 
 
 def make_word(word: str) -> WordEntry:
@@ -166,6 +176,330 @@ class TestValidateActorAndLocation(BaseTestCase):
         self.assertEqual(actor_id, "player")
         self.assertIsNotNone(actor)
         self.assertIsNotNone(location)
+
+
+class TestExecuteEntityAction(BaseTestCase):
+    """Tests for execute_entity_action helper."""
+
+    def test_success_basic(self):
+        """Should return success with message and serialized entity"""
+        item = self.state.get_item("item_sword")
+        result = execute_entity_action(
+            self.accessor,
+            item,
+            {},  # No changes
+            "examine",
+            "player",
+            "You examine the sword."
+        )
+
+        self.assertTrue(result.success)
+        self.assertIn("examine the sword", result.message)
+        self.assertIsNotNone(result.data)
+        self.assertIn("id", result.data)
+        self.assertEqual(result.data["id"], "item_sword")
+
+    def test_success_with_behavior_message(self):
+        """Should append behavior message to base message"""
+        # Mock accessor.update to return a message
+        item = self.state.get_item("item_sword")
+        original_update = self.accessor.update
+
+        def mock_update(entity, changes, verb=None, actor_id=None):
+            return UpdateResult(success=True, message="The sword glows!")
+
+        self.accessor.update = mock_update
+        try:
+            result = execute_entity_action(
+                self.accessor,
+                item,
+                {},
+                "examine",
+                "player",
+                "You examine the sword."
+            )
+
+            self.assertTrue(result.success)
+            self.assertIn("examine the sword", result.message)
+            self.assertIn("sword glows", result.message)
+        finally:
+            self.accessor.update = original_update
+
+    def test_success_with_positioning_message(self):
+        """Should prepend positioning message"""
+        item = self.state.get_item("item_sword")
+        result = execute_entity_action(
+            self.accessor,
+            item,
+            {},
+            "examine",
+            "player",
+            "You examine the sword.",
+            positioning_msg="You move closer."
+        )
+
+        self.assertTrue(result.success)
+        self.assertIn("move closer", result.message)
+        self.assertIn("examine the sword", result.message)
+
+    def test_failure_from_behavior(self):
+        """Should return failure when behavior denies action"""
+        item = self.state.get_item("item_sword")
+        original_update = self.accessor.update
+
+        def mock_update(entity, changes, verb=None, actor_id=None):
+            return UpdateResult(success=False, message="The sword resists!")
+
+        self.accessor.update = mock_update
+        try:
+            result = execute_entity_action(
+                self.accessor,
+                item,
+                {},
+                "take",
+                "player",
+                "You take the sword."
+            )
+
+            self.assertFalse(result.success)
+            self.assertIn("resists", result.message)
+        finally:
+            self.accessor.update = original_update
+
+
+class TestTransferItemToActor(BaseTestCase):
+    """Tests for transfer_item_to_actor helper."""
+
+    def test_success(self):
+        """Should transfer item to actor inventory"""
+        item = self.state.get_item("item_sword")
+        actor = self.state.actors["player"]
+        location = self.accessor.get_current_location("player")
+
+        result, error = transfer_item_to_actor(
+            self.accessor,
+            item,
+            actor,
+            "player",
+            "take",
+            {"location": "player"},
+            location.id
+        )
+
+        self.assertIsNone(error)
+        self.assertIsNotNone(result)
+        self.assertTrue(result.success)
+        self.assertEqual(item.location, "player")
+        self.assertIn("item_sword", actor.inventory)
+
+    def test_behavior_denies(self):
+        """Should return error when behavior denies"""
+        item = self.state.get_item("item_sword")
+        actor = self.state.actors["player"]
+        location = self.accessor.get_current_location("player")
+
+        original_update = self.accessor.update
+
+        def mock_update(entity, changes, verb=None, actor_id=None):
+            if hasattr(entity, 'location'):  # Item update
+                return UpdateResult(success=False, message="Cannot take that.")
+            return original_update(entity, changes, verb, actor_id)
+
+        self.accessor.update = mock_update
+        try:
+            result, error = transfer_item_to_actor(
+                self.accessor,
+                item,
+                actor,
+                "player",
+                "take",
+                {"location": "player"},
+                location.id
+            )
+
+            self.assertIsNone(result)
+            self.assertIsNotNone(error)
+            self.assertFalse(error.success)
+            self.assertIn("Cannot take", error.message)
+        finally:
+            self.accessor.update = original_update
+
+
+class TestTransferItemFromActor(BaseTestCase):
+    """Tests for transfer_item_from_actor helper."""
+
+    def test_success(self):
+        """Should transfer item from actor inventory"""
+        # Setup: put sword in inventory
+        item = self.state.get_item("item_sword")
+        actor = self.state.actors["player"]
+        location = self.accessor.get_current_location("player")
+        actor.inventory.append("item_sword")
+        item.location = "player"
+
+        result, error = transfer_item_from_actor(
+            self.accessor,
+            item,
+            actor,
+            "player",
+            "drop",
+            {"location": location.id}
+        )
+
+        self.assertIsNone(error)
+        self.assertIsNotNone(result)
+        self.assertTrue(result.success)
+        self.assertEqual(item.location, location.id)
+        self.assertNotIn("item_sword", actor.inventory)
+
+    def test_behavior_denies(self):
+        """Should return error when behavior denies"""
+        item = self.state.get_item("item_sword")
+        actor = self.state.actors["player"]
+        location = self.accessor.get_current_location("player")
+        actor.inventory.append("item_sword")
+        item.location = "player"
+
+        original_update = self.accessor.update
+
+        def mock_update(entity, changes, verb=None, actor_id=None):
+            if hasattr(entity, 'location') and entity.id == "item_sword":
+                return UpdateResult(success=False, message="Cannot drop that.")
+            return original_update(entity, changes, verb, actor_id)
+
+        self.accessor.update = mock_update
+        try:
+            result, error = transfer_item_from_actor(
+                self.accessor,
+                item,
+                actor,
+                "player",
+                "drop",
+                {"location": location.id}
+            )
+
+            self.assertIsNone(result)
+            self.assertIsNotNone(error)
+            self.assertFalse(error.success)
+            self.assertIn("Cannot drop", error.message)
+        finally:
+            self.accessor.update = original_update
+
+
+class TestValidateContainerAccessible(BaseTestCase):
+    """Tests for validate_container_accessible helper."""
+
+    def test_open_container_accessible(self):
+        """Should return None for open container"""
+        item = Mock()
+        item.name = "chest"
+        item.properties = {"container": {"open": True}}
+
+        result = validate_container_accessible(item, "take from")
+        self.assertIsNone(result)
+
+    def test_surface_always_accessible(self):
+        """Should return None for surfaces regardless of open state"""
+        item = Mock()
+        item.name = "table"
+        item.properties = {"container": {"is_surface": True, "open": False}}
+
+        result = validate_container_accessible(item, "take from")
+        self.assertIsNone(result)
+
+    def test_closed_container_not_accessible(self):
+        """Should return error for closed container"""
+        item = Mock()
+        item.name = "chest"
+        item.properties = {"container": {"open": False}}
+
+        result = validate_container_accessible(item, "take from")
+        self.assertIsNotNone(result)
+        self.assertFalse(result.success)
+        self.assertIn("chest is closed", result.message)
+
+
+class TestCheckActorHasKey(BaseTestCase):
+    """Tests for check_actor_has_key helper."""
+
+    def test_has_matching_key(self):
+        """Should return None when actor has key"""
+        actor = Mock()
+        actor.inventory = ["gold_key", "silver_key"]
+
+        lock = Mock()
+        lock.properties = {"opens_with": ["gold_key"]}
+
+        result = check_actor_has_key(actor, lock, "chest", "unlock")
+        self.assertIsNone(result)
+
+    def test_no_matching_key(self):
+        """Should return error when actor doesn't have key"""
+        actor = Mock()
+        actor.inventory = ["bronze_key"]
+
+        lock = Mock()
+        lock.properties = {"opens_with": ["gold_key"]}
+
+        result = check_actor_has_key(actor, lock, "chest", "unlock")
+        self.assertIsNotNone(result)
+        self.assertFalse(result.success)
+        self.assertIn("don't have the right key", result.message)
+        self.assertIn("unlock", result.message)
+        self.assertIn("chest", result.message)
+
+    def test_empty_inventory(self):
+        """Should return error when inventory is empty"""
+        actor = Mock()
+        actor.inventory = []
+
+        lock = Mock()
+        lock.properties = {"opens_with": ["gold_key"]}
+
+        result = check_actor_has_key(actor, lock, "door", "lock")
+        self.assertIsNotNone(result)
+        self.assertFalse(result.success)
+
+
+class TestBuildActionResult(BaseTestCase):
+    """Tests for build_action_result helper."""
+
+    def test_basic_message(self):
+        """Should build result with just base message"""
+        item = self.state.get_item("item_sword")
+        result = build_action_result(item, "You take the sword.")
+
+        self.assertTrue(result.success)
+        self.assertEqual(result.message, "You take the sword.")
+        self.assertIsNotNone(result.data)
+        self.assertIn("id", result.data)
+        self.assertEqual(result.data["id"], "item_sword")
+
+    def test_with_behavior_message(self):
+        """Should combine base and behavior messages"""
+        item = self.state.get_item("item_sword")
+        result = build_action_result(
+            item,
+            "You take the sword.",
+            behavior_message="It feels warm."
+        )
+
+        self.assertTrue(result.success)
+        self.assertIn("take the sword", result.message)
+        self.assertIn("feels warm", result.message)
+
+    def test_with_positioning_message(self):
+        """Should prepend positioning message"""
+        item = self.state.get_item("item_sword")
+        result = build_action_result(
+            item,
+            "You take the sword.",
+            positioning_msg="You step closer."
+        )
+
+        self.assertTrue(result.success)
+        self.assertIn("step closer", result.message)
+        self.assertIn("take the sword", result.message)
 
 
 if __name__ == '__main__':

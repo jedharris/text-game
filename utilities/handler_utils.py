@@ -4,11 +4,15 @@ Handler utility functions.
 Provides shared preamble utilities for item-targeting handlers.
 """
 
-from typing import Tuple, Optional, Dict, Any
+from typing import Tuple, Optional, Dict, Any, List, Union
 
-from src.state_accessor import HandlerResult, StateAccessor
+from src.types import ActorId
+from src.state_accessor import HandlerResult, StateAccessor, UpdateResult
+from src.state_manager import Entity, Item, Actor, Lock
 from src.word_entry import WordEntry
 from utilities.utils import find_accessible_item, find_door_with_adjective
+from utilities.entity_serializer import serialize_for_handler_result
+from utilities.positioning import build_message_with_positioning
 
 
 def validate_actor_and_location(
@@ -251,3 +255,256 @@ def find_openable_target(
         )
 
     return item, actor_id, None
+
+
+# =============================================================================
+# Action Execution Helpers
+# =============================================================================
+
+def execute_entity_action(
+    accessor: StateAccessor,
+    entity: Entity,
+    changes: Dict[str, Any],
+    verb: str,
+    actor_id: ActorId,
+    base_message: str,
+    positioning_msg: Optional[str] = None,
+    failure_message: Optional[str] = None
+) -> HandlerResult:
+    """
+    Execute an action on an entity with behavior invocation and message building.
+
+    This helper handles the common pattern of:
+    1. Calling accessor.update() with verb/actor_id to invoke behaviors
+    2. Checking for failure and returning appropriate error
+    3. Building success message with behavior result appended
+    4. Including positioning message if provided
+    5. Serializing entity for llm_context
+
+    Args:
+        accessor: StateAccessor instance
+        entity: The entity to act upon (Item, Actor, Part, etc.)
+        changes: Dict of state changes to apply (can be empty {} for behavior-only)
+        verb: The verb for behavior invocation (e.g., "examine", "open")
+        actor_id: ID of actor performing the action
+        base_message: Success message (e.g., "You open the chest.")
+        positioning_msg: Optional positioning message to prepend
+        failure_message: Optional custom failure message (defaults to behavior message)
+
+    Returns:
+        HandlerResult with success/failure and appropriate message
+    """
+    result = accessor.update(entity, changes, verb=verb, actor_id=actor_id)
+
+    if not result.success:
+        msg = failure_message or result.message or f"You can't {verb} the {getattr(entity, 'name', 'that')}."
+        return HandlerResult(success=False, message=msg)
+
+    # Build message with behavior result
+    base_messages = [base_message]
+    if result.message:
+        base_messages.append(result.message)
+
+    message = build_message_with_positioning(base_messages, positioning_msg)
+    data = serialize_for_handler_result(entity)
+
+    return HandlerResult(success=True, message=message, data=data)
+
+
+# =============================================================================
+# Inventory Transfer Helpers
+# =============================================================================
+
+def transfer_item_to_actor(
+    accessor: StateAccessor,
+    item: Item,
+    actor: Actor,
+    actor_id: ActorId,
+    verb: str,
+    item_changes: Dict[str, Any],
+    rollback_location: str
+) -> Tuple[Optional[UpdateResult], Optional[HandlerResult]]:
+    """
+    Transfer an item to an actor's inventory with rollback on failure.
+
+    Handles:
+    - Update item with changes (triggers behaviors via verb)
+    - Add item to actor's inventory
+    - Rollback item location if inventory update fails
+
+    Args:
+        accessor: StateAccessor instance
+        item: The item to transfer
+        actor: The actor receiving the item
+        actor_id: ID of the actor (for behavior context)
+        verb: The verb for behavior invocation (e.g., "take")
+        item_changes: Changes to apply to item (typically {"location": actor_id})
+        rollback_location: Location to restore item to if inventory update fails
+
+    Returns:
+        Tuple of (update_result, error):
+        - On success: (UpdateResult with behavior message, None)
+        - On failure: (None, HandlerResult with error)
+    """
+    # Update item (triggers behaviors)
+    result = accessor.update(item, item_changes, verb=verb, actor_id=actor_id)
+
+    if not result.success:
+        return None, HandlerResult(success=False, message=result.message or f"Cannot {verb} the {item.name}.")
+
+    # Add to inventory
+    inv_result = accessor.update(actor, {"+inventory": item.id})
+
+    if not inv_result.success:
+        # Rollback item location
+        accessor.update(item, {"location": rollback_location})
+        return None, HandlerResult(
+            success=False,
+            message=f"INCONSISTENT STATE: Failed to add item to inventory: {inv_result.message}"
+        )
+
+    return result, None
+
+
+def transfer_item_from_actor(
+    accessor: StateAccessor,
+    item: Item,
+    actor: Actor,
+    actor_id: ActorId,
+    verb: str,
+    item_changes: Dict[str, Any]
+) -> Tuple[Optional[UpdateResult], Optional[HandlerResult]]:
+    """
+    Transfer an item from an actor's inventory with rollback on failure.
+
+    Handles:
+    - Update item with changes (triggers behaviors via verb)
+    - Remove item from actor's inventory
+    - Rollback item location if inventory update fails
+
+    Args:
+        accessor: StateAccessor instance
+        item: The item to transfer
+        actor: The actor giving up the item
+        actor_id: ID of the actor (for behavior context)
+        verb: The verb for behavior invocation (e.g., "drop", "put")
+        item_changes: Changes to apply to item (typically {"location": new_location})
+
+    Returns:
+        Tuple of (update_result, error):
+        - On success: (UpdateResult with behavior message, None)
+        - On failure: (None, HandlerResult with error)
+    """
+    # Update item (triggers behaviors)
+    result = accessor.update(item, item_changes, verb=verb, actor_id=actor_id)
+
+    if not result.success:
+        return None, HandlerResult(success=False, message=result.message or f"Cannot {verb} the {item.name}.")
+
+    # Remove from inventory
+    inv_result = accessor.update(actor, {"-inventory": item.id})
+
+    if not inv_result.success:
+        # Rollback item location
+        accessor.update(item, {"location": actor_id})
+        return None, HandlerResult(
+            success=False,
+            message=f"INCONSISTENT STATE: Failed to remove item from inventory: {inv_result.message}"
+        )
+
+    return result, None
+
+
+# =============================================================================
+# Validation Helpers
+# =============================================================================
+
+def validate_container_accessible(
+    container: Item,
+    verb: str
+) -> Optional[HandlerResult]:
+    """
+    Validate that a container can be accessed (is open or is a surface).
+
+    Args:
+        container: The container item to check
+        verb: The verb for error messages (e.g., "take from", "put in")
+
+    Returns:
+        None if accessible, HandlerResult error if container is closed
+    """
+    container_info = container.properties.get("container", {})
+    is_surface = container_info.get("is_surface", False)
+
+    if not is_surface and not container_info.get("open", False):
+        return HandlerResult(
+            success=False,
+            message=f"The {container.name} is closed."
+        )
+
+    return None
+
+
+def check_actor_has_key(
+    actor: Actor,
+    lock: Lock,
+    item_name: str,
+    verb: str
+) -> Optional[HandlerResult]:
+    """
+    Check if actor has a key that opens the given lock.
+
+    Args:
+        actor: The actor to check inventory of
+        lock: The lock to check keys for
+        item_name: Name of the locked item (for error message)
+        verb: The verb being performed (for error message)
+
+    Returns:
+        None if actor has a valid key, HandlerResult error if not
+    """
+    opens_with = lock.properties.get("opens_with", [])
+    has_key = any(key_id in actor.inventory for key_id in opens_with)
+
+    if not has_key:
+        return HandlerResult(
+            success=False,
+            message=f"You don't have the right key to {verb} the {item_name}."
+        )
+
+    return None
+
+
+# =============================================================================
+# Message Building Helpers
+# =============================================================================
+
+def build_action_result(
+    item: Item,
+    base_message: str,
+    behavior_message: Optional[str] = None,
+    positioning_msg: Optional[str] = None
+) -> HandlerResult:
+    """
+    Build a successful HandlerResult with message and serialized entity.
+
+    Combines base message, behavior message, and positioning message
+    into a single response with serialized entity data.
+
+    Args:
+        item: The item to serialize for llm_context
+        base_message: The primary success message
+        behavior_message: Optional message from behavior invocation
+        positioning_msg: Optional positioning/movement message
+
+    Returns:
+        HandlerResult with combined message and serialized data
+    """
+    base_messages = [base_message]
+    if behavior_message:
+        base_messages.append(behavior_message)
+
+    message = build_message_with_positioning(base_messages, positioning_msg)
+    data = serialize_for_handler_result(item)
+
+    return HandlerResult(success=True, message=message, data=data)

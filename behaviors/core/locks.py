@@ -3,11 +3,8 @@
 Vocabulary for lock-related actions.
 """
 
-from typing import Dict, Any
-
-from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
-from utilities.handler_utils import find_openable_target
+from utilities.handler_utils import find_openable_target, check_actor_has_key
 from utilities.entity_serializer import serialize_for_handler_result
 
 
@@ -108,13 +105,10 @@ def _handle_lock_operation(accessor, action, verb: str, target_state: bool) -> H
                 message=f"INCONSISTENT STATE: Lock {item.door_lock_id} not found"
             )
 
-        # Check for key
-        has_key = any(key_id in actor.inventory for key_id in lock.opens_with)
-        if not has_key:
-            return HandlerResult(
-                success=False,
-                message=f"You don't have the right key to {verb} the {item.name}."
-            )
+        # Check for key using helper
+        key_error = check_actor_has_key(actor, lock, item.name, verb)
+        if key_error:
+            return key_error
 
         # Update state
         item.door_locked = target_state
@@ -166,13 +160,10 @@ def _handle_lock_operation(accessor, action, verb: str, target_state: bool) -> H
             message=f"INCONSISTENT STATE: Lock {lock_id} not found"
         )
 
-    # Check for key
-    has_key = any(key_id in actor.inventory for key_id in lock.opens_with)
-    if not has_key:
-        return HandlerResult(
-            success=False,
-            message=f"You don't have the right key to {verb} the {item.name}."
-        )
+    # Check for key using helper
+    key_error = check_actor_has_key(actor, lock, item.name, verb)
+    if key_error:
+        return key_error
 
     # Update state
     item.container._data["locked"] = target_state

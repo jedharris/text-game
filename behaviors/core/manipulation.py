@@ -3,10 +3,6 @@
 Vocabulary and handlers for basic item manipulation.
 """
 
-from typing import Dict, Any
-
-from src.action_types import ActionDict
-from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
 from utilities.utils import (
     find_accessible_item,
@@ -15,9 +11,15 @@ from utilities.utils import (
     find_item_in_container,
     name_matches,
 )
-from utilities.entity_serializer import serialize_for_handler_result
-from utilities.positioning import try_implicit_positioning, build_message_with_positioning
-from utilities.handler_utils import get_display_name, validate_actor_and_location
+from utilities.positioning import try_implicit_positioning
+from utilities.handler_utils import (
+    get_display_name,
+    validate_actor_and_location,
+    transfer_item_to_actor,
+    transfer_item_from_actor,
+    validate_container_accessible,
+    build_action_result,
+)
 
 
 # Vocabulary extension - adds take and drop verbs
@@ -113,15 +115,15 @@ def handle_take(accessor, action):
     if error:
         return error
 
-    # Extract remaining action parameters and ensure WordEntry
+    # Extract remaining action parameters
     object_name = action.get("object")
     adjective = action.get("adjective")
     container_name = action.get("indirect_object")
     container_adjective = action.get("indirect_adjective")
 
     # If container specified, validate it and search only within it
+    container = None
     if container_name:
-        # Find the container in the location
         container = find_container_with_adjective(
             accessor, container_name, container_adjective, location.id
         )
@@ -139,16 +141,14 @@ def handle_take(accessor, action):
                 message=f"You don't see any {get_display_name(container_name)} here."
             )
 
-        # Check if enclosed container is open
-        container_info = container.properties.get("container", {})
-        is_surface = container_info.get("is_surface", False)
-        if not is_surface and not container_info.get("open", False):
-            return HandlerResult(
-                success=False,
-                message=f"The {container.name} is closed."
-            )
+        # Check if container is accessible
+        container_error = validate_container_accessible(container, "take from")
+        if container_error:
+            return container_error
 
         # Find item in this specific container
+        container_info = container.properties.get("container", {})
+        is_surface = container_info.get("is_surface", False)
         item = find_item_in_container(accessor, object_name, container.id, adjective)
         if not item:
             preposition = "on" if is_surface else "in"
@@ -158,7 +158,6 @@ def handle_take(accessor, action):
             )
     else:
         # No container specified - find item anywhere accessible
-        # Use adjective if provided for disambiguation
         item = find_accessible_item(accessor, object_name, actor_id, adjective)
 
     if not item:
@@ -167,12 +166,9 @@ def handle_take(accessor, action):
             message=f"You don't see any {get_display_name(object_name)} here."
         )
 
-    # Apply implicit positioning
-    # For container operations, position to container not item
-    if container_name:
-        moved, move_msg = try_implicit_positioning(accessor, actor_id, container)
-    else:
-        moved, move_msg = try_implicit_positioning(accessor, actor_id, item)
+    # Apply implicit positioning (to container if specified, else to item)
+    target_for_positioning = container if container_name else item
+    moved, move_msg = try_implicit_positioning(accessor, actor_id, target_for_positioning)
 
     # Check if item is already in actor's inventory
     if item.location == actor_id:
@@ -188,49 +184,21 @@ def handle_take(accessor, action):
             message=f"You can't take the {item.name}."
         )
 
-    # Perform state changes
-    # 1. Change item location to actor
-    # 2. Add item to actor's inventory
-    changes = {
-        "location": actor_id
-    }
+    # Transfer item to actor's inventory
+    result, error = transfer_item_to_actor(
+        accessor, item, actor, actor_id, "take",
+        {"location": actor_id},
+        location.id
+    )
+    if error:
+        return error
 
-    # Pass verb and actor_id to trigger entity behaviors (on_take)
-    result = accessor.update(item, changes, verb="take", actor_id=actor_id)
-
-    if not result.success:
-        # Behavior denied the action - this is normal, not an inconsistent state
-        return HandlerResult(
-            success=False,
-            message=result.message
-        )
-
-    # Add to inventory
-    inventory_result = accessor.update(actor, {"+inventory": item.id})
-
-    if not inventory_result.success:
-        # Try to rollback item location change
-        accessor.update(item, {"location": accessor.get_current_location(actor_id).id})
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Failed to add item to inventory: {inventory_result.message}"
-        )
-
-    # Build message - include behavior message if present
-    base_messages = [f"You take the {item.name}."]
-    if result.message:
-        base_messages.append(result.message)
-
-    # Combine with positioning message
-    message = build_message_with_positioning(base_messages, move_msg)
-
-    # Use unified serializer for llm_context with trait randomization
-    data = serialize_for_handler_result(item)
-
-    return HandlerResult(
-        success=True,
-        message=message,
-        data=data
+    # Build and return result
+    return build_action_result(
+        item,
+        f"You take the {item.name}.",
+        behavior_message=result.message,
+        positioning_msg=move_msg
     )
 
 
@@ -262,57 +230,25 @@ def handle_drop(accessor, action):
 
     # Find the item in actor's inventory
     item = find_item_in_inventory(accessor, object_name, actor_id)
-
     if not item:
         return HandlerResult(
             success=False,
             message=f"You don't have any {get_display_name(object_name)}."
         )
 
-    # Perform state changes
-    # 1. Change item location to current room
-    # 2. Remove item from actor's inventory
-    # 3. Clear equipped state (item is no longer being carried)
-    changes = {
-        "location": location.id,
-        "states.equipped": False
-    }
+    # Transfer item from actor's inventory to location
+    result, error = transfer_item_from_actor(
+        accessor, item, actor, actor_id, "drop",
+        {"location": location.id, "states.equipped": False}
+    )
+    if error:
+        return error
 
-    # Pass verb and actor_id to trigger entity behaviors (on_drop)
-    result = accessor.update(item, changes, verb="drop", actor_id=actor_id)
-
-    if not result.success:
-        # Behavior denied the action - this is normal, not an inconsistent state
-        return HandlerResult(
-            success=False,
-            message=result.message
-        )
-
-    # Remove from inventory
-    inventory_result = accessor.update(actor, {"-inventory": item.id})
-
-    if not inventory_result.success:
-        # Try to rollback item location change
-        accessor.update(item, {"location": actor_id})
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Failed to remove item from inventory: {inventory_result.message}"
-        )
-
-    # Build message - include behavior message if present
-    base_message = f"You drop the {item.name}."
-    if result.message:
-        message = f"{base_message} {result.message}"
-    else:
-        message = base_message
-
-    # Use unified serializer for llm_context with trait randomization
-    data = serialize_for_handler_result(item)
-
-    return HandlerResult(
-        success=True,
-        message=message,
-        data=data
+    # Build and return result
+    return build_action_result(
+        item,
+        f"You drop the {item.name}.",
+        behavior_message=result.message
     )
 
 
@@ -346,7 +282,6 @@ def handle_give(accessor, action):
 
     # Find the item in giver's inventory
     item = find_item_in_inventory(accessor, object_name, actor_id)
-
     if not item:
         return HandlerResult(
             success=False,
@@ -366,41 +301,19 @@ def handle_give(accessor, action):
             message=f"You don't see any {get_display_name(recipient_name)} here."
         )
 
-    # Perform state changes
-    # 1. Change item location to recipient
-    # 2. Remove item from giver's inventory
-    # 3. Add item to recipient's inventory
-    # 4. Clear equipped state (item is changing hands)
-    changes = {
-        "location": recipient.id,
-        "states.equipped": False
-    }
+    # Step 1: Transfer item from giver's inventory
+    # Note: We use give verb here but changes go to recipient location
+    result, error = transfer_item_from_actor(
+        accessor, item, giver, actor_id, "give",
+        {"location": recipient.id, "states.equipped": False}
+    )
+    if error:
+        return error
 
-    result = accessor.update(item, changes)
-
-    if not result.success:
-        # Behavior denied the action - this is normal, not an inconsistent state
-        return HandlerResult(
-            success=False,
-            message=result.message
-        )
-
-    # Remove from giver's inventory
-    remove_result = accessor.update(giver, {"-inventory": item.id})
-
-    if not remove_result.success:
-        # Try to rollback
-        accessor.update(item, {"location": actor_id})
-        return HandlerResult(
-            success=False,
-            message=f"INCONSISTENT STATE: Failed to remove item from inventory: {remove_result.message}"
-        )
-
-    # Add to recipient's inventory
+    # Step 2: Add to recipient's inventory
     add_result = accessor.update(recipient, {"+inventory": item.id})
-
     if not add_result.success:
-        # Try to rollback
+        # Rollback: put item back in giver's inventory
         accessor.update(giver, {"+inventory": item.id})
         accessor.update(item, {"location": actor_id})
         return HandlerResult(
@@ -420,18 +333,19 @@ def handle_give(accessor, action):
     receive_result = accessor.behavior_manager.invoke_behavior(
         recipient, "on_receive_item", accessor, receive_context
     )
-    if receive_result and receive_result.message:
-        message = f"{base_message}\n{receive_result.message}"
-    else:
-        message = base_message
 
-    # Use unified serializer for llm_context with trait randomization
-    data = serialize_for_handler_result(item)
+    # Combine messages (ensure strings, not Mocks from tests)
+    behavior_msg = result.message if isinstance(result.message, str) else ""
+    if receive_result and hasattr(receive_result, 'message') and isinstance(receive_result.message, str):
+        if behavior_msg:
+            behavior_msg = f"{behavior_msg}\n{receive_result.message}"
+        else:
+            behavior_msg = receive_result.message
 
-    return HandlerResult(
-        success=True,
-        message=message,
-        data=data
+    return build_action_result(
+        item,
+        base_message,
+        behavior_message=behavior_msg if behavior_msg else None
     )
 
 
@@ -492,15 +406,13 @@ def handle_put(accessor, action):
             message=f"You can't put things in the {container.name}."
         )
 
-    # Check if enclosed container is open
-    is_surface = container_props.get("is_surface", False)
-    if not is_surface and not container_props.get("open", False):
-        return HandlerResult(
-            success=False,
-            message=f"The {container.name} is closed."
-        )
+    # Check if container is accessible
+    container_error = validate_container_accessible(container, "put in")
+    if container_error:
+        return container_error
 
     # Check capacity
+    is_surface = container_props.get("is_surface", False)
     capacity = container_props.get("capacity", 0)
     if capacity > 0:
         current_count = sum(1 for i in accessor.game_state.items
@@ -511,26 +423,18 @@ def handle_put(accessor, action):
                 message=f"The {container.name} is full."
             )
 
-    # Move item from inventory to container
-    result = accessor.update(item, {"location": container.id}, verb="put", actor_id=actor_id)
-    if not result.success:
-        return HandlerResult(
-            success=False,
-            message=result.message or f"You can't put the {item.name} there."
-        )
-
-    # Remove from inventory
-    if item.id in actor.inventory:
-        actor.inventory.remove(item.id)
+    # Transfer item from actor's inventory to container
+    result, error = transfer_item_from_actor(
+        accessor, item, actor, actor_id, "put",
+        {"location": container.id}
+    )
+    if error:
+        return error
 
     # Build message based on container type
     preposition = "on" if is_surface else "in"
-    base_message = f"You put the {item.name} {preposition} the {container.name}."
-
-    # Use unified serializer for llm_context with trait randomization
-    data = serialize_for_handler_result(item)
-
-    if result.message:
-        return HandlerResult(success=True, message=f"{base_message} {result.message}", data=data)
-
-    return HandlerResult(success=True, message=base_message, data=data)
+    return build_action_result(
+        item,
+        f"You put the {item.name} {preposition} the {container.name}.",
+        behavior_message=result.message
+    )
