@@ -1,0 +1,983 @@
+{
+  "_meta": {
+    "document": "Fungal Depths Region - Structured Design Sketch",
+    "purpose": "Provide sufficient detail for walkthrough simulation",
+    "version": "0.1",
+    "open_questions": []
+  },
+
+  "region": {
+    "id": "fungal_depths",
+    "name": "The Fungal Depths",
+    "connection_to_hub": {
+      "from": "loc_nexus_chamber",
+      "exit_direction": "west",
+      "arrives_at": "loc_cavern_entrance"
+    }
+  },
+
+  "locations": {
+    "loc_cavern_entrance": {
+      "name": "Cavern Entrance",
+      "description": "A damp stone passage descending into darkness. Cool air rises from below carrying a faint musty smell. Scholar Aldric has set up a small camp here.",
+      "properties": {
+        "spore_level": "none",
+        "breathable": true,
+        "temperature": "cool"
+      },
+      "exits": {
+        "east": {
+          "to": "loc_nexus_chamber",
+          "type": "open",
+          "description": "Stone steps lead back up to the Nexus."
+        },
+        "down": {
+          "to": "loc_luminous_grotto",
+          "type": "open",
+          "description": "A slippery passage descends into a faint blue-green glow."
+        }
+      },
+      "items_present": ["item_aldric_journal"],
+      "actors_present": ["npc_aldric"],
+      "traits": ["damp stone walls", "cool air from below", "distant dripping echoes", "faint phosphorescent glow", "small campfire with worn bedroll"]
+    },
+
+    "loc_luminous_grotto": {
+      "name": "Luminous Grotto",
+      "description": "A cavern filled with bioluminescent mushrooms casting soft blue-green light. Some mushrooms glow brightly, others are dim. A crystal-clear pool reflects the glow. Strange symbols are carved into the ceiling but are hard to read in this light.",
+      "properties": {
+        "spore_level": "medium",
+        "breathable": true,
+        "temperature": "cool",
+        "base_light_level": 2
+      },
+      "exits": {
+        "up": {
+          "to": "loc_cavern_entrance",
+          "type": "open",
+          "description": "The passage climbs back to the entrance."
+        },
+        "down": {
+          "to": "loc_spore_heart",
+          "type": "open",
+          "description": "A dark tunnel descends deeper, thick with visible spores."
+        },
+        "east": {
+          "to": "loc_myconid_sanctuary",
+          "type": "open",
+          "description": "A smooth-walled tunnel leads east."
+        }
+      },
+      "items_present": ["item_silvermoss", "item_mushroom_blue", "item_mushroom_red", "item_mushroom_green", "item_pool", "item_bucket"],
+      "actors_present": [],
+      "traits": ["soft blue-green glow", "delicate fungal tendrils", "sweet earthy scent mixed with decay", "crystal-clear pool reflecting light"],
+      "puzzle": {
+        "name": "Light the Grotto",
+        "description": "Water mushrooms in correct sequence to increase light and reveal ceiling inscription",
+        "sequence": ["blue", "green", "red"],
+        "reward": "Ceiling inscription becomes readable, revealing safe path through Spore Heart"
+      }
+    },
+
+    "loc_spore_heart": {
+      "name": "Spore Heart",
+      "description": "The air is thick with visible spores, making breathing difficult. Organic walls pulse with a strange rhythm. At the center rests a massive fungal creature - the Spore Mother.",
+      "properties": {
+        "spore_level": "high",
+        "breathable": true,
+        "temperature": "warm",
+        "environmental_damage": {
+          "condition": "fungal_infection",
+          "severity_per_turn": 10,
+          "message": "Spores fill your lungs. You feel the infection taking hold."
+        }
+      },
+      "exits": {
+        "up": {
+          "to": "loc_luminous_grotto",
+          "type": "open",
+          "description": "A tunnel leads up toward cleaner air."
+        },
+        "down": {
+          "to": "loc_deep_root_caverns",
+          "type": "conditional",
+          "condition": "safe_path_known OR has_breathing_equipment",
+          "description": "A treacherous passage descends into absolute darkness."
+        }
+      },
+      "items_present": [],
+      "actors_present": ["npc_spore_mother", "npc_sporeling_1", "npc_sporeling_2", "npc_sporeling_3"],
+      "traits": ["pulsing organic walls", "thick visible spores in the air", "rhythmic breathing sounds from the fungus itself", "warmth that feels alive"]
+    },
+
+    "loc_myconid_sanctuary": {
+      "name": "Myconid Sanctuary",
+      "description": "A surprisingly orderly cavern maintained by sentient mushroom beings. Rings of Myconids stand in silent communion, communicating through puffs of colored spores. The air is clean here.",
+      "properties": {
+        "spore_level": "none",
+        "breathable": true,
+        "temperature": "comfortable"
+      },
+      "exits": {
+        "west": {
+          "to": "loc_luminous_grotto",
+          "type": "open",
+          "description": "The tunnel leads back to the glowing grotto."
+        }
+      },
+      "items_present": ["item_spore_lantern", "item_breathing_mask"],
+      "actors_present": ["npc_myconid_elder"],
+      "traits": ["orderly rings of mushroom folk", "silent communication through spore puffs", "strange hospitality", "geometric arrangement of everything"]
+    },
+
+    "loc_deep_root_caverns": {
+      "name": "Deep Root Caverns",
+      "description": "The lowest level of the Fungal Depths. Massive roots thicker than trees pierce the ceiling. The air here is toxic - unbreathable without protection. Heartmoss grows on the ancient roots.",
+      "properties": {
+        "spore_level": "none",
+        "breathable": false,
+        "temperature": "cold",
+        "requires_light": true,
+        "suffocation": {
+          "damage_per_turn": 15,
+          "message": "You cannot breathe! The toxic air burns your lungs."
+        }
+      },
+      "exits": {
+        "up": {
+          "to": "loc_spore_heart",
+          "type": "open",
+          "description": "The passage climbs back toward the Spore Heart."
+        }
+      },
+      "items_present": ["item_heartmoss"],
+      "actors_present": [],
+      "traits": ["absolute darkness beyond your light", "roots as thick as trees", "ancient silence", "cold that seeps into bones", "sense of immense depth"]
+    }
+  },
+
+  "actors": {
+    "npc_aldric": {
+      "name": "Scholar Aldric",
+      "description": "A frail scholar with pale skin and dark circles under his eyes. Fungal patches are visible on his neck and arms. He coughs occasionally.",
+      "location": "loc_cavern_entrance",
+      "properties": {
+        "health": 60,
+        "max_health": 100,
+        "disposition": "friendly",
+        "conditions": {
+          "fungal_infection": {
+            "severity": 80,
+            "damage_per_turn": 2,
+            "progression_rate": 3,
+            "contagious_range": "touch"
+          }
+        },
+        "dialog_topics": {
+          "infection": {
+            "keywords": ["infection", "sick", "illness", "fungus", "condition"],
+            "summary": "Aldric winces. 'The spores got into my blood weeks ago. I've been treating myself with what little silvermoss I can find, but it's not enough. If you could find more silvermoss - it grows in the Luminous Grotto below - I might have a chance.'",
+            "sets_flags": {"knows_aldric_needs_silvermoss": true},
+            "one_time": false
+          },
+          "research": {
+            "keywords": ["research", "study", "work", "mycology"],
+            "summary": "His eyes light up despite his illness. 'I've spent years studying these fungi. The spores aren't just a disease - they're communication. The Spore Mother sends them to find hosts, yes, but also to... share? If I survive this, I can teach you what I know about navigating the depths.'",
+            "requires_flags": {},
+            "one_time": false
+          },
+          "spore_mother": {
+            "keywords": ["spore mother", "source", "creature", "monster"],
+            "summary": "'She's not evil, you know. She's dying too - the same infection that's killing me is killing her. She spreads spores in desperation, trying to find a cure. There's a rare moss in the Deep Root Caverns - heartmoss - that might cure her. But the air down there is poison.'",
+            "requires_flags": {"knows_aldric_needs_silvermoss": true},
+            "sets_flags": {"knows_about_heartmoss": true},
+            "one_time": true
+          },
+          "myconids": {
+            "keywords": ["myconid", "mushroom people", "sanctuary"],
+            "summary": "'The Myconids keep their sanctuary clean of wild spores. They might help you - they have cures and can teach spore resistance. But be careful: they know if you've killed fungi elsewhere. They take such things personally.'",
+            "one_time": false
+          },
+          "safe_path": {
+            "keywords": ["safe path", "deep", "breathing", "survive"],
+            "summary": "'There's a safe path through the Spore Heart to the Deep Root Caverns - pockets of clean air if you know where to find them. The ceiling in the Luminous Grotto shows the way, but you'd need more light to read it.'",
+            "requires_flags": {"knows_about_heartmoss": true},
+            "sets_flags": {"knows_safe_path_exists": true},
+            "one_time": true
+          }
+        },
+        "services": {
+          "teach_mycology": {
+            "accepts": ["rare_herb", "research_notes", "offering_item"],
+            "amount_required": 1,
+            "requires_trust": 2,
+            "requires_state": "cured",
+            "grants": "mycology",
+            "description": "Requires: Aldric cured, trust >= 2, plus a gift. Grants mycology skill - understanding fungal creatures and safe navigation."
+          }
+        },
+        "death_turn_threshold": 40,
+        "death_message": "Scholar Aldric has succumbed to the fungal infection. His knowledge is lost forever."
+      },
+      "state_machine": {
+        "states": ["infected", "cured", "dead"],
+        "initial": "infected",
+        "transitions": {
+          "infected->cured": {
+            "trigger": "fungal_infection condition removed",
+            "effects": ["unlock teach_mycology service", "change description to healthy version", "gratitude toward player +3"]
+          },
+          "infected->dead": {
+            "trigger": "health <= 0 OR turn_count >= death_turn_threshold",
+            "effects": ["remove from game", "set flag aldric_dead"]
+          }
+        }
+      }
+    },
+
+    "npc_spore_mother": {
+      "name": "Spore Mother",
+      "description": "A massive fungal creature, part plant and part something else. Her cap spreads wide, pulsing with bioluminescence. Sporelings cluster around her protectively. She seems to be in pain.",
+      "location": "loc_spore_heart",
+      "properties": {
+        "health": 200,
+        "max_health": 200,
+        "disposition": "hostile",
+        "fungal": true,
+        "pack_id": "sporeling_pack",
+        "pack_role": "alpha",
+        "conditions": {
+          "fungal_blight": {
+            "severity": 60,
+            "damage_per_turn": 0,
+            "progression_rate": 1
+          }
+        },
+        "needs": ["healing"],
+        "regeneration": 10,
+        "attacks": [
+          {
+            "name": "spore_burst",
+            "damage": 15,
+            "accuracy": 90,
+            "applies_condition": {
+              "name": "fungal_infection",
+              "severity": 30
+            }
+          },
+          {
+            "name": "tendril_lash",
+            "damage": 25,
+            "accuracy": 70
+          }
+        ],
+        "resistances": {
+          "poison": 100,
+          "disease": 100
+        },
+        "immunities": ["fungal_infection"]
+      },
+      "state_machine": {
+        "states": ["hostile", "neutral", "friendly", "dead"],
+        "initial": "hostile",
+        "transitions": {
+          "hostile->neutral": {
+            "trigger": "player demonstrates non-hostility (no attacks for 3 turns while present)",
+            "effects": ["stop attacking", "sporelings stop attacking"]
+          },
+          "hostile->friendly": {
+            "trigger": "fungal_blight condition cured with heartmoss",
+            "effects": [
+              "set disposition to friendly",
+              "sporelings become friendly",
+              "set region_flag spore_spread_reversed",
+              "all rooms in region: spore_level becomes 'none'",
+              "gratitude toward player +5"
+            ]
+          },
+          "hostile->dead": {
+            "trigger": "health <= 0",
+            "effects": [
+              "sporelings become neutral",
+              "set region_flag spore_mother_killed",
+              "drop item_mother_heart"
+            ]
+          }
+        }
+      }
+    },
+
+    "npc_sporeling_1": {
+      "name": "Sporeling",
+      "description": "A small fungal creature that hops about on root-like legs. It follows the Spore Mother's lead.",
+      "location": "loc_spore_heart",
+      "properties": {
+        "health": 30,
+        "max_health": 30,
+        "disposition": "hostile",
+        "fungal": true,
+        "pack_id": "sporeling_pack",
+        "pack_role": "follower",
+        "attacks": [
+          {
+            "name": "spore_puff",
+            "damage": 5,
+            "accuracy": 80,
+            "applies_condition": {
+              "name": "fungal_infection",
+              "severity": 10
+            }
+          }
+        ],
+        "immunities": ["fungal_infection"]
+      }
+    },
+
+    "npc_sporeling_2": {
+      "name": "Sporeling",
+      "description": "A small fungal creature that hops about on root-like legs. It watches you with eyeless awareness.",
+      "location": "loc_spore_heart",
+      "properties": {
+        "health": 30,
+        "max_health": 30,
+        "disposition": "hostile",
+        "fungal": true,
+        "pack_id": "sporeling_pack",
+        "pack_role": "follower"
+      }
+    },
+
+    "npc_sporeling_3": {
+      "name": "Sporeling",
+      "description": "A small fungal creature. This one seems younger, smaller than the others.",
+      "location": "loc_spore_heart",
+      "properties": {
+        "health": 20,
+        "max_health": 20,
+        "disposition": "hostile",
+        "fungal": true,
+        "pack_id": "sporeling_pack",
+        "pack_role": "follower"
+      }
+    },
+
+    "npc_myconid_elder": {
+      "name": "Myconid Elder",
+      "description": "A tall mushroom being with a weathered cap marked by age-rings. It communicates through clouds of colored spores that somehow convey meaning.",
+      "location": "loc_myconid_sanctuary",
+      "properties": {
+        "health": 80,
+        "max_health": 80,
+        "disposition": "neutral",
+        "immunities": ["fungal_infection"],
+        "dialog_topics": {
+          "greeting": {
+            "keywords": ["hello", "greet", "speak"],
+            "summary": "The Myconid releases a cloud of blue spores. Somehow, you understand: 'Soft-flesh comes to the Still Place. Why?'",
+            "one_time": true
+          },
+          "cure": {
+            "keywords": ["cure", "heal", "infection", "help"],
+            "summary": "A pulse of green spores. 'The blight-sickness, yes. We can draw it from soft-flesh. But there is cost. Bring us crystal from the Frozen Reaches, or rare minerals. Then we help.'",
+            "sets_flags": {"knows_myconid_cure_cost": true},
+            "one_time": false
+          },
+          "resistance": {
+            "keywords": ["resistance", "protect", "immunity", "spores"],
+            "summary": "Yellow spores swirl. 'We can teach soft-flesh to breathe our air safely. This costs nothing - but takes time. Sit with us. Be still. Learn.'",
+            "one_time": false
+          },
+          "spore_mother": {
+            "keywords": ["spore mother", "creature", "monster", "source"],
+            "summary": "The spores turn grey, mournful. 'Mother-of-Spores suffers. She was keeper of balance. Now she spreads sickness in her pain. Healing her would heal all. Killing her... would end much.'",
+            "one_time": false
+          }
+        },
+        "services": {
+          "cure_fungal_infection": {
+            "accepts": ["ice_crystal", "rare_mineral", "gold"],
+            "amount_required": 1,
+            "cure_conditions": ["fungal_infection"],
+            "description": "The Myconids can fully cure fungal infection."
+          },
+          "teach_spore_resistance": {
+            "accepts": ["rare_mineral", "ice_crystal", "offering_item"],
+            "amount_required": 1,
+            "requires_trust": 2,
+            "grants": "spore_resistance",
+            "description": "Requires trust >= 2 plus a gift. Grants partial immunity to fungal infection acquisition (50% reduction)."
+          }
+        },
+        "relationships": {
+          "player": {
+            "trust": 0,
+            "fear": 0,
+            "gratitude": 0
+          }
+        },
+        "trust_modifiers": {
+          "has_killed_fungi_flag": -3,
+          "healed_spore_mother": 5,
+          "brought_offering": 1
+        },
+        "on_first_interaction_check": {
+          "description": "On first interaction, check global flag 'has_killed_fungi'. If true, apply trust modifier and note in dialog.",
+          "dialog_if_killer": "The spores around you turn dark, accusatory. 'Soft-flesh carries death-smell. You have ended our kin. Trust is... difficult.'"
+        }
+      }
+    }
+  },
+
+  "items": {
+    "item_silvermoss": {
+      "name": "silvermoss",
+      "description": "A clump of silvery moss with antifungal properties. It glows faintly with a soft blue light.",
+      "location": "loc_luminous_grotto",
+      "properties": {
+        "type": "plant",
+        "portable": true,
+        "cures": ["fungal_infection"],
+        "cure_amount": 100,
+        "consumable": true
+      }
+    },
+
+    "item_heartmoss": {
+      "name": "heartmoss",
+      "description": "A rare deep-red moss that grows only on ancient roots. It pulses with a faint warmth, as if alive.",
+      "location": "loc_deep_root_caverns",
+      "properties": {
+        "type": "plant",
+        "portable": true,
+        "cures": ["fungal_blight"],
+        "cure_amount": 100,
+        "consumable": true,
+        "special": "Can cure the Spore Mother"
+      }
+    },
+
+    "item_aldric_journal": {
+      "name": "journal",
+      "description": "Scholar Aldric's research journal, filled with notes about fungal biology and the Spore Mother.",
+      "location": "loc_cavern_entrance",
+      "properties": {
+        "type": "readable",
+        "portable": true,
+        "read_content": "Extensive notes on fungal life cycles. Key insight: 'The Spore Mother is not the source of infection - she is its greatest victim. The heartmoss in the Deep Root Caverns may be her only hope - and ours.'"
+      }
+    },
+
+    "item_bucket": {
+      "name": "bucket",
+      "description": "A wooden bucket. It could be filled with water from the pool.",
+      "location": "loc_luminous_grotto",
+      "properties": {
+        "type": "container",
+        "portable": true,
+        "can_hold": ["water"],
+        "states": {
+          "filled": false
+        }
+      }
+    },
+
+    "item_pool": {
+      "name": "pool",
+      "description": "A crystal-clear pool of water reflecting the bioluminescent glow.",
+      "location": "loc_luminous_grotto",
+      "properties": {
+        "type": "water_source",
+        "portable": false
+      }
+    },
+
+    "item_mushroom_blue": {
+      "name": "blue mushroom",
+      "description": "A large bioluminescent mushroom with a blue cap. It glows dimly.",
+      "location": "loc_luminous_grotto",
+      "properties": {
+        "type": "plant",
+        "portable": false,
+        "color": "blue",
+        "waterable": true
+      },
+      "states": {
+        "watered": false,
+        "glowing": false
+      }
+    },
+
+    "item_mushroom_red": {
+      "name": "red mushroom",
+      "description": "A large bioluminescent mushroom with a red cap. It is currently dark.",
+      "location": "loc_luminous_grotto",
+      "properties": {
+        "type": "plant",
+        "portable": false,
+        "color": "red",
+        "waterable": true
+      },
+      "states": {
+        "watered": false,
+        "glowing": false
+      }
+    },
+
+    "item_mushroom_green": {
+      "name": "green mushroom",
+      "description": "A large bioluminescent mushroom with a green cap. It pulses with faint light.",
+      "location": "loc_luminous_grotto",
+      "properties": {
+        "type": "plant",
+        "portable": false,
+        "color": "green",
+        "waterable": true
+      },
+      "states": {
+        "watered": false,
+        "glowing": false
+      }
+    },
+
+    "item_spore_lantern": {
+      "name": "spore lantern",
+      "description": "A lantern containing captive bioluminescent spores. It provides steady light without flame.",
+      "location": "loc_myconid_sanctuary",
+      "properties": {
+        "type": "light_source",
+        "portable": true,
+        "provides_light": true,
+        "light_level": 3
+      },
+      "acquisition": "Purchase from Myconids or gift at high trust"
+    },
+
+    "item_breathing_mask": {
+      "name": "breathing mask",
+      "description": "A mask made of woven fungal fibers. It filters the air, making toxic atmospheres breathable.",
+      "location": "loc_myconid_sanctuary",
+      "properties": {
+        "type": "equipment",
+        "portable": true,
+        "provides_breathing": true,
+        "equippable": true
+      },
+      "states": {
+        "equipped": false
+      },
+      "acquisition": "Purchase from Myconids",
+      "usage_note": "Must be equipped ('wear mask' or 'equip mask') to provide breathing protection. Suffocation checks look for equipped item with provides_breathing: true."
+    },
+
+    "item_mother_heart": {
+      "name": "mother's heart",
+      "description": "The pulsing core of the Spore Mother. It still glows with fading life.",
+      "location": null,
+      "properties": {
+        "type": "trophy",
+        "portable": true,
+        "dropped_by": "npc_spore_mother"
+      },
+      "notes": "Only appears if Spore Mother is killed. Valuable but has negative reputation effects."
+    }
+  },
+
+  "conditions": {
+    "fungal_infection": {
+      "description": "Fungal spores have taken root in your body. Without treatment, severity increases and health decreases.",
+      "severity_range": [0, 100],
+      "damage_per_turn": "severity / 20 (rounded down)",
+      "progression_rate": 5,
+      "contagious_at_severity": 50,
+      "cured_by": ["silvermoss", "myconid_cure_service"],
+      "effects_at_thresholds": {
+        "30": "Occasional coughing, visible spore patches",
+        "60": "Difficult breathing, reduced stamina",
+        "90": "Critical - death imminent without treatment"
+      }
+    },
+
+    "fungal_blight": {
+      "description": "A severe fungal condition affecting the Spore Mother. Only heartmoss can cure it.",
+      "severity_range": [0, 100],
+      "cured_by": ["heartmoss"],
+      "unique_to": "npc_spore_mother"
+    },
+
+    "spore_resistance": {
+      "description": "Training from the Myconids has made you partially resistant to fungal spores.",
+      "effect": "Reduce fungal_infection acquisition by 50%",
+      "permanent": true,
+      "granted_by": "myconid teach_spore_resistance service"
+    }
+  },
+
+  "environmental_rules": {
+    "spore_exposure": {
+      "description": "Entering or remaining in spore-heavy areas causes infection",
+      "trigger": "Actor in room with spore_level medium or high, start of turn",
+      "effect": {
+        "medium": "Apply or increase fungal_infection severity by 5",
+        "high": "Apply or increase fungal_infection severity by 10"
+      },
+      "immunity": ["has spore_resistance", "is construct", "has breathing_mask equipped"]
+    },
+
+    "suffocation": {
+      "description": "Non-breathable areas cause damage without breathing equipment",
+      "trigger": "Actor in room with breathable=false, start of turn",
+      "effect": "Take 15 damage per turn",
+      "prevention": ["breathing_mask equipped", "is construct"]
+    },
+
+    "darkness": {
+      "description": "Dark areas prevent most actions without light",
+      "trigger": "Actor in room with requires_light=true and no light source",
+      "effect": "Cannot see to navigate, take items, or interact meaningfully",
+      "prevention": ["has light source item", "has spore_lantern"]
+    }
+  },
+
+  "puzzles": {
+    "light_the_grotto": {
+      "location": "loc_luminous_grotto",
+      "goal": "Increase light level to read ceiling inscription",
+      "mechanism": {
+        "fill_bucket": {
+          "command": "fill bucket from pool",
+          "result": "Bucket is now filled with water"
+        },
+        "water_mushroom": {
+          "command": "pour water on [color] mushroom",
+          "result": "Mushroom begins to glow brightly",
+          "resets_after": 3
+        },
+        "correct_sequence": ["blue", "green", "red"],
+        "wrong_sequence_effect": "Mushrooms flash and go dark. The sequence resets.",
+        "success": {
+          "effect": "Room light_level increases to 5. Ceiling inscription becomes readable.",
+          "reveals": "The inscription shows a winding path - air pockets through the Spore Heart. You now know the safe path.",
+          "sets_flag": "safe_path_known"
+        }
+      }
+    }
+  },
+
+  "persistent_effects": {
+    "spore_mother_healed": {
+      "trigger": "npc_spore_mother transitions to friendly state",
+      "effects": [
+        "All rooms in Fungal Depths: spore_level becomes 'none'",
+        "npc_aldric (if alive) comments on the change",
+        "Region becomes safe to explore freely",
+        "Myconid trust +3"
+      ]
+    },
+
+    "spore_mother_killed": {
+      "trigger": "npc_spore_mother transitions to dead state",
+      "effects": [
+        "Sporelings become neutral (leaderless)",
+        "Spore levels remain (source removed but existing spores persist)",
+        "Myconid trust -5",
+        "item_mother_heart dropped"
+      ]
+    },
+
+    "aldric_cured": {
+      "trigger": "npc_aldric fungal_infection cured",
+      "effects": [
+        "Aldric can teach mycology skill",
+        "Aldric offers to relocate to Nexus once player has cleared a path",
+        "Player gains guide for Fungal Depths"
+      ]
+    },
+
+    "aldric_died": {
+      "trigger": "npc_aldric transitions to dead state",
+      "effects": [
+        "Mycology skill unavailable from this source",
+        "Some dialog options in other regions reference his death",
+        "Safe path hint harder to obtain (must find through exploration)"
+      ]
+    }
+  },
+
+  "verbs_needed": {
+    "existing": [
+      "go/move/walk [direction]",
+      "look/examine [target]",
+      "take/get [item]",
+      "drop [item]",
+      "give [item] to [actor]",
+      "use [item] on [target]",
+      "talk to [actor]",
+      "ask [actor] about [topic]",
+      "attack [actor]"
+    ],
+    "potentially_new": [
+      "fill [container] from [water_source]",
+      "pour [liquid] on [target]",
+      "water [plant] with [container]",
+      "read [readable]",
+      "wear/equip [equipment]",
+      "remove/unequip [equipment]"
+    ]
+  },
+
+  "resolved_questions": [
+    {
+      "id": "Q1",
+      "question": "How does the Myconid 'teach spore resistance' service work mechanically?",
+      "resolution": "Teaching requires trust >= 2 plus a gift item. Single transaction, immediate effect. No multi-turn waiting."
+    },
+    {
+      "id": "Q2",
+      "question": "Can the player cure Aldric with silvermoss directly, or must they use the Myconid service?",
+      "resolution": "Yes, direct cure works. Both 'give silvermoss to aldric' and 'use silvermoss on aldric' trigger standard treatment system."
+    },
+    {
+      "id": "Q3",
+      "question": "What happens if the player attacks the Spore Mother but doesn't kill her - can she still be healed?",
+      "resolution": "Yes. 'give heartmoss to spore mother' triggers healing regardless of combat state. Rewards players who discover peaceful solution mid-combat."
+    },
+    {
+      "id": "Q4",
+      "question": "How do the Myconids know if player has killed fungi elsewhere?",
+      "resolution": "Spore network communication. Any kill of a creature with 'fungal: true' property sets global flag 'has_killed_fungi'. Myconid behavior checks this on first interaction and adjusts trust accordingly."
+    },
+    {
+      "id": "Q5",
+      "question": "What equipment slot system exists?",
+      "resolution": "No slot system. Items in inventory can be flagged as 'equipped: true'. Equipped items are visible to examine; non-equipped are not. Breathing mask just needs equipped flag to provide protection."
+    }
+  ],
+
+  "custom_behaviors": {
+    "_note": "Each entity can have custom behavior modules. This section specifies what behaviors are needed and what they must handle.",
+
+    "location_behaviors": {
+      "loc_spore_heart": {
+        "behavior_module": "behaviors.fungal_depths.spore_heart",
+        "handles": [
+          {
+            "event": "on_enter",
+            "description": "When actor enters, apply spore exposure based on room spore_level",
+            "details": "Check for spore_resistance or breathing_mask. If not protected, apply/increase fungal_infection."
+          },
+          {
+            "event": "on_turn_start",
+            "description": "Each turn in room, continue spore exposure",
+            "details": "Same logic as on_enter. High spore level = 10 severity per turn."
+          }
+        ]
+      },
+      "loc_luminous_grotto": {
+        "behavior_module": "behaviors.fungal_depths.luminous_grotto",
+        "handles": [
+          {
+            "event": "on_enter",
+            "description": "Medium spore exposure",
+            "details": "5 severity per turn without protection"
+          },
+          {
+            "event": "on_turn_start",
+            "description": "Continue spore exposure"
+          },
+          {
+            "event": "on_light_level_change",
+            "description": "When light increases to threshold, reveal ceiling inscription",
+            "details": "Set safe_path_known flag, update room description"
+          }
+        ]
+      },
+      "loc_deep_root_caverns": {
+        "behavior_module": "behaviors.fungal_depths.deep_root",
+        "handles": [
+          {
+            "event": "on_enter",
+            "description": "Check for light source and breathing equipment",
+            "details": "Without light: 'You cannot see anything.' Without breathing: start suffocation."
+          },
+          {
+            "event": "on_turn_start",
+            "description": "Apply suffocation damage if no breathing equipment",
+            "details": "15 damage per turn"
+          }
+        ]
+      }
+    },
+
+    "actor_behaviors": {
+      "npc_aldric": {
+        "behavior_module": "behaviors.fungal_depths.aldric",
+        "handles": [
+          {
+            "event": "on_receive_item",
+            "description": "If given silvermoss, auto-apply to cure infection",
+            "details": "Uses treatment system. On cure: transition to 'cured' state, unlock teaching."
+          },
+          {
+            "event": "on_turn_start",
+            "description": "Tick infection damage and progression",
+            "details": "Check for death threshold. If exceeded, transition to 'dead' state."
+          },
+          {
+            "event": "on_ask_about",
+            "description": "Handle dialog topics",
+            "details": "Uses dialog_lib. Different responses based on infection state."
+          },
+          {
+            "event": "on_service_request",
+            "description": "Teaching service for mycology",
+            "details": "Only available in 'cured' state. Uses services system."
+          }
+        ]
+      },
+      "npc_spore_mother": {
+        "behavior_module": "behaviors.fungal_depths.spore_mother",
+        "handles": [
+          {
+            "event": "on_receive_item",
+            "description": "If given heartmoss, cure fungal_blight and transition to friendly",
+            "details": "Trigger region-wide spore purification. Pack follows disposition change."
+          },
+          {
+            "event": "on_attack",
+            "description": "Combat behavior - counterattack, spawn spores",
+            "details": "Regenerates 10 HP per turn. Uses pack system for sporeling coordination."
+          },
+          {
+            "event": "on_turn_start",
+            "description": "Regeneration, blight progression, pack coordination",
+            "details": "If player present and not attacking for 3 turns, can transition to neutral."
+          },
+          {
+            "event": "on_death",
+            "description": "Drop mother_heart, set region flags, sporelings become neutral"
+          }
+        ]
+      },
+      "npc_myconid_elder": {
+        "behavior_module": "behaviors.fungal_depths.myconid_elder",
+        "handles": [
+          {
+            "event": "on_first_interaction",
+            "description": "Check fungi_killed_count flag, adjust initial trust",
+            "details": "If player has killed fungi, trust starts negative."
+          },
+          {
+            "event": "on_ask_about",
+            "description": "Dialog topics via spore-communication"
+          },
+          {
+            "event": "on_service_request",
+            "description": "Cure service (requires payment) and teaching service (requires time)"
+          },
+          {
+            "event": "on_receive_item",
+            "description": "Accept payment for services, adjust trust for offerings"
+          }
+        ]
+      },
+      "npc_sporeling_*": {
+        "behavior_module": "behaviors.fungal_depths.sporeling",
+        "handles": [
+          {
+            "event": "on_pack_leader_state_change",
+            "description": "Mirror Spore Mother's disposition",
+            "details": "Uses pack system. When mother becomes friendly/neutral, sporelings follow."
+          },
+          {
+            "event": "on_attack",
+            "description": "Simple combat - spore puff attack"
+          }
+        ]
+      }
+    },
+
+    "item_behaviors": {
+      "item_mushroom_*": {
+        "behavior_module": "behaviors.fungal_depths.bioluminescent_mushroom",
+        "handles": [
+          {
+            "event": "on_water",
+            "description": "When watered with bucket, begin glowing",
+            "details": "Track sequence in room state. If correct sequence completed, trigger puzzle success."
+          },
+          {
+            "event": "on_turn_start",
+            "description": "Decrement glow timer, reset after 3 turns if sequence incomplete"
+          }
+        ]
+      },
+      "item_bucket": {
+        "behavior_module": "behaviors.fungal_depths.bucket",
+        "handles": [
+          {
+            "event": "on_fill",
+            "description": "Fill from water source (pool)",
+            "details": "Set filled state. Bucket can only hold water."
+          },
+          {
+            "event": "on_pour",
+            "description": "Pour water on target",
+            "details": "If target is waterable mushroom, trigger mushroom's on_water. Empty bucket."
+          }
+        ]
+      },
+      "item_silvermoss": {
+        "behavior_module": null,
+        "note": "Uses standard treatment system - no custom behavior needed. Properties define cures/cure_amount."
+      },
+      "item_heartmoss": {
+        "behavior_module": null,
+        "note": "Uses standard treatment system. Special only in that it cures fungal_blight which only Spore Mother has."
+      },
+      "item_breathing_mask": {
+        "behavior_module": "behaviors.fungal_depths.breathing_mask",
+        "handles": [
+          {
+            "event": "on_wear",
+            "description": "Add to actor's worn_items, grant breathing protection"
+          },
+          {
+            "event": "on_remove",
+            "description": "Remove breathing protection"
+          }
+        ],
+        "note": "Alternatively, could use a generic equipment_lib if one exists or is created."
+      },
+      "item_spore_lantern": {
+        "behavior_module": null,
+        "note": "Uses standard light source system if darkness_lib handles 'has light source item' checks."
+      },
+      "item_aldric_journal": {
+        "behavior_module": null,
+        "note": "Uses standard readable system - read_content property. May need 'read' verb handler."
+      }
+    },
+
+    "region_behaviors": {
+      "fungal_depths_region": {
+        "behavior_module": "behaviors.fungal_depths.region",
+        "handles": [
+          {
+            "event": "on_spore_mother_healed",
+            "description": "Purify all rooms in region",
+            "details": "Set spore_level to 'none' for all Fungal Depths locations. Update descriptions."
+          },
+          {
+            "event": "on_spore_mother_killed",
+            "description": "Set region flags, sporelings become leaderless"
+          },
+          {
+            "event": "on_aldric_death",
+            "description": "Set global flag, update related dialogs"
+          }
+        ],
+        "note": "Region-level behavior coordinates cross-room effects. May be implemented as flag checks in individual room behaviors instead."
+      }
+    }
+  }
+}
