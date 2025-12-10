@@ -1,0 +1,701 @@
+{
+  "region": "meridian_nexus",
+  "version": "0.2",
+  "type": "light_sketch",
+  "description": "The shattered remains of the magical ley line intersection. Central hub connecting all regions. Absolutely safe - sanctuary design.",
+  "theme": "mystery, restoration, guidance, sanctuary",
+
+  "design_philosophy": {
+    "absolute_safety": "No combat, no environmental hazards, no time pressure. Magical wards that hold reality together also repel hostile creatures.",
+    "information_hub": "Echo provides guidance, telescope shows region states, journal provides lore. Player can always learn something here.",
+    "progress_tracking": "Crystal garden provides visual progress feedback. Each healing in the world lights another crystal.",
+    "moral_mirror": "Echo comments on player's actions throughout game - not judging, but remembering. Accountability without moralizing.",
+    "endgame_location": "Waystone repair is the culmination. Each fragment placed with narrative weight. Echo transformation as reward."
+  },
+
+  "locations": {
+    "nexus_chamber": {
+      "name": "Nexus Chamber",
+      "description": "Central hub with damaged waystone. Reality feels thin here.",
+      "properties": {
+        "lighting": "twilight",
+        "atmosphere": "unstable_reality",
+        "safe_zone": true,
+        "no_combat": true
+      },
+      "exits": {
+        "north": "frozen_pass",
+        "south": "forest_edge",
+        "east": "flooded_plaza",
+        "west": "cavern_entrance",
+        "up": "observatory_platform"
+      },
+      "sensory_hints": {
+        "north": "Cold wind, snow glimpsed through the arch",
+        "south": "Forest smells, distant animal sounds",
+        "east": "Water lapping, humid air",
+        "west": "Odd sweetness, faintly luminescent air",
+        "up": "Stairs spiral toward a platform above"
+      },
+      "items": ["damaged_waystone"],
+      "traits": ["shimmering air where reality is thin", "geometric patterns carved into every surface", "distant sounds that don't match what you see"]
+    },
+
+    "observatory_platform": {
+      "name": "Observatory Platform",
+      "description": "Elevated platform overlooking the broken landscape.",
+      "properties": {
+        "lighting": "twilight",
+        "elevation": "high",
+        "safe_zone": true
+      },
+      "exits": {
+        "down": "nexus_chamber",
+        "east": "keepers_quarters"
+      },
+      "items": ["ancient_telescope"],
+      "features": {
+        "view": "All five regions visible - frozen peaks, dense forest, flooded buildings, glowing caves, distant settlement",
+        "telescope": "Can focus on individual regions for status information"
+      },
+      "traits": ["impossibly tall spires", "perpetual twilight", "distant regions visible as fragments"]
+    },
+
+    "keepers_quarters": {
+      "name": "Keeper's Quarters",
+      "description": "Abandoned home of the last Meridian Keeper. Time seems frozen here.",
+      "properties": {
+        "lighting": "dim",
+        "atmosphere": "temporal_stasis",
+        "safe_zone": true,
+        "echo_primary_location": true
+      },
+      "exits": {
+        "west": "observatory_platform",
+        "down": "crystal_garden"
+      },
+      "items": ["keepers_journal", "temple_password_fragment", "cleaning_supplies"],
+      "actors": ["the_echo"],
+      "temporal_effects": {
+        "description": "Time is frozen - dust motionless, food preserved, books open",
+        "gameplay_effect": "Items stored here never despawn or decay"
+      },
+      "traits": ["dust motes suspended motionless", "half-completed meals frozen in time", "books open to marked pages"]
+    },
+
+    "crystal_garden": {
+      "name": "Crystal Garden",
+      "description": "Shattered power crystals that can be gradually restored.",
+      "properties": {
+        "lighting": "variable",
+        "magical_resonance": "high",
+        "safe_zone": true
+      },
+      "exits": {
+        "up": "keepers_quarters",
+        "west": "nexus_chamber"
+      },
+      "items": ["shattered_crystals", "animator_crystal"],
+      "crystal_display": {
+        "frozen_crystal": {
+          "color": "blue-white",
+          "region": "Frozen Reaches",
+          "restores_when": "Telescope repaired OR major healing in region",
+          "buff": "Cold resistance"
+        },
+        "fungal_crystal": {
+          "color": "green with internal movement",
+          "region": "Fungal Depths",
+          "restores_when": "Spore Mother healed OR Aldric saved",
+          "buff": "Slow poison/infection progression"
+        },
+        "water_crystal": {
+          "color": "blue, seems to ripple",
+          "region": "Sunken District",
+          "restores_when": "Archivist's quest complete OR major rescue",
+          "buff": "Improved breath holding"
+        },
+        "beast_crystal": {
+          "color": "tawny with amber striations",
+          "region": "Beast Wilds",
+          "restores_when": "Wolf trust high OR cubs saved",
+          "buff": "+10 max health"
+        },
+        "civilization_crystal": {
+          "color": "warm golden",
+          "region": "Civilized Remnants",
+          "restores_when": "Guardian repaired OR hero status achieved",
+          "buff": "Better merchant prices"
+        }
+      },
+      "traits": ["fractured light playing across walls", "humming that rises and falls", "patterns that almost make sense"]
+    }
+  },
+
+  "actors": {
+    "the_echo": {
+      "name": "The Echo",
+      "type": "spectral_npc",
+      "description": "A spectral remnant of the Keeper's child. Appears intermittently, more frequently as trust grows.",
+      "properties": {
+        "corporeal": false,
+        "initial_corporeal": false,
+        "becomes_corporeal": "When waystone is repaired",
+        "can_act_directly": false,
+        "can_act_directly_when_corporeal": true
+      },
+      "appearance_mechanics": {
+        "base_chance": 0.2,
+        "trust_modifier": "+0.1 per trust level",
+        "minimum_at_negative_trust": "0.05 at trust -2 or below",
+        "refuses_at_very_low_trust": "Trust -3 or below: Echo won't manifest",
+        "cooldown": "5 turns between appearances",
+        "guaranteed_appearances": [
+          "First entry to Keeper's Quarters",
+          "After waystone repair",
+          "After any abandoned commitment (brief, sorrowful)"
+        ]
+      },
+      "state_machine": {
+        "states": ["dormant", "manifesting", "communicating", "fading", "permanent", "refusing"],
+        "initial": "dormant",
+        "transitions": {
+          "dormant->manifesting": "Appearance check passes",
+          "manifesting->communicating": "Player speaks or waits",
+          "communicating->fading": "Message complete or player leaves",
+          "fading->dormant": "After brief delay",
+          "any->permanent": "Waystone repaired",
+          "dormant->refusing": "Trust -3 or below"
+        }
+      },
+      "trust_system": {
+        "scale": "-5 to +10",
+        "initial": 0,
+        "sources": {
+          "positive": {
+            "restore_crystal": "+1",
+            "heal_major_npc": "+1 (Aldric, Spore Mother, etc.)",
+            "save_any_survivor": "+0.5",
+            "fulfill_commitment": "+0.5",
+            "repair_waystone": "+2"
+          },
+          "negative": {
+            "kill_friendly_npc": "-2",
+            "abandon_commitment": "-1",
+            "assassination_contract": "-2 (Echo always knows)",
+            "attack_echo": "No effect (incorporeal) but Echo notes it"
+          }
+        },
+        "effects": {
+          "trust_-3_or_below": "Echo refuses to appear. Player loses guidance.",
+          "trust_-2_to_0": "Echo distant, brief. Minimal information.",
+          "trust_1_to_2": "Echo helpful, clearer form.",
+          "trust_3_to_4": "Echo warm, shares more freely.",
+          "trust_5": "Echo speaks player's name with familiarity.",
+          "trust_6+": "Echo reveals full backstory - was training to be next Keeper."
+        },
+        "recovery": {
+          "from_negative": "Actions only, not words. Each healing deed restores +1.",
+          "from_refusing": "Major act of healing (save major NPC, restore crystal) allows recovery attempt"
+        }
+      },
+      "backstory": {
+        "surface_knowledge": "The Keeper's child, caught in the disaster",
+        "trust_3_reveals": "Was present when it happened, watched parent fail",
+        "trust_6_reveals": "Was being trained as next Keeper. Too young when disaster struck. Parent knew convergence was unstable, was trying to fix it."
+      },
+      "dialog_topics": {
+        "disaster": {
+          "keywords": ["disaster", "what happened", "meridian", "shattered"],
+          "summary": "Five ley lines converged. Something went wrong. The Keeper tried to contain it. Failed. The blast shattered everything.",
+          "unlocks_topics": ["regions", "restoration"],
+          "sets_flags": ["knows_disaster_cause"]
+        },
+        "regions": {
+          "keywords": ["regions", "areas", "places", "explore"],
+          "summary": "Five shattered regions - frozen peaks, fungal depths, drowned district, changed beasts, surviving settlement.",
+          "requires_flags": ["knows_disaster_cause"],
+          "sets_flags": ["knows_region_overview"]
+        },
+        "restoration": {
+          "keywords": ["restore", "fix", "repair", "help"],
+          "summary": "Echo cannot act, only guide. But waystone can be repaired, crystals restored. Each healing strengthens order.",
+          "requires_flags": ["knows_disaster_cause"],
+          "unlocks_topics": ["waystone", "crystals"]
+        },
+        "waystone": {
+          "keywords": ["waystone", "travel", "teleport"],
+          "summary": "Requires fragment from each region: spore heart, ice shard, water pearl, beast fang, town seal.",
+          "requires_flags": ["knows_disaster_cause"],
+          "sets_flags": ["knows_waystone_repair"]
+        },
+        "crystals": {
+          "keywords": ["crystals", "garden", "power"],
+          "summary": "Crystal garden once provided buffs. Crystals restore when healing occurs in regions.",
+          "requires_flags": ["knows_disaster_cause"]
+        },
+        "commitments": {
+          "keywords": ["promises", "commitments", "my word"],
+          "summary": "[Dynamic] Echo recites all commitments - active, fulfilled, broken. Approving of kept words, sorrowful about broken ones.",
+          "response_template": "'You promised [NPC] [commitment]. This word [status].'"
+        },
+        "progress": {
+          "keywords": ["progress", "doing", "journey"],
+          "summary": "[Dynamic] Echo comments on player's overall progress - regions visited, NPCs helped/harmed, crystals restored.",
+          "tone_varies_by_trust": true
+        }
+      },
+      "commitment_awareness": {
+        "description": "Echo senses all commitments through ley line network",
+        "awareness_scope": "All commitments in all regions",
+        "responses": {
+          "on_commitment_made": "'A promise made. The meridian remembers.'",
+          "on_commitment_fulfilled": "Form brightens. 'A word kept. The threads of trust strengthen.'",
+          "on_commitment_withdrawn": "'Honesty in limitation. Better than silence.'",
+          "on_commitment_abandoned": "Form dims. 'A word broken. The fractures spread.'"
+        },
+        "assassination_awareness": "Echo always knows about assassinations, even if NPCs don't discover. Trust penalty (-2) applies regardless of discovery."
+      },
+      "transformation": {
+        "trigger": "Waystone repaired",
+        "before": "Spectral, flickering, incorporeal, intermittent",
+        "after": "Solid, permanent, able to act. Eyes have color (amber). Can smile genuinely.",
+        "dialog": "'It is done. The meridian is not restored, but the worst is healed. I can exist now. Truly. Because of you.'"
+      }
+    }
+  },
+
+  "items": {
+    "damaged_waystone": {
+      "name": "damaged waystone",
+      "description": "A cracked stone pedestal with faded runes. Five empty sockets around its rim.",
+      "properties": {
+        "fixed": false,
+        "portable": false,
+        "interactive": true
+      },
+      "repair_requirements": {
+        "spore_heart": {
+          "source": "Fungal Depths - Spore Mother gift after healing",
+          "narrative": "'The depths remember healing.'"
+        },
+        "beast_fang": {
+          "source": "Beast Wilds - Alpha Wolf gift at high trust",
+          "narrative": "'The wild remembers trust.'"
+        },
+        "water_pearl": {
+          "source": "Sunken District - Deep Archive retrieval",
+          "narrative": "'The deep remembers preservation.'"
+        },
+        "ice_shard": {
+          "source": "Frozen Reaches - Ice Caves extraction",
+          "narrative": "'The heights remember endurance.'"
+        },
+        "town_seal": {
+          "source": "Civilized Remnants - Council reward at hero status OR guardian repair",
+          "narrative": "'The remnants remember civilization.'"
+        }
+      },
+      "repair_ceremony": {
+        "description": "Each fragment placed individually with narrative moment",
+        "order": "Any order - player choice",
+        "visuals": "Each fragment lights its socket with appropriate color",
+        "completion": "All five colors merge, light flares, waystone heals, Echo transforms"
+      },
+      "when_repaired": {
+        "fast_travel": "Enabled to all regions",
+        "echo_transformation": "Becomes permanent and corporeal",
+        "player_buff": "Meridian Blessing - minor protection in all regions",
+        "global_effect": "Environmental spreads halted (spores, cold)"
+      }
+    },
+
+    "ancient_telescope": {
+      "name": "ancient telescope",
+      "description": "A brass instrument pointed at the fragmented sky.",
+      "properties": {
+        "functional": true,
+        "portable": false
+      },
+      "use_effect": {
+        "basic": "Overview of all five regions - general description",
+        "with_frozen_observatory_repaired": "Synced detailed information - NPC states, environmental status",
+        "query_specific_region": "Focus on one region for current state"
+      },
+      "synergy": "When Frozen Reaches telescope is also repaired, both gain detail from the link"
+    },
+
+    "keepers_journal": {
+      "name": "Keeper's journal",
+      "description": "A leather-bound journal with meticulous notes.",
+      "properties": {
+        "readable": true,
+        "portable": true
+      },
+      "content": {
+        "backstory": "Details convergence going unstable over days 1247-1255. Keeper's growing concern. Final failed containment attempt.",
+        "password_fragment": "Torn page with: 'Fire-that-gives-life and water-that-cleanses, un-'",
+        "personal_entries": "References to their child (The Echo). Teaching them to be next Keeper. Love and worry intertwined."
+      },
+      "flags_on_read": ["has_temple_password_partial", "knows_keeper_backstory"]
+    },
+
+    "temple_password_fragment": {
+      "name": "password fragment",
+      "description": "A torn page with part of a ritual phrase.",
+      "properties": {
+        "portable": true
+      },
+      "content": "Fire-that-gives-life and water-that-cleanses, un-",
+      "use": "Combined with temple inscriptions in Frozen Reaches, allows deduction of full password"
+    },
+
+    "cleaning_supplies": {
+      "name": "cleaning supplies",
+      "description": "Preserved cloths and optical solutions, still usable thanks to frozen time.",
+      "properties": {
+        "portable": true
+      },
+      "use": "Required for Frozen Reaches telescope repair"
+    },
+
+    "shattered_crystals": {
+      "name": "shattered crystals",
+      "description": "Five major crystals forming a circle, most dark and cracked.",
+      "properties": {
+        "portable": false,
+        "restorable": true
+      },
+      "restoration_mechanism": {
+        "trigger": "Major healing or restoration in corresponding region",
+        "visual": "Crystal lights up with appropriate color when restored",
+        "buff_application": "Touch restored crystal to receive permanent buff"
+      },
+      "buffs": [
+        "Fungal crystal: Slow poison/infection progression",
+        "Beast crystal: +10 max health",
+        "Water crystal: Improved breath holding",
+        "Frozen crystal: Cold resistance",
+        "Civilization crystal: Better merchant prices"
+      ]
+    },
+
+    "animator_crystal": {
+      "name": "animator crystal",
+      "description": "A faintly glowing crystal that pulses with captured life force.",
+      "properties": {
+        "portable": true,
+        "magical": true
+      },
+      "use": "Required to repair Damaged Guardian in Civilized Remnants"
+    }
+  },
+
+  "environmental_rules": {
+    "absolute_safety": {
+      "description": "Nexus is completely safe - magical wards repel all threats",
+      "no_combat": true,
+      "no_environmental_hazards": true,
+      "no_time_pressure": true,
+      "hostile_creatures_repelled": "Wards push back anything hostile - player cannot bring enemies here"
+    },
+    "temporal_stasis": {
+      "description": "Time is frozen in Keeper's Quarters",
+      "effect": "Items stored here never despawn or decay",
+      "narrative": "Dust motionless, food preserved, books open to same pages"
+    },
+    "reality_instability": {
+      "description": "Reality is thin in the Nexus - glimpses of other regions flicker through",
+      "effect": "Narrative flavor only, no mechanical impact",
+      "frequency": "Increases as player progresses, decreases after waystone repair"
+    }
+  },
+
+  "cross_region_connections": {
+    "to_fungal_depths": {
+      "exit": "west from nexus_chamber",
+      "destination": "cavern_entrance",
+      "companion_rules": "All companions comfortable"
+    },
+    "to_beast_wilds": {
+      "exit": "south from nexus_chamber",
+      "destination": "forest_edge",
+      "companion_rules": "Wolf pack cannot enter (magical wards)"
+    },
+    "to_sunken_district": {
+      "exit": "east from nexus_chamber",
+      "destination": "flooded_plaza",
+      "companion_rules": "All companions comfortable (water doesn't flood into Nexus)"
+    },
+    "to_frozen_reaches": {
+      "exit": "north from nexus_chamber",
+      "destination": "frozen_pass",
+      "companion_rules": "All companions comfortable (cold doesn't penetrate Nexus)"
+    },
+    "to_civilized_remnants": {
+      "access": "Through Beast Wilds (forest_edge -> southern_trail)",
+      "notes": "No direct connection from Nexus"
+    }
+  },
+
+  "waystone_fast_travel": {
+    "status": "disabled until repaired",
+    "when_active": {
+      "destinations": [
+        "cavern_entrance (Fungal Depths)",
+        "forest_edge (Beast Wilds)",
+        "flooded_plaza (Sunken District)",
+        "frozen_pass (Frozen Reaches)",
+        "town_gate (Civilized Remnants)"
+      ],
+      "usage": "Touch waystone, think of destination"
+    }
+  },
+
+  "commitment_system": {
+    "nexus_as_hub": {
+      "description": "The Nexus is the CENTRAL HUB for commitment tracking through The Echo",
+      "echo_awareness": "Senses all commitments through ley line network",
+      "commitment_summary": "Player can ask Echo about 'promises' for full status report"
+    },
+    "waystone_commitment": {
+      "trigger_phrases": ["I'll repair the waystone", "I will restore the meridian", "I'll gather the fragments"],
+      "target": "waystone",
+      "goal": "Gather all five fragments and repair waystone",
+      "hope_extends_survival": false,
+      "note": "The grand commitment - THE game goal",
+      "fulfillment": {
+        "reward": "Game completion state. Echo becomes permanent. All crystal buffs active. Fast travel enabled.",
+        "narrative": "Echo transformation ceremony"
+      },
+      "withdrawal_response": {
+        "dialog": "'The path is long. Rest. But do not forget - the meridian waits.'",
+        "trust_effect": 0,
+        "can_recommit": true
+      },
+      "abandonment": {
+        "note": "Cannot truly abandon - player can always return",
+        "long_delay_effect": "Echo dialog becomes pleading, sad. Environmental spreads worsen.",
+        "no_repair_ending": "Echo remains trapped forever. Sad ending state."
+      }
+    }
+  },
+
+  "persistent_effects": {
+    "crystal_restoration": {
+      "tracking": "Each crystal has boolean restored state",
+      "buffs_permanent": true,
+      "visual_progress": "Restored crystals glow with region-appropriate color"
+    },
+    "echo_trust": {
+      "persistent": true,
+      "affects": "Echo appearance rate, dialog depth, backstory revelation"
+    },
+    "waystone_state": {
+      "fragments_tracked": "Each of 5 fragments has boolean placed state",
+      "completion_effect": "Fast travel, Echo transformation, Meridian Blessing"
+    },
+    "item_storage": {
+      "location": "Keeper's Quarters",
+      "effect": "Items stored here are permanent and safe"
+    }
+  },
+
+  "narrative_role": {
+    "purpose": [
+      "Safe haven for rest and recovery",
+      "Information hub through Echo and telescope",
+      "Progress tracking through crystal restoration",
+      "Long-term goal through waystone repair",
+      "Moral mirror through Echo's commitment awareness"
+    ],
+    "player_reasons_to_return": [
+      "Consult Echo for guidance",
+      "Check telescope for region status",
+      "See crystal restoration progress",
+      "Store items safely",
+      "Rest without any hazards",
+      "Repair waystone (endgame)"
+    ],
+    "emotional_arc": {
+      "early_game": "Mysterious, disorienting. Echo barely present.",
+      "mid_game": "Increasingly welcoming. Echo relationship develops. Crystals light up.",
+      "late_game": "Home base. Echo is friend. Progress visible.",
+      "endgame": "Waystone ceremony. Echo transformation. Completion."
+    }
+  },
+
+  "dark_endings": {
+    "description": "What happens when players take dark paths or fail significantly",
+    "echo_trust_thresholds": {
+      "minimum_for_good_ending": 3,
+      "minimum_for_neutral_ending": -2,
+      "below_-3": "Echo refuses to appear. Worst ending tier."
+    },
+    "ending_tiers": {
+      "triumphant": {
+        "trust_required": 5,
+        "crystals_restored": 5,
+        "waystone_repaired": true,
+        "description": "Echo transforms fully. Becomes permanent companion if player wishes. World healing accelerates.",
+        "echo_dialog": "'You did more than repair the meridian. You healed it. Healed me. I remember what hope feels like now. Thank you... friend.'"
+      },
+      "successful": {
+        "trust_required": 3,
+        "crystals_restored": "3+",
+        "waystone_repaired": true,
+        "description": "Echo transforms. Grateful but relationship is functional, not deep.",
+        "echo_dialog": "'It is done. The waystone lives again. I can exist now. You have my gratitude.'"
+      },
+      "bittersweet": {
+        "trust_required": 0,
+        "crystals_restored": "any",
+        "waystone_repaired": true,
+        "description": "Echo transforms but is distant. Player saved the world but not their relationships.",
+        "echo_dialog": "'The meridian is restored. The world will heal. But I wonder... at what cost? Go. You've earned your reward. I'll remember what you did. All of it.'"
+      },
+      "hollow_victory": {
+        "trust_required": -2,
+        "crystals_restored": "any",
+        "waystone_repaired": true,
+        "description": "Echo transforms but refuses to speak further. Player completed goal but burned too many bridges.",
+        "echo_dialog": "'It functions. The waystone works. I am corporeal now.' Silence. 'There is nothing more to say between us. The meridian remembers everything. As do I.'",
+        "permanent_effect": "Echo never speaks to player again. Fast travel works but Nexus feels empty."
+      },
+      "pyrrhic": {
+        "trust_required": -3,
+        "waystone_repaired": true,
+        "description": "Waystone can still be repaired but Echo refuses to participate in ceremony.",
+        "mechanics": "Player places fragments alone. No transformation scene. Echo absent.",
+        "echo_note": "Echo watches from shadows but will not manifest for someone who broke too many promises.",
+        "outcome": "Fast travel works. World technically saved. But player saved nothing that mattered.",
+        "final_message": "The waystone glows. The fractures seal. Somewhere, you sense the Echo watching. But it does not come. It will never come again."
+      },
+      "abandoned": {
+        "waystone_repaired": false,
+        "description": "Player stops playing or explicitly gives up",
+        "outcome": "Environmental spreads continue. NPCs die over time. Echo grows fainter.",
+        "if_player_returns_much_later": "Echo barely visible. 'You came back. After so long. The world... it's almost gone. Is there still time? Is there still hope?'"
+      }
+    },
+    "assassination_special_handling": {
+      "description": "Murder is the darkest choice and permanently marks the player",
+      "echo_awareness": "Always knows, regardless of NPC discovery",
+      "trust_penalty": -2,
+      "additional_effects": [
+        "Echo dialog references 'blood on your hands' even at high trust",
+        "Triumphant ending unavailable (max is Successful)",
+        "Transformation scene has shadow elements: 'I become real. But I carry your shadow with me now.'"
+      ],
+      "multiple_assassinations": {
+        "effect": "Each additional assassination: -2 trust, cumulative",
+        "threshold": "3+ assassinations: Echo refuses to manifest permanently, pyrrhic ending is best possible"
+      }
+    },
+    "redemption_narratives": {
+      "description": "Can dark-path players find redemption?",
+      "from_negative_trust": {
+        "method": "Major healing deeds restore +1 trust each",
+        "examples": ["Save major NPC", "Restore crystal", "Prevent environmental spread"],
+        "limit": "Max recovery +1 per Nexus visit"
+      },
+      "from_assassination": {
+        "method": "Cannot undo knowledge of murder, but trust CAN recover",
+        "consequence": "Triumphant ending forever locked, but successful ending achievable",
+        "echo_dialog_at_recovered_trust": "'I know what you did. I cannot forget. But I see what you've done since. Perhaps... perhaps that matters too.'"
+      },
+      "from_exile": {
+        "method": "Exile status doesn't affect Echo trust directly",
+        "but": "Actions that caused exile likely damaged trust already",
+        "redemption_path": "Same as general trust recovery"
+      }
+    }
+  },
+
+  "companion_behavior": {
+    "wolf_pack": {
+      "can_enter": false,
+      "comfort_level": "impossible",
+      "effects": {
+        "at_boundary": "Magical wards repel wolves. They cannot physically enter.",
+        "description": "Wolves pace at boundary, whining. Something pushes them back."
+      },
+      "waiting_behavior": {
+        "location": "Just outside Nexus boundary (any exit direction)",
+        "return": "Rejoin immediately when player exits"
+      }
+    },
+    "salamander": {
+      "can_enter": true,
+      "comfort_level": "comfortable",
+      "effects": {
+        "general": "Salamander finds Nexus pleasantly warm. Magical energy seems to invigorate it.",
+        "near_crystals": "Salamander drawn to crystal garden. Its flame brightens near restored crystals."
+      },
+      "echo_reaction": "Echo curious about fire elemental. 'A child of flame. We had many here, before. They helped maintain the ley lines.'"
+    },
+    "human_companion": {
+      "can_enter": true,
+      "comfort_level": "comfortable",
+      "all_humans": "Nexus is safe haven for all human companions. No restrictions.",
+      "sira_specific": {
+        "dialog": "'This place... it's strange. But peaceful. I could stay here a while.'",
+        "if_echo_appears": "Sira startled by Echo. 'Is that... a ghost?'"
+      },
+      "aldric_specific": {
+        "dialog": "'The Nexus! I read about this place. The heart of the meridian...'",
+        "scholarly_interest": "Aldric may spend extended time studying if player permits. Provides lore unlocks."
+      }
+    },
+    "waiting_behavior": {
+      "description": "Wolves wait outside boundary. All others can enter freely.",
+      "wolves_wait_at": "Just outside Nexus (any direction)",
+      "return_behavior": "Wolves rejoin at boundary when player exits"
+    }
+  },
+
+  "resolved_questions": [
+    {
+      "id": "Q-NX-1",
+      "question": "Should the Nexus have any combat encounters?",
+      "resolution": "No - guaranteed safe zone. Magical wards repel all hostile creatures."
+    },
+    {
+      "id": "Q-NX-2",
+      "question": "Can The Echo appear outside the Nexus?",
+      "resolution": "Rarely, at critical moments (player about to make irreversible choice, major NPC dying). Brief, cryptic guidance only."
+    },
+    {
+      "id": "Q-NX-3",
+      "question": "What if player loses all Echo trust?",
+      "resolution": "At trust -3 or below, Echo refuses to appear. Player loses guidance but can still complete game. Some endings locked (Echo-dependent). Recovery possible through major healing deeds."
+    },
+    {
+      "id": "Q-NX-4",
+      "question": "What happens if player never repairs waystone?",
+      "resolution": "Echo remains spectral, trapped forever. Environmental spreads continue unchecked. Sad ending state but game still 'completable' in sense of exploring all content."
+    },
+    {
+      "id": "Q-NX-5",
+      "question": "Can player store items safely in Nexus?",
+      "resolution": "Yes - temporal stasis in Keeper's Quarters preserves everything. Nothing despawns or decays."
+    },
+    {
+      "id": "Q-NX-6",
+      "question": "Does Echo know about assassination contracts?",
+      "resolution": "Yes - always knows through ley line network, even if NPCs don't discover. Trust penalty (-2) applies regardless of discovery."
+    },
+    {
+      "id": "Q-NX-7",
+      "question": "What is the minimum Echo trust for waystone completion?",
+      "resolution": "No minimum - waystone can be repaired at any trust level. But ending quality depends on trust. At -3 or below, Echo won't participate (pyrrhic ending). See dark_endings section."
+    },
+    {
+      "id": "Q-NX-8",
+      "question": "Can dark-path players complete the game?",
+      "resolution": "Yes - all paths lead to potential completion. But ending quality varies dramatically. Assassins get hollow victory at best. Very dark players get pyrrhic ending. Game never locks player out of mechanical completion."
+    }
+  ],
+
+  "open_questions": []
+}

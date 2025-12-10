@@ -1,0 +1,828 @@
+{
+  "region": "sunken_district",
+  "version": "0.2",
+  "type": "light_sketch",
+  "description": "A partially flooded urban area where an entire district fell into underground waterways. Combines drowning hazards, underwater exploration, and survivor community.",
+  "theme": "survival, community, sacrifice vs self-preservation",
+
+  "locations": {
+    "flooded_plaza": {
+      "name": "Flooded Plaza",
+      "description": "Entry point from Nexus. Ankle-deep on raised edges, deeper where old market stalls stood. Buildings rise from the flood like islands.",
+      "properties": {
+        "lighting": "dim",
+        "water_level": "ankle_to_waist",
+        "breathable": true
+      },
+      "exits": {
+        "west": "nexus_chamber",
+        "northwest": "survivor_camp",
+        "east": "flooded_chambers",
+        "south": "merchant_quarter"
+      },
+      "items": ["waterproof_sack"],
+      "traits": ["debris floating in murky water", "colored ribbons marking safe paths", "smell of brine and decay"]
+    },
+
+    "survivor_camp": {
+      "name": "Survivor Camp",
+      "description": "Higher ground where survivors have established a makeshift camp. A lean-to shelters a small fire.",
+      "properties": {
+        "lighting": "firelit",
+        "water_level": "dry",
+        "breathable": true,
+        "safe_zone": true
+      },
+      "exits": {
+        "southeast": "flooded_plaza"
+      },
+      "actors": ["camp_leader_mira", "old_swimmer_jek", "child_survivor"],
+      "items": ["air_bladder", "basic_supplies"],
+      "traits": ["crude map scratched on flat stone", "smell of smoke and damp clothes", "survivors mending nets and gear"]
+    },
+
+    "flooded_chambers": {
+      "name": "Flooded Chambers",
+      "description": "What was once a grand guildhall, now partially submerged. Pillars rise from chest-deep murky water.",
+      "properties": {
+        "lighting": "dim",
+        "water_level": "chest",
+        "breathable": true
+      },
+      "exits": {
+        "west": "flooded_plaza",
+        "east": "tidal_passage"
+      },
+      "actors": ["predatory_fish"],
+      "traits": ["pillars like drowning fingers", "water-stained ceiling showing flood heights", "shadows moving between columns"],
+      "notes": "First encounter with predatory fish. They watch but don't attack in shallows."
+    },
+
+    "tidal_passage": {
+      "name": "Tidal Passage",
+      "description": "A twenty-foot underwater passage connecting the chambers to the sea caves. The skill gate for reaching Garrett.",
+      "properties": {
+        "lighting": "dark",
+        "water_level": "submerged",
+        "breathable": false
+      },
+      "exits": {
+        "west": "flooded_chambers",
+        "east": "sea_caves"
+      },
+      "actors": ["predatory_fish"],
+      "skill_requirements": {
+        "no_swimming": "High drowning risk, fish attack likely, severe damage",
+        "basic_swimming": "Passable but slow (2 turns), fish attack once during crossing",
+        "advanced_swimming": "Safe passage (1 turn), can avoid fish"
+      },
+      "traits": ["murky water obscuring distance", "current tugging at limbs", "light visible at far end"]
+    },
+
+    "sea_caves": {
+      "name": "Sea Caves",
+      "description": "Natural cavern incorporated into old storage tunnels. Rock shelves and collapsed stonework create islands of dry ground.",
+      "properties": {
+        "lighting": "dim_filtered",
+        "water_level": "mixed",
+        "breathable": true
+      },
+      "exits": {
+        "west": "tidal_passage"
+      },
+      "actors": ["sailor_garrett"],
+      "items": ["treasure_cache_location"],
+      "traits": ["daylight filtering through ceiling cracks", "shifting light patterns on water", "debris islands amid flooded floor"],
+      "notes": "Garrett is trapped here on a debris island, water rising around him."
+    },
+
+    "merchant_quarter": {
+      "name": "Merchant Quarter",
+      "description": "Lower district where water runs deep. Must swim more than walk. Buildings rise like canyon walls.",
+      "properties": {
+        "lighting": "dim",
+        "water_level": "over_head",
+        "breathable": false
+      },
+      "exits": {
+        "north": "flooded_plaza",
+        "south": "merchant_warehouse"
+      },
+      "traits": ["dark windows in water-stained buildings", "floating debris and half-submerged carts", "faint rhythmic tapping from somewhere south"],
+      "notes": "Route to Delvan. Requires swimming. Tapping sound leads player to warehouse."
+    },
+
+    "merchant_warehouse": {
+      "name": "Merchant Warehouse",
+      "description": "Large building with ground floor completely flooded. Delvan is trapped on second floor.",
+      "properties": {
+        "lighting": "dim",
+        "multi_level": true
+      },
+      "sub_locations": {
+        "ground_floor": {
+          "water_level": "submerged",
+          "breathable": false,
+          "notes": "Completely flooded. Must find hatch to wine cellar."
+        },
+        "wine_cellar": {
+          "water_level": "submerged_with_air_pocket",
+          "breathable": true,
+          "notes": "Air pocket at ceiling. Route up to private office."
+        },
+        "second_floor": {
+          "water_level": "ankle",
+          "breathable": true,
+          "actors": ["merchant_delvan"],
+          "items": ["merchant_lockbox", "lever", "scattered_cargo"]
+        }
+      },
+      "exits": {
+        "north": "merchant_quarter"
+      },
+      "navigation_challenge": {
+        "entry": "Dive through flooded ground floor, find hatch near stairs",
+        "cellar": "Navigate through wine cellar to narrow staircase",
+        "requires": "Basic swimming minimum, 3 turns breath for full navigation"
+      },
+      "traits": ["merchant's sign visible above waterline", "tapping from second floor window", "cargo crates floating like ghosts inside"]
+    },
+
+    "deep_archive": {
+      "name": "Deep Archive",
+      "description": "A vast sealed chamber that survived the flood. Repository of knowledge, guarded by the Archivist's spirit.",
+      "properties": {
+        "lighting": "glowworm",
+        "water_level": "dry",
+        "breathable": true,
+        "sealed_chamber": true
+      },
+      "access_requirements": {
+        "swimming": "Advanced swimming required (30-foot underwater entrance)",
+        "or": "Archivist's enchanted bubble"
+      },
+      "exits": {
+        "up": "flooded_plaza"
+      },
+      "actors": ["the_archivist"],
+      "items": ["water_pearl", "ancient_tome", "scattered_knowledge_fragments"],
+      "traits": ["glowworms covering ceiling", "intact shelves of preserved books", "spectral figure drifting between stacks"],
+      "notes": "Water pearl requires completing knowledge quest for Archivist."
+    }
+  },
+
+  "actors": {
+    "camp_leader_mira": {
+      "name": "Camp Leader Mira",
+      "type": "human_npc",
+      "description": "A middle-aged woman with tired eyes but iron determination. She manages the survivors.",
+      "properties": {
+        "role": "quest_giver",
+        "tracks_reputation": true
+      },
+      "state_machine": {
+        "states": ["neutral", "friendly", "allied", "disappointed"],
+        "initial": "neutral",
+        "transitions": {
+          "neutral->friendly": "Player rescues one survivor",
+          "friendly->allied": "Player rescues both survivors OR camp morale high",
+          "any->disappointed": "Player lets survivor die without trying"
+        }
+      },
+      "quests": {
+        "rescue_garrett": {
+          "description": "A sailor is trapped in the caves. He was looking for supplies.",
+          "reward": "Access to Jek's advanced swimming lessons"
+        },
+        "rescue_delvan": {
+          "description": "The merchant Delvan hasn't returned from his supply run.",
+          "reward": "Merchant connections, discount on trade"
+        }
+      },
+      "dialog_topics": {
+        "camp": {
+          "keywords": ["camp", "survivors", "people"],
+          "summary": "Mira gestures at the ragged platforms. 'We're what's left. When the waters rose, most didn't make it. We survive by scavenging and hoping.'",
+          "sets_flags": {"knows_camp_situation": true}
+        },
+        "help": {
+          "keywords": ["help", "what can I do", "need anything"],
+          "summary": "Mira's eyes sharpen. 'Two people are missing. Garrett went diving for supplies and hasn't come back. Delvan the merchant was checking his old warehouse.'",
+          "unlocks_topics": ["garrett", "delvan"],
+          "sets_flags": {"knows_missing_people": true}
+        },
+        "garrett": {
+          "keywords": ["garrett", "sailor", "diver"],
+          "requires_flags": {"knows_missing_people": true},
+          "summary": "'The sailor. Good man, reckless. He swims better than anyone but he's been gone too long. The underwater caves to the east.'",
+          "sets_flags": {"knows_garrett_location": true}
+        },
+        "delvan": {
+          "keywords": ["delvan", "merchant"],
+          "requires_flags": {"knows_missing_people": true},
+          "summary": "'A trader who refused to abandon his goods. Went north through the canals to his barge. That was two days ago.'",
+          "sets_flags": {"knows_delvan_location": true}
+        }
+      }
+    },
+
+    "old_swimmer_jek": {
+      "name": "Old Swimmer Jek",
+      "type": "human_npc",
+      "description": "An elderly man with weathered skin and webbed fingers - a birth defect that made him legendary.",
+      "properties": {
+        "role": "teacher"
+      },
+      "services": {
+        "teach_swimming_basic": {
+          "type": "teaching",
+          "skill_granted": "swimming_basic",
+          "payment": "5 gold OR food item",
+          "time_cost": "1 turn",
+          "effect": "Breath holds extended to 15, swim speed normal, can traverse chest-deep water without penalty"
+        },
+        "teach_swimming_advanced": {
+          "type": "teaching",
+          "skill_granted": "swimming_advanced",
+          "requires": "Garrett rescued AND Garrett recovered (5 turns after rescue)",
+          "teacher": "Garrett (Jek is too old for advanced techniques)",
+          "payment": "none (gratitude for saving his life)",
+          "time_cost": "2 turns",
+          "effect": "Breath holds extended to 20, can navigate currents safely, can avoid fish attacks"
+        }
+      },
+      "dialog_topics": {
+        "swimming": {
+          "keywords": ["swim", "teach", "water"],
+          "summary": "'The water isn't your enemy, it's your element if you know how to move with it. I can teach you. For a price, or for a favor.'",
+          "unlocks_topics": ["price", "favor"]
+        },
+        "price": {
+          "keywords": ["price", "pay", "gold"],
+          "summary": "'Five gold for the basics. Or bring me something to eat - real food, not this waterlogged garbage.'"
+        },
+        "favor": {
+          "keywords": ["favor", "what favor"],
+          "summary": "'Find Garrett. He was my apprentice before he got too bold. Bring him back and I'll teach you everything I know for free.'"
+        }
+      }
+    },
+
+    "child_survivor": {
+      "name": "Child Survivor",
+      "type": "human_npc",
+      "description": "A young child clutching a sodden doll. They watch everything with wide eyes.",
+      "properties": {
+        "role": "hint_giver"
+      },
+      "dialog_topics": {
+        "doll": {
+          "keywords": ["doll", "toy"],
+          "summary": "The child hugs the doll tighter. 'She keeps me safe. The water tried to take her but I held on.'"
+        },
+        "scared": {
+          "keywords": ["scared", "afraid", "okay"],
+          "summary": "The child looks up. 'The library lady is still down there. She clicks and hums. I think she's lonely.'"
+        }
+      },
+      "hint_dialog": {
+        "about_archivist": "Provides hint about Waterlogged Archivist being approachable"
+      }
+    },
+
+    "sailor_garrett": {
+      "name": "Sailor Garrett",
+      "type": "human_npc",
+      "description": "A young man with tattooed arms, currently drowning. His eyes show terror.",
+      "properties": {
+        "conditions": ["drowning", "exhaustion"],
+        "breath_remaining": 5,
+        "damage_per_turn_drowning": 10
+      },
+      "state_machine": {
+        "states": ["drowning", "stabilized", "rescued", "dead"],
+        "initial": "drowning",
+        "transitions": {
+          "drowning->stabilized": "Given breathing item",
+          "stabilized->rescued": "Led to surface OR exhaustion cured and swims out",
+          "drowning->dead": "Breath reaches 0 OR health reaches 0"
+        }
+      },
+      "rescue_options": {
+        "option_1": {
+          "action": "Give air bladder",
+          "effect": "Breath restored, stabilized. Still exhausted, needs help swimming out."
+        },
+        "option_2": {
+          "action": "Cure exhaustion",
+          "effect": "Can swim but still drowning. Needs to reach surface fast."
+        },
+        "option_3": {
+          "action": "Pull/lead to safety",
+          "requires": "Player has swimming skill OR exceptional strength",
+          "effect": "Direct rescue, exhausting for player"
+        }
+      },
+      "if_rescued": {
+        "effects": [
+          "Becomes extremely grateful (gratitude 4)",
+          "Reveals location of sunken treasure",
+          "Can become companion with diving expertise",
+          "Unlocks Jek's advanced swimming lessons"
+        ]
+      },
+      "dialog_when_rescued": {
+        "treasure": {
+          "keywords": ["treasure", "reward", "thank"],
+          "summary": "'I found something down there before I got trapped. A merchant's cache, sealed tight. I can show you where if you want to dive for it.'"
+        }
+      }
+    },
+
+    "the_archivist": {
+      "name": "The Archivist",
+      "type": "spectral_npc",
+      "description": "A spectral figure in scholar's robes. Not a ghost exactly - more an echo, like in the Nexus. An elderly woman who stayed to protect the collection.",
+      "properties": {
+        "spectral": true,
+        "bound_to_archive": true,
+        "cannot_leave": "The Archivist is bound to the Deep Archive. If she could leave, she would gather the lost knowledge herself.",
+        "narrative_justification": "She stayed when the waters rose, sealed herself in with the most precious texts. Her form persists through will and the archive's magic."
+      },
+      "state_machine": {
+        "states": ["guardian", "helpful", "allied"],
+        "initial": "guardian",
+        "transitions": {
+          "guardian->helpful": "Player demonstrates scholarly interest (dialog, brings book)",
+          "helpful->allied": "Player completes knowledge quest (brings 3+ lost secrets)"
+        }
+      },
+      "services": {
+        "information": {
+          "type": "knowledge",
+          "requires": "Basic dialog",
+          "provides": "Information about the disaster, regions, history"
+        },
+        "enchanted_bubble": {
+          "type": "item",
+          "requires": "Trust >= 2 (helpful state)",
+          "provides": "Bubble that allows breathing in flooded areas"
+        },
+        "water_pearl": {
+          "type": "quest_reward",
+          "requires": "Knowledge quest completed (allied state)",
+          "notes": "The pearl was placed here for safekeeping. Archivist will only give it to someone who has proven they value preservation over acquisition."
+        }
+      },
+      "knowledge_quest": {
+        "description": "Bring me something lost - a truth forgotten, a mystery solved. The district above was full of secrets before the flood. Find ones worth knowing.",
+        "requirement": "Bring 3 out of 5 scattered knowledge fragments from the Sunken District",
+        "fragments": [
+          {"id": "merchant_ledger", "location": "merchant_warehouse", "content": "Trade routes and contacts before the disaster"},
+          {"id": "survivor_story", "location": "survivor_camp", "source": "Old Jek or Mira", "content": "Firsthand account of the flooding"},
+          {"id": "guild_records", "location": "flooded_chambers", "content": "Guildhall administrative records"},
+          {"id": "garrett_map", "location": "sea_caves", "source": "Garrett if rescued", "content": "Maps of underwater passages"},
+          {"id": "delvan_contacts", "location": "merchant_warehouse", "source": "Delvan if rescued", "content": "Black market network information"}
+        ],
+        "design_note": "Some fragments come from rescued NPCs, creating value in those relationships beyond immediate rewards."
+      },
+      "dialog_topics": {
+        "identity": {
+          "keywords": ["who are you", "what are you", "archivist"],
+          "summary": "'I am what remains of the Chief Archivist. When the waters rose, I sealed myself in with what I could save. My body is... elsewhere now. But my duty persists.'"
+        },
+        "disaster": {
+          "keywords": ["disaster", "what happened", "flood"],
+          "summary": "'The ley lines ruptured. The meridian shattered. In the Sunken District, the underground waterways burst upward. So much was lost in hours.'"
+        },
+        "water_pearl": {
+          "keywords": ["pearl", "waystone", "fragment"],
+          "summary": "'It was placed here before the disaster - a fragment of the old network, too valuable to risk. I cannot simply give it away. Knowledge must be earned, preservation must be valued.'"
+        },
+        "knowledge_quest": {
+          "keywords": ["quest", "earn", "prove", "secrets"],
+          "summary": "'The district above held many secrets. Bring me truths that would otherwise be lost - stories, records, maps. Show me you understand that knowledge is worth preserving. Then we may discuss the pearl.'"
+        }
+      }
+    },
+
+    "merchant_delvan": {
+      "name": "Merchant Delvan",
+      "type": "human_npc",
+      "description": "A portly man pinned under cargo. His face is pale from blood loss.",
+      "properties": {
+        "conditions": ["bleeding", "broken_leg", "trapped"],
+        "damage_per_turn": 5
+      },
+      "state_machine": {
+        "states": ["trapped", "freed", "mobile", "dead"],
+        "initial": "trapped",
+        "transitions": {
+          "trapped->freed": "Cargo removed (strength OR lever)",
+          "freed->mobile": "Bleeding stopped AND leg splinted",
+          "trapped->dead": "Health reaches 0 (bleeding out)"
+        }
+      },
+      "rescue_requirements": {
+        "step_1": "Stop bleeding (bandages, healing, pressure)",
+        "step_2": "Free from cargo (use lever OR high strength)",
+        "step_3": "Splint leg or carry to safety"
+      },
+      "if_rescued": {
+        "effects": [
+          "Substantial reward (50 gold, rare items from cargo)",
+          "Permanent discount (25%) on all merchant services",
+          "Connection to black market contacts in Civilized Remnants"
+        ]
+      },
+      "dialog_topics": {
+        "trapped": {
+          "keywords": ["help", "trapped", "cargo"],
+          "summary": "'My leg... the cargo shifted when the barge tipped. I can't feel my foot. Please, there's a lever in the hold, you could...'"
+        },
+        "reward": {
+          "keywords": ["reward", "pay", "thanks"],
+          "summary": "'Save me and I'll make it worth your while. My contacts, my goods, my connections - they'll all serve you.'"
+        }
+      }
+    },
+
+    "predatory_fish": {
+      "name": "Predatory Fish",
+      "type": "environmental_hazard",
+      "description": "Large fish with visible teeth, grown strange since the disaster. They circle and watch.",
+      "properties": {
+        "hazard_type": "environmental",
+        "not_combat_encounter": true,
+        "no_xp_or_loot": true
+      },
+      "behavior": {
+        "in_shallows": "Watch but don't attack. Circle lazily.",
+        "in_deep_water": "Dart in to bite, retreat before retaliation. Attack once per passage.",
+        "when_blood_in_water": "Become cautious (multiple wounded makes them hesitate, not bold)",
+        "response_to_combat": "Fighting in water is heavily penalized (-4 attack, half damage). Fish retreat but return."
+      },
+      "damage": {
+        "bite": "8 HP + bleeding condition",
+        "multiple_bites_possible": "If player very slow or panicking"
+      },
+      "design_note": "These are obstacles, not enemies. They exist to make water traversal costly without skill, not to provide combat content."
+    }
+  },
+
+  "items": {
+    "air_bladder": {
+      "name": "air bladder",
+      "description": "An animal bladder filled with preserved air. Allows breathing underwater temporarily.",
+      "properties": {
+        "portable": true,
+        "breathing_item": true,
+        "uses": 3
+      },
+      "effect": "Restores breath to full when used. Works in flooded_stacks depth."
+    },
+
+    "waterproof_sack": {
+      "name": "waterproof sack",
+      "description": "An oiled leather bag that keeps contents dry.",
+      "properties": {
+        "portable": true,
+        "container": true
+      },
+      "effect": "Items stored within are protected from water damage"
+    },
+
+    "water_pearl": {
+      "name": "water pearl",
+      "description": "A luminescent pearl that glows with inner light. Found in the deep archive.",
+      "properties": {
+        "portable": true,
+        "quest_item": true,
+        "light_source": true
+      },
+      "location": "deep_archive",
+      "use": "Required for waystone repair in Nexus"
+    },
+
+    "ancient_tome": {
+      "name": "ancient tome",
+      "description": "A perfectly preserved book in a waterproof case. Its contents describe the pre-disaster world.",
+      "properties": {
+        "portable": true,
+        "readable": true,
+        "valuable": true
+      },
+      "location": "deep_archive"
+    },
+
+    "lever": {
+      "name": "lever",
+      "description": "A sturdy iron bar useful for prying.",
+      "properties": {
+        "portable": true,
+        "tool": true
+      },
+      "use": "Can free Delvan from cargo, can also clear collapsed canal route"
+    },
+
+    "water_bloom": {
+      "name": "water bloom",
+      "description": "A flower that grows only in the flooded library. Glows faintly blue.",
+      "properties": {
+        "portable": true,
+        "rare_flower": true
+      },
+      "location": "submerged_library (flooded_stacks)",
+      "use": "Trade item for Bee Queen in Beast Wilds"
+    }
+  },
+
+  "conditions": {
+    "drowning": {
+      "description": "Running out of breath underwater",
+      "breath_depletion": "1 per turn in non-breathable water",
+      "effects_at_zero": "10 damage per turn, panic state",
+      "recovery": "Reach breathable area OR use breathing item"
+    },
+    "hypothermia": {
+      "description": "Cold water exposure in deep areas",
+      "applies_in": "deep_shortcut route, deep_archive",
+      "progression": "5 severity per turn in cold water",
+      "effects": "At 50: slowed movement. At 80: health damage. At 100: incapacitation.",
+      "treatment": "Warm area, warming items"
+    }
+  },
+
+  "environmental_rules": {
+    "breath_tracking": {
+      "base_breath": 10,
+      "with_basic_swimming": 15,
+      "with_advanced_swimming": 20,
+      "depletion_rate": "1 per turn underwater",
+      "warning_at": 3,
+      "damage_at_zero": "10 per turn"
+    },
+    "water_levels": {
+      "ankle": "No swimming needed, no breath depletion",
+      "waist": "Movement slowed, no breath depletion",
+      "chest": "Movement very slow, no breath depletion",
+      "submerged": "Swimming required, breath depletes"
+    },
+    "breathing_items": {
+      "air_bladder": "Works in flooded_stacks",
+      "enchanted_bubble": "Works everywhere including deep_archive"
+    }
+  },
+
+  "cross_region_connections": {
+    "to_nexus": {
+      "exit": "west from flooded_plaza",
+      "destination": "nexus_chamber",
+      "notes": "Water does not flood into Nexus (magical barrier)"
+    },
+    "cross_region_items": {
+      "water_pearl": "To Nexus for waystone repair",
+      "water_bloom": "To Beast Wilds for bee queen trade"
+    },
+    "rescued_npc_effects": {
+      "garrett_rescued": "Appears in camp, teaches diving, reveals treasure location",
+      "delvan_rescued": "Provides black market contact for Civilized Remnants"
+    }
+  },
+
+  "persistent_effects": {
+    "survivor_camp_morale": {
+      "base": "low",
+      "garrett_rescued": "+1 level",
+      "delvan_rescued": "+1 level",
+      "either_dies": "-1 level",
+      "effects_of_morale": {
+        "low": "Survivors desperate, some services unavailable",
+        "medium": "Normal services",
+        "high": "Bonus services, occasional supply gifts"
+      }
+    },
+    "swimming_skill": {
+      "permanent": true,
+      "applies_everywhere": "Any water area in game benefits from skill"
+    }
+  },
+
+  "narrative_role": {
+    "core_tension": "Who do you save when you can't save everyone?",
+    "time_pressure": {
+      "garrett": {
+        "turns_to_death": 5,
+        "from_first_encounter": true,
+        "hope_extends": false,
+        "note": "Drowning. Physics doesn't care about promises."
+      },
+      "delvan": {
+        "turns_to_death": 10,
+        "from_first_encounter": true,
+        "hope_extends": true,
+        "hope_bonus": 3,
+        "note": "Bleeding. Determination can slow blood loss slightly."
+      }
+    },
+    "dual_rescue_analysis": {
+      "designed_difficulty": "Very difficult on first playthrough, achievable with foreknowledge",
+      "timing_breakdown": {
+        "learn_basic_swimming": "1 turn",
+        "travel_to_garrett": "3 turns (plaza → chambers → passage → caves)",
+        "rescue_garrett": "2 turns (find, free)",
+        "return_to_camp": "3 turns",
+        "travel_to_delvan": "4 turns (plaza → quarter → warehouse navigation)",
+        "rescue_delvan": "2 turns (find, free, stabilize)"
+      },
+      "total_minimum_turns": 15,
+      "constraint": "Garrett dies in 5 turns from encounter, Delvan in 10-13",
+      "optimal_path": "Learn swimming (1), save Garrett first (5 total), return (8 total), save Delvan (12 total) - barely achievable if Delvan got hope bonus",
+      "complications": [
+        "Fish damage may slow player",
+        "Delvan extraction is challenging alone",
+        "Player may not know both exist simultaneously",
+        "Timers start from first encounter, not from entering region"
+      ],
+      "design_intent": "First playthrough: player likely saves one or neither. Second playthrough with foreknowledge: can optimize to save both. Creates meaningful replayability."
+    },
+    "player_choices_matter": [
+      "Saving Garrett unlocks advanced swimming (via Garrett teaching, after 5 turn recovery)",
+      "Saving Delvan provides economic and black market benefits",
+      "Saving both is possible but requires planning and efficiency",
+      "Letting either die affects camp morale and available services",
+      "Knowledge fragments from rescued NPCs help with Archivist quest"
+    ]
+  },
+
+  "commitment_system": {
+    "description": "Player can make implicit commitments to help NPCs. Commitments create stakes beyond the base deed.",
+    "commitments_in_region": {
+      "garrett_commitment": {
+        "trigger_phrases": ["I'll save you", "I'll get you out", "hold on", "I'm coming back"],
+        "target_npc": "sailor_garrett",
+        "goal": "Rescue Garrett from drowning",
+        "commitment_timer": {
+          "base_turns_to_death": 5,
+          "timer_starts": "room_entry",
+          "timer_starts_note": "Timer begins when player enters Sea Caves, NOT when commitment made. Garrett is already drowning.",
+          "with_hope_bonus": 5,
+          "warning_at_remaining": 2,
+          "warning_message": "Garrett's head barely breaks the surface. His movements are weakening."
+        },
+        "hope_extends_survival": false,
+        "note": "Physics doesn't care about promises - drowning continues regardless",
+        "fulfillment_bonus": "+2 gratitude (beyond base +4). Garrett shares treasure location immediately.",
+        "withdrawal_response": {
+          "dialog": "Garrett's eyes widen in panic, but then... acceptance. 'The cave... east wall... merchant cache... tell Jek...' He points frantically before the current pulls at him.",
+          "reveals": "Treasure location (even if rescue fails)",
+          "sets_flag": "garrett_last_words",
+          "trust_effect": 0,
+          "can_recommit": false,
+          "note": "Time-critical. Withdrawal still means death."
+        },
+        "abandonment_effects": {
+          "flag_set": "broke_promise_garrett",
+          "garrett_dies": true,
+          "echo_reaction": "The Echo's form ripples like water. 'He believed you. In his final moments, he waited.'",
+          "jek_reaction": "'You were there? You SPOKE to him? And you... left?' Old Jek turns away. Advanced swimming lessons unavailable.",
+          "mira_reaction": "Camp Leader Mira: 'I asked you to help. You said you would.' Trust -2, camp morale drops.",
+          "camp_morale": -1
+        }
+      },
+      "delvan_commitment": {
+        "trigger_phrases": ["I'll free you", "I'll get help", "I'll stop the bleeding", "hold on, I'll save you"],
+        "target_npc": "merchant_delvan",
+        "goal": "Free Delvan and stop his bleeding",
+        "commitment_timer": {
+          "base_turns_to_death": 10,
+          "timer_starts": "first_encounter",
+          "timer_starts_note": "Timer begins when player first finds Delvan in warehouse.",
+          "with_hope_bonus": 13,
+          "warning_at_remaining": 3,
+          "warning_message": "Delvan's voice is barely a whisper. His skin is grey and cold."
+        },
+        "hope_extends_survival": true,
+        "survival_extension": 3,
+        "note": "Hope slows blood loss slightly - determination to survive",
+        "fulfillment_bonus": "+2 gratitude. Delvan offers additional rare item from cargo.",
+        "withdrawal_response": {
+          "dialog": "'Wait... please...' Delvan's voice weakens. 'My lockbox... combination is my daughter's birthday... fourth month, twelfth day... at least take what you can carry...'",
+          "reveals": "Lockbox combination",
+          "unlocks": "item_merchant_lockbox (can be opened)",
+          "trust_effect": 0,
+          "can_recommit": true
+        },
+        "abandonment_effects": {
+          "flag_set": "broke_promise_delvan",
+          "delvan_dies": true,
+          "echo_reaction": "The Echo speaks softly. 'He offered you everything for his life. You took nothing and gave nothing.'",
+          "mira_reaction": "Camp morale drops. 'He had family waiting. Did you even try?'",
+          "black_market_unavailable": "Undercity contact never established",
+          "camp_morale": -1
+        }
+      },
+      "both_commitment_special": {
+        "note": "If player promises both but can only save one:",
+        "scenario": "Player commits to both, saves Garrett, Delvan dies",
+        "effect": "Garrett grateful but camp morale still damaged. Echo: 'You kept one word. The other was drowned by circumstance. Intention matters, but so do results.'",
+        "partial_penalty": "Reduced abandonment penalty (-1 instead of -2) if clearly tried"
+      }
+    }
+  },
+
+  "companion_behavior": {
+    "wolf_pack": {
+      "can_enter": true,
+      "comfort_level": "uncomfortable",
+      "effects": {
+        "in_water": "Wolves refuse to swim in flooded areas. Stay on dry ground.",
+        "in_camp": "Camp survivors nervous but tolerant if player vouches"
+      },
+      "benefits": {
+        "combat": "+15 damage against fish, if combat occurs on land/shallow water",
+        "intimidation": "Some aggressive fish avoid wolf-accompanied player"
+      },
+      "waiting_behavior": {
+        "when_player_swims": "Wolves wait at last dry location",
+        "return": "Rejoin when player returns to dry ground"
+      }
+    },
+    "salamander": {
+      "can_enter": false,
+      "comfort_level": "impossible",
+      "effects": {
+        "at_boundary": "Salamander refuses at flooded plaza entrance. Steam rises from its body as humidity increases."
+      },
+      "dialog": {
+        "refusal": "The salamander backs away from the water, making distressed chirping sounds. Its flame dims in the humid air.",
+        "insistence": "If player insists, salamander shakes its head firmly and points back toward Nexus. It will NOT enter.",
+        "waiting_location": "Nexus Chamber (returns there automatically)"
+      },
+      "death_scenario": {
+        "if_player_forces_somehow": "Salamander extinguishes in deep water. Dies within 2 turns of submersion.",
+        "consequences": "Permanent companion loss. Echo comments on senseless death."
+      }
+    },
+    "human_companion": {
+      "can_enter": true,
+      "comfort_level": "depends on swimming skill",
+      "sira_specific": {
+        "without_swimming": "Stays in camp. 'I can't swim. I'll wait here.'",
+        "with_basic_swimming": "Can accompany to shallow areas only",
+        "with_advanced_swimming": "Full access including deep archive"
+      },
+      "aldric_specific": {
+        "too_weak": "Cannot handle water hazards at all. Stays in camp.",
+        "dialog": "'The flooded areas... I studied them before. But I can't... not anymore. Be careful.'"
+      }
+    },
+    "waiting_behavior": {
+      "description": "When companion cannot or won't enter water areas",
+      "wolves_wait_at": "Survivor Camp or Flooded Plaza edge (dry ground)",
+      "salamander_wait_at": "Returns to Nexus Chamber automatically",
+      "human_wait_at": "Survivor Camp",
+      "return_behavior": "Non-salamander companions rejoin at waiting location. Salamander requires player to return to Nexus."
+    }
+  },
+
+  "resolved_questions": [
+    {
+      "id": "Q-SUNKEN-1",
+      "question": "Can player save both Garrett and Delvan in one playthrough?",
+      "resolution": "Yes, but designed to be very difficult on first playthrough. Requires foreknowledge, efficiency, and accepting resource costs. See dual_rescue_analysis in narrative_role. Aligns with design goal: most regions take 2+ playthroughs to succeed with all challenges."
+    },
+    {
+      "id": "Q-SUNKEN-2",
+      "question": "What treasure does Garrett reveal?",
+      "resolution": "A merchant's cache in a side cave off the sea caves. Contains gold, potions, and becomes one of the knowledge fragments for the Archivist's quest (maps of underwater passages)."
+    },
+    {
+      "id": "Q-SUNKEN-3",
+      "question": "How difficult should the deep archive be to access?",
+      "resolution": "Requires advanced swimming (30-foot underwater entrance) OR Archivist's enchanted bubble. Water pearl additionally requires completing knowledge quest (bring 3 of 5 scattered knowledge fragments). Creates multi-step content that rewards thorough exploration."
+    },
+    {
+      "id": "Q-SUNKEN-4",
+      "question": "How much time does training take?",
+      "resolution": "Basic swimming: 1 turn. Advanced swimming: 2 turns, and requires Garrett to recover first (5 turns after rescue). This matters for dual rescue timing."
+    },
+    {
+      "id": "Q-SUNKEN-5",
+      "question": "How does player learn Delvan's survival status before committing?",
+      "resolution": "Must investigate in person. Camp has no way to check remotely. Tapping sound from warehouse provides audio clue that someone is alive."
+    },
+    {
+      "id": "Q-SUNKEN-6",
+      "question": "What happens if player gets water pearl without helping anyone?",
+      "resolution": "Valid 'cold efficiency' path. Player can reach archive with advanced swimming (requires saving Garrett first for lessons, creating minimum engagement) or by finding/buying enchanted bubble elsewhere. But knowledge quest requires some interaction with district NPCs. Pure efficiency is possible but yields less overall value."
+    },
+    {
+      "id": "Q-SUNKEN-7",
+      "question": "Are there other knowledge fragments beyond the five listed?",
+      "resolution": "Five is sufficient. The fragment list is designed so some come from rescued NPCs (creating value in those relationships) and some from exploration. Player needs 3 of 5, allowing for partial completion of rescue goals."
+    }
+  ],
+
+  "open_questions": []
+}

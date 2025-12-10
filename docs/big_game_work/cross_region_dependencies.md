@@ -121,13 +121,43 @@ The damaged waystone in Meridian Nexus requires one item from each region's hear
 
 ## Companion Restrictions
 
-| Companion | Cannot Enter | Reason |
-|-----------|--------------|--------|
-| Wolf Pack | Civilized Remnants | Guards attack beasts |
-| Wolf Pack | Nexus | Magical wards |
-| Steam Salamanders | Water areas | Elemental conflict |
-| Steam Salamanders | Beast Wilds | Uncomfortable (but possible) |
-| Hunter Sira | None | Human, unrestricted |
+Restrictions are **dispositions, not iron laws** - an especially brave or foolhardy individual might ignore them in dramatic moments.
+
+See `beast_wilds_sketch.json` companion_restrictions section for the full detailed table by actor type.
+
+### Cannot Enter (Hard Restrictions)
+
+| Actor Type | Cannot Enter | Reason |
+|------------|--------------|--------|
+| Wolves | Nexus | Magical wards repel beasts |
+| Wolves | Civilized Remnants | Guards attack beasts on sight |
+| Wolves | Spider Nest Gallery | Territorial instinct (override: exceptional bravery) |
+| Bears | Nexus | Magical wards repel beasts |
+| Bears | Civilized Remnants | Guards attack beasts on sight |
+| Steam Salamanders | Sunken District | Elemental conflict - water extinguishes fire |
+| Myconids | Frozen Reaches | Cold kills fungal life |
+| Humans | None | Most flexible, but vulnerable to hazards |
+
+### Uncomfortable In (Soft Restrictions)
+
+| Actor Type | Uncomfortable In | Effect |
+|------------|------------------|--------|
+| Wolves | Sunken District | Combat penalties, may refuse deep water |
+| Bears | Frozen Reaches | Reduced endurance, seeks shelter |
+| Steam Salamanders | Beast Wilds | Minor penalties, frequent complaints |
+| Steam Salamanders | Civilized Remnants | NPCs react with fear |
+| Myconids | Beast Wilds | Dry air, predators - reduced effectiveness |
+| Myconids | Civilized Remnants | Townsfolk fear infection - hostile reactions |
+| Humans | Fungal Deep Roots | Spore damage without protection |
+| Humans | Frozen Ice Caves | Cold damage without gear |
+| Humans | Sunken Deep Archive | Cannot access without swimming skill |
+
+### Exceptional Individuals
+
+Individual actors can have `ignores_restriction` flags for specific locations. This should be rare and narratively motivated:
+- A particularly brave wolf might follow player into spider territory to protect them
+- A foolhardy salamander might sacrifice itself in Sunken District
+- A curious myconid explorer might venture into Beast Wilds
 
 ---
 
@@ -159,6 +189,67 @@ Word of player actions spreads:
 | Save Aldric | Civilized Remnants (Healer Elara) | +1 trust with Elara |
 | High town reputation | Beast Wilds (Hunter Sira) | Sira more willing to trust |
 | Undercity crimes (discovered) | Town NPCs | -2 reputation |
+
+---
+
+## Gossip Timing System
+
+Information spreads between regions at different rates depending on the source.
+
+### Gossip Channels
+
+| Channel | Speed | Description |
+|---------|-------|-------------|
+| **Echo Network** | Instant | Echo knows everything through ley lines. Will comment on any commitment. |
+| **Traveling NPCs** | 10-20 turns | Merchants, refugees move between regions |
+| **NPC Connections** | 5-15 turns | Direct relationships (Elara-Sira, Delvan-undercity) |
+| **Reputation Spread** | 20-30 turns | General word of mouth across all regions |
+
+### Specific Gossip Paths
+
+| Information | Source | Destination | Timing | Notes |
+|-------------|--------|-------------|--------|-------|
+| Sira's fate | Beast Wilds | Elara (Civilized) | 10-15 turns | Travelers mention injured hunter. If Sira dies, news reaches Elara. |
+| Sira abandonment | Beast Wilds | Elara (Civilized) | 15-25 turns | Only spreads if Sira survives AND tells others. Or through Echo influence. |
+| Aldric's fate | Fungal Depths | Civilized Remnants | 20-30 turns | Scholar's fate becomes known over time |
+| Delvan's fate | Sunken District | Undercity | 5-10 turns | Fast - criminal networks communicate quickly |
+| Assassination | Civilized Remnants | Echo | Instant | Echo always knows immediately |
+| Assassination | Civilized Remnants | Other councilors | 0-5 turns | Depends on discovery roll (20%) |
+| Exile status | Civilized Remnants | Beast Wilds (Sira) | 15-20 turns | Word reaches other regions eventually |
+| Spore Mother healed | Fungal Depths | All regions | 10-20 turns | Major event, spreads relatively fast |
+
+### Confession vs. Discovery Timing
+
+The "confession window" matters for the Sira-Elara connection:
+
+| Scenario | Timing | Outcome |
+|----------|--------|---------|
+| Player confesses before gossip arrives | N/A | Confession mechanic: -2 trust, recovery possible |
+| Gossip arrives before player visits Elara | 15-25 turns after abandonment | Discovery mechanic: -3 trust, permanent consequences |
+| Player visits Elara, doesn't confess, gossip arrives later | Variable | Discovery + lie by omission: -4 trust, relationship destroyed |
+
+### Gossip Triggers
+
+Information only spreads if certain conditions are met:
+
+| Information | Trigger Condition |
+|-------------|-------------------|
+| NPC death | Death is witnessed or discovered |
+| Commitment abandoned | NPC dies or tells someone before dying |
+| Reputation change | Major action (+/-3 reputation) triggers spread |
+| Skill learned | No automatic spread (private knowledge) |
+| Items acquired | No automatic spread unless stolen |
+
+### Manipulating Gossip
+
+Players can influence information spread:
+
+| Action | Effect |
+|--------|--------|
+| Confess to affected NPC | Preempts gossip, reduces penalty |
+| Kill all witnesses | Information doesn't spread (but Echo still knows) |
+| Help NPC who would gossip | May reduce likelihood of negative spread |
+| Complete quest quickly | May outrace gossip entirely |
 
 ---
 

@@ -1089,11 +1089,36 @@
       "abandoned": "Actor dies or timer expires without player returning. Negative spread to related NPCs. The Echo disappointed.",
       "never_committed": "Base reward only if deed done. No penalty if player never engaged."
     },
+    "partial_credit": {
+      "description": "When player has multiple commitments and genuinely tries but fails some",
+      "conditions": [
+        "Player fulfilled at least one commitment during the same period",
+        "Player was actively working toward the failed commitment (visited relevant areas, gathered items)",
+        "Failure was due to time constraints, not neglect"
+      ],
+      "effects": {
+        "echo_reaction": "Softened. 'You tried to carry more than one person could bear. Some burdens must be set down.'",
+        "trust_penalty": "Reduced from -1 to -0.5",
+        "npc_reaction": "Related NPCs acknowledge the attempt"
+      },
+      "examples": [
+        "Player saves Garrett but Delvan dies while player was underwater",
+        "Player heals Spore Mother but Aldric dies while player was in Deep Roots",
+        "Player gets herbs for cubs but Sira dies during the trip to Civilized Remnants"
+      ]
+    },
     "commitments_in_region": {
       "aldric_commitment": {
         "trigger_phrases": ["I'll find silvermoss", "I'll help you", "I'll bring you the moss", "I will get the silvermoss"],
         "target_npc": "npc_aldric",
         "goal": "Give silvermoss to Aldric",
+        "commitment_timer": {
+          "base_turns_to_death": 50,
+          "timer_starts": "first_encounter",
+          "with_hope_bonus": 60,
+          "warning_at_remaining": 10,
+          "warning_message": "Aldric's breathing has become labored. His skin is more fungus than flesh now."
+        },
         "hope_extends_survival": true,
         "survival_extension": 10,
         "fulfillment_bonus": "+2 gratitude (beyond base +2)",
@@ -1115,8 +1140,15 @@
         "trigger_phrases": ["I'll find heartmoss", "I'll help her", "I will heal her", "I'll get the moss for her"],
         "target_npc": "npc_spore_mother",
         "goal": "Give heartmoss to Spore Mother",
+        "commitment_timer": {
+          "base_turns_to_death": 200,
+          "timer_starts": "game_start",
+          "with_hope_bonus": 200,
+          "warning_at_remaining": 30,
+          "warning_message": "The spores in the air grow thicker. The Mother's pain radiates through the network."
+        },
         "hope_extends_survival": false,
-        "note": "Spore Mother too powerful to be affected by hope, but commitment still tracked",
+        "note": "Spore Mother too powerful to be affected by hope, but commitment still tracked. Very long timer - she's not urgent.",
         "fulfillment_bonus": "+2 gratitude (beyond base +5)",
         "withdrawal_response": {
           "dialog_via_myconid": "The Elder translates the Mother's response: 'The surfacer admits weakness. This is... not contemptible. The cold places have what she needs. Perhaps the surfacer needs warmth first.' A pulse of color: directions to the Hot Springs in Frozen Reaches.",
@@ -1131,6 +1163,59 @@
           "note": "If Mother dies from blight while commitment pending, effects trigger"
         }
       }
+    }
+  },
+
+  "companion_behavior": {
+    "wolf_pack": {
+      "can_enter": true,
+      "comfort_level": "uncomfortable",
+      "effects": {
+        "spore_exposure": "Wolves take spore damage same as player, but have no mask option",
+        "in_spore_heart": "Wolves refuse to enter - too dangerous. Wait at Luminous Grotto.",
+        "in_deep_roots": "Cannot enter - would die from toxic air"
+      },
+      "benefits": {
+        "combat": "Help against hostile sporelings (+15 damage)",
+        "intimidation": "Myconids nervous around wolves (-1 initial trust)"
+      },
+      "special_interactions": {
+        "spore_mother_hostile": "Wolves attack sporelings, making peaceful resolution harder",
+        "spore_mother_allied": "Mother tolerates wolves due to player trust"
+      }
+    },
+    "salamander": {
+      "can_enter": true,
+      "comfort_level": "comfortable",
+      "effects": {
+        "warmth_in_deep_roots": "Salamander warmth provides no benefit (toxic air, not cold)",
+        "light_source": "Salamander glow provides light in dark areas"
+      },
+      "benefits": {
+        "myconid_reaction": "Myconids fascinated by fire elemental (+1 initial trust)",
+        "spore_mother_reaction": "Mother curious but not threatened"
+      },
+      "special_interactions": {
+        "can_burn_webs": "No webs in Fungal Depths, but salamander could burn fungal growth if needed"
+      }
+    },
+    "human_companion": {
+      "can_enter": true,
+      "comfort_level": "depends on equipment",
+      "effects": {
+        "without_mask": "Takes spore damage, needs treatment",
+        "with_mask": "Can accompany player throughout"
+      },
+      "sira_specific": {
+        "dialog": "'Fungi. I hate fungi. But if you need me here, I'll manage.'",
+        "tracking_benefit": "Can identify safe paths through spore-heavy areas (-2 spore exposure)"
+      }
+    },
+    "waiting_behavior": {
+      "description": "When companion cannot or won't enter an area",
+      "wolves_wait_at": "Luminous Grotto or Cavern Entrance",
+      "salamander_wait_at": "Anywhere in region (comfortable throughout)",
+      "return_behavior": "Companion rejoins automatically when player returns to waiting location"
     }
   },
 
