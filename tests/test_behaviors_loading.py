@@ -143,7 +143,7 @@ class TestBehaviorsLoading(unittest.TestCase):
                     "type": "tool",
                     "portable": True,
                     "location": "room1",
-                    "behaviors": ["behaviors.core.consumables:on_drink"]
+                    "behaviors": ["behaviors.core.consumables"]
                 }
             ]
         )
@@ -151,7 +151,7 @@ class TestBehaviorsLoading(unittest.TestCase):
         state = load_game_state(game_data)
 
         item = state.get_item("potion")
-        self.assertIn("behaviors.core.consumables:on_drink", item.behaviors)
+        self.assertIn("behaviors.core.consumables", item.behaviors)
 
     def test_load_item_without_behaviors(self):
         """Test loading item without behaviors field defaults to empty dict."""
@@ -184,7 +184,7 @@ class TestBehaviorsLoading(unittest.TestCase):
                     "type": "tool",
                     "portable": True,
                     "location": "room1",
-                    "behaviors": ["behaviors.light:on_take", "behaviors.light:on_drop", "behaviors.light:on_use"]
+                    "behaviors": ["behaviors.light"]
                 }
             ]
         )
@@ -192,10 +192,9 @@ class TestBehaviorsLoading(unittest.TestCase):
         state = load_game_state(game_data)
 
         item = state.get_item("lantern")
-        self.assertEqual(len(item.behaviors), 3)
-        self.assertIn("behaviors.light:on_take", item.behaviors)
-        self.assertIn("behaviors.light:on_drop", item.behaviors)
-        self.assertIn("behaviors.light:on_use", item.behaviors)
+        # Legacy event-specific entries collapse to the module name
+        self.assertEqual(len(item.behaviors), 1)
+        self.assertIn("behaviors.light", item.behaviors)
 
     def test_load_npc_with_behaviors(self):
         """Test loading NPC with behaviors field from JSON."""
@@ -212,7 +211,7 @@ class TestBehaviorsLoading(unittest.TestCase):
                     "name": "wizard",
                     "description": "A wise old wizard",
                     "location": "room1",
-                    "behaviors": ["behaviors.npcs:on_talk_wizard"]
+                    "behaviors": ["behaviors.npcs"]
                 }
             }
         )
@@ -220,7 +219,7 @@ class TestBehaviorsLoading(unittest.TestCase):
         state = load_game_state(game_data)
 
         npc = state.get_actor("wizard")
-        self.assertIn("behaviors.npcs:on_talk_wizard", npc.behaviors)
+        self.assertIn("behaviors.npcs", npc.behaviors)
 
     def test_load_npc_without_behaviors(self):
         """Test loading NPC without behaviors defaults to empty dict."""
@@ -271,7 +270,7 @@ class TestBehaviorsLoading(unittest.TestCase):
                     "description": "A heavy oak door",
                     "location": "exit:room1:north",
                     "properties": {"door": {"open": False}},
-                    "behaviors": ["behaviors.doors:on_open_creaky"]
+                    "behaviors": ["behaviors.doors"]
                 }
             ]
         )
@@ -280,7 +279,7 @@ class TestBehaviorsLoading(unittest.TestCase):
 
         door_item = state.get_item("door1")
         self.assertTrue(door_item.is_door)
-        self.assertIn("behaviors.doors:on_open_creaky", door_item.behaviors)
+        self.assertIn("behaviors.doors", door_item.behaviors)
 
     def test_load_door_item_without_behaviors(self):
         """Test loading door item without behaviors defaults to empty list."""
@@ -325,7 +324,7 @@ class TestBehaviorsLoading(unittest.TestCase):
                     "id": "room1",
                     "name": "Haunted Room",
                     "description": "A spooky room",
-                    "behaviors": ["behaviors.rooms:on_enter_haunted"]
+                    "behaviors": ["behaviors.rooms"]
                 }
             ]
         )
@@ -333,7 +332,7 @@ class TestBehaviorsLoading(unittest.TestCase):
         state = load_game_state(game_data)
 
         location = state.get_location("room1")
-        self.assertIn("behaviors.rooms:on_enter_haunted", location.behaviors)
+        self.assertIn("behaviors.rooms", location.behaviors)
 
     def test_load_location_without_behaviors(self):
         """Test loading location without behaviors defaults to empty dict."""
@@ -355,7 +354,7 @@ class TestBehaviorsLoading(unittest.TestCase):
                     "type": "tool",
                     "portable": True,
                     "location": "room1",
-                    "behaviors": ["behaviors.core.light:on_turn_on"]
+                    "behaviors": ["behaviors.core.light"]
                 }
             ]
         )
@@ -367,7 +366,7 @@ class TestBehaviorsLoading(unittest.TestCase):
         try:
             state = load_game_state(temp_path)
             item = state.get_item("lantern")
-            self.assertIn("behaviors.core.light:on_turn_on", item.behaviors)
+            self.assertIn("behaviors.core.light", item.behaviors)
         finally:
             Path(temp_path).unlink()
 
@@ -382,7 +381,7 @@ class TestBehaviorsLoading(unittest.TestCase):
                     "type": "tool",
                     "portable": True,
                     "location": "room1",
-                    "behaviors": ["behaviors:on_drink"]
+                    "behaviors": ["behaviors"]
                 },
                 {
                     "id": "rock",
@@ -400,7 +399,7 @@ class TestBehaviorsLoading(unittest.TestCase):
         potion = state.get_item("potion")
         rock = state.get_item("rock")
 
-        self.assertIn("behaviors:on_drink", potion.behaviors)
+        self.assertIn("behaviors", potion.behaviors)
         self.assertEqual(rock.behaviors, [])
 
 
@@ -426,7 +425,7 @@ class TestBehaviorsAndOtherFields(unittest.TestCase):
                     "portable": True,
                     "location": "room1",
                     "states": {"lit": False},
-                    "behaviors": ["behaviors:toggle_light"],
+                    "behaviors": ["behaviors"],
                     "provides_light": True
                 }
             ],
@@ -436,7 +435,7 @@ class TestBehaviorsAndOtherFields(unittest.TestCase):
         state = load_game_state(game_data)
         item = state.get_item("lantern")
 
-        self.assertIn("behaviors:toggle_light", item.behaviors)
+        self.assertIn("behaviors", item.behaviors)
         self.assertEqual(item.states["lit"], False)
         self.assertTrue(item.provides_light)
 
@@ -459,7 +458,7 @@ class TestBehaviorsAndOtherFields(unittest.TestCase):
                     "portable": True,
                     "location": "room1",
                     "llm_context": "This is a magical healing potion",
-                    "behaviors": ["behaviors:heal"]
+                    "behaviors": ["behaviors"]
                 }
             ],
             "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
@@ -468,7 +467,7 @@ class TestBehaviorsAndOtherFields(unittest.TestCase):
         state = load_game_state(game_data)
         item = state.get_item("potion")
 
-        self.assertIn("behaviors:heal", item.behaviors)
+        self.assertIn("behaviors", item.behaviors)
         self.assertEqual(item.llm_context, "This is a magical healing potion")
 
 

@@ -5,7 +5,7 @@ All non-structural fields go into the properties dict.
 """
 import json
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 from pathlib import Path
 
 from src.types import LocationId, ActorId, ItemId, LockId, PartId, ExitId
@@ -28,16 +28,16 @@ class ContainerInfo:
     def __init__(self, data: Dict[str, Any]):
         self._data = data
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(self._data)
 
     @property
     def is_surface(self) -> bool:
-        return self._data.get("is_surface", False)
+        return bool(self._data.get("is_surface", False))
 
     @property
     def open(self) -> bool:
-        return self._data.get("open", False)
+        return bool(self._data.get("open", False))
 
     @open.setter
     def open(self, value: bool) -> None:
@@ -45,10 +45,41 @@ class ContainerInfo:
 
     @property
     def capacity(self) -> int:
-        return self._data.get("capacity", 0)
+        return int(self._data.get("capacity", 0))
 
     def get(self, key: str, default: Any = None) -> Any:
         return self._data.get(key, default)
+
+
+def _parse_behaviors(raw_behaviors: Any, entity_label: str) -> List[str]:
+    """
+    Ensure behaviors are a list of module strings (no legacy dict or function suffixes).
+
+    Args:
+        raw_behaviors: Behaviors value from JSON
+        entity_label: Identifier for error messages (e.g., item id)
+    """
+    if raw_behaviors in (None, False, "", 0):
+        return []
+
+    if not isinstance(raw_behaviors, list):
+        raise ValueError(f"Behaviors for {entity_label} must be a list of modules.")
+
+    modules: List[str] = []
+    for ref in raw_behaviors:
+        if not isinstance(ref, str):
+            raise ValueError(f"Behaviors for {entity_label} must contain only strings.")
+        if ":" in ref:
+            raise ValueError(
+                f"Behaviors for {entity_label} must be module paths only, not 'module:function'."
+            )
+        ref = ref.strip()
+        if not ref:
+            continue
+        if ref not in modules:
+            modules.append(ref)
+
+    return modules
 
 
 # Dataclasses
@@ -60,16 +91,30 @@ class Metadata:
     description: str = ""
     start_location: str = ""
     author: str = ""
+    extra_turn_phases: List[str] = field(default_factory=list)
 
 
 @dataclass
 class ExitDescriptor:
-    """Exit descriptor for location connections."""
+    """Exit descriptor for location connections.
+
+    For exits with both a door and a passage (e.g., door leading to stairs),
+    use the passage and door_at fields to enable proper traversal narration:
+
+    - passage: Name of traversal structure beyond the door (e.g., "narrow stairs")
+    - door_at: Location ID where the door is physically located
+
+    When traversing, the message order depends on which end you're at:
+    - If at door_at location: "go through door and climb stairs"
+    - If at other end: "descend stairs and go through door"
+    """
     type: str  # "open" or "door"
     to: Optional[LocationId] = None
     door_id: Optional[ItemId] = None
     name: str = ""  # User-facing name e.g. "spiral staircase", "stone archway"
     description: str = ""  # Prose description for examine
+    passage: Optional[str] = None  # Traversal structure beyond door (e.g., "narrow stairs")
+    door_at: Optional[LocationId] = None  # Which end the door is at
     properties: Dict[str, Any] = field(default_factory=dict)
     behaviors: List[str] = field(default_factory=list)
     # Internal fields for id synthesis - set by parser
@@ -88,7 +133,7 @@ class ExitDescriptor:
         """Access states dict within properties."""
         if "states" not in self.properties:
             self.properties["states"] = {}
-        return self.properties["states"]
+        return cast(Dict[str, Any], self.properties["states"])
 
     @states.setter
     def states(self, value: Dict[str, Any]) -> None:
@@ -98,7 +143,7 @@ class ExitDescriptor:
     @property
     def llm_context(self) -> Optional[Dict[str, Any]]:
         """Access llm_context from properties."""
-        return self.properties.get("llm_context")
+        return cast(Optional[Dict[str, Any]], self.properties.get("llm_context"))
 
     @llm_context.setter
     def llm_context(self, value: Optional[Dict[str, Any]]) -> None:
@@ -122,7 +167,7 @@ class Location:
         """Access states dict within properties."""
         if "states" not in self.properties:
             self.properties["states"] = {}
-        return self.properties["states"]
+        return cast(Dict[str, Any], self.properties["states"])
 
     @states.setter
     def states(self, value: Dict[str, Any]) -> None:
@@ -132,7 +177,7 @@ class Location:
     @property
     def llm_context(self) -> Optional[Dict[str, Any]]:
         """Access llm_context from properties."""
-        return self.properties.get("llm_context")
+        return cast(Optional[Dict[str, Any]], self.properties.get("llm_context"))
 
     @llm_context.setter
     def llm_context(self, value: Optional[Dict[str, Any]]) -> None:
@@ -155,7 +200,7 @@ class Item:
         """Access states dict within properties."""
         if "states" not in self.properties:
             self.properties["states"] = {}
-        return self.properties["states"]
+        return cast(Dict[str, Any], self.properties["states"])
 
     @states.setter
     def states(self, value: Dict[str, Any]) -> None:
@@ -165,7 +210,7 @@ class Item:
     @property
     def portable(self) -> bool:
         """Access portable from properties."""
-        return self.properties.get("portable", False)
+        return bool(self.properties.get("portable", False))
 
     @portable.setter
     def portable(self, value: bool) -> None:
@@ -175,7 +220,7 @@ class Item:
     @property
     def pushable(self) -> bool:
         """Access pushable from properties."""
-        return self.properties.get("pushable", False)
+        return bool(self.properties.get("pushable", False))
 
     @pushable.setter
     def pushable(self, value: bool) -> None:
@@ -185,7 +230,7 @@ class Item:
     @property
     def provides_light(self) -> bool:
         """Access provides_light from properties."""
-        return self.properties.get("provides_light", False)
+        return bool(self.properties.get("provides_light", False))
 
     @provides_light.setter
     def provides_light(self, value: bool) -> None:
@@ -206,7 +251,7 @@ class Item:
     @property
     def llm_context(self) -> Optional[Dict[str, Any]]:
         """Access llm_context from properties."""
-        return self.properties.get("llm_context")
+        return cast(Optional[Dict[str, Any]], self.properties.get("llm_context"))
 
     @llm_context.setter
     def llm_context(self, value: Optional[Dict[str, Any]]) -> None:
@@ -222,8 +267,8 @@ class Item:
     @property
     def door_open(self) -> bool:
         """Get door open state. Returns False if not a door."""
-        door_props = self.properties.get("door", {})
-        return door_props.get("open", False)
+        door_props = cast(Dict[str, Any], self.properties.get("door", {}))
+        return bool(door_props.get("open", False))
 
     @door_open.setter
     def door_open(self, value: bool) -> None:
@@ -235,8 +280,8 @@ class Item:
     @property
     def door_locked(self) -> bool:
         """Get door locked state. Returns False if not a door."""
-        door_props = self.properties.get("door", {})
-        return door_props.get("locked", False)
+        door_props = cast(Dict[str, Any], self.properties.get("door", {}))
+        return bool(door_props.get("locked", False))
 
     @door_locked.setter
     def door_locked(self, value: bool) -> None:
@@ -248,8 +293,9 @@ class Item:
     @property
     def door_lock_id(self) -> Optional[str]:
         """Get door's lock ID. Returns None if not a door or no lock."""
-        door_props = self.properties.get("door", {})
-        return door_props.get("lock_id")
+        door_props = cast(Dict[str, Any], self.properties.get("door", {}))
+        lock_id = door_props.get("lock_id")
+        return cast(Optional[str], lock_id)
 
 
 @dataclass
@@ -264,7 +310,7 @@ class Lock:
     @property
     def opens_with(self) -> List[ItemId]:
         """Access opens_with from properties."""
-        return self.properties.get("opens_with", [])
+        return cast(List[ItemId], self.properties.get("opens_with", []))
 
     @opens_with.setter
     def opens_with(self, value: List[str]) -> None:
@@ -274,7 +320,7 @@ class Lock:
     @property
     def auto_unlock(self) -> bool:
         """Access auto_unlock from properties."""
-        return self.properties.get("auto_unlock", False)
+        return bool(self.properties.get("auto_unlock", False))
 
     @auto_unlock.setter
     def auto_unlock(self, value: bool) -> None:
@@ -284,7 +330,7 @@ class Lock:
     @property
     def llm_context(self) -> Optional[Dict[str, Any]]:
         """Access llm_context from properties."""
-        return self.properties.get("llm_context")
+        return cast(Optional[Dict[str, Any]], self.properties.get("llm_context"))
 
     @llm_context.setter
     def llm_context(self, value: Optional[Dict[str, Any]]) -> None:
@@ -296,7 +342,7 @@ class Lock:
         """Access states dict within properties."""
         if "states" not in self.properties:
             self.properties["states"] = {}
-        return self.properties["states"]
+        return cast(Dict[str, Any], self.properties["states"])
 
     @states.setter
     def states(self, value: Dict[str, Any]) -> None:
@@ -318,7 +364,7 @@ class Part:
         """Access states dict within properties."""
         if "states" not in self.properties:
             self.properties["states"] = {}
-        return self.properties["states"]
+        return cast(Dict[str, Any], self.properties["states"])
 
     @states.setter
     def states(self, value: Dict[str, Any]) -> None:
@@ -328,7 +374,7 @@ class Part:
     @property
     def llm_context(self) -> Optional[Dict[str, Any]]:
         """Access llm_context from properties."""
-        return self.properties.get("llm_context")
+        return cast(Optional[Dict[str, Any]], self.properties.get("llm_context"))
 
     @llm_context.setter
     def llm_context(self, value: Optional[Dict[str, Any]]) -> None:
@@ -352,7 +398,7 @@ class Actor:
         """Access stats dict within properties."""
         if "stats" not in self.properties:
             self.properties["stats"] = {}
-        return self.properties["stats"]
+        return cast(Dict[str, Any], self.properties["stats"])
 
     @stats.setter
     def stats(self, value: Dict[str, Any]) -> None:
@@ -364,7 +410,7 @@ class Actor:
         """Access flags dict within properties."""
         if "flags" not in self.properties:
             self.properties["flags"] = {}
-        return self.properties["flags"]
+        return cast(Dict[str, Any], self.properties["flags"])
 
     @flags.setter
     def flags(self, value: Dict[str, Any]) -> None:
@@ -376,7 +422,7 @@ class Actor:
         """Access states dict within properties."""
         if "states" not in self.properties:
             self.properties["states"] = {}
-        return self.properties["states"]
+        return cast(Dict[str, Any], self.properties["states"])
 
     @states.setter
     def states(self, value: Dict[str, Any]) -> None:
@@ -386,7 +432,7 @@ class Actor:
     @property
     def llm_context(self) -> Optional[Dict[str, Any]]:
         """Access llm_context from properties."""
-        return self.properties.get("llm_context")
+        return cast(Optional[Dict[str, Any]], self.properties.get("llm_context"))
 
     @llm_context.setter
     def llm_context(self, value: Optional[Dict[str, Any]]) -> None:
@@ -449,17 +495,24 @@ class GameState:
                 return lock
         raise KeyError(f"Lock not found: {lock_id}")
 
-    def move_item(self, item_id: ItemId, to_player: bool = False,
+    def move_item(self, item_id: ItemId, to_actor: Optional[ActorId] = None,
                   to_location: Optional[LocationId] = None, to_container: Optional[ItemId] = None) -> None:
-        """Move item to new location."""
+        """Move item to new location.
+
+        Args:
+            item_id: The item to move
+            to_actor: Actor ID to move item to (adds to their inventory)
+            to_location: Location ID to move item to
+            to_container: Container item ID to move item into
+        """
         item = self.get_item(item_id)
         old_location = item.location
-        player = self.actors.get(ActorId("player"))
 
-        # Remove from old location
-        if old_location == "player" and player:
-            if item_id in player.inventory:
-                player.inventory.remove(item_id)
+        # Remove from old location - check if it's in any actor's inventory
+        for actor in self.actors.values():
+            if item_id in actor.inventory:
+                actor.inventory.remove(item_id)
+                break
         else:
             # Check if it's in a location
             for loc in self.locations:
@@ -468,10 +521,12 @@ class GameState:
                     break
 
         # Add to new location
-        if to_player:
-            item.location = "player"
-            if player and item_id not in player.inventory:
-                player.inventory.append(item_id)
+        if to_actor:
+            target_actor = self.actors.get(to_actor)
+            if target_actor:
+                item.location = to_actor
+                if item_id not in target_actor.inventory:
+                    target_actor.inventory.append(item_id)
         elif to_location:
             item.location = to_location
             loc = self.get_location(to_location)
@@ -480,25 +535,48 @@ class GameState:
         elif to_container:
             item.location = to_container
 
-    def set_player_location(self, location_id: LocationId) -> None:
-        """Set player's current location."""
-        player = self.actors.get(ActorId("player"))
-        if player:
-            player.location = location_id
+    def set_actor_location(self, location_id: LocationId, actor_id: ActorId = ActorId("player")) -> None:
+        """Set an actor's current location.
 
-    def set_flag(self, flag_name: str, value: Any) -> None:
-        """Set a player flag."""
-        player = self.actors.get(ActorId("player"))
-        if player:
-            if "flags" not in player.properties:
-                player.properties["flags"] = {}
-            player.properties["flags"][flag_name] = value
+        Args:
+            location_id: The location to move the actor to
+            actor_id: The actor to move (defaults to "player")
+        """
+        actor = self.actors.get(actor_id)
+        if actor:
+            actor.location = location_id
 
-    def get_flag(self, flag_name: str, default: Any = None) -> Any:
-        """Get a player flag."""
-        player = self.actors.get(ActorId("player"))
-        if player:
-            flags = player.properties.get("flags", {})
+    def set_actor_flag(self, flag_name: str, value: Any, actor_id: ActorId = ActorId("player")) -> None:
+        """Set a flag on an actor.
+
+        Flags are stored in actor.properties["flags"] and persist across saves.
+        Used for tracking game progression, quest states, etc.
+
+        Args:
+            flag_name: Name of the flag to set
+            value: Value to set
+            actor_id: The actor to set the flag on (defaults to "player")
+        """
+        actor = self.actors.get(actor_id)
+        if actor:
+            if "flags" not in actor.properties:
+                actor.properties["flags"] = {}
+            actor.properties["flags"][flag_name] = value
+
+    def get_actor_flag(self, flag_name: str, default: Any = None, actor_id: ActorId = ActorId("player")) -> Any:
+        """Get a flag value from an actor.
+
+        Args:
+            flag_name: Name of the flag to get
+            default: Default value if flag not set
+            actor_id: The actor to get the flag from (defaults to "player")
+
+        Returns:
+            The flag value, or default if not set
+        """
+        actor = self.actors.get(actor_id)
+        if actor:
+            flags = actor.properties.get("flags", {})
             return flags.get(flag_name, default)
         return default
 
@@ -511,8 +589,11 @@ class GameState:
         return self.turn_count
 
     def build_id_registry(self) -> Dict[str, str]:
-        """Build registry of all entity IDs to their types."""
-        registry = {"player": "player"}
+        """Build registry of all entity IDs to their types.
+
+        All actors (including the one with id "player") are registered as "actor".
+        """
+        registry: Dict[str, str] = {}
 
         for loc in self.locations:
             registry[loc.id] = "location"
@@ -523,9 +604,8 @@ class GameState:
                 registry[item.id] = "item"
         for lock in self.locks:
             registry[lock.id] = "lock"
-        for actor_id, actor in self.actors.items():
-            if actor_id != "player":
-                registry[actor_id] = "npc"
+        for actor_id in self.actors:
+            registry[actor_id] = "actor"
 
         return registry
 
@@ -539,10 +619,11 @@ def _parse_exit(direction: str, raw: Dict[str, Any], location_id: str = "") -> E
         raw: The exit data dict
         location_id: The parent location's ID (for synthesized exit id)
     """
-    core_fields = {'type', 'to', 'door_id', 'name', 'description', 'behaviors'}
+    core_fields = {'type', 'to', 'door_id', 'name', 'description', 'passage', 'door_at', 'behaviors'}
 
     to_loc = raw.get('to')
     door = raw.get('door_id')
+    door_at = raw.get('door_at')
 
     return ExitDescriptor(
         type=raw.get('type', 'open'),
@@ -550,8 +631,10 @@ def _parse_exit(direction: str, raw: Dict[str, Any], location_id: str = "") -> E
         door_id=ItemId(door) if door else None,
         name=raw.get('name', direction),  # Default to direction if no name
         description=raw.get('description', ''),
+        passage=raw.get('passage'),
+        door_at=LocationId(door_at) if door_at else None,
         properties=_parse_properties(raw, core_fields),
-        behaviors=raw.get('behaviors', []),
+        behaviors=_parse_behaviors(raw.get('behaviors', []), f"exit:{location_id}:{direction}"),
         _direction=direction,
         _location_id=LocationId(location_id) if location_id else LocationId("")
     )
@@ -570,8 +653,7 @@ def _parse_location(raw: Dict[str, Any]) -> Location:
     for direction, exit_data in raw.get('exits', {}).items():
         exits[direction] = _parse_exit(direction, exit_data, location_id)
 
-    # Parse behaviors - keep as-is (supports both dict and list)
-    behaviors = raw.get('behaviors', [])
+    behaviors = _parse_behaviors(raw.get('behaviors', []), f"location:{location_id}")
     items = raw.get('items', [])
 
     return Location(
@@ -611,8 +693,7 @@ def _parse_item(raw: Dict[str, Any]) -> Item:
     """Parse item from JSON dict."""
     core_fields = {'id', 'name', 'description', 'location', 'behaviors'}
 
-    # Parse behaviors - keep as-is (supports both dict and list)
-    behaviors = raw.get('behaviors', [])
+    behaviors = _parse_behaviors(raw.get('behaviors', []), f"item:{raw.get('id', '')}")
 
     return Item(
         id=ItemId(raw['id']),
@@ -634,7 +715,7 @@ def _parse_lock(raw: Dict[str, Any]) -> Lock:
         name=raw.get('name', lock_id),  # Default to id if no name
         description=raw.get('description', ''),
         properties=_parse_properties(raw, core_fields),
-        behaviors=raw.get('behaviors', [])
+        behaviors=_parse_behaviors(raw.get('behaviors', []), f"lock:{lock_id}")
     )
 
 
@@ -662,7 +743,7 @@ def _parse_actor(raw: Dict[str, Any], actor_id: Optional[str] = None) -> Actor:
         location=LocationId(location) if location else LocationId(""),
         inventory=[ItemId(i) for i in inventory],
         properties=_parse_properties(raw, core_fields),
-        behaviors=raw.get('behaviors', [])
+        behaviors=_parse_behaviors(raw.get('behaviors', []), f"actor:{effective_id}")
     )
 
 
@@ -673,7 +754,8 @@ def _parse_metadata(raw: Dict[str, Any]) -> Metadata:
         version=raw.get('version', ''),
         description=raw.get('description', ''),
         start_location=raw.get('start_location', ''),
-        author=raw.get('author', '')
+        author=raw.get('author', ''),
+        extra_turn_phases=raw.get('extra_turn_phases', [])
     )
 
 
@@ -690,8 +772,13 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
         with open(path, 'r') as f:
             data = json.load(f)
 
-    # Parse metadata
+    # Parse metadata and enforce minimum version
     metadata = _parse_metadata(data.get('metadata', {}))
+    if metadata.version and metadata.version < "0.04":
+        raise ValueError(
+            f"game_state version {metadata.version} is unsupported; "
+            "please migrate to version 0.04 or later."
+        )
 
     # Parse locations
     locations = [_parse_location(loc) for loc in data.get('locations', [])]
@@ -710,7 +797,7 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
             name=part_data['name'],
             part_of=part_data['part_of'],  # Keep as str - can be various ID types
             properties=part_data.get('properties', {}),
-            behaviors=part_data.get('behaviors', [])
+            behaviors=_parse_behaviors(part_data.get('behaviors', []), f"part:{part_data.get('id', '')}")
         )
         parts.append(part)
 
@@ -746,7 +833,7 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
 
 # Serializers
 def _serialize_entity(
-    entity,
+    entity: Any,
     required_fields: List[str],
     optional_fields: Optional[List[str]] = None
 ) -> Dict[str, Any]:
@@ -760,7 +847,7 @@ def _serialize_entity(
     Returns:
         Dict with fields, merged properties, and behaviors (if present)
     """
-    result = {}
+    result: Dict[str, Any] = {}
 
     # Add required fields
     for field in required_fields:
@@ -787,7 +874,7 @@ def _serialize_exit(exit_desc: ExitDescriptor) -> Dict[str, Any]:
     return _serialize_entity(
         exit_desc,
         required_fields=['type'],
-        optional_fields=['to', 'door_id', 'name', 'description']
+        optional_fields=['to', 'door_id', 'name', 'description', 'passage', 'door_at']
     )
 
 

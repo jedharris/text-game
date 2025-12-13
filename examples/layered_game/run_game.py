@@ -78,7 +78,7 @@ def main():
     merged_vocab = build_merged_vocabulary(game_state, behavior_manager, base_vocab=base_vocab)
 
     # Initialize parser and protocol handler directly from in-memory vocabulary
-    parser = Parser(merged_vocab)
+    parser = Parser.from_vocab(merged_vocab)
     protocol_handler = LLMProtocolHandler(game_state, behavior_manager=behavior_manager)
 
     # Main game loop

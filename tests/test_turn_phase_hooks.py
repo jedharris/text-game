@@ -58,6 +58,9 @@ class TestTurnPhaseFiring(unittest.TestCase):
         self.mock_state.items = []
         self.mock_state.locations = []
         self.mock_state.locks = []
+        # Mock metadata with extra_turn_phases (empty by default)
+        self.mock_state.metadata = Mock()
+        self.mock_state.metadata.extra_turn_phases = []
 
         # Create mock behavior manager
         self.mock_behavior_manager = Mock(spec=BehaviorManager)

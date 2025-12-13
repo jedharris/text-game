@@ -86,10 +86,10 @@ class TestSimplifiedItem(unittest.TestCase):
             name="Torch",
             description="A torch",
             location="loc_1",
-            behaviors={"on_take": "core.items:on_take_torch"}
+            behaviors=["core.items"]
         )
 
-        self.assertEqual(item.behaviors["on_take"], "core.items:on_take_torch")
+        self.assertEqual(item.behaviors, ["core.items"])
 
 
 class TestSimplifiedLocation(unittest.TestCase):
@@ -683,7 +683,7 @@ class TestGenericLoader(unittest.TestCase):
                     "name": "Iron Lock",
                     "description": "A sturdy iron lock",
                     "opens_with": ["key_1"],
-                    "behaviors": ["core:lock"],
+                    "behaviors": ["core"],
                     "fail_message": "Won't budge"
                 }
             ]
@@ -696,7 +696,7 @@ class TestGenericLoader(unittest.TestCase):
         self.assertEqual(lock.id, "lock_1")
         self.assertEqual(lock.name, "Iron Lock")
         self.assertEqual(lock.description, "A sturdy iron lock")
-        self.assertEqual(lock.behaviors, ["core:lock"])
+        self.assertEqual(lock.behaviors, ["core"])
 
         # Properties (accessed via accessor)
         self.assertEqual(lock.opens_with, ["key_1"])
@@ -751,7 +751,7 @@ class TestGenericLoader(unittest.TestCase):
                 "name": "Torch",
                 "description": "A torch",
                 "location": "loc_1",
-                "behaviors": {"on_take": "core.items:on_take"}
+                "behaviors": ["core.items"]
             }]
         )
 
@@ -763,7 +763,7 @@ class TestGenericLoader(unittest.TestCase):
             state = load_game_state(temp_path)
             item = state.items[0]
 
-            self.assertEqual(item.behaviors["on_take"], "core.items:on_take")
+            self.assertEqual(item.behaviors, ["core.items"])
         finally:
             os.unlink(temp_path)
 
@@ -822,7 +822,7 @@ class TestGenericSerializer(unittest.TestCase):
             name="Torch",
             description="A torch",
             location="loc_1",
-            behaviors={"on_take": "core.items:on_take"}
+            behaviors=["core.items"]
         )
 
         state = GameState(
@@ -834,7 +834,24 @@ class TestGenericSerializer(unittest.TestCase):
         result = game_state_to_dict(state)
         item_dict = result["items"][0]
 
-        self.assertEqual(item_dict["behaviors"]["on_take"], "core.items:on_take")
+        self.assertEqual(item_dict["behaviors"], ["core.items"])
+
+    def test_behaviors_must_be_list(self):
+        """Loader rejects legacy dict/colon behavior formats."""
+        from src.state_manager import load_game_state
+
+        bad_data = make_game_data(
+            items=[{
+                "id": "item_1",
+                "name": "Torch",
+                "description": "A torch",
+                "location": "loc_1",
+                "behaviors": {"on_take": "core.items:on_take"}
+            }]
+        )
+
+        with self.assertRaises(ValueError):
+            load_game_state(bad_data)
 
     def test_serialize_exit_behaviors(self):
         """Exit behaviors preserved in serialized output."""
@@ -1076,8 +1093,8 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
         npc = state.get_actor("npc_1")
         self.assertEqual(npc.name, "Guard")
 
-    def test_move_item_to_player(self):
-        """move_item updates item location to player."""
+    def test_move_item_to_actor(self):
+        """move_item updates item location to an actor's inventory."""
         from src.state_manager import (
             GameState, Metadata, Item, Location, Actor
         )
@@ -1092,11 +1109,11 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
                 Item(id="item_1", name="Torch", description="A torch", location="loc_1")
             ],
             actors={
-                "player": Actor(id="player", name="player", description="", location="loc_1", inventory=[])
+                "player": Actor(id="player", name="Player", description="", location="loc_1", inventory=[])
             }
         )
 
-        state.move_item("item_1", to_player=True)
+        state.move_item("item_1", to_actor="player")
 
         item = state.get_item("item_1")
         player = state.actors.get("player")
@@ -1133,8 +1150,8 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
         self.assertIn("item_1", state.locations[1].items)
         self.assertNotIn("item_1", state.locations[0].items)
 
-    def test_set_player_location(self):
-        """set_player_location updates player's location."""
+    def test_set_actor_location(self):
+        """set_actor_location updates any actor's location."""
         from src.state_manager import (
             GameState, Metadata, Location, Actor
         )
@@ -1146,16 +1163,21 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
                 Location(id="loc_2", name="Room 2", description="A room", exits={})
             ],
             actors={
-                "player": Actor(id="player", name="player", description="", location="loc_1", inventory=[])
+                "player": Actor(id="player", name="Player", description="", location="loc_1", inventory=[]),
+                "npc_guard": Actor(id="npc_guard", name="Guard", description="A guard", location="loc_1", inventory=[])
             }
         )
 
-        state.set_player_location("loc_2")
-        player = state.actors.get("player")
-        self.assertEqual(player.location, "loc_2")
+        # Test with default (player)
+        state.set_actor_location("loc_2")
+        self.assertEqual(state.actors["player"].location, "loc_2")
 
-    def test_set_flag_and_get_flag(self):
-        """set_flag and get_flag work with properties."""
+        # Test with explicit actor
+        state.set_actor_location("loc_2", actor_id="npc_guard")
+        self.assertEqual(state.actors["npc_guard"].location, "loc_2")
+
+    def test_set_actor_flag_and_get_actor_flag(self):
+        """set_actor_flag and get_actor_flag work with any actor's properties."""
         from src.state_manager import (
             GameState, Metadata, Actor
         )
@@ -1163,14 +1185,20 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
         state = GameState(
             metadata=Metadata(title="Test", version="1.0", start_location="loc_1"),
             actors={
-                "player": Actor(id="player", name="player", description="", location="loc_1", inventory=[], properties={"flags": {}})
+                "player": Actor(id="player", name="Player", description="", location="loc_1", inventory=[], properties={"flags": {}}),
+                "npc_guard": Actor(id="npc_guard", name="Guard", description="A guard", location="loc_1", inventory=[])
             }
         )
 
-        state.set_flag("test_flag", True)
-        self.assertTrue(state.get_flag("test_flag"))
-        self.assertIsNone(state.get_flag("missing_flag"))
-        self.assertEqual(state.get_flag("missing_flag", "default"), "default")
+        # Test with default (player actor)
+        state.set_actor_flag("test_flag", True)
+        self.assertTrue(state.get_actor_flag("test_flag"))
+        self.assertIsNone(state.get_actor_flag("missing_flag"))
+        self.assertEqual(state.get_actor_flag("missing_flag", "default"), "default")
+
+        # Test with explicit actor
+        state.set_actor_flag("npc_flag", "guard_value", actor_id="npc_guard")
+        self.assertEqual(state.get_actor_flag("npc_flag", actor_id="npc_guard"), "guard_value")
 
     def test_build_id_registry(self):
         """build_id_registry returns all entity IDs."""
@@ -1203,12 +1231,13 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
 
         registry = state.build_id_registry()
 
-        self.assertEqual(registry["player"], "player")
+        # All actors (including "player") are registered as "actor"
+        self.assertEqual(registry["player"], "actor")
         self.assertEqual(registry["loc_1"], "location")
         self.assertEqual(registry["item_1"], "item")
         self.assertEqual(registry["door_1"], "door_item")
         self.assertEqual(registry["lock_1"], "lock")
-        self.assertEqual(registry["npc_1"], "npc")
+        self.assertEqual(registry["npc_1"], "actor")
 
 
 class TestFixtureLoading(unittest.TestCase):

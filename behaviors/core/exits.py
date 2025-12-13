@@ -11,6 +11,7 @@ from src.action_types import ActionDict
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
 from src.hooks import LOCATION_ENTERED
+from src.types import ActorId
 from utilities.utils import find_accessible_item, find_exit_by_name, describe_location
 from utilities.handler_utils import get_display_name, validate_actor_and_location
 from utilities.entity_serializer import serialize_for_handler_result
@@ -103,7 +104,72 @@ vocabulary = {
 }
 
 
-def _perform_exit_movement(accessor, actor, actor_id: str, exit_descriptor, direction: str, verb_phrase: str) -> HandlerResult:
+def _build_movement_message(
+    exit_descriptor,
+    direction: str,
+    destination_name: str,
+    source_location_id: str,
+    verb_phrase: str
+) -> str:
+    """Build the movement message for exit traversal.
+
+    Handles three cases:
+    1. Simple exit (no passage): "You climb the spiral staircase to Tower Room."
+    2. Door + passage, door at source: "You go through the ornate door and
+       climb the narrow stairs to the Sanctum."
+    3. Door + passage, door at destination: "You descend the narrow stairs
+       and go through the ornate door to the Library."
+
+    Args:
+        exit_descriptor: ExitDescriptor object (or plain string for backward compat)
+        direction: Direction being traveled (e.g., "up", "north")
+        destination_name: Name of destination location
+        source_location_id: ID of location being left
+        verb_phrase: Verb phrase from handler (e.g., "go up", "climb the")
+
+    Returns:
+        Movement message string
+    """
+    # Handle plain string destination (backward compatibility)
+    if not hasattr(exit_descriptor, 'name'):
+        return f"You go {direction} to {destination_name}."
+
+    exit_name = exit_descriptor.name or direction
+    passage = getattr(exit_descriptor, 'passage', None)
+    door_at = getattr(exit_descriptor, 'door_at', None)
+
+    # Case 1: No passage - simple exit
+    if not passage:
+        # For door-type exits, say "go through"; for open exits, use verb_phrase
+        if exit_descriptor.type == "door":
+            return f"You go through the {exit_name} to {destination_name}."
+        else:
+            return f"You {verb_phrase} {exit_name} to {destination_name}."
+
+    # Case 2 & 3: Door + passage
+    # Determine traversal verb based on direction
+    if direction in ("up",):
+        passage_verb = "climb"
+    elif direction in ("down",):
+        passage_verb = "descend"
+    else:
+        passage_verb = "traverse"
+
+    if door_at == source_location_id:
+        # Door at source: door first, then passage
+        return (
+            f"You go through the {exit_name} and {passage_verb} the {passage} "
+            f"to {destination_name}."
+        )
+    else:
+        # Door at destination: passage first, then door
+        return (
+            f"You {passage_verb} the {passage} and go through the {exit_name} "
+            f"to {destination_name}."
+        )
+
+
+def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_descriptor, direction: str, verb_phrase: str) -> HandlerResult:
     """
     Generic exit movement handler for go, climb, and similar movement verbs.
 
@@ -151,6 +217,9 @@ def _perform_exit_movement(accessor, actor, actor_id: str, exit_descriptor, dire
             message=f"INCONSISTENT STATE: Destination {destination_id} not found"
         )
 
+    # Capture source location before updating
+    source_location_id = actor.location
+
     # Update actor location
     result = accessor.update(actor, {"location": destination_id})
 
@@ -172,9 +241,10 @@ def _perform_exit_movement(accessor, actor, actor_id: str, exit_descriptor, dire
             on_enter_message = behavior_result.message
 
     # Build message with movement and auto-look
-    # Use exit name if available, otherwise direction
-    exit_name = exit_descriptor.name if hasattr(exit_descriptor, 'name') and exit_descriptor.name else direction
-    message_parts = [f"You {verb_phrase} {exit_name} to {destination.name}.\n"]
+    movement_msg = _build_movement_message(
+        exit_descriptor, direction, destination.name, source_location_id, verb_phrase
+    )
+    message_parts = [f"{movement_msg}\n"]
 
     # Add on_enter message if present
     if on_enter_message:

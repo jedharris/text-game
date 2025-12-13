@@ -20,7 +20,14 @@ VISIBILITY_CHECK = "visibility_check"
 
 # Turn phase hooks (fire after successful player command)
 # These hooks fire in order after each successful command to progress game time.
+# Base phases (always present):
 NPC_ACTION = "npc_action"
 ENVIRONMENTAL_EFFECT = "environmental_effect"
 CONDITION_TICK = "condition_tick"
 DEATH_CHECK = "death_check"
+
+# Infrastructure turn phases (fire before base phases when declared by game)
+TURN_PHASE_SCHEDULED = "turn_phase_scheduled"
+TURN_PHASE_COMMITMENT = "turn_phase_commitment"
+TURN_PHASE_GOSSIP = "turn_phase_gossip"
+TURN_PHASE_SPREAD = "turn_phase_spread"

@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "Actor Interaction Test Game",
-    "version": "1.0",
+    "version": "0.04",
     "description": "Test game for actor interaction integration tests (UC1-UC8).",
     "start_location": "loc_central_hub",
     "author": "Actor Interaction Tests",
@@ -65,7 +65,9 @@
           "description": "Stone stairs descend into a dark basement."
         }
       },
-      "items": ["item_silvermoss"],
+      "items": [
+        "item_silvermoss"
+      ],
       "tags": []
     },
     {
@@ -82,7 +84,10 @@
       },
       "items": [],
       "tags": [],
-      "parts": ["part_basement_entrance", "part_basement_center"]
+      "parts": [
+        "part_basement_entrance",
+        "part_basement_center"
+      ]
     },
     {
       "id": "loc_forest_clearing",
@@ -108,7 +113,9 @@
           "description": "A dirt road leads south through the forest."
         }
       },
-      "items": ["item_venison"],
+      "items": [
+        "item_venison"
+      ],
       "tags": []
     },
     {
@@ -144,7 +151,9 @@
           "description": "A rope ladder descends into the water below."
         }
       },
-      "items": ["item_air_bladder"],
+      "items": [
+        "item_air_bladder"
+      ],
       "tags": []
     },
     {
@@ -161,7 +170,10 @@
       },
       "items": [],
       "tags": [],
-      "parts": ["part_underwater_shallow", "part_underwater_deep"]
+      "parts": [
+        "part_underwater_shallow",
+        "part_underwater_deep"
+      ]
     },
     {
       "id": "loc_temple_entrance",
@@ -181,7 +193,9 @@
           "description": "A dark passage leads south into the temple sanctum."
         }
       },
-      "items": ["item_rusty_sword"],
+      "items": [
+        "item_rusty_sword"
+      ],
       "tags": []
     },
     {
@@ -196,9 +210,14 @@
           "description": "A passage leads north back to the entrance."
         }
       },
-      "items": ["item_stone_pillar"],
+      "items": [
+        "item_stone_pillar"
+      ],
       "tags": [],
-      "parts": ["part_sanctum_center", "part_sanctum_alcove"]
+      "parts": [
+        "part_sanctum_center",
+        "part_sanctum_alcove"
+      ]
     },
     {
       "id": "loc_garden",
@@ -218,7 +237,10 @@
           "description": "A wooden door leads into the healer's hut."
         }
       },
-      "items": ["item_nightshade", "item_healing_herb"],
+      "items": [
+        "item_nightshade",
+        "item_healing_herb"
+      ],
       "tags": []
     },
     {
@@ -254,7 +276,9 @@
           "description": "The road continues south toward the town."
         }
       },
-      "items": ["item_bandages"],
+      "items": [
+        "item_bandages"
+      ],
       "tags": []
     },
     {
@@ -275,7 +299,9 @@
           "description": "A dark tunnel leads east into an abandoned mine."
         }
       },
-      "items": ["item_torch"],
+      "items": [
+        "item_torch"
+      ],
       "tags": []
     },
     {
@@ -298,7 +324,10 @@
       },
       "items": [],
       "tags": [],
-      "parts": ["part_gallery_entrance", "part_gallery_nest"]
+      "parts": [
+        "part_gallery_entrance",
+        "part_gallery_nest"
+      ]
     },
     {
       "id": "loc_main_hall",
@@ -312,7 +341,9 @@
           "description": "Stone stairs lead back up to the spider gallery."
         }
       },
-      "items": ["item_stone_chisel"],
+      "items": [
+        "item_stone_chisel"
+      ],
       "tags": []
     }
   ],
@@ -404,7 +435,9 @@
       "properties": {
         "type": "plant",
         "portable": true,
-        "cures": ["fungal_infection"],
+        "cures": [
+          "fungal_infection"
+        ],
         "cure_amount": 100,
         "consumable": true
       }
@@ -417,7 +450,9 @@
       "properties": {
         "type": "food",
         "portable": true,
-        "satisfies": ["hunger"],
+        "satisfies": [
+          "hunger"
+        ],
         "consumable": true
       }
     },
@@ -482,7 +517,10 @@
         "type": "plant",
         "portable": true,
         "description_with_herbalism": "Calendula, an excellent wound healer. Apply as a poultice for best effect.",
-        "cures": ["contact_poison", "bleeding"],
+        "cures": [
+          "contact_poison",
+          "bleeding"
+        ],
         "cure_amount": 50,
         "consumable": true
       }
@@ -506,7 +544,9 @@
       "properties": {
         "type": "medical",
         "portable": true,
-        "treats": ["bleeding"],
+        "treats": [
+          "bleeding"
+        ],
         "treatment_amount": 100,
         "consumable": true
       }
@@ -543,7 +583,9 @@
       "properties": {
         "type": "tool",
         "portable": true,
-        "repairs": ["construct"],
+        "repairs": [
+          "construct"
+        ],
         "repair_amount": 30
       }
     }
@@ -605,7 +647,9 @@
         "disposition": "hostile",
         "pack_id": "wolf_pack",
         "pack_role": "alpha",
-        "needs": ["hunger"],
+        "needs": [
+          "hunger"
+        ],
         "flee_threshold": 20,
         "flee_destination": "loc_wolf_den"
       }
@@ -625,7 +669,9 @@
         "disposition": "hostile",
         "pack_id": "wolf_pack",
         "pack_role": "follower",
-        "needs": ["hunger"],
+        "needs": [
+          "hunger"
+        ],
         "flee_threshold": 30
       }
     },
@@ -644,7 +690,9 @@
         "disposition": "hostile",
         "pack_id": "wolf_pack",
         "pack_role": "follower",
-        "needs": ["hunger"],
+        "needs": [
+          "hunger"
+        ],
         "flee_threshold": 35
       }
     },
@@ -768,17 +816,23 @@
         "disposition": "friendly",
         "services": {
           "cure": {
-            "accepts": ["gold"],
+            "accepts": [
+              "gold"
+            ],
             "amount_required": 5,
             "cure_amount": 100
           },
           "teach_herbalism": {
-            "accepts": ["gold"],
+            "accepts": [
+              "gold"
+            ],
             "amount_required": 8,
             "grants": "herbalism"
           },
           "heal": {
-            "accepts": ["gold"],
+            "accepts": [
+              "gold"
+            ],
             "amount_required": 3,
             "restore_amount": 50
           }
@@ -790,7 +844,9 @@
       "name": "Injured Merchant",
       "description": "A portly man in traveling clothes, bleeding from a wound on his arm. He looks grateful for any help.",
       "location": "loc_forest_road",
-      "inventory": ["item_merchant_pouch"],
+      "inventory": [
+        "item_merchant_pouch"
+      ],
       "flags": {},
       "stats": {},
       "states": {},
@@ -808,7 +864,9 @@
         "following": null,
         "services": {
           "trade": {
-            "accepts": ["gold"],
+            "accepts": [
+              "gold"
+            ],
             "amount_required": 1,
             "trades_for": "common_goods"
           }

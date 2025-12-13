@@ -1,0 +1,857 @@
+{
+  "region": "frozen_reaches",
+  "version": "0.2",
+  "type": "light_sketch",
+  "description": "A mountain region where the disaster caused perpetual winter. Emphasizes temperature survival, puzzle-solving over combat, and ancient mysteries. No time pressure - rewards methodical exploration.",
+  "theme": "endurance, ancient secrets, warmth as precious resource, preparation over urgency",
+
+  "design_philosophy": {
+    "contrast_with_other_regions": "Unlike Sunken District's frantic dual-rescue and Beast Wilds' commitment-driven urgency, Frozen Reaches rewards patient exploration. No dying NPCs. The salamanders are fine without player help.",
+    "environmental_pressure": "Cold creates tension and resource management without time limits. Hot Springs provide sanctuary for planning.",
+    "puzzle_over_combat": "Golem encounters have multiple peaceful solutions. Combat IS possible but deliberately punishing - 'hard mode' for players who insist.",
+    "telescope_as_reward": "Completing the telescope provides strategic information about ALL other regions, creating value for players who explore here first.",
+    "salamander_gear_choice": "The Frozen Observatory requires either the cold resistance cloak OR a salamander companion for survival. This creates a meaningful gear vs companion choice - players who befriend the salamander gain Observatory access without finding the cloak. Cross-region walkthrough B confirmed this creates interesting strategic decision."
+  },
+
+  "locations": {
+    "frozen_pass": {
+      "name": "Frozen Pass",
+      "description": "Entry point through the mountains. Biting cold, but survivable with basic preparation.",
+      "properties": {
+        "lighting": "bright",
+        "temperature": "cold",
+        "hypothermia_rate": 5,
+        "danger_level": "low"
+      },
+      "exits": {
+        "south": "nexus_chamber",
+        "north": "temple_sanctum",
+        "east": "ice_caves",
+        "west": "hot_springs_refuge"
+      },
+      "items": ["cold_weather_gear", "preserved_supplies", "partial_map"],
+      "environmental_storytelling": {
+        "frozen_travelers": "Peaceful faces - they died in their sleep as the cold took them",
+        "abandoned_camp": "Half-buried camp with scattered supplies",
+        "evacuation_signs": "Signs of rushed departure years ago"
+      },
+      "traits": ["biting wind", "snow that doesn't melt", "ice crystals in the air", "impossible silence between gusts"]
+    },
+
+    "hot_springs_refuge": {
+      "name": "Hot Springs Refuge",
+      "description": "Volcanic pocket of warmth amid the frozen wasteland. Safe sanctuary for recovery and planning.",
+      "properties": {
+        "lighting": "dim",
+        "temperature": "normal",
+        "hypothermia_effect": "instant_cure",
+        "healing_zone": true,
+        "safe_zone": true
+      },
+      "exits": {
+        "east": "frozen_pass"
+      },
+      "actors": ["steam_salamander_1", "steam_salamander_2", "steam_salamander_3"],
+      "features": {
+        "hot_springs": {
+          "effect": "Bathing restores health (5 per turn), instantly cures hypothermia",
+          "safe_rest": true
+        }
+      },
+      "traits": ["sulfurous mist", "warmth like an embrace", "multicolored mineral deposits", "lazy steam creature movements"],
+      "design_note": "This serves as the region's 'safe haven' - no time pressure, player can plan and recover. Salamanders provide social element without urgency."
+    },
+
+    "ice_caves": {
+      "name": "Ice Caves",
+      "description": "Natural cave system with treacherous footing and extreme cold. Contains valuable treasures requiring preparation to retrieve.",
+      "properties": {
+        "lighting": "variable",
+        "temperature": "freezing",
+        "hypothermia_rate": 10,
+        "danger_level": "medium"
+      },
+      "sub_locations": {
+        "main_chamber": {
+          "items": ["ice_crystals", "frost_lily"],
+          "description": "Crystal blue walls, breath freezing instantly"
+        },
+        "deep_section": {
+          "items": ["ice_shard", "crystal_lens"],
+          "hazards": ["thin_ice", "ice_bridges", "hidden_crevasses"],
+          "description": "Deeper passages with thin ice over dark water"
+        },
+        "side_passage": {
+          "items": ["control_crystal"],
+          "requires": "thorough exploration to find",
+          "description": "Easy to miss - not on main path"
+        }
+      },
+      "exits": {
+        "west": "frozen_pass"
+      },
+      "traits": ["crystal blue walls", "breath freezing instantly", "cracking sounds underfoot", "beautiful deadly formations"]
+    },
+
+    "temple_sanctum": {
+      "name": "Temple Sanctum",
+      "description": "Ancient temple guarded by Stone Golems. Cold but sheltered from wind.",
+      "properties": {
+        "lighting": "dim",
+        "temperature": "cold",
+        "hypothermia_rate": 2.5,
+        "danger_level": "high (conditional)"
+      },
+      "exits": {
+        "south": "frozen_pass",
+        "up": "frozen_observatory"
+      },
+      "actors": ["stone_golem_1", "stone_golem_2"],
+      "items": ["mounting_bracket", "cold_resistance_cloak", "lore_tablets", "fire_crystal"],
+      "sub_locations": {
+        "main_hall": {
+          "features": ["stone_pillars (cover)", "altar", "wall_inscriptions"],
+          "description": "Two guardians flank the entrance"
+        },
+        "side_chamber": {
+          "items": ["fire_crystal"],
+          "description": "Small alcove, easy to miss during initial panic"
+        }
+      },
+      "cover_system": {
+        "stone_pillars": "80% damage reduction when using as cover",
+        "usage": "Must explicitly use pillar for cover - not automatic"
+      },
+      "guardian_behavior": {
+        "territorial": "Guardians don't leave temple",
+        "threshold_pause": "Guardians won't attack player standing in doorway - allows observation",
+        "activation": "Triggered by entering main hall without password/offering/crystal"
+      },
+      "traits": ["ancient carved stone faces", "glowing runes in geometric patterns", "grinding stone sounds", "eternal vigilance"]
+    },
+
+    "frozen_observatory": {
+      "name": "Frozen Observatory",
+      "description": "High peak with clear view of all regions. Extreme cold limits exposure time.",
+      "properties": {
+        "lighting": "bright",
+        "temperature": "extreme_cold",
+        "hypothermia_rate": 20,
+        "danger_level": "environmental"
+      },
+      "exits": {
+        "down": "temple_sanctum"
+      },
+      "items": ["ancient_telescope_frame"],
+      "features": {
+        "ancient_telescope": {
+          "status": "damaged",
+          "repair_requirements": ["crystal_lens", "mounting_bracket", "cleaning_supplies"],
+          "component_sources": {
+            "crystal_lens": "Ice Caves (frozen in wall, requires heat to extract)",
+            "mounting_bracket": "Temple Sanctum (on altar)",
+            "cleaning_supplies": "Meridian Nexus (Keeper's Quarters)"
+          },
+          "when_repaired": {
+            "reveals": [
+              "NPC states in all regions (Aldric's campfire burning, Sira injured on trail, tapping from Delvan's building, movement in Garrett's caves)",
+              "Spore Mother's health status",
+              "Waystone repair requirements (five slots, one per region)",
+              "Hidden paths not visible from ground"
+            ],
+            "global_effect": "Cold spread prevented",
+            "crystal_garden": "+1 progress"
+          }
+        },
+        "view": "Can see all regions even without telescope - Nexus, forests, water, fungal glow, distant smoke"
+      },
+      "time_limits": {
+        "without_protection": "5 turns before severe hypothermia",
+        "with_cold_resistance_cloak": "15 turns",
+        "with_salamander_aura": "No limit"
+      },
+      "traits": ["wind trying to tear you away", "stars visible during day", "frost forming on your eyelashes", "staggering view of broken world"]
+    }
+  },
+
+  "actors": {
+    "stone_golem_1": {
+      "name": "Stone Guardian",
+      "type": "construct",
+      "description": "A massive humanoid of carved stone, runes glowing along its limbs.",
+      "properties": {
+        "construct": true,
+        "immune_to": ["poison", "disease", "bleeding", "drowning", "cold", "fire"],
+        "guardian": true,
+        "territorial": true
+      },
+      "stats": {
+        "health": 150,
+        "damage": "25-35",
+        "armor": 10,
+        "speed": "slow"
+      },
+      "state_machine": {
+        "states": ["guarding", "hostile", "passive", "serving", "destroyed"],
+        "initial": "guarding",
+        "transitions": {
+          "guarding->hostile": "Player enters main hall without valid authorization",
+          "hostile->passive": "Password spoken correctly",
+          "hostile->serving": "Control crystal used",
+          "hostile->passive": "Ritual offering accepted",
+          "hostile->destroyed": "Combat (very difficult)",
+          "any->guarding": "Player leaves and returns (if passive or serving, remembers player)"
+        }
+      },
+      "deactivation_methods": {
+        "password": {
+          "phrase": "Fire-that-gives-life and water-that-cleanses, united in purpose",
+          "partial_phrase": "Fire-that-gives-life and water-that-cleanses, united",
+          "discovery": {
+            "wall_inscriptions": "Reveal partial password with hints",
+            "lore_tablets": "Contain full password",
+            "keeper_journal_nexus": "Contains historical reference"
+          },
+          "effect": "Guardians become passive - allow passage but don't serve"
+        },
+        "control_crystal": {
+          "location": "Ice Caves side passage (hidden, requires thorough exploration)",
+          "extraction": "Frozen in wall - requires heat source",
+          "effect": "Full control - guardians serve player, bow, await orders",
+          "limitation": "Guardians still won't leave temple even when serving"
+        },
+        "ritual_offering": {
+          "items": ["fire_aspected_item", "water_from_hot_springs"],
+          "effect": "Guardians recognize ancient protocol, become passive",
+          "discovery": "Hinted in temple inscriptions"
+        }
+      },
+      "combat_analysis": {
+        "difficulty": "Extremely hard - designed to discourage direct combat",
+        "optimal_strategy": "Hit-and-run with pillar cover",
+        "damage_with_basic_weapon": "~5 per hit (armor reduces)",
+        "damage_with_silver_weapon": "~8 per hit",
+        "rounds_to_kill_one": "~18 rounds with optimal play",
+        "player_damage_per_round_with_cover": "~12 (60 * 0.2)",
+        "resources_required": "Multiple healing potions, good weapon, cold resistance",
+        "design_note": "Combat is intentionally punishing. Puzzle solutions are clearly preferable."
+      }
+    },
+
+    "stone_golem_2": {
+      "name": "Stone Guardian",
+      "type": "construct",
+      "description": "A massive humanoid of carved stone, identical to its partner.",
+      "properties": {
+        "construct": true,
+        "immune_to": ["poison", "disease", "bleeding", "drowning", "cold", "fire"],
+        "linked_to": "stone_golem_1"
+      },
+      "stats": {
+        "health": 150,
+        "damage": "25-35",
+        "armor": 10
+      },
+      "notes": "Shares state with golem_1 - if one is deactivated/pacified, both are. If one is destroyed, other continues alone."
+    },
+
+    "steam_salamander_1": {
+      "name": "Steam Salamander",
+      "type": "elemental_beast",
+      "description": "A lizard-like creature wreathed in steam. It regards you with glowing ember eyes.",
+      "properties": {
+        "elemental": "fire",
+        "neutral_unless_attacked": true,
+        "provides_warmth_aura": true,
+        "intelligent": true,
+        "communicates_through_gesture": true
+      },
+      "stats": {
+        "health": 40,
+        "damage": "10-15 (fire)",
+        "armor": 0
+      },
+      "state_machine": {
+        "states": ["neutral", "friendly", "companion", "hostile", "dead"],
+        "initial": "neutral",
+        "transitions": {
+          "neutral->friendly": "Offered fire-aspected item (gratitude +1)",
+          "friendly->companion": "Gratitude >= 3 AND player invites",
+          "neutral->hostile": "Attacked",
+          "any->dead": "Combat"
+        }
+      },
+      "befriending": {
+        "accepts": ["torch (lit)", "fire_crystal", "warm_coal", "any fire-aspected item"],
+        "gratitude_per_gift": 1,
+        "bonus_gratitude": "+1 for returning borrowed heated stone",
+        "companion_threshold": 3
+      },
+      "services": {
+        "heated_stone": {
+          "description": "Salamander breathes on stone, creating portable warmth",
+          "requires": "friendly state",
+          "duration": "~20 turns before cooling",
+          "effect": "Cold immunity while held",
+          "returns": "Returning stone grants +1 gratitude"
+        }
+      },
+      "companion_benefits": [
+        "Warmth aura: cold immunity when nearby (indefinite)",
+        "Light source",
+        "Minor fire damage in combat (10-15)",
+        "Can melt ice/provide heat on demand"
+      ],
+      "companion_restrictions": {
+        "cannot_enter": ["sunken_district/*"],
+        "reason": "Elemental conflict - water extinguishes fire creatures",
+        "uncomfortable_in": ["beast_wilds/*", "civilized_remnants/*"],
+        "comfortable_in": ["nexus_chamber", "frozen_reaches/*", "fungal_depths/* (warm enough)"]
+      },
+      "communication": {
+        "method": "Gesture and pantomime",
+        "examples": [
+          "Points at torch, then at self = wants fire",
+          "Shakes head at ice crystals = doesn't want cold things",
+          "Two fists coming together, then separating = temple guardians (warning)",
+          "Shivering gesture, then holding something close = caves have something valuable but cold"
+        ]
+      }
+    },
+
+    "steam_salamander_2": {
+      "name": "Steam Salamander",
+      "type": "elemental_beast",
+      "properties": {
+        "elemental": "fire",
+        "neutral": true,
+        "follows": "steam_salamander_1"
+      },
+      "stats": {
+        "health": 40,
+        "damage": "10-15 (fire)"
+      },
+      "notes": "Becomes friendly when salamander_1 becomes friendly. Won't become companion - stays at springs."
+    },
+
+    "steam_salamander_3": {
+      "name": "Steam Salamander",
+      "type": "elemental_beast",
+      "properties": {
+        "elemental": "fire",
+        "neutral": true,
+        "follows": "steam_salamander_1"
+      },
+      "stats": {
+        "health": 40,
+        "damage": "10-15 (fire)"
+      },
+      "notes": "Same as salamander_2"
+    }
+  },
+
+  "items": {
+    "cold_weather_gear": {
+      "name": "cold weather gear",
+      "description": "Heavy furs and insulated clothing left by previous travelers.",
+      "properties": {
+        "portable": true,
+        "equippable": true,
+        "cold_protection": "partial"
+      },
+      "location": "frozen_pass (abandoned camp)",
+      "effect": "Halves hypothermia accumulation in cold/freezing zones (not extreme)"
+    },
+
+    "preserved_supplies": {
+      "name": "preserved supplies",
+      "description": "Frozen food and useful materials, still usable.",
+      "properties": {
+        "portable": true,
+        "container": true
+      },
+      "location": "frozen_pass (abandoned camp)",
+      "contains": ["dried_meat", "bandages", "torch"]
+    },
+
+    "partial_map": {
+      "name": "partial map",
+      "description": "A torn map showing the Frozen Reaches with handwritten notes.",
+      "properties": {
+        "portable": true,
+        "readable": true
+      },
+      "location": "frozen_pass (abandoned camp)",
+      "reveals": {
+        "temple": "Marked 'DANGER - GUARDIANS'",
+        "springs": "Marked 'SAFE - WARM'",
+        "caves": "Marked 'TREASURE - CAREFUL'",
+        "observatory": "Marked 'EXTREME COLD'",
+        "note": "'The springs saved my life. The temple took my partner's.'"
+      }
+    },
+
+    "ice_crystals": {
+      "name": "ice crystals",
+      "description": "Beautiful crystals that never melt, infused with cold magic.",
+      "properties": {
+        "portable": true,
+        "alchemical_ingredient": true,
+        "plentiful": true
+      },
+      "location": "ice_caves (main chamber, walls)",
+      "uses": ["Crafting", "Trade", "Myconid payment (they value rare minerals)"],
+      "acquisition": "Easy - can chip multiple free from walls"
+    },
+
+    "frost_lily": {
+      "name": "frost lily",
+      "description": "A delicate white flower that thrives in extreme cold.",
+      "properties": {
+        "portable": true,
+        "rare_flower": true
+      },
+      "location": "ice_caves (main chamber)",
+      "use": "Trade item for Bee Queen in Beast Wilds"
+    },
+
+    "ice_shard": {
+      "name": "ice shard",
+      "description": "A fragment of magical ice that pulses with cold energy.",
+      "properties": {
+        "portable": true,
+        "quest_item": true,
+        "magical": true
+      },
+      "location": "ice_caves (deep section, in frozen pool behind thin ice)",
+      "acquisition": {
+        "challenge": "Thin ice blocks direct approach",
+        "solutions": ["Melt path with heat source", "Test ice carefully and find safe route", "Risk crossing (may break through)"]
+      },
+      "use": "Required for waystone repair in Nexus"
+    },
+
+    "crystal_lens": {
+      "name": "crystal lens",
+      "description": "A precisely ground lens, frozen into an ice wall.",
+      "properties": {
+        "portable": true,
+        "fragile": true
+      },
+      "location": "ice_caves (deep section, frozen in wall)",
+      "acquisition": {
+        "challenge": "Frozen in ice - requires careful extraction",
+        "solutions": ["Melt with fire source (heated stone, salamander, torch)", "Chip away carefully (risk of breaking)"],
+        "failure": "Breaking lens destroys it permanently"
+      },
+      "use": "Telescope repair component"
+    },
+
+    "control_crystal": {
+      "name": "control crystal",
+      "description": "A crystal that resonates with the golems' enchantments.",
+      "properties": {
+        "portable": true,
+        "magical": true
+      },
+      "location": "ice_caves (side passage - hidden, not on main path)",
+      "acquisition": {
+        "discovery": "Requires thorough exploration OR hint from temple inscriptions",
+        "extraction": "Frozen in wall, requires heat source"
+      },
+      "use": "Full control over temple guardians (they serve rather than merely permit)",
+      "design_note": "This is the 'best' solution but hardest to find. Rewards thorough exploration."
+    },
+
+    "mounting_bracket": {
+      "name": "mounting bracket",
+      "description": "A metal bracket inscribed with alignment runes.",
+      "properties": {
+        "portable": true
+      },
+      "location": "temple_sanctum (on altar)",
+      "acquisition": "Requires getting past guardians (passive or destroyed)",
+      "use": "Telescope repair component"
+    },
+
+    "cold_resistance_cloak": {
+      "name": "cold resistance cloak",
+      "description": "A cloak woven with protective enchantments against cold.",
+      "properties": {
+        "portable": true,
+        "equippable": true,
+        "cold_protection": "full"
+      },
+      "location": "temple_sanctum (alcove)",
+      "acquisition": "Requires getting past guardians",
+      "effect": {
+        "cold_zones": "Full immunity (no hypothermia)",
+        "freezing_zones": "50% reduction",
+        "extreme_cold_zones": "50% reduction",
+        "provides_warmth": "Slightly warm to touch"
+      },
+      "design_note": "Major reward for solving temple. Significantly improves region exploration."
+    },
+
+    "fire_crystal": {
+      "name": "fire crystal",
+      "description": "Elemental fire captured in crystal form. Warm to the touch.",
+      "properties": {
+        "portable": true,
+        "fire_aspected": true,
+        "gift_item": true
+      },
+      "location": "temple_sanctum (side chamber - easy to miss)",
+      "use": "Gift for salamanders (high value - elemental kinship)",
+      "design_note": "Enables full salamander befriending for players who lost their torch."
+    },
+
+    "lore_tablets": {
+      "name": "lore tablets",
+      "description": "Stone tablets covered in ancient writing.",
+      "properties": {
+        "readable": true,
+        "portable": false
+      },
+      "location": "temple_sanctum (walls and altar)",
+      "content": {
+        "history": "Story of the Meridian disaster and this region freezing",
+        "password": "Full guardian password: 'Fire-that-gives-life and water-that-cleanses, united in purpose'",
+        "control_crystal": "Mention that control crystal sleeps in eastern ice",
+        "observatory": "Purpose of telescope - to see state of all regions"
+      }
+    },
+
+    "salamander_heated_stone": {
+      "name": "salamander-heated stone",
+      "description": "A smooth stone that glows with warmth from salamander breath.",
+      "properties": {
+        "portable": true,
+        "provides_warmth": true,
+        "temporary": true
+      },
+      "acquisition": "Given by friendly salamander",
+      "duration": "~20 turns before cooling",
+      "effect": "Cold immunity while held",
+      "return_bonus": "Returning stone to salamander grants +1 gratitude"
+    },
+
+    "cleaning_supplies": {
+      "name": "cleaning supplies",
+      "description": "Cloths and solutions for maintaining optical equipment.",
+      "properties": {
+        "portable": true
+      },
+      "location": "meridian_nexus (Keeper's Quarters)",
+      "use": "Telescope repair component"
+    }
+  },
+
+  "conditions": {
+    "hypothermia": {
+      "description": "Cold exposure causing progressive impairment and damage",
+      "acquisition": {
+        "cold_zone": "+5 severity per turn (gear halves)",
+        "freezing_zone": "+10 severity per turn (gear halves)",
+        "extreme_cold_zone": "+20 severity per turn (cloak halves, gear ineffective)"
+      },
+      "effects": {
+        "severity_30": "Movement slowed",
+        "severity_60": "Actions impaired, -2 damage in combat",
+        "severity_80": "-5 health per turn",
+        "severity_100": "Collapse, need rescue or die"
+      },
+      "treatment": {
+        "normal_temperature_zone": "-10 severity per turn",
+        "hot_springs": "Instant full cure",
+        "warming_items": "Prevent progression (salamander aura, heated stone)"
+      },
+      "protection": {
+        "cold_weather_gear": "Halves accumulation in cold/freezing (not extreme)",
+        "cold_resistance_cloak": "Immunity in cold, 50% in freezing/extreme",
+        "salamander_aura": "Full immunity in all zones"
+      }
+    }
+  },
+
+  "environmental_rules": {
+    "temperature_zones": {
+      "normal": {
+        "locations": ["hot_springs_refuge"],
+        "effect": "No hypothermia, recovery"
+      },
+      "cold": {
+        "locations": ["frozen_pass", "temple_sanctum"],
+        "hypothermia_rate": 5,
+        "with_gear": 2.5
+      },
+      "freezing": {
+        "locations": ["ice_caves"],
+        "hypothermia_rate": 10,
+        "with_gear": 5,
+        "with_cloak": 5
+      },
+      "extreme_cold": {
+        "locations": ["frozen_observatory"],
+        "hypothermia_rate": 20,
+        "with_gear": "ineffective",
+        "with_cloak": 10,
+        "with_salamander": 0
+      }
+    },
+    "ice_hazards": {
+      "thin_ice": {
+        "detection": "Visible on examination, or tracking skill reveals",
+        "breaking_through": "Drowning rules apply + cold damage + hypothermia spike",
+        "safe_crossing": "Test first, melt path, or find alternate route"
+      },
+      "ice_extraction": {
+        "items_frozen_in_ice": ["crystal_lens", "control_crystal"],
+        "extraction_methods": ["Heat source (melts carefully)", "Chipping (risk of breaking item)"],
+        "heat_sources": ["Lit torch", "Fire crystal", "Salamander-heated stone", "Salamander companion"]
+      }
+    }
+  },
+
+  "commitment_system": {
+    "description": "Fewer direct NPC commitments in this region - primarily environmental challenges. Salamanders are the main social element but don't create urgent stakes.",
+    "commitments_in_region": {
+      "salamander_commitment": {
+        "trigger_phrases": ["I'll bring you fire", "I'll help warm you", "I will return with flame"],
+        "target_npc": "steam_salamander_1",
+        "goal": "Bring fire-aspected item to salamanders",
+        "hope_extends_survival": false,
+        "note": "Salamanders are elemental - not affected by hope, and not dying. No urgency.",
+        "fulfillment_bonus": "+2 gratitude. All salamanders become friendly simultaneously.",
+        "withdrawal_response": {
+          "dialog": "The salamander tilts its head, flame flickering in its eyes. It makes a gesture toward the Hot Springs - showing where it will wait. No judgment, only patient warmth.",
+          "trust_effect": 0,
+          "can_recommit": true
+        },
+        "abandonment_effects": {
+          "note": "Cannot truly abandon - salamanders don't die from lack of player help",
+          "effect": "Salamanders simply remain neutral. No penalty. No spread effects.",
+          "echo_reaction": "None - The Echo doesn't comment on un-pursued elemental befriending"
+        }
+      }
+    },
+    "cross_region_commitments": {
+      "description": "Frozen Reaches is often a SOURCE of commitments made elsewhere",
+      "examples": [
+        "Myconids request ice crystals - player must return here",
+        "Bee Queen wants frost lily - player must explore caves",
+        "Telescope reveals dying NPC elsewhere - creates urgency to help them"
+      ],
+      "design_principle": "This region tests whether player keeps promises made in OTHER regions, and provides information that may create new urgency elsewhere."
+    }
+  },
+
+  "companion_behavior": {
+    "wolf_pack": {
+      "can_enter": true,
+      "comfort_level": "comfortable",
+      "effects": {
+        "cold_tolerance": "Wolves have natural fur - cold zones are comfortable, freezing zones uncomfortable",
+        "in_extreme_cold": "Observatory is too cold even for wolves. They wait at temple."
+      },
+      "benefits": {
+        "combat_assist": "+15 damage against any threats",
+        "warmth_sharing": "Sleeping with wolves reduces hypothermia gain by 20%"
+      },
+      "golem_interaction": {
+        "combat": "Wolves attack golems but do minimal damage (5 per hit, ineffective)",
+        "territorial_avoidance": "Wolves sense golem threat. Will not enter temple without player.",
+        "exceptional_bravery": "If player trapped/dying in temple, alpha may charge in (one-time rescue)"
+      }
+    },
+    "salamander": {
+      "can_enter": true,
+      "comfort_level": "variable",
+      "effects": {
+        "general": "Salamander is fire elemental - cold doesn't harm it but slows its movements",
+        "in_ice_caves": "Salamander actually helpful here - provides heat for item extraction"
+      },
+      "benefits": {
+        "warmth_aura": "Complete cold immunity for player when nearby",
+        "ice_melting": "Can melt frozen items, clear ice blockages",
+        "heat_source": "Provides permanent heated stone equivalent"
+      },
+      "home_region_note": "This is salamander's native region. It's happy here.",
+      "other_salamander_interaction": {
+        "if_companion_meets_others": "Joyful reunion. Companion introduces player to others (+1 gratitude with all).",
+        "if_salamanders_hostile": "Companion may convince others to stand down (trust check)"
+      }
+    },
+    "human_companion": {
+      "can_enter": true,
+      "comfort_level": "depends on equipment",
+      "sira_specific": {
+        "without_cold_gear": "Suffers hypothermia same as player. 'This cold... it's unnatural.'",
+        "with_cold_gear": "Can accompany throughout most of region",
+        "in_extreme_cold": "Even with gear, can only survive briefly in observatory"
+      },
+      "aldric_specific": {
+        "too_weak": "Cannot handle cold exposure at all. Would die quickly.",
+        "dialog": "'The cold places... I read about them. But I can't... please, don't ask me to go there.'"
+      }
+    },
+    "waiting_behavior": {
+      "description": "When companion cannot or won't enter an area",
+      "wolves_wait_at": "Temple entrance or Hot Springs (whichever is closer)",
+      "salamander_wait_at": "Hot Springs Refuge (home territory)",
+      "human_wait_at": "Hot Springs Refuge (safety)",
+      "return_behavior": "Companions rejoin when player returns to waiting location"
+    }
+  },
+
+  "cross_region_connections": {
+    "to_nexus": {
+      "exit": "south from frozen_pass",
+      "destination": "nexus_chamber",
+      "notes": "Cold does not penetrate Nexus (magical barrier). Salamanders comfortable there."
+    },
+    "items_exported": {
+      "ice_shard": {
+        "destination": "Nexus",
+        "purpose": "Waystone repair"
+      },
+      "frost_lily": {
+        "destination": "Beast Wilds",
+        "purpose": "Bee Queen trade"
+      },
+      "ice_crystals": {
+        "destination": "Fungal Depths",
+        "purpose": "Myconid payment for services"
+      }
+    },
+    "items_needed": {
+      "cleaning_supplies": {
+        "source": "Meridian Nexus (Keeper's Quarters)",
+        "purpose": "Telescope repair"
+      },
+      "temple_password_hint": {
+        "source": "Meridian Nexus (Keeper's journal, partial)",
+        "purpose": "Helps with guardian deactivation",
+        "note": "Full password available in temple itself"
+      }
+    },
+    "cold_spread": {
+      "trigger": "Observatory telescope not repaired within turn threshold",
+      "effects": {
+        "turn_75": "Cold zones appear in Beast Wilds (high ground)",
+        "turn_125": "Nexus boundary areas become cold",
+        "turn_175": "Some Sunken District water freezes (new routes, new hazards)"
+      },
+      "prevention": "Repair observatory telescope"
+    },
+    "salamander_companion": {
+      "can_travel_to": ["nexus_chamber", "frozen_reaches/*"],
+      "uncomfortable_in": ["beast_wilds/*", "civilized_remnants/*"],
+      "cannot_enter": ["sunken_district/* (water extinguishes)"],
+      "behavior_when_blocked": "Refuses at boundary, waits for player to return"
+    }
+  },
+
+  "persistent_effects": {
+    "telescope_repair": {
+      "region_effect": "Reveals optimal paths throughout game",
+      "information_revealed": [
+        "NPC survival states (who is still alive, who needs help)",
+        "Environmental spread status (spores, cold)",
+        "Waystone requirements",
+        "Hidden paths in some regions"
+      ],
+      "cross_region": "Stops cold spread",
+      "nexus_effect": "Crystal garden progress +1"
+    },
+    "salamander_alliance": {
+      "item_provided": "Salamander-heated stone (renewable warmth source)",
+      "companion_available": "One salamander can follow as companion",
+      "ongoing_benefit": "Return visits to hot springs always welcomed"
+    },
+    "guardian_state": {
+      "passive": "Allow passage, remember player",
+      "serving": "Await orders, protect temple for player",
+      "destroyed": "Temple unguarded, loot available but no protection benefit"
+    }
+  },
+
+  "narrative_role": {
+    "core_tension": "Hostile environment that rewards preparation and patience over urgency",
+    "contrast_with_other_regions": {
+      "vs_sunken_district": "No drowning NPCs, no frantic dual-rescue timing",
+      "vs_beast_wilds": "No dying cubs, no bleeding hunter - salamanders are fine without you",
+      "vs_fungal_depths": "No progressing infection to race against"
+    },
+    "player_experience": {
+      "first_visit": "Cold is scary, need to learn environment, find hot springs as sanctuary",
+      "prepared_return": "With gear/companion, methodical exploration becomes possible",
+      "completion": "Telescope reward provides strategic advantage for rest of game"
+    },
+    "multiple_approaches": {
+      "temple_golems": {
+        "password": "Research (read inscriptions carefully)",
+        "control_crystal": "Exploration (find hidden passage in caves)",
+        "ritual_offering": "Resource gathering (fire item + hot springs water)",
+        "combat": "Brute force (very difficult, requires preparation)"
+      },
+      "cold_survival": {
+        "gear": "Passive protection (cold weather gear, then cloak)",
+        "salamanders": "Befriending (fire gifts, heated stone, eventual companion)",
+        "hot_springs": "Strategic retreat (use as base, sally forth and return)"
+      }
+    },
+    "player_choices_matter": [
+      "Fighting golems vs peaceful solution affects temple state",
+      "Befriending salamanders provides long-term cold immunity",
+      "Repairing telescope provides information advantage for all other regions",
+      "Thorough cave exploration finds control crystal (best golem solution)",
+      "Destroying guardians eliminates option for them to serve/protect"
+    ]
+  },
+
+  "resolved_questions": [
+    {
+      "id": "Q-FROZEN-1",
+      "question": "How hard should extracting the crystal lens be?",
+      "resolution": "Requires: (1) Find it (visible in deep caves), (2) Have heat source (torch, heated stone, salamander, fire crystal), (3) Apply heat carefully. Breaking it destroys it permanently."
+    },
+    {
+      "id": "Q-FROZEN-2",
+      "question": "Can player enter observatory without cold protection?",
+      "resolution": "Yes, but 5 turn limit before severe hypothermia (severity 100). Creates tension - explore quickly or prepare properly. With cloak: 15 turns. With salamander: unlimited."
+    },
+    {
+      "id": "Q-FROZEN-3",
+      "question": "What does the observatory telescope reveal when repaired?",
+      "resolution": "Shows NPC states across all regions (general, not exact - 'movement in caves' not 'Garrett is at coordinates X,Y'). Also shows Spore Mother health, waystone requirements, hidden paths. Major strategic advantage."
+    },
+    {
+      "id": "Q-FROZEN-4",
+      "question": "Are golems environmental hazards or combat encounters?",
+      "resolution": "Primarily puzzle encounters with multiple solutions. Combat IS possible but deliberately brutal - ~36 rounds for optimized player with good gear. Puzzle solutions clearly preferable."
+    },
+    {
+      "id": "Q-FROZEN-5",
+      "question": "How many salamanders can become companions?",
+      "resolution": "Only one (the lead salamander). Others stay at hot springs but become friendly."
+    },
+    {
+      "id": "Q-FROZEN-6",
+      "question": "What happens if player attacks salamanders?",
+      "resolution": "All three become hostile. If killed, hot springs lose their social element but remain functional as healing zone. No companion option. Echo may comment on senseless violence."
+    },
+    {
+      "id": "Q-FROZEN-7",
+      "question": "What if player destroys guardians AND finds control crystal later?",
+      "resolution": "Crystal is useless - guardians are gone. Consequence of choosing combat."
+    },
+    {
+      "id": "Q-FROZEN-8",
+      "question": "What if heated stone cools before player returns it?",
+      "resolution": "Salamander accepts cooled stone back (still counts for gratitude) but makes disappointed gesture. Slight relationship impact (-0.5 gratitude instead of +1)."
+    }
+  ],
+
+  "open_questions": []
+}

@@ -126,6 +126,126 @@ behaviors/
       core/ -> engine  # Tier 4 (deeply nested)
 ```
 
+### Hook Conflict Constraint
+
+**Important:** Only one event handler can be registered per hook at each tier level.
+
+If two behaviors at the same tier both register handlers for the same hook, you will get an error:
+
+```
+ValueError: Hook 'after_give' conflict at tier 3: already mapped to
+'on_fire_gift', cannot also map to 'on_wolf_feed'
+```
+
+**Why this happens:** Hooks like `after_give` or `after_actor_state_change` are generic - they fire for ANY give action or state change. Multiple behaviors might legitimately want to react to these hooks for different entities (wolves want food, salamanders want fire items, bee queens want flowers).
+
+**Solution: Infrastructure Dispatchers**
+
+When multiple region behaviors need the same hook, create a single infrastructure-tier handler that dispatches based on entity configuration:
+
+1. Create one handler at infrastructure tier (behaviors/infrastructure/)
+2. Remove hook registrations from regional behaviors
+3. Configure entities with properties the infrastructure handler reads
+
+**Example: Gift Reactions**
+
+Instead of three conflicting handlers:
+```python
+# wolf_pack.py - CONFLICT!
+vocabulary = {"events": [{"event": "on_wolf_feed", "hook": "after_give"}]}
+
+# salamanders.py - CONFLICT!
+vocabulary = {"events": [{"event": "on_fire_gift", "hook": "after_give"}]}
+```
+
+Create one infrastructure dispatcher:
+```python
+# behaviors/infrastructure/gift_reactions.py
+vocabulary = {"events": [{"event": "on_gift_given", "hook": "after_give"}]}
+
+def on_gift_given(entity, accessor, context):
+    target = context.get("target_actor")
+    gift_config = target.properties.get("gift_reactions", {})
+    # Dispatch based on entity configuration
+```
+
+Then configure entities in game_state.json:
+```json
+{
+    "id": "npc_alpha_wolf",
+    "properties": {
+        "gift_reactions": {
+            "food": {
+                "accepted_items": ["venison", "meat", "rabbit"],
+                "trust_delta": 1,
+                "accept_message": "The wolf accepts the {item}..."
+            }
+        }
+    }
+}
+```
+
+**Available infrastructure dispatchers:**
+- `pack_mirroring.py` - Leader/follower state synchronization
+- `gift_reactions.py` - Entity-specific reactions to receiving items
+- `dialog_reactions.py` - Entity-specific reactions to dialog keywords
+- `item_use_reactions.py` - Entity-specific reactions to item use
+- `death_reactions.py` - Entity-specific death consequences
+- `turn_phase_dispatcher.py` - Regional turn phase effects
+
+### Hybrid Dispatcher Pattern (Data-Driven + Handler Escape Hatch)
+
+Infrastructure dispatchers support two modes:
+
+**1. Data-Driven (Simple Cases):** Configure entity behavior entirely in JSON:
+```json
+{
+    "id": "npc_wolf",
+    "properties": {
+        "gift_reactions": {
+            "food": {
+                "accepted_items": ["venison", "meat", "rabbit"],
+                "trust_delta": 1,
+                "accept_message": "The wolf accepts the {item}..."
+            },
+            "reject_message": "The wolf ignores the offering."
+        }
+    }
+}
+```
+
+**2. Handler Escape Hatch (Complex Cases):** Delegate to Python for complex logic:
+```json
+{
+    "id": "npc_bee_queen",
+    "properties": {
+        "gift_reactions": {
+            "handler": "behaviors.regions.beast_wilds.bee_queen:on_flower_offer"
+        }
+    }
+}
+```
+
+The handler path format is `module.path:function_name`. When specified, the dispatcher calls this function instead of processing data-driven config.
+
+**Handler Signature:**
+```python
+def on_flower_offer(
+    entity: Any,           # The item/entity triggering the event
+    accessor: Any,         # StateAccessor instance
+    context: dict[str, Any]  # Event-specific context
+) -> EventResult:
+    """Handle offering flowers to the Bee Queen."""
+    # Complex logic here...
+    return EventResult(allow=True, message="...")
+```
+
+**When to use each mode:**
+- **Data-driven:** Simple reactions (trust changes, flags, messages, state transitions)
+- **Handler escape hatch:** Multi-step logic, cross-entity coordination, conditional branching
+
+**Fallback behavior:** If a handler path fails to load (module not found, function missing), the dispatcher falls through to data-driven processing. This allows graceful degradation during development.
+
 ## 5.3 Using Core Behaviors
 
 Core behaviors provide standard adventure game commands:
@@ -500,11 +620,11 @@ print(result.message)  # "You could ask about: infection, garden"
 
 **Topic features:**
 - **keywords:** Words that match this topic
-- **requires_flags:** Player must have these flags set
-- **requires_items:** Player must have these items
+- **requires_flags:** Actor must have these flags set
+- **requires_items:** Actor must have these items
 - **unlocks_topics:** Topics unlocked after discussing
-- **sets_flags:** Flags set on player after discussing
-- **grants_items:** Items given to player
+- **sets_flags:** Flags set on actor after discussing
+- **grants_items:** Items given to actor
 - **one_time:** Only discuss once
 
 ---

@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "The Wizard's Tower",
-    "version": "1.0",
+    "version": "0.04",
     "description": "A custom game demonstrating engine extensibility.",
     "start_location": "loc_garden",
     "author": "Extended Game Example",
@@ -43,10 +43,19 @@
           "to": "loc_library",
           "name": "spiral staircase",
           "description": "A worn spiral staircase of grey stone winds upward into the tower.",
-          "behaviors": ["behaviors.magic_staircase"],
+          "behaviors": [
+            "behaviors.magic_staircase"
+          ],
           "properties": {
             "states": {
               "hidden": true
+            },
+            "llm_context": {
+              "traits": ["worn grey stone", "spiral design", "narrow passage", "ancient construction"],
+              "perspective_variants": {
+                "default": "A spiral staircase of worn grey stone winds upward into the tower's heights.",
+                "climbing": "The worn stone steps continue spiraling above and below you, the passage narrow but sure."
+              }
             }
           }
         },
@@ -62,7 +71,9 @@
         "item_welcome_mat",
         "item_umbrella_stand"
       ],
-      "behaviors": ["behaviors.tower_entrance"],
+      "behaviors": [
+        "behaviors.tower_entrance"
+      ],
       "tags": []
     },
     {
@@ -93,14 +104,25 @@
           "type": "open",
           "to": "loc_tower_entrance",
           "name": "spiral staircase",
-          "description": "The spiral staircase winds downward to the entrance hall below."
+          "description": "The spiral staircase winds downward to the entrance hall below.",
+          "properties": {
+            "llm_context": {
+              "traits": ["worn grey stone", "spiral design", "narrow passage", "descending"],
+              "perspective_variants": {
+                "default": "The spiral staircase winds downward to the entrance hall below.",
+                "climbing": "The worn stone steps spiral away both above and below you."
+              }
+            }
+          }
         },
         "up": {
           "type": "door",
           "to": "loc_sanctum",
           "door_id": "door_sanctum",
           "name": "ornate door",
-          "description": "An ornate door covered in glowing runes bars the way to the upper sanctum."
+          "description": "An ornate door covered in glowing runes bars the way to the upper sanctum. Beyond it, narrow stone stairs wind upward.",
+          "passage": "narrow stone stairs",
+          "door_at": "loc_library"
         }
       },
       "items": [
@@ -119,7 +141,9 @@
           "to": "loc_library",
           "door_id": "door_sanctum",
           "name": "ornate door",
-          "description": "The ornate rune-covered door leads back down to the library."
+          "description": "Narrow stone stairs wind downward to the ornate rune-covered door that leads back to the library.",
+          "passage": "narrow stone stairs",
+          "door_at": "loc_library"
         }
       },
       "items": [
@@ -150,6 +174,13 @@
         "portable": false,
         "container": {
           "is_surface": true
+        },
+        "llm_context": {
+          "traits": ["weathered stone", "moss-covered", "sturdy construction", "cool to the touch"],
+          "perspective_variants": {
+            "default": "A weathered stone bench sits among the weeds, its surface covered in soft moss.",
+            "on_surface:item_garden_bench": "You stand atop the mossy bench, gaining a better view of the overgrown garden."
+          }
         }
       }
     },
@@ -164,6 +195,14 @@
         "climbable": true,
         "container": {
           "is_surface": true
+        },
+        "llm_context": {
+          "traits": ["ancient oak", "thick gnarled branches", "rough bark", "leafy canopy"],
+          "perspective_variants": {
+            "default": "An old oak tree rises from the overgrown garden, its thick branches spreading wide overhead.",
+            "on_surface:item_garden_bench": "From atop the bench, the tree's lower branches seem almost within reach.",
+            "climbing:item_tree": "You cling to the rough bark, branches spreading around you in all directions."
+          }
         }
       },
       "behaviors": [
@@ -178,7 +217,15 @@
       "properties": {
         "type": "object",
         "portable": true,
-        "magical": true
+        "magical": true,
+        "llm_context": {
+          "traits": ["crystalline facets", "inner glow", "warm radiance", "fits in palm"],
+          "perspective_variants": {
+            "default": "High in the branches, a crystalline star glows with soft inner light.",
+            "on_surface:item_garden_bench": "From the bench, you can see the star's glow more clearly among the branches above.",
+            "climbing:item_tree": "The glowing star is right here, nestled in a crook of the branch, within easy reach."
+          }
+        }
       },
       "behaviors": [
         "behaviors.magic_star"

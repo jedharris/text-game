@@ -2,7 +2,7 @@
   "metadata": {
     "title": "Test Game with Behaviors",
     "author": "Test",
-    "version": "1.0",
+    "version": "0.04",
     "description": "A test game for behavior system",
     "start_location": "room1"
   },
@@ -24,9 +24,9 @@
       "states": {
         "lit": false
       },
-      "behaviors": {
-        "on_turn_on": "behaviors.core.light:on_turn_on"
-      }
+      "behaviors": [
+        "behaviors.core.light"
+      ]
     },
     {
       "id": "plain_rock",

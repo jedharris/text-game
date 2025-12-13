@@ -2,7 +2,7 @@
   "metadata": {
     "title": "LLM Test Game",
     "author": "Test Suite",
-    "version": "1.0",
+    "version": "0.04",
     "description": "Test game for LLM interaction protocol",
     "start_location": "loc_start"
   },

@@ -4,6 +4,9 @@ from enum import Enum
 from typing import Optional, List, Set, Union
 from dataclasses import dataclass, field
 
+# Alias for single or multi-valued word types
+WordTypeLike = Union["WordType", Set["WordType"]]
+
 
 class WordType(Enum):
     """Enumeration of word types recognized by the parser."""
@@ -28,7 +31,7 @@ class WordEntry:
         object_required: For verbs, whether direct object is required (True/False/"optional")
     """
     word: str
-    word_type: Union[WordType, Set[WordType]]  # Single type or set of types
+    word_type: WordTypeLike  # Single type or set of types
     synonyms: List[str] = field(default_factory=list)
     value: Optional[int] = None
     object_required: bool | str = True  # True, False, or "optional"

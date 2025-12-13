@@ -1,11 +1,13 @@
 """Main parser implementation."""
 
-from typing import List, Optional, Dict, Any, Union
+from typing import List, Optional, Dict, Any, Union, cast, Type, TypeVar
 import json
 
-from src.word_entry import WordEntry, WordType
+from src.word_entry import WordEntry, WordType, WordTypeLike
 from src.parsed_command import ParsedCommand
 
+
+ParserType = TypeVar("ParserType", bound="Parser")
 
 class Parser:
     """
@@ -34,7 +36,17 @@ class Parser:
         self._populate_word_entries(vocab_data)
         self._build_lookup_table()
 
-    def _parse_word_type(self, word_type_data):
+    @classmethod
+    def from_vocab(cls: Type[ParserType], vocabulary: Dict[str, Any]) -> ParserType:
+        """
+        Create a parser from an in-memory vocabulary dict.
+
+        This avoids file IO and makes intent explicit for callers that already
+        have merged vocabulary available.
+        """
+        return cls(vocabulary)
+
+    def _parse_word_type(self, word_type_data: Union[str, List[str]]) -> WordTypeLike:
         """
         Parse word_type from vocabulary data.
 
@@ -55,7 +67,7 @@ class Parser:
         """Load vocabulary from a filename or return the provided dict."""
         if isinstance(source, str):
             with open(source, 'r', encoding='utf-8') as f:
-                return json.load(f)
+                return cast(Dict[str, Any], json.load(f))
         if isinstance(source, dict):
             return source
         raise TypeError("vocabulary must be a file path or a dict")
@@ -132,7 +144,7 @@ class Parser:
                 )
             self.word_table.append(entry)
 
-    def _build_lookup_table(self):
+    def _build_lookup_table(self) -> None:
         """
         Build hash table for O(1) word lookup.
 

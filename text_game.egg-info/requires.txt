@@ -1,0 +1,12 @@
+
+[gui]
+wxPython
+
+[llm]
+anthropic
+
+[mlx]
+mlx-lm
+
+[ollama]
+requests

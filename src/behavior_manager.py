@@ -32,20 +32,20 @@ class BehaviorManager:
     Also handles vocabulary extensions and protocol handler registration.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._behavior_cache: Dict[str, Callable] = {}
         # Handler storage: verb -> list of (tier, handler, module_name) tuples (sorted by tier)
         self._handlers: Dict[str, List[Tuple[int, HandlerCallable, str]]] = {}
         # Track verb-to-event mappings with tiers: verb -> list of (tier, event_name) tuples
-        self._verb_event_map: Dict[str, List[tuple]] = {}  # verb/synonym -> [(tier, event_name)]
+        self._verb_event_map: Dict[str, List[Tuple[int, str]]] = {}  # verb/synonym -> [(tier, event_name)]
         # Track which module registered which verb+tier (for error messages)
-        self._verb_tier_sources: Dict[tuple, str] = {}  # (verb, tier) -> module_name
+        self._verb_tier_sources: Dict[Tuple[str, int], str] = {}  # (verb, tier) -> module_name
         # Store loaded modules for entity behavior invocation
         self._modules: Dict[str, Any] = {}  # module_name -> module object
         # Event registry: event_name -> EventInfo
         self._event_registry: Dict[str, EventInfo] = {}
         # Hook to event mapping: hook_name -> (event_name, tier)
-        self._hook_to_event: Dict[str, tuple] = {}
+        self._hook_to_event: Dict[str, Tuple[str, int]] = {}
         # Event fallbacks: event_name -> fallback_event_name
         self._fallback_events: Dict[str, str] = {}
 
@@ -338,7 +338,7 @@ class BehaviorManager:
 
         return modules
 
-    def load_module(self, module_or_path, tier: int = 1) -> None:
+    def load_module(self, module_or_path: Any, tier: int = 1) -> None:
         """
         Load a behavior module and register its vocabulary and handlers.
 
@@ -377,7 +377,7 @@ class BehaviorManager:
                 handler = getattr(module, name)
                 self._register_handler(verb, handler, module_name, tier)
 
-    def load_modules(self, module_info: List[tuple]) -> None:
+    def load_modules(self, module_info: List[Tuple[str, int]]) -> None:
         """Load multiple behavior modules.
 
         Args:
@@ -386,11 +386,11 @@ class BehaviorManager:
         for module_path, tier in module_info:
             self.load_module(module_path, tier=tier)
 
-    def get_loaded_modules(self) -> set:
+    def get_loaded_modules(self) -> set[str]:
         """Return set of loaded module names for validation."""
         return set(self._modules.keys())
 
-    def _merge_types(self, type1, type2) -> list:
+    def _merge_types(self, type1: Any, type2: Any) -> List[str]:
         """
         Merge two word_type values into a multi-type list.
 
@@ -565,7 +565,7 @@ class BehaviorManager:
 
         return result
 
-    def get_handler(self, verb: str) -> Optional[Callable]:
+    def get_handler(self, verb: str) -> Optional[HandlerCallable]:
         """
         Get registered handler for a verb.
 
@@ -584,7 +584,7 @@ class BehaviorManager:
         # Return handler from first tuple: (tier, handler, module)
         return handlers[0][1]  # Second element is the handler
 
-    def get_events_for_verb(self, verb: str) -> Optional[List[tuple]]:
+    def get_events_for_verb(self, verb: str) -> Optional[List[Tuple[int, str]]]:
         """
         Get list of (tier, event_name) tuples for a verb or synonym.
 
@@ -694,7 +694,7 @@ class BehaviorManager:
         try:
             module_path, function_name = behavior_path.split(':')
             module = importlib.import_module(module_path)
-            behavior_func = getattr(module, function_name)
+            behavior_func: Callable[..., Any] = getattr(module, function_name)
             self._behavior_cache[behavior_path] = behavior_func
             return behavior_func
 
@@ -720,7 +720,7 @@ class BehaviorManager:
         tries the fallback event (recursively, supporting fallback chains).
 
         Args:
-            entity: Entity object with 'behaviors' field (list or dict)
+            entity: Entity object with 'behaviors' field (list of modules)
             event_name: Event name (e.g., "on_take")
             accessor: StateAccessor instance
             context: Event context dict with actor_id, changes, verb
@@ -753,7 +753,7 @@ class BehaviorManager:
         Internal implementation of behavior invocation (no fallback handling).
 
         Args:
-            entity: Entity object with 'behaviors' field (list or dict)
+            entity: Entity object with 'behaviors' field (list of modules)
             event_name: Event name (e.g., "on_take")
             accessor: StateAccessor instance
             context: Event context dict with actor_id, changes, verb
@@ -764,82 +764,52 @@ class BehaviorManager:
         if entity is None or not hasattr(entity, 'behaviors') or not entity.behaviors:
             return None
 
-        # Handle both old (dict) and new (list) behaviors formats
-        if isinstance(entity.behaviors, dict):
-            # Old format: behaviors = {"on_event": "module:function"}
-            behavior_path = entity.behaviors.get(event_name)
-            if not behavior_path:
-                return None
+        if not isinstance(entity.behaviors, list):
+            return None
 
-            behavior_func = self.load_behavior(behavior_path)
-            if not behavior_func:
-                return None
+        results = []
+
+        for behavior_module_name in entity.behaviors:
+            # Look up loaded module
+            module = self._modules.get(behavior_module_name)
+            if not module:
+                # Module not loaded, skip
+                continue
+
+            # Check if module has event handler function
+            if not hasattr(module, event_name):
+                # This module doesn't handle this event, skip
+                continue
+
+            # Get handler function
+            handler = getattr(module, event_name)
 
             try:
-                # Old format uses state parameter instead of accessor
-                # For backward compatibility, try to get state from accessor
-                state = accessor.game_state if hasattr(accessor, 'game_state') else accessor
-                result = behavior_func(entity, state, context)
+                # Call handler with entity, state (via accessor), context
+                result = handler(entity, accessor.game_state, context)
 
-                if not isinstance(result, EventResult):
-                    return None
-
-                return result
+                if isinstance(result, EventResult):
+                    results.append(result)
 
             except Exception as e:
                 import traceback
+                import sys
+                print(f"Error invoking behavior {behavior_module_name}.{event_name}:", file=sys.stderr)
                 traceback.print_exc()
-                return None
+                # Continue with other behaviors
 
-        elif isinstance(entity.behaviors, list):
-            # New format: behaviors = ["module1", "module2"]
-            results = []
-
-            for behavior_module_name in entity.behaviors:
-                # Look up loaded module
-                module = self._modules.get(behavior_module_name)
-                if not module:
-                    # Module not loaded, skip
-                    continue
-
-                # Check if module has event handler function
-                if not hasattr(module, event_name):
-                    # This module doesn't handle this event, skip
-                    continue
-
-                # Get handler function
-                handler = getattr(module, event_name)
-
-                try:
-                    # Call handler with entity, accessor, context
-                    result = handler(entity, accessor, context)
-
-                    if isinstance(result, EventResult):
-                        results.append(result)
-
-                except Exception as e:
-                    import traceback
-                    import sys
-                    print(f"Error invoking behavior {behavior_module_name}.{event_name}:", file=sys.stderr)
-                    traceback.print_exc()
-                    # Continue with other behaviors
-
-            # If no behaviors were invoked, return None
-            if not results:
-                return None
-
-            # Combine results: AND logic for allow, concatenate messages
-            combined_allow = all(r.allow for r in results)
-            messages = [r.message for r in results if r.message]
-            combined_message = "\n".join(messages) if messages else None
-
-            return EventResult(allow=combined_allow, message=combined_message)
-
-        else:
-            # Unknown format
+        # If no behaviors were invoked, return None
+        if not results:
             return None
 
-    def invoke_handler(self, verb: str, accessor, action: ActionDict) -> Optional[HandlerResult]:
+        # Combine results: AND logic for allow, concatenate messages
+        combined_allow = all(r.allow for r in results)
+        messages = [r.message for r in results if r.message]
+        combined_message = "\n".join(messages) if messages else None
+
+        return EventResult(allow=combined_allow, message=combined_message)
+
+    def invoke_handler(self, verb: str, accessor: "StateAccessor", action: ActionDict) -> Optional[HandlerResult]:
         """
         Invoke protocol handlers in tier order until one succeeds.
 
@@ -873,7 +843,7 @@ class BehaviorManager:
         # All tiers failed - return last result with message, or last result if all empty
         return last_message_result if last_message_result else result
 
-    def clear_cache(self):
+    def clear_cache(self) -> None:
         """Clear behavior cache (useful for hot reload)."""
         self._behavior_cache.clear()
 

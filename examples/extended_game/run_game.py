@@ -96,7 +96,7 @@ def main():
     merged_vocab = build_merged_vocabulary(state, behavior_manager)
 
     # Initialize parser directly from in-memory vocabulary
-    parser = Parser(merged_vocab)
+    parser = Parser.from_vocab(merged_vocab)
 
     # Show what verbs are available
     verb_words = [v["word"] for v in merged_vocab.get("verbs", [])]

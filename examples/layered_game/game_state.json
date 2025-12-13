@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "The Cavern of Trials",
-    "version": "1.0",
+    "version": "0.04",
     "description": "A three-tier behavior demonstration with puzzle mechanics.",
     "start_location": "loc_entrance",
     "author": "Layered Game Example",

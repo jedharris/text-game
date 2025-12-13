@@ -1,0 +1,1604 @@
+{
+  "metadata": {
+    "title": "The Fractured Meridian",
+    "version": "0.1.0",
+    "description": "A world shattered by magical catastrophe. Restore the waystone to heal the land.",
+    "start_location": "nexus_chamber",
+    "author": "Big Game Project",
+    "extra_turn_phases": [
+      "turn_phase_scheduled",
+      "turn_phase_commitment",
+      "turn_phase_gossip",
+      "turn_phase_spread"
+    ]
+  },
+  "extra": {
+    "flags": {},
+    "echo_trust": {"current": 0, "floor": -6, "ceiling": 6},
+    "active_commitments": [],
+    "commitment_configs": {},
+    "gossip_queue": [],
+    "scheduled_events": [],
+    "companions": [],
+    "environmental_spreads": {},
+    "town_reputation": 0
+  },
+  "locations": [
+    {
+      "id": "nexus_chamber",
+      "name": "Nexus Chamber",
+      "description": "The heart of the meridian convergence, a vast circular chamber where reality itself seems to bend. At the center stands the damaged waystone, its surface cracked and dim. Twilight suffuses the space from no visible source. Exits lead north to the frozen passes, south to the forest edge, east to flooded ruins, and west to dark caverns. A stairway spirals upward to an observatory.",
+      "exits": {
+        "north": {"type": "open", "to": "frozen_pass"},
+        "south": {"type": "open", "to": "forest_edge"},
+        "east": {"type": "open", "to": "flooded_plaza"},
+        "west": {"type": "open", "to": "cavern_entrance"},
+        "up": {"type": "open", "to": "observatory_platform"}
+      },
+      "properties": {
+        "safe_zone": true,
+        "no_combat": true,
+        "lighting": "twilight",
+        "wolf_exclusion": true,
+        "region": "meridian_nexus"
+      }
+    },
+    {
+      "id": "observatory_platform",
+      "name": "Observatory Platform",
+      "description": "An elevated stone platform high above the nexus chamber, offering a panoramic view of the fractured landscape below. An ancient telescope stands at the platform's edge, its brass fittings tarnished but intact. Through breaks in the perpetual twilight clouds, glimpses of all five devastated regions are visible.",
+      "exits": {
+        "down": {"type": "open", "to": "nexus_chamber"},
+        "east": {"type": "open", "to": "keepers_quarters"}
+      },
+      "properties": {
+        "safe_zone": true,
+        "elevation": "high",
+        "lighting": "twilight",
+        "region": "meridian_nexus"
+      }
+    },
+    {
+      "id": "keepers_quarters",
+      "name": "Keeper's Quarters",
+      "description": "A cozy chamber frozen in time. Dust hangs motionless in the air, food on the table appears fresh despite unknown years passing. Personal effects lie about as if the occupant stepped away moments ago. A spectral presence lingers here, stronger than elsewhere in the nexus.",
+      "exits": {
+        "west": {"type": "open", "to": "observatory_platform"},
+        "down": {"type": "open", "to": "crystal_garden"}
+      },
+      "properties": {
+        "safe_zone": true,
+        "temporal_stasis": true,
+        "echo_primary_location": true,
+        "region": "meridian_nexus"
+      }
+    },
+    {
+      "id": "crystal_garden",
+      "name": "Crystal Garden",
+      "description": "A serene grotto where crystalline formations grow from the walls and floor. Five pedestals hold shattered crystals, each corresponding to one of the devastated regions. When whole, these crystals resonated with the health of their regions. Now they are dim and broken, waiting to be restored.",
+      "exits": {
+        "up": {"type": "open", "to": "keepers_quarters"},
+        "west": {"type": "open", "to": "nexus_chamber"}
+      },
+      "properties": {
+        "safe_zone": true,
+        "magical_resonance": "high",
+        "region": "meridian_nexus"
+      }
+    },
+
+    {
+      "id": "frozen_pass",
+      "name": "Frozen Pass",
+      "description": "The entrance to the Frozen Reaches, where an eternal winter has gripped the land. Cold wind howls through the pass, carrying flurries of snow. The temperature drops noticeably as you move away from the nexus.",
+      "exits": {
+        "south": {"type": "open", "to": "nexus_chamber"},
+        "north": {"type": "open", "to": "glacier_approach"},
+        "east": {"type": "open", "to": "ice_field"}
+      },
+      "properties": {
+        "temperature_zone": "cold",
+        "hypothermia_rate": 2,
+        "region": "frozen_reaches"
+      }
+    },
+    {
+      "id": "glacier_approach",
+      "name": "Glacier Approach",
+      "description": "A treacherous path winding between massive ice formations. The glacier looms ahead, its surface scarred by deep crevasses. The cold here is intense, threatening hypothermia to the unprepared.",
+      "exits": {
+        "south": {"type": "open", "to": "frozen_pass"},
+        "north": {"type": "open", "to": "glacier_surface"}
+      },
+      "properties": {
+        "temperature_zone": "freezing",
+        "hypothermia_rate": 5,
+        "region": "frozen_reaches"
+      }
+    },
+    {
+      "id": "ice_field",
+      "name": "Ice Field",
+      "description": "A vast expanse of snow and ice stretching to the horizon. The wind whips across the open terrain, making progress difficult. Snow drifts hide treacherous footing.",
+      "exits": {
+        "west": {"type": "open", "to": "frozen_pass"},
+        "north": {"type": "open", "to": "hot_springs"},
+        "east": {"type": "open", "to": "snow_forest"}
+      },
+      "properties": {
+        "temperature_zone": "freezing",
+        "hypothermia_rate": 5,
+        "difficult_terrain": true,
+        "region": "frozen_reaches"
+      }
+    },
+    {
+      "id": "hot_springs",
+      "name": "Hot Springs",
+      "description": "Steam rises from pools of heated water, creating an oasis of warmth in the frozen landscape. The springs are a natural refuge from the cold, and signs of animal activity suggest others have discovered this haven.",
+      "exits": {
+        "south": {"type": "open", "to": "ice_field"}
+      },
+      "properties": {
+        "temperature_zone": "warm",
+        "safe_zone": true,
+        "region": "frozen_reaches"
+      }
+    },
+    {
+      "id": "snow_forest",
+      "name": "Snow Forest",
+      "description": "Skeletal trees rise from deep snowdrifts, their branches heavy with ice. The forest provides some shelter from the wind but visibility is poor among the close-packed trunks.",
+      "exits": {
+        "west": {"type": "open", "to": "ice_field"},
+        "north": {"type": "open", "to": "wolf_den"}
+      },
+      "properties": {
+        "temperature_zone": "cold",
+        "hypothermia_rate": 3,
+        "region": "frozen_reaches"
+      }
+    },
+    {
+      "id": "wolf_den",
+      "name": "Wolf Den",
+      "description": "A sheltered cave in a rocky outcropping, clearly used as a den by the local wolf pack. Bones and scraps litter the entrance. The pack's scent marks the territory.",
+      "exits": {
+        "south": {"type": "open", "to": "snow_forest"}
+      },
+      "properties": {
+        "temperature_zone": "cold",
+        "wolf_territory": true,
+        "region": "frozen_reaches"
+      }
+    },
+    {
+      "id": "glacier_surface",
+      "name": "Glacier Surface",
+      "description": "The surface of the ancient glacier, a landscape of blue ice and white snow. Crevasses yawn open without warning. The cold here is brutal, sapping strength with every breath.",
+      "exits": {
+        "south": {"type": "open", "to": "glacier_approach"},
+        "north": {"type": "open", "to": "frozen_observatory"}
+      },
+      "properties": {
+        "temperature_zone": "extreme_cold",
+        "hypothermia_rate": 8,
+        "difficult_terrain": true,
+        "crevasse_hazard": true,
+        "region": "frozen_reaches"
+      }
+    },
+    {
+      "id": "frozen_observatory",
+      "name": "Frozen Observatory",
+      "description": "An ancient structure encased in ice, its purpose clearly astronomical. A great telescope, twin to the one in the Nexus, points skyward through a cracked dome. Lore tablets line the walls, their inscriptions preserved by the cold.",
+      "exits": {
+        "south": {"type": "open", "to": "glacier_surface"}
+      },
+      "properties": {
+        "temperature_zone": "freezing",
+        "hypothermia_rate": 5,
+        "region": "frozen_reaches"
+      }
+    },
+
+    {
+      "id": "forest_edge",
+      "name": "Forest Edge",
+      "description": "The boundary where the nexus gives way to wild woodland. The Beast Wilds stretch beyond, a tangled mass of overgrown forest where nature has run rampant since the catastrophe. Animal sounds echo from the darkness beneath the canopy.",
+      "exits": {
+        "north": {"type": "open", "to": "nexus_chamber"},
+        "south": {"type": "open", "to": "tangled_path"},
+        "east": {"type": "open", "to": "southern_trail"}
+      },
+      "properties": {
+        "region": "beast_wilds"
+      }
+    },
+    {
+      "id": "tangled_path",
+      "name": "Tangled Path",
+      "description": "A narrow trail winding through dense undergrowth. Vines and roots make progress difficult. The sounds of the wild are louder here - rustling, growling, the snap of branches.",
+      "exits": {
+        "north": {"type": "open", "to": "forest_edge"},
+        "south": {"type": "open", "to": "ancient_grove"},
+        "west": {"type": "open", "to": "spider_thicket"}
+      },
+      "properties": {
+        "difficult_terrain": true,
+        "region": "beast_wilds"
+      }
+    },
+    {
+      "id": "ancient_grove",
+      "name": "Ancient Grove",
+      "description": "A clearing dominated by massive ancient trees, their trunks wider than houses. The air is thick with the hum of bees from somewhere nearby. This place feels sacred, untouched by the catastrophe.",
+      "exits": {
+        "north": {"type": "open", "to": "tangled_path"},
+        "east": {"type": "open", "to": "bee_queen_clearing"}
+      },
+      "properties": {
+        "region": "beast_wilds"
+      }
+    },
+    {
+      "id": "bee_queen_clearing",
+      "name": "Bee Queen's Clearing",
+      "description": "A sun-dappled clearing dominated by an enormous hive in the branches of a great oak. Bees swarm around the hive in organized patterns, and at the center of their activity, something larger moves.",
+      "exits": {
+        "west": {"type": "open", "to": "ancient_grove"}
+      },
+      "properties": {
+        "region": "beast_wilds"
+      }
+    },
+    {
+      "id": "spider_thicket",
+      "name": "Spider Thicket",
+      "description": "Webs span between trees, creating a maze of silk. The spiders here have grown large since the catastrophe. They watch from the shadows, their many eyes glittering.",
+      "exits": {
+        "east": {"type": "open", "to": "tangled_path"},
+        "west": {"type": "open", "to": "spider_matriarch_lair"}
+      },
+      "properties": {
+        "difficult_terrain": true,
+        "web_hazard": true,
+        "region": "beast_wilds"
+      }
+    },
+    {
+      "id": "spider_matriarch_lair",
+      "name": "Spider Matriarch's Lair",
+      "description": "A cavern hung with ancient webs, thick as curtains. In the center, surrounded by her brood, sits the Spider Matriarch - a creature of terrifying size and alien intelligence.",
+      "exits": {
+        "east": {"type": "open", "to": "spider_thicket"}
+      },
+      "properties": {
+        "region": "beast_wilds"
+      }
+    },
+    {
+      "id": "southern_trail",
+      "name": "Southern Trail",
+      "description": "A worn path leading south toward signs of civilization. The forest thins here, and the sounds of human activity occasionally drift on the wind.",
+      "exits": {
+        "west": {"type": "open", "to": "forest_edge"},
+        "south": {"type": "open", "to": "town_gate"},
+        "east": {"type": "open", "to": "hunters_camp"}
+      },
+      "properties": {
+        "region": "beast_wilds"
+      }
+    },
+    {
+      "id": "hunters_camp",
+      "name": "Hunter's Camp",
+      "description": "A small clearing with signs of recent habitation - a fire pit, crude shelter, scattered belongings. Someone has been living here, hunting the beasts of the wilds.",
+      "exits": {
+        "west": {"type": "open", "to": "southern_trail"}
+      },
+      "properties": {
+        "region": "beast_wilds"
+      }
+    },
+
+    {
+      "id": "flooded_plaza",
+      "name": "Flooded Plaza",
+      "description": "Once a grand plaza of the Sunken District, now partially submerged. Water laps at crumbling columns and the remnants of ancient fountains. The flooding gets deeper further east.",
+      "exits": {
+        "west": {"type": "open", "to": "nexus_chamber"},
+        "east": {"type": "open", "to": "flooded_chambers"},
+        "northwest": {"type": "open", "to": "survivor_camp"},
+        "south": {"type": "open", "to": "merchant_quarter"}
+      },
+      "properties": {
+        "water_level": "ankle_to_waist",
+        "breathable": true,
+        "lighting": "dim",
+        "region": "sunken_district"
+      }
+    },
+    {
+      "id": "survivor_camp",
+      "name": "Survivor Camp",
+      "description": "An elevated area of dry ground where the survivors have made camp. A crude map scratched on flat stone shows safe paths through the flooded streets. The smell of smoke and damp clothes fills the air.",
+      "exits": {
+        "southeast": {"type": "open", "to": "flooded_plaza"}
+      },
+      "properties": {
+        "water_level": "dry",
+        "breathable": true,
+        "safe_zone": true,
+        "lighting": "firelit",
+        "region": "sunken_district"
+      }
+    },
+    {
+      "id": "flooded_chambers",
+      "name": "Flooded Chambers",
+      "description": "The old guildhall, now flooded to chest height. Pillars rise from the murky water like drowning fingers. Shadows move between the columns - fish, grown predatory since the disaster.",
+      "exits": {
+        "west": {"type": "open", "to": "flooded_plaza"},
+        "east": {"type": "open", "to": "tidal_passage"}
+      },
+      "properties": {
+        "water_level": "chest",
+        "breathable": true,
+        "lighting": "dim",
+        "region": "sunken_district"
+      }
+    },
+    {
+      "id": "tidal_passage",
+      "name": "Tidal Passage",
+      "description": "A fully submerged tunnel, once a street, now a twenty-foot underwater passage. Murky water obscures the distance, and the current tugs at anything that enters. Light is visible at the far end.",
+      "exits": {
+        "west": {"type": "open", "to": "flooded_chambers"},
+        "east": {"type": "open", "to": "sea_caves"}
+      },
+      "properties": {
+        "water_level": "submerged",
+        "breathable": false,
+        "lighting": "dark",
+        "requires_swimming": true,
+        "region": "sunken_district"
+      }
+    },
+    {
+      "id": "sea_caves",
+      "name": "Sea Caves",
+      "description": "Natural caves where the flooded streets meet the sea. Rock shelves rise above the water, creating islands of safety. Daylight filters through cracks in the ceiling, casting shifting light patterns.",
+      "exits": {
+        "west": {"type": "open", "to": "tidal_passage"}
+      },
+      "properties": {
+        "water_level": "mixed",
+        "breathable": true,
+        "lighting": "dim_filtered",
+        "region": "sunken_district"
+      }
+    },
+    {
+      "id": "merchant_quarter",
+      "name": "Merchant Quarter",
+      "description": "Deep water covers what was once the commercial heart of the district. Dark windows stare from water-stained buildings. A faint rhythmic tapping echoes from somewhere to the south.",
+      "exits": {
+        "north": {"type": "open", "to": "flooded_plaza"},
+        "south": {"type": "open", "to": "merchant_warehouse"}
+      },
+      "properties": {
+        "water_level": "over_head",
+        "breathable": false,
+        "lighting": "dim",
+        "requires_swimming": true,
+        "region": "sunken_district"
+      }
+    },
+    {
+      "id": "merchant_warehouse",
+      "name": "Merchant Warehouse",
+      "description": "A multi-level building with a flooded ground floor and dry upper stories. The merchant's sign is still visible above the waterline. Tapping comes from a second-floor window.",
+      "exits": {
+        "north": {"type": "open", "to": "merchant_quarter"}
+      },
+      "properties": {
+        "multi_level": true,
+        "region": "sunken_district"
+      }
+    },
+    {
+      "id": "deep_archive",
+      "name": "Deep Archive",
+      "description": "A sealed chamber deep beneath the flooded streets, kept dry by ancient magic. Glowworms cover the ceiling, casting soft light on shelves of preserved books. A spectral figure drifts between the stacks.",
+      "exits": {
+        "up": {"type": "open", "to": "flooded_plaza"}
+      },
+      "properties": {
+        "water_level": "dry",
+        "breathable": true,
+        "sealed_chamber": true,
+        "lighting": "glowworm",
+        "requires_advanced_swimming": true,
+        "region": "sunken_district"
+      }
+    },
+
+    {
+      "id": "cavern_entrance",
+      "name": "Cavern Entrance",
+      "description": "The mouth of a vast cavern system leading to the Fungal Depths. Bioluminescent growths provide eerie illumination. The air is thick with spores and the musty smell of fungus. A small campfire burns near the entrance where a sick traveler has made camp.",
+      "exits": {
+        "east": {"type": "open", "to": "nexus_chamber"},
+        "down": {"type": "open", "to": "luminous_grotto"}
+      },
+      "properties": {
+        "spore_level": "none",
+        "breathable": true,
+        "temperature": "cool",
+        "region": "fungal_depths"
+      }
+    },
+    {
+      "id": "luminous_grotto",
+      "name": "Luminous Grotto",
+      "description": "A cavern lit by soft multicolored bioluminescence from mushrooms of every hue. A crystal-clear pool reflects impossible colors. The ceiling is too dark to read, but something is carved up there.",
+      "exits": {
+        "up": {"type": "open", "to": "cavern_entrance"},
+        "down": {"type": "open", "to": "spore_heart"},
+        "east": {"type": "open", "to": "myconid_sanctuary"}
+      },
+      "properties": {
+        "spore_level": "medium",
+        "infection_rate": 5,
+        "breathable": true,
+        "light_level": 2,
+        "max_light_level": 6,
+        "region": "fungal_depths"
+      }
+    },
+    {
+      "id": "spore_heart",
+      "name": "Spore Heart",
+      "description": "The beating heart of the fungal network. Organic walls pulse like breathing flesh. Golden spore haze hangs thick in the air. At the center of the chamber, something massive waits - part plant, part something else entirely.",
+      "exits": {
+        "up": {"type": "open", "to": "luminous_grotto"},
+        "down": {"type": "open", "to": "deep_root_caverns"}
+      },
+      "properties": {
+        "spore_level": "high",
+        "infection_rate": 10,
+        "breathable": true,
+        "temperature": "warm",
+        "region": "fungal_depths"
+      }
+    },
+    {
+      "id": "myconid_sanctuary",
+      "name": "Myconid Sanctuary",
+      "description": "A cavern of geometric precision, where mushroom-folk have built their community. Orderly rings of Myconids stand in silent communion, communicating through colored spore puffs. The air here is clean - they filter the spores.",
+      "exits": {
+        "west": {"type": "open", "to": "luminous_grotto"}
+      },
+      "properties": {
+        "spore_level": "none",
+        "breathable": true,
+        "temperature": "comfortable",
+        "safe_zone": true,
+        "region": "fungal_depths"
+      }
+    },
+    {
+      "id": "deep_root_caverns",
+      "name": "Deep Root Caverns",
+      "description": "Absolute darkness swallows all light. The air here is toxic - unbreathable without protection. Massive roots, thick as trees, descend from impossibly far above. Ancient bones suggest others have tried this path before.",
+      "exits": {
+        "up": {"type": "open", "to": "spore_heart"}
+      },
+      "properties": {
+        "spore_level": "none",
+        "breathable": false,
+        "requires_light": true,
+        "temperature": "cold",
+        "toxic_air": true,
+        "breath_limit": 12,
+        "region": "fungal_depths"
+      }
+    },
+
+    {
+      "id": "town_gate",
+      "name": "Town Gate",
+      "description": "The entrance to the Civilized Remnants, a settlement of survivors who have rebuilt some semblance of civilization. Guards in patched armor examine everyone who enters, checking for infection and dangerous companions.",
+      "exits": {
+        "north": {"type": "open", "to": "southern_trail"},
+        "south": {"type": "open", "to": "market_square"}
+      },
+      "properties": {
+        "checkpoint": true,
+        "companion_filter": true,
+        "lighting": "daylight",
+        "region": "civilized_remnants"
+      }
+    },
+    {
+      "id": "market_square",
+      "name": "Market Square",
+      "description": "The bustling heart of the settlement, where merchants hawk their wares around a dry fountain. The smell of cooking food and forge smoke fills the air. Militia patrol the corners, keeping watch.",
+      "exits": {
+        "north": {"type": "open", "to": "town_gate"},
+        "east": {"type": "open", "to": "healers_sanctuary"},
+        "west": {"type": "open", "to": "council_hall"},
+        "south": {"type": "open", "to": "broken_statue_hall"}
+      },
+      "properties": {
+        "commercial": true,
+        "lighting": "daylight",
+        "region": "civilized_remnants"
+      }
+    },
+    {
+      "id": "healers_sanctuary",
+      "name": "Healer's Sanctuary",
+      "description": "A quiet building filled with the scent of dried herbs. Bundles hang from every rafter, and the sound of mortar and pestle provides a steady rhythm. This is where the town's healer practices her art.",
+      "exits": {
+        "west": {"type": "open", "to": "market_square"},
+        "back": {"type": "open", "to": "healers_garden"}
+      },
+      "properties": {
+        "healing_available": true,
+        "lighting": "bright",
+        "region": "civilized_remnants"
+      }
+    },
+    {
+      "id": "healers_garden",
+      "name": "Healer's Garden",
+      "description": "An orderly garden of medicinal plants, both curative and deadly. Warning markers indicate the most dangerous beds. The healer carefully controls access to protect the unwary.",
+      "exits": {
+        "front": {"type": "open", "to": "healers_sanctuary"}
+      },
+      "properties": {
+        "skill_gated": true,
+        "lighting": "daylight",
+        "region": "civilized_remnants"
+      }
+    },
+    {
+      "id": "council_hall",
+      "name": "Council Hall",
+      "description": "Where the town's three councilors debate the impossible decisions of survival. The air is thick with tension and exhaustion. These are people trying to do right with no good options.",
+      "exits": {
+        "east": {"type": "open", "to": "market_square"}
+      },
+      "properties": {
+        "political": true,
+        "lighting": "dim",
+        "region": "civilized_remnants"
+      }
+    },
+    {
+      "id": "broken_statue_hall",
+      "name": "Broken Statue Hall",
+      "description": "A hall dominated by a shattered stone construct - an ancient guardian, broken but not destroyed. Its runes flicker weakly. An inscription speaks of protection and purpose. Tools and fragments lie nearby.",
+      "exits": {
+        "north": {"type": "open", "to": "market_square"}
+      },
+      "properties": {
+        "lighting": "dim",
+        "region": "civilized_remnants"
+      }
+    },
+    {
+      "id": "undercity_entrance",
+      "name": "Undercity Entrance",
+      "description": "A concealed trapdoor beneath the dry fountain leads to worn stone steps descending into darkness. The smell of secrets rises from below.",
+      "exits": {
+        "up": {"type": "open", "to": "market_square"},
+        "down": {"type": "open", "to": "undercity"}
+      },
+      "properties": {
+        "hidden": true,
+        "lighting": "dark",
+        "region": "civilized_remnants"
+      }
+    },
+    {
+      "id": "undercity",
+      "name": "The Undercity",
+      "description": "A network of cellars and tunnels beneath the town, home to those who operate outside the law. Dim lanterns cast long shadows. Here, anything can be bought or sold - for a price.",
+      "exits": {
+        "up": {"type": "open", "to": "undercity_entrance"}
+      },
+      "properties": {
+        "illegal": true,
+        "lighting": "dim",
+        "region": "civilized_remnants"
+      }
+    }
+  ],
+  "items": [
+    {
+      "id": "ancient_telescope",
+      "name": "ancient telescope",
+      "description": "A brass telescope of ancient design, mounted on a swivel base. Through it, all five devastated regions can be observed. It seems connected somehow to a matching telescope in the Frozen Reaches.",
+      "location": "observatory_platform",
+      "properties": {
+        "portable": false,
+        "usable": true,
+        "syncs_with": "frozen_telescope"
+      }
+    },
+    {
+      "id": "keepers_journal",
+      "name": "Keeper's journal",
+      "description": "A worn leather journal belonging to the last Keeper of the meridian. Its pages detail the days leading up to the catastrophe.",
+      "location": "keepers_quarters",
+      "properties": {
+        "portable": true,
+        "readable": true,
+        "flags_on_read": ["has_temple_password_partial", "knows_keeper_backstory"]
+      }
+    },
+    {
+      "id": "cleaning_supplies",
+      "name": "cleaning supplies",
+      "description": "A bundle of soft cloths and gentle cleaning solution, preserved by the temporal stasis of the Keeper's quarters. Useful for delicate restoration work.",
+      "location": "keepers_quarters",
+      "properties": {
+        "portable": true,
+        "export_item": true,
+        "export_to": "frozen_reaches"
+      }
+    },
+    {
+      "id": "animator_crystal",
+      "name": "animator crystal",
+      "description": "A pulsing crystal that contains the essence of animation magic. In skilled hands, it could bring an inanimate construct to life.",
+      "location": "crystal_garden",
+      "properties": {
+        "portable": true,
+        "export_item": true,
+        "export_to": "civilized_remnants"
+      }
+    },
+    {
+      "id": "frozen_crystal",
+      "name": "frozen crystal",
+      "description": "A crystal shard on a pedestal, corresponding to the Frozen Reaches. Currently dim and cracked.",
+      "location": "crystal_garden",
+      "properties": {
+        "portable": false,
+        "crystal_type": "regional",
+        "region": "frozen_reaches",
+        "restored": false
+      }
+    },
+    {
+      "id": "wild_crystal",
+      "name": "wild crystal",
+      "description": "A crystal shard on a pedestal, corresponding to the Beast Wilds. Currently dim and cracked.",
+      "location": "crystal_garden",
+      "properties": {
+        "portable": false,
+        "crystal_type": "regional",
+        "region": "beast_wilds",
+        "restored": false
+      }
+    },
+    {
+      "id": "sunken_crystal",
+      "name": "sunken crystal",
+      "description": "A crystal shard on a pedestal, corresponding to the Sunken District. Currently dim and cracked.",
+      "location": "crystal_garden",
+      "properties": {
+        "portable": false,
+        "crystal_type": "regional",
+        "region": "sunken_district",
+        "restored": false
+      }
+    },
+    {
+      "id": "fungal_crystal",
+      "name": "fungal crystal",
+      "description": "A crystal shard on a pedestal, corresponding to the Fungal Depths. Currently dim and cracked.",
+      "location": "crystal_garden",
+      "properties": {
+        "portable": false,
+        "crystal_type": "regional",
+        "region": "fungal_depths",
+        "restored": false
+      }
+    },
+    {
+      "id": "remnant_crystal",
+      "name": "remnant crystal",
+      "description": "A crystal shard on a pedestal, corresponding to the Civilized Remnants. Currently dim and cracked.",
+      "location": "crystal_garden",
+      "properties": {
+        "portable": false,
+        "crystal_type": "regional",
+        "region": "civilized_remnants",
+        "restored": false
+      }
+    },
+
+    {
+      "id": "frozen_telescope",
+      "name": "frozen telescope",
+      "description": "An ancient telescope encased in ice, twin to the one in the Nexus observatory. Its lens points skyward through a cracked dome.",
+      "location": "frozen_observatory",
+      "properties": {
+        "portable": false,
+        "usable": true,
+        "syncs_with": "ancient_telescope",
+        "requires_repair": true
+      }
+    },
+    {
+      "id": "ice_crystal",
+      "name": "ice crystal",
+      "description": "A crystal of pure magical cold, never melting. The Myconids prize these highly.",
+      "location": "glacier_surface",
+      "properties": {
+        "portable": true,
+        "export_item": true,
+        "export_to": "fungal_depths"
+      }
+    },
+    {
+      "id": "lore_tablets",
+      "name": "lore tablets",
+      "description": "Ancient tablets preserved by the cold, their inscriptions detailing rituals and ceremonies of the old world.",
+      "location": "frozen_observatory",
+      "properties": {
+        "portable": false,
+        "readable": true,
+        "flags_on_read": ["knows_guardian_ritual"]
+      }
+    },
+    {
+      "id": "warm_cloak",
+      "name": "warm cloak",
+      "description": "A heavy fur-lined cloak that provides excellent protection against the cold.",
+      "location": "hot_springs",
+      "properties": {
+        "portable": true,
+        "wearable": true,
+        "cold_protection": 5
+      }
+    },
+
+    {
+      "id": "spider_silk",
+      "name": "spider silk",
+      "description": "Strong, lightweight silk harvested from the giant spiders. Valuable for crafting and trade.",
+      "location": "spider_thicket",
+      "properties": {
+        "portable": true,
+        "trade_good": true
+      }
+    },
+    {
+      "id": "venom_sac",
+      "name": "venom sac",
+      "description": "A sac containing spider venom, useful for crafting poisons or antidotes.",
+      "location": "spider_matriarch_lair",
+      "properties": {
+        "portable": true,
+        "dangerous": true,
+        "trade_good": true
+      }
+    },
+    {
+      "id": "bear_cub_medicine",
+      "name": "bear cub medicine",
+      "description": "A preparation of healing herbs, specifically formulated for the wasting sickness affecting the bear cubs.",
+      "location": null,
+      "properties": {
+        "portable": true,
+        "curative": true,
+        "crafted": true
+      }
+    },
+
+    {
+      "id": "air_bladder",
+      "name": "air bladder",
+      "description": "A preserved animal bladder that can hold air for underwater breathing. Three uses remain.",
+      "location": "survivor_camp",
+      "properties": {
+        "portable": true,
+        "breathing_item": true,
+        "uses": 3
+      }
+    },
+    {
+      "id": "waterproof_sack",
+      "name": "waterproof sack",
+      "description": "A treated leather sack that keeps its contents dry even underwater.",
+      "location": "flooded_plaza",
+      "properties": {
+        "portable": true,
+        "is_container": true,
+        "waterproof": true
+      }
+    },
+    {
+      "id": "water_pearl",
+      "name": "water pearl",
+      "description": "A luminous pearl that pulses with water magic. One of the fragments needed to repair the waystone.",
+      "location": "deep_archive",
+      "properties": {
+        "portable": true,
+        "quest_item": true,
+        "light_source": true,
+        "waystone_fragment": true
+      }
+    },
+    {
+      "id": "lever",
+      "name": "lever",
+      "description": "A heavy iron bar that can be used to move heavy objects.",
+      "location": "merchant_warehouse",
+      "properties": {
+        "portable": true,
+        "tool": true
+      }
+    },
+    {
+      "id": "water_bloom",
+      "name": "water bloom",
+      "description": "A rare aquatic flower that blooms in the deep archive. The Bee Queen prizes these.",
+      "location": "deep_archive",
+      "properties": {
+        "portable": true,
+        "rare_flower": true,
+        "export_item": true,
+        "export_to": "beast_wilds"
+      }
+    },
+
+    {
+      "id": "silvermoss",
+      "name": "silvermoss",
+      "description": "A rare moss with antifungal properties. Can reduce the severity of fungal infection.",
+      "location": "luminous_grotto",
+      "properties": {
+        "portable": true,
+        "curative": true,
+        "infection_reduction": 40
+      }
+    },
+    {
+      "id": "heartmoss",
+      "name": "heartmoss",
+      "description": "An ancient moss that grows only in the deep roots. It can cure the Spore Mother's blight.",
+      "location": "deep_root_caverns",
+      "properties": {
+        "portable": true,
+        "quest_item": true
+      }
+    },
+    {
+      "id": "aldric_journal",
+      "name": "Aldric's journal",
+      "description": "A scholar's journal filled with notes about the fungal depths, including hints about the mushroom puzzle.",
+      "location": "cavern_entrance",
+      "properties": {
+        "portable": true,
+        "readable": true,
+        "flags_on_read": ["knows_mushroom_hint"]
+      }
+    },
+    {
+      "id": "spore_lantern",
+      "name": "spore lantern",
+      "description": "A Myconid creation that produces light without fire, using bioluminescent spores.",
+      "location": "myconid_sanctuary",
+      "properties": {
+        "portable": true,
+        "light_source": true,
+        "light_level": 3,
+        "requires_trust": 0
+      }
+    },
+    {
+      "id": "breathing_mask",
+      "name": "breathing mask",
+      "description": "A Myconid mask that filters toxic air, allowing the wearer to breathe in poisonous environments.",
+      "location": "myconid_sanctuary",
+      "properties": {
+        "portable": true,
+        "wearable": true,
+        "filters_toxic_air": true,
+        "requires_trust": 0
+      }
+    },
+    {
+      "id": "bucket",
+      "name": "bucket",
+      "description": "A wooden bucket, useful for carrying water from the pool.",
+      "location": "luminous_grotto",
+      "properties": {
+        "portable": true,
+        "is_container": true,
+        "water_capacity": 3
+      }
+    },
+
+    {
+      "id": "healing_herbs",
+      "name": "healing herbs",
+      "description": "A bundle of carefully harvested medicinal herbs. Can cure the bear cubs' wasting sickness.",
+      "location": "healers_garden",
+      "properties": {
+        "portable": true,
+        "curative": true,
+        "requires_herbalism": "basic"
+      }
+    },
+    {
+      "id": "nightshade",
+      "name": "nightshade",
+      "description": "A deadly plant with poison-purple berries. Dangerous to handle without advanced training.",
+      "location": "healers_garden",
+      "properties": {
+        "portable": true,
+        "dangerous": true,
+        "poisonous": true,
+        "requires_herbalism": "advanced"
+      }
+    },
+    {
+      "id": "moonpetal",
+      "name": "moonpetal",
+      "description": "A rare flower that blooms only at night. The Bee Queen values these highly.",
+      "location": "healers_garden",
+      "properties": {
+        "portable": true,
+        "rare_flower": true,
+        "export_item": true,
+        "export_to": "beast_wilds"
+      }
+    },
+    {
+      "id": "stone_chisel",
+      "name": "stone chisel",
+      "description": "A well-made chisel for working stone, useful for repairing the damaged guardian.",
+      "location": "broken_statue_hall",
+      "properties": {
+        "portable": true,
+        "tool": true
+      }
+    },
+    {
+      "id": "town_seal",
+      "name": "town seal",
+      "description": "The official seal of the Civilized Remnants, symbol of their authority. One of the fragments needed to repair the waystone.",
+      "location": null,
+      "properties": {
+        "portable": true,
+        "quest_item": true,
+        "waystone_fragment": true
+      }
+    },
+    {
+      "id": "bandages",
+      "name": "bandages",
+      "description": "Clean cloth bandages for treating wounds and stopping bleeding.",
+      "location": "market_square",
+      "properties": {
+        "portable": true,
+        "curative": true,
+        "stops_bleeding": true
+      }
+    }
+  ],
+  "actors": {
+    "player": {
+      "id": "player",
+      "name": "Wanderer",
+      "description": "A traveler drawn to the fractured meridian by forces unknown.",
+      "location": "nexus_chamber",
+      "inventory": [],
+      "properties": {}
+    },
+    "the_echo": {
+      "id": "the_echo",
+      "name": "The Echo",
+      "description": "A spectral figure, translucent and flickering. The remnant of the last Keeper's child, bound to the meridian by love and duty.",
+      "location": "keepers_quarters",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": ["dormant", "manifesting", "communicating", "fading", "permanent"],
+          "initial": "dormant"
+        },
+        "trust_state": {"current": 0, "floor": -6, "ceiling": 6},
+        "appearance_cooldown": 0,
+        "is_spectral": true,
+        "dialog_reactions": {
+          "handler": "behaviors.regions.meridian_nexus.echo:on_echo_dialog"
+        },
+        "gossip_reactions": {
+          "handler": "behaviors.regions.meridian_nexus.echo:on_echo_gossip"
+        }
+      }
+    },
+    "waystone_spirit": {
+      "id": "waystone_spirit",
+      "name": "Waystone",
+      "description": "The damaged waystone at the heart of the nexus. Its surface is cracked and its light dim, but it still pulses with residual power.",
+      "location": "nexus_chamber",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": ["damaged", "partial", "repaired"],
+          "initial": "damaged"
+        },
+        "is_object": true,
+        "commitment_target": true,
+        "fragments_placed": 0
+      }
+    },
+
+    "alpha_wolf": {
+      "id": "alpha_wolf",
+      "name": "Alpha Wolf",
+      "description": "A massive grey wolf with intelligent eyes, scarred from many battles. It leads the pack that hunts these frozen wastes.",
+      "location": "wolf_den",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": ["hostile", "wary", "neutral", "friendly", "allied"],
+          "initial": "hostile"
+        },
+        "pack_id": "frost_wolves",
+        "pack_role": "alpha",
+        "trust_state": {"current": -2, "floor": -5, "ceiling": 5},
+        "pack_behavior": {
+          "pack_follows_leader_state": true,
+          "followers": ["frost_wolf_1", "frost_wolf_2"],
+          "handler": "behaviors.regions.beast_wilds.wolf_pack:on_wolf_state_change"
+        },
+        "gift_reactions": {
+          "handler": "behaviors.regions.beast_wilds.wolf_pack:on_wolf_feed"
+        }
+      }
+    },
+    "frost_wolf_1": {
+      "id": "frost_wolf_1",
+      "name": "Frost Wolf",
+      "description": "A lean wolf with white-streaked fur, part of the alpha's pack.",
+      "location": "wolf_den",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": ["hostile", "wary", "neutral", "friendly", "allied"],
+          "initial": "hostile"
+        },
+        "pack_id": "frost_wolves",
+        "pack_role": "follower"
+      }
+    },
+    "frost_wolf_2": {
+      "id": "frost_wolf_2",
+      "name": "Frost Wolf",
+      "description": "A muscular wolf with a thick winter coat, loyal to the alpha.",
+      "location": "wolf_den",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": ["hostile", "wary", "neutral", "friendly", "allied"],
+          "initial": "hostile"
+        },
+        "pack_id": "frost_wolves",
+        "pack_role": "follower"
+      }
+    },
+    "salamander": {
+      "id": "salamander",
+      "name": "Fire Salamander",
+      "description": "A creature of living flame, small but intensely hot. It seems drawn to warmth and light.",
+      "location": "hot_springs",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": ["neutral", "friendly", "companion", "wild", "curious", "bonded"],
+          "initial": "neutral"
+        },
+        "fire_creature": true,
+        "heat_aura": true,
+        "trust_state": {"current": 0, "floor": 0, "ceiling": 5},
+        "gift_reactions": {
+          "handler": "behaviors.regions.frozen_reaches.salamanders:on_fire_gift"
+        }
+      }
+    },
+
+    "hunter_sira": {
+      "id": "hunter_sira",
+      "name": "Hunter Sira",
+      "description": "A young woman with a hunter's keen eyes, currently injured and in danger. Her leg is badly broken and she's losing blood.",
+      "location": "hunters_camp",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": ["injured", "stabilized", "mobile", "dead"],
+          "initial": "injured"
+        },
+        "conditions": {
+          "bleeding": {"severity": 60},
+          "broken_leg": {"severity": 100}
+        },
+        "commitment_target": true,
+        "death_timer": 15,
+        "hope_bonus": 5,
+        "connected_to": "healer_elara",
+        "encounter_reactions": {
+          "handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_encounter"
+        },
+        "death_reactions": {
+          "handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_death",
+          "set_flags": {"sira_dead": true},
+          "message": "Hunter Sira's struggle has ended."
+        },
+        "item_use_reactions": {
+          "healing": {
+            "accepted_items": ["bandages", "healing_herbs"],
+            "handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
+          }
+        }
+      }
+    },
+    "spider_matriarch": {
+      "id": "spider_matriarch",
+      "name": "Spider Matriarch",
+      "description": "A creature of terrible size, her many eyes gleaming with alien intelligence. She guards her web and her brood fiercely.",
+      "location": "spider_matriarch_lair",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": ["hostile", "wary", "neutral", "allied", "dead"],
+          "initial": "hostile"
+        },
+        "pack_id": "spider_brood",
+        "pack_role": "alpha",
+        "death_reactions": {
+          "handler": "behaviors.regions.beast_wilds.spider_nest:on_spider_queen_death",
+          "set_flags": {"spider_queen_dead": true}
+        }
+      }
+    },
+    "bee_queen": {
+      "id": "bee_queen",
+      "name": "Bee Queen",
+      "description": "A creature larger than a human, golden-furred and crowned with antennae. She rules the hive with ancient wisdom.",
+      "location": "bee_queen_clearing",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": ["defensive", "neutral", "trading", "allied", "hostile"],
+          "initial": "defensive"
+        },
+        "trust_state": {"current": 0, "floor": -3, "ceiling": 5},
+        "trades_for": ["moonpetal", "water_bloom", "frost_lily"],
+        "gift_reactions": {
+          "handler": "behaviors.regions.beast_wilds.bee_queen:on_flower_offer"
+        },
+        "take_reactions": {
+          "handler": "behaviors.regions.beast_wilds.bee_queen:on_honey_theft"
+        }
+      }
+    },
+
+    "camp_leader_mira": {
+      "id": "camp_leader_mira",
+      "name": "Camp Leader Mira",
+      "description": "A middle-aged woman with tired eyes but iron determination. She manages the survivors.",
+      "location": "survivor_camp",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": ["neutral", "friendly", "allied", "disappointed"],
+          "initial": "neutral"
+        },
+        "trust": {"current": 0, "floor": -3, "ceiling": 5}
+      }
+    },
+    "old_swimmer_jek": {
+      "id": "old_swimmer_jek",
+      "name": "Old Swimmer Jek",
+      "description": "An elderly man with weathered skin and webbed fingers - a birth defect that made him legendary.",
+      "location": "survivor_camp",
+      "inventory": [],
+      "properties": {
+        "teaches": "basic_swimming",
+        "teaching_cost": 5
+      }
+    },
+    "sailor_garrett": {
+      "id": "sailor_garrett",
+      "name": "Sailor Garrett",
+      "description": "A young man with tattooed arms, currently drowning. His eyes show terror.",
+      "location": "sea_caves",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": ["drowning", "stabilized", "rescued", "dead"],
+          "initial": "drowning"
+        },
+        "conditions": {
+          "drowning": {"severity": 50},
+          "exhaustion": {"severity": 80}
+        },
+        "commitment_target": true,
+        "trigger_type": "on_room_entry",
+        "base_timer": 5,
+        "hope_extends": false,
+        "death_reactions": {
+          "handler": "behaviors.regions.sunken_district.dual_rescue:on_npc_death",
+          "set_flags": {"garrett_died": true}
+        },
+        "condition_reactions": {
+          "drowning_stopped": {
+            "handler": "behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
+          }
+        }
+      }
+    },
+    "merchant_delvan": {
+      "id": "merchant_delvan",
+      "name": "Merchant Delvan",
+      "description": "A portly man pinned under cargo. His face is pale from blood loss.",
+      "location": "merchant_warehouse",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": ["trapped", "freed", "mobile", "dead"],
+          "initial": "trapped"
+        },
+        "conditions": {
+          "bleeding": {"severity": 70},
+          "broken_leg": {"severity": 100}
+        },
+        "commitment_target": true,
+        "trigger_type": "on_first_encounter",
+        "base_timer": 10,
+        "hope_extends": true,
+        "hope_bonus": 3,
+        "encounter_reactions": {
+          "handler": "behaviors.regions.sunken_district.dual_rescue:on_delvan_encounter"
+        },
+        "death_reactions": {
+          "handler": "behaviors.regions.sunken_district.dual_rescue:on_npc_death",
+          "set_flags": {"delvan_died": true}
+        },
+        "condition_reactions": {
+          "bleeding_stopped": {
+            "handler": "behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
+          }
+        }
+      }
+    },
+    "the_archivist": {
+      "id": "the_archivist",
+      "name": "The Archivist",
+      "description": "A spectral figure in scholar's robes. Not a ghost exactly - more an echo, bound to the archive.",
+      "location": "deep_archive",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": ["guardian", "helpful", "allied"],
+          "initial": "guardian"
+        },
+        "is_spectral": true,
+        "trust": {"current": 0, "floor": -2, "ceiling": 5}
+      }
+    },
+    "predatory_fish": {
+      "id": "predatory_fish",
+      "name": "Predatory Fish",
+      "description": "Large fish with visible teeth, grown strange since the disaster. They circle and watch.",
+      "location": "flooded_chambers",
+      "inventory": [],
+      "properties": {
+        "hazard_type": "environmental",
+        "not_combat_encounter": true
+      }
+    },
+
+    "npc_aldric": {
+      "id": "npc_aldric",
+      "name": "Scholar Aldric",
+      "description": "A frail scholar with pale skin and dark circles under his eyes. Fungal patches are visible on his neck and arms.",
+      "location": "cavern_entrance",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": ["critical", "stabilized", "recovering", "dead"],
+          "initial": "critical"
+        },
+        "health": 40,
+        "max_health": 100,
+        "mobility": "immobile",
+        "trust_state": {"current": 0, "floor": -3, "ceiling": 5},
+        "conditions": {
+          "fungal_infection": {"severity": 80, "damage_per_turn": 2, "progression_rate": 2}
+        },
+        "commitment_target": true,
+        "trigger_type": "on_commitment",
+        "base_timer": 50,
+        "hope_extends": true,
+        "hope_bonus": 10,
+        "dialog_reactions": {
+          "handler": "behaviors.regions.fungal_depths.aldric_rescue:on_aldric_commitment",
+          "teaching": {
+            "triggers": ["teach", "learn", "mycology", "fungi", "knowledge"],
+            "handler": "behaviors.regions.fungal_depths.aldric_rescue:on_aldric_teach"
+          }
+        },
+        "item_use_reactions": {
+          "healing": {
+            "accepted_items": ["silvermoss"],
+            "handler": "behaviors.regions.fungal_depths.aldric_rescue:on_aldric_heal"
+          }
+        }
+      }
+    },
+    "npc_spore_mother": {
+      "id": "npc_spore_mother",
+      "name": "Spore Mother",
+      "description": "A massive fungal creature, part plant and part something else entirely. Her cap spreads wide, pulsing weakly with sickly bioluminescence.",
+      "location": "spore_heart",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": ["hostile", "wary", "allied", "dead", "confused"],
+          "initial": "hostile"
+        },
+        "health": 200,
+        "max_health": 200,
+        "fungal": true,
+        "pack_id": "sporeling_pack",
+        "pack_role": "alpha",
+        "regeneration": 10,
+        "conditions": {
+          "fungal_blight": {"severity": 70, "progression_rate": 1}
+        },
+        "pack_behavior": {
+          "pack_follows_leader_state": true,
+          "followers": ["npc_sporeling_1", "npc_sporeling_2", "npc_sporeling_3"],
+          "handler": "behaviors.regions.fungal_depths.spore_mother:on_spore_mother_state_change"
+        },
+        "item_use_reactions": {
+          "healing": {
+            "accepted_items": ["heartmoss"],
+            "handler": "behaviors.regions.fungal_depths.spore_mother:on_spore_mother_heal"
+          }
+        },
+        "death_reactions": {
+          "handler": "behaviors.regions.fungal_depths.spore_mother:on_spore_mother_death",
+          "set_flags": {"spore_mother_dead": true, "has_killed_fungi": true}
+        }
+      }
+    },
+    "npc_sporeling_1": {
+      "id": "npc_sporeling_1",
+      "name": "Sporeling",
+      "description": "A small fungal creature, an extension of the Spore Mother.",
+      "location": "spore_heart",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": ["hostile", "wary", "allied", "confused"],
+          "initial": "hostile"
+        },
+        "health": 30,
+        "max_health": 30,
+        "fungal": true,
+        "pack_id": "sporeling_pack",
+        "pack_role": "follower"
+      }
+    },
+    "npc_sporeling_2": {
+      "id": "npc_sporeling_2",
+      "name": "Sporeling",
+      "description": "A small fungal creature, bound to the Spore Mother.",
+      "location": "spore_heart",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": ["hostile", "wary", "allied", "confused"],
+          "initial": "hostile"
+        },
+        "health": 30,
+        "max_health": 30,
+        "fungal": true,
+        "pack_id": "sporeling_pack",
+        "pack_role": "follower"
+      }
+    },
+    "npc_sporeling_3": {
+      "id": "npc_sporeling_3",
+      "name": "Young Sporeling",
+      "description": "A smaller, younger fungal creature. It seems more fragile than the others.",
+      "location": "spore_heart",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": ["hostile", "wary", "allied", "confused"],
+          "initial": "hostile"
+        },
+        "health": 20,
+        "max_health": 20,
+        "fungal": true,
+        "pack_id": "sporeling_pack",
+        "pack_role": "follower"
+      }
+    },
+    "npc_myconid_elder": {
+      "id": "npc_myconid_elder",
+      "name": "Myconid Elder",
+      "description": "A sentient mushroom of great age, its cap weathered with age-rings. It communicates through colored spore puffs.",
+      "location": "myconid_sanctuary",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": ["neutral", "trusting", "distrusting"],
+          "initial": "neutral"
+        },
+        "trust_state": {"current": 0, "floor": -5, "ceiling": 5},
+        "services": ["cure_infection", "teach_spore_resistance"],
+        "accepts_payment": ["ice_crystal", "rare_mineral", "gold"],
+        "fungal": true,
+        "encounter_reactions": {
+          "handler": "behaviors.regions.fungal_depths.fungal_death_mark:on_myconid_first_meeting"
+        }
+      }
+    },
+
+    "gate_guard": {
+      "id": "gate_guard",
+      "name": "Gate Guard",
+      "description": "A tired-looking guard in patched armor. He examines everyone entering.",
+      "location": "town_gate",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": ["suspicious", "neutral", "friendly"],
+          "initial": "suspicious"
+        }
+      }
+    },
+    "herbalist_maren": {
+      "id": "herbalist_maren",
+      "name": "Herbalist Maren",
+      "description": "A lean woman with stained fingers and sharp eyes. She knows her plants.",
+      "location": "market_square",
+      "inventory": [],
+      "properties": {
+        "trust": {"current": 0, "floor": -3, "ceiling": 5},
+        "services": ["sell_healing_items", "buy_plants", "teach_basic_herbalism"]
+      }
+    },
+    "weaponsmith_toran": {
+      "id": "weaponsmith_toran",
+      "name": "Weaponsmith Toran",
+      "description": "A burly man with burn scars on his arms. He forges what the town needs.",
+      "location": "market_square",
+      "inventory": [],
+      "properties": {
+        "services": ["sell_weapons", "sell_armor", "repair_weapons"]
+      }
+    },
+    "curiosity_dealer_vex": {
+      "id": "curiosity_dealer_vex",
+      "name": "Curiosity Dealer Vex",
+      "description": "A thin person of indeterminate age with knowing eyes. They deal in oddities.",
+      "location": "market_square",
+      "inventory": [],
+      "properties": {
+        "trust": {"current": 0, "floor": -3, "ceiling": 5},
+        "services": ["trade_rare_items", "reveal_undercity"]
+      }
+    },
+    "healer_elara": {
+      "id": "healer_elara",
+      "name": "Healer Elara",
+      "description": "A middle-aged woman with gentle hands and tired eyes. She helps everyone she can.",
+      "location": "healers_sanctuary",
+      "inventory": [],
+      "properties": {
+        "trust": {"current": 0, "floor": -5, "ceiling": 5},
+        "services": ["heal_wounds", "cure_poison", "cure_disease", "teach_advanced_herbalism"],
+        "connected_to": "hunter_sira"
+      }
+    },
+    "councilor_hurst": {
+      "id": "councilor_hurst",
+      "name": "Councilor Hurst",
+      "description": "A hard-faced man who speaks in practical terms. Lost his family to beast attacks.",
+      "location": "council_hall",
+      "inventory": [],
+      "properties": {
+        "philosophy": "pragmatist",
+        "trust": {"current": 0, "floor": -3, "ceiling": 5}
+      }
+    },
+    "councilor_asha": {
+      "id": "councilor_asha",
+      "name": "Councilor Asha",
+      "description": "A young woman with fierce convictions about right and wrong.",
+      "location": "council_hall",
+      "inventory": [],
+      "properties": {
+        "philosophy": "idealist",
+        "trust": {"current": 0, "floor": -3, "ceiling": 5},
+        "can_perform_unbranding": true
+      }
+    },
+    "councilor_varn": {
+      "id": "councilor_varn",
+      "name": "Councilor Varn",
+      "description": "A well-dressed man who counts everything in terms of trade value.",
+      "location": "council_hall",
+      "inventory": [],
+      "properties": {
+        "philosophy": "commerce",
+        "trust": {"current": 0, "floor": -3, "ceiling": 5},
+        "has_undercity_connections": true
+      }
+    },
+    "damaged_guardian": {
+      "id": "damaged_guardian",
+      "name": "Damaged Guardian",
+      "description": "An ancient stone construct, shattered but not destroyed. Runes flicker weakly.",
+      "location": "broken_statue_hall",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": ["non_functional", "partially_awakened", "functional", "active"],
+          "initial": "non_functional"
+        },
+        "is_construct": true,
+        "repair_requirements": ["stone_chisel", "animator_crystal", "ritual_knowledge"]
+      }
+    },
+    "the_fence": {
+      "id": "the_fence",
+      "name": "The Fence",
+      "description": "A figure in shadows who deals in items of questionable origin.",
+      "location": "undercity",
+      "inventory": [],
+      "properties": {
+        "services": ["buy_stolen", "sell_contraband"]
+      }
+    },
+    "whisper": {
+      "id": "whisper",
+      "name": "Whisper",
+      "description": "A nondescript person who seems to know everything about everyone.",
+      "location": "undercity",
+      "inventory": [],
+      "properties": {
+        "services": ["sell_npc_secrets", "sell_location_secrets"]
+      }
+    },
+    "shadow": {
+      "id": "shadow",
+      "name": "Shadow",
+      "description": "You're not sure you've ever seen their face clearly.",
+      "location": "undercity",
+      "inventory": [],
+      "properties": {
+        "services": ["assassination_contracts"],
+        "discovery_chance": 0.20,
+        "delay_turns": 3
+      }
+    }
+  },
+  "locks": []
+}

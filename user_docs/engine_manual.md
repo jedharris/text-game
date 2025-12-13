@@ -215,7 +215,7 @@ class GameState:
     locks: List[Lock]
     actors: Dict[str, Actor]          # Actor ID → Actor
     parts: List[Part]
-    extra: Dict[str, Any]             # Non-player global data
+    extra: Dict[str, Any]             # Global data not tied to specific entities
     turn_count: int                   # Game turn counter
 ```
 
@@ -252,26 +252,49 @@ def get_lock(self, lock_id: str) -> Lock
 
 **State Management:**
 ```python
-def move_item(self, item_id: str, to_player: bool = False,
+def move_item(self, item_id: str, to_actor: Optional[str] = None,
               to_location: Optional[str] = None,
               to_container: Optional[str] = None) -> None
-    """Move item to new location."""
+    """Move item to new location.
 
-def set_player_location(self, location_id: str) -> None
-    """Set player's current location."""
-```
-
-**Flag System:**
-```python
-def set_flag(self, flag_name: str, value: Any) -> None
-    """Set a player flag.
-
-    Flags are stored in player.properties["flags"] and persist across saves.
-    Used for tracking game progression, quest states, etc.
+    Args:
+        item_id: The item to move
+        to_actor: Actor ID to move item to (adds to their inventory)
+        to_location: Location ID to move item to
+        to_container: Container item ID to move item into
     """
 
-def get_flag(self, flag_name: str, default: Any = None) -> Any
-    """Get a player flag value."""
+def set_actor_location(self, location_id: str, actor_id: str = "player") -> None
+    """Set an actor's current location.
+
+    Args:
+        location_id: The location to move the actor to
+        actor_id: The actor to move (defaults to "player")
+    """
+```
+
+**Actor Flag System:**
+```python
+def set_actor_flag(self, flag_name: str, value: Any, actor_id: str = "player") -> None
+    """Set a flag on an actor.
+
+    Flags are stored in actor.properties["flags"] and persist across saves.
+    Used for tracking game progression, quest states, etc.
+
+    Args:
+        flag_name: Name of the flag to set
+        value: Value to set
+        actor_id: The actor to set the flag on (defaults to "player")
+    """
+
+def get_actor_flag(self, flag_name: str, default: Any = None, actor_id: str = "player") -> Any
+    """Get a flag value from an actor.
+
+    Args:
+        flag_name: Name of the flag to get
+        default: Default value if flag not set
+        actor_id: The actor to get the flag from (defaults to "player")
+    """
 ```
 
 **Turn Management:**
@@ -286,7 +309,7 @@ def increment_turn(self) -> int
 
 **Extra Data:**
 
-The `extra` dict provides storage for non-player global game state:
+The `extra` dict provides storage for global game state not tied to specific entities:
 ```python
 # Example: Store global puzzle state
 state.extra["ancient_seal_broken"] = True
@@ -321,8 +344,8 @@ Structural validation (in `validators.py`):
 - All IDs globally unique across entity types
 - All references valid (location exits, item locations, lock references)
 - Required fields present
-- Special ID "player" reserved
-- Actor "player" must exist
+- The ID "player" is reserved for the human-controlled actor
+- An actor with id "player" must exist
 - Metadata.start_location must exist
 - No cycles in containment (items in items)
 
@@ -1875,7 +1898,7 @@ def get_item(self, item_id: str) -> Optional[Item]:
 **Entity IDs:**
 - Recommended format: `<type>_<name>`
 - Examples: `loc_tower`, `item_key`, `door_entrance`, `npc_guard`
-- Special: `"player"` (reserved singleton)
+- The ID `"player"` is reserved for the human-controlled actor (which is just a regular actor with this special ID)
 
 ## 10.3 Error Handling
 
@@ -2126,7 +2149,7 @@ result = profile_command(handler, message)
 
 # 13. Glossary
 
-**Actor** - Player or NPC entity with location and inventory
+**Actor** - Any character entity (human-controlled or NPC) with location and inventory. The actor with id "player" is the human-controlled character.
 
 **Behavior** - Python code that responds to events or commands
 

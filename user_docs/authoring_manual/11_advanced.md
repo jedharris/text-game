@@ -12,25 +12,29 @@ This final section covers game state management, the turn system, save/load, adv
 
 # 11. Game State Management
 
-## 11.1 Player Flags
+## 11.1 Actor Flags
 
-Flags are persistent boolean or simple values stored on the player. Use them to track game progression, puzzle states, and player choices.
+Flags are persistent boolean or simple values stored on actors. Use them to track game progression, puzzle states, and choices made by any actor.
 
 **API:**
 ```python
-# Set a flag
-state.set_flag("met_wizard", True)
-state.set_flag("quest_stage", 2)
+# Set a flag on the human-controlled actor (default)
+state.set_actor_flag("met_wizard", True)
+state.set_actor_flag("quest_stage", 2)
 
-# Get a flag
-if state.get_flag("met_wizard", False):
-    # Player has met the wizard
+# Get a flag from the human-controlled actor (default)
+if state.get_actor_flag("met_wizard", False):
+    # Actor has met the wizard
     ...
 
-quest_stage = state.get_flag("quest_stage", 0)
+quest_stage = state.get_actor_flag("quest_stage", 0)
+
+# Set/get flags on any actor
+state.set_actor_flag("is_tamed", True, actor_id="npc_wolf")
+is_wolf_tamed = state.get_actor_flag("is_tamed", False, actor_id="npc_wolf")
 ```
 
-**Storage:** Flags are stored in `player.properties["flags"]` and persist across save/load.
+**Storage:** Flags are stored in `actor.properties["flags"]` and persist across save/load.
 
 **Example usage - Progressive NPC dialogue:**
 ```python
@@ -41,12 +45,12 @@ def on_talk(entity, accessor, context):
 
     state = accessor.state
 
-    if not state.get_flag("met_wizard"):
-        state.set_flag("met_wizard", True)
+    if not state.get_actor_flag("met_wizard"):
+        state.set_actor_flag("met_wizard", True)
         return EventResult(allow=True,
             message="'Ah, a visitor! I am Alaric, keeper of this tower.'")
 
-    if state.get_flag("has_crystal"):
+    if state.get_actor_flag("has_crystal"):
         return EventResult(allow=True,
             message="'You found the crystal! Now we can begin the ritual.'")
 
@@ -56,7 +60,7 @@ def on_talk(entity, accessor, context):
 
 ## 11.2 GameState.extra
 
-The `extra` dict stores non-player global data that needs to persist across save/load. Use it for world-level state that doesn't belong to any specific entity.
+The `extra` dict stores global data that needs to persist across save/load. Use it for world-level state that doesn't belong to any specific entity.
 
 **Use cases:**
 - World-level counters (total enemies defeated, items crafted)
@@ -79,7 +83,7 @@ def on_defeat(entity, accessor, context):
 
     # Check for achievement
     if state.extra["enemies_defeated"] >= 10:
-        state.set_flag("achievement_warrior", True)
+        state.set_actor_flag("achievement_warrior", True)
         return EventResult(allow=True,
             message="Achievement unlocked: Warrior (10 enemies defeated)")
 
@@ -458,12 +462,12 @@ locked_containers = [
 ]
 ```
 
-**Check if player has any key:**
+**Check if an actor has any key:**
 ```python
-player = accessor.get_actor("player")
+actor = accessor.get_actor("player")  # or any actor_id
 has_key = any(
     "key" in accessor.get_item(item_id).name.lower()
-    for item_id in player.inventory
+    for item_id in actor.inventory
 )
 ```
 
@@ -837,7 +841,7 @@ You've escaped!
 
 # Appendix B: Glossary
 
-**Actor** - Player or NPC character with location and inventory
+**Actor** - Any character entity (human-controlled or NPC) with location and inventory. The actor with id "player" is the human-controlled character.
 
 **Behavior** - Python code responding to commands or events
 

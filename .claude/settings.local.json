@@ -17,7 +17,19 @@
       "Bash(do)",
       "Bash(done)",
       "Bash(wc:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(mypy:*)",
+      "Bash(xargs mypy:*)",
+      "Bash(while read f)",
+      "Bash(do if ! grep -q \"from typing import.*Any\" \"$f\")",
+      "Bash(! grep -q \"from typing import Any\" \"$f\")",
+      "Bash(then echo \"Missing Any import: $f\" fi done)",
+      "Bash(for f in tests/infrastructure/test_death_reactions.py tests/infrastructure/test_gift_reactions.py tests/infrastructure/test_item_use_reactions.py tests/infrastructure/test_pack_mirroring.py tests/infrastructure/test_turn_phase_dispatcher.py tests/infrastructure/test_cross_region_integration.py tests/infrastructure/regions/test_beast_wilds.py tests/infrastructure/regions/test_fungal_depths.py)",
+      "Bash(if grep -q \"context: dict\\[str, Any\\]\" \"$f\")",
+      "Bash(then)",
+      "Bash(if ! grep -q \"from typing import.*Any\" \"$f\")",
+      "Bash(echo:*)",
+      "Bash(fi)"
     ],
     "deny": [],
     "ask": []

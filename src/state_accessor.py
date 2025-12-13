@@ -4,12 +4,15 @@ StateAccessor - Clean API for state queries and mutations with automatic behavio
 This module provides the core abstraction for accessing and modifying game state.
 """
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, cast, TYPE_CHECKING
 
-from src.types import LocationId, ActorId, ItemId, LockId, PartId, EntityId
+from src.types import LocationId, ActorId, ItemId, LockId, PartId, EntityId, EventName
 from src.state_manager import (
     GameState, Location, Item, Actor, Lock, Part, ExitDescriptor, Entity
 )
+
+if TYPE_CHECKING:
+    from src.behavior_manager import BehaviorManager
 
 
 @dataclass
@@ -57,7 +60,7 @@ class StateAccessor:
     are properly invoked.
     """
 
-    def __init__(self, game_state: GameState, behavior_manager):
+    def __init__(self, game_state: GameState, behavior_manager: "BehaviorManager"):
         """
         Initialize StateAccessor.
 
@@ -391,7 +394,7 @@ class StateAccessor:
 
     # Mutation methods
 
-    def _set_path(self, entity, path: str, value):
+    def _set_path(self, entity: Any, path: str, value: Any) -> Optional[str]:
         """
         Low-level state mutation primitive.
 
@@ -420,7 +423,7 @@ class StateAccessor:
             # Set operation
             return self._set_field(entity, path, value)
 
-    def _set_field(self, entity, path: str, value):
+    def _set_field(self, entity: Any, path: str, value: Any) -> Optional[str]:
         """Set a field value, handling nested paths with dots."""
         parts = path.split('.')
 
@@ -455,7 +458,7 @@ class StateAccessor:
         else:
             return f"Field '{final_field}' not found on {type(current).__name__}"
 
-    def _append_to_list(self, entity, path: str, value):
+    def _append_to_list(self, entity: Any, path: str, value: Any) -> Optional[str]:
         """Append a value to a list field."""
         parts = path.split('.')
 
@@ -490,7 +493,7 @@ class StateAccessor:
         target.append(value)
         return None
 
-    def _remove_from_list(self, entity, path: str, value):
+    def _remove_from_list(self, entity: Any, path: str, value: Any) -> Optional[str]:
         """Remove a value from a list field."""
         parts = path.split('.')
 
@@ -572,7 +575,7 @@ class StateAccessor:
 
                     # Invoke behaviors
                     behavior_result = self.behavior_manager.invoke_behavior(
-                        entity, event_name, self, context
+                        entity, EventName(event_name), self, context
                     )
 
                     # If behavior explicitly denies, try next tier

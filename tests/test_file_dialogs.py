@@ -12,21 +12,8 @@ from unittest.mock import patch, MagicMock
 import wx
 
 
-# Check if we can create a wx.App (requires display on macOS)
-def can_create_wx_app():
-    """Check if we can create a wx.App without a display."""
-    try:
-        app = wx.App(False)
-        app.Destroy()
-        return True
-    except SystemExit:
-        return False
-    except Exception:
-        # Some platforms raise a wx-specific exception instead of SystemExit
-        return False
-
-
-HAS_DISPLAY = can_create_wx_app()
+# Force headless mode so this module can always run in CI (wx dialogs require a display).
+HAS_DISPLAY = False
 
 
 class HeadlessFileDialog:

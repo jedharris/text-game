@@ -1,0 +1,203 @@
+"""Bee Queen Trade Mechanics for Beast Wilds.
+
+Implements the flower-for-honey trade with the Bee Queen.
+No timer pressure - this is a peaceful cross-region collection.
+"""
+
+from typing import Any, Dict
+
+from src.behavior_manager import EventResult
+from src.infrastructure_utils import (
+    modify_trust,
+    transition_state,
+)
+
+# Vocabulary: wire hooks to events
+# Note: Gift reactions (flower offers) are handled by infrastructure/gift_reactions.py
+# Note: Take reactions are handled by infrastructure/take_reactions.py
+# Bee Queen must have appropriate reaction configurations
+vocabulary: Dict[str, Any] = {
+    "events": []
+}
+
+# Valid flower types and their sources
+FLOWER_TYPES = {
+    "moonpetal": "Civilized Remnants",
+    "frost_lily": "Frozen Reaches",
+    "water_bloom": "Sunken District",
+}
+
+
+def on_flower_offer(
+    entity: Any,
+    accessor: Any,
+    context: dict[str, Any],
+) -> EventResult:
+    """Handle offering flowers to the Bee Queen.
+
+    Each flower type can be traded once for royal honey.
+    Trading 3 types unlocks allied state.
+
+    Args:
+        entity: The item being given (flower)
+        accessor: StateAccessor instance
+        context: Context with target_actor
+
+    Returns:
+        EventResult with trade result
+    """
+    target = context.get("target_actor")
+    if not target:
+        return EventResult(allow=True, message=None)
+
+    # Check if target is bee queen
+    target_id = target.id if hasattr(target, "id") else str(target)
+    if target_id != "bee_queen":
+        return EventResult(allow=True, message=None)
+
+    # Check if item is a valid flower
+    item = context.get("item") or entity
+    item_id = item.id if hasattr(item, "id") else str(item)
+    item_lower = item_id.lower()
+
+    flower_type = None
+    for flower in FLOWER_TYPES:
+        if flower in item_lower:
+            flower_type = flower
+            break
+
+    if not flower_type:
+        # Not a valid flower - queen rejects
+        return EventResult(
+            allow=True,
+            message=(
+                "The Bee Queen examines the offering, antennae twitching. "
+                "She backs away - this is not what she seeks."
+            ),
+        )
+
+    state = accessor.state
+    extra = state.extra
+
+    # Track which flowers have been traded
+    if "bee_queen_flowers_traded" not in extra:
+        extra["bee_queen_flowers_traded"] = []
+
+    traded = extra["bee_queen_flowers_traded"]
+
+    # Check if this flower type already traded
+    if flower_type in traded:
+        return EventResult(
+            allow=True,
+            message=(
+                f"The Bee Queen has already received a {flower_type}. "
+                "She does not need another."
+            ),
+        )
+
+    # Accept the flower
+    traded.append(flower_type)
+
+    # Give royal honey to player
+    # (The actual item creation would be handled by the give system)
+    extra["bee_queen_owes_honey"] = True
+    extra["bee_queen_honey_count"] = extra.get("bee_queen_honey_count", 0) + 1
+
+    # Update queen's state
+    queen = state.actors.get("bee_queen")
+    if queen:
+        sm = queen.properties.get("state_machine")
+        if sm:
+            # Transition to trading if not already
+            if sm.get("current", sm["initial"]) == "neutral":
+                transition_state(sm, "trading")
+
+            # Check for allied transition (3 unique flowers)
+            if len(traded) >= 3:
+                transition_state(sm, "allied")
+
+        # Increase trust
+        trust_state = queen.properties.get("trust_state", {"current": 0})
+        new_trust = modify_trust(
+            current=trust_state.get("current", 0),
+            delta=1,
+            ceiling=5,
+        )
+        trust_state["current"] = new_trust
+        queen.properties["trust_state"] = trust_state
+
+    trade_count = len(traded)
+    if trade_count >= 3:
+        return EventResult(
+            allow=True,
+            message=(
+                "The Bee Queen's wings fan in pleased recognition - this completes "
+                "the exchange. She approaches, no longer a trader but an ally. "
+                "The grove is now sanctuary."
+            ),
+        )
+
+    remaining = 3 - trade_count
+    return EventResult(
+        allow=True,
+        message=(
+            f"The Bee Queen accepts the {flower_type}, antennae quivering with "
+            f"appreciation. She moves toward the honey cache, offering a portion "
+            f"in exchange. {remaining} more flower type(s) would complete the bond."
+        ),
+    )
+
+
+def on_honey_theft(
+    entity: Any,
+    accessor: Any,
+    context: dict[str, Any],
+) -> EventResult:
+    """Handle taking honey without permission.
+
+    This makes the swarm hostile and destroys future trade.
+
+    Args:
+        entity: The item being taken (honey)
+        accessor: StateAccessor instance
+        context: Context with location
+
+    Returns:
+        EventResult with consequence
+    """
+    # Check if item is honey
+    item_id = entity.id if hasattr(entity, "id") else str(entity)
+    if "honey" not in item_id.lower():
+        return EventResult(allow=True, message=None)
+
+    # Check if in bee grove
+    location = context.get("location")
+    loc_id = location.id if location and hasattr(location, "id") else str(location) if location else ""
+    if "beehive" not in loc_id.lower():
+        return EventResult(allow=True, message=None)
+
+    state = accessor.state
+
+    # Check if queen is allied (theft allowed when allied)
+    queen = state.actors.get("bee_queen")
+    if queen:
+        sm = queen.properties.get("state_machine")
+        if sm and sm.get("current") == "allied":
+            return EventResult(allow=True, message=None)
+
+        # Not allied - this is theft
+        if sm:
+            transition_state(sm, "hostile")
+
+        # Permanent consequence
+        state.extra["bee_grove_hostile"] = True
+        state.extra["bee_trade_destroyed"] = True
+
+    return EventResult(
+        allow=True,
+        message=(
+            "The moment you touch the honey, the air erupts with furious buzzing. "
+            "The Bee Queen's compound eyes fix on you with unmistakable hatred. "
+            "The trade relationship is destroyed forever."
+        ),
+    )

@@ -115,6 +115,30 @@ Avoid:
 }
 ```
 
+### Perspective Variants
+
+Use `perspective_variants` to provide position-specific descriptions for spatial games. The narrator selects the best match based on the player's current posture and focus.
+
+```json
+{
+  "llm_context": {
+    "traits": ["worn stone steps", "spiral design"],
+    "perspective_variants": {
+      "default": "A spiral staircase rises through the tower",
+      "climbing": "The worn steps continue above and below you",
+      "on_surface:item_table": "The staircase is visible across the room"
+    }
+  }
+}
+```
+
+**Key naming:**
+- `"default"` - Used when no specific match
+- `"<posture>"` - Matches posture regardless of focus (e.g., `"climbing"`)
+- `"<posture>:<entity_id>"` - Exact match for posture + focus
+
+The engine passes the selected variant to the LLM as `perspective_note`. See [Spatial Rooms - Perspective-Aware Narration](07_spatial.md#perspective-aware-narration) for details.
+
 ### Verbosity Modes
 
 The narrator automatically adjusts verbosity:

@@ -89,7 +89,7 @@ class TestYourFeature(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors['player']
+        self.actor = self.engine.game_state.actors['player']  # Human-controlled actor
 
     def _execute(self, verb, obj=None):
         """Execute a command and return the response."""
@@ -109,7 +109,7 @@ class TestYourFeature(unittest.TestCase):
     def test_something(self):
         """Test description."""
         # Set up initial state
-        self.player.location = 'loc_somewhere'
+        self.actor.location = 'loc_somewhere'
 
         # Execute commands
         response = self._execute("do_something")
@@ -192,8 +192,8 @@ Without this symlink, the game won't have access to core verbs like `look`, `tak
 ```python
 def test_item_hidden_without_condition(self):
     """Item should not appear without meeting condition."""
-    self.player.location = 'loc_room'
-    self.player.inventory = []  # No magic item
+    self.actor.location = 'loc_room'
+    self.actor.inventory = []  # No magic item
 
     output = self._look()
 
@@ -201,8 +201,8 @@ def test_item_hidden_without_condition(self):
 
 def test_item_visible_with_condition(self):
     """Item should appear when condition is met."""
-    self.player.location = 'loc_room'
-    self.player.inventory = ['item_magic_lens']  # Has magic item
+    self.actor.location = 'loc_room'
+    self.actor.inventory = ['item_magic_lens']  # Has magic item
 
     output = self._look()
 
@@ -224,13 +224,13 @@ def test_cannot_take_without_condition(self):
 def test_can_take_with_condition(self):
     """Can take item when precondition is met."""
     # Set up player state
-    self.player.properties["posture"] = "climbing"
-    self.player.properties["focused_on"] = "item_tree"
+    self.actor.properties["posture"] = "climbing"
+    self.actor.properties["focused_on"] = "item_tree"
 
     response = self._execute("take", "star")
 
     self.assertTrue(response.get("success"))
-    self.assertIn("item_star", self.player.inventory)
+    self.assertIn("item_star", self.actor.inventory)
 ```
 
 ### Testing Multi-Step Puzzles
@@ -241,7 +241,7 @@ def test_complete_puzzle_solution(self):
     # Step 1: Go to starting location
     response = self._execute("north")
     self.assertTrue(response.get("success"))
-    self.assertEqual(self.player.location, 'loc_room1')
+    self.assertEqual(self.actor.location, 'loc_room1')
 
     # Step 2: Get required item
     response = self._execute("take", "key")
@@ -254,7 +254,7 @@ def test_complete_puzzle_solution(self):
     # Step 4: Enter new area
     response = self._execute("east")
     self.assertTrue(response.get("success"))
-    self.assertEqual(self.player.location, 'loc_treasure_room')
+    self.assertEqual(self.actor.location, 'loc_treasure_room')
 ```
 
 ### Testing with WordEntry Objects
@@ -292,21 +292,21 @@ def _get_message(self, response):
         return response.get("error", {}).get("message", "")
 ```
 
-### Setting Up Player State
+### Setting Up Actor State
 
 ```python
 # Location
-self.player.location = 'loc_garden'
+self.actor.location = 'loc_garden'
 
 # Inventory
-self.player.inventory = ['item_key', 'item_sword']
+self.actor.inventory = ['item_key', 'item_sword']
 
 # Properties (for spatial behaviors)
-self.player.properties["posture"] = "on_surface"
-self.player.properties["focused_on"] = "item_bench"
+self.actor.properties["posture"] = "on_surface"
+self.actor.properties["focused_on"] = "item_bench"
 
 # Flags
-self.player.flags["has_spoken_to_wizard"] = True
+self.actor.properties["flags"]["has_spoken_to_wizard"] = True
 ```
 
 ### Modifying Item State

@@ -1,0 +1,856 @@
+{
+  "region": "beast_wilds",
+  "version": "0.2",
+  "type": "light_sketch",
+  "description": "Overgrown wilderness where magical beasts have become intelligent and organized. Emphasizes pack dynamics, domestication, and diplomacy vs violence.",
+  "theme": "nature, loyalty, coexistence vs domination",
+
+  "locations": {
+    "forest_edge": {
+      "name": "Forest Edge",
+      "description": "Transition zone from Nexus. Territorial markings visible. Safe exploration area.",
+      "properties": {
+        "lighting": "dappled",
+        "danger_level": "low"
+      },
+      "exits": {
+        "north": "nexus_chamber",
+        "east": "wolf_clearing",
+        "south": "predators_den",
+        "west": "beehive_grove"
+      },
+      "items": ["venison", "tracking_equipment", "hunters_journal"],
+      "traits": ["claw marks on tree bark", "silence that feels watchful", "game trails through undergrowth"],
+      "notes": "Venison is currently the only reliable food source for wolf domestication. Future: hunting mechanic could allow player to obtain more meat here."
+    },
+
+    "wolf_clearing": {
+      "name": "Wolf Clearing",
+      "description": "Territory of the Winter Wolf Pack. A clearing surrounded by dense trees.",
+      "properties": {
+        "lighting": "filtered",
+        "danger_level": "high"
+      },
+      "exits": {
+        "west": "forest_edge",
+        "east": "spider_nest_gallery"
+      },
+      "actors": ["alpha_wolf", "grey_wolf_1", "grey_wolf_2", "grey_wolf_3"],
+      "traits": ["yellow eyes reflecting in shadows", "low warning growls", "smell of a recent kill"],
+      "notes": "Wolves will not pursue player into spider_nest_gallery (territorial instinct). See companion_restrictions."
+    },
+
+    "beehive_grove": {
+      "name": "Beehive Grove",
+      "description": "Giant bee colony with valuable honey. Peaceful unless disturbed.",
+      "properties": {
+        "lighting": "bright",
+        "danger_level": "conditional"
+      },
+      "exits": {
+        "east": "forest_edge"
+      },
+      "actors": ["bee_queen", "bee_swarm"],
+      "items": ["royal_honey_cache"],
+      "traits": ["constant humming vibration", "honeycomb architecture", "heavy sweetness in the air"]
+    },
+
+    "predators_den": {
+      "name": "Predator's Den",
+      "description": "Home of a Dire Bear and her sick cubs. Extremely dangerous if approached carelessly.",
+      "properties": {
+        "lighting": "dim",
+        "danger_level": "extreme"
+      },
+      "exits": {
+        "north": "forest_edge",
+        "south": "southern_trail"
+      },
+      "actors": ["dire_bear", "bear_cub_1", "bear_cub_2"],
+      "traits": ["massive claw marks", "thick musk smell", "scattered bones of past prey"]
+    },
+
+    "spider_nest_gallery": {
+      "name": "Spider Nest Gallery",
+      "description": "Underground area infested with intelligent spiders. Web-covered passages.",
+      "properties": {
+        "lighting": "dark",
+        "danger_level": "high",
+        "requires_light": true
+      },
+      "exits": {
+        "west": "wolf_clearing"
+      },
+      "actors": ["spider_queen", "giant_spider_1", "giant_spider_2"],
+      "items": ["spider_silk", "venom_sacs"],
+      "environmental_effects": ["webs_slow_movement", "spiders_get_combat_bonus_in_webs"],
+      "traits": ["glistening web strands", "skittering in darkness", "egg sacs pulsing with movement"]
+    },
+
+    "southern_trail": {
+      "name": "Southern Trail",
+      "description": "Path leading toward the Civilized Remnants. Hunter Sira may be found here.",
+      "properties": {
+        "lighting": "dappled",
+        "danger_level": "medium"
+      },
+      "exits": {
+        "north": "predators_den",
+        "south": "town_gate"
+      },
+      "actors": ["hunter_sira"],
+      "notes": "Sira is a wandering NPC but often found here, injured."
+    }
+  },
+
+  "actors": {
+    "alpha_wolf": {
+      "name": "Alpha Wolf",
+      "type": "beast",
+      "description": "A massive winter wolf with intelligent eyes. Leader of the pack.",
+      "properties": {
+        "pack_role": "alpha",
+        "needs": {"hungry": true},
+        "domesticatable": true
+      },
+      "stats": {
+        "health": 60,
+        "damage": "12-18",
+        "armor": 2
+      },
+      "state_machine": {
+        "states": ["hostile", "wary", "neutral", "friendly", "companion", "fled", "dead"],
+        "initial": "hostile",
+        "transitions": {
+          "hostile->wary": "Fed once",
+          "wary->neutral": "Fed twice OR player defeats a threat to pack",
+          "neutral->friendly": "Gratitude >= 3",
+          "friendly->companion": "Player invites, gratitude >= 4",
+          "any->fled": "Health < 15 in combat",
+          "fled->hostile": "After 10 turns, returns with pack"
+        }
+      },
+      "pack_behavior": {
+        "followers": ["grey_wolf_1", "grey_wolf_2", "grey_wolf_3"],
+        "pack_follows_alpha_state": true,
+        "pack_follows_alpha_location": true
+      },
+      "domestication": {
+        "gratitude_threshold": 3,
+        "feeding_items": ["venison", "meat", "food"],
+        "gratitude_per_feed": 1,
+        "max_gratitude_from_feeding": 4,
+        "companion_benefits": [
+          "Follows player (except Civilized Remnants)",
+          "Assists in combat (+15 damage per round)",
+          "Can track scents to find hidden items/paths",
+          "Pack intimidates smaller creatures"
+        ]
+      },
+      "gift_when_trust_high": {
+        "item": "alpha_fang",
+        "trust_required": 5,
+        "description": "The Alpha offers you one of its shed fangs - a mark of pack bond.",
+        "notes": "Required for waystone repair in Nexus"
+      }
+    },
+
+    "grey_wolf_1": {
+      "name": "Grey Wolf",
+      "type": "beast",
+      "description": "A lean grey wolf, part of the pack.",
+      "properties": {
+        "pack_role": "follower",
+        "follows": "alpha_wolf"
+      },
+      "stats": {
+        "health": 30,
+        "damage": "6-10",
+        "armor": 0
+      }
+    },
+
+    "grey_wolf_2": {
+      "name": "Grey Wolf",
+      "type": "beast",
+      "properties": {
+        "pack_role": "follower",
+        "follows": "alpha_wolf"
+      },
+      "stats": {
+        "health": 30,
+        "damage": "6-10",
+        "armor": 0
+      }
+    },
+
+    "grey_wolf_3": {
+      "name": "Grey Wolf",
+      "type": "beast",
+      "properties": {
+        "pack_role": "follower",
+        "follows": "alpha_wolf"
+      },
+      "stats": {
+        "health": 30,
+        "damage": "6-10",
+        "armor": 0
+      }
+    },
+
+    "bee_queen": {
+      "name": "Bee Queen",
+      "type": "beast",
+      "description": "An enormous queen bee with iridescent wings. She watches you with compound eyes.",
+      "properties": {
+        "neutral_unless_provoked": true,
+        "communicates_through_offerings": true
+      },
+      "state_machine": {
+        "states": ["neutral", "hostile", "trading", "allied", "dead"],
+        "initial": "neutral",
+        "transitions": {
+          "neutral->hostile": "Player attacks bees OR takes honey without permission",
+          "neutral->trading": "Player offers rare flowers",
+          "trading->allied": "Completed flower trade 3 times",
+          "hostile->dead": "Swarm defeated (very difficult)"
+        }
+      },
+      "trade_goods": {
+        "accepts": ["moonpetal (Fungal Depths)", "frost_lily (Frozen Reaches)", "water_bloom (Sunken District)"],
+        "gives": "royal_honey (one per flower type)"
+      },
+      "violence_consequences": {
+        "attack_triggers": "Swarm attack - area damage 15/turn, poison condition",
+        "defeating_swarm": "Grove damaged permanently, no more honey ever"
+      }
+    },
+
+    "bee_swarm": {
+      "name": "Bee Swarm",
+      "type": "beast_swarm",
+      "description": "Thousands of giant bees moving as one.",
+      "properties": {
+        "follows": "bee_queen",
+        "swarm_attack": true
+      },
+      "stats": {
+        "health": 100,
+        "damage": "15 (area)",
+        "special": "Applies poison condition on hit"
+      }
+    },
+
+    "dire_bear": {
+      "name": "Dire Bear",
+      "type": "beast",
+      "description": "A massive bear, easily twice normal size. She guards her cubs with desperate ferocity.",
+      "properties": {
+        "hostile_default": true,
+        "reason_for_hostility": "protecting sick cubs"
+      },
+      "stats": {
+        "health": 120,
+        "damage": "20-30",
+        "armor": 5
+      },
+      "state_machine": {
+        "states": ["hostile", "grateful", "allied", "vengeful", "dead"],
+        "initial": "hostile",
+        "transitions": {
+          "hostile->grateful": "Player heals cubs",
+          "grateful->allied": "Gratitude >= 3 (cubs fully recovered)",
+          "hostile->vengeful": "Cubs die (from illness or player kills them)",
+          "vengeful->permanent": "Tracks player across Beast Wilds, attacks on sight"
+        }
+      },
+      "cubs_status": {
+        "condition": "wasting_sickness",
+        "cure": "healing_herbs from Healer's Garden (Civilized Remnants)",
+        "without_treatment": "Cubs die in ~30 turns from first encounter"
+      },
+      "communication": {
+        "understands_intent": true,
+        "when_player_commits": "The bear recognizes commitment intent and calms slightly.",
+        "hint_behavior": "When player mentions cubs or illness, bear looks pointedly toward southern_trail (direction of Civilized Remnants and herb source).",
+        "when_player_withdraws": "Bear shows cubs' condition and looks south again - reinforcing where help might be found."
+      },
+      "allied_benefits": [
+        "Does not attack player",
+        "Intimidates other predators in region",
+        "Player can rest safely in den"
+      ]
+    },
+
+    "bear_cub_1": {
+      "name": "Bear Cub",
+      "type": "beast",
+      "description": "A small bear cub, visibly ill. It whimpers weakly.",
+      "properties": {
+        "condition": "wasting_sickness",
+        "condition_severity": 60,
+        "protected_by": "dire_bear"
+      },
+      "stats": {
+        "health": 15
+      }
+    },
+
+    "bear_cub_2": {
+      "name": "Bear Cub",
+      "type": "beast",
+      "description": "A small bear cub, visibly ill. It lies still, breathing shallowly.",
+      "properties": {
+        "condition": "wasting_sickness",
+        "condition_severity": 70,
+        "protected_by": "dire_bear"
+      },
+      "stats": {
+        "health": 15
+      }
+    },
+
+    "spider_queen": {
+      "name": "Spider Queen",
+      "type": "beast",
+      "description": "An enormous spider with a bulbous abdomen. Her many eyes gleam with cunning.",
+      "properties": {
+        "pack_role": "alpha",
+        "venomous": true,
+        "web_master": true
+      },
+      "stats": {
+        "health": 80,
+        "damage": "10-15 + poison",
+        "armor": 3,
+        "combat_bonus_in_webs": "+5 damage, +2 armor"
+      },
+      "state_machine": {
+        "states": ["hostile", "neutral", "dead"],
+        "initial": "hostile",
+        "notes": "Unlike wolves and bear, spider queen has no diplomatic path. Combat or avoidance only."
+      },
+      "pack_behavior": {
+        "followers": ["giant_spider_1", "giant_spider_2"],
+        "respawns_workers": "New spider appears every 10 turns if queen alive"
+      },
+      "loot_on_death": ["spider_silk_bundle", "queen_venom_sac"]
+    },
+
+    "giant_spider_1": {
+      "name": "Giant Spider",
+      "type": "beast",
+      "properties": {
+        "pack_role": "follower",
+        "follows": "spider_queen",
+        "web_spray": true
+      },
+      "stats": {
+        "health": 25,
+        "damage": "5-8",
+        "special": "Web spray: immobilizes for 1 turn"
+      }
+    },
+
+    "giant_spider_2": {
+      "name": "Giant Spider",
+      "type": "beast",
+      "properties": {
+        "pack_role": "follower",
+        "follows": "spider_queen"
+      },
+      "stats": {
+        "health": 25,
+        "damage": "5-8"
+      }
+    },
+
+    "hunter_sira": {
+      "name": "Hunter Sira",
+      "type": "human_npc",
+      "description": "A weathered hunter, currently injured. Her eyes hold both pain and fierce determination.",
+      "properties": {
+        "wandering": true,
+        "usual_location": "southern_trail",
+        "conditions": ["bleeding", "leg_injury"]
+      },
+      "state_machine": {
+        "states": ["injured", "recovering", "healthy", "companion", "dead"],
+        "initial": "injured",
+        "transitions": {
+          "injured->recovering": "Bleeding stopped",
+          "recovering->healthy": "Leg healed (requires splint + rest OR healer)",
+          "healthy->companion": "Trust >= 3 AND player asks",
+          "injured->dead": "Without treatment in ~8 turns"
+        }
+      },
+      "relationship_complexity": {
+        "anti_beast_prejudice": true,
+        "reaction_to_wolf_companion": "Initial hostility, trust -2. Can be convinced beasts and humans can coexist through dialog.",
+        "reconciliation_dialog": {
+          "keywords": ["wolves", "pack", "coexist", "trust them"],
+          "requires": "Wolf pack is companion AND trust >= 2",
+          "outcome": "Sira grudgingly accepts, prejudice flag removed"
+        }
+      },
+      "services": {
+        "teach_tracking": {
+          "type": "teaching",
+          "skill_granted": "tracking",
+          "trust_required": 2,
+          "state_required": "healthy",
+          "state_note": "Sira cannot teach while injured or recovering - she needs to be able to demonstrate techniques physically.",
+          "payment": "none (gratitude for saving her)"
+        }
+      },
+      "companion_benefits": [
+        "Ranged combat support (8-12 damage)",
+        "Tracking skill reveals hidden paths and items",
+        "Knowledge of Beast Wilds (warns of dangers)"
+      ],
+      "dialog_topics": {
+        "injury": {
+          "keywords": ["hurt", "injury", "what happened"],
+          "summary": "Sira grimaces. 'The beasts got my partner. I barely escaped. My leg... I can't walk far.'",
+          "sets_flags": {"knows_sira_backstory": true}
+        },
+        "elara_connection": {
+          "keywords": ["help", "healer", "town", "south"],
+          "trigger_condition": "first_conversation OR player_offers_help",
+          "summary": "Sira's eyes soften for a moment. 'If I don't make it... there's a healer in the town to the south. Elara. She's... we're close. Tell her what happened to me. She deserves to know.'",
+          "sets_flags": {"knows_sira_elara_connection": true},
+          "design_note": "Establishes Sira-Elara relationship early so player understands gossip consequences later. This dialog should trigger naturally during first encounter."
+        },
+        "partner": {
+          "keywords": ["partner", "who", "what happened to them"],
+          "requires_flags": {"knows_sira_backstory": true},
+          "summary": "Her face hardens. 'The wolves. We were tracking them, trying to thin the pack. They were smarter than we thought. Coordinated. Tam didn't stand a chance.'",
+          "sets_flags": {"knows_sira_loss": true}
+        },
+        "beasts": {
+          "keywords": ["beasts", "animals", "creatures"],
+          "summary": "Sira's eyes narrow. 'Since the disaster, they've changed. Smarter. Meaner. Some say we should try to live alongside them. I say that's how you get eaten.'",
+          "notes": "This opinion can soften if player demonstrates successful domestication"
+        }
+      }
+    }
+  },
+
+  "items": {
+    "venison": {
+      "name": "venison",
+      "description": "Fresh deer meat. Predators would find this appealing.",
+      "properties": {
+        "portable": true,
+        "food": true,
+        "beast_bait": true
+      }
+    },
+
+    "tracking_equipment": {
+      "name": "tracking equipment",
+      "description": "Snares, markers, and a worn compass. Tools of a hunter.",
+      "properties": {
+        "portable": true
+      },
+      "use": "With tracking skill, reveals hidden paths and creature locations"
+    },
+
+    "hunters_journal": {
+      "name": "hunter's journal",
+      "description": "Notes on local wildlife behaviors and safe paths.",
+      "properties": {
+        "readable": true,
+        "portable": true
+      },
+      "content_summary": "Details wolf pack patterns, bear den location, spider nest warnings. Notes that the bee queen can be traded with using flowers."
+    },
+
+    "royal_honey": {
+      "name": "royal honey",
+      "description": "Golden honey that glows faintly. Incredibly potent.",
+      "properties": {
+        "portable": true,
+        "consumable": true
+      },
+      "effects": "Full health restore + removes one condition"
+    },
+
+    "spider_silk": {
+      "name": "spider silk",
+      "description": "Strong, flexible silk from giant spiders.",
+      "properties": {
+        "portable": true,
+        "crafting_material": true
+      },
+      "uses": ["Rope substitute", "Crafting ingredient", "Trade valuable"]
+    },
+
+    "venom_sacs": {
+      "name": "venom sacs",
+      "description": "Carefully extracted poison glands.",
+      "properties": {
+        "portable": true,
+        "alchemical_ingredient": true,
+        "dangerous": true
+      },
+      "uses": ["Create poison", "Trade to Herbalist", "Research material"]
+    },
+
+    "alpha_fang": {
+      "name": "alpha fang",
+      "description": "A massive wolf fang, freely given. A mark of pack bond.",
+      "properties": {
+        "portable": true,
+        "quest_item": true
+      },
+      "use": "Required for waystone repair in Nexus"
+    },
+
+    "healing_herbs": {
+      "name": "healing herbs",
+      "description": "Medicinal plants that can treat various ailments.",
+      "properties": {
+        "portable": true,
+        "curative": true
+      },
+      "source": "Healer's Garden in Civilized Remnants",
+      "use": "Cures bear cubs' wasting sickness"
+    }
+  },
+
+  "environmental_rules": {
+    "pack_dynamics": {
+      "description": "Pack creatures mirror their alpha's state and location.",
+      "applies_to": ["wolves", "spiders"]
+    },
+    "web_effects": {
+      "locations": ["spider_nest_gallery"],
+      "effects": ["Movement slowed", "Spiders get combat bonus", "Can be burned (alerts swarm, damages area permanently)"]
+    },
+    "territorial_warnings": {
+      "description": "Entering hostile territory gives one turn of warning before attack.",
+      "applies_to": ["wolf_clearing (if wolves hostile)", "predators_den (always first visit)"]
+    }
+  },
+
+  "companion_restrictions": {
+    "description": "Different actor types have location restrictions based on their nature. These are dispositions, not iron laws - an especially brave or foolhardy individual might ignore them.",
+    "philosophy": "Restrictions create meaningful choices about which companion to bring where. They also prevent player from trivially solving all encounters with overwhelming force.",
+
+    "by_actor_type": {
+      "wolves": {
+        "cannot_enter": [
+          {"location": "nexus_chamber", "reason": "Magical wards repel beasts", "override": "none"},
+          {"location": "civilized_remnants/*", "reason": "Town guards attack beasts on sight", "override": "none"},
+          {"location": "spider_nest_gallery", "reason": "Territorial instinct - wolves avoid spider territory", "override": "exceptional_bravery"}
+        ],
+        "uncomfortable_in": [
+          {"location": "sunken_district/*", "reason": "Wolves dislike water", "effect": "Combat penalties, may refuse deep water areas"}
+        ],
+        "notes": "Pack follows alpha. If alpha won't enter, pack won't enter."
+      },
+
+      "bears": {
+        "cannot_enter": [
+          {"location": "nexus_chamber", "reason": "Magical wards repel beasts", "override": "none"},
+          {"location": "civilized_remnants/*", "reason": "Town guards attack beasts on sight", "override": "none"}
+        ],
+        "uncomfortable_in": [
+          {"location": "frozen_reaches/*", "reason": "Cold affects even dire bears", "effect": "Reduced endurance, may seek shelter"}
+        ],
+        "notes": "Dire bear is territorial - will not follow player far from Beast Wilds unless cubs are with her."
+      },
+
+      "steam_salamanders": {
+        "cannot_enter": [
+          {"location": "sunken_district/*", "reason": "Elemental conflict - water extinguishes fire creatures", "override": "none"}
+        ],
+        "uncomfortable_in": [
+          {"location": "beast_wilds/*", "reason": "Wrong habitat - uncomfortable but functional", "effect": "Minor penalties, frequent complaints"},
+          {"location": "civilized_remnants/*", "reason": "Fire creatures make townsfolk nervous", "effect": "NPCs react with fear"}
+        ],
+        "comfortable_in": ["nexus_chamber", "frozen_reaches/*"],
+        "notes": "Fire elemental nature defines their restrictions."
+      },
+
+      "humans": {
+        "cannot_enter": [],
+        "uncomfortable_in": [
+          {"location": "fungal_depths/deep_roots", "reason": "Spore concentration dangerous without protection", "effect": "Takes spore damage without myconid mask or spore_resistance skill"},
+          {"location": "frozen_reaches/ice_caves", "reason": "Extreme cold", "effect": "Takes cold damage without cold gear"},
+          {"location": "sunken_district/deep_archive", "reason": "Requires advanced swimming", "effect": "Cannot access without skill"}
+        ],
+        "notes": "Humans are the most flexible but most vulnerable to environmental hazards."
+      },
+
+      "myconids": {
+        "cannot_enter": [
+          {"location": "frozen_reaches/*", "reason": "Cold kills fungal life", "override": "none"}
+        ],
+        "uncomfortable_in": [
+          {"location": "beast_wilds/*", "reason": "Dry air, predators", "effect": "Reduced effectiveness"},
+          {"location": "civilized_remnants/*", "reason": "Townsfolk fear fungal infection", "effect": "NPCs react with hostility"}
+        ],
+        "comfortable_in": ["fungal_depths/*", "nexus_chamber", "sunken_district/*"],
+        "notes": "Myconids rarely leave Fungal Depths. Would require exceptional circumstances."
+      }
+    },
+
+    "exceptional_individuals": {
+      "description": "Some actors have personality traits that let them ignore typical restrictions.",
+      "examples": [
+        "A particularly brave wolf might follow player into spider territory (but would need narrative justification - protecting player from threat)",
+        "A foolhardy salamander might try to help in Sunken District (dramatic self-sacrifice moment)",
+        "A curious myconid explorer might venture into Beast Wilds"
+      ],
+      "implementation_note": "Individual actors can have 'ignores_restriction' flags for specific locations. This should be rare and narratively motivated."
+    },
+
+    "restriction_feedback": {
+      "when_approaching_restricted_area": "Companion shows hesitation, player gets warning before entering",
+      "when_entering_restricted_area": "Companion refuses or (if exceptional) accompanies with visible distress",
+      "when_in_uncomfortable_area": "Companion dialog reflects discomfort, may ask to leave"
+    }
+  },
+
+  "cross_region_connections": {
+    "to_nexus": {
+      "exit": "north from forest_edge",
+      "destination": "nexus_chamber",
+      "companion_restriction": "Wolf pack cannot enter (magical wards)"
+    },
+    "to_civilized_remnants": {
+      "exit": "south from southern_trail",
+      "destination": "town_gate",
+      "companion_restriction": "Wolf pack cannot enter (guards forbid)",
+      "notes": "Guards will attack wolves on sight. Player must leave pack outside."
+    },
+    "cross_region_items": {
+      "healing_herbs": "From Civilized Remnants, needed for bear cubs",
+      "rare_flowers": "From other regions, for bee queen trade",
+      "alpha_fang": "To Nexus, for waystone repair"
+    }
+  },
+
+  "narrative_role": {
+    "core_tension": "Violence is easy but closes doors. Patience opens paths.",
+    "multiple_solutions": {
+      "wolf_pack": "Fight (difficult), feed (time-consuming), intimidate (temporary)",
+      "bee_grove": "Trade (requires cross-region items), violence (destroys resource permanently)",
+      "dire_bear": "Heal cubs (requires item from another region), fight (very hard), avoid",
+      "spider_nest": "Fight (moderate), sneak (possible), burn webs (damages permanently)"
+    },
+    "player_choices_matter": [
+      "Killing wolves prevents domestication forever",
+      "Destroying bee grove removes royal honey from game",
+      "Cubs dying makes bear permanent enemy",
+      "Saving Sira gives companion, letting her die removes tracking teacher"
+    ]
+  },
+
+  "commitment_system": {
+    "description": "Player can make implicit commitments to help NPCs. Commitments create stakes beyond the base deed.",
+    "commitments_in_region": {
+      "bear_cubs_commitment": {
+        "trigger_phrases": ["I'll find medicine", "I'll heal your cubs", "I will help them", "I'll bring healing herbs"],
+        "target_npc": "dire_bear",
+        "goal": "Give healing_herbs to bear cubs",
+        "commitment_timer": {
+          "base_turns_to_death": 30,
+          "timer_starts": "first_encounter",
+          "with_hope_bonus": 35,
+          "warning_at_remaining": 8,
+          "warning_message": "The cubs' breathing is shallow. The sicker one has stopped moving."
+        },
+        "hope_extends_survival": true,
+        "survival_extension": 5,
+        "note": "Commitment made TO the bear (she understands intent), FOR the cubs",
+        "fulfillment_bonus": "+2 gratitude (beyond base reward). Bear becomes permanent ally.",
+        "withdrawal_response": {
+          "dialog": "The bear studies you with intelligent eyes. A low rumble - not hostile, but... questioning. She nudges one of the cubs toward you, showing the patches of diseased fur. Then looks toward the southern trail meaningfully.",
+          "hint_given": "Direction toward Civilized Remnants (herb source)",
+          "trust_effect": 0,
+          "can_recommit": true
+        },
+        "abandonment_effects": {
+          "flag_set": "broke_promise_bear_cubs",
+          "cubs_die": true,
+          "bear_becomes_vengeful": true,
+          "echo_reaction": "The Echo's voice carries sorrow. 'A mother trusted you with her children's lives.'",
+          "hunter_sira_reaction": "If Sira learns: 'Even I wouldn't abandon sick cubs. What kind of person are you?'",
+          "trust_penalty_spread": -2
+        }
+      },
+      "sira_commitment": {
+        "trigger_phrases": ["I'll get help", "I'll find a healer", "I'll bring bandages", "I will save you"],
+        "target_npc": "hunter_sira",
+        "goal": "Stop Sira's bleeding and heal her leg",
+        "commitment_timer": {
+          "base_turns_to_death": 8,
+          "timer_starts": "first_encounter",
+          "with_hope_bonus": 12,
+          "warning_at_remaining": 3,
+          "warning_message": "Sira's face is pale as chalk. Her breathing comes in gasps."
+        },
+        "design_note": "Sira's 8-turn timer is the tightest non-Sunken commitment. This is a designed trap for overcommitted players who promise to help her then explore Sunken District first. Cross-region walkthrough A confirmed this creates meaningful tension.",
+        "hope_extends_survival": true,
+        "survival_extension": 4,
+        "fulfillment_bonus": "+2 trust (beyond base). Unlocks companion option immediately.",
+        "withdrawal_response": {
+          "dialog": "'Can't blame you. These wilds claim everyone eventually.' She winces. 'If you change your mind... Elara - the healer I mentioned - she'd help. We've been through a lot together.'",
+          "reinforces_flag": "knows_sira_elara_connection",
+          "trust_effect": 0,
+          "can_recommit": true,
+          "design_note": "Reinforces Sira-Elara connection established in first conversation. Player should already know about Elara from elara_connection dialog."
+        },
+        "abandonment_effects": {
+          "flag_set": "broke_promise_sira",
+          "sira_dies": true,
+          "echo_reaction": {
+            "immediate": "The Echo speaks quietly. 'The hunter is gone. And somewhere in the town, a healer will grieve when word reaches her.'",
+            "design_note": "Echo's comment reminds player of the Sira-Elara connection established earlier, implying gossip consequences without spelling them out."
+          },
+          "elara_reaction": "If Elara learns Sira died: 'Sira? She's... gone? I heard someone was with her...' Trust -2 with Elara.",
+          "tracking_skill_unavailable": true,
+          "confession_opportunity": {
+            "if_player_confesses_to_elara": "Elara will be devastated but grateful for honesty. Trust penalty reduced to -1.",
+            "if_gossip_reaches_elara_first": "Elara learns player was there, didn't help. Trust -2 and teaching unavailable.",
+            "design_note": "Player should understand from Echo's comment that Elara will learn of this. Confessing first is the honorable path."
+          }
+        }
+      },
+      "bee_queen_commitment": {
+        "trigger_phrases": ["I'll bring flowers", "I'll find flowers for you", "I will return with blooms"],
+        "target_npc": "bee_queen",
+        "goal": "Bring rare flowers (moonpetal, frost_lily, or water_bloom) to bee queen",
+        "hope_extends_survival": false,
+        "note": "Queen is not dying - this is a trade relationship, not rescue. No time pressure.",
+        "fulfillment_bonus": "Each flower type traded grants royal_honey and +1 toward allied state.",
+        "withdrawal_response": {
+          "dialog": "The queen's antennae twitch. She returns to tending her hive, interest fading. The trade offer remains open.",
+          "trust_effect": 0,
+          "can_recommit": true,
+          "note": "No penalty - she's patient, flowers are rare, she understands the search takes time."
+        },
+        "abandonment_effects": {
+          "note": "Cannot truly abandon - queen lives indefinitely. But if player damages grove through violence, trade opportunity is lost forever.",
+          "flag_set": "bee_trade_incomplete",
+          "echo_reaction": "None - not a moral failing, just incomplete trade"
+        }
+      }
+    }
+  },
+
+  "companion_behavior": {
+    "salamander": {
+      "can_enter": true,
+      "comfort_level": "uncomfortable",
+      "effects": {
+        "general": "Salamander complains about humidity and dense vegetation",
+        "in_spider_nest": "Fire provides light, can burn webs (alerts spiders, damages area)"
+      },
+      "benefits": {
+        "light_source": "Illuminates dark spider gallery",
+        "combat_assist": "+10-15 fire damage",
+        "web_clearing": "Can burn paths through webs (alerts all spiders in area)"
+      },
+      "npc_reactions": {
+        "wolves": "Curious but wary. No hostility - fire is respected.",
+        "dire_bear": "Bear keeps distance. Neither hostile nor friendly.",
+        "spiders": "Terrified of fire. -2 to spider morale in combat."
+      }
+    },
+    "human_companion": {
+      "can_enter": true,
+      "comfort_level": "comfortable",
+      "sira_specific": {
+        "home_region": true,
+        "tracking_bonus": "+2 to finding hidden paths, animal signs",
+        "wolf_conflict": "Initial hostility to wolf companion. Requires reconciliation dialog."
+      },
+      "aldric_specific": {
+        "dialog": "'The beasts here... they're smarter since the disaster. Be careful.'",
+        "no_combat_help": "Too weak to fight, but provides lore"
+      }
+    },
+    "multiple_companion_rules": {
+      "wolf_and_sira": {
+        "initial_state": "Hostile. Sira's hand goes to her weapon.",
+        "reconciliation_requirements": [
+          "Trust 2+ with Sira",
+          "Trust 3+ with wolves (companion level)",
+          "Player initiates 'coexist' dialog option"
+        ],
+        "reconciliation_dialog": {
+          "player": "'They're not like the ones that killed Tam. They've chosen to trust me.'",
+          "sira_response": "'Trust? They're killers.' She watches the alpha. 'But... they're not attacking. And they follow you.' Long pause. 'Fine. I'll try. But if they turn...'",
+          "outcome": "Sira accepts wolves. Prejudice flag removed. Both can travel together."
+        },
+        "without_reconciliation": "One refuses to travel while the other is present. Player must choose."
+      },
+      "wolf_and_salamander": {
+        "initial_state": "Mutual wariness",
+        "outcome": "Coexist without issue after 3 turns together. Wolves learn fire isn't threat."
+      }
+    },
+    "waiting_behavior": {
+      "wolves_wait_at": "Forest Edge if player enters town. Wolf Clearing if player enters spider gallery (unless exceptional bravery).",
+      "salamander_wait_at": "Forest Edge (close to exit, uncomfortable throughout region)",
+      "return_behavior": "Companions rejoin when player returns to waiting location or exits region"
+    }
+  },
+
+  "wolf_spider_coexistence": {
+    "description": "What happens when wolf pack and spider nest share the region",
+    "natural_state": {
+      "territorial_boundary": "Wolves claim Wolf Clearing and west. Spiders claim gallery and approach.",
+      "conflict_frequency": "Rare - both stay in their territories",
+      "balance": "Stable unless player disrupts"
+    },
+    "if_player_allies_wolves": {
+      "spider_reaction": "Spiders remain in gallery. More defensive if wolves nearby.",
+      "can_bring_wolves_to_spiders": "Wolves refuse at gallery entrance (territorial instinct)",
+      "exceptional_bravery_trigger": "If player is losing fight in gallery, wolves may charge in to save them (one-time, costs 1-2 wolves)"
+    },
+    "if_player_kills_spider_queen": {
+      "wolf_reaction": "Alpha curious about quieter forest. May patrol former spider territory.",
+      "remaining_spiders": "Scatter, become non-hostile, avoid wolf areas entirely",
+      "new_balance": "Wolves dominant, region safer"
+    },
+    "if_player_kills_wolf_alpha": {
+      "spider_reaction": "Spiders more bold. May expand territory over time.",
+      "remaining_wolves": "Scatter without alpha. Some may become hostile loners.",
+      "new_balance": "Spiders dominant, region more dangerous"
+    },
+    "if_player_allies_both": {
+      "impossibility": "Cannot ally with spiders (no diplomatic path)",
+      "design_note": "Spider queen has no befriending mechanic - pure obstacle or combat"
+    }
+  },
+
+  "resolved_questions": [
+    {
+      "id": "Q-WILDS-1",
+      "question": "Can the wolf pack and Sira coexist as companions?",
+      "resolution": "Yes, but requires explicit reconciliation dialog. Trust 2+ with Sira, Trust 3+ with wolves, player must initiate conversation about coexistence."
+    },
+    {
+      "id": "Q-WILDS-2",
+      "question": "Where do the rare flowers for bee trade come from?",
+      "resolution": "moonpetal from Fungal Depths (Luminous Grotto) or Civilized Remnants (Healer's Garden), frost_lily from Frozen Reaches (Ice Caves), water_bloom from Sunken District (flooded areas)"
+    },
+    {
+      "id": "Q-WILDS-3",
+      "question": "What happens if player kills spider queen but not all spiders?",
+      "resolution": "Remaining spiders scatter and become non-hostile (leaderless). No more respawn. Area becomes safe but no loot from scattered spiders."
+    },
+    {
+      "id": "Q-WILDS-4",
+      "question": "How do wolves and spiders coexist in the region?",
+      "resolution": "Stable territorial balance. Wolves avoid spider gallery (instinct), spiders stay in gallery. Player actions can shift this balance. See wolf_spider_coexistence section."
+    }
+  ],
+
+  "open_questions": []
+}

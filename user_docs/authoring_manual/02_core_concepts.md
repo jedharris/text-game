@@ -68,14 +68,14 @@ Items can be:
 }
 ```
 
-### Actors (Player and NPCs)
+### Actors
 
-**What they are:** Characters in the game world.
+**What they are:** Characters in the game world - including the human-controlled character and NPCs.
 
-The player is always an actor with id `"player"`. NPCs are additional actors.
+The human-controlled character is an actor with the reserved id `"player"`. All other actors are NPCs.
 
 **Key properties:**
-- `id` - Unique identifier ("player" or "npc_guard")
+- `id` - Unique identifier ("player" for human-controlled, or "npc_guard" etc. for NPCs)
 - `name` - Character name
 - `description` - What players see when examining
 - `location` - Current location
@@ -113,7 +113,7 @@ For comprehensive actor documentation, see [Actors](03_actors.md) and [Actor Int
 - NPCs: `npc_guard`, `npc_wizard`, `npc_merchant`
 - Locks: `lock_treasure`, `lock_gate`
 
-The special ID `"player"` is reserved for the player character.
+The special ID `"player"` is reserved for the human-controlled actor.
 
 ## 3.2 Game State JSON Format
 
@@ -159,6 +159,69 @@ Your game world is defined in `game_state.json`. Let's look at each section:
       "behaviors": []                     // Optional: Behavior modules
     }
   ]
+}
+```
+
+### Exits with Doors and Passages
+
+When an exit has both a door and a passage (e.g., a door at the bottom of stairs), use the `passage` and `door_at` fields for accurate traversal narration:
+
+```json
+{
+  "exits": {
+    "up": {
+      "type": "door",
+      "to": "loc_sanctum",
+      "door_id": "door_sanctum",
+      "name": "ornate door",
+      "description": "An ornate door guards the bottom of narrow stone stairs.",
+      "passage": "narrow stone stairs",
+      "door_at": "loc_library"
+    }
+  }
+}
+```
+
+**Fields:**
+- `passage` - Name of the traversal structure beyond the door (e.g., "narrow stone stairs", "long corridor")
+- `door_at` - Location ID where the door is physically located (must be either the current location or the destination)
+
+**How it works:**
+
+The engine generates appropriate traversal messages based on which end of the passage you're at:
+
+- **Going up from library** (door is here): "You go through the ornate door and climb the narrow stone stairs to Wizard's Sanctum."
+- **Going down from sanctum** (door is at destination): "You descend the narrow stone stairs and go through the ornate door to Wizard's Library."
+
+**When to use:**
+- Door at bottom of stairs leading up
+- Door at end of a corridor
+- Any exit where you pass through a door AND traverse a passage
+
+**When NOT needed:**
+- Simple doors between rooms (just use `type: "door"`)
+- Open passages without doors (just use `type: "open"`)
+
+**Both exits should agree:**
+```json
+// In loc_library
+"up": {
+  "type": "door",
+  "to": "loc_sanctum",
+  "door_id": "door_sanctum",
+  "name": "ornate door",
+  "passage": "narrow stone stairs",
+  "door_at": "loc_library"      // Door is at library end
+}
+
+// In loc_sanctum
+"down": {
+  "type": "door",
+  "to": "loc_library",
+  "door_id": "door_sanctum",
+  "name": "ornate door",
+  "passage": "narrow stone stairs",
+  "door_at": "loc_library"      // Same door, same location
 }
 ```
 

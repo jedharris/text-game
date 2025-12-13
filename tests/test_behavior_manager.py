@@ -208,7 +208,7 @@ class TestBehaviorManagerInvokeBehavior(unittest.TestCase):
 
         # Create entity with behavior
         entity = Mock()
-        entity.behaviors = {"on_squeeze": "test.module:on_squeeze"}
+        entity.behaviors = ["test.module"]
 
         # Mock accessor - dict format behaviors receive accessor.game_state
         accessor = Mock()
@@ -220,11 +220,16 @@ class TestBehaviorManagerInvokeBehavior(unittest.TestCase):
         mock_func = Mock(return_value=expected_result)
         mock_module = MagicMock()
         mock_module.on_squeeze = mock_func
+        mock_module.vocabulary = {}
 
         with patch('importlib.import_module', return_value=mock_module):
-            result = manager.invoke_behavior(entity, "on_squeeze", accessor, context)
+            manager.load_module("test.module")
 
-        self.assertIs(result, expected_result)
+        result = manager.invoke_behavior(entity, "on_squeeze", accessor, context)
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.allow, expected_result.allow)
+        self.assertEqual(result.message, expected_result.message)
         # Dict format behaviors receive (entity, game_state, context)
         mock_func.assert_called_once_with(entity, game_state, context)
 
@@ -234,7 +239,7 @@ class TestBehaviorManagerInvokeBehavior(unittest.TestCase):
 
         entity = Mock(spec=[])  # No behaviors attribute
         state = Mock()
-        context = {}
+        context: dict[str, Any] = {}
 
         result = manager.invoke_behavior(entity, "on_squeeze", state, context)
 
@@ -245,9 +250,9 @@ class TestBehaviorManagerInvokeBehavior(unittest.TestCase):
         manager = BehaviorManager()
 
         entity = Mock()
-        entity.behaviors = {}
+        entity.behaviors = []
         state = Mock()
-        context = {}
+        context: dict[str, Any] = {}
 
         result = manager.invoke_behavior(entity, "on_squeeze", state, context)
 
@@ -258,9 +263,14 @@ class TestBehaviorManagerInvokeBehavior(unittest.TestCase):
         manager = BehaviorManager()
 
         entity = Mock()
-        entity.behaviors = {"on_take": "test.module:on_take"}
+        entity.behaviors = ["test.module"]
         state = Mock()
-        context = {}
+        context: dict[str, Any] = {}
+
+        mock_module = MagicMock()
+        mock_module.vocabulary = {}
+        with patch('importlib.import_module', return_value=mock_module):
+            manager.load_module("test.module")
 
         result = manager.invoke_behavior(entity, "on_squeeze", state, context)
 
@@ -271,16 +281,19 @@ class TestBehaviorManagerInvokeBehavior(unittest.TestCase):
         manager = BehaviorManager()
 
         entity = Mock()
-        entity.behaviors = {"on_squeeze": "test.module:on_squeeze"}
+        entity.behaviors = ["test.module"]
         state = Mock()
-        context = {}
+        context: dict[str, Any] = {}
 
         mock_func = Mock(side_effect=Exception("Behavior error"))
         mock_module = MagicMock()
         mock_module.on_squeeze = mock_func
+        mock_module.vocabulary = {}
 
         with patch('importlib.import_module', return_value=mock_module):
-            result = manager.invoke_behavior(entity, "on_squeeze", state, context)
+            manager.load_module("test.module")
+
+        result = manager.invoke_behavior(entity, "on_squeeze", state, context)
 
         self.assertIsNone(result)
 
@@ -289,17 +302,20 @@ class TestBehaviorManagerInvokeBehavior(unittest.TestCase):
         manager = BehaviorManager()
 
         entity = Mock()
-        entity.behaviors = {"on_squeeze": "test.module:on_squeeze"}
+        entity.behaviors = ["test.module"]
         state = Mock()
-        context = {}
+        context: dict[str, Any] = {}
 
         # Return something other than EventResult
         mock_func = Mock(return_value="not an EventResult")
         mock_module = MagicMock()
         mock_module.on_squeeze = mock_func
+        mock_module.vocabulary = {}
 
         with patch('importlib.import_module', return_value=mock_module):
-            result = manager.invoke_behavior(entity, "on_squeeze", state, context)
+            manager.load_module("test.module")
+
+        result = manager.invoke_behavior(entity, "on_squeeze", state, context)
 
         self.assertIsNone(result)
 
@@ -580,7 +596,7 @@ class TestBehaviorManagerIntegration(unittest.TestCase):
             "type": "result",
             "success": True,
             "action": "squeeze",
-            "entity_obj": Mock(behaviors={"on_squeeze": "test:on_squeeze"})
+            "entity_obj": Mock(behaviors=["test"])
         })
         mock_module.handle_squeeze = mock_handler
 
@@ -604,7 +620,7 @@ class TestBehaviorManagerIntegration(unittest.TestCase):
 
             # Invoke behavior
             entity = Mock()
-            entity.behaviors = {"on_squeeze": "test:on_squeeze"}
+            entity.behaviors = ["test"]
             state = Mock()
             context = {"location": Mock()}
 
@@ -624,13 +640,15 @@ class TestBehaviorManagerIntegration(unittest.TestCase):
 
         mock_module = MagicMock()
         mock_module.on_squeeze = on_squeeze
+        mock_module.vocabulary = {}
 
         with patch('importlib.import_module', return_value=mock_module):
+            manager.load_module("test")
             entity = Mock()
-            entity.behaviors = {"on_squeeze": "test:on_squeeze"}
+            entity.behaviors = ["test"]
             entity.states = {}
             state = Mock()
-            context = {}
+            context: dict[str, Any] = {}
 
             # First squeeze
             result = manager.invoke_behavior(entity, "on_squeeze", state, context)

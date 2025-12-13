@@ -549,5 +549,344 @@ class TestIncludeLlmContextFlag(unittest.TestCase):
         self.assertEqual(result["id"], "item_sword")
 
 
+class TestPerspectiveVariants(unittest.TestCase):
+    """Test perspective_variants selection based on player_context."""
+
+    def test_no_perspective_note_without_variants(self):
+        """Test that no perspective_note is added when no variants exist."""
+        from utilities.entity_serializer import entity_to_dict
+
+        item = Item(
+            id="item_stairs",
+            name="stairs",
+            description="A spiral staircase.",
+            location="loc_room",
+            properties={
+                "llm_context": {
+                    "traits": ["worn", "ancient"]
+                }
+            }
+        )
+
+        player_context = {"posture": "climbing", "focused_on": "item_stairs"}
+        result = entity_to_dict(item, player_context=player_context)
+
+        self.assertNotIn("perspective_note", result)
+
+    def test_no_perspective_note_without_player_context_and_no_default(self):
+        """Test no perspective_note when no player_context and no default variant."""
+        from utilities.entity_serializer import entity_to_dict
+
+        item = Item(
+            id="item_stairs",
+            name="stairs",
+            description="A spiral staircase.",
+            location="loc_room",
+            properties={
+                "llm_context": {
+                    "traits": ["worn"],
+                    "perspective_variants": {
+                        "climbing": "The worn steps continue above and below you"
+                    }
+                }
+            }
+        )
+
+        result = entity_to_dict(item)  # No player_context
+
+        self.assertNotIn("perspective_note", result)
+
+    def test_default_variant_without_player_context(self):
+        """Test that default variant is used when no player_context."""
+        from utilities.entity_serializer import entity_to_dict
+
+        item = Item(
+            id="item_stairs",
+            name="stairs",
+            description="A spiral staircase.",
+            location="loc_room",
+            properties={
+                "llm_context": {
+                    "traits": ["worn"],
+                    "perspective_variants": {
+                        "default": "A spiral staircase rises through the tower",
+                        "climbing": "The worn steps continue above and below you"
+                    }
+                }
+            }
+        )
+
+        result = entity_to_dict(item)  # No player_context
+
+        self.assertEqual(result["perspective_note"],
+                        "A spiral staircase rises through the tower")
+
+    def test_posture_match_selected(self):
+        """Test that posture-only variant is selected when matching."""
+        from utilities.entity_serializer import entity_to_dict
+
+        item = Item(
+            id="item_stairs",
+            name="stairs",
+            description="A spiral staircase.",
+            location="loc_room",
+            properties={
+                "llm_context": {
+                    "traits": ["worn"],
+                    "perspective_variants": {
+                        "default": "A spiral staircase rises through the tower",
+                        "climbing": "The worn steps continue above and below you"
+                    }
+                }
+            }
+        )
+
+        player_context = {"posture": "climbing", "focused_on": "item_stairs"}
+        result = entity_to_dict(item, player_context=player_context)
+
+        self.assertEqual(result["perspective_note"],
+                        "The worn steps continue above and below you")
+
+    def test_exact_match_takes_precedence(self):
+        """Test that exact posture:focus match takes precedence over posture."""
+        from utilities.entity_serializer import entity_to_dict
+
+        item = Item(
+            id="item_stairs",
+            name="stairs",
+            description="A spiral staircase.",
+            location="loc_room",
+            properties={
+                "llm_context": {
+                    "traits": ["worn"],
+                    "perspective_variants": {
+                        "default": "A spiral staircase rises through the tower",
+                        "climbing": "Generic climbing description",
+                        "climbing:item_stairs": "You cling to the worn spiral steps"
+                    }
+                }
+            }
+        )
+
+        player_context = {"posture": "climbing", "focused_on": "item_stairs"}
+        result = entity_to_dict(item, player_context=player_context)
+
+        self.assertEqual(result["perspective_note"],
+                        "You cling to the worn spiral steps")
+
+    def test_fallback_to_default_when_no_posture_match(self):
+        """Test fallback to default when posture doesn't match."""
+        from utilities.entity_serializer import entity_to_dict
+
+        item = Item(
+            id="item_stairs",
+            name="stairs",
+            description="A spiral staircase.",
+            location="loc_room",
+            properties={
+                "llm_context": {
+                    "traits": ["worn"],
+                    "perspective_variants": {
+                        "default": "A spiral staircase rises through the tower",
+                        "climbing": "The worn steps continue above and below you"
+                    }
+                }
+            }
+        )
+
+        player_context = {"posture": "on_surface", "focused_on": "item_table"}
+        result = entity_to_dict(item, player_context=player_context)
+
+        self.assertEqual(result["perspective_note"],
+                        "A spiral staircase rises through the tower")
+
+    def test_no_perspective_note_when_no_match_and_no_default(self):
+        """Test no perspective_note when posture doesn't match and no default."""
+        from utilities.entity_serializer import entity_to_dict
+
+        item = Item(
+            id="item_stairs",
+            name="stairs",
+            description="A spiral staircase.",
+            location="loc_room",
+            properties={
+                "llm_context": {
+                    "traits": ["worn"],
+                    "perspective_variants": {
+                        "climbing": "The worn steps continue above and below you"
+                    }
+                }
+            }
+        )
+
+        player_context = {"posture": "on_surface", "focused_on": "item_table"}
+        result = entity_to_dict(item, player_context=player_context)
+
+        self.assertNotIn("perspective_note", result)
+
+    def test_perspective_note_separate_from_llm_context(self):
+        """Test that perspective_note is at top level, not inside llm_context."""
+        from utilities.entity_serializer import entity_to_dict
+
+        item = Item(
+            id="item_stairs",
+            name="stairs",
+            description="A spiral staircase.",
+            location="loc_room",
+            properties={
+                "llm_context": {
+                    "traits": ["worn"],
+                    "perspective_variants": {
+                        "default": "A spiral staircase rises through the tower"
+                    }
+                }
+            }
+        )
+
+        result = entity_to_dict(item)
+
+        # perspective_note should be at top level
+        self.assertIn("perspective_note", result)
+        # llm_context should still exist and have traits
+        self.assertIn("llm_context", result)
+        self.assertIn("traits", result["llm_context"])
+
+
+class TestSpatialRelation(unittest.TestCase):
+    """Test spatial_relation computation based on player_context."""
+
+    def test_no_spatial_relation_without_player_context(self):
+        """Test that no spatial_relation is added without player_context."""
+        from utilities.entity_serializer import entity_to_dict
+
+        item = Item(
+            id="item_sword",
+            name="sword",
+            description="A sword.",
+            location="loc_room"
+        )
+
+        result = entity_to_dict(item)
+
+        self.assertNotIn("spatial_relation", result)
+
+    def test_no_spatial_relation_with_null_posture(self):
+        """Test that no spatial_relation is added when posture is None."""
+        from utilities.entity_serializer import entity_to_dict
+
+        item = Item(
+            id="item_sword",
+            name="sword",
+            description="A sword.",
+            location="loc_room"
+        )
+
+        player_context = {"posture": None, "focused_on": None}
+        result = entity_to_dict(item, player_context=player_context)
+
+        self.assertNotIn("spatial_relation", result)
+
+    def test_within_reach_for_focused_entity(self):
+        """Test that focused entity has within_reach relation."""
+        from utilities.entity_serializer import entity_to_dict
+
+        item = Item(
+            id="item_table",
+            name="table",
+            description="A wooden table.",
+            location="loc_room"
+        )
+
+        player_context = {"posture": "on_surface", "focused_on": "item_table"}
+        result = entity_to_dict(item, player_context=player_context)
+
+        self.assertEqual(result["spatial_relation"], "within_reach")
+
+    def test_within_reach_for_item_on_focused_surface(self):
+        """Test that items on focused surface have within_reach relation."""
+        from utilities.entity_serializer import entity_to_dict
+
+        # Item is ON the table (location = item_table)
+        item = Item(
+            id="item_cup",
+            name="cup",
+            description="A ceramic cup.",
+            location="item_table"  # Item is on the table
+        )
+
+        player_context = {"posture": "on_surface", "focused_on": "item_table"}
+        result = entity_to_dict(item, player_context=player_context)
+
+        self.assertEqual(result["spatial_relation"], "within_reach")
+
+    def test_below_for_floor_items_when_elevated(self):
+        """Test that floor items are 'below' when player is elevated."""
+        from utilities.entity_serializer import entity_to_dict
+
+        # Item is on the floor (location = location id)
+        item = Item(
+            id="item_sword",
+            name="sword",
+            description="A sword.",
+            location="loc_room"  # On the floor
+        )
+
+        player_context = {"posture": "on_surface", "focused_on": "item_table"}
+        result = entity_to_dict(item, player_context=player_context)
+
+        self.assertEqual(result["spatial_relation"], "below")
+
+    def test_below_for_floor_items_when_climbing(self):
+        """Test that floor items are 'below' when player is climbing."""
+        from utilities.entity_serializer import entity_to_dict
+
+        item = Item(
+            id="item_rock",
+            name="rock",
+            description="A rock.",
+            location="loc_room"
+        )
+
+        player_context = {"posture": "climbing", "focused_on": "item_ladder"}
+        result = entity_to_dict(item, player_context=player_context)
+
+        self.assertEqual(result["spatial_relation"], "below")
+
+    def test_nearby_for_other_postures(self):
+        """Test that non-elevated postures result in 'nearby'."""
+        from utilities.entity_serializer import entity_to_dict
+
+        item = Item(
+            id="item_sword",
+            name="sword",
+            description="A sword.",
+            location="loc_room"
+        )
+
+        # Cover posture - not elevated, so items are nearby
+        player_context = {"posture": "cover", "focused_on": "item_barricade"}
+        result = entity_to_dict(item, player_context=player_context)
+
+        self.assertEqual(result["spatial_relation"], "nearby")
+
+    def test_nearby_for_items_in_containers_when_elevated(self):
+        """Test that items in containers are 'nearby' even when player is elevated."""
+        from utilities.entity_serializer import entity_to_dict
+
+        # Item is IN a container (location starts with item_)
+        item = Item(
+            id="item_key",
+            name="key",
+            description="A brass key.",
+            location="item_chest"  # In a container
+        )
+
+        player_context = {"posture": "on_surface", "focused_on": "item_table"}
+        result = entity_to_dict(item, player_context=player_context)
+
+        # Container items aren't "on floor" so they're nearby, not below
+        self.assertEqual(result["spatial_relation"], "nearby")
+
+
 if __name__ == '__main__':
     unittest.main()

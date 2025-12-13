@@ -63,13 +63,17 @@ def validate_game_state(state: "GameState", loaded_modules: Optional[Set[str]] =
 
 
 def _build_id_registry(state: "GameState", errors: List[str]) -> Dict[str, str]:
-    """Build registry of all entity IDs and check for duplicates/reserved."""
-    registry: Dict[str, str] = {}
-    registry["player"] = "player"  # Reserved
+    """Build registry of all entity IDs and check for duplicates/reserved.
 
-    def add_id(entity_id: str, entity_type: str):
+    All actors (including the one with id "player") are registered as "actor".
+    The ID "player" is reserved for the human-controlled actor.
+    """
+    registry: Dict[str, str] = {}
+    registry["player"] = "actor"  # Reserved for human-controlled actor
+
+    def add_id(entity_id: str, entity_type: str) -> None:
         if entity_id == "player":
-            errors.append(f"ID 'player' is reserved, cannot use for {entity_type}")
+            errors.append(f"ID 'player' is reserved for the human-controlled actor, cannot use for {entity_type}")
         elif entity_id in registry:
             errors.append(f"Duplicate ID '{entity_id}' (used by {registry[entity_id]} and {entity_type})")
         else:
@@ -85,9 +89,9 @@ def _build_id_registry(state: "GameState", errors: List[str]) -> Dict[str, str]:
             add_id(item.id, "item")
     for lock in state.locks:
         add_id(lock.id, "lock")
-    for actor_id, actor in state.actors.items():
+    for actor_id in state.actors:
         if actor_id != "player":
-            add_id(actor_id, "npc")
+            add_id(actor_id, "actor")
     for part in state.parts:
         add_id(part.id, "part")
 
@@ -131,11 +135,25 @@ def _validate_exit_references(state: "GameState", registry: Dict[str, str],
                         f"'{exit_desc.door_id}' which is a {registry[exit_desc.door_id]}, not a door"
                     )
 
+            # Check passage/door_at consistency
+            if exit_desc.passage:
+                if not exit_desc.door_at:
+                    errors.append(
+                        f"Exit '{direction}' in '{loc.id}' has passage "
+                        f"but missing required door_at field"
+                    )
+                elif exit_desc.door_at not in (loc.id, exit_desc.to):
+                    errors.append(
+                        f"Exit '{direction}' in '{loc.id}' has door_at='{exit_desc.door_at}' "
+                        f"which is neither the current location '{loc.id}' "
+                        f"nor the destination '{exit_desc.to}'"
+                    )
+
 
 def _validate_item_locations(state: "GameState", registry: Dict[str, str],
                              errors: List[str]) -> None:
     """Validate item location references."""
-    valid_location_types = {"location", "item", "npc", "player"}
+    valid_location_types = {"location", "item", "actor"}
 
     for item in state.items:
         loc = item.location
@@ -322,13 +340,28 @@ def _validate_behavior_references(state: "GameState", loaded_modules: Set[str],
     def check_behaviors(entity_id: str, entity_type: str, behaviors: Any) -> None:
         if not behaviors:
             return
-        if isinstance(behaviors, list):
-            for module_name in behaviors:
-                if module_name not in loaded_modules:
-                    errors.append(
-                        f"{entity_type} '{entity_id}' references unknown behavior "
-                        f"module '{module_name}'"
-                    )
+        if not isinstance(behaviors, list):
+            errors.append(
+                f"{entity_type} '{entity_id}' behaviors must be a list of modules (found {type(behaviors).__name__})."
+            )
+            return
+
+        for module_name in behaviors:
+            if not isinstance(module_name, str):
+                errors.append(
+                    f"{entity_type} '{entity_id}' behaviors must be strings (found {type(module_name).__name__})."
+                )
+                continue
+            if ":" in module_name:
+                errors.append(
+                    f"{entity_type} '{entity_id}' behaviors must be module paths only (found '{module_name}')."
+                )
+                continue
+            if module_name not in loaded_modules:
+                errors.append(
+                    f"{entity_type} '{entity_id}' references unknown behavior "
+                    f"module '{module_name}'"
+                )
 
     # Check items
     for item in state.items:

@@ -131,13 +131,14 @@ def on_peer(entity: Any, accessor: Any, context: Dict) -> EventResult:
         sanctum_key.location = crystal_ball_location
 
         # Determine the appropriate message based on where the crystal ball is
-        location_item = accessor.get_item(crystal_ball_location)
-        if location_item and hasattr(location_item, 'properties'):
-            container_props = location_item.properties.get("container", {})
+        # Use get_entity since location could be an actor (inventory) or item (container/surface)
+        location_entity = accessor.get_entity(crystal_ball_location)
+        if location_entity and hasattr(location_entity, 'properties'):
+            container_props = location_entity.properties.get("container", {})
             if container_props.get("is_surface", False):
-                location_desc = f"on the {location_item.name}"
+                location_desc = f"on the {location_entity.name}"
             elif container_props.get("is_container", False):
-                location_desc = f"in the {location_item.name}"
+                location_desc = f"in the {location_entity.name}"
             else:
                 location_desc = "on the floor nearby"
         else:

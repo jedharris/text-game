@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "The Wizard's Tower",
-    "version": "1.0",
+    "version": "0.04",
     "description": "A custom game demonstrating engine extensibility.",
     "start_location": "loc_garden",
     "author": "Extended Game Example",

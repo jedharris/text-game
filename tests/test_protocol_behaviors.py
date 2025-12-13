@@ -7,6 +7,7 @@ import unittest
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List
+from types import SimpleNamespace
 
 from src.behavior_manager import BehaviorManager, EventResult
 from src.llm_protocol import LLMProtocolHandler
@@ -114,11 +115,8 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
             })
             return EventResult(allow=True, message="You feel the sword's power!")
 
-        # Cache the behavior (old dict format still supported)
-        manager._behavior_cache["test_module:on_take"] = on_take
-
-        # Add behavior to item using dict format (for backward compatibility)
-        self.state.items[0].behaviors = {"on_take": "test_module:on_take"}
+        manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
+        self.state.items[0].behaviors = ["test_module"]
 
         handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
@@ -140,8 +138,8 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         def on_take(entity, state, context):
             return EventResult(allow=False, message="The sword is cursed and refuses to be picked up!")
 
-        manager._behavior_cache["test_module:on_take"] = on_take
-        self.state.items[0].behaviors = {"on_take": "test_module:on_take"}
+        manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
+        self.state.items[0].behaviors = ["test_module"]
 
         handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
@@ -163,8 +161,8 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         def on_take(entity, accessor, context):
             return EventResult(allow=True, message="The magic awakens!")
 
-        manager._behavior_cache["test_module:on_take"] = on_take
-        self.state.items[0].behaviors = {"on_take": "test_module:on_take"}
+        manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
+        self.state.items[0].behaviors = ["test_module"]
 
         handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
@@ -200,8 +198,8 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
             context_received.append(context)
             return EventResult(allow=True)
 
-        manager._behavior_cache["test_module:on_take"] = on_take
-        self.state.items[0].behaviors = {"on_take": "test_module:on_take"}
+        manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
+        self.state.items[0].behaviors = ["test_module"]
 
         handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
@@ -225,8 +223,8 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
             behavior_called.append(True)
             return EventResult(allow=True)
 
-        manager._behavior_cache["test_module:on_take"] = on_take
-        self.state.items[0].behaviors = {"on_take": "test_module:on_take"}
+        manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
+        self.state.items[0].behaviors = ["test_module"]
 
         handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
@@ -249,8 +247,8 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
             entity_received.append(entity)
             return EventResult(allow=True)
 
-        manager._behavior_cache["test_module:on_take"] = on_take
-        self.state.items[0].behaviors = {"on_take": "test_module:on_take"}
+        manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
+        self.state.items[0].behaviors = ["test_module"]
 
         handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
@@ -274,8 +272,8 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
             state_received.append(state)
             return EventResult(allow=True)
 
-        manager._behavior_cache["test_module:on_take"] = on_take
-        self.state.items[0].behaviors = {"on_take": "test_module:on_take"}
+        manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
+        self.state.items[0].behaviors = ["test_module"]
 
         handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
@@ -296,8 +294,8 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
             entity.states["enchanted"] = True
             return EventResult(allow=True, message="The sword glows!")
 
-        manager._behavior_cache["test_module:on_take"] = on_take
-        self.state.items[0].behaviors = {"on_take": "test_module:on_take"}
+        manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
+        self.state.items[0].behaviors = ["test_module"]
 
         handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
@@ -318,13 +316,12 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         def on_drop(entity, accessor, context):
             return EventResult(allow=True, message="Dropped!")
 
-        manager._behavior_cache["test_module:on_take"] = on_take
-        manager._behavior_cache["test_module:on_drop"] = on_drop
+        manager._modules["test_module"] = SimpleNamespace(
+            on_take=on_take,
+            on_drop=on_drop
+        )
 
-        self.state.items[0].behaviors = {
-            "on_take": "test_module:on_take",
-            "on_drop": "test_module:on_drop"
-        }
+        self.state.items[0].behaviors = ["test_module"]
 
         handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
@@ -373,7 +370,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
     def test_entity_with_empty_behaviors(self):
         """Test handling entity with empty behaviors dict."""
         manager = create_behavior_manager_with_core_modules()
-        self.state.items[0].behaviors = {}
+        self.state.items[0].behaviors = []
 
         handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
@@ -391,8 +388,8 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         def on_take(entity, accessor, context):
             raise ValueError("Behavior error!")
 
-        manager._behavior_cache["test_module:on_take"] = on_take
-        self.state.items[0].behaviors = {"on_take": "test_module:on_take"}
+        manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
+        self.state.items[0].behaviors = ["test_module"]
 
         handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
@@ -415,8 +412,8 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
             context_received.append(context)
             return EventResult(allow=True)
 
-        manager._behavior_cache["test_module:on_take"] = on_take
-        self.state.items[0].behaviors = {"on_take": "test_module:on_take"}
+        manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
+        self.state.items[0].behaviors = ["test_module"]
 
         handler = LLMProtocolHandler(self.state, behavior_manager=manager)
 
@@ -486,8 +483,8 @@ class TestProtocolBehaviorCommands(unittest.TestCase):
             behavior_called.append(True)
             return EventResult(allow=True, message="The potion heals you!")
 
-        self.manager._behavior_cache["test:on_drink"] = on_drink
-        self.state.items[0].behaviors = {"on_drink": "test:on_drink"}
+        self.manager._modules["test"] = SimpleNamespace(on_drink=on_drink)
+        self.state.items[0].behaviors = ["test"]
 
         # First take the potion
         self.handler.handle_command({
@@ -513,8 +510,8 @@ class TestProtocolBehaviorCommands(unittest.TestCase):
             behavior_called.append(True)
             return EventResult(allow=True, message="The book reveals ancient secrets!")
 
-        self.manager._behavior_cache["test:on_read"] = on_read
-        self.state.items[1].behaviors = {"on_read": "test:on_read"}
+        self.manager._modules["test"] = SimpleNamespace(on_read=on_read)
+        self.state.items[1].behaviors = ["test"]
 
         result = self.handler.handle_command({
             "type": "command",
@@ -532,8 +529,8 @@ class TestProtocolBehaviorCommands(unittest.TestCase):
             behavior_called.append(True)
             return EventResult(allow=True, message="You use the item!")
 
-        self.manager._behavior_cache["test:on_use"] = on_use
-        self.state.items[0].behaviors = {"on_use": "test:on_use"}
+        self.manager._modules["test"] = SimpleNamespace(on_use=on_use)
+        self.state.items[0].behaviors = ["test"]
 
         result = self.handler.handle_command({
             "type": "command",

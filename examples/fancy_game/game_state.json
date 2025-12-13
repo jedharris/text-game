@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "Simple Adventure",
-    "version": "1.0",
+    "version": "0.04",
     "description": "A simple adventure game demonstrating the state manager.",
     "start_location": "loc_start",
     "author": "Text Game Example",

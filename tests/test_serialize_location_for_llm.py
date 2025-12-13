@@ -224,9 +224,141 @@ class TestSerializeLocationConsistentWithQueryLocation(unittest.TestCase):
 
         result = serialize_location_for_llm(self.accessor, location, "player")
 
-        # _query_location returns: location, items, doors, exits, actors
-        expected_keys = {"location", "items", "doors", "exits", "actors"}
+        # Now includes player_context for perspective-aware narration
+        expected_keys = {"player_context", "location", "items", "doors", "exits", "actors"}
         self.assertEqual(set(result.keys()), expected_keys)
+
+
+class TestSerializeLocationPlayerContext(unittest.TestCase):
+    """Test player_context serialization for perspective-aware narration."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        fixture_path = Path(__file__).parent / "llm_interaction" / "fixtures" / "test_game_state.json"
+        self.state = load_game_state(str(fixture_path))
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.state, self.behavior_manager)
+
+    def test_player_context_present(self):
+        """Test that player_context is always present in result."""
+        location = self.state.get_location("loc_start")
+
+        result = serialize_location_for_llm(self.accessor, location, "player")
+
+        self.assertIn("player_context", result)
+        self.assertIsInstance(result["player_context"], dict)
+
+    def test_player_context_default_posture(self):
+        """Test that player_context has null posture by default."""
+        location = self.state.get_location("loc_start")
+
+        result = serialize_location_for_llm(self.accessor, location, "player")
+
+        self.assertIn("posture", result["player_context"])
+        self.assertIsNone(result["player_context"]["posture"])
+
+    def test_player_context_default_focused_on(self):
+        """Test that player_context has null focused_on by default."""
+        location = self.state.get_location("loc_start")
+
+        result = serialize_location_for_llm(self.accessor, location, "player")
+
+        self.assertIn("focused_on", result["player_context"])
+        self.assertIsNone(result["player_context"]["focused_on"])
+
+    def test_player_context_with_posture(self):
+        """Test that player_context reflects actor's posture property."""
+        location = self.state.get_location("loc_start")
+        player = self.state.actors.get("player")
+        player.properties["posture"] = "on_surface"
+
+        result = serialize_location_for_llm(self.accessor, location, "player")
+
+        self.assertEqual(result["player_context"]["posture"], "on_surface")
+
+    def test_player_context_with_focused_on(self):
+        """Test that player_context reflects actor's focused_on property."""
+        location = self.state.get_location("loc_start")
+        player = self.state.actors.get("player")
+        player.properties["focused_on"] = "test_item"
+
+        result = serialize_location_for_llm(self.accessor, location, "player")
+
+        self.assertEqual(result["player_context"]["focused_on"], "test_item")
+
+    def test_player_context_resolves_entity_name(self):
+        """Test that player_context resolves focused_entity_name when possible."""
+        location = self.state.get_location("loc_start")
+        player = self.state.actors.get("player")
+
+        # Find an actual item in the fixture to focus on
+        if self.state.items:
+            item = self.state.items[0]
+            player.properties["focused_on"] = item.id
+            player.properties["posture"] = "on_surface"
+
+            result = serialize_location_for_llm(self.accessor, location, "player")
+
+            self.assertIn("focused_entity_name", result["player_context"])
+            self.assertEqual(result["player_context"]["focused_entity_name"], item.name)
+        else:
+            self.skipTest("No items in test fixture")
+
+
+class TestSerializeLocationSpatialRelation(unittest.TestCase):
+    """Test that spatial_relation is threaded through to items."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        fixture_path = Path(__file__).parent / "llm_interaction" / "fixtures" / "test_game_state.json"
+        self.state = load_game_state(str(fixture_path))
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.state, self.behavior_manager)
+
+    def test_items_have_no_spatial_relation_with_null_posture(self):
+        """Test that items don't have spatial_relation when posture is null."""
+        location = self.state.get_location("loc_start")
+
+        result = serialize_location_for_llm(self.accessor, location, "player")
+
+        for item in result["items"]:
+            self.assertNotIn("spatial_relation", item,
+                           f"Item {item.get('id')} shouldn't have spatial_relation")
+
+    def test_items_have_spatial_relation_with_posture(self):
+        """Test that items have spatial_relation when player has posture."""
+        location = self.state.get_location("loc_start")
+        player = self.state.actors.get("player")
+        player.properties["posture"] = "on_surface"
+        player.properties["focused_on"] = "some_table"
+
+        result = serialize_location_for_llm(self.accessor, location, "player")
+
+        # All items in location should have spatial_relation
+        for item in result["items"]:
+            self.assertIn("spatial_relation", item,
+                         f"Item {item.get('id')} should have spatial_relation")
+
+    def test_focused_item_has_within_reach(self):
+        """Test that the focused item has within_reach relation."""
+        location = self.state.get_location("loc_start")
+        player = self.state.actors.get("player")
+
+        # Find an item in the fixture to focus on
+        items_in_location = [i for i in self.state.items if i.location == location.id]
+        if items_in_location:
+            target_item = items_in_location[0]
+            player.properties["posture"] = "on_surface"
+            player.properties["focused_on"] = target_item.id
+
+            result = serialize_location_for_llm(self.accessor, location, "player")
+
+            # Find the focused item in results
+            focused_items = [i for i in result["items"] if i.get("id") == target_item.id]
+            if focused_items:
+                self.assertEqual(focused_items[0]["spatial_relation"], "within_reach")
+        else:
+            self.skipTest("No items in test location")
 
 
 if __name__ == '__main__':

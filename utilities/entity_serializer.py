@@ -9,11 +9,15 @@ handlers. All entity serialization for LLM communication should use these
 functions.
 """
 import random
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, TYPE_CHECKING, cast
+
+if TYPE_CHECKING:
+    from src.state_manager import Item, Location, Actor, ExitDescriptor, Lock
 
 
-def entity_to_dict(entity, include_llm_context: bool = True,
-                   max_traits: Optional[int] = None) -> Dict[str, Any]:
+def entity_to_dict(entity: Any, include_llm_context: bool = True,
+                   max_traits: Optional[int] = None,
+                   player_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Convert any entity to a dict suitable for LLM communication.
 
     Handles: Item, Location, Actor, ExitDescriptor, Lock
@@ -23,6 +27,8 @@ def entity_to_dict(entity, include_llm_context: bool = True,
         include_llm_context: If True, include llm_context with randomized traits
         max_traits: If set, limit traits to this count (after randomization).
                    Use for brief verbosity mode to reduce LLM output length.
+        player_context: If set, compute spatial_relation based on player's
+                       posture and focus. Dict with posture, focused_on keys.
 
     Returns:
         Dict representation of entity
@@ -30,18 +36,62 @@ def entity_to_dict(entity, include_llm_context: bool = True,
     result = _serialize_core_fields(entity)
 
     if include_llm_context:
-        _add_llm_context(result, entity, max_traits=max_traits)
+        _add_llm_context(result, entity, max_traits=max_traits,
+                        player_context=player_context)
+
+    # Add spatial_relation if player has non-null posture
+    if player_context and player_context.get("posture"):
+        spatial_relation = _compute_spatial_relation(entity, player_context)
+        if spatial_relation:
+            result["spatial_relation"] = spatial_relation
 
     return result
 
 
-def _serialize_core_fields(entity) -> Dict[str, Any]:
+def _compute_spatial_relation(entity: Any, player_context: Dict[str, Any]) -> Optional[str]:
+    """Compute spatial relation between entity and player's position.
+
+    Args:
+        entity: Entity to compute relation for
+        player_context: Dict with posture, focused_on, focused_entity_id keys
+
+    Returns:
+        Spatial relation string or None if not applicable
+    """
+    posture = player_context.get("posture")
+    focused_on = player_context.get("focused_on")
+
+    if not posture:
+        return None
+
+    entity_id = getattr(entity, 'id', None)
+    entity_location = getattr(entity, 'location', None)
+
+    # Check if this IS the focused entity
+    if entity_id and entity_id == focused_on:
+        return "within_reach"
+
+    # Check if item is ON the focused surface (location == focused_on)
+    if entity_location and entity_location == focused_on:
+        return "within_reach"
+
+    # For elevated postures (on_surface, climbing), items on floor are "below"
+    if posture in ("on_surface", "climbing"):
+        # Items directly in a location (not in/on something) are on floor
+        if entity_location and not entity_location.startswith("item_"):
+            return "below"
+
+    # Default for positioned player
+    return "nearby"
+
+
+def _serialize_core_fields(entity: Any) -> Dict[str, Any]:
     """Serialize core fields based on entity type.
 
     Detects entity type by checking for characteristic attributes and
     serializes appropriately.
     """
-    result = {}
+    result: Dict[str, Any] = {}
 
     # All entities have id (except maybe ExitDescriptor)
     if hasattr(entity, 'id') and entity.id:
@@ -82,7 +132,7 @@ def _serialize_core_fields(entity) -> Dict[str, Any]:
     return result
 
 
-def _detect_entity_type(entity) -> Optional[str]:
+def _detect_entity_type(entity: Any) -> Optional[str]:
     """Detect entity type from its attributes.
 
     Returns:
@@ -119,16 +169,21 @@ def _detect_entity_type(entity) -> Optional[str]:
     return None
 
 
-def _add_llm_context(result: Dict, entity, max_traits: Optional[int] = None) -> None:
-    """Add llm_context with randomized traits.
+def _add_llm_context(result: Dict[str, Any], entity: Any,
+                     max_traits: Optional[int] = None,
+                     player_context: Optional[Dict[str, Any]] = None) -> None:
+    """Add llm_context with randomized traits and perspective variant selection.
 
     Randomizes trait order to encourage varied LLM narration.
     Copies the llm_context to avoid mutating the original entity.
+    If player_context is provided and entity has perspective_variants,
+    selects the best matching variant and adds it as perspective_note.
 
     Args:
         result: Dict to add llm_context to
         entity: Entity to get llm_context from
         max_traits: If set, limit traits to this count after randomization
+        player_context: If set, used for perspective_variants selection
     """
     llm_context = _get_llm_context(entity)
 
@@ -147,10 +202,60 @@ def _add_llm_context(result: Dict, entity, max_traits: Optional[int] = None) -> 
             traits_copy = traits_copy[:max_traits]
         context_copy['traits'] = traits_copy
 
+    # Select perspective variant if available
+    perspective_note = _select_perspective_variant(context_copy, player_context)
+    if perspective_note:
+        result['perspective_note'] = perspective_note
+
+    # Remove perspective_variants from output - LLM should only see the selected note
+    # Otherwise the LLM may use text from non-selected variants
+    context_copy.pop('perspective_variants', None)
+
     result['llm_context'] = context_copy
 
 
-def _get_llm_context(entity) -> Optional[Dict[str, Any]]:
+def _select_perspective_variant(llm_context: Dict[str, Any],
+                                player_context: Optional[Dict[str, Any]]) -> Optional[str]:
+    """Select best matching perspective variant based on player context.
+
+    Looks for perspective_variants in llm_context and selects the best match:
+    1. Try exact match: "<posture>:<focused_on>" (e.g., "on_surface:item_table")
+    2. Try posture match: "<posture>" (e.g., "climbing")
+    3. Fall back to "default" if present
+
+    Args:
+        llm_context: The entity's llm_context dict
+        player_context: Player positioning context with posture and focused_on
+
+    Returns:
+        Selected perspective variant text, or None if no match
+    """
+    variants = llm_context.get('perspective_variants')
+    if not variants or not isinstance(variants, dict):
+        return None
+
+    if not player_context:
+        # No player context - try default only
+        return cast(Optional[str], variants.get('default'))
+
+    posture = player_context.get('posture')
+    focused_on = player_context.get('focused_on')
+
+    # 1. Try exact match: "posture:focused_on"
+    if posture and focused_on:
+        exact_key = f"{posture}:{focused_on}"
+        if exact_key in variants:
+            return cast(str, variants[exact_key])
+
+    # 2. Try posture-only match
+    if posture and posture in variants:
+        return cast(str, variants[posture])
+
+    # 3. Fall back to default
+    return cast(Optional[str], variants.get('default'))
+
+
+def _get_llm_context(entity: Any) -> Optional[Dict[str, Any]]:
     """Get llm_context from entity using appropriate accessor.
 
     Tries the llm_context property first (for Item, Location, ExitDescriptor
@@ -165,18 +270,18 @@ def _get_llm_context(entity) -> Optional[Dict[str, Any]]:
     # Try direct property accessor first (Item, Location, ExitDescriptor)
     # These have @property llm_context that accesses properties["llm_context"]
     if hasattr(entity, 'llm_context'):
-        llm_context = entity.llm_context
+        llm_context = cast(Optional[Dict[str, Any]], getattr(entity, 'llm_context'))
         if llm_context:
             return llm_context
 
     # Fall back to properties dict (for entities that might store it differently)
     if hasattr(entity, 'properties') and isinstance(entity.properties, dict):
-        return entity.properties.get('llm_context')
+        return cast(Optional[Dict[str, Any]], entity.properties.get('llm_context'))
 
     return None
 
 
-def serialize_for_handler_result(entity) -> Dict[str, Any]:
+def serialize_for_handler_result(entity: Any) -> Dict[str, Any]:
     """Serialize entity for inclusion in HandlerResult.data.
 
     Convenience function for behavior handlers. Always includes llm_context

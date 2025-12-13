@@ -6,7 +6,7 @@
 
 ---
 
-This chapter covers the fundamentals of creating actors in your game: the player, NPCs, creatures, and constructs. It explains the property system that drives actor capabilities and the turn-based system that governs when actors act.
+This chapter covers the fundamentals of creating actors in your game: the human-controlled character, NPCs, creatures, and constructs. It explains the property system that drives actor capabilities and the turn-based system that governs when actors act.
 
 **Prerequisites**: This chapter assumes familiarity with the basic concepts in [Core Concepts](02_core_concepts.md), particularly entity structure, properties, and behaviors.
 
@@ -18,12 +18,12 @@ This chapter covers the fundamentals of creating actors in your game: the player
 
 Actors are entities that can act in the game world. They include:
 
-- **Player** - The protagonist controlled by the player
+- **Human-controlled character** - The protagonist (the actor with id "player")
 - **NPCs** - Non-player characters like merchants, guards, healers
 - **Creatures** - Animals and monsters like wolves, spiders, golems
 - **Constructs** - Animated objects like statues, automata, magical guardians
 
-**Key principle**: All actors share the same fundamental structure. The player, a wolf, and a stone golem are all actors - they differ only in their properties and behaviors.
+**Key principle**: All actors share the same fundamental structure. The human-controlled character, a wolf, and a stone golem are all actors - they differ only in their properties and behaviors. The actor with id "player" is simply the one controlled by the human playing the game.
 
 ### Actor Structure
 
@@ -53,9 +53,9 @@ Every actor has:
 
 **Properties dict**: Flexible storage for all actor characteristics. This is where the actor interaction system stores health, conditions, attacks, services, relationships, and more.
 
-### The Player Actor
+### The Human-Controlled Actor
 
-The player is always an actor with id `"player"`:
+The human-controlled character is always an actor with id `"player"`. This is a convention - it's the same Actor type as any NPC, just with a reserved ID:
 
 ```json
 {

@@ -413,18 +413,32 @@ def handle_down(accessor, action):
             message=""  # Empty message means "not handled, try next handler"
         )
 
+    # Get focused entity name before clearing (for message)
+    focused_on = actor.properties.get("focused_on")
+    focused_name = None
+    if focused_on:
+        focused_entity = accessor.get_item(focused_on)
+        if focused_entity:
+            focused_name = focused_entity.name
+
     # Clear positioning state
     actor.properties.pop("posture", None)
     actor.properties.pop("focused_on", None)
 
     # Generate appropriate message based on previous posture
-    posture_messages = {
-        "climbing": "You climb down and return to ground level.",
-        "cover": "You stand up from cover.",
-        "concealed": "You emerge from hiding."
-    }
-
-    message = posture_messages.get(current_posture, "You return to ground level.")
+    if current_posture == "climbing" and focused_name:
+        message = f"You climb down from the {focused_name}."
+    elif current_posture == "cover" and focused_name:
+        message = f"You stand up from behind the {focused_name}."
+    elif current_posture == "concealed" and focused_name:
+        message = f"You emerge from the {focused_name}."
+    else:
+        posture_messages = {
+            "climbing": "You climb down and return to ground level.",
+            "cover": "You stand up from cover.",
+            "concealed": "You emerge from hiding."
+        }
+        message = posture_messages.get(current_posture, "You return to ground level.")
 
     return HandlerResult(success=True, message=message)
 

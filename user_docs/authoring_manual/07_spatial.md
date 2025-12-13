@@ -577,6 +577,60 @@ The `posture` property is automatically cleared when the actor's `focused_on` pr
 
 This allows players to look around at distant objects without leaving cover, but moving to a different nearby entity clears the posture.
 
+### Perspective-Aware Narration
+
+The LLM narrator uses player positioning to generate perspective-appropriate descriptions. When serializing locations for the LLM, the engine automatically includes:
+
+- `player_context` - Current posture and focused_on values
+- `spatial_relation` - Computed relationship between player and items ("within_reach", "below", "nearby")
+
+For custom perspective-specific descriptions, use `perspective_variants` in an entity's `llm_context`:
+
+```json
+{
+  "id": "item_spiral_stairs",
+  "name": "spiral staircase",
+  "location": "loc_tower_ground",
+  "properties": {
+    "llm_context": {
+      "traits": ["worn stone steps", "spiral design", "narrow passage"],
+      "perspective_variants": {
+        "default": "A spiral staircase rises through the tower",
+        "climbing": "The worn steps continue above and below you",
+        "climbing:item_spiral_stairs": "You cling to the narrow spiral, feeling each worn groove"
+      }
+    }
+  }
+}
+```
+
+**Key naming:**
+- `"default"` - Used when no specific match found
+- `"<posture>"` - Matches any focus with that posture (e.g., `"climbing"`)
+- `"<posture>:<entity_id>"` - Exact match for specific posture + focus (e.g., `"climbing:item_spiral_stairs"`)
+
+The engine selects the best match (exact > posture > default) and passes it to the LLM as `perspective_note`.
+
+**Example gameplay impact:**
+
+Without perspective_variants:
+```
+> examine stairs
+You climb the staircase...  (wrong - player hasn't moved)
+```
+
+With perspective_variants:
+```
+> examine stairs
+A spiral staircase rises through the tower.  (correct - from ground level)
+
+> climb stairs
+You begin climbing the spiral staircase.
+
+> examine stairs
+The worn steps continue above and below you.  (correct - while climbing)
+```
+
 ## 7.6 Advanced Spatial Techniques
 
 ### Blocking Access to Parts

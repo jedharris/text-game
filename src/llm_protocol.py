@@ -7,10 +7,14 @@ Processes commands and queries, returning structured JSON results.
 
 import json
 import random
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING, Callable, Tuple
 
 from src.action_types import ActionDict, CommandMessage, ResultMessage, WordLike
 from .types import ActorId, HookName
+
+if TYPE_CHECKING:
+    from src.state_manager import Location, Item, Actor
+    from src.state_accessor import StateAccessor
 from .state_manager import GameState
 from .behavior_manager import BehaviorManager
 from .word_entry import WordEntry, WordType
@@ -30,9 +34,10 @@ class LLMProtocolHandler:
     # even when game state is corrupted
     META_COMMANDS = {"save", "quit", "help", "load"}
 
-    # Turn phase hooks fire in this order after successful commands
+    # Base turn phase hooks fire in this order after successful commands
     # Each hook may have an event registered that processes the phase
-    TURN_PHASE_HOOKS = [
+    # Games can declare additional phases via metadata.extra_turn_phases
+    BASE_TURN_PHASE_HOOKS = [
         hooks.NPC_ACTION,
         hooks.ENVIRONMENTAL_EFFECT,
         hooks.CONDITION_TICK,
@@ -211,13 +216,29 @@ class LLMProtocolHandler:
             "error": {"message": result.message}
         }
 
-    def _fire_turn_phases(self, accessor, action: ActionDict) -> List[str]:
+    def _get_turn_phase_hooks(self) -> List[str]:
+        """
+        Get the ordered list of turn phase hooks for this game.
+
+        Games can declare additional phases via metadata.extra_turn_phases.
+        Extra phases are prepended to base phases (they run first).
+
+        Returns:
+            List of hook names in execution order
+        """
+        extra_phases = self.state.metadata.extra_turn_phases
+        return list(extra_phases) + list(self.BASE_TURN_PHASE_HOOKS)
+
+    def _fire_turn_phases(self, accessor: "StateAccessor", action: ActionDict) -> List[str]:
         """
         Fire turn phase hooks after a successful command.
 
-        Turn phases run in order: NPC_ACTION, ENVIRONMENTAL_EFFECT,
-        CONDITION_TICK, DEATH_CHECK. Each phase may have an event
-        registered via vocabulary that handles the phase logic.
+        Turn phases run in order. Base phases are NPC_ACTION, ENVIRONMENTAL_EFFECT,
+        CONDITION_TICK, DEATH_CHECK. Games can declare additional phases via
+        metadata.extra_turn_phases which run before base phases.
+
+        Each phase may have an event registered via vocabulary that handles
+        the phase logic.
 
         Args:
             accessor: StateAccessor for state queries
@@ -231,7 +252,7 @@ class LLMProtocolHandler:
 
         messages = []
 
-        for hook_name in self.TURN_PHASE_HOOKS:
+        for hook_name in self._get_turn_phase_hooks():
             event_name = self.behavior_manager.get_event_for_hook(HookName(hook_name))
             if event_name:
                 # Build context for the turn phase
@@ -309,7 +330,7 @@ class LLMProtocolHandler:
         entity_id: str = message.get("entity_id", "")
 
         # Map entity types to (getter, converter) tuples
-        entity_handlers = {
+        entity_handlers: Dict[str, Tuple[Callable[[str], Optional[Any]], Callable[[Any], Dict[str, Any]]]] = {
             "item": (self._get_item_by_id, self._entity_to_dict),
             "door": (self._get_door_by_id, self._door_to_dict),
             "npc": (self._get_actor_by_id, self._actor_to_dict),
@@ -341,6 +362,11 @@ class LLMProtocolHandler:
 
         entities = []
         loc = self._get_location_by_id(location_id) if location_id else self._get_current_location()
+        if loc is None:
+            return {
+                "type": "error",
+                "message": f"Location not found: {location_id}"
+            }
 
         match entity_type:
             case "door":
@@ -379,24 +405,12 @@ class LLMProtocolHandler:
         with multi-valued word_type ["noun", "adjective", "verb"]. They appear
         in the verbs list since they can be used as bare commands (e.g., "north").
         """
-        from pathlib import Path
-        import json
+        from src.vocabulary_service import build_merged_vocabulary, load_base_vocabulary
 
-        # Load base vocabulary from vocabulary.json
-        vocab_file = Path(__file__).parent / "vocabulary.json"
-        if vocab_file.exists():
-            try:
-                base_vocab = json.loads(vocab_file.read_text())
-            except (json.JSONDecodeError, IOError):
-                base_vocab = {"verbs": [], "nouns": []}
-        else:
-            base_vocab = {"verbs": [], "nouns": []}
-
-        # Merge with behavior module vocabulary
         if self.behavior_manager:
-            vocab = self.behavior_manager.get_merged_vocabulary(base_vocab)
+            vocab = build_merged_vocabulary(self.state, self.behavior_manager)
         else:
-            vocab = base_vocab
+            vocab = load_base_vocabulary()
 
         # Format verbs for response
         verbs = {}
@@ -430,7 +444,7 @@ class LLMProtocolHandler:
 
     # Helper methods
 
-    def _get_current_location(self):
+    def _get_current_location(self) -> Optional["Location"]:
         """Get current location object."""
         player = self.state.actors.get(ActorId("player"))
         if not player:
@@ -440,34 +454,34 @@ class LLMProtocolHandler:
                 return loc
         return None
 
-    def _get_location_by_id(self, loc_id: str):
+    def _get_location_by_id(self, loc_id: str) -> Optional["Location"]:
         """Get location by ID."""
         for loc in self.state.locations:
             if loc.id == loc_id:
                 return loc
         return None
 
-    def _get_item_by_id(self, item_id: str):
+    def _get_item_by_id(self, item_id: str) -> Optional["Item"]:
         """Get item by ID."""
         for item in self.state.items:
             if item.id == item_id:
                 return item
         return None
 
-    def _get_door_by_id(self, door_id: str):
+    def _get_door_by_id(self, door_id: str) -> Optional["Item"]:
         """Get door by ID. Only checks door items (unified model)."""
         for item in self.state.items:
             if item.id == door_id and item.is_door:
                 return item
         return None
 
-    def _get_actor_by_id(self, actor_id: str):
+    def _get_actor_by_id(self, actor_id: str) -> Optional["Actor"]:
         """Get actor by ID (excludes player)."""
         if actor_id == "player":
             return None
         return self.state.actors.get(ActorId(actor_id))
 
-    def _get_container_for_item(self, item):
+    def _get_container_for_item(self, item: "Item") -> Optional["Item"]:
         """Get the container that holds this item, if any."""
         if item.location.startswith("item_"):
             container = self._get_item_by_id(item.location)
@@ -475,7 +489,7 @@ class LLMProtocolHandler:
                 return container
         return None
 
-    def _get_adjectives(self, action: ActionDict):
+    def _get_adjectives(self, action: ActionDict) -> List[str]:
         """Extract adjectives from action, supporting both single and multiple."""
         # Support both 'adjective' (string) and 'adjectives' (list)
         raw_adjs = action.get("adjectives")
@@ -490,14 +504,14 @@ class LLMProtocolHandler:
                 adjectives = [a for a in adj.lower().split() if a]
         return adjectives
 
-    def _matches_adjectives(self, description: str, adjectives: list) -> bool:
+    def _matches_adjectives(self, description: str, adjectives: List[str]) -> bool:
         """Check if all adjectives appear in description."""
         if not adjectives:
             return True
         desc_lower = description.lower()
         return all(adj in desc_lower for adj in adjectives)
 
-    def _select_door(self, doors, adjective):
+    def _select_door(self, doors: List["Item"], adjective: Union[str, List[str], None]) -> Optional["Item"]:
         """Select a door based on adjective or default to first closed/locked."""
         # Convert single adjective to list for unified handling
         if isinstance(adjective, str) and adjective:
@@ -525,7 +539,7 @@ class LLMProtocolHandler:
                 return door
         return doors[0]
 
-    def _entity_to_dict(self, item) -> Dict:
+    def _entity_to_dict(self, item: "Item") -> Dict[str, Any]:
         """Convert item to dict with llm_context.
 
         Uses unified entity_serializer for base conversion, then adds
@@ -547,17 +561,17 @@ class LLMProtocolHandler:
 
         return result
 
-    def _door_to_dict(self, door) -> Dict:
+    def _door_to_dict(self, door: "Item") -> Dict[str, Any]:
         """Convert door item to dict with llm_context."""
         from utilities.entity_serializer import entity_to_dict
         return entity_to_dict(door)
 
-    def _location_to_dict(self, loc) -> Dict:
+    def _location_to_dict(self, loc: "Location") -> Dict[str, Any]:
         """Convert location to dict with llm_context."""
         from utilities.entity_serializer import entity_to_dict
         return entity_to_dict(loc)
 
-    def _actor_to_dict(self, actor) -> Dict:
+    def _actor_to_dict(self, actor: "Actor") -> Dict[str, Any]:
         """Convert Actor to dict with llm_context."""
         from utilities.entity_serializer import entity_to_dict
         return entity_to_dict(actor)

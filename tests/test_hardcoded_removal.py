@@ -54,10 +54,9 @@ class TestHardcodedLightSourceRemoval(unittest.TestCase):
                     "location": "room1",
                     "provides_light": True,
                     "states": {"lit": False},
-                    "behaviors": {
-                        "on_take": "behaviors.core.light_sources:on_take",
-                        "on_drop": "behaviors.core.light_sources:on_drop"
-                    }
+                    "behaviors": [
+                        "behaviors.core.light_sources"
+                    ]
                 }
             ],
             "locks": [],
@@ -196,9 +195,9 @@ class TestHardcodedChestRemoval(unittest.TestCase):
                         "open": False,
                         "capacity": 10
                     },
-                    "behaviors": {
-                        "on_open": "behaviors.core.containers:on_open"
-                    }
+                    "behaviors": [
+                        "behaviors.core.containers"
+                    ]
                 },
                 {
                     "id": "magic_box",
@@ -212,9 +211,9 @@ class TestHardcodedChestRemoval(unittest.TestCase):
                         "open": False,
                         "capacity": 5
                     },
-                    "behaviors": {
-                        "on_open": "behaviors.core.containers:on_open"
-                    }
+                    "behaviors": [
+                        "behaviors.core.containers"
+                    ]
                 },
                 {
                     "id": "rock",
@@ -315,9 +314,7 @@ class TestBehaviorDrivenApproach(unittest.TestCase):
                     "portable": True,
                     "drinkable": True,
                     "location": "room1",
-                    "behaviors": {
-                        "on_drink": "behaviors.core.consumables:on_drink"
-                    }
+                    "behaviors": ["behaviors.core.consumables"]
                 },
                 {
                     "id": "water",

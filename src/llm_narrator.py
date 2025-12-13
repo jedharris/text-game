@@ -148,7 +148,7 @@ class LLMNarrator:
         Returns:
             Parser instance ready to parse commands
         """
-        return Parser(vocabulary)
+        return Parser.from_vocab(vocabulary)
 
     def process_turn(self, player_input: str) -> str:
         """Process one turn: input -> command -> result -> narrative.
