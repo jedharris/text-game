@@ -7,6 +7,7 @@ demonstrating how actions in one region affect others:
 - Echo commentary on player choices
 - Bee Queen flower collection across regions
 """
+from src.types import ActorId
 
 import unittest
 from typing import Any
@@ -181,7 +182,7 @@ class TestDeathMarkCrossRegionScenarios(ScenarioTestCase):
 
     def test_kill_minor_fungus_then_meet_myconid(self) -> None:
         """Killing minor fungal creatures affects Myconid first meeting."""
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
 
         # Kill a fungal creature
         on_fungal_kill(self.shambler, self.accessor, {"killer": player})

@@ -4,6 +4,7 @@ import unittest
 from unittest.mock import Mock, MagicMock
 
 from behavior_libraries.offering_lib import offering_handler, blessing_manager, alignment_tracker
+from src.types import ActorId
 from src.word_entry import WordEntry, WordType
 
 
@@ -18,7 +19,7 @@ class TestOfferingHandler(unittest.TestCase):
     def test_handle_offer_missing_item(self):
         """Test offering without specifying item."""
         accessor = Mock()
-        action = {"actor_id": "player"}
+        action = {"actor_id": ActorId("player")}
 
         result = offering_handler.handle_offer(accessor, action)
 
@@ -29,7 +30,7 @@ class TestOfferingHandler(unittest.TestCase):
         """Test offering without specifying target."""
         accessor = Mock()
         action = {
-            "actor_id": "player",
+            "actor_id": ActorId("player"),
             "object": make_word("flower")
         }
 
@@ -43,7 +44,7 @@ class TestOfferingHandler(unittest.TestCase):
         entity = Mock()
         entity.name = "altar"
         accessor = Mock()
-        context = {"offered_item": Mock()}
+        context = {"offered_item": Mock(), "actor_id": ActorId("player")}
 
         result = offering_handler.on_receive_offering(entity, accessor, context)
 
@@ -62,7 +63,7 @@ class TestBlessingManager(unittest.TestCase):
         accessor.get_actor.return_value = actor
 
         result = blessing_manager.apply_blessing(
-            accessor, "player", "strength", duration=10, value=2
+            accessor, ActorId("player"), "strength", duration=10, value=2
         )
 
         self.assertTrue(result)
@@ -82,7 +83,7 @@ class TestBlessingManager(unittest.TestCase):
         accessor.get_actor.return_value = actor
 
         result = blessing_manager.apply_curse(
-            accessor, "player", "weakness", duration=5, value=-1
+            accessor, ActorId("player"), "weakness", duration=5, value=-1
         )
 
         self.assertTrue(result)
@@ -106,7 +107,7 @@ class TestBlessingManager(unittest.TestCase):
         }
         accessor.get_actor.return_value = actor
 
-        effects = blessing_manager.get_active_effects(accessor, "player")
+        effects = blessing_manager.get_active_effects(accessor, ActorId("player"))
 
         self.assertEqual(len(effects), 2)
         self.assertEqual(effects[0]["type"], "strength")
@@ -123,8 +124,8 @@ class TestBlessingManager(unittest.TestCase):
         }
         accessor.get_actor.return_value = actor
 
-        self.assertTrue(blessing_manager.has_effect(accessor, "player", "strength"))
-        self.assertFalse(blessing_manager.has_effect(accessor, "player", "luck"))
+        self.assertTrue(blessing_manager.has_effect(accessor, ActorId("player"), "strength"))
+        self.assertFalse(blessing_manager.has_effect(accessor, ActorId("player"), "luck"))
 
     def test_remove_effect(self):
         """Test removing an effect."""
@@ -138,7 +139,7 @@ class TestBlessingManager(unittest.TestCase):
         }
         accessor.get_actor.return_value = actor
 
-        result = blessing_manager.remove_effect(accessor, "player", "strength")
+        result = blessing_manager.remove_effect(accessor, ActorId("player"), "strength")
 
         self.assertTrue(result)
         self.assertEqual(len(actor.states["effects"]), 1)
@@ -158,21 +159,21 @@ class TestBlessingManager(unittest.TestCase):
         accessor.get_actor.return_value = actor
 
         # First tick - both decrement
-        expired = blessing_manager.tick_effects(accessor, "player")
+        expired = blessing_manager.tick_effects(accessor, ActorId("player"))
         self.assertEqual(len(expired), 0)
         self.assertEqual(len(actor.states["effects"]), 3)
         self.assertEqual(actor.states["effects"][0]["duration"], 2)
         self.assertEqual(actor.states["effects"][1]["duration"], 1)
 
         # Second tick - luck expires (1 -> 0)
-        expired = blessing_manager.tick_effects(accessor, "player")
+        expired = blessing_manager.tick_effects(accessor, ActorId("player"))
         self.assertEqual(len(expired), 1)
         self.assertIn("luck", expired)
         self.assertEqual(len(actor.states["effects"]), 2)
         self.assertEqual(actor.states["effects"][0]["duration"], 1)
 
         # Third tick - strength expires (1 -> 0)
-        expired = blessing_manager.tick_effects(accessor, "player")
+        expired = blessing_manager.tick_effects(accessor, ActorId("player"))
         self.assertEqual(len(expired), 1)
         self.assertIn("strength", expired)
         self.assertEqual(len(actor.states["effects"]), 1)
@@ -201,13 +202,13 @@ class TestAlignmentTracker(unittest.TestCase):
         actor.states = {}
         accessor.get_actor.return_value = actor
 
-        result = alignment_tracker.record_choice(accessor, "player", "good", weight=2.0)
+        result = alignment_tracker.record_choice(accessor, ActorId("player"), "good", weight=2.0)
 
         self.assertTrue(result)
         self.assertEqual(actor.states["alignment"], 2.0)
 
         # Record another good choice
-        alignment_tracker.record_choice(accessor, "player", "good", weight=1.5)
+        alignment_tracker.record_choice(accessor, ActorId("player"), "good", weight=1.5)
         self.assertEqual(actor.states["alignment"], 3.5)
 
     def test_record_choice_evil(self):
@@ -217,7 +218,7 @@ class TestAlignmentTracker(unittest.TestCase):
         actor.states = {}
         accessor.get_actor.return_value = actor
 
-        result = alignment_tracker.record_choice(accessor, "player", "evil", weight=1.0)
+        result = alignment_tracker.record_choice(accessor, ActorId("player"), "evil", weight=1.0)
 
         self.assertTrue(result)
         self.assertEqual(actor.states["alignment"], -1.0)
@@ -229,7 +230,7 @@ class TestAlignmentTracker(unittest.TestCase):
         actor.states = {"alignment": 2.0}
         accessor.get_actor.return_value = actor
 
-        alignment_tracker.record_choice(accessor, "player", "neutral", weight=1.0)
+        alignment_tracker.record_choice(accessor, ActorId("player"), "neutral", weight=1.0)
 
         # Neutral choices don't change alignment
         self.assertEqual(actor.states["alignment"], 2.0)
@@ -242,12 +243,12 @@ class TestAlignmentTracker(unittest.TestCase):
         accessor.get_actor.return_value = actor
 
         # Try to exceed +10
-        alignment_tracker.record_choice(accessor, "player", "good", weight=5.0)
+        alignment_tracker.record_choice(accessor, ActorId("player"), "good", weight=5.0)
         self.assertEqual(actor.states["alignment"], 10.0)
 
         # Try to go below -10
         actor.states["alignment"] = -9.0
-        alignment_tracker.record_choice(accessor, "player", "evil", weight=5.0)
+        alignment_tracker.record_choice(accessor, ActorId("player"), "evil", weight=5.0)
         self.assertEqual(actor.states["alignment"], -10.0)
 
     def test_get_alignment(self):
@@ -257,7 +258,7 @@ class TestAlignmentTracker(unittest.TestCase):
         actor.states = {"alignment": 5.5}
         accessor.get_actor.return_value = actor
 
-        alignment = alignment_tracker.get_alignment(accessor, "player")
+        alignment = alignment_tracker.get_alignment(accessor, ActorId("player"))
         self.assertEqual(alignment, 5.5)
 
     def test_get_alignment_descriptor(self):
@@ -283,7 +284,7 @@ class TestAlignmentTracker(unittest.TestCase):
         actor.states = {"alignment": 7.0}
         accessor.get_actor.return_value = actor
 
-        result = alignment_tracker.reset_alignment(accessor, "player")
+        result = alignment_tracker.reset_alignment(accessor, ActorId("player"))
 
         self.assertTrue(result)
         self.assertEqual(actor.states["alignment"], 0.0)

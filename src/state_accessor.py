@@ -71,6 +71,20 @@ class StateAccessor:
         self.game_state = game_state
         self.behavior_manager = behavior_manager
 
+    def __getattr__(self, name: str) -> Any:
+        """
+        Provide backward-compatible access to GameState attributes for behaviors.
+
+        Behaviors historically received the raw GameState instance; routing
+        unknown attributes to the underlying state lets existing modules
+        continue to read fields like .actors or .extra while new code can
+        call accessor methods directly.
+        """
+        try:
+            return getattr(self.game_state, name)
+        except AttributeError as exc:
+            raise AttributeError(f"StateAccessor has no attribute '{name}'") from exc
+
     # Getter methods
 
     def get_item(self, item_id: ItemId) -> Optional[Item]:

@@ -1,4 +1,5 @@
 """Tests for Fungal Depths region behaviors."""
+from src.types import ActorId
 
 import unittest
 from typing import Any
@@ -109,7 +110,7 @@ class TestMyconidFirstMeeting(unittest.TestCase):
             "npc_myconid_elder",
             {"trust_state": {"current": 0}},
         )
-        state.actors["npc_myconid_elder"] = myconid
+        state.actors[ActorId("npc_myconid_elder")] = myconid
         accessor = MockAccessor(state)
 
         context: dict[str, Any] = {}
@@ -127,7 +128,7 @@ class TestMyconidFirstMeeting(unittest.TestCase):
             "npc_myconid_elder",
             {"trust_state": {"current": 0}},
         )
-        state.actors["npc_myconid_elder"] = myconid
+        state.actors[ActorId("npc_myconid_elder")] = myconid
         accessor = MockAccessor(state)
 
         context: dict[str, Any] = {}
@@ -161,7 +162,7 @@ class TestAldricCommitment(unittest.TestCase):
         }
         state.extra["active_commitments"] = []
         aldric = MockActor("npc_aldric", {"trust_state": {"current": 0}})
-        state.actors["npc_aldric"] = aldric
+        state.actors[ActorId("npc_aldric")] = aldric
         accessor = MockAccessor(state)
 
         context = {"keyword": "I'll find silvermoss for you"}
@@ -189,7 +190,7 @@ class TestAldricHeal(unittest.TestCase):
                 },
             },
         )
-        state.actors["npc_aldric"] = aldric
+        state.actors[ActorId("npc_aldric")] = aldric
         accessor = MockAccessor(state)
 
         item = MockItem("item_silvermoss")
@@ -225,7 +226,7 @@ class TestSporeMother(unittest.TestCase):
                 "conditions": {"fungal_blight": {"severity": 70}},
             },
         )
-        state.actors["npc_spore_mother"] = mother
+        state.actors[ActorId("npc_spore_mother")] = mother
         state.locations = [
             MockLocation("spore_heart", {"spore_level": "high"}),
             MockLocation("luminous_grotto", {"spore_level": "medium"}),
@@ -252,8 +253,8 @@ class TestSporeMother(unittest.TestCase):
             "npc_myconid_elder",
             {"trust_state": {"current": 0}},
         )
-        state.actors["npc_spore_mother"] = mother
-        state.actors["npc_myconid_elder"] = myconid
+        state.actors[ActorId("npc_spore_mother")] = mother
+        state.actors[ActorId("npc_myconid_elder")] = myconid
         accessor = MockAccessor(state)
 
         context: dict[str, Any] = {}
@@ -279,7 +280,7 @@ class TestLightPuzzle(unittest.TestCase):
         state.extra["bucket_water_charges"] = 3
         # Use inventory as list so behavior falls back to state.extra for water charges
         player = MockActor("player", {"inventory": []})
-        state.actors["player"] = player
+        state.actors[ActorId("player")] = player
         # Note: behavior uses state.extra as fallback if grotto not found
         state.extra["grotto_light_level"] = 2
         accessor = MockAccessor(state)

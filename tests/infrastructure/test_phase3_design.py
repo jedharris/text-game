@@ -9,6 +9,7 @@ Tests cover:
 - Companion system (add, remove, comfort checks, movement)
 - Gossip system (create, deliver, confess)
 """
+from src.types import ActorId
 
 import unittest
 from typing import Any, cast

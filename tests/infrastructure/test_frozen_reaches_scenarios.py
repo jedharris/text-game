@@ -5,6 +5,7 @@ Tests multi-step gameplay scenarios including:
 - Hypothermia system
 - Cold gear and companions
 """
+from src.types import ActorId
 
 import unittest
 from typing import Any
@@ -158,7 +159,7 @@ class TestHypothermiaScenarios(ScenarioTestCase):
 
     def test_warm_zone_no_hypothermia(self) -> None:
         """Warm zones don't cause hypothermia."""
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         player.properties["location"] = "loc_frozen_entrance"
 
         result = on_cold_zone_turn(None, self.accessor, {})
@@ -168,7 +169,7 @@ class TestHypothermiaScenarios(ScenarioTestCase):
 
     def test_cold_zone_causes_hypothermia(self) -> None:
         """Cold zones cause gradual hypothermia."""
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         player.properties["location"] = "loc_frozen_path"
 
         # Run multiple turns to accumulate hypothermia
@@ -189,7 +190,7 @@ class TestHypothermiaScenarios(ScenarioTestCase):
 
     def test_cold_gear_reduces_hypothermia(self) -> None:
         """Cold weather gear reduces hypothermia rate."""
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         player.properties["location"] = "loc_frozen_depths"
         player.properties["equipment"] = {"body": "cold_weather_gear"}
 
@@ -212,7 +213,7 @@ class TestHypothermiaScenarios(ScenarioTestCase):
 
     def test_cloak_grants_cold_immunity(self) -> None:
         """Cold resistance cloak grants immunity in cold zones."""
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         player.properties["location"] = "loc_frozen_path"
         player.properties["equipment"] = {"cloak": "cold_resistance_cloak"}
 
@@ -232,7 +233,7 @@ class TestHypothermiaScenarios(ScenarioTestCase):
 
     def test_salamander_companion_grants_immunity(self) -> None:
         """Salamander companion grants full hypothermia immunity."""
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         player.properties["location"] = "loc_frozen_observatory"  # Extreme cold
         player.properties["companions"] = [{"id": "salamander", "state": "following"}]
 
@@ -243,7 +244,7 @@ class TestHypothermiaScenarios(ScenarioTestCase):
 
     def test_hypothermia_severity_warnings(self) -> None:
         """Different severity levels show different warnings."""
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         player.properties["location"] = "loc_frozen_observatory"  # 20 per turn
 
         # First turn - severity 20
@@ -276,7 +277,7 @@ class TestHotSpringsScenarios(ScenarioTestCase):
 
     def test_hot_springs_cures_hypothermia(self) -> None:
         """Hot springs instantly cure hypothermia."""
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
 
         # Give player hypothermia
         player.properties["conditions"] = [
@@ -303,7 +304,7 @@ class TestHotSpringsScenarios(ScenarioTestCase):
 
     def test_hot_springs_without_hypothermia(self) -> None:
         """Hot springs still give warmth message without hypothermia."""
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
 
         result = on_enter_hot_springs(
             player, self.accessor, {"destination": self.hot_springs}
@@ -346,7 +347,7 @@ class TestCombinedFrozenScenarios(ScenarioTestCase):
 
     def test_befriend_salamander_then_survive_extreme(self) -> None:
         """Befriending salamander allows survival in extreme cold."""
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         torch = self.state.add_item("item_torch", name="Torch")
 
         # Befriend salamander (3 gifts for high trust)

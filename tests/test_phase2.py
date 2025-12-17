@@ -10,6 +10,7 @@ Tests cover:
 - List operations (+append, -remove)
 - Error cases
 """
+from src.types import ActorId
 import unittest
 import sys
 from pathlib import Path
@@ -99,7 +100,7 @@ class TestSetPathListOperations(unittest.TestCase):
         state = create_test_state()
         accessor = StateAccessor(state, None)
 
-        actor = state.actors.get("player")
+        actor = state.actors.get(ActorId("player"))
         initial_count = len(actor.inventory)
         error = accessor._set_path(actor, "+inventory", "new_item")
 
@@ -112,7 +113,7 @@ class TestSetPathListOperations(unittest.TestCase):
         state = create_test_state()
         accessor = StateAccessor(state, None)
 
-        actor = state.actors.get("player")
+        actor = state.actors.get(ActorId("player"))
         actor.inventory.append("item_to_remove")
 
         error = accessor._set_path(actor, "-inventory", "item_to_remove")
@@ -188,7 +189,7 @@ class TestSetPathErrors(unittest.TestCase):
         state = create_test_state()
         accessor = StateAccessor(state, None)
 
-        actor = state.actors.get("player")
+        actor = state.actors.get(ActorId("player"))
         error = accessor._set_path(actor, "-inventory", "not_in_list")
 
         self.assertIsNotNone(error)

@@ -16,11 +16,14 @@ Usage:
     # Individual NPC behavior can be customized by registering npc_take_action
     # behaviors on specific actors or actor types
 """
+from src.types import ActorId
 
 from typing import List, Optional
 
 from behavior_libraries.actor_lib.combat import get_attacks, select_attack, execute_attack
 from behavior_libraries.actor_lib.packs import sync_follower_disposition
+
+PLAYER_ID = ActorId("player")
 
 
 def npc_take_action(entity, accessor, context):
@@ -53,7 +56,7 @@ def npc_take_action(entity, accessor, context):
         return None
 
     # Check if player is in same location
-    player = accessor.get_actor("player")
+    player = accessor.get_actor(PLAYER_ID)
     if not player or entity.location != player.location:
         return None
 
@@ -97,7 +100,7 @@ def fire_npc_actions(entity, accessor, context):
     # Get all actors except player
     all_npcs = []
     for actor_id, actor in accessor.game_state.actors.items():
-        if actor_id != "player":
+        if actor_id != PLAYER_ID:
             all_npcs.append(actor)
 
     # Sort: alphas before followers

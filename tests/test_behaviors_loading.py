@@ -1,4 +1,5 @@
 """Tests for loading game state with behaviors field (Phase 3)."""
+from src.types import ActorId
 
 import unittest
 import json
@@ -218,7 +219,7 @@ class TestBehaviorsLoading(unittest.TestCase):
 
         state = load_game_state(game_data)
 
-        npc = state.get_actor("wizard")
+        npc = state.get_actor(ActorId("wizard"))
         self.assertIn("behaviors.npcs", npc.behaviors)
 
     def test_load_npc_without_behaviors(self):
@@ -242,7 +243,7 @@ class TestBehaviorsLoading(unittest.TestCase):
 
         state = load_game_state(game_data)
 
-        npc = state.get_actor("guard")
+        npc = state.get_actor(ActorId("guard"))
         self.assertEqual(npc.behaviors, [])
 
     def test_load_door_item_with_behaviors(self):

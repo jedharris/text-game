@@ -4,9 +4,10 @@ The spiral staircase in the tower entrance is invisible until
 the player carries the magic star from the tree in the garden.
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, cast
 
 from src.behavior_manager import EventResult
+from src.types import ActorId
 
 
 def on_observe(entity: Any, accessor: Any, context: Dict) -> EventResult:
@@ -19,7 +20,7 @@ def on_observe(entity: Any, accessor: Any, context: Dict) -> EventResult:
     entity: The exit descriptor for the staircase
     context: {actor_id, method}
     """
-    actor_id = context.get("actor_id", "player")
+    actor_id = cast(ActorId, context.get("actor_id") or ActorId("player"))
     actor = accessor.get_actor(actor_id)
 
     if not actor:

@@ -5,6 +5,7 @@ Tests multi-step gameplay scenarios including:
 - Drowning mechanics
 - Water level hazards
 """
+from src.types import ActorId
 
 import unittest
 from typing import Any
@@ -205,7 +206,7 @@ class TestDrowningScenarios(ScenarioTestCase):
 
     def test_water_entry_starts_breath_timer(self) -> None:
         """Entering flooded area marks player underwater."""
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
 
         result = on_water_entry(player, self.accessor, {"destination": self.flooded})
 
@@ -216,7 +217,7 @@ class TestDrowningScenarios(ScenarioTestCase):
 
     def test_breathing_equipment_prevents_timer(self) -> None:
         """Breathing equipment allows safe underwater travel."""
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         player.properties["equipment"] = {"breathing": "diving_mask"}
 
         result = on_water_entry(player, self.accessor, {"destination": self.flooded})
@@ -226,7 +227,7 @@ class TestDrowningScenarios(ScenarioTestCase):
 
     def test_breath_warning_at_threshold(self) -> None:
         """Warning appears when breath gets low."""
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         player.properties["underwater"] = True
 
         # Initialize breath close to warning
@@ -241,7 +242,7 @@ class TestDrowningScenarios(ScenarioTestCase):
 
     def test_breath_critical_warning(self) -> None:
         """Critical warning appears when near drowning."""
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         player.properties["underwater"] = True
 
         # Initialize breath close to critical
@@ -256,7 +257,7 @@ class TestDrowningScenarios(ScenarioTestCase):
 
     def test_drowning_damage_at_max(self) -> None:
         """Drowning causes damage when breath exceeds max."""
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         player.properties["underwater"] = True
         player.properties["health"] = 100
 
@@ -273,7 +274,7 @@ class TestDrowningScenarios(ScenarioTestCase):
 
     def test_surfacing_resets_breath(self) -> None:
         """Reaching surface resets breath counter."""
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         player.properties["underwater"] = True
         player.properties["conditions"] = [
             {"type": "held_breath", "current": 8, "max": MAX_BREATH}

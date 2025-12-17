@@ -3,6 +3,7 @@ Tests for implicit positioning in handle_open and handle_close.
 
 Following TDD approach - these tests are written first before implementation.
 """
+from src.types import ActorId
 import unittest
 from src.state_manager import GameState, Metadata, Location, Item, Actor
 from src.state_accessor import StateAccessor
@@ -95,7 +96,7 @@ class TestOpenCloseImplicitPositioning(unittest.TestCase):
 
     def test_open_any_distance_no_movement(self):
         """Test opening 'any' distance container doesn't move player."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
 
         action = make_action(verb="open", object="bag")
         result = handle_open(self.accessor, action)
@@ -112,7 +113,7 @@ class TestOpenCloseImplicitPositioning(unittest.TestCase):
 
     def test_open_near_distance_moves_player(self):
         """Test opening 'near' container moves player to it."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
 
         action = make_action(verb="open", object="chest")
         result = handle_open(self.accessor, action)
@@ -130,7 +131,7 @@ class TestOpenCloseImplicitPositioning(unittest.TestCase):
 
     def test_open_already_focused_no_movement(self):
         """Test opening container when already there doesn't repeat movement."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         player.properties["focused_on"] = "item_chest"
 
         action = make_action(verb="open", object="chest")
@@ -142,7 +143,7 @@ class TestOpenCloseImplicitPositioning(unittest.TestCase):
 
     def test_open_clears_posture_when_moving(self):
         """Test opening container clears posture when moving."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         player.properties["focused_on"] = "item_cabinet"
         player.properties["posture"] = "cover"
 
@@ -158,7 +159,7 @@ class TestOpenCloseImplicitPositioning(unittest.TestCase):
 
     def test_close_near_distance_moves_player(self):
         """Test closing 'near' container moves player to it."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         # Open it first
         chest = self.accessor.get_item("item_chest")
         chest.properties["container"]["open"] = True
@@ -176,7 +177,7 @@ class TestOpenCloseImplicitPositioning(unittest.TestCase):
 
     def test_close_already_focused_no_movement(self):
         """Test closing container when already there doesn't repeat movement."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         player.properties["focused_on"] = "item_chest"
         # Open it first
         chest = self.accessor.get_item("item_chest")
@@ -191,7 +192,7 @@ class TestOpenCloseImplicitPositioning(unittest.TestCase):
 
     def test_close_any_distance_no_movement(self):
         """Test closing 'any' distance container doesn't move player."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         # Open it first
         bag = self.accessor.get_item("item_bag")
         bag.properties["container"]["open"] = True

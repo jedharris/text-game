@@ -3,11 +3,12 @@
 Vocabulary and handlers for examining objects and surroundings.
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, cast
 
 from src.action_types import ActionDict
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
+from src.types import ActorId
 from utilities.utils import (
     find_accessible_item,
     find_door_with_adjective,
@@ -149,6 +150,7 @@ def handle_examine(accessor, action):
     )
     if error:
         return error
+    verb = action.get("verb", "examine")
 
     object_name = action.get("object")
     adjective = action.get("adjective")
@@ -252,7 +254,7 @@ def handle_examine(accessor, action):
     # If no item or part found, try to find a door
     # Use direction as adjective if no explicit adjective provided (e.g., "examine east door")
     door_adjective = adjective or direction
-    door = find_door_with_adjective(accessor, object_name, door_adjective, location.id)
+    door = find_door_with_adjective(accessor, object_name, door_adjective, location.id, actor_id, verb=verb)
 
     if door:
         # Use unified serializer for llm_context with trait randomization
@@ -432,7 +434,7 @@ def handle_inventory(accessor, action):
         HandlerResult with success flag and message
     """
     # Validate actor (location not needed for inventory)
-    actor_id = action.get("actor_id", "player")
+    actor_id = cast(ActorId, action.get("actor_id") or ActorId("player"))
     actor = accessor.get_actor(actor_id)
     if not actor:
         return HandlerResult(

@@ -7,11 +7,12 @@ NOTE: This is a library behavior pattern that could be useful to migrate to core
 if offering-based puzzles become a common pattern across many games.
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, cast
 
 from src.action_types import ActionDict
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
+from src.types import ActorId
 from utilities.utils import find_item_in_inventory, find_accessible_item
 from utilities.handler_utils import get_display_name
 
@@ -47,7 +48,7 @@ def handle_offer(accessor, action: Dict) -> HandlerResult:
         > offer flower to shrine
         > offer weapon to well
     """
-    actor_id = action.get("actor_id", "player")
+    actor_id = cast(ActorId, action.get("actor_id") or ActorId("player"))
     item_name = action.get("object")
     target_name = action.get("indirect_object") or action.get("target")
 

@@ -1,4 +1,5 @@
 """Tests for Beast Wilds region behaviors."""
+from src.types import ActorId
 
 import unittest
 from typing import Any
@@ -67,7 +68,7 @@ class TestWolfFeed(unittest.TestCase):
                 "state_machine": {"states": ["hostile", "wary"], "initial": "hostile"},
             },
         )
-        state.actors["npc_alpha_wolf"] = alpha
+        state.actors[ActorId("npc_alpha_wolf")] = alpha
         accessor = MockAccessor(state)
 
         item = MockItem("item_venison")
@@ -106,7 +107,7 @@ class TestWolfFeed(unittest.TestCase):
                 },
             },
         )
-        state.actors["npc_alpha_wolf"] = alpha
+        state.actors[ActorId("npc_alpha_wolf")] = alpha
         accessor = MockAccessor(state)
 
         item = MockItem("item_venison")
@@ -214,7 +215,7 @@ class TestBearCommitment(unittest.TestCase):
         accessor = MockAccessor(state)
 
         bear = MockActor("npc_dire_bear", {})
-        state.actors["npc_dire_bear"] = bear
+        state.actors[ActorId("npc_dire_bear")] = bear
         context = {"keyword": "I'll find medicine for them"}
 
         result = on_bear_commitment(bear, accessor, context)
@@ -251,9 +252,9 @@ class TestCubsHealed(unittest.TestCase):
         )
         cub1 = MockActor("npc_bear_cub_1", {"sick": True})
         cub2 = MockActor("npc_bear_cub_2", {"sick": True})
-        state.actors["npc_dire_bear"] = bear
-        state.actors["npc_bear_cub_1"] = cub1
-        state.actors["npc_bear_cub_2"] = cub2
+        state.actors[ActorId("npc_dire_bear")] = bear
+        state.actors[ActorId("npc_bear_cub_1")] = cub1
+        state.actors[ActorId("npc_bear_cub_2")] = cub2
         accessor = MockAccessor(state)
 
         item = MockItem("item_healing_herbs")
@@ -285,9 +286,9 @@ class TestCubsDied(unittest.TestCase):
         )
         cub1 = MockActor("npc_bear_cub_1", {})
         cub2 = MockActor("npc_bear_cub_2", {})
-        state.actors["npc_dire_bear"] = bear
-        state.actors["npc_bear_cub_1"] = cub1
-        state.actors["npc_bear_cub_2"] = cub2
+        state.actors[ActorId("npc_dire_bear")] = bear
+        state.actors[ActorId("npc_bear_cub_1")] = cub1
+        state.actors[ActorId("npc_bear_cub_2")] = cub2
         accessor = MockAccessor(state)
 
         entity = MagicMock()
@@ -322,7 +323,7 @@ class TestFlowerOffer(unittest.TestCase):
                 "trust_state": {"current": 0},
             },
         )
-        state.actors["bee_queen"] = queen
+        state.actors[ActorId("bee_queen")] = queen
         accessor = MockAccessor(state)
 
         item = MockItem("item_moonpetal")
@@ -339,7 +340,7 @@ class TestFlowerOffer(unittest.TestCase):
         """Non-flower items are rejected."""
         state = MockState()
         queen = MockActor("bee_queen", {})
-        state.actors["bee_queen"] = queen
+        state.actors[ActorId("bee_queen")] = queen
         accessor = MockAccessor(state)
 
         item = MockItem("item_rock")
@@ -365,7 +366,7 @@ class TestFlowerOffer(unittest.TestCase):
                 "trust_state": {"current": 2},
             },
         )
-        state.actors["bee_queen"] = queen
+        state.actors[ActorId("bee_queen")] = queen
         accessor = MockAccessor(state)
 
         item = MockItem("item_water_bloom")
@@ -392,7 +393,7 @@ class TestHoneyTheft(unittest.TestCase):
                 },
             },
         )
-        state.actors["bee_queen"] = queen
+        state.actors[ActorId("bee_queen")] = queen
         accessor = MockAccessor(state)
 
         item = MockItem("item_royal_honey")
@@ -418,7 +419,7 @@ class TestHoneyTheft(unittest.TestCase):
                 },
             },
         )
-        state.actors["bee_queen"] = queen
+        state.actors[ActorId("bee_queen")] = queen
         accessor = MockAccessor(state)
 
         item = MockItem("item_royal_honey")

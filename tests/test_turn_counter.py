@@ -1,4 +1,5 @@
 """Tests for turn counter functionality."""
+from src.types import ActorId
 
 import unittest
 import json
@@ -125,7 +126,7 @@ class TestTurnCounterSerialization(unittest.TestCase):
             name='Start',
             description='A room'
         ))
-        original.actors['player'] = Actor(
+        original.actors[ActorId('player')] = Actor(
             id='player',
             name='Adventurer',
             description='The player',

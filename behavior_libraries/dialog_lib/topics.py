@@ -26,6 +26,7 @@ Usage:
         handle_ask_about, handle_talk_to
     )
 """
+from src.types import ActorId
 
 from dataclasses import dataclass
 from typing import Dict, List, Optional
@@ -56,7 +57,7 @@ def get_available_topics(accessor, npc) -> List[str]:
     Returns:
         List of available topic names
     """
-    player = accessor.get_actor('player')
+    player = accessor.get_actor(ActorId('player'))
     if not player:
         return []
 
@@ -153,7 +154,7 @@ def handle_ask_about(accessor, npc, topic_text: str) -> DialogResult:
     Returns:
         DialogResult with success and message
     """
-    player = accessor.get_actor('player')
+    player = accessor.get_actor(ActorId('player'))
     if not player:
         return DialogResult(success=False, message="No player found.")
 

@@ -7,9 +7,10 @@ Demonstrates:
 - Custom verb for examining the pressure mechanism
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, cast
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
+from src.types import ActorId
 from utilities.utils import find_accessible_item
 
 # Import library functions
@@ -47,7 +48,7 @@ def handle_check(accessor, action: Dict) -> HandlerResult:
     Returns:
         HandlerResult with success flag and message
     """
-    actor_id = action.get("actor_id", "player")
+    actor_id = cast(ActorId, action.get("actor_id") or ActorId("player"))
     obj_name = action.get("object")
     adjective = action.get("adjective")
 

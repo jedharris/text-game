@@ -4,6 +4,7 @@ Tests for Phase 6: Utility Functions
 These tests validate utility functions for searching and visibility,
 with special emphasis on actor_id threading to ensure NPCs work correctly.
 """
+from src.types import ActorId
 import unittest
 import sys
 from pathlib import Path
@@ -54,7 +55,7 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         accessor = StateAccessor(state, BehaviorManager())
 
         sword_entry = make_word_entry("sword")
-        item = find_accessible_item(accessor, sword_entry, "player")
+        item = find_accessible_item(accessor, sword_entry, ActorId("player"))
 
         self.assertIsNotNone(item)
         self.assertEqual(item.id, "item_sword")
@@ -65,13 +66,13 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         accessor = StateAccessor(state, BehaviorManager())
 
         # Put sword in player's inventory
-        player = state.actors["player"]
+        player = state.actors[ActorId("player")]
         sword = state.get_item("item_sword")
         sword.location = "player"
         player.inventory.append("item_sword")
 
         sword_entry = make_word_entry("sword")
-        item = find_accessible_item(accessor, sword_entry, "player")
+        item = find_accessible_item(accessor, sword_entry, ActorId("player"))
 
         self.assertIsNotNone(item)
         self.assertEqual(item.id, "item_sword")
@@ -82,7 +83,7 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         accessor = StateAccessor(state, BehaviorManager())
 
         nonexistent_entry = make_word_entry("nonexistent")
-        item = find_accessible_item(accessor, nonexistent_entry, "player")
+        item = find_accessible_item(accessor, nonexistent_entry, ActorId("player"))
 
         self.assertIsNone(item)
 
@@ -101,7 +102,7 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         # Create NPC in different location
         npc = Actor(id="npc_guard", name="guard", description="A guard",
                    location="other_room", inventory=[])
-        state.actors["npc_guard"] = npc
+        state.actors[ActorId("npc_guard")] = npc
 
         # Create item in NPC's location
         key = Item(id="item_key", name="key", description="A key",
@@ -110,12 +111,12 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
 
         # NPC should find key in their location
         key_entry = make_word_entry("key")
-        item = find_accessible_item(accessor, key_entry, "npc_guard")
+        item = find_accessible_item(accessor, key_entry, ActorId("npc_guard"))
         self.assertIsNotNone(item)
         self.assertEqual(item.id, "item_key")
 
         # Player should NOT find key (it's in different location)
-        item = find_accessible_item(accessor, key_entry, "player")
+        item = find_accessible_item(accessor, key_entry, ActorId("player"))
         self.assertIsNone(item)
 
     def test_find_item_in_inventory_player(self):
@@ -123,11 +124,11 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         state = create_test_state()
         accessor = StateAccessor(state, BehaviorManager())
 
-        player = state.actors["player"]
+        player = state.actors[ActorId("player")]
         player.inventory.append("item_sword")
 
         sword_entry = make_word_entry("sword")
-        item = find_item_in_inventory(accessor, sword_entry, "player")
+        item = find_item_in_inventory(accessor, sword_entry, ActorId("player"))
 
         self.assertIsNotNone(item)
         self.assertEqual(item.id, "item_sword")
@@ -140,7 +141,7 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         # Create NPC with item
         npc = Actor(id="npc_guard", name="guard", description="A guard",
                    location="location_room", inventory=["item_key"])
-        state.actors["npc_guard"] = npc
+        state.actors[ActorId("npc_guard")] = npc
 
         key = Item(id="item_key", name="key", description="A key",
                   location="npc_guard")
@@ -148,12 +149,12 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
 
         # NPC should find key in their inventory
         key_entry = make_word_entry("key")
-        item = find_item_in_inventory(accessor, key_entry, "npc_guard")
+        item = find_item_in_inventory(accessor, key_entry, ActorId("npc_guard"))
         self.assertIsNotNone(item)
         self.assertEqual(item.id, "item_key")
 
         # Player should NOT find key
-        item = find_item_in_inventory(accessor, key_entry, "player")
+        item = find_item_in_inventory(accessor, key_entry, ActorId("player"))
         self.assertIsNone(item)
 
     def test_find_container_by_name(self):
@@ -211,11 +212,11 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
                   location="player")
         state.items.append(key)
 
-        player = state.actors["player"]
+        player = state.actors[ActorId("player")]
         player.inventory.append("item_key")
 
         # Player has key
-        self.assertTrue(actor_has_key_for_door(accessor, "player", door))
+        self.assertTrue(actor_has_key_for_door(accessor, ActorId("player"), door))
 
     def test_actor_has_key_for_door_npc(self):
         """Test checking if NPC has key, not player."""
@@ -244,24 +245,24 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         # Give key to NPC, not player
         npc = Actor(id="npc_guard", name="guard", description="A guard",
                    location="location_room", inventory=["item_key"])
-        state.actors["npc_guard"] = npc
+        state.actors[ActorId("npc_guard")] = npc
 
         key = Item(id="item_key", name="key", description="A key",
                   location="npc_guard")
         state.items.append(key)
 
         # NPC has key
-        self.assertTrue(actor_has_key_for_door(accessor, "npc_guard", door))
+        self.assertTrue(actor_has_key_for_door(accessor, ActorId("npc_guard"), door))
 
         # Player does NOT have key
-        self.assertFalse(actor_has_key_for_door(accessor, "player", door))
+        self.assertFalse(actor_has_key_for_door(accessor, ActorId("player"), door))
 
     def test_get_visible_items_in_location(self):
         """Test getting visible items in a location."""
         state = create_test_state()
         accessor = StateAccessor(state, BehaviorManager())
 
-        items = get_visible_items_in_location(accessor, "location_room", "player")
+        items = get_visible_items_in_location(accessor, "location_room", ActorId("player"))
 
         # Should find the sword
         item_ids = [item.id for item in items]
@@ -275,9 +276,9 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         # Create NPC in same location as player
         npc = Actor(id="npc_guard", name="guard", description="A guard",
                    location="location_room", inventory=[])
-        state.actors["npc_guard"] = npc
+        state.actors[ActorId("npc_guard")] = npc
 
-        actors = get_visible_actors_in_location(accessor, "location_room", "player")
+        actors = get_visible_actors_in_location(accessor, "location_room", ActorId("player"))
 
         # Should find NPC but not player
         actor_ids = [actor.id for actor in actors]
@@ -292,9 +293,9 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         # Create NPC in same location as player
         npc = Actor(id="npc_guard", name="guard", description="A guard",
                    location="location_room", inventory=[])
-        state.actors["npc_guard"] = npc
+        state.actors[ActorId("npc_guard")] = npc
 
-        actors = get_visible_actors_in_location(accessor, "location_room", "npc_guard")
+        actors = get_visible_actors_in_location(accessor, "location_room", ActorId("npc_guard"))
 
         # Should find player but not NPC itself
         actor_ids = [actor.id for actor in actors]
@@ -321,7 +322,7 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         door = create_door_item("door_main", "location_room", "north", open=True)
         state.items.append(door)
 
-        doors = get_doors_in_location(accessor, "location_room", "player")
+        doors = get_doors_in_location(accessor, "location_room", ActorId("player"))
 
         # Should find the door
         door_ids = [d.id for d in doors]
@@ -332,7 +333,7 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         state = create_test_state()
         accessor = StateAccessor(state, BehaviorManager())
 
-        doors = get_doors_in_location(accessor, "location_room", "player")
+        doors = get_doors_in_location(accessor, "location_room", ActorId("player"))
 
         # Should return empty list
         self.assertEqual(len(doors), 0)

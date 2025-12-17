@@ -3,6 +3,7 @@ Tests for implicit positioning in handle_take.
 
 Following TDD approach - these tests are written first before implementation.
 """
+from src.types import ActorId
 import unittest
 from src.state_manager import GameState, Metadata, Location, Item, Actor
 from src.state_accessor import StateAccessor
@@ -76,7 +77,7 @@ class TestTakeImplicitPositioning(unittest.TestCase):
 
     def test_take_any_distance_no_movement(self):
         """Test taking 'any' distance item doesn't move player."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
 
         action = make_action(verb="take", object="coin")
         result = handle_take(self.accessor, action)
@@ -92,7 +93,7 @@ class TestTakeImplicitPositioning(unittest.TestCase):
 
     def test_take_near_distance_moves_player(self):
         """Test taking 'near' item moves player to it."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
 
         action = make_action(verb="take", object="key")
         result = handle_take(self.accessor, action)
@@ -107,7 +108,7 @@ class TestTakeImplicitPositioning(unittest.TestCase):
 
     def test_take_already_focused_no_movement(self):
         """Test taking item when already focused doesn't repeat movement."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         player.properties["focused_on"] = "item_key"
 
         action = make_action(verb="take", object="key")
@@ -121,7 +122,7 @@ class TestTakeImplicitPositioning(unittest.TestCase):
 
     def test_take_clears_posture_when_moving(self):
         """Test taking item clears posture when moving."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         player.properties["focused_on"] = "item_coin"
         player.properties["posture"] = "cover"
 
@@ -134,7 +135,7 @@ class TestTakeImplicitPositioning(unittest.TestCase):
 
     def test_take_from_container_positions_to_container(self):
         """Test taking from container positions to container, not item."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
 
         action = make_action(verb="take", object="gem", preposition="from", indirect_object="box")
         result = handle_take(self.accessor, action)
@@ -148,7 +149,7 @@ class TestTakeImplicitPositioning(unittest.TestCase):
 
     def test_take_from_container_already_at_container_no_movement(self):
         """Test taking from container when already at it doesn't move."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         player.properties["focused_on"] = "item_box"
 
         action = make_action(verb="take", object="gem", preposition="from", indirect_object="box")

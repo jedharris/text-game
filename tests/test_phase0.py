@@ -4,6 +4,7 @@ Phase 0 tests - Infrastructure setup validation.
 These tests verify that all the basic modules can be imported and
 that the data structures are correct.
 """
+from src.types import ActorId
 import unittest
 import sys
 from pathlib import Path
@@ -43,7 +44,7 @@ class TestPhase0Infrastructure(unittest.TestCase):
         state = create_test_state()
 
         # Verify player exists
-        player = state.actors.get("player")
+        player = state.actors.get(ActorId("player"))
         self.assertIsNotNone(player)
         self.assertEqual(player.location, "location_room")
         self.assertIsInstance(player.inventory, list)

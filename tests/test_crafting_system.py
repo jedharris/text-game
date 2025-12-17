@@ -1,4 +1,5 @@
 """Tests for crafting/combining system."""
+from src.types import ActorId
 
 import unittest
 from unittest.mock import Mock
@@ -91,7 +92,7 @@ class TestCheckRequirements(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='anywhere', name='Anywhere', description='A place'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='anywhere', inventory=[]
         )
@@ -111,7 +112,7 @@ class TestCheckRequirements(unittest.TestCase):
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='forest', name='Forest', description='A forest'))
         state.locations.append(Location(id='forge', name='Forge', description='A forge'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='forest', inventory=[]
         )
@@ -134,7 +135,7 @@ class TestCheckRequirements(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='forge', name='Forge', description='A forge'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='forge', inventory=[]
         )
@@ -156,7 +157,7 @@ class TestCheckRequirements(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='anywhere', name='Anywhere', description='A place'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='anywhere', inventory=[],
             properties={'skills': []}
@@ -180,7 +181,7 @@ class TestCheckRequirements(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='anywhere', name='Anywhere', description='A place'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='anywhere', inventory=[],
             properties={'skills': ['herbalism']}
@@ -209,7 +210,7 @@ class TestExecuteCraft(unittest.TestCase):
         state.locations.append(Location(id='anywhere', name='Anywhere', description='A place'))
         state.items.append(Item(id='herb', name='Herb', description='An herb', location=None))
         state.items.append(Item(id='water', name='Water', description='Water', location=None))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='anywhere', inventory=['herb', 'water']
         )
@@ -234,8 +235,8 @@ class TestExecuteCraft(unittest.TestCase):
         result = execute_craft(accessor, recipe, ['herb', 'water'])
 
         self.assertTrue(result.success)
-        self.assertNotIn('herb', state.actors['player'].inventory)
-        self.assertNotIn('water', state.actors['player'].inventory)
+        self.assertNotIn('herb', state.actors[ActorId('player')].inventory)
+        self.assertNotIn('water', state.actors[ActorId('player')].inventory)
 
     def test_execute_craft_creates_result_item(self):
         """Crafting creates the result item in inventory."""
@@ -245,7 +246,7 @@ class TestExecuteCraft(unittest.TestCase):
         state.locations.append(Location(id='anywhere', name='Anywhere', description='A place'))
         state.items.append(Item(id='herb', name='Herb', description='An herb', location=None))
         state.items.append(Item(id='water', name='Water', description='Water', location=None))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='anywhere', inventory=['herb', 'water']
         )
@@ -269,7 +270,7 @@ class TestExecuteCraft(unittest.TestCase):
 
         execute_craft(accessor, recipe, ['herb', 'water'])
 
-        self.assertIn('healing_potion', state.actors['player'].inventory)
+        self.assertIn('healing_potion', state.actors[ActorId('player')].inventory)
 
     def test_execute_craft_returns_success_message(self):
         """Crafting returns the recipe success message."""
@@ -279,7 +280,7 @@ class TestExecuteCraft(unittest.TestCase):
         state.locations.append(Location(id='anywhere', name='Anywhere', description='A place'))
         state.items.append(Item(id='herb', name='Herb', description='An herb', location=None))
         state.items.append(Item(id='water', name='Water', description='Water', location=None))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='anywhere', inventory=['herb', 'water']
         )
@@ -311,7 +312,7 @@ class TestExecuteCraft(unittest.TestCase):
         state.locations.append(Location(id='anywhere', name='Anywhere', description='A place'))
         state.items.append(Item(id='lens', name='Lens', description='A lens', location=None))
         state.items.append(Item(id='frame', name='Frame', description='A frame', location=None))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='anywhere', inventory=['lens', 'frame']
         )
@@ -333,8 +334,8 @@ class TestExecuteCraft(unittest.TestCase):
         execute_craft(accessor, recipe, ['lens', 'frame'])
 
         # Ingredients should still be in inventory (not consumed)
-        self.assertIn('lens', state.actors['player'].inventory)
-        self.assertIn('frame', state.actors['player'].inventory)
+        self.assertIn('lens', state.actors[ActorId('player')].inventory)
+        self.assertIn('frame', state.actors[ActorId('player')].inventory)
 
 
 class TestHandleCombine(unittest.TestCase):
@@ -349,7 +350,7 @@ class TestHandleCombine(unittest.TestCase):
         state.locations.append(Location(id='anywhere', name='Anywhere', description='A place'))
         state.items.append(Item(id='herb', name='Herb', description='An herb', location=None))
         state.items.append(Item(id='water', name='Water', description='Water', location=None))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='anywhere', inventory=['herb', 'water']
         )
@@ -389,7 +390,7 @@ class TestHandleCombine(unittest.TestCase):
         state.locations.append(Location(id='anywhere', name='Anywhere', description='A place'))
         state.items.append(Item(id='rock', name='Rock', description='A rock', location=None))
         state.items.append(Item(id='stick', name='Stick', description='A stick', location=None))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='anywhere', inventory=['rock', 'stick']
         )
@@ -415,7 +416,7 @@ class TestHandleCombine(unittest.TestCase):
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='anywhere', name='Anywhere', description='A place'))
         state.items.append(Item(id='herb', name='Herb', description='An herb', location=None))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='anywhere', inventory=['herb']
         )

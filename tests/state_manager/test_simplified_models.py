@@ -3,6 +3,7 @@ Tests for simplified property-based state manager models.
 
 Phase 1 tests: Models, loader, and serializer with properties dict.
 """
+from src.types import ActorId
 import unittest
 import json
 import tempfile
@@ -657,7 +658,7 @@ class TestGenericLoader(unittest.TestCase):
         )
 
         state = load_game_state(data)
-        npc = state.get_actor("npc_1")
+        npc = state.get_actor(ActorId("npc_1"))
 
         # Core fields
         self.assertEqual(npc.id, "npc_1")
@@ -724,7 +725,7 @@ class TestGenericLoader(unittest.TestCase):
         )
 
         state = load_game_state(data)
-        player = state.actors.get("player")
+        player = state.actors.get(ActorId("player"))
 
         self.assertEqual(player.location, "loc_1")
         self.assertEqual(player.inventory, ["item_1"])
@@ -1090,7 +1091,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
             }
         )
 
-        npc = state.get_actor("npc_1")
+        npc = state.get_actor(ActorId("npc_1"))
         self.assertEqual(npc.name, "Guard")
 
     def test_move_item_to_actor(self):
@@ -1116,7 +1117,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
         state.move_item("item_1", to_actor="player")
 
         item = state.get_item("item_1")
-        player = state.actors.get("player")
+        player = state.actors.get(ActorId("player"))
         self.assertEqual(item.location, "player")
         self.assertIn("item_1", player.inventory)
         self.assertNotIn("item_1", state.locations[0].items)
@@ -1170,11 +1171,11 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
 
         # Test with default (player)
         state.set_actor_location("loc_2")
-        self.assertEqual(state.actors["player"].location, "loc_2")
+        self.assertEqual(state.actors[ActorId("player")].location, "loc_2")
 
         # Test with explicit actor
         state.set_actor_location("loc_2", actor_id="npc_guard")
-        self.assertEqual(state.actors["npc_guard"].location, "loc_2")
+        self.assertEqual(state.actors[ActorId("npc_guard")].location, "loc_2")
 
     def test_set_actor_flag_and_get_actor_flag(self):
         """set_actor_flag and get_actor_flag work with any actor's properties."""

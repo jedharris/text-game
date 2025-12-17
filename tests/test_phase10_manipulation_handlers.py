@@ -4,6 +4,7 @@ Phase 10: Complete Manipulation Handlers
 Tests for handle_drop, handle_put, and handle_give command handlers.
 Critical: Each handler must have NPC tests to validate actor_id threading.
 """
+from src.types import ActorId
 
 import unittest
 import sys
@@ -33,7 +34,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
         accessor = StateAccessor(state, behavior_manager)
 
         # Put sword in player's inventory
-        player = state.actors["player"]
+        player = state.actors[ActorId("player")]
         sword = state.get_item("item_sword")
         sword.location = "player"
         player.inventory.append("item_sword")
@@ -80,7 +81,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
             location="location_room",
             inventory=["item_sword"]
         )
-        state.actors["npc_guard"] = guard
+        state.actors[ActorId("npc_guard")] = guard
 
         # Set sword location to NPC
         sword = state.get_item("item_sword")
@@ -105,7 +106,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
         accessor = StateAccessor(state, behavior_manager)
 
         # Put sword in player's inventory
-        player = state.actors["player"]
+        player = state.actors[ActorId("player")]
         sword = state.get_item("item_sword")
         sword.location = "player"
         player.inventory.append("item_sword")
@@ -118,7 +119,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
             location="location_room",
             inventory=[]
         )
-        state.actors["npc_guard"] = guard
+        state.actors[ActorId("npc_guard")] = guard
 
         from behaviors.core.manipulation import handle_give
         action = make_action(object="sword", indirect_object="guard", actor_id="player")
@@ -147,7 +148,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
             location="location_room",
             inventory=[]
         )
-        state.actors["npc_guard"] = guard
+        state.actors[ActorId("npc_guard")] = guard
 
         from behaviors.core.manipulation import handle_give
         action = make_action(object="sword", indirect_object="guard", actor_id="player")
@@ -164,7 +165,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
         accessor = StateAccessor(state, behavior_manager)
 
         # Put sword in player's inventory
-        player = state.actors["player"]
+        player = state.actors[ActorId("player")]
         sword = state.get_item("item_sword")
         sword.location = "player"
         player.inventory.append("item_sword")
@@ -191,7 +192,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
             location="location_room",
             inventory=["item_sword"]
         )
-        state.actors["npc_guard"] = guard
+        state.actors[ActorId("npc_guard")] = guard
 
         sword = state.get_item("item_sword")
         sword.location = "npc_guard"
@@ -202,7 +203,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
         result = handle_give(accessor, action)
 
         self.assertTrue(result.success, f"NPC give failed: {result.message}")
-        player = state.actors["player"]
+        player = state.actors[ActorId("player")]
         self.assertNotIn("item_sword", guard.inventory, "Item should be removed from NPC")
         self.assertIn("item_sword", player.inventory, "Item should be in player inventory")
         self.assertEqual(sword.location, "player")

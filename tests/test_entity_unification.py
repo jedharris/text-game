@@ -6,6 +6,7 @@ Doors become items with properties.door defined.
 
 Phase 1: Tests for door properties, visibility, and find_accessible_item with doors.
 """
+from src.types import ActorId
 
 import unittest
 from pathlib import Path
@@ -688,7 +689,7 @@ class TestLockUnlockDoorItems(unittest.TestCase):
         from behaviors.core.locks import handle_unlock
 
         # Remove key from inventory
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         player.inventory.remove("item_key")
 
         action = make_action(verb="unlock", object="door", actor_id="player")
@@ -794,7 +795,7 @@ class TestMovementThroughDoorItems(unittest.TestCase):
         result = handle_go(self.accessor, action)
 
         self.assertTrue(result.success)
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         self.assertEqual(player.location, "loc_room2")
 
 

@@ -17,11 +17,13 @@ from typing import Dict, Optional
 from src.action_types import ActionDict
 from src.state_accessor import HandlerResult
 from src.word_entry import WordEntry
+from src.types import ActorId
 from utilities.utils import name_matches
 from utilities.handler_utils import get_display_name
 from behavior_libraries.crafting_lib.recipes import (
     find_recipe, check_requirements, execute_craft
 )
+from behavior_libraries.crafting_lib.storage import get_recipe_catalog
 
 
 # Vocabulary extension
@@ -57,15 +59,18 @@ def handle_combine(accessor, action: Dict) -> HandlerResult:
     Returns:
         HandlerResult with success and message
     """
-    actor_id = action.get('actor_id', 'player')
+    actor_id = ActorId(action.get('actor_id', ActorId("player")))
     item1_name = action.get('object')
     item2_name = action.get('indirect_object') or action.get('target')
 
-    if not item1_name:
+    if not isinstance(item1_name, WordEntry):
         return HandlerResult(success=False, message="Combine what?")
 
-    if not item2_name:
-        return HandlerResult(success=False, message=f"Combine {get_display_name(item1_name)} with what?")
+    if not isinstance(item2_name, WordEntry):
+        return HandlerResult(
+            success=False,
+            message=f"Combine {get_display_name(item1_name)} with what?"
+        )
 
     player = accessor.get_actor(actor_id)
     if not player:
@@ -112,10 +117,10 @@ def handle_craft(accessor, action: Dict) -> HandlerResult:
     Returns:
         HandlerResult with success and message
     """
-    actor_id = action.get('actor_id', 'player')
+    actor_id = ActorId(action.get('actor_id', ActorId("player")))
     recipe_name = action.get('object')
 
-    if not recipe_name:
+    if not isinstance(recipe_name, WordEntry):
         return HandlerResult(success=False, message="Craft what?")
 
     player = accessor.get_actor(actor_id)
@@ -124,7 +129,7 @@ def handle_craft(accessor, action: Dict) -> HandlerResult:
 
     # Find recipe by name - use the word string for lookup
     recipe_name_str = recipe_name.word
-    recipes = accessor.game_state.extra.get('recipes', {})
+    recipes = get_recipe_catalog(accessor)
     recipe = recipes.get(recipe_name_str)
 
     if not recipe:

@@ -6,8 +6,9 @@ Demonstrates:
 - Different items grant different blessings or curses
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, cast
 from src.behavior_manager import EventResult
+from src.types import ActorId
 
 # Import library functions
 import sys
@@ -36,7 +37,7 @@ def on_receive_offering(entity: Any, accessor: Any, context: Dict) -> EventResul
     Returns:
         EventResult with allow and message
     """
-    actor_id = context.get("actor_id", "player")
+    actor_id = cast(ActorId, context.get("actor_id") or ActorId("player"))
     offered_item = context.get("offered_item")
 
     if not offered_item:

@@ -18,10 +18,13 @@ Usage:
         check_can_follow, on_player_move_companions_follow
     )
 """
+from src.types import ActorId
 
 from typing import List, Tuple
 
 from src.behavior_manager import EventResult
+
+PLAYER_ID = ActorId("player")
 
 
 def get_companions(accessor) -> List:
@@ -34,7 +37,7 @@ def get_companions(accessor) -> List:
     Returns:
         List of Actor objects that are companions at player's location
     """
-    player = accessor.get_actor('player')
+    player = accessor.get_actor(PLAYER_ID)
     if not player:
         return []
 
@@ -42,7 +45,7 @@ def get_companions(accessor) -> List:
     companions = []
 
     for actor_id, actor in accessor.game_state.actors.items():
-        if actor_id == 'player':
+        if actor_id == PLAYER_ID:
             continue
         if actor.location == player_location:
             if actor.properties.get('is_companion', False):
@@ -59,7 +62,7 @@ def make_companion(accessor, actor_id: str) -> None:
         accessor: StateAccessor instance
         actor_id: ID of actor to make companion
     """
-    actor = accessor.get_actor(actor_id)
+    actor = accessor.get_actor(ActorId(actor_id))
     if actor:
         actor.properties['is_companion'] = True
 
@@ -72,7 +75,7 @@ def dismiss_companion(accessor, actor_id: str) -> None:
         accessor: StateAccessor instance
         actor_id: ID of actor to dismiss
     """
-    actor = accessor.get_actor(actor_id)
+    actor = accessor.get_actor(ActorId(actor_id))
     if actor:
         actor.properties['is_companion'] = False
 
@@ -133,8 +136,8 @@ def on_player_move_companions_follow(entity, accessor, context: dict) -> EventRe
     Returns:
         EventResult with follow/stay messages
     """
-    actor_id = context.get('actor_id', 'player')
-    if actor_id != 'player':
+    context_actor_id = ActorId(context.get('actor_id', PLAYER_ID))
+    if context_actor_id != PLAYER_ID:
         # Only process for player movement
         return EventResult(allow=True, message='')
 
@@ -147,7 +150,7 @@ def on_player_move_companions_follow(entity, accessor, context: dict) -> EventRe
     # Find companions at the previous location
     messages = []
     for actor_id_key, actor in accessor.game_state.actors.items():
-        if actor_id_key == 'player':
+        if actor_id_key == PLAYER_ID:
             continue
         if actor.location != from_location:
             continue

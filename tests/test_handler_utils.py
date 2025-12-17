@@ -4,6 +4,7 @@ Tests for handler utility functions.
 Tests the validate_actor_and_location() utility that provides
 standard preamble for all handlers, plus new consolidation helpers.
 """
+from src.types import ActorId
 
 import unittest
 from unittest.mock import Mock, MagicMock, patch
@@ -86,7 +87,7 @@ class TestValidateActorAndLocation(BaseTestCase):
     def test_actor_without_location(self):
         """Should return INCONSISTENT STATE error when location not found"""
         # Create actor with invalid location
-        self.state.actors["orphan"] = Actor(
+        self.state.actors[ActorId("orphan")] = Actor(
             id="orphan", name="Orphan", description="Lost",
             location="nowhere", inventory=[]
         )
@@ -273,7 +274,7 @@ class TestTransferItemToActor(BaseTestCase):
     def test_success(self):
         """Should transfer item to actor inventory"""
         item = self.state.get_item("item_sword")
-        actor = self.state.actors["player"]
+        actor = self.state.actors[ActorId("player")]
         location = self.accessor.get_current_location("player")
 
         result, error = transfer_item_to_actor(
@@ -295,7 +296,7 @@ class TestTransferItemToActor(BaseTestCase):
     def test_behavior_denies(self):
         """Should return error when behavior denies"""
         item = self.state.get_item("item_sword")
-        actor = self.state.actors["player"]
+        actor = self.state.actors[ActorId("player")]
         location = self.accessor.get_current_location("player")
 
         original_update = self.accessor.update
@@ -332,7 +333,7 @@ class TestTransferItemFromActor(BaseTestCase):
         """Should transfer item from actor inventory"""
         # Setup: put sword in inventory
         item = self.state.get_item("item_sword")
-        actor = self.state.actors["player"]
+        actor = self.state.actors[ActorId("player")]
         location = self.accessor.get_current_location("player")
         actor.inventory.append("item_sword")
         item.location = "player"
@@ -355,7 +356,7 @@ class TestTransferItemFromActor(BaseTestCase):
     def test_behavior_denies(self):
         """Should return error when behavior denies"""
         item = self.state.get_item("item_sword")
-        actor = self.state.actors["player"]
+        actor = self.state.actors[ActorId("player")]
         location = self.accessor.get_current_location("player")
         actor.inventory.append("item_sword")
         item.location = "player"

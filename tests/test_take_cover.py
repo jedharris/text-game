@@ -3,6 +3,7 @@ Tests for take cover command.
 
 Following TDD approach - these tests are written first before implementation.
 """
+from src.types import ActorId
 import unittest
 from src.state_manager import GameState, Metadata, Location, Item, Actor, Part
 from src.state_accessor import StateAccessor
@@ -77,7 +78,7 @@ class TestTakeCover(unittest.TestCase):
 
     def test_take_cover_behind_item_succeeds(self):
         """Test taking cover behind item with provides_cover."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
 
         action = make_action(verb="cover", indirect_object="pillar")
         result = handle_take_cover(self.accessor, action)
@@ -89,7 +90,7 @@ class TestTakeCover(unittest.TestCase):
 
     def test_take_cover_behind_part_succeeds(self):
         """Test taking cover behind part with provides_cover."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
 
         action = make_action(verb="cover", indirect_object="wall")
         result = handle_take_cover(self.accessor, action)
@@ -125,7 +126,7 @@ class TestTakeCover(unittest.TestCase):
 
     def test_take_cover_replaces_existing_posture(self):
         """Test taking cover replaces existing posture."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         player.properties["posture"] = "climbing"
 
         action = make_action(verb="cover", indirect_object="pillar")
@@ -147,7 +148,7 @@ class TestTakeCover(unittest.TestCase):
 
     def test_already_in_cover_at_same_object(self):
         """Test taking cover when already at same cover object."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         player.properties["focused_on"] = "item_pillar"
         player.properties["posture"] = "cover"
 

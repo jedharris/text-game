@@ -4,6 +4,7 @@ Phase 1 tests - StateAccessor Core (Read-Only)
 These tests verify the getter methods of StateAccessor.
 Following TDD: Write tests first, then implement to make them pass.
 """
+from src.types import ActorId
 import unittest
 import sys
 from pathlib import Path
@@ -43,7 +44,7 @@ class TestStateAccessorGetters(unittest.TestCase):
         accessor = StateAccessor(state, None)
 
         # Note: Currently returns PlayerState, will be unified Actor in Phase 3
-        player = accessor.get_actor("player")
+        player = accessor.get_actor(ActorId("player"))
         self.assertIsNotNone(player)
         self.assertEqual(player.location, "location_room")
 
@@ -135,7 +136,7 @@ class TestStateAccessorCollections(unittest.TestCase):
             properties={},
             behaviors=[]
         )
-        state.actors["npc_guard"] = npc
+        state.actors[ActorId("npc_guard")] = npc
 
         actors = accessor.get_actors_in_location("location_room")
         self.assertGreater(len(actors), 0)

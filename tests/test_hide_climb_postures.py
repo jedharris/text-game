@@ -3,6 +3,7 @@ Tests for hide and climb posture commands.
 
 Following TDD approach - these tests are written first before implementation.
 """
+from src.types import ActorId
 import unittest
 from src.state_manager import GameState, Metadata, Location, Item, Actor
 from src.state_accessor import StateAccessor
@@ -66,7 +67,7 @@ class TestHideCommand(unittest.TestCase):
 
     def test_hide_in_wardrobe_succeeds(self):
         """Test hiding in object with allows_concealment."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
 
         action = make_action(verb="hide", indirect_object="wardrobe")
         result = handle_hide_in(self.accessor, action)
@@ -102,7 +103,7 @@ class TestHideCommand(unittest.TestCase):
 
     def test_hide_replaces_existing_posture(self):
         """Test hiding replaces existing posture."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         player.properties["posture"] = "cover"
 
         action = make_action(verb="hide", indirect_object="wardrobe")
@@ -178,7 +179,7 @@ class TestClimbCommand(unittest.TestCase):
 
     def test_climb_ladder_succeeds(self):
         """Test climbing object with climbable property."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
 
         action = make_action(verb="climb", object="ladder")
         result = handle_climb(self.accessor, action)
@@ -214,7 +215,7 @@ class TestClimbCommand(unittest.TestCase):
 
     def test_climb_replaces_existing_posture(self):
         """Test climbing replaces existing posture."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         player.properties["posture"] = "cover"
 
         action = make_action(verb="climb", object="ladder")

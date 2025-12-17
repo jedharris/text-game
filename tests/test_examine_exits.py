@@ -2,6 +2,7 @@
 
 Verifies that handle_examine can find and describe exits, not just items and doors.
 """
+from src.types import ActorId
 
 import unittest
 from tests.conftest import create_test_state, make_word_entry
@@ -23,7 +24,7 @@ class TestFindExitByName(unittest.TestCase):
         self.accessor = StateAccessor(self.state, self.behavior_manager)
 
         # Get player's location
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         self.location_id = player.location
 
         # Add destination rooms
@@ -125,7 +126,7 @@ class TestFindExitByName(unittest.TestCase):
             )}
         )
         self.state.locations.append(single_exit_loc)
-        self.state.actors["player"].location = "single_exit_room"
+        self.state.actors[ActorId("player")].location = "single_exit_room"
 
         exit_entry = make_word_entry("exit")
         result = find_exit_by_name(self.accessor, exit_entry, "player")
@@ -169,7 +170,7 @@ class TestExamineExit(unittest.TestCase):
         self.accessor = StateAccessor(self.state, self.behavior_manager)
 
         # Get player's location
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         self.location_id = player.location
 
         # Add destination rooms
@@ -302,7 +303,7 @@ class TestExitExaminationPriority(unittest.TestCase):
         self.accessor = StateAccessor(self.state, self.behavior_manager)
 
         # Get player's location
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         self.location_id = player.location
         room = self.accessor.get_location(self.location_id)
 
@@ -348,7 +349,7 @@ class TestExamineExitWithDirectionAdjective(unittest.TestCase):
         self.accessor = StateAccessor(self.state, self.behavior_manager)
 
         # Get player's location
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         self.location_id = player.location
         room = self.accessor.get_location(self.location_id)
 
@@ -460,7 +461,7 @@ class TestExitSynonymMatching(unittest.TestCase):
         self.accessor = StateAccessor(self.state, self.behavior_manager)
 
         # Get player's location
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         self.location_id = player.location
         room = self.accessor.get_location(self.location_id)
 
@@ -588,7 +589,7 @@ class TestExamineDirectionExitEndToEnd(unittest.TestCase):
         self.accessor = StateAccessor(self.state, self.behavior_manager)
 
         # Set up exits
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         self.location_id = player.location
         room = self.accessor.get_location(self.location_id)
 

@@ -6,6 +6,7 @@ doors, the game should prefer doors that the player can actually interact with:
 2. For open: prefer doors that are closed but unlocked (actionable)
 3. Fall back to locked/closed doors over already open ones
 """
+from src.types import ActorId
 
 import unittest
 from pathlib import Path
@@ -27,13 +28,13 @@ class TestDoorSelection(SimpleGameTestCase):
         super().setUp()
 
         # Move player to hallway where there are two doors
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         self.accessor.update(player, {"location": "loc_hallway"})
 
     def test_unlock_prefers_door_player_has_key_for(self):
         """Test that 'unlock door' prefers the door the player has a key for."""
         # Give player the key
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         self.accessor.update(player, {"inventory": ["item_key"]})
 
         # In loc_hallway there are two doors:
@@ -93,7 +94,7 @@ class TestDoorSelection(SimpleGameTestCase):
     def test_adjective_overrides_smart_selection(self):
         """Test that explicit adjective still selects the specified door."""
         # Give player the key
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         self.accessor.update(player, {"inventory": ["item_key"]})
 
         # Explicitly ask for the wooden door
@@ -128,14 +129,14 @@ class TestDoorSelectionUtility(SimpleGameTestCase):
         door = self.accessor.get_door_item("door_treasure")
 
         # Player without key
-        result = actor_has_key_for_door(self.accessor, "player", door)
+        result = actor_has_key_for_door(self.accessor, ActorId("player"), door)
         self.assertFalse(result)
 
         # Give player the key
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         self.accessor.update(player, {"inventory": ["item_key"]})
 
-        result = actor_has_key_for_door(self.accessor, "player", door)
+        result = actor_has_key_for_door(self.accessor, ActorId("player"), door)
         self.assertTrue(result)
 
     def test_find_door_with_adjective_iron(self):
@@ -144,8 +145,7 @@ class TestDoorSelectionUtility(SimpleGameTestCase):
         door_entry = make_word_entry("door")
 
         door = find_door_with_adjective(
-
-            self.accessor, door_entry, "iron", "loc_hallway")
+            self.accessor, door_entry, "iron", "loc_hallway", ActorId("player"))
         self.assertIsNotNone(door)
         self.assertEqual(door.id, "door_treasure")
 
@@ -154,8 +154,7 @@ class TestDoorSelectionUtility(SimpleGameTestCase):
         door_entry = make_word_entry("door")
 
         door = find_door_with_adjective(
-
-            self.accessor, door_entry, "wooden", "loc_hallway")
+            self.accessor, door_entry, "wooden", "loc_hallway", ActorId("player"))
         self.assertIsNotNone(door)
         self.assertEqual(door.id, "door_wooden")
 

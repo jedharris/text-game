@@ -19,6 +19,7 @@ Example handler escape hatch:
         "handler": "behaviors.regions.fungal_depths.spore_zones:on_turn_in_spore_zone"
     }
 """
+from src.types import ActorId
 
 from typing import Any
 
@@ -62,7 +63,7 @@ def on_regional_turn(
     messages: list[str] = []
 
     # Get player location to determine which region is active
-    player = state.actors.get("player")
+    player = state.actors.get(ActorId("player"))
     if not player:
         return EventResult(allow=True, message=None)
 

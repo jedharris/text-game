@@ -11,6 +11,7 @@ Tests cover:
 - Behaviors field is List[str] not Dict[str, str]
 - Serialization works with unified model
 """
+from src.types import ActorId
 import unittest
 import sys
 from pathlib import Path
@@ -44,7 +45,7 @@ class TestUnifiedActorModel(unittest.TestCase):
         state = create_test_state()
 
         self.assertIn('player', state.actors)
-        player = state.actors['player']
+        player = state.actors[ActorId('player')]
         self.assertIsInstance(player, Actor)
         self.assertEqual(player.location, "location_room")
 
@@ -62,10 +63,10 @@ class TestUnifiedActorModel(unittest.TestCase):
             properties={},
             behaviors=[]
         )
-        state.actors["npc_guard"] = npc
+        state.actors[ActorId("npc_guard")] = npc
 
         self.assertIn("npc_guard", state.actors)
-        self.assertEqual(state.actors["npc_guard"].id, "npc_guard")
+        self.assertEqual(state.actors[ActorId("npc_guard")].id, "npc_guard")
 
 
 class TestStateAccessorUnifiedModel(unittest.TestCase):
@@ -76,7 +77,7 @@ class TestStateAccessorUnifiedModel(unittest.TestCase):
         state = create_test_state()
         accessor = StateAccessor(state, None)
 
-        player = accessor.get_actor("player")
+        player = accessor.get_actor(ActorId("player"))
         self.assertIsNotNone(player)
         self.assertEqual(player.location, "location_room")
 
@@ -94,10 +95,10 @@ class TestStateAccessorUnifiedModel(unittest.TestCase):
             properties={},
             behaviors=[]
         )
-        state.actors["npc_guard"] = npc
+        state.actors[ActorId("npc_guard")] = npc
 
         accessor = StateAccessor(state, None)
-        retrieved = accessor.get_actor("npc_guard")
+        retrieved = accessor.get_actor(ActorId("npc_guard"))
         self.assertIsNotNone(retrieved)
         self.assertEqual(retrieved.id, "npc_guard")
 
@@ -106,7 +107,7 @@ class TestStateAccessorUnifiedModel(unittest.TestCase):
         state = create_test_state()
         accessor = StateAccessor(state, None)
 
-        actor = accessor.get_actor("nonexistent")
+        actor = accessor.get_actor(ActorId("nonexistent"))
         self.assertIsNone(actor)
 
     def test_get_actors_in_location_includes_player(self):
@@ -133,7 +134,7 @@ class TestStateAccessorUnifiedModel(unittest.TestCase):
             properties={},
             behaviors=[]
         )
-        state.actors["npc_guard"] = npc
+        state.actors[ActorId("npc_guard")] = npc
 
         accessor = StateAccessor(state, None)
         actors = accessor.get_actors_in_location("location_room")
@@ -156,7 +157,7 @@ class TestStateAccessorUnifiedModel(unittest.TestCase):
             properties={},
             behaviors=[]
         )
-        state.actors["npc_guard"] = npc
+        state.actors[ActorId("npc_guard")] = npc
 
         accessor = StateAccessor(state, None)
         actors = accessor.get_actors_in_location("location_room")
@@ -235,7 +236,7 @@ class TestSerializationUnifiedModel(unittest.TestCase):
             properties={},
             behaviors=[]
         )
-        state.actors["npc_guard"] = npc
+        state.actors[ActorId("npc_guard")] = npc
 
         # Save to temp file
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
@@ -253,10 +254,10 @@ class TestSerializationUnifiedModel(unittest.TestCase):
             self.assertIn('npc_guard', loaded_state.actors)
 
             # Verify player data
-            self.assertEqual(loaded_state.actors['player'].location, "location_room")
+            self.assertEqual(loaded_state.actors[ActorId('player')].location, "location_room")
 
             # Verify NPC data
-            self.assertEqual(loaded_state.actors['npc_guard'].id, "npc_guard")
+            self.assertEqual(loaded_state.actors[ActorId('npc_guard')].id, "npc_guard")
 
         finally:
             if os.path.exists(temp_path):

@@ -3,9 +3,10 @@
 Tier 2 library behavior - reusable across games.
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, cast
 
 from src.state_accessor import HandlerResult
+from src.types import ActorId
 from utilities.utils import find_accessible_item
 
 
@@ -51,7 +52,7 @@ def handle_sit(accessor, action: Dict[str, Any]) -> HandlerResult:
 def _handle_surface_action(accessor, action: Dict[str, Any], action_verb: str,
                            posture: str) -> HandlerResult:
     """Common logic for stand/sit on surface."""
-    actor_id = action.get("actor_id", "player")
+    actor_id = cast(ActorId, action.get("actor_id") or ActorId("player"))
     # Surface is the object of the prepositional phrase
     surface_name = action.get("object")
     adjective = action.get("adjective")

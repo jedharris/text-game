@@ -3,6 +3,7 @@
 These tests verify that entity configurations in game_state.json
 are properly wired to infrastructure dispatchers.
 """
+from src.types import ActorId
 from typing import Any
 
 import unittest
@@ -65,7 +66,7 @@ class TestBeastWildsIntegration(unittest.TestCase):
                 },
             },
         )
-        self.accessor.state.actors["bee_queen"] = bee_queen
+        self.accessor.state.actors[ActorId("bee_queen")] = bee_queen
 
         # Create flower item
         flower = MockEntity("item_moonpetal", {})
@@ -103,8 +104,8 @@ class TestBeastWildsIntegration(unittest.TestCase):
                 },
             },
         )
-        self.accessor.state.actors["frost_wolf_1"] = beta_wolf
-        self.accessor.state.actors["frost_wolf_2"] = gamma_wolf
+        self.accessor.state.actors[ActorId("frost_wolf_1")] = beta_wolf
+        self.accessor.state.actors[ActorId("frost_wolf_2")] = gamma_wolf
 
         # Create alpha wolf with pack_behavior config
         alpha_wolf = MockEntity(
@@ -120,8 +121,8 @@ class TestBeastWildsIntegration(unittest.TestCase):
                 },
             },
         )
-        self.accessor.state.actors["alpha_wolf"] = alpha_wolf
-        self.accessor.state.actors["npc_alpha_wolf"] = alpha_wolf
+        self.accessor.state.actors[ActorId("alpha_wolf")] = alpha_wolf
+        self.accessor.state.actors[ActorId("npc_alpha_wolf")] = alpha_wolf
 
         context = {"new_state": "wary"}
 
@@ -158,7 +159,7 @@ class TestFungalDepthsIntegration(unittest.TestCase):
                 },
             },
         )
-        self.accessor.state.actors["npc_aldric"] = aldric
+        self.accessor.state.actors[ActorId("npc_aldric")] = aldric
 
         context = {"keyword": "help", "dialog_text": ""}
 
@@ -192,8 +193,8 @@ class TestFungalDepthsIntegration(unittest.TestCase):
                 },
             },
         )
-        self.accessor.state.actors["npc_sporeling_1"] = sporeling1
-        self.accessor.state.actors["npc_sporeling_2"] = sporeling2
+        self.accessor.state.actors[ActorId("npc_sporeling_1")] = sporeling1
+        self.accessor.state.actors[ActorId("npc_sporeling_2")] = sporeling2
 
         # Create Spore Mother with pack_behavior
         spore_mother = MockEntity(
@@ -209,7 +210,7 @@ class TestFungalDepthsIntegration(unittest.TestCase):
                 },
             },
         )
-        self.accessor.state.actors["npc_spore_mother"] = spore_mother
+        self.accessor.state.actors[ActorId("npc_spore_mother")] = spore_mother
 
         context = {"new_state": "wary"}
 
@@ -282,7 +283,7 @@ class TestFrozenReachesIntegration(unittest.TestCase):
                 },
             },
         )
-        self.accessor.state.actors["salamander"] = salamander
+        self.accessor.state.actors[ActorId("salamander")] = salamander
 
         # Create fire item
         fire_item = MockEntity("item_torch", {})

@@ -1,4 +1,5 @@
 """Tests for the 'down' command to return to ground level or move down."""
+from src.types import ActorId
 
 import unittest
 from tests.conftest import SimpleGameTestCase, make_action
@@ -9,7 +10,7 @@ class TestDownCommand(SimpleGameTestCase):
 
     def test_down_from_climbing(self):
         """Test 'down' command after climbing."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
 
         player.properties["posture"] = "climbing"
         player.properties["focused_on"] = "item_bench"
@@ -27,7 +28,7 @@ class TestDownCommand(SimpleGameTestCase):
 
     def test_down_from_cover(self):
         """Test 'down' command after taking cover."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
 
         player.properties["posture"] = "cover"
         player.properties["focused_on"] = "item_table"
@@ -44,7 +45,7 @@ class TestDownCommand(SimpleGameTestCase):
 
     def test_down_from_concealed(self):
         """Test 'down' command after hiding."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
 
         player.properties["posture"] = "concealed"
         player.properties["focused_on"] = "item_wardrobe"
@@ -61,7 +62,7 @@ class TestDownCommand(SimpleGameTestCase):
 
     def test_go_down_with_no_posture_and_no_exit(self):
         """Test 'go down' when standing normally with no down exit."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
 
         # Make sure no posture
         player.properties.pop("posture", None)
@@ -80,7 +81,7 @@ class TestDownCommand(SimpleGameTestCase):
 
     def test_go_down_with_no_posture_uses_exit(self):
         """Test 'go down' when standing normally goes through down exit."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
 
         # Make sure no posture
         player.properties.pop("posture", None)

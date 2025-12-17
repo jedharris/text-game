@@ -6,6 +6,7 @@ instead of the old _cmd_* methods.
 
 Reference: behavior_refactoring_testing.md lines 113-153 (basic handler tests)
 """
+from src.types import ActorId
 
 import unittest
 from src.llm_protocol import LLMProtocolHandler
@@ -48,12 +49,12 @@ class TestCommandRouting(unittest.TestCase):
         self.assertEqual(result["type"], "result")
         self.assertTrue(result["success"], f"take failed: {result}")
         # Verify state changed (item in inventory)
-        self.assertIn("item_sword", self.state.actors["player"].inventory)
+        self.assertIn("item_sword", self.state.actors[ActorId("player")].inventory)
 
     def test_drop_routes_to_behavior_handler(self):
         """Test that 'drop' command uses behavior handler."""
         # Put item in inventory first
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         player.inventory.append("item_sword")
         sword = self.state.get_item("item_sword")
         sword.location = "player"

@@ -4,6 +4,7 @@ Tests for Phase 5: StateAccessor.update() - Without Behaviors
 These tests validate the update() method that applies state changes
 without invoking behaviors (behaviors come in later phases).
 """
+from src.types import ActorId
 import unittest
 import sys
 from pathlib import Path
@@ -72,7 +73,7 @@ class TestPhase5StateAccessorUpdate(unittest.TestCase):
         state = create_test_state()
         accessor = StateAccessor(state, BehaviorManager())
 
-        actor = accessor.get_actor("player")
+        actor = accessor.get_actor(ActorId("player"))
         result = accessor.update(
             entity=actor,
             changes={"location": "room2"},
@@ -102,7 +103,7 @@ class TestPhase5StateAccessorUpdate(unittest.TestCase):
         state = create_test_state()
         accessor = StateAccessor(state, BehaviorManager())
 
-        actor = accessor.get_actor("player")
+        actor = accessor.get_actor(ActorId("player"))
         result = accessor.update(
             entity=actor,
             changes={"+inventory": "item_sword"}
@@ -116,7 +117,7 @@ class TestPhase5StateAccessorUpdate(unittest.TestCase):
         state = create_test_state()
         accessor = StateAccessor(state, BehaviorManager())
 
-        actor = accessor.get_actor("player")
+        actor = accessor.get_actor(ActorId("player"))
         # First add an item
         actor.inventory.append("item_sword")
 

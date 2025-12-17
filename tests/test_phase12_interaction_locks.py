@@ -4,6 +4,7 @@ Phase 12: Interaction and Lock Handlers
 Tests for handle_open, handle_close, handle_lock, and handle_unlock.
 Critical: Each handler must have NPC tests to validate actor_id threading.
 """
+from src.types import ActorId
 
 import unittest
 import sys
@@ -149,7 +150,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             location="location_room",
             inventory=[]
         )
-        state.actors["npc_guard"] = guard
+        state.actors[ActorId("npc_guard")] = guard
 
         from behaviors.core.interaction import handle_open
         action = make_action(object="chest", actor_id="npc_guard")
@@ -242,7 +243,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             location="location_room",
             inventory=[]
         )
-        state.actors["npc_guard"] = guard
+        state.actors[ActorId("npc_guard")] = guard
 
         from behaviors.core.interaction import handle_close
         action = make_action(object="chest", actor_id="npc_guard")
@@ -298,7 +299,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             properties={"portable": True}
         )
         state.items.append(key)
-        player = state.actors["player"]
+        player = state.actors[ActorId("player")]
         player.inventory.append("item_key")
 
         from behaviors.core.locks import handle_unlock
@@ -405,7 +406,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             location="location_room",
             inventory=["item_key"]
         )
-        state.actors["npc_guard"] = guard
+        state.actors[ActorId("npc_guard")] = guard
 
         from behaviors.core.locks import handle_unlock
         action = make_action(object="door", actor_id="npc_guard")
@@ -459,7 +460,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             properties={"portable": True}
         )
         state.items.append(key)
-        player = state.actors["player"]
+        player = state.actors[ActorId("player")]
         player.inventory.append("item_key")
 
         from behaviors.core.locks import handle_lock
@@ -514,7 +515,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             properties={"portable": True}
         )
         state.items.append(key)
-        player = state.actors["player"]
+        player = state.actors[ActorId("player")]
         player.inventory.append("item_key")
 
         from behaviors.core.locks import handle_lock
@@ -578,7 +579,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             location="location_room",
             inventory=["item_key"]
         )
-        state.actors["npc_guard"] = guard
+        state.actors[ActorId("npc_guard")] = guard
 
         from behaviors.core.locks import handle_lock
         action = make_action(object="door", actor_id="npc_guard")
@@ -698,7 +699,7 @@ class TestWordEntryHandling(unittest.TestCase):
                    location="player", properties={"portable": True})
         state.items.append(key)
         # Add key to player's inventory
-        state.actors["player"].inventory.append("item_key")
+        state.actors[ActorId("player")].inventory.append("item_key")
 
         door_entry = WordEntry(
             word="door",
@@ -749,7 +750,7 @@ class TestWordEntryHandling(unittest.TestCase):
                    location="player", properties={"portable": True})
         state.items.append(key)
         # Add key to player's inventory
-        state.actors["player"].inventory.append("item_key")
+        state.actors[ActorId("player")].inventory.append("item_key")
 
         door_entry = WordEntry(
             word="door",

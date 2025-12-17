@@ -9,7 +9,13 @@ import os
 import sys
 import unittest
 from unittest.mock import patch, MagicMock
-import wx
+
+try:
+    import wx
+    WX_AVAILABLE = True
+except ModuleNotFoundError:
+    WX_AVAILABLE = False
+    wx = None  # type: ignore[attr-defined]
 
 
 # Force headless mode so this module can always run in CI (wx dialogs require a display).
@@ -50,6 +56,7 @@ class HeadlessFileDialog:
         return None
 
 
+@unittest.skipUnless(WX_AVAILABLE, "wxPython not installed")
 class TestFileDialogsHeadless(unittest.TestCase):
     """
     Test file dialog functions with real wxPython components in headless mode.
@@ -287,6 +294,7 @@ class TestFileDialogsHeadless(unittest.TestCase):
         self.assertEqual(filenames[2], "/path/to/save2.json")
 
 
+@unittest.skipUnless(WX_AVAILABLE, "wxPython not installed")
 class TestFileDialogHelpers(unittest.TestCase):
     """
     Test the actual helper functions from src/file_dialogs.py.
@@ -478,6 +486,7 @@ class TestFileDialogHelpers(unittest.TestCase):
         self.assertIsNone(result)
 
 
+@unittest.skipUnless(WX_AVAILABLE, "wxPython not installed")
 class TestFileDialogErrorHandling(unittest.TestCase):
     """Test error handling in file dialog operations."""
 

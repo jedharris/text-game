@@ -3,17 +3,29 @@
 These tests verify that text_game.py correctly formats JSON protocol
 responses as text output, including behavior messages.
 """
+from src.types import ActorId
 
 import unittest
 import json
 from pathlib import Path
 
-from src.text_game import format_command_result, format_inventory_query
 from src.state_manager import load_game_state
 from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
 
+try:
+    from src.text_game import format_command_result, format_inventory_query
+    WX_TEXT_GAME_AVAILABLE = True
+except ModuleNotFoundError as exc:
+    if exc.name == "wx":
+        WX_TEXT_GAME_AVAILABLE = False
+        format_command_result = None  # type: ignore[assignment]
+        format_inventory_query = None  # type: ignore[assignment]
+    else:
+        raise
 
+
+@unittest.skipUnless(WX_TEXT_GAME_AVAILABLE, "wxPython not installed")
 class TestBehaviorMessageDisplay(unittest.TestCase):
     """Test that behavior messages are displayed correctly via JSON protocol."""
 
@@ -33,7 +45,7 @@ class TestBehaviorMessageDisplay(unittest.TestCase):
         self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
 
         # Move player to hallway where lantern is
-        self.state.actors["player"].location = "loc_hallway"
+        self.state.actors[ActorId("player")].location = "loc_hallway"
 
     def test_take_command_includes_behavior_message(self):
         """Test that take command includes behavior message from on_take."""
@@ -85,6 +97,7 @@ class TestBehaviorMessageDisplay(unittest.TestCase):
         self.assertNotIn("runes", output.lower())
 
 
+@unittest.skipUnless(WX_TEXT_GAME_AVAILABLE, "wxPython not installed")
 class TestMessageKeyConsistency(unittest.TestCase):
     """Test that behavior messages use consistent key names."""
 
@@ -99,7 +112,7 @@ class TestMessageKeyConsistency(unittest.TestCase):
         self.manager.load_modules(modules)
 
         self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
-        self.state.actors["player"].location = "loc_hallway"
+        self.state.actors[ActorId("player")].location = "loc_hallway"
 
     def test_take_result_uses_message_key(self):
         """Test that take command result uses 'message' key, not 'behavior_message'."""
@@ -133,6 +146,7 @@ class TestMessageKeyConsistency(unittest.TestCase):
         self.assertNotIn("behavior_message", result)
 
 
+@unittest.skipUnless(WX_TEXT_GAME_AVAILABLE, "wxPython not installed")
 class TestLLMGameSetup(unittest.TestCase):
     """Test that llm_game properly configures behavior manager."""
 
@@ -173,7 +187,7 @@ class TestLLMGameSetup(unittest.TestCase):
         json_handler = LLMProtocolHandler(state, behavior_manager=behavior_manager)
 
         # Move to hallway and take lantern
-        state.actors["player"].location = "loc_hallway"
+        state.actors[ActorId("player")].location = "loc_hallway"
         result = json_handler.handle_message({
             "type": "command",
             "action": {"verb": "take", "object": "lantern"}
@@ -192,6 +206,7 @@ class TestLLMGameSetup(unittest.TestCase):
         )
 
 
+@unittest.skipUnless(WX_TEXT_GAME_AVAILABLE, "wxPython not installed")
 class TestFormatFunctions(unittest.TestCase):
     """Test the format functions used to convert JSON responses to text."""
 
@@ -233,6 +248,7 @@ class TestFormatFunctions(unittest.TestCase):
         self.assertIn("sword", output)
 
 
+@unittest.skipUnless(WX_TEXT_GAME_AVAILABLE, "wxPython not installed")
 class TestExamineLLMContext(unittest.TestCase):
     """Test that examine commands include llm_context for LLM narration."""
 
@@ -247,7 +263,7 @@ class TestExamineLLMContext(unittest.TestCase):
         self.manager.load_modules(modules)
 
         self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
-        self.state.actors["player"].location = "loc_hallway"
+        self.state.actors[ActorId("player")].location = "loc_hallway"
 
     def test_examine_item_includes_llm_context(self):
         """Test that examining an item includes llm_context in response."""
@@ -293,7 +309,7 @@ class TestExamineLLMContext(unittest.TestCase):
         simple_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
         state = load_game_state(simple_path)
         handler = LLMProtocolHandler(state, behavior_manager=self.manager)
-        state.actors["player"].location = "loc_start"
+        state.actors[ActorId("player")].location = "loc_start"
 
         result = handler.handle_message({
             "type": "command",
@@ -307,6 +323,7 @@ class TestExamineLLMContext(unittest.TestCase):
             self.assertIn("llm_context", result["data"])
 
 
+@unittest.skipUnless(WX_TEXT_GAME_AVAILABLE, "wxPython not installed")
 class TestGameDirArgument(unittest.TestCase):
     """Test command-line argument for game directory."""
 
@@ -333,6 +350,7 @@ class TestGameDirArgument(unittest.TestCase):
         self.assertIn("game_dir", sig.parameters)
 
 
+@unittest.skipUnless(WX_TEXT_GAME_AVAILABLE, "wxPython not installed")
 class TestLLMGameDirArgument(unittest.TestCase):
     """Test command-line argument for llm_game directory."""
 
@@ -358,6 +376,7 @@ class TestLLMGameDirArgument(unittest.TestCase):
         self.assertIn("game_dir", sig.parameters)
 
 
+@unittest.skipUnless(WX_TEXT_GAME_AVAILABLE, "wxPython not installed")
 class TestConsoleEntryPoints(unittest.TestCase):
     """Test console script entry points for pip install."""
 

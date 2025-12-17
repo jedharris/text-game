@@ -1,4 +1,5 @@
 """Tests for companion following system."""
+from src.types import ActorId
 
 import unittest
 from unittest.mock import Mock, MagicMock
@@ -18,16 +19,16 @@ class TestGetCompanions(unittest.TestCase):
         state.locations.append(Location(
             id='forest', name='Forest', description='A forest'
         ))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='forest', inventory=[]
         )
-        state.actors['wolf'] = Actor(
+        state.actors[ActorId('wolf')] = Actor(
             id='wolf', name='Wolf', description='A tame wolf',
             location='forest', inventory=[],
             properties={'is_companion': True}
         )
-        state.actors['deer'] = Actor(
+        state.actors[ActorId('deer')] = Actor(
             id='deer', name='Deer', description='A deer',
             location='forest', inventory=[],
             properties={}
@@ -47,7 +48,7 @@ class TestGetCompanions(unittest.TestCase):
         state.locations.append(Location(
             id='forest', name='Forest', description='A forest'
         ))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='forest', inventory=[]
         )
@@ -68,11 +69,11 @@ class TestGetCompanions(unittest.TestCase):
         state.locations.append(Location(
             id='cave', name='Cave', description='A cave'
         ))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='forest', inventory=[]
         )
-        state.actors['wolf'] = Actor(
+        state.actors[ActorId('wolf')] = Actor(
             id='wolf', name='Wolf', description='A tame wolf',
             location='cave', inventory=[],
             properties={'is_companion': True}
@@ -95,7 +96,7 @@ class TestMakeCompanion(unittest.TestCase):
         state.locations.append(Location(
             id='forest', name='Forest', description='A forest'
         ))
-        state.actors['wolf'] = Actor(
+        state.actors[ActorId('wolf')] = Actor(
             id='wolf', name='Wolf', description='A wolf',
             location='forest', inventory=[],
             properties={}
@@ -104,7 +105,7 @@ class TestMakeCompanion(unittest.TestCase):
         accessor = StateAccessor(state, Mock())
         make_companion(accessor, 'wolf')
 
-        self.assertTrue(state.actors['wolf'].properties.get('is_companion'))
+        self.assertTrue(state.actors[ActorId('wolf')].properties.get('is_companion'))
 
     def test_make_companion_nonexistent_actor(self):
         """make_companion with nonexistent actor does nothing."""
@@ -131,7 +132,7 @@ class TestDismissCompanion(unittest.TestCase):
         state.locations.append(Location(
             id='forest', name='Forest', description='A forest'
         ))
-        state.actors['wolf'] = Actor(
+        state.actors[ActorId('wolf')] = Actor(
             id='wolf', name='Wolf', description='A wolf',
             location='forest', inventory=[],
             properties={'is_companion': True}
@@ -140,7 +141,7 @@ class TestDismissCompanion(unittest.TestCase):
         accessor = StateAccessor(state, Mock())
         dismiss_companion(accessor, 'wolf')
 
-        self.assertFalse(state.actors['wolf'].properties.get('is_companion', False))
+        self.assertFalse(state.actors[ActorId('wolf')].properties.get('is_companion', False))
 
 
 class TestCheckCanFollow(unittest.TestCase):
@@ -154,14 +155,14 @@ class TestCheckCanFollow(unittest.TestCase):
         state.locations.append(Location(
             id='town', name='Town', description='A town'
         ))
-        state.actors['wolf'] = Actor(
+        state.actors[ActorId('wolf')] = Actor(
             id='wolf', name='Wolf', description='A wolf',
             location='forest', inventory=[],
             properties={'is_companion': True}
         )
 
         accessor = StateAccessor(state, Mock())
-        can_follow, message = check_can_follow(accessor, state.actors['wolf'], 'town')
+        can_follow, message = check_can_follow(accessor, state.actors[ActorId('wolf')], 'town')
 
         self.assertTrue(can_follow)
         self.assertEqual(message, '')
@@ -174,7 +175,7 @@ class TestCheckCanFollow(unittest.TestCase):
         state.locations.append(Location(
             id='town', name='Town', description='A town'
         ))
-        state.actors['wolf'] = Actor(
+        state.actors[ActorId('wolf')] = Actor(
             id='wolf', name='Wolf', description='A wolf',
             location='forest', inventory=[],
             properties={
@@ -185,7 +186,7 @@ class TestCheckCanFollow(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        can_follow, message = check_can_follow(accessor, state.actors['wolf'], 'town')
+        can_follow, message = check_can_follow(accessor, state.actors[ActorId('wolf')], 'town')
 
         self.assertFalse(can_follow)
         self.assertEqual(message, "The wolf refuses to enter the town.")
@@ -199,7 +200,7 @@ class TestCheckCanFollow(unittest.TestCase):
             id='lake', name='Lake', description='A lake',
             properties={'terrain': 'underwater'}
         ))
-        state.actors['wolf'] = Actor(
+        state.actors[ActorId('wolf')] = Actor(
             id='wolf', name='Wolf', description='A wolf',
             location='forest', inventory=[],
             properties={
@@ -209,7 +210,7 @@ class TestCheckCanFollow(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        can_follow, message = check_can_follow(accessor, state.actors['wolf'], 'lake')
+        can_follow, message = check_can_follow(accessor, state.actors[ActorId('wolf')], 'lake')
 
         self.assertFalse(can_follow)
         self.assertIn('wolf', message.lower())
@@ -222,7 +223,7 @@ class TestCheckCanFollow(unittest.TestCase):
         state.locations.append(Location(
             id='town', name='Town', description='A town'
         ))
-        state.actors['wolf'] = Actor(
+        state.actors[ActorId('wolf')] = Actor(
             id='wolf', name='Wolf', description='A wolf',
             location='forest', inventory=[],
             properties={
@@ -232,7 +233,7 @@ class TestCheckCanFollow(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        can_follow, message = check_can_follow(accessor, state.actors['wolf'], 'town')
+        can_follow, message = check_can_follow(accessor, state.actors[ActorId('wolf')], 'town')
 
         self.assertFalse(can_follow)
         self.assertIn('Wolf', message)
@@ -253,11 +254,11 @@ class TestOnPlayerMoveCompanionsFollow(unittest.TestCase):
         state.locations.append(Location(
             id='meadow', name='Meadow', description='A meadow'
         ))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='meadow', inventory=[]  # Player already moved
         )
-        state.actors['wolf'] = Actor(
+        state.actors[ActorId('wolf')] = Actor(
             id='wolf', name='Wolf', description='A wolf',
             location='forest', inventory=[],
             properties={
@@ -281,7 +282,7 @@ class TestOnPlayerMoveCompanionsFollow(unittest.TestCase):
         )
 
         # Wolf should have moved
-        self.assertEqual(state.actors['wolf'].location, 'meadow')
+        self.assertEqual(state.actors[ActorId('wolf')].location, 'meadow')
         # Result should include follow message
         self.assertIsInstance(result, EventResult)
         self.assertIn('wolf', result.message.lower())
@@ -297,11 +298,11 @@ class TestOnPlayerMoveCompanionsFollow(unittest.TestCase):
         state.locations.append(Location(
             id='town', name='Town', description='A town'
         ))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='town', inventory=[]
         )
-        state.actors['wolf'] = Actor(
+        state.actors[ActorId('wolf')] = Actor(
             id='wolf', name='Wolf', description='A wolf',
             location='forest', inventory=[],
             properties={
@@ -325,7 +326,7 @@ class TestOnPlayerMoveCompanionsFollow(unittest.TestCase):
         )
 
         # Wolf should NOT have moved
-        self.assertEqual(state.actors['wolf'].location, 'forest')
+        self.assertEqual(state.actors[ActorId('wolf')].location, 'forest')
         # Result should include cannot follow message
         self.assertIn('refuses', result.message.lower())
 
@@ -340,16 +341,16 @@ class TestOnPlayerMoveCompanionsFollow(unittest.TestCase):
         state.locations.append(Location(
             id='meadow', name='Meadow', description='A meadow'
         ))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='meadow', inventory=[]
         )
-        state.actors['wolf'] = Actor(
+        state.actors[ActorId('wolf')] = Actor(
             id='wolf', name='Wolf', description='A wolf',
             location='forest', inventory=[],
             properties={'is_companion': True}
         )
-        state.actors['dog'] = Actor(
+        state.actors[ActorId('dog')] = Actor(
             id='dog', name='Dog', description='A dog',
             location='forest', inventory=[],
             properties={'is_companion': True}
@@ -369,8 +370,8 @@ class TestOnPlayerMoveCompanionsFollow(unittest.TestCase):
         )
 
         # Both should have moved
-        self.assertEqual(state.actors['wolf'].location, 'meadow')
-        self.assertEqual(state.actors['dog'].location, 'meadow')
+        self.assertEqual(state.actors[ActorId('wolf')].location, 'meadow')
+        self.assertEqual(state.actors[ActorId('dog')].location, 'meadow')
 
     def test_no_companions_no_message(self):
         """When no companions, result allows but has no message."""
@@ -383,7 +384,7 @@ class TestOnPlayerMoveCompanionsFollow(unittest.TestCase):
         state.locations.append(Location(
             id='meadow', name='Meadow', description='A meadow'
         ))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='meadow', inventory=[]
         )

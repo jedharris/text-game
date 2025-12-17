@@ -25,11 +25,18 @@ Usage:
         find_recipe, check_requirements, execute_craft
     )
 """
+from src.types import ActorId
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from src.state_manager import Item
+from behavior_libraries.crafting_lib.storage import (
+    get_item_templates,
+    get_recipe_catalog,
+)
+
+Recipe = Dict[str, Any]
 
 
 @dataclass
@@ -40,7 +47,7 @@ class CraftResult:
     created_item_id: Optional[str] = None
 
 
-def find_recipe(accessor, item_ids: List[str]) -> Optional[Dict]:
+def find_recipe(accessor, item_ids: List[str]) -> Optional[Recipe]:
     """
     Find a recipe matching the given item IDs.
 
@@ -51,7 +58,7 @@ def find_recipe(accessor, item_ids: List[str]) -> Optional[Dict]:
     Returns:
         Recipe dict if found, None otherwise
     """
-    recipes = accessor.game_state.extra.get('recipes', {})
+    recipes = get_recipe_catalog(accessor)
     item_set = set(item_ids)
 
     for recipe_id, recipe in recipes.items():
@@ -62,7 +69,7 @@ def find_recipe(accessor, item_ids: List[str]) -> Optional[Dict]:
     return None
 
 
-def check_requirements(accessor, recipe: Dict) -> Tuple[bool, str]:
+def check_requirements(accessor, recipe: Recipe) -> Tuple[bool, str]:
     """
     Check if recipe requirements are met.
 
@@ -73,7 +80,9 @@ def check_requirements(accessor, recipe: Dict) -> Tuple[bool, str]:
     Returns:
         Tuple of (can_craft: bool, message: str)
     """
-    player = accessor.get_actor('player')
+    player = accessor.get_actor(ActorId('player'))
+    if not player:
+        return False, "Player is not available."
 
     # Check location requirement
     requires_location = recipe.get('requires_location')
@@ -93,7 +102,7 @@ def check_requirements(accessor, recipe: Dict) -> Tuple[bool, str]:
     return True, ''
 
 
-def execute_craft(accessor, recipe: Dict, item_ids: List[str]) -> CraftResult:
+def execute_craft(accessor, recipe: Recipe, item_ids: List[str]) -> CraftResult:
     """
     Execute crafting: consume ingredients and create result.
 
@@ -105,7 +114,9 @@ def execute_craft(accessor, recipe: Dict, item_ids: List[str]) -> CraftResult:
     Returns:
         CraftResult with success/failure and message
     """
-    player = accessor.get_actor('player')
+    player = accessor.get_actor(ActorId('player'))
+    if not player:
+        return CraftResult(success=False, message="Player is not available.")
     result_id = recipe.get('creates')
     consumes = recipe.get('consumes_ingredients', True)
 
@@ -121,7 +132,7 @@ def execute_craft(accessor, recipe: Dict, item_ids: List[str]) -> CraftResult:
         existing_item = accessor.get_item(result_id)
         if not existing_item:
             # Create from template
-            templates = accessor.game_state.extra.get('item_templates', {})
+            templates = get_item_templates(accessor)
             template = templates.get(result_id, {})
             new_item = Item(
                 id=result_id,

@@ -6,6 +6,7 @@ Tests multi-step gameplay scenarios including:
 - Fungal death mark system
 - Myconid trust dynamics
 """
+from src.types import ActorId
 
 import unittest
 from typing import Any
@@ -195,7 +196,7 @@ class TestAldricRescueScenarios(ScenarioTestCase):
     def test_teaching_succeeds_with_notes(self) -> None:
         """Can learn mycology with proper conditions and gift."""
         # Set up player
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         player.properties["skills"] = {}
 
         # Fully heal and max trust
@@ -400,7 +401,7 @@ class TestFungalDeathMarkScenarios(ScenarioTestCase):
         )
 
         # Player as killer
-        self.player = self.state.actors["player"]
+        self.player = self.state.actors[ActorId("player")]
 
     def test_killing_fungal_creature_sets_mark(self) -> None:
         """Killing a fungal creature sets the death mark."""
@@ -496,7 +497,7 @@ class TestCombinedFungalScenarios(ScenarioTestCase):
 
     def test_kill_spore_mother_then_meet_myconid(self) -> None:
         """Killing Spore Mother then meeting Myconid shows cumulative effects."""
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
 
         # Kill Spore Mother - sets has_killed_fungi
         on_spore_mother_death(self.mother, self.accessor, {})

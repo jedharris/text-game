@@ -4,9 +4,10 @@ Provides dynamic description that includes the staircase
 when the player has the magic star.
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, cast
 
 from src.behavior_manager import EventResult
+from src.types import ActorId
 
 
 def on_examine(entity: Any, accessor: Any, context: Dict) -> EventResult:
@@ -19,7 +20,7 @@ def on_examine(entity: Any, accessor: Any, context: Dict) -> EventResult:
     entity: The tower entrance location
     context: {actor_id}
     """
-    actor_id = context.get("actor_id", "player")
+    actor_id = cast(ActorId, context.get("actor_id") or ActorId("player"))
     actor = accessor.get_actor(actor_id)
 
     if not actor:

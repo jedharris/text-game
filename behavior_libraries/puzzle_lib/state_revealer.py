@@ -8,6 +8,7 @@ Patterns extracted from extended_game/behaviors/crystal_ball.py and magic_mat.py
 NOTE: This is a library behavior pattern that could be useful to migrate to core
 if state-based revelation becomes a common pattern across many games.
 """
+from src.types import ActorId
 
 from typing import Dict, Any, List, Callable, Optional
 
@@ -30,7 +31,7 @@ def reveal_item(accessor: Any, item_id: str, condition_fn: Optional[Callable] = 
 
         # Conditional reveal
         def check_magic_level(item, acc):
-            player = acc.get_actor("player")
+            player = acc.get_actor(ActorId("player"))
             return player.states.get("magic_level", 0) >= 3
         reveal_item(accessor, "item_secret_key", check_magic_level)
     """

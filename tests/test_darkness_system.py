@@ -1,4 +1,5 @@
 """Tests for darkness/visibility system."""
+from src.types import ActorId
 
 import unittest
 from unittest.mock import Mock
@@ -34,7 +35,7 @@ class TestCheckVisibility(unittest.TestCase):
             id='cave', name='Cave', description='A dark cave',
             properties={'requires_light': True}
         ))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='cave', inventory=[]
         )
@@ -58,7 +59,7 @@ class TestCheckVisibility(unittest.TestCase):
             location=None,
             properties={'provides_light': True, 'states': {'lit': True}}
         ))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='cave', inventory=['torch']
         )
@@ -82,7 +83,7 @@ class TestCheckVisibility(unittest.TestCase):
             location=None,
             properties={'provides_light': True, 'states': {'lit': False}}
         ))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='cave', inventory=['torch']
         )
@@ -101,7 +102,7 @@ class TestCheckVisibility(unittest.TestCase):
             id='grotto', name='Grotto', description='A glowing grotto',
             properties={'requires_light': True, 'ambient_light': True}
         ))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='grotto', inventory=[]
         )
@@ -125,7 +126,7 @@ class TestCheckVisibility(unittest.TestCase):
             location='cave',
             properties={'provides_light': True, 'states': {'lit': True}}
         ))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='cave', inventory=[]
         )
@@ -152,7 +153,7 @@ class TestGetLightSources(unittest.TestCase):
             location='cave',
             properties={'provides_light': True, 'states': {'lit': True}}
         ))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='cave', inventory=[]
         )
@@ -176,7 +177,7 @@ class TestGetLightSources(unittest.TestCase):
             location=None,
             properties={'provides_light': True, 'states': {'lit': True}}
         ))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='cave', inventory=['torch']
         )
@@ -200,7 +201,7 @@ class TestGetLightSources(unittest.TestCase):
             location='cave',
             properties={'provides_light': True, 'states': {'lit': False}}
         ))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='cave', inventory=[]
         )
@@ -258,7 +259,7 @@ class TestOnVisibilityCheck(unittest.TestCase):
             id='cave', name='Cave', description='A dark cave',
             properties={'requires_light': True}
         ))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='cave', inventory=[]
         )
@@ -281,7 +282,7 @@ class TestOnVisibilityCheck(unittest.TestCase):
             id='cave', name='Cave', description='A dark cave',
             properties={'requires_light': True}
         ))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='cave', inventory=[]
         )
@@ -303,7 +304,7 @@ class TestOnVisibilityCheck(unittest.TestCase):
             id='cave', name='Cave', description='A dark cave',
             properties={'requires_light': True}
         ))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='cave', inventory=[]
         )
@@ -325,7 +326,7 @@ class TestOnVisibilityCheck(unittest.TestCase):
             id='cave', name='Cave', description='A dark cave',
             properties={'requires_light': True}
         ))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='cave', inventory=[]
         )
@@ -352,7 +353,7 @@ class TestOnVisibilityCheck(unittest.TestCase):
             location=None,
             properties={'provides_light': True, 'states': {'lit': True}}
         ))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='cave', inventory=['torch']
         )

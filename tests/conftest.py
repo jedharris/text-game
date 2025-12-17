@@ -11,6 +11,7 @@ from src.state_manager import GameState, Item, Location, Actor, Metadata, load_g
 from src.behavior_manager import BehaviorManager
 from src.state_accessor import StateAccessor
 from src.word_entry import WordEntry, WordType
+from src.types import ActorId
 
 
 def create_test_state() -> GameState:
@@ -39,7 +40,7 @@ def create_test_state() -> GameState:
     # Create player
     # Note: player.name must not be "player" - that's a prohibited name
     player = Actor(
-        id="player",
+        id=ActorId("player"),
         name="Adventurer",
         description="The player character",
         location="location_room",
@@ -120,7 +121,7 @@ def create_test_state() -> GameState:
         locations=[room],
         items=[sword, table, lantern, anvil, feather],
         locks=[],
-        actors={"player": player},
+        actors={ActorId("player"): player},
         extra={}
     )
 

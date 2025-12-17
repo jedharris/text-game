@@ -4,6 +4,7 @@ Tests for Phase 7: First Command Handler (handle_take)
 These tests validate the first end-to-end command handler implementation,
 with critical emphasis on actor_id threading for NPC support.
 """
+from src.types import ActorId
 import unittest
 import sys
 from pathlib import Path
@@ -43,7 +44,7 @@ class TestPhase7HandleTake(unittest.TestCase):
         # Verify state changes
         sword = state.get_item("item_sword")
         self.assertEqual(sword.location, "player")
-        self.assertIn("item_sword", state.actors["player"].inventory)
+        self.assertIn("item_sword", state.actors[ActorId("player")].inventory)
 
     def test_handle_take_not_portable(self):
         """Test that non-portable items can't be taken."""
@@ -88,7 +89,7 @@ class TestPhase7HandleTake(unittest.TestCase):
         # Add NPC to room
         npc = Actor(id="npc_guard", name="guard", description="A guard",
                    location="location_room", inventory=[])
-        state.actors["npc_guard"] = npc
+        state.actors[ActorId("npc_guard")] = npc
 
         handle_take = behavior_manager.get_handler("take")
 
@@ -102,7 +103,7 @@ class TestPhase7HandleTake(unittest.TestCase):
         self.assertEqual(sword.location, "npc_guard",
                         f"Sword location should be npc_guard, got {sword.location}")
         self.assertIn("item_sword", npc.inventory)
-        self.assertNotIn("item_sword", state.actors["player"].inventory)
+        self.assertNotIn("item_sword", state.actors[ActorId("player")].inventory)
 
     def test_handle_take_with_missing_actor(self):
         """Test that missing actor is handled gracefully."""
@@ -144,7 +145,7 @@ class TestPhase7HandleTake(unittest.TestCase):
         accessor = StateAccessor(state, behavior_manager)
 
         # Put sword in player's inventory
-        player = state.actors["player"]
+        player = state.actors[ActorId("player")]
         sword = state.get_item("item_sword")
         sword.location = "player"
         player.inventory.append("item_sword")

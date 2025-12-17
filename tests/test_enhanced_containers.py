@@ -3,6 +3,7 @@
 Tests for phases 1, 3, 5, and 6 of the enhanced containers implementation.
 These tests are written before implementation and will initially fail.
 """
+from src.types import ActorId
 
 import unittest
 import json
@@ -250,7 +251,7 @@ class TestPhase3EnhancedTake(unittest.TestCase):
         self.assertEqual(result.get("action"), "take")
 
         # Key should be in inventory
-        self.assertIn("item_key", self.state.actors["player"].inventory)
+        self.assertIn("item_key", self.state.actors[ActorId("player")].inventory)
 
         # Key location should be "player"
         key = self.state.get_item("item_key")
@@ -268,7 +269,7 @@ class TestPhase3EnhancedTake(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertIn("item_key", self.state.actors["player"].inventory)
+        self.assertIn("item_key", self.state.actors[ActorId("player")].inventory)
 
     def test_take_from_closed_container_fails(self):
         """Test that taking from closed enclosed container fails."""
@@ -297,7 +298,7 @@ class TestPhase3EnhancedTake(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertIn("item_ring", self.state.actors["player"].inventory)
+        self.assertIn("item_ring", self.state.actors[ActorId("player")].inventory)
 
     def test_take_from_container_with_explicit_from_syntax(self):
         """Test 'take ring from chest' after opening chest."""
@@ -315,7 +316,7 @@ class TestPhase3EnhancedTake(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertIn("item_ring", self.state.actors["player"].inventory)
+        self.assertIn("item_ring", self.state.actors[ActorId("player")].inventory)
 
     def test_take_prioritizes_room_items_over_container_items(self):
         """Test that items directly in room are found before container items."""
@@ -335,8 +336,8 @@ class TestPhase3EnhancedTake(unittest.TestCase):
 
         self.assertTrue(result.get("success"))
         # Should take the room key, not the table key
-        self.assertIn("item_room_key", self.state.actors["player"].inventory)
-        self.assertNotIn("item_key", self.state.actors["player"].inventory)
+        self.assertIn("item_room_key", self.state.actors[ActorId("player")].inventory)
+        self.assertNotIn("item_key", self.state.actors[ActorId("player")].inventory)
 
     def test_take_from_nonexistent_container_fails(self):
         """Test that take from nonexistent container fails gracefully."""
@@ -402,7 +403,7 @@ class TestPhase5GameState(unittest.TestCase):
 
     def test_take_potion_from_pedestal(self):
         """Test taking potion from pedestal in tower."""
-        self.state.actors["player"].location = "loc_tower"
+        self.state.actors[ActorId("player")].location = "loc_tower"
 
         result = self.handler.handle_command({
             "type": "command",
@@ -410,7 +411,7 @@ class TestPhase5GameState(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertIn("item_potion", self.state.actors["player"].inventory)
+        self.assertIn("item_potion", self.state.actors[ActorId("player")].inventory)
 
     def test_hallway_has_table_item(self):
         """Test that hallway contains a table item."""
@@ -445,7 +446,7 @@ class TestPhase5GameState(unittest.TestCase):
 
     def test_take_lantern_from_table(self):
         """Test taking lantern from table - behaviors should still work."""
-        self.state.actors["player"].location = "loc_hallway"
+        self.state.actors[ActorId("player")].location = "loc_hallway"
 
         result = self.handler.handle_command({
             "type": "command",
@@ -453,7 +454,7 @@ class TestPhase5GameState(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertIn("item_lantern", self.state.actors["player"].inventory)
+        self.assertIn("item_lantern", self.state.actors[ActorId("player")].inventory)
 
         # Behavior should have fired - lantern should be lit
         lantern = self.state.get_item("item_lantern")
@@ -753,7 +754,7 @@ class TestPhase2PutCommand(unittest.TestCase):
         self.assertEqual(key.location, "item_table")
 
         # Key should not be in inventory
-        self.assertNotIn("item_key", self.state.actors["player"].inventory)
+        self.assertNotIn("item_key", self.state.actors[ActorId("player")].inventory)
 
     def test_put_item_in_open_container(self):
         """Test putting an item in an open enclosed container."""

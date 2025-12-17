@@ -1,6 +1,7 @@
 """
 Tests for interaction handlers (use, read, climb, pull, push) - Phase C-8.
 """
+from src.types import ActorId
 
 import unittest
 from src.state_manager import GameState, Location, Item, Actor, Metadata
@@ -694,7 +695,7 @@ class TestClimbExit(unittest.TestCase):
         self.assertIn("spiral staircase", result.message.lower())
         self.assertIn("Tower Room", result.message)
         # Verify player actually moved
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         self.assertEqual(player.location, "loc_tower")
 
     def test_climb_staircase_moves_to_destination(self):
@@ -707,7 +708,7 @@ class TestClimbExit(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Verify player actually moved
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         self.assertEqual(player.location, "loc_tower")
 
     def test_climb_spiral_staircase_moves_to_destination(self):
@@ -719,7 +720,7 @@ class TestClimbExit(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Verify player actually moved
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         self.assertEqual(player.location, "loc_tower")
 
     def test_climb_nonexistent_exit_fails(self):

@@ -18,11 +18,18 @@ import sys
 import unittest
 from pathlib import Path
 
+try:
+    import wx  # type: ignore[unused-import]
+    WX_AVAILABLE = True
+except ModuleNotFoundError:
+    WX_AVAILABLE = False
+
 
 # Path to the project root
 PROJECT_ROOT = Path(__file__).parent.parent
 
 
+@unittest.skipUnless(WX_AVAILABLE, "wxPython not installed")
 class TestSpatialGameScenarios(unittest.TestCase):
     """Run spatial_game scenario tests in isolated subprocesses."""
 

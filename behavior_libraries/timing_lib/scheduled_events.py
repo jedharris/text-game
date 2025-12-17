@@ -25,6 +25,7 @@ import uuid
 from typing import Dict, List, Optional
 
 from src.behavior_manager import EventResult
+from src.infrastructure_utils import get_scheduled_events as _get_state_scheduled_events
 
 
 def schedule_event(
@@ -49,9 +50,6 @@ def schedule_event(
     Returns:
         Unique ID for the scheduled event
     """
-    if 'scheduled_events' not in accessor.game_state.extra:
-        accessor.game_state.extra['scheduled_events'] = []
-
     event_id = str(uuid.uuid4())[:8]
 
     event = {
@@ -63,7 +61,8 @@ def schedule_event(
         'interval': interval
     }
 
-    accessor.game_state.extra['scheduled_events'].append(event)
+    events = _get_state_scheduled_events(accessor.game_state)
+    events.append(event)
     return event_id
 
 
@@ -78,7 +77,7 @@ def cancel_event(accessor, event_name: str) -> bool:
     Returns:
         True if event was found and cancelled, False otherwise
     """
-    events = accessor.game_state.extra.get('scheduled_events', [])
+    events = _get_state_scheduled_events(accessor.game_state)
 
     for i, event in enumerate(events):
         if event['event'] == event_name:
@@ -89,16 +88,8 @@ def cancel_event(accessor, event_name: str) -> bool:
 
 
 def get_scheduled_events(accessor) -> List[Dict]:
-    """
-    Get all scheduled events.
-
-    Args:
-        accessor: StateAccessor instance
-
-    Returns:
-        List of scheduled event dicts
-    """
-    return accessor.game_state.extra.get('scheduled_events', [])
+    """Expose scheduled events through the typed infrastructure helper."""
+    return _get_state_scheduled_events(accessor.game_state)
 
 
 def on_check_scheduled_events(entity, accessor, context: dict) -> EventResult:
@@ -116,7 +107,7 @@ def on_check_scheduled_events(entity, accessor, context: dict) -> EventResult:
         EventResult with messages about fired events
     """
     current_turn = accessor.game_state.turn_count
-    events = accessor.game_state.extra.get('scheduled_events', [])
+    events = _get_state_scheduled_events(accessor.game_state)
 
     fired_messages = []
     to_remove = []

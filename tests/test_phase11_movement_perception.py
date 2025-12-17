@@ -4,6 +4,7 @@ Phase 11: Movement and Perception Handlers
 Tests for handle_go, handle_look, handle_examine, and handle_inventory.
 Critical: Movement and perception must work from NPC perspective.
 """
+from src.types import ActorId
 
 import unittest
 import sys
@@ -54,7 +55,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
         self.assertTrue(result.success)
 
         # Verify player moved
-        player = state.actors["player"]
+        player = state.actors[ActorId("player")]
         self.assertEqual(player.location, "location_hall")
 
     def test_handle_go_invalid_exit(self):
@@ -99,7 +100,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
             location="location_room",
             inventory=[]
         )
-        state.actors["npc_guard"] = guard
+        state.actors[ActorId("npc_guard")] = guard
 
         import behaviors.core.exits
         behavior_manager.load_module(behaviors.core.exits)
@@ -113,7 +114,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
 
         # Verify NPC moved (not player)
         self.assertEqual(guard.location, "location_hall")
-        player = state.actors["player"]
+        player = state.actors[ActorId("player")]
         self.assertEqual(player.location, "location_room", "Player should not have moved")
 
     # ========== PERCEPTION TESTS ==========
@@ -161,7 +162,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
             location="location_hall",
             inventory=[]
         )
-        state.actors["npc_guard"] = guard
+        state.actors[ActorId("npc_guard")] = guard
 
         import behaviors.core.perception
         behavior_manager.load_module(behaviors.core.perception)
@@ -212,7 +213,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
         behavior_manager = BehaviorManager()
 
         # Give player an item
-        player = state.actors["player"]
+        player = state.actors[ActorId("player")]
         sword = state.get_item("item_sword")
         sword.location = "player"
         player.inventory.append("item_sword")
@@ -234,7 +235,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
         behavior_manager = BehaviorManager()
 
         # Give player an item
-        player = state.actors["player"]
+        player = state.actors[ActorId("player")]
         sword = state.get_item("item_sword")
         sword.location = "player"
         player.inventory.append("item_sword")
@@ -247,7 +248,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
             location="location_room",
             inventory=["item_lantern"]
         )
-        state.actors["npc_guard"] = guard
+        state.actors[ActorId("npc_guard")] = guard
 
         lantern = state.get_item("item_lantern")
         lantern.location = "npc_guard"

@@ -1,3 +1,4 @@
+from src.types import ActorId
 #!/usr/bin/env python3
 """
 Extended Game Runner - Demonstrates extending the text game engine.
@@ -200,7 +201,7 @@ def main():
 
         # Check for win condition (getting to sanctum with the wand)
         if response.get("success"):
-            actor = state.actors.get("player")
+            actor = state.actors.get(ActorId("player"))
             if actor and actor.location == "loc_sanctum":
                 # Check if player has the wand
                 wand = None

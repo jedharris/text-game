@@ -4,7 +4,7 @@ Handler utility functions.
 Provides shared preamble utilities for item-targeting handlers.
 """
 
-from typing import Tuple, Optional, Dict, Any, List, Union
+from typing import Tuple, Optional, Dict, Any, List, Union, cast
 
 from src.types import ActorId
 from src.state_accessor import HandlerResult, StateAccessor, UpdateResult
@@ -47,7 +47,7 @@ def validate_actor_and_location(
         # Continue with handler logic using actor_id, actor, location
     """
     # Extract actor_id with default
-    actor_id = action.get("actor_id", "player")
+    actor_id = cast(ActorId, action.get("actor_id") or ActorId("player"))
 
     # Validate required fields
     verb = action.get("verb", "do something")
@@ -159,7 +159,7 @@ def find_action_target(
         - If item found: (item, None)
         - If error: (None, HandlerResult with error message)
     """
-    actor_id = action.get("actor_id", "player")
+    actor_id = cast(ActorId, action.get("actor_id") or ActorId("player"))
     object_name = action.get("object")
     adjective = action.get("adjective")
     verb = action.get("verb", "interact with")
@@ -214,7 +214,7 @@ def find_openable_target(
         - If item found: (item, actor_id, None)
         - If error: (None, actor_id, HandlerResult with error message)
     """
-    actor_id = action.get("actor_id", "player")
+    actor_id = cast(ActorId, action.get("actor_id") or ActorId("player"))
     object_name = action.get("object")
     adjective = action.get("adjective")
 

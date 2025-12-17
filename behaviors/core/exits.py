@@ -5,7 +5,7 @@ Exits can be referenced by direction (north, up) or by structure name
 (stairs, archway, corridor).
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, cast
 
 from src.action_types import ActionDict
 from src.behavior_manager import EventResult
@@ -438,7 +438,7 @@ def _handle_direction(accessor, action, direction: str) -> HandlerResult:
     Returns:
         HandlerResult with success flag and message
     """
-    actor_id = action.get("actor_id", "player")
+    actor_id = cast(ActorId, action.get("actor_id") or ActorId("player"))
     actor = accessor.get_actor(actor_id)
     if not actor:
         return HandlerResult(success=False, message="No actor found.")

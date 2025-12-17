@@ -2,6 +2,7 @@
 
 Verifies that handle_examine can find and describe doors, not just items.
 """
+from src.types import ActorId
 
 import unittest
 from tests.conftest import make_action, create_test_state
@@ -20,7 +21,7 @@ class TestExamineDoor(unittest.TestCase):
         self.accessor = StateAccessor(self.state, self.behavior_manager)
 
         # Get player's location
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         location_id = player.location
 
         # Add destination rooms
@@ -112,7 +113,7 @@ class TestExamineDoor(unittest.TestCase):
         from behaviors.core.perception import handle_examine
 
         # Move player to other_room which has exit with door_wooden
-        self.state.actors["player"].location = "other_room"
+        self.state.actors[ActorId("player")].location = "other_room"
 
         action = make_action(object="door", actor_id="player")
         result = handle_examine(self.accessor, action)
@@ -137,7 +138,7 @@ class TestExamineDoor(unittest.TestCase):
         from src.state_manager import Item
 
         # Add an item named "door" (unusual but possible)
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         door_item = Item(
             id="item_door",
             name="door",
@@ -169,7 +170,7 @@ class TestExamineDoorWithDirectionAdjective(unittest.TestCase):
         self.accessor = StateAccessor(self.state, self.behavior_manager)
 
         # Get player's location
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         location_id = player.location
 
         # Add destination rooms
@@ -265,7 +266,7 @@ class TestExamineDoorIntegration(unittest.TestCase):
     def test_examine_door_in_hallway(self):
         """Test examining door when in hallway with two doors."""
         # Move to hallway
-        self.state.actors["player"].location = "loc_hallway"
+        self.state.actors[ActorId("player")].location = "loc_hallway"
 
         result = self.handler.handle_command({
             "type": "command",
@@ -278,7 +279,7 @@ class TestExamineDoorIntegration(unittest.TestCase):
 
     def test_examine_iron_door_in_hallway(self):
         """Test examining iron door specifically."""
-        self.state.actors["player"].location = "loc_hallway"
+        self.state.actors[ActorId("player")].location = "loc_hallway"
 
         result = self.handler.handle_command({
             "type": "command",
@@ -290,7 +291,7 @@ class TestExamineDoorIntegration(unittest.TestCase):
 
     def test_examine_wooden_door_in_hallway(self):
         """Test examining wooden door specifically."""
-        self.state.actors["player"].location = "loc_hallway"
+        self.state.actors[ActorId("player")].location = "loc_hallway"
 
         result = self.handler.handle_command({
             "type": "command",
@@ -302,7 +303,7 @@ class TestExamineDoorIntegration(unittest.TestCase):
 
     def test_examine_table_still_works(self):
         """Test that examining items still works."""
-        self.state.actors["player"].location = "loc_hallway"
+        self.state.actors[ActorId("player")].location = "loc_hallway"
 
         result = self.handler.handle_command({
             "type": "command",

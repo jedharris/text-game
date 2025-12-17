@@ -1,4 +1,5 @@
 """Tests for NPC movement/patrol system."""
+from src.types import ActorId
 
 import unittest
 from unittest.mock import Mock
@@ -18,7 +19,7 @@ class TestPatrolStep(unittest.TestCase):
         state.locations.append(Location(id='forest', name='Forest', description='A forest'))
         state.locations.append(Location(id='meadow', name='Meadow', description='A meadow'))
         state.locations.append(Location(id='river', name='River', description='A river'))
-        state.actors['guard'] = Actor(
+        state.actors[ActorId('guard')] = Actor(
             id='guard', name='Guard', description='A guard',
             location='forest', inventory=[],
             properties={
@@ -28,10 +29,10 @@ class TestPatrolStep(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        message = patrol_step(accessor, state.actors['guard'])
+        message = patrol_step(accessor, state.actors[ActorId('guard')])
 
-        self.assertEqual(state.actors['guard'].location, 'meadow')
-        self.assertEqual(state.actors['guard'].properties['patrol_index'], 1)
+        self.assertEqual(state.actors[ActorId('guard')].location, 'meadow')
+        self.assertEqual(state.actors[ActorId('guard')].properties['patrol_index'], 1)
 
     def test_patrol_step_wraps_around(self):
         """Patrol wraps to start when reaching end of route."""
@@ -40,7 +41,7 @@ class TestPatrolStep(unittest.TestCase):
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='forest', name='Forest', description='A forest'))
         state.locations.append(Location(id='meadow', name='Meadow', description='A meadow'))
-        state.actors['guard'] = Actor(
+        state.actors[ActorId('guard')] = Actor(
             id='guard', name='Guard', description='A guard',
             location='meadow', inventory=[],
             properties={
@@ -50,10 +51,10 @@ class TestPatrolStep(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        patrol_step(accessor, state.actors['guard'])
+        patrol_step(accessor, state.actors[ActorId('guard')])
 
-        self.assertEqual(state.actors['guard'].location, 'forest')
-        self.assertEqual(state.actors['guard'].properties['patrol_index'], 0)
+        self.assertEqual(state.actors[ActorId('guard')].location, 'forest')
+        self.assertEqual(state.actors[ActorId('guard')].properties['patrol_index'], 0)
 
     def test_patrol_step_no_route_returns_none(self):
         """Returns None if no patrol route set."""
@@ -61,17 +62,17 @@ class TestPatrolStep(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='forest', name='Forest', description='A forest'))
-        state.actors['npc'] = Actor(
+        state.actors[ActorId('npc')] = Actor(
             id='npc', name='NPC', description='An NPC',
             location='forest', inventory=[],
             properties={}
         )
 
         accessor = StateAccessor(state, Mock())
-        message = patrol_step(accessor, state.actors['npc'])
+        message = patrol_step(accessor, state.actors[ActorId('npc')])
 
         self.assertIsNone(message)
-        self.assertEqual(state.actors['npc'].location, 'forest')
+        self.assertEqual(state.actors[ActorId('npc')].location, 'forest')
 
 
 class TestWanderStep(unittest.TestCase):
@@ -85,7 +86,7 @@ class TestWanderStep(unittest.TestCase):
         state.locations.append(Location(id='forest', name='Forest', description='A forest'))
         state.locations.append(Location(id='meadow', name='Meadow', description='A meadow'))
         state.locations.append(Location(id='river', name='River', description='A river'))
-        state.actors['hunter'] = Actor(
+        state.actors[ActorId('hunter')] = Actor(
             id='hunter', name='Hunter', description='A hunter',
             location='forest', inventory=[],
             properties={
@@ -98,13 +99,13 @@ class TestWanderStep(unittest.TestCase):
         # Run multiple times to ensure it moves
         moved = False
         for _ in range(10):
-            wander_step(accessor, state.actors['hunter'])
-            if state.actors['hunter'].location != 'forest':
+            wander_step(accessor, state.actors[ActorId('hunter')])
+            if state.actors[ActorId('hunter')].location != 'forest':
                 moved = True
                 break
 
         # Should have moved eventually (chance is 1.0)
-        self.assertTrue(moved or state.actors['hunter'].location in ['forest', 'meadow', 'river'])
+        self.assertTrue(moved or state.actors[ActorId('hunter')].location in ['forest', 'meadow', 'river'])
 
     def test_wander_step_stays_when_chance_fails(self):
         """NPC stays in place when wander chance fails."""
@@ -113,7 +114,7 @@ class TestWanderStep(unittest.TestCase):
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='forest', name='Forest', description='A forest'))
         state.locations.append(Location(id='meadow', name='Meadow', description='A meadow'))
-        state.actors['hunter'] = Actor(
+        state.actors[ActorId('hunter')] = Actor(
             id='hunter', name='Hunter', description='A hunter',
             location='forest', inventory=[],
             properties={
@@ -123,9 +124,9 @@ class TestWanderStep(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        wander_step(accessor, state.actors['hunter'])
+        wander_step(accessor, state.actors[ActorId('hunter')])
 
-        self.assertEqual(state.actors['hunter'].location, 'forest')
+        self.assertEqual(state.actors[ActorId('hunter')].location, 'forest')
 
     def test_wander_step_no_area_returns_none(self):
         """Returns None if no wander area set."""
@@ -133,14 +134,14 @@ class TestWanderStep(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='forest', name='Forest', description='A forest'))
-        state.actors['npc'] = Actor(
+        state.actors[ActorId('npc')] = Actor(
             id='npc', name='NPC', description='An NPC',
             location='forest', inventory=[],
             properties={}
         )
 
         accessor = StateAccessor(state, Mock())
-        message = wander_step(accessor, state.actors['npc'])
+        message = wander_step(accessor, state.actors[ActorId('npc')])
 
         self.assertIsNone(message)
 
@@ -154,7 +155,7 @@ class TestSetPatrolRoute(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='forest', name='Forest', description='A forest'))
-        state.actors['guard'] = Actor(
+        state.actors[ActorId('guard')] = Actor(
             id='guard', name='Guard', description='A guard',
             location='forest', inventory=[],
             properties={}
@@ -164,10 +165,10 @@ class TestSetPatrolRoute(unittest.TestCase):
         set_patrol_route(accessor, 'guard', ['forest', 'meadow', 'river'])
 
         self.assertEqual(
-            state.actors['guard'].properties['patrol_route'],
+            state.actors[ActorId('guard')].properties['patrol_route'],
             ['forest', 'meadow', 'river']
         )
-        self.assertEqual(state.actors['guard'].properties['patrol_index'], 0)
+        self.assertEqual(state.actors[ActorId('guard')].properties['patrol_index'], 0)
 
 
 class TestSetWanderArea(unittest.TestCase):
@@ -179,7 +180,7 @@ class TestSetWanderArea(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='forest', name='Forest', description='A forest'))
-        state.actors['hunter'] = Actor(
+        state.actors[ActorId('hunter')] = Actor(
             id='hunter', name='Hunter', description='A hunter',
             location='forest', inventory=[],
             properties={}
@@ -189,7 +190,7 @@ class TestSetWanderArea(unittest.TestCase):
         set_wander_area(accessor, 'hunter', ['forest', 'meadow', 'river'])
 
         self.assertEqual(
-            state.actors['hunter'].properties['wander_area'],
+            state.actors[ActorId('hunter')].properties['wander_area'],
             ['forest', 'meadow', 'river']
         )
 
@@ -205,11 +206,11 @@ class TestOnNpcMovement(unittest.TestCase):
         state.turn_count = 3
         state.locations.append(Location(id='forest', name='Forest', description='A forest'))
         state.locations.append(Location(id='meadow', name='Meadow', description='A meadow'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='forest', inventory=[]
         )
-        state.actors['guard'] = Actor(
+        state.actors[ActorId('guard')] = Actor(
             id='guard', name='Guard', description='A guard',
             location='forest', inventory=[],
             properties={
@@ -222,10 +223,10 @@ class TestOnNpcMovement(unittest.TestCase):
         accessor = StateAccessor(state, Mock())
         context = {'turn': 3}
 
-        on_npc_movement(state.actors['guard'], accessor, context)
+        on_npc_movement(state.actors[ActorId('guard')], accessor, context)
 
         # Should move on turn 3 (divisible by 3)
-        self.assertEqual(state.actors['guard'].location, 'meadow')
+        self.assertEqual(state.actors[ActorId('guard')].location, 'meadow')
 
     def test_on_npc_movement_skips_when_not_frequency(self):
         """NPC does not move when turn count doesn't match frequency."""
@@ -235,11 +236,11 @@ class TestOnNpcMovement(unittest.TestCase):
         state.turn_count = 4
         state.locations.append(Location(id='forest', name='Forest', description='A forest'))
         state.locations.append(Location(id='meadow', name='Meadow', description='A meadow'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='forest', inventory=[]
         )
-        state.actors['guard'] = Actor(
+        state.actors[ActorId('guard')] = Actor(
             id='guard', name='Guard', description='A guard',
             location='forest', inventory=[],
             properties={
@@ -252,10 +253,10 @@ class TestOnNpcMovement(unittest.TestCase):
         accessor = StateAccessor(state, Mock())
         context = {'turn': 4}
 
-        on_npc_movement(state.actors['guard'], accessor, context)
+        on_npc_movement(state.actors[ActorId('guard')], accessor, context)
 
         # Should NOT move on turn 4 (not divisible by 3)
-        self.assertEqual(state.actors['guard'].location, 'forest')
+        self.assertEqual(state.actors[ActorId('guard')].location, 'forest')
 
 
 if __name__ == '__main__':

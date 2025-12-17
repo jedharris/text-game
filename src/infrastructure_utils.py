@@ -9,7 +9,7 @@ See: docs/big_game_work/detailed_designs/infrastructure_detailed_design.md Part 
 from __future__ import annotations
 
 import fnmatch
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from src.infrastructure_types import (
     ActiveCommitment,
@@ -73,15 +73,13 @@ def create_deadline(current_turn: TurnNumber, duration: int) -> TurnNumber:
 
 
 def get_current_turn(state: GameState) -> TurnNumber:
-    """Get the current turn number from game state.
-
-    Args:
-        state: Game state
-
-    Returns:
-        Current turn number (0 if not set)
-    """
+    """Get the current turn number from game state."""
     return TurnNumber(state.extra.get("turn_count", 0))
+
+
+def set_current_turn(state: GameState, new_turn: TurnNumber) -> None:
+    """Persist the absolute turn counter."""
+    state.extra["turn_count"] = int(new_turn)
 
 
 def increment_turn(state: GameState) -> TurnNumber:
@@ -93,10 +91,10 @@ def increment_turn(state: GameState) -> TurnNumber:
     Returns:
         New turn number after increment
     """
-    current = state.extra.get("turn_count", 0)
-    new_turn = current + 1
-    state.extra["turn_count"] = new_turn
-    return TurnNumber(new_turn)
+    current = int(get_current_turn(state))
+    new_turn = TurnNumber(current + 1)
+    set_current_turn(state, new_turn)
+    return new_turn
 
 
 # =============================================================================
@@ -405,49 +403,56 @@ def get_active_commitments(state: GameState) -> list[ActiveCommitment]:
     """Get list of active commitments, initializing if needed."""
     if "active_commitments" not in state.extra:
         state.extra["active_commitments"] = []
-    return state.extra["active_commitments"]
+    return cast(list[ActiveCommitment], state.extra["active_commitments"])
 
 
 def get_gossip_queue(state: GameState) -> list[GossipEntry]:
     """Get the gossip propagation queue, initializing if needed."""
     if "gossip_queue" not in state.extra:
         state.extra["gossip_queue"] = []
-    return state.extra["gossip_queue"]
+    return cast(list[GossipEntry], state.extra["gossip_queue"])
 
 
 def get_scheduled_events(state: GameState) -> list[ScheduledEvent]:
     """Get list of scheduled events, initializing if needed."""
     if "scheduled_events" not in state.extra:
         state.extra["scheduled_events"] = []
-    return state.extra["scheduled_events"]
+    return cast(list[ScheduledEvent], state.extra["scheduled_events"])
 
 
 def get_echo_trust(state: GameState) -> TrustState:
     """Get Echo trust state, initializing if needed."""
     if "echo_trust" not in state.extra:
         state.extra["echo_trust"] = {"current": 0}
-    return state.extra["echo_trust"]
+    return cast(TrustState, state.extra["echo_trust"])
 
 
 def get_active_companions(state: GameState) -> list[CompanionState]:
     """Get list of active companions, initializing if needed."""
     if "companions" not in state.extra:
         state.extra["companions"] = []
-    return state.extra["companions"]
+    return cast(list[CompanionState], state.extra["companions"])
 
 
 def get_environmental_spreads(state: GameState) -> dict[str, SpreadState]:
     """Get environmental spreads dict, initializing if needed."""
     if "environmental_spreads" not in state.extra:
         state.extra["environmental_spreads"] = {}
-    return state.extra["environmental_spreads"]
+    return cast(dict[str, SpreadState], state.extra["environmental_spreads"])
 
 
 def get_network_definitions(state: GameState) -> dict[str, NetworkDefinition]:
     """Get gossip network definitions, initializing if needed."""
     if "networks" not in state.extra:
         state.extra["networks"] = {}
-    return state.extra["networks"]
+    return cast(dict[str, NetworkDefinition], state.extra["networks"])
+
+
+def get_commitment_configs(state: GameState) -> dict[str, CommitmentConfig]:
+    """Get commitment configuration map, initializing if needed."""
+    if "commitment_configs" not in state.extra:
+        state.extra["commitment_configs"] = {}
+    return cast(dict[str, CommitmentConfig], state.extra["commitment_configs"])
 
 
 # =============================================================================
@@ -524,7 +529,7 @@ def schedule_event(
         event_id = ScheduledEventId(f"event_{event_type}_{len(events)}")
 
     # Calculate trigger turn
-    current_turn = TurnNumber(state.extra.get("turn_count", 0))
+    current_turn = get_current_turn(state)
     trigger_turn = TurnNumber(current_turn + turns_from_now)
 
     # Create event
@@ -587,7 +592,7 @@ def get_due_events(state: GameState) -> list[ScheduledEvent]:
     Does not remove them - that's done by fire_due_events.
     """
     events = get_scheduled_events(state)
-    current_turn = TurnNumber(state.extra.get("turn_count", 0))
+    current_turn = get_current_turn(state)
     return [e for e in events if e["trigger_turn"] <= current_turn]
 
 
@@ -597,7 +602,7 @@ def fire_due_events(state: GameState) -> list[ScheduledEvent]:
     Returns the fired events so handlers can process them.
     """
     events = get_scheduled_events(state)
-    current_turn = TurnNumber(state.extra.get("turn_count", 0))
+    current_turn = get_current_turn(state)
 
     due = [e for e in events if e["trigger_turn"] <= current_turn]
     remaining = [e for e in events if e["trigger_turn"] > current_turn]
@@ -624,7 +629,7 @@ def get_commitment_config(state: GameState, config_id: str) -> CommitmentConfig 
     Returns:
         The config if found, None otherwise
     """
-    configs = state.extra.get("commitment_configs", {})
+    configs = get_commitment_configs(state)
     return configs.get(config_id)
 
 
@@ -755,7 +760,7 @@ def check_commitment_phrase(
     Returns:
         Matching CommitmentConfig or None
     """
-    configs = state.extra.get("commitment_configs", {})
+    configs = get_commitment_configs(state)
     text_lower = text.lower()
 
     for config in configs.values():
@@ -801,7 +806,7 @@ def create_gossip(
         The gossip ID
     """
     queue = get_gossip_queue(state)
-    current_turn = TurnNumber(state.extra.get("turn_count", 0))
+    current_turn = get_current_turn(state)
 
     if gossip_id is None:
         gossip_id = GossipId(f"gossip_{len(queue)}")
@@ -844,7 +849,7 @@ def create_broadcast_gossip(
         The gossip ID
     """
     queue = get_gossip_queue(state)
-    current_turn = TurnNumber(state.extra.get("turn_count", 0))
+    current_turn = get_current_turn(state)
 
     if gossip_id is None:
         gossip_id = GossipId(f"broadcast_{len(queue)}")
@@ -894,7 +899,7 @@ def create_network_gossip(
         The gossip ID
     """
     queue = get_gossip_queue(state)
-    current_turn = TurnNumber(state.extra.get("turn_count", 0))
+    current_turn = get_current_turn(state)
 
     if gossip_id is None:
         gossip_id = GossipId(f"network_{len(queue)}")
@@ -950,7 +955,7 @@ def get_arrived_gossip(state: GameState) -> list[AnyGossipEntry]:
     Does not remove entries - use deliver_due_gossip for that.
     """
     queue = get_gossip_queue(state)
-    current_turn = TurnNumber(state.extra.get("turn_count", 0))
+    current_turn = get_current_turn(state)
     return [e for e in queue if e["arrives_turn"] <= current_turn]
 
 
@@ -1015,7 +1020,7 @@ def can_confess(state: GameState, gossip_id: GossipId) -> bool:
     if "confession_window_until" not in entry:
         return False
 
-    current_turn = TurnNumber(state.extra.get("turn_count", 0))
+    current_turn = get_current_turn(state)
     window: TurnNumber | None = entry.get("confession_window_until")  # type: ignore[assignment]
     return window is not None and current_turn <= window
 
@@ -1447,7 +1452,7 @@ def validate_commitment_configs(state: GameState) -> list[str]:
         List of error messages (empty if valid)
     """
     errors: list[str] = []
-    configs = state.extra.get("commitment_configs", {})
+    configs = get_commitment_configs(state)
 
     for config_id, config in configs.items():
         prefix = f"Commitment config '{config_id}'"
@@ -1639,7 +1644,7 @@ def validate_companion_restrictions(state: GameState) -> list[str]:
         List of error messages (empty if valid)
     """
     errors: list[str] = []
-    companions = state.extra.get("companions", [])
+    companions = get_active_companions(state)
 
     for i, companion in enumerate(companions):
         companion_id = companion.get("actor_id", f"index_{i}")
@@ -1654,10 +1659,11 @@ def validate_companion_restrictions(state: GameState) -> list[str]:
         if actor_id not in state.actors:
             errors.append(f"{prefix} references non-existent actor")
 
-        if "status" not in companion:
-            errors.append(f"{prefix} missing 'status'")
-        elif companion["status"] not in ("following", "waiting"):
-            errors.append(f"{prefix} has invalid status: {companion['status']}")
+        # Validate following/waiting state
+        if "following" not in companion:
+            errors.append(f"{prefix} missing 'following' flag")
+        elif not isinstance(companion["following"], bool):
+            errors.append(f"{prefix} has non-boolean 'following' flag")
 
     return errors
 

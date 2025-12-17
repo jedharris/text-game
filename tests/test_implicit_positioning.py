@@ -3,6 +3,7 @@ Tests for implicit positioning with interaction_distance property.
 
 Following TDD approach - these tests are written first before implementation.
 """
+from src.types import ActorId
 import unittest
 from src.state_manager import Part, GameState, Metadata, Location, Item, Actor
 from src.state_accessor import StateAccessor
@@ -108,19 +109,19 @@ class TestImplicitPositioningExamine(unittest.TestCase):
         """Test examining 'any' distance entity doesn't move player."""
         # This test will be implemented once we have handle_examine integrated
         # For now, just verify the property exists
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         self.assertIsNone(player.properties.get("focused_on"))
 
     def test_examine_near_distance_should_move_player(self):
         """Test examining 'near' entity should move player to it."""
         # This test will be implemented once we have handle_examine integrated
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         # Initially not focused
         self.assertIsNone(player.properties.get("focused_on"))
 
     def test_examine_near_already_focused_no_movement(self):
         """Test examining near entity when already there doesn't repeat movement."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         player.properties["focused_on"] = "item_desk"
 
         # Verify focus is set
@@ -128,13 +129,13 @@ class TestImplicitPositioningExamine(unittest.TestCase):
 
     def test_examine_part_with_near_should_move_player(self):
         """Test examining part with 'near' should move player."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         # Initially not focused
         self.assertIsNone(player.properties.get("focused_on"))
 
     def test_implicit_movement_should_clear_posture(self):
         """Test implicit movement should clear posture."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         player.properties["focused_on"] = "item_far"
         player.properties["posture"] = "cover"
 

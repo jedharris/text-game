@@ -3,6 +3,7 @@
 Verifies that the unified location serialization produces consistent output
 suitable for LLM consumption, matching what _query_location returns.
 """
+from src.types import ActorId
 import unittest
 import sys
 from pathlib import Path
@@ -269,7 +270,7 @@ class TestSerializeLocationPlayerContext(unittest.TestCase):
     def test_player_context_with_posture(self):
         """Test that player_context reflects actor's posture property."""
         location = self.state.get_location("loc_start")
-        player = self.state.actors.get("player")
+        player = self.state.actors.get(ActorId("player"))
         player.properties["posture"] = "on_surface"
 
         result = serialize_location_for_llm(self.accessor, location, "player")
@@ -279,7 +280,7 @@ class TestSerializeLocationPlayerContext(unittest.TestCase):
     def test_player_context_with_focused_on(self):
         """Test that player_context reflects actor's focused_on property."""
         location = self.state.get_location("loc_start")
-        player = self.state.actors.get("player")
+        player = self.state.actors.get(ActorId("player"))
         player.properties["focused_on"] = "test_item"
 
         result = serialize_location_for_llm(self.accessor, location, "player")
@@ -289,7 +290,7 @@ class TestSerializeLocationPlayerContext(unittest.TestCase):
     def test_player_context_resolves_entity_name(self):
         """Test that player_context resolves focused_entity_name when possible."""
         location = self.state.get_location("loc_start")
-        player = self.state.actors.get("player")
+        player = self.state.actors.get(ActorId("player"))
 
         # Find an actual item in the fixture to focus on
         if self.state.items:
@@ -328,7 +329,7 @@ class TestSerializeLocationSpatialRelation(unittest.TestCase):
     def test_items_have_spatial_relation_with_posture(self):
         """Test that items have spatial_relation when player has posture."""
         location = self.state.get_location("loc_start")
-        player = self.state.actors.get("player")
+        player = self.state.actors.get(ActorId("player"))
         player.properties["posture"] = "on_surface"
         player.properties["focused_on"] = "some_table"
 
@@ -342,7 +343,7 @@ class TestSerializeLocationSpatialRelation(unittest.TestCase):
     def test_focused_item_has_within_reach(self):
         """Test that the focused item has within_reach relation."""
         location = self.state.get_location("loc_start")
-        player = self.state.actors.get("player")
+        player = self.state.actors.get(ActorId("player"))
 
         # Find an item in the fixture to focus on
         items_in_location = [i for i in self.state.items if i.location == location.id]

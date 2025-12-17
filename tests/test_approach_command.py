@@ -3,6 +3,7 @@ Tests for approach command (explicit positioning).
 
 Following TDD approach - these tests are written first before implementation.
 """
+from src.types import ActorId
 import unittest
 from src.state_manager import Part, GameState, Metadata, Location, Item, Actor
 from src.state_accessor import StateAccessor
@@ -87,7 +88,7 @@ class TestApproachCommand(unittest.TestCase):
 
     def test_approach_item_sets_focus(self):
         """Test approaching item sets focused_on."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
 
         action = make_action(verb="approach", object="bench")
         result = handle_approach(self.accessor, action)
@@ -98,7 +99,7 @@ class TestApproachCommand(unittest.TestCase):
 
     def test_approach_already_there(self):
         """Test approaching when already focused gives 'already there' message."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         player.properties["focused_on"] = "item_bench"
 
         action = make_action(verb="approach", object="bench")
@@ -110,7 +111,7 @@ class TestApproachCommand(unittest.TestCase):
 
     def test_approach_part_of_location(self):
         """Test approaching part of location."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
 
         action = make_action(verb="approach", object="north wall")
         result = handle_approach(self.accessor, action)
@@ -120,7 +121,7 @@ class TestApproachCommand(unittest.TestCase):
 
     def test_approach_part_of_item(self):
         """Test approaching part of item."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
 
         action = make_action(verb="approach", object="left side of bench")
         result = handle_approach(self.accessor, action)
@@ -130,7 +131,7 @@ class TestApproachCommand(unittest.TestCase):
 
     def test_approach_actor(self):
         """Test approaching another actor (NPC)."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
 
         action = make_action(verb="approach", object="guard")
         result = handle_approach(self.accessor, action)
@@ -140,7 +141,7 @@ class TestApproachCommand(unittest.TestCase):
 
     def test_approach_clears_posture(self):
         """Test approach clears posture when moving."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         player.properties["focused_on"] = "item_bench"
         player.properties["posture"] = "cover"
 
@@ -169,7 +170,7 @@ class TestApproachCommand(unittest.TestCase):
 
     def test_approach_changes_focus_from_one_entity_to_another(self):
         """Test approach updates focus when moving between entities."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         player.properties["focused_on"] = "item_bench"
 
         action = make_action(verb="approach", object="desk")

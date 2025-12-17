@@ -11,6 +11,7 @@ Library modules used:
 - conditions.py: apply_condition, has_condition, get_condition
 - environment.py: check_spores (applies fungal_infection based on spore_level)
 """
+from src.types import ActorId
 
 from typing import Any, Optional
 
@@ -184,7 +185,7 @@ def on_turn_end_contagion(entity, accessor, context) -> Optional[Any]:
     """
     from src.state_accessor import EventResult
 
-    player = accessor.get_actor("player")
+    player = accessor.get_actor(ActorId("player"))
     if not player:
         return None
 

@@ -8,6 +8,7 @@ Tests that:
 5. Synonyms work ("n" -> north, "u" -> up)
 6. Handler chain fallback works for up/down to spatial handlers
 """
+from src.types import ActorId
 
 import sys
 import unittest
@@ -146,33 +147,33 @@ class TestDirectionHandlers(unittest.TestCase):
         from behaviors.core.exits import handle_north
         result = handle_north(self.accessor, {"actor_id": "player"})
         self.assertTrue(result.success)
-        self.assertEqual(self.state.actors["player"].location, "north_room")
+        self.assertEqual(self.state.actors[ActorId("player")].location, "north_room")
 
     def test_handle_south_moves_player(self):
         """handle_south should move player south."""
         from behaviors.core.exits import handle_south
         result = handle_south(self.accessor, {"actor_id": "player"})
         self.assertTrue(result.success)
-        self.assertEqual(self.state.actors["player"].location, "south_room")
+        self.assertEqual(self.state.actors[ActorId("player")].location, "south_room")
 
     def test_handle_up_moves_player(self):
         """handle_up should move player up."""
         from behaviors.core.exits import handle_up
         result = handle_up(self.accessor, {"actor_id": "player"})
         self.assertTrue(result.success)
-        self.assertEqual(self.state.actors["player"].location, "upper_room")
+        self.assertEqual(self.state.actors[ActorId("player")].location, "upper_room")
 
     def test_handle_down_moves_player(self):
         """handle_down should move player down."""
         from behaviors.core.exits import handle_down
         result = handle_down(self.accessor, {"actor_id": "player"})
         self.assertTrue(result.success)
-        self.assertEqual(self.state.actors["player"].location, "lower_room")
+        self.assertEqual(self.state.actors[ActorId("player")].location, "lower_room")
 
     def test_direction_no_exit_fails(self):
         """Direction handler should fail if no exit in that direction."""
         # Move to north_room which has no exits
-        self.state.actors["player"].location = "north_room"
+        self.state.actors[ActorId("player")].location = "north_room"
         from behaviors.core.exits import handle_north
         result = handle_north(self.accessor, {"actor_id": "player"})
         self.assertFalse(result.success)
@@ -219,13 +220,13 @@ class TestDirectionHandlerChain(unittest.TestCase):
         result = self.manager.invoke_handler("down", self.accessor, {"actor_id": "player"})
         self.assertTrue(result.success)
         # Posture should be cleared
-        self.assertNotIn("posture", self.state.actors["player"].properties)
+        self.assertNotIn("posture", self.state.actors[ActorId("player")].properties)
 
     def test_up_with_posture_uses_spatial_handler(self):
         """'up' when climbing should use spatial handler to descend."""
         result = self.manager.invoke_handler("up", self.accessor, {"actor_id": "player"})
         self.assertTrue(result.success)
-        self.assertNotIn("posture", self.state.actors["player"].properties)
+        self.assertNotIn("posture", self.state.actors[ActorId("player")].properties)
 
 
 class TestDirectionVerbsEndToEnd(unittest.TestCase):
@@ -238,34 +239,34 @@ class TestDirectionVerbsEndToEnd(unittest.TestCase):
         # Use simple_game because its behavior directory structure is clean
         self.engine = GameEngine(Path('examples/simple_game'))
         # Player starts in dungeon_cell which has 'east' exit
-        self.engine.game_state.actors['player'].location = 'dungeon_cell'
+        self.engine.game_state.actors[ActorId('player')].location = 'dungeon_cell'
 
     def test_bare_north_moves_player(self):
         """Typing 'north' should move player north from loc_start."""
         # Start at loc_start which has north exit
-        self.engine.game_state.actors['player'].location = 'loc_start'
+        self.engine.game_state.actors[ActorId('player')].location = 'loc_start'
         response = self.engine.json_handler.handle_message({
             "type": "command",
             "action": {"verb": "north"}
         })
         self.assertTrue(response.get("success"))
-        self.assertEqual(self.engine.game_state.actors["player"].location, "loc_hallway")
+        self.assertEqual(self.engine.game_state.actors[ActorId("player")].location, "loc_hallway")
 
     def test_bare_up_moves_player(self):
         """Typing 'up' should move player up from loc_hallway."""
         # Start at loc_hallway which has up exit
-        self.engine.game_state.actors['player'].location = 'loc_hallway'
+        self.engine.game_state.actors[ActorId('player')].location = 'loc_hallway'
         response = self.engine.json_handler.handle_message({
             "type": "command",
             "action": {"verb": "up"}
         })
         self.assertTrue(response.get("success"))
-        self.assertEqual(self.engine.game_state.actors["player"].location, "loc_tower")
+        self.assertEqual(self.engine.game_state.actors[ActorId("player")].location, "loc_tower")
 
     def test_go_north_still_works(self):
         """'go north' should still work."""
         from src.word_entry import WordEntry, WordType
-        self.engine.game_state.actors['player'].location = 'loc_start'
+        self.engine.game_state.actors[ActorId('player')].location = 'loc_start'
         response = self.engine.json_handler.handle_message({
             "type": "command",
             "action": {
@@ -274,7 +275,7 @@ class TestDirectionVerbsEndToEnd(unittest.TestCase):
             }
         })
         self.assertTrue(response.get("success"))
-        self.assertEqual(self.engine.game_state.actors["player"].location, "loc_hallway")
+        self.assertEqual(self.engine.game_state.actors[ActorId("player")].location, "loc_hallway")
 
 
 if __name__ == '__main__':

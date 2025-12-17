@@ -9,6 +9,7 @@ Demonstrates:
 from typing import Dict, Any
 
 from src.behavior_manager import EventResult
+from src.types import ActorId
 
 
 def on_climb(entity: Any, accessor: Any, context: Dict) -> EventResult:
@@ -18,7 +19,7 @@ def on_climb(entity: Any, accessor: Any, context: Dict) -> EventResult:
     entity: The tree
     context: {actor_id, verb}
     """
-    actor_id = context.get("actor_id", "player")
+    actor_id = ActorId(context.get("actor_id", "player"))
     actor = accessor.get_actor(actor_id)
 
     posture = actor.properties.get("posture")
@@ -47,7 +48,7 @@ def on_take(entity: Any, accessor: Any, context: Dict) -> EventResult:
     if entity.location != "item_tree":
         return EventResult(allow=True, message="")
 
-    actor_id = context.get("actor_id", "player")
+    actor_id = ActorId(context.get("actor_id", "player"))
     actor = accessor.get_actor(actor_id)
 
     posture = actor.properties.get("posture")

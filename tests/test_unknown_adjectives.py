@@ -3,6 +3,7 @@
 Tests that the parser passes unknown words before nouns as adjectives,
 and that behaviors can use multiple adjectives to disambiguate objects.
 """
+from src.types import ActorId
 
 import unittest
 import json
@@ -267,8 +268,8 @@ class TestItemDisambiguation(unittest.TestCase):
 
         self.assertTrue(result.get("success"))
         # Verify correct key was taken
-        self.assertIn("key1", self.state.actors["player"].inventory)
-        self.assertNotIn("key2", self.state.actors["player"].inventory)
+        self.assertIn("key1", self.state.actors[ActorId("player")].inventory)
+        self.assertNotIn("key2", self.state.actors[ActorId("player")].inventory)
 
     def test_different_adjective_selects_other_item(self):
         """Test that different adjective selects other item."""
@@ -279,8 +280,8 @@ class TestItemDisambiguation(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertIn("key2", self.state.actors["player"].inventory)
-        self.assertNotIn("key1", self.state.actors["player"].inventory)
+        self.assertIn("key2", self.state.actors[ActorId("player")].inventory)
+        self.assertNotIn("key1", self.state.actors[ActorId("player")].inventory)
 
     def test_size_adjective_disambiguates(self):
         """Test that size adjectives work for disambiguation."""
@@ -291,7 +292,7 @@ class TestItemDisambiguation(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertIn("key1", self.state.actors["player"].inventory)
+        self.assertIn("key1", self.state.actors[ActorId("player")].inventory)
 
     def test_ambiguous_adjective_picks_first(self):
         """Test behavior when adjective matches multiple items."""

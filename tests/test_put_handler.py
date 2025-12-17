@@ -1,6 +1,7 @@
 """
 Tests for put handler - Phase C-8.
 """
+from src.types import ActorId
 
 import unittest
 from src.state_manager import GameState, Location, Item, Actor, Metadata
@@ -147,7 +148,7 @@ class TestHandlePut(unittest.TestCase):
         key = self.state.get_item("item_key")
         self.assertEqual(key.location, "item_box")
         # Key should be removed from inventory
-        self.assertNotIn("item_key", self.state.actors["player"].inventory)
+        self.assertNotIn("item_key", self.state.actors[ActorId("player")].inventory)
 
     def test_put_on_surface(self):
         """Test putting item on surface container."""

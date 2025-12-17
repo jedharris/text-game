@@ -3,9 +3,10 @@
 Tier 2 library behavior - reusable across games.
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, cast
 
 from src.state_accessor import HandlerResult
+from src.types import ActorId
 
 
 # Vocabulary extension
@@ -33,7 +34,7 @@ def handle_descend(accessor, action: Dict[str, Any]) -> HandlerResult:
 
     Clears climbing posture and returns player to normal standing state.
     """
-    actor_id = action.get("actor_id", "player")
+    actor_id = cast(ActorId, action.get("actor_id") or ActorId("player"))
 
     # Get actor
     actor = accessor.get_actor(actor_id)

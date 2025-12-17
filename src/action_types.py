@@ -1,16 +1,10 @@
 """Type definitions for action dictionaries and protocol messages."""
 
-from typing import Optional, TypedDict, Protocol, Union, Literal
+from typing import Optional, TypedDict, Protocol, Literal
 
 from src.types import ActorId
 from src.word_entry import WordEntry
 from src.state_accessor import HandlerResult
-
-
-# Actions flow from parser → protocol handler → behavior handlers. Objects are
-# usually WordEntry instances (parser output), but JSON callers may still send
-# plain strings, so we accept both and normalize in the protocol layer.
-WordLike = Union[WordEntry, str]
 
 
 class ActionDict(TypedDict, total=False):
@@ -18,9 +12,9 @@ class ActionDict(TypedDict, total=False):
 
     actor_id: ActorId
     verb: str
-    object: Optional[WordLike]
+    object: Optional[WordEntry]
     adjective: str
-    indirect_object: Optional[WordLike]
+    indirect_object: Optional[WordEntry]
     indirect_adjective: str
     preposition: str
     raw_after_preposition: str

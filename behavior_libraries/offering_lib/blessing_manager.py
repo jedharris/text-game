@@ -11,10 +11,12 @@ if effect-based mechanics become a common pattern across many games.
 
 from typing import Dict, Any, Optional, List
 
+from src.types import ActorId
+
 
 def apply_blessing(
     accessor: Any,
-    actor_id: str,
+    actor_id: ActorId,
     blessing_type: str,
     duration: int = -1,
     value: Any = None
@@ -63,7 +65,7 @@ def apply_blessing(
 
 def apply_curse(
     accessor: Any,
-    actor_id: str,
+    actor_id: ActorId,
     curse_type: str,
     duration: int = -1,
     value: Any = None
@@ -110,7 +112,7 @@ def apply_curse(
     return True
 
 
-def get_active_effects(accessor: Any, actor_id: str) -> List[Dict]:
+def get_active_effects(accessor: Any, actor_id: ActorId) -> List[Dict]:
     """
     Get all active effects on an actor.
 
@@ -133,7 +135,7 @@ def get_active_effects(accessor: Any, actor_id: str) -> List[Dict]:
     return actor.states.get("effects", [])
 
 
-def has_effect(accessor: Any, actor_id: str, effect_type: str) -> bool:
+def has_effect(accessor: Any, actor_id: ActorId, effect_type: str) -> bool:
     """
     Check if actor has a specific effect type.
 
@@ -153,7 +155,7 @@ def has_effect(accessor: Any, actor_id: str, effect_type: str) -> bool:
     return any(effect["type"] == effect_type for effect in effects)
 
 
-def remove_effect(accessor: Any, actor_id: str, effect_type: str) -> bool:
+def remove_effect(accessor: Any, actor_id: ActorId, effect_type: str) -> bool:
     """
     Remove a specific effect type from actor.
 
@@ -183,7 +185,7 @@ def remove_effect(accessor: Any, actor_id: str, effect_type: str) -> bool:
     return False
 
 
-def tick_effects(accessor: Any, actor_id: str) -> List[str]:
+def tick_effects(accessor: Any, actor_id: ActorId) -> List[str]:
     """
     Decrement duration of all temporary effects and remove expired ones.
 

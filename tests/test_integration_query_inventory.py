@@ -3,6 +3,7 @@ Tests for inventory command refactoring.
 
 Tests that inventory works as a command behavior instead of a query.
 """
+from src.types import ActorId
 
 import unittest
 from src.llm_protocol import LLMProtocolHandler
@@ -23,7 +24,7 @@ class TestInventoryCommandRefactoring(BaseTestCase):
 
     def test_inventory_command_player_default(self):
         """Test inventory command defaults to player."""
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         player.inventory.append("item_sword")
 
         message = {
@@ -46,7 +47,7 @@ class TestInventoryCommandRefactoring(BaseTestCase):
         npc = Actor(id="npc_guard", name="guard", description="A guard",
                    location="location_room", inventory=["item_key"],
                    properties={}, behaviors=[])
-        self.state.actors["npc_guard"] = npc
+        self.state.actors[ActorId("npc_guard")] = npc
 
         # Add the key item
         key = Item(id="item_key", name="key", description="A key",
@@ -54,7 +55,7 @@ class TestInventoryCommandRefactoring(BaseTestCase):
         self.state.items.append(key)
 
         # Also put sword in player inventory
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         player.inventory.append("item_sword")
 
         message = {
@@ -70,7 +71,7 @@ class TestInventoryCommandRefactoring(BaseTestCase):
 
     def test_inventory_command_explicit_player(self):
         """Test inventory command with explicit player actor_id."""
-        player = self.state.actors["player"]
+        player = self.state.actors[ActorId("player")]
         player.inventory.append("item_sword")
 
         message = {

@@ -10,6 +10,7 @@ Tests cover:
 - State machine operations
 - Collection accessors
 """
+from src.types import ActorId
 
 import unittest
 from typing import cast
@@ -361,7 +362,7 @@ class TestFlagScopeAccessors(unittest.TestCase):
             actors = {"player": MockActor()}
 
         state = MockState()
-        player = state.actors.get("player")
+        player = state.actors.get(ActorId("player"))
         flags = get_actor_flags(player)  # type: ignore[arg-type]
         self.assertEqual(flags, {"visited_nexus": True})
 

@@ -5,9 +5,17 @@ Tests to verify wxPython installation and basic functionality.
 """
 
 import sys
-import wx
+import unittest
+
+try:
+    import wx
+    WX_AVAILABLE = True
+except ModuleNotFoundError:
+    WX_AVAILABLE = False
+    wx = None  # type: ignore[attr-defined]
 
 
+@unittest.skipUnless(WX_AVAILABLE, "wxPython not installed")
 def test_1_import():
     """Test 1: Verify wxPython imports successfully."""
     try:
@@ -20,6 +28,7 @@ def test_1_import():
         return False
 
 
+@unittest.skipUnless(WX_AVAILABLE, "wxPython not installed")
 def test_2_basic_frame():
     """Test 2: Create basic frame without showing it."""
     try:
@@ -41,6 +50,7 @@ def test_2_basic_frame():
         return False
 
 
+@unittest.skipUnless(WX_AVAILABLE, "wxPython not installed")
 def test_3_text_controls():
     """Test 3: Create text input/output controls."""
     try:
@@ -84,6 +94,7 @@ def test_3_text_controls():
         return False
 
 
+@unittest.skipUnless(WX_AVAILABLE, "wxPython not installed")
 def test_4_event_binding():
     """Test 4: Test event binding functionality."""
     try:
@@ -119,6 +130,7 @@ def test_4_event_binding():
         return False
 
 
+@unittest.skipUnless(WX_AVAILABLE, "wxPython not installed")
 def test_5_layout_managers():
     """Test 5: Test layout managers (BoxSizer)."""
     try:
@@ -154,6 +166,7 @@ def test_5_layout_managers():
         return False
 
 
+@unittest.skipUnless(WX_AVAILABLE, "wxPython not installed")
 def test_6_menu_bar():
     """Test 6: Test menu bar creation."""
     try:
@@ -191,6 +204,7 @@ def test_6_menu_bar():
         return False
 
 
+@unittest.skipUnless(WX_AVAILABLE, "wxPython not installed")
 def test_7_status_bar():
     """Test 7: Test status bar creation."""
     try:
@@ -218,6 +232,7 @@ def test_7_status_bar():
         return False
 
 
+@unittest.skipUnless(WX_AVAILABLE, "wxPython not installed")
 def test_8_text_styling():
     """Test 8: Test text styling capabilities."""
     try:

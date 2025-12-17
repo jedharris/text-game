@@ -2,6 +2,7 @@
 
 GitHub Issue #36: Add support for examining actors.
 """
+from src.types import ActorId
 
 import unittest
 from unittest.mock import MagicMock, patch
@@ -174,7 +175,7 @@ class TestFormatInventory(unittest.TestCase):
     def test_format_inventory_for_self(self):
         """format_inventory with for_self=True uses 'You are carrying'."""
         from utilities.utils import format_inventory
-        actor = self.accessor.get_actor("player")
+        actor = self.accessor.get_actor(ActorId("player"))
         message, items_data = format_inventory(self.accessor, actor, for_self=True)
         self.assertIsNotNone(message)
         self.assertIn("You are carrying", message)
@@ -185,7 +186,7 @@ class TestFormatInventory(unittest.TestCase):
     def test_format_inventory_for_other(self):
         """format_inventory with for_self=False uses 'Carrying'."""
         from utilities.utils import format_inventory
-        actor = self.accessor.get_actor("player")
+        actor = self.accessor.get_actor(ActorId("player"))
         message, items_data = format_inventory(self.accessor, actor, for_self=False)
         self.assertIsNotNone(message)
         self.assertIn("Carrying", message)
@@ -213,7 +214,7 @@ class TestFormatInventory(unittest.TestCase):
             }
         })
         empty_accessor = StateAccessor(empty_state, self.behavior_manager)
-        empty_actor = empty_accessor.get_actor("player")
+        empty_actor = empty_accessor.get_actor(ActorId("player"))
         message, items_data = format_inventory(empty_accessor, empty_actor, for_self=True)
         self.assertIsNone(message)
         self.assertEqual(items_data, [])
@@ -306,7 +307,7 @@ class TestHandleExamineActors(unittest.TestCase):
     def test_examine_self_no_description(self):
         """examine self with no description shows default message."""
         # Remove description - Actor is a dataclass, modify attribute directly
-        self.game_state.actors["player"].description = ""
+        self.game_state.actors[ActorId("player")].description = ""
         from behaviors.core.perception import handle_examine
         self_entry = make_self_word_entry()
         result = handle_examine(self.accessor, {"actor_id": "player", "object": self_entry})
@@ -315,7 +316,7 @@ class TestHandleExamineActors(unittest.TestCase):
 
     def test_examine_npc_no_description(self):
         """examine NPC with no description shows 'You see Name'."""
-        self.game_state.actors["guard"].description = ""
+        self.game_state.actors[ActorId("guard")].description = ""
         from behaviors.core.perception import handle_examine
         guard_entry = make_word_entry("guard")
         result = handle_examine(self.accessor, {"actor_id": "player", "object": guard_entry})
@@ -324,7 +325,7 @@ class TestHandleExamineActors(unittest.TestCase):
 
     def test_examine_self_empty_inventory(self):
         """examine self with empty inventory doesn't show inventory line."""
-        self.game_state.actors["player"].inventory = []
+        self.game_state.actors[ActorId("player")].inventory = []
         from behaviors.core.perception import handle_examine
         self_entry = make_self_word_entry()
         result = handle_examine(self.accessor, {"actor_id": "player", "object": self_entry})

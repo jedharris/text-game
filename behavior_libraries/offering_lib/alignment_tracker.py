@@ -11,10 +11,12 @@ if alignment-based mechanics become a common pattern across many games.
 
 from typing import Any, Optional
 
+from src.types import ActorId
+
 
 def record_choice(
     accessor: Any,
-    actor_id: str,
+    actor_id: ActorId,
     choice_type: str,
     weight: float = 1.0
 ) -> bool:
@@ -65,7 +67,7 @@ def record_choice(
     return True
 
 
-def get_alignment(accessor: Any, actor_id: str) -> float:
+def get_alignment(accessor: Any, actor_id: ActorId) -> float:
     """
     Get the current alignment score of an actor.
 
@@ -143,7 +145,7 @@ def get_alignment_category(alignment_score: float) -> str:
         return "neutral"
 
 
-def reset_alignment(accessor: Any, actor_id: str) -> bool:
+def reset_alignment(accessor: Any, actor_id: ActorId) -> bool:
     """
     Reset actor's alignment to neutral (0).
 

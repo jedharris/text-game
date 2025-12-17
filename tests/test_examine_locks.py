@@ -7,6 +7,7 @@ Tests the examine command patterns for locks:
 - "examine lock in door" - prepositional phrase
 - "examine lock in iron door" - prepositional with adjective
 """
+from src.types import ActorId
 
 import unittest
 import json
@@ -40,7 +41,7 @@ class TestExamineLockBase(unittest.TestCase):
 
     def move_player_to(self, location_id: str):
         """Helper to move player to a specific location."""
-        self.state.actors["player"].location = location_id
+        self.state.actors[ActorId("player")].location = location_id
 
 
 class TestExamineLockBasic(TestExamineLockBase):
@@ -260,7 +261,8 @@ class TestFindLockByContext(unittest.TestCase):
         lock = find_lock_by_context(
             self.accessor,
             location_id="loc_hallway",
-            direction="east"
+            direction="east",
+            actor_id=ActorId("player")
         )
 
         self.assertIsNotNone(lock)
@@ -273,7 +275,8 @@ class TestFindLockByContext(unittest.TestCase):
         lock = find_lock_by_context(
             self.accessor,
             location_id="loc_hallway",
-            direction="up"  # Stairs, no door
+            direction="up",  # Stairs, no door
+            actor_id=ActorId("player")
         )
 
         self.assertIsNone(lock)
@@ -285,7 +288,8 @@ class TestFindLockByContext(unittest.TestCase):
         lock = find_lock_by_context(
             self.accessor,
             location_id="loc_hallway",
-            direction="south"  # Wooden door, no lock
+            direction="south",  # Wooden door, no lock
+            actor_id=ActorId("player")
         )
 
         self.assertIsNone(lock)
@@ -298,7 +302,8 @@ class TestFindLockByContext(unittest.TestCase):
         lock = find_lock_by_context(
             self.accessor,
             location_id="loc_hallway",
-            door_name=door_entry
+            door_name=door_entry,
+            actor_id=ActorId("player")
         )
 
         # Should find the treasure door lock (the locked one)
@@ -310,7 +315,8 @@ class TestFindLockByContext(unittest.TestCase):
 
         lock = find_lock_by_context(
             self.accessor,
-            location_id="loc_hallway"
+            location_id="loc_hallway",
+            actor_id=ActorId("player")
         )
 
         # Should find the treasure door lock
@@ -323,7 +329,8 @@ class TestFindLockByContext(unittest.TestCase):
 
         lock = find_lock_by_context(
             self.accessor,
-            location_id="loc_tower"  # No locked doors
+            location_id="loc_tower",
+            actor_id=ActorId("player")
         )
 
         self.assertIsNone(lock)
@@ -340,14 +347,16 @@ class TestFindLockByContext(unittest.TestCase):
         lock = find_lock_by_context(
             self.accessor,
             location_id="loc_hallway",
-            direction="east"
+            direction="east",
+            actor_id=ActorId("player")
         )
         self.assertIsNone(lock)
 
         # Should not find via auto-select either
         lock = find_lock_by_context(
             self.accessor,
-            location_id="loc_hallway"
+            location_id="loc_hallway",
+            actor_id=ActorId("player")
         )
         self.assertIsNone(lock)
 
@@ -364,7 +373,8 @@ class TestFindLockByContext(unittest.TestCase):
         lock = find_lock_by_context(
             self.accessor,
             location_id="loc_hallway",
-            direction="east"
+            direction="east",
+            actor_id=ActorId("player")
         )
         self.assertIsNotNone(lock)
         self.assertEqual(lock.id, "lock_treasure")

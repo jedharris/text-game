@@ -4,6 +4,7 @@ Vocabulary and handlers for basic item manipulation.
 """
 
 from src.state_accessor import HandlerResult
+from src.word_entry import WordEntry
 from utilities.utils import (
     find_accessible_item,
     find_item_in_inventory,
@@ -117,8 +118,17 @@ def handle_take(accessor, action):
 
     # Extract remaining action parameters
     object_name = action.get("object")
+    if not isinstance(object_name, WordEntry):
+        return HandlerResult(success=False, message="I didn't understand what to drop.")
+    if not isinstance(object_name, WordEntry):
+        return HandlerResult(success=False, message="I didn't understand what to take.")
     adjective = action.get("adjective")
     container_name = action.get("indirect_object")
+    if container_name is not None and not isinstance(container_name, WordEntry):
+        return HandlerResult(
+            success=False,
+            message="I didn't understand which container you meant."
+        )
     container_adjective = action.get("indirect_adjective")
 
     # If container specified, validate it and search only within it
@@ -278,7 +288,11 @@ def handle_give(accessor, action):
         return error
 
     object_name = action.get("object")
+    if not isinstance(object_name, WordEntry):
+        return HandlerResult(success=False, message="I didn't understand what to give.")
     recipient_name = action.get("indirect_object")
+    if not isinstance(recipient_name, WordEntry):
+        return HandlerResult(success=False, message="I didn't catch who should receive it.")
 
     # Find the item in giver's inventory
     item = find_item_in_inventory(accessor, object_name, actor_id)
@@ -375,7 +389,11 @@ def handle_put(accessor, action):
         return error
 
     object_name = action.get("object")
+    if not isinstance(object_name, WordEntry):
+        return HandlerResult(success=False, message="I didn't understand what to put.")
     container_name = action.get("indirect_object")
+    if not isinstance(container_name, WordEntry):
+        return HandlerResult(success=False, message="I didn't catch where to put it.")
 
     # Find item in actor's inventory
     item = find_item_in_inventory(accessor, object_name, actor_id)

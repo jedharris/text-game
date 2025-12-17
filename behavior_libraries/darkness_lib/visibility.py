@@ -38,6 +38,7 @@ Usage:
         on_visibility_check
     )
 """
+from src.types import ActorId
 
 from typing import List
 
@@ -93,7 +94,7 @@ def get_light_sources(accessor, location_id: str) -> List:
         List of Item objects that are active light sources
     """
     sources = []
-    player = accessor.get_actor('player')
+    player = accessor.get_actor(ActorId('player'))
 
     for item in accessor.game_state.items:
         if not item.properties.get('provides_light', False):
@@ -151,7 +152,7 @@ def on_visibility_check(entity, accessor, context: dict) -> EventResult:
         EventResult allowing or blocking the action
     """
     verb = context.get('verb', '')
-    actor_id = context.get('actor_id', 'player')
+    actor_id = ActorId(context.get('actor_id', ActorId('player')))
 
     # Always allow certain actions in darkness
     if verb.lower() in DARK_ALLOWED_VERBS:

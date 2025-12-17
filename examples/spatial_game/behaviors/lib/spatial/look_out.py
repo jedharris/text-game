@@ -4,9 +4,10 @@ Tier 2 library behavior - reusable across games.
 Uses positive testing pattern.
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, cast
 
 from src.state_accessor import HandlerResult
+from src.types import ActorId
 
 
 # No vocabulary needed - relies on handler chaining with core look handler
@@ -24,7 +25,7 @@ def handle_look(accessor, action: Dict[str, Any]) -> HandlerResult:
     Used for windows, doors, archways - anything with a view beyond.
     Uses positive testing: only handles if preposition is "out of" or "out".
     """
-    actor_id = action.get("actor_id", "player")
+    actor_id = cast(ActorId, action.get("actor_id") or ActorId("player"))
     object_name = action.get("indirect_object")
     preposition = action.get("preposition")
 

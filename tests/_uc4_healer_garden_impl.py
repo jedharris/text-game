@@ -14,6 +14,7 @@ UC4 Tests:
 - TestUC4TeachService: Healer teaches herbalism
 - TestUC4TrustDiscount: Trust reduces service cost
 """
+from src.types import ActorId
 
 import sys
 import unittest
@@ -56,7 +57,7 @@ class TestUC4ToxicPlant(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors['player']
+        self.player = self.engine.game_state.actors[ActorId('player')]
         self.nightshade = None
         for item in self.engine.game_state.items:
             if item.id == 'item_nightshade':
@@ -117,7 +118,7 @@ class TestUC4Knowledge(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors['player']
+        self.player = self.engine.game_state.actors[ActorId('player')]
         self.nightshade = None
         self.healing_herb = None
         for item in self.engine.game_state.items:
@@ -182,8 +183,8 @@ class TestUC4CureService(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors['player']
-        self.healer = self.engine.game_state.actors['npc_healer']
+        self.player = self.engine.game_state.actors[ActorId('player')]
+        self.healer = self.engine.game_state.actors[ActorId('npc_healer')]
         self.gold = None
         for item in self.engine.game_state.items:
             if item.id == 'item_gold_coins':
@@ -236,8 +237,8 @@ class TestUC4TeachService(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors['player']
-        self.healer = self.engine.game_state.actors['npc_healer']
+        self.player = self.engine.game_state.actors[ActorId('player')]
+        self.healer = self.engine.game_state.actors[ActorId('npc_healer')]
         self.gold = None
         for item in self.engine.game_state.items:
             if item.id == 'item_gold_coins':
@@ -290,8 +291,8 @@ class TestUC4TrustDiscount(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors['player']
-        self.healer = self.engine.game_state.actors['npc_healer']
+        self.player = self.engine.game_state.actors[ActorId('player')]
+        self.healer = self.engine.game_state.actors[ActorId('npc_healer')]
 
     def test_no_discount_without_trust(self):
         """No discount when trust is 0."""

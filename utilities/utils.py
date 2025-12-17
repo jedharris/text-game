@@ -29,7 +29,7 @@ EntityLike = Union["Item", "Actor", "ExitDescriptor", "Lock"]
 def find_actor_by_name(
     accessor: "StateAccessor",
     name: WordEntry,
-    actor_id: str
+    actor_id: ActorId
 ) -> Optional["Actor"]:
     """
     Find an actor accessible to the examining actor.
@@ -50,7 +50,7 @@ def find_actor_by_name(
     Returns:
         Actor if found, None otherwise
     """
-    actor = accessor.get_actor(ActorId(actor_id))
+    actor = accessor.get_actor(actor_id)
     if not actor:
         return None
 
@@ -60,7 +60,7 @@ def find_actor_by_name(
         return actor
 
     # Search actors in same location
-    location = accessor.get_current_location(ActorId(actor_id))
+    location = accessor.get_current_location(actor_id)
     if not location:
         return None
 
@@ -173,7 +173,7 @@ def is_observable(
     entity: EntityLike,
     accessor: "StateAccessor",
     behavior_manager: Optional["BehaviorManager"],
-    actor_id: str,
+    actor_id: ActorId,
     method: str
 ) -> Tuple[bool, Optional[str]]:
     """
@@ -259,7 +259,7 @@ def _get_entity_states(entity: EntityLike) -> Dict[str, Any]:
 def find_accessible_item(
     accessor: "StateAccessor",
     name: WordEntry,
-    actor_id: str,
+    actor_id: ActorId,
     adjective: Optional[str] = None
 ) -> Optional["Item"]:
     """
@@ -289,12 +289,12 @@ def find_accessible_item(
     Returns:
         Item if found, None otherwise
     """
-    actor = accessor.get_actor(ActorId(actor_id))
+    actor = accessor.get_actor(actor_id)
     if not actor:
         return None
 
     # Get current location
-    location = accessor.get_current_location(ActorId(actor_id))
+    location = accessor.get_current_location(actor_id)
     if not location:
         return None
 
@@ -386,7 +386,7 @@ def find_accessible_item(
     return None
 
 
-def find_item_in_inventory(accessor: "StateAccessor", name: WordEntry, actor_id: str) -> Optional["Item"]:
+def find_item_in_inventory(accessor: "StateAccessor", name: WordEntry, actor_id: ActorId) -> Optional["Item"]:
     """
     Find an item in the actor's inventory.
 
@@ -400,7 +400,7 @@ def find_item_in_inventory(accessor: "StateAccessor", name: WordEntry, actor_id:
     Returns:
         Item if found in inventory, None otherwise
     """
-    actor = accessor.get_actor(ActorId(actor_id))
+    actor = accessor.get_actor(actor_id)
     if not actor:
         return None
 
@@ -438,7 +438,7 @@ def find_container_by_name(accessor: "StateAccessor", name: WordEntry, location_
     return None
 
 
-def actor_has_key_for_door(accessor: "StateAccessor", actor_id: str, door: "Item") -> bool:
+def actor_has_key_for_door(accessor: "StateAccessor", actor_id: ActorId, door: "Item") -> bool:
     """
     Check if actor has a key that can unlock the door.
 
@@ -470,7 +470,7 @@ def actor_has_key_for_door(accessor: "StateAccessor", actor_id: str, door: "Item
         return False
 
     # Check if actor has any of these keys
-    actor = accessor.get_actor(ActorId(actor_id))
+    actor = accessor.get_actor(actor_id)
     if not actor:
         return False
 
@@ -481,7 +481,7 @@ def actor_has_key_for_door(accessor: "StateAccessor", actor_id: str, door: "Item
     return False
 
 
-def get_visible_items_in_location(accessor: "StateAccessor", location_id: str, actor_id: str) -> List["Item"]:
+def get_visible_items_in_location(accessor: "StateAccessor", location_id: str, actor_id: ActorId) -> List["Item"]:
     """
     Get all visible items in a location.
 
@@ -499,7 +499,7 @@ def get_visible_items_in_location(accessor: "StateAccessor", location_id: str, a
     return accessor.get_items_in_location(LocationId(location_id))
 
 
-def get_visible_actors_in_location(accessor: "StateAccessor", location_id: str, actor_id: str) -> List["Actor"]:
+def get_visible_actors_in_location(accessor: "StateAccessor", location_id: str, actor_id: ActorId) -> List["Actor"]:
     """
     Get all visible actors in a location, excluding the viewing actor.
 
@@ -530,7 +530,7 @@ def get_visible_actors_in_location(accessor: "StateAccessor", location_id: str, 
     return visible_actors
 
 
-def get_doors_in_location(accessor: "StateAccessor", location_id: str, actor_id: str) -> List["Item"]:
+def get_doors_in_location(accessor: "StateAccessor", location_id: str, actor_id: ActorId) -> List["Item"]:
     """
     Get all doors visible in a location.
 
@@ -707,7 +707,7 @@ def find_door_with_adjective(
     name: WordEntry,
     adjective: Optional[str],
     location_id: str,
-    actor_id: str = "player",
+    actor_id: ActorId,
     verb: Optional[str] = None
 ) -> Optional["Item"]:
     """
@@ -733,8 +733,6 @@ def find_door_with_adjective(
         Door Item if found, None otherwise
     """
     has_adjective = adjective and adjective.strip()
-    actor_id = actor_id or "player"
-
     # Collect all doors in location matching name
     matching_doors = []
 
@@ -843,7 +841,7 @@ def _is_item_visible_in_location(
     item: "Item",
     location_id: str,
     accessor: "StateAccessor",
-    actor_id: str = "player",
+    actor_id: ActorId,
     method: str = "look"
 ) -> bool:
     """
@@ -895,7 +893,7 @@ def _is_item_visible_in_location(
     return False
 
 
-def gather_location_contents(accessor: "StateAccessor", location_id: str, actor_id: str) -> Dict[str, Any]:
+def gather_location_contents(accessor: "StateAccessor", location_id: str, actor_id: ActorId) -> Dict[str, Any]:
     """
     Gather all visible contents of a location.
 
@@ -1038,7 +1036,7 @@ def describe_location(accessor: "StateAccessor", location: "Location", actor_id:
         message_parts.append(f"\nAlso here: {actor_names}")
 
     # Add visible exits
-    visible_exits = accessor.get_visible_exits(location.id, ActorId(actor_id))
+    visible_exits = accessor.get_visible_exits(location.id, actor_id)
     if visible_exits:
         exit_descriptions = []
         for direction, exit_desc in visible_exits.items():
@@ -1055,10 +1053,10 @@ def describe_location(accessor: "StateAccessor", location: "Location", actor_id:
 def find_lock_by_context(
     accessor: "StateAccessor",
     location_id: str,
+    actor_id: ActorId,
     direction: Optional[str] = None,
     door_name: Optional[WordEntry] = None,
-    door_adjective: Optional[str] = None,
-    actor_id: str = "player"
+    door_adjective: Optional[str] = None
 ) -> Optional["Lock"]:
     """
     Find a lock based on context (direction or door specification).
@@ -1123,7 +1121,7 @@ def find_lock_by_context(
 
     # Strategy 2: Find lock via door name
     if door_name:
-        door = find_door_with_adjective(accessor, door_name, door_adjective, location_id)
+        door = find_door_with_adjective(accessor, door_name, door_adjective, location_id, actor_id)
         if not door or not door.door_lock_id:
             return None
 
@@ -1133,7 +1131,7 @@ def find_lock_by_context(
     visible_locks = []
     for item in accessor.game_state.items:
         if item.is_door and item.door_lock_id:
-            if _is_item_visible_in_location(item, location_id, accessor):
+            if _is_item_visible_in_location(item, location_id, accessor, actor_id):
                 lock = _get_visible_lock(item.door_lock_id)
                 if lock:
                     visible_locks.append(lock)
@@ -1161,7 +1159,7 @@ DIRECTION_ABBREVIATIONS = {
 
 
 def find_exit_by_name(
-    accessor: "StateAccessor", name: WordEntry, actor_id: str, adjective: Optional[str] = None
+    accessor: "StateAccessor", name: WordEntry, actor_id: ActorId, adjective: Optional[str] = None
 ) -> Union[Tuple[str, "ExitDescriptor"], Tuple[None, List[str]], None]:
     """
     Find an exit in the current location by name, direction, or adjective.
@@ -1185,7 +1183,7 @@ def find_exit_by_name(
         - Tuple of (None, list_of_exit_names) if multiple ambiguous matches found
         - None if no match found
     """
-    location = accessor.get_current_location(ActorId(actor_id))
+    location = accessor.get_current_location(actor_id)
     if not location:
         return None
 
@@ -1193,7 +1191,7 @@ def find_exit_by_name(
     name_lower = name.word.lower().strip()
 
     # Get visible exits
-    visible_exits = accessor.get_visible_exits(location.id, ActorId(actor_id))
+    visible_exits = accessor.get_visible_exits(location.id, actor_id)
     if not visible_exits:
         return None
 

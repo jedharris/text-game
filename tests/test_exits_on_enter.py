@@ -1,4 +1,5 @@
 """Tests for on_enter event invocation when entering locations."""
+from src.types import ActorId
 
 import unittest
 from src.state_manager import GameState, Location, Actor, ExitDescriptor, Metadata
@@ -98,7 +99,7 @@ class TestOnEnterEvent(unittest.TestCase):
         self.assertIn("gust of wind", result.message.lower())
         self.assertIn("windy room", result.message.lower())
         # Player should have moved
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         self.assertEqual(player.location, "room2")
 
     def test_go_without_behavior_no_on_enter(self):
@@ -116,7 +117,7 @@ class TestOnEnterEvent(unittest.TestCase):
         self.assertNotIn("gust of wind", result.message.lower())
         self.assertIn("safe room", result.message.lower())
         # Player should have moved
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         self.assertEqual(player.location, "room3")
 
     def test_climb_invokes_on_enter(self):
@@ -150,7 +151,7 @@ class TestOnEnterEvent(unittest.TestCase):
         # Check that on_enter message is included
         self.assertIn("gust of wind", result.message.lower())
         # Player should have moved
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         self.assertEqual(player.location, "room2")
 
     def test_on_enter_receives_context(self):

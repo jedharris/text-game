@@ -3,6 +3,7 @@ Tests for StateAccessor part query methods.
 
 Following TDD approach - these tests are written first before implementation.
 """
+from src.types import ActorId
 import unittest
 from src.state_manager import Part, GameState, Metadata, Location, Item, Actor
 from src.state_accessor import StateAccessor
@@ -128,7 +129,7 @@ class TestStateAccessorParts(unittest.TestCase):
 
     def test_get_focused_entity_returns_part(self):
         """Test get_focused_entity can return part."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         player.properties["focused_on"] = "part_bench_left"
 
         focused = self.accessor.get_focused_entity("player")
@@ -139,7 +140,7 @@ class TestStateAccessorParts(unittest.TestCase):
 
     def test_get_focused_entity_returns_item(self):
         """Test get_focused_entity can return item."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         player.properties["focused_on"] = "item_bench"
 
         focused = self.accessor.get_focused_entity("player")

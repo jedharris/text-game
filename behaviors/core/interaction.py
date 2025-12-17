@@ -3,10 +3,11 @@
 Vocabulary for general object interactions.
 """
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, cast
 
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
+from src.types import ActorId
 from utilities.utils import find_accessible_item
 from utilities.handler_utils import find_action_target, find_openable_target
 from utilities.entity_serializer import serialize_for_handler_result
@@ -314,7 +315,7 @@ def _handle_generic_interaction(accessor, action, required_property: Optional[st
             message="INCONSISTENT STATE: verb not provided in action"
         )
 
-    actor_id = action.get("actor_id", "player")
+    actor_id = cast(ActorId, action.get("actor_id") or ActorId("player"))
 
     # Property validation if required
     if required_property and not item.properties.get(required_property, False):

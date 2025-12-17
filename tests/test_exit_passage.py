@@ -11,7 +11,7 @@ from src.state_manager import (
 )
 from src.state_accessor import StateAccessor
 from src.behavior_manager import BehaviorManager
-from src.types import LocationId
+from src.types import LocationId, ActorId
 from behaviors.core.exits import handle_go, handle_up, handle_down
 
 
@@ -310,7 +310,7 @@ class TestExitPassageMovementMessages(unittest.TestCase):
     def test_passage_first_when_door_at_destination(self):
         """When door_at == destination, message mentions passage first."""
         # Move player to sanctum first
-        self.state.actors["player"].location = "sanctum"
+        self.state.actors[ActorId("player")].location = "sanctum"
 
         # Player is at sanctum, door_at is library (the destination)
         # So: passage first, then door

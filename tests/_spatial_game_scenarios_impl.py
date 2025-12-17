@@ -7,6 +7,7 @@ to ensure module isolation.
 DO NOT import this module directly in the test suite - it will cause
 module pollution issues.
 """
+from src.types import ActorId
 
 import sys
 import unittest
@@ -46,17 +47,27 @@ def _setup_paths():
 # Set up paths before importing game modules
 _setup_paths()
 
-from src.game_engine import GameEngine
-from src.text_game import format_command_result
+try:
+    from src.game_engine import GameEngine
+    from src.text_game import format_command_result
+    WX_TEXT_GAME_AVAILABLE = True
+except ModuleNotFoundError as exc:
+    if exc.name == "wx":
+        WX_TEXT_GAME_AVAILABLE = False
+        GameEngine = None  # type: ignore[assignment]
+        format_command_result = None  # type: ignore[assignment]
+    else:
+        raise
 
 
+@unittest.skipUnless(WX_TEXT_GAME_AVAILABLE, "wxPython not installed")
 class TestMagicStaircaseVisibility(unittest.TestCase):
     """Test the magic staircase visibility puzzle in spatial_game."""
 
     def setUp(self):
         """Set up spatial_game engine."""
         self.engine = GameEngine(SPATIAL_GAME_DIR)
-        self.player = self.engine.game_state.actors['player']
+        self.player = self.engine.game_state.actors[ActorId('player')]
 
     def _execute(self, verb, obj=None):
         """Execute a command and return the response."""
@@ -117,13 +128,14 @@ class TestMagicStaircaseVisibility(unittest.TestCase):
         self.assertEqual(self.player.location, 'loc_library')
 
 
+@unittest.skipUnless(WX_TEXT_GAME_AVAILABLE, "wxPython not installed")
 class TestMagicStarPuzzle(unittest.TestCase):
     """Test the magic star retrieval puzzle."""
 
     def setUp(self):
         """Set up spatial_game engine."""
         self.engine = GameEngine(SPATIAL_GAME_DIR)
-        self.player = self.engine.game_state.actors['player']
+        self.player = self.engine.game_state.actors[ActorId('player')]
         # Start in garden where the tree and bench are
         self.player.location = 'loc_garden'
 
@@ -210,13 +222,14 @@ class TestMagicStarPuzzle(unittest.TestCase):
         self.assertIn("item_magic_star", self.player.inventory)
 
 
+@unittest.skipUnless(WX_TEXT_GAME_AVAILABLE, "wxPython not installed")
 class TestExitDescriptions(unittest.TestCase):
     """Test that exits are properly displayed in all locations."""
 
     def setUp(self):
         """Set up spatial_game engine."""
         self.engine = GameEngine(SPATIAL_GAME_DIR)
-        self.player = self.engine.game_state.actors['player']
+        self.player = self.engine.game_state.actors[ActorId('player')]
 
     def _look(self):
         """Execute look and return formatted output."""
@@ -255,13 +268,14 @@ class TestExitDescriptions(unittest.TestCase):
         self.assertIn("ornate door (up)", output)
 
 
+@unittest.skipUnless(WX_TEXT_GAME_AVAILABLE, "wxPython not installed")
 class TestFullPuzzleSolution(unittest.TestCase):
     """Test playing through the complete star/staircase puzzle."""
 
     def setUp(self):
         """Set up spatial_game engine."""
         self.engine = GameEngine(SPATIAL_GAME_DIR)
-        self.player = self.engine.game_state.actors['player']
+        self.player = self.engine.game_state.actors[ActorId('player')]
         # Start in garden (the default start location)
         self.player.location = 'loc_garden'
 

@@ -6,10 +6,11 @@ Demonstrates:
 - Location state management
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, cast
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
 from src.word_entry import WordEntry, WordType
+from src.types import ActorId
 from utilities.utils import find_item_in_inventory, find_accessible_item
 
 # Import library functions
@@ -45,7 +46,7 @@ def handle_water(accessor, action: Dict) -> HandlerResult:
     Returns:
         HandlerResult with success flag and message
     """
-    actor_id = action.get("actor_id", "player")
+    actor_id = cast(ActorId, action.get("actor_id") or ActorId("player"))
     obj_name = action.get("object")
     adjective = action.get("adjective")
 

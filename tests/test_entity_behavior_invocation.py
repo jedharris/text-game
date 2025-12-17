@@ -5,6 +5,7 @@ Phase C-2 Part A: These tests verify that the manipulation handlers
 properly invoke entity behaviors (on_take, on_drop) by passing the
 verb parameter to accessor.update().
 """
+from src.types import ActorId
 
 import unittest
 from pathlib import Path
@@ -119,7 +120,7 @@ class TestEntityBehaviorInvocationOnDrop(unittest.TestCase):
         lantern = self.state.get_item("lantern")
         lantern.location = "player"
         lantern.states["lit"] = True
-        self.state.actors["player"].inventory = ["lantern"]
+        self.state.actors[ActorId("player")].inventory = ["lantern"]
 
     def test_drop_invokes_on_drop_behavior(self):
         """Test that dropping an item invokes its on_drop behavior."""
@@ -165,7 +166,7 @@ class TestEntityBehaviorInvocationNPC(unittest.TestCase):
         self.accessor = StateAccessor(self.state, self.manager)
 
         # Add NPC in same room
-        self.state.actors["guard"] = Actor(
+        self.state.actors[ActorId("guard")] = Actor(
             id="guard",
             name="guard",
             description="A guard.",

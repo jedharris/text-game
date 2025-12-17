@@ -1,4 +1,5 @@
 """Tests for preposition-based exit traversal (go through archway)."""
+from src.types import ActorId
 
 import json
 import tempfile
@@ -102,7 +103,7 @@ class TestGoThroughPreposition(unittest.TestCase):
 
         self.assertTrue(result.success)
         self.assertIn("second room", result.message.lower())
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         self.assertEqual(player.location, "room2")
 
     def test_go_through_nonexistent_exit_fails(self):
@@ -116,7 +117,7 @@ class TestGoThroughPreposition(unittest.TestCase):
         self.assertFalse(result.success)
         self.assertIn("don't see", result.message.lower())
         # Player should not have moved
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         self.assertEqual(player.location, "room1")
 
     def test_walk_through_uses_synonym(self):
@@ -128,7 +129,7 @@ class TestGoThroughPreposition(unittest.TestCase):
         result = handle_go(self.accessor, action)
 
         self.assertTrue(result.success)
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         self.assertEqual(player.location, "room2")
 
     def test_go_through_stairs_traverses_exit(self):
@@ -137,7 +138,7 @@ class TestGoThroughPreposition(unittest.TestCase):
         Tests synonym matching in exit names.
         """
         # Move player to room3 first
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         self.accessor.update(player, {"location": "room3"})
 
         parsed = self.parser.parse_command("go through stairs")
@@ -147,7 +148,7 @@ class TestGoThroughPreposition(unittest.TestCase):
         result = handle_go(self.accessor, action)
 
         self.assertTrue(result.success)
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         self.assertEqual(player.location, "room4")
 
     def test_go_through_full_name_works(self):
@@ -159,7 +160,7 @@ class TestGoThroughPreposition(unittest.TestCase):
         result = handle_go(self.accessor, action)
 
         self.assertTrue(result.success)
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         self.assertEqual(player.location, "room2")
 
     def test_go_north_still_works(self):
@@ -171,7 +172,7 @@ class TestGoThroughPreposition(unittest.TestCase):
         result = handle_go(self.accessor, action)
 
         self.assertTrue(result.success)
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         self.assertEqual(player.location, "room2")
 
 

@@ -3,6 +3,7 @@
 These tests verify that commands like 'look', 'put X on Y', and 'examine'
 work correctly through the JSON protocol interface.
 """
+from src.types import ActorId
 
 import unittest
 import json
@@ -19,7 +20,16 @@ from src.state_manager import load_game_state
 from src.behavior_manager import BehaviorManager
 from src.llm_protocol import LLMProtocolHandler
 from src.vocabulary_generator import extract_nouns_from_state, merge_vocabulary
-from src.text_game import format_command_result
+
+try:
+    from src.text_game import format_command_result
+    WX_TEXT_GAME_AVAILABLE = True
+except ModuleNotFoundError as exc:
+    if exc.name == "wx":
+        WX_TEXT_GAME_AVAILABLE = False
+        format_command_result = None  # type: ignore[assignment]
+    else:
+        raise
 
 
 class TestVocabularyMerging(unittest.TestCase):
@@ -152,8 +162,9 @@ class TestLocationQuery(unittest.TestCase):
         self.handler = LLMProtocolHandler(self.state, behavior_manager=self.behavior_manager)
 
         # Move player to hallway where table with lantern is
-        self.state.actors["player"].location = "loc_hallway"
+        self.state.actors[ActorId("player")].location = "loc_hallway"
 
+    @unittest.skipUnless(WX_TEXT_GAME_AVAILABLE, "wxPython not installed")
     def test_look_command_shows_items_on_surfaces(self):
         """Test that look command shows items on surface containers."""
         response = self.handler.handle_message({
@@ -196,7 +207,7 @@ class TestExamineCommand(unittest.TestCase):
         self.handler = LLMProtocolHandler(self.state, behavior_manager=self.behavior_manager)
 
         # Move player to hallway where table with lantern is
-        self.state.actors["player"].location = "loc_hallway"
+        self.state.actors[ActorId("player")].location = "loc_hallway"
 
     def test_examine_command_finds_item_by_name(self):
         """Test that examine command finds items by name."""

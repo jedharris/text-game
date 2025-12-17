@@ -7,6 +7,7 @@ Tests:
 3. Service payment via give
 4. Generic acceptance for non-trade items
 """
+from src.types import ActorId
 
 import unittest
 import sys
@@ -46,7 +47,7 @@ class TestTradingBehavior(unittest.TestCase):
             },
             behaviors=["behavior_libraries.actor_lib.trading"]
         )
-        state.actors["npc_trader"] = trader
+        state.actors[ActorId("npc_trader")] = trader
 
         # Create trade item (player will give this)
         trade_good = Item(
@@ -71,7 +72,7 @@ class TestTradingBehavior(unittest.TestCase):
         state.items.append(reward)
 
         # Add trade_good to player inventory
-        state.actors["player"].inventory.append("item_trade_good")
+        state.actors[ActorId("player")].inventory.append("item_trade_good")
 
         return state
 
@@ -103,8 +104,8 @@ class TestTradingBehavior(unittest.TestCase):
         behavior_manager.load_module(behavior_libraries.actor_lib.trading)
         accessor = StateAccessor(state, behavior_manager)
 
-        player = state.actors["player"]
-        trader = state.actors["npc_trader"]
+        player = state.actors[ActorId("player")]
+        trader = state.actors[ActorId("npc_trader")]
 
         # Before trade
         self.assertIn("item_trade_good", player.inventory)
@@ -133,7 +134,7 @@ class TestTradingBehavior(unittest.TestCase):
         behavior_manager.load_module(behavior_libraries.actor_lib.trading)
         accessor = StateAccessor(state, behavior_manager)
 
-        player = state.actors["player"]
+        player = state.actors[ActorId("player")]
 
         # Give the sword (not a trade item) to the trader
         sword = state.get_item("item_sword")
@@ -159,7 +160,7 @@ class TestTradingBehavior(unittest.TestCase):
         accessor = StateAccessor(state, behavior_manager)
 
         # Remove reward from trader inventory
-        trader = state.actors["npc_trader"]
+        trader = state.actors[ActorId("npc_trader")]
         trader.inventory.remove("item_reward")
 
         from behaviors.core.manipulation import handle_give
@@ -188,10 +189,10 @@ class TestTradingBehavior(unittest.TestCase):
             properties={},
             behaviors=[]
         )
-        state.actors["npc_guard"] = guard
+        state.actors[ActorId("npc_guard")] = guard
 
         # Give sword to guard
-        player = state.actors["player"]
+        player = state.actors[ActorId("player")]
         sword = state.get_item("item_sword")
         sword.location = "player"
         player.inventory.append("item_sword")
@@ -234,7 +235,7 @@ class TestOnReceiveItemBehavior(unittest.TestCase):
             },
             behaviors=[]
         )
-        state.actors["npc_trader"] = trader
+        state.actors[ActorId("npc_trader")] = trader
 
         # Create items
         test_item = Item(
@@ -269,7 +270,7 @@ class TestOnReceiveItemBehavior(unittest.TestCase):
         self.assertEqual("Trade complete!", result.message)
 
         # Check reward transferred
-        player = state.actors["player"]
+        player = state.actors[ActorId("player")]
         self.assertIn("item_reward", player.inventory)
 
     def test_on_receive_item_no_trade_generic_accept(self):
@@ -297,7 +298,7 @@ class TestOnReceiveItemBehavior(unittest.TestCase):
             },
             behaviors=[]
         )
-        state.actors["npc_trader"] = trader
+        state.actors[ActorId("npc_trader")] = trader
 
         sword = state.get_item("item_sword")
 

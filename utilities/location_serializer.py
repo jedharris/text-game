@@ -9,11 +9,12 @@ All location serialization for LLM communication should use this function.
 """
 from typing import Any, Dict, Optional
 
+from src.types import ActorId
 from utilities.entity_serializer import entity_to_dict
 from utilities.utils import gather_location_contents
 
 
-def _build_player_context(accessor, actor_id: str) -> Dict[str, Any]:
+def _build_player_context(accessor, actor_id: ActorId) -> Dict[str, Any]:
     """Build player_context dict from actor's posture and focus.
 
     Returns a dict with the player's current positioning state for
@@ -49,7 +50,7 @@ def _build_player_context(accessor, actor_id: str) -> Dict[str, Any]:
     return context
 
 
-def serialize_location_for_llm(accessor, location, actor_id: str) -> Dict[str, Any]:
+def serialize_location_for_llm(accessor, location, actor_id: ActorId) -> Dict[str, Any]:
     """Serialize a location and its visible contents for LLM consumption.
 
     Produces a consistent structure suitable for both protocol queries and

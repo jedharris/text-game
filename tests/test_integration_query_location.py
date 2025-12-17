@@ -3,6 +3,7 @@ Tests for location query refactoring (Phase I-3).
 
 Reference: behavior_refactoring_testing.md lines 573-605 (NPC test pattern)
 """
+from src.types import ActorId
 
 import unittest
 from src.llm_protocol import LLMProtocolHandler
@@ -44,7 +45,7 @@ class TestLocationQueryRefactoring(unittest.TestCase):
         # Add NPC to same location as player
         npc = Actor(id="npc_guard", name="guard", description="A guard",
                    location="location_room", inventory=[], properties={}, behaviors=[])
-        self.state.actors["npc_guard"] = npc
+        self.state.actors[ActorId("npc_guard")] = npc
 
         message = {
             "type": "query",
@@ -66,7 +67,7 @@ class TestLocationQueryRefactoring(unittest.TestCase):
         """
         npc = Actor(id="npc_guard", name="guard", description="A guard",
                    location="location_room", inventory=[], properties={}, behaviors=[])
-        self.state.actors["npc_guard"] = npc
+        self.state.actors[ActorId("npc_guard")] = npc
 
         message = {
             "type": "query",
@@ -85,7 +86,7 @@ class TestLocationQueryRefactoring(unittest.TestCase):
         """Test that missing actor_id defaults to player."""
         npc = Actor(id="npc_guard", name="guard", description="A guard",
                    location="location_room", inventory=[], properties={}, behaviors=[])
-        self.state.actors["npc_guard"] = npc
+        self.state.actors[ActorId("npc_guard")] = npc
 
         message = {
             "type": "query",

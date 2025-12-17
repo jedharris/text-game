@@ -6,8 +6,10 @@ Provides helper functions to reduce code duplication across handlers.
 """
 from typing import Any, Optional, Tuple, List
 
+from src.types import ActorId
 
-def try_implicit_positioning(accessor, actor_id: str, target_entity) -> Tuple[bool, Optional[str]]:
+
+def try_implicit_positioning(accessor, actor_id: ActorId, target_entity) -> Tuple[bool, Optional[str]]:
     """
     Handle implicit positioning for entity interaction.
 
@@ -134,7 +136,7 @@ def find_part_by_name(accessor, part_name, location_id: str):
     return None
 
 
-def find_and_position_item(accessor, actor_id: str, object_name, adjective: Optional[str] = None) -> Tuple[Optional[Any], Optional[str]]:
+def find_and_position_item(accessor, actor_id: ActorId, object_name, adjective: Optional[str] = None) -> Tuple[Optional[Any], Optional[str]]:
     """
     Find accessible item and apply implicit positioning.
 
@@ -175,7 +177,7 @@ def find_and_position_item(accessor, actor_id: str, object_name, adjective: Opti
     return (item, move_message)
 
 
-def find_and_position_part(accessor, actor_id: str, object_name, location_id: str) -> Tuple[Optional[Any], Optional[str]]:
+def find_and_position_part(accessor, actor_id: ActorId, object_name, location_id: str) -> Tuple[Optional[Any], Optional[str]]:
     """
     Find part and apply implicit positioning.
 

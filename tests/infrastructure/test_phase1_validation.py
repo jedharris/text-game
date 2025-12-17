@@ -3,6 +3,7 @@ Phase 1 Validation Module Tests
 
 Tests for infrastructure validation functions.
 """
+from src.types import ActorId
 
 import unittest
 from dataclasses import dataclass, field
@@ -153,7 +154,7 @@ class TestValidateStateMachines(unittest.TestCase):
     def test_valid_state_machine(self) -> None:
         """Valid state machine produces no errors."""
         state = MockState()
-        state.actors["npc"] = MockActor(
+        state.actors[ActorId("npc")] = MockActor(
             id="npc",
             properties={
                 "state_machine": {
@@ -169,7 +170,7 @@ class TestValidateStateMachines(unittest.TestCase):
     def test_missing_states(self) -> None:
         """Missing states field produces error."""
         state = MockState()
-        state.actors["npc"] = MockActor(
+        state.actors[ActorId("npc")] = MockActor(
             id="npc",
             properties={"state_machine": {"initial": "alive"}},
         )
@@ -180,7 +181,7 @@ class TestValidateStateMachines(unittest.TestCase):
     def test_missing_initial(self) -> None:
         """Missing initial field produces error."""
         state = MockState()
-        state.actors["npc"] = MockActor(
+        state.actors[ActorId("npc")] = MockActor(
             id="npc",
             properties={"state_machine": {"states": ["alive", "dead"]}},
         )
@@ -191,7 +192,7 @@ class TestValidateStateMachines(unittest.TestCase):
     def test_initial_not_in_states(self) -> None:
         """Initial state not in states list produces error."""
         state = MockState()
-        state.actors["npc"] = MockActor(
+        state.actors[ActorId("npc")] = MockActor(
             id="npc",
             properties={
                 "state_machine": {
@@ -207,7 +208,7 @@ class TestValidateStateMachines(unittest.TestCase):
     def test_current_not_in_states(self) -> None:
         """Current state not in states list produces error."""
         state = MockState()
-        state.actors["npc"] = MockActor(
+        state.actors[ActorId("npc")] = MockActor(
             id="npc",
             properties={
                 "state_machine": {
@@ -224,7 +225,7 @@ class TestValidateStateMachines(unittest.TestCase):
     def test_actor_without_state_machine(self) -> None:
         """Actor without state machine produces no errors."""
         state = MockState()
-        state.actors["npc"] = MockActor(id="npc", properties={})
+        state.actors[ActorId("npc")] = MockActor(id="npc", properties={})
 
         errors = validate_state_machines(state)  # type: ignore[arg-type]
         self.assertEqual(errors, [])
@@ -411,7 +412,7 @@ class TestValidateCompanionRestrictions(unittest.TestCase):
     def test_valid_companion(self) -> None:
         """Valid companion produces no errors."""
         state = MockState()
-        state.actors["echo"] = MockActor(id="echo")
+        state.actors[ActorId("echo")] = MockActor(id="echo")
         state.extra["companions"] = [{"actor_id": "echo", "status": "following"}]
 
         errors = validate_companion_restrictions(state)  # type: ignore[arg-type]
@@ -436,7 +437,7 @@ class TestValidateCompanionRestrictions(unittest.TestCase):
     def test_invalid_status(self) -> None:
         """Invalid status produces error."""
         state = MockState()
-        state.actors["echo"] = MockActor(id="echo")
+        state.actors[ActorId("echo")] = MockActor(id="echo")
         state.extra["companions"] = [{"actor_id": "echo", "status": "dancing"}]
 
         errors = validate_companion_restrictions(state)  # type: ignore[arg-type]

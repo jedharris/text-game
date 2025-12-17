@@ -1,6 +1,6 @@
 """Behavior management system for entity events."""
 
-from typing import Optional, Dict, Any, List, Callable, TYPE_CHECKING, Tuple
+from typing import Optional, Dict, Any, List, Callable, TYPE_CHECKING, Tuple, Protocol
 from dataclasses import dataclass, field
 import importlib
 import os
@@ -14,6 +14,13 @@ from src.action_types import ActionDict, HandlerCallable
 if TYPE_CHECKING:
     from src.state_accessor import StateAccessor
     from src.state_manager import Entity
+
+
+class EventCallable(Protocol):
+    """Signature for entity behavior callbacks."""
+
+    def __call__(self, entity: "Entity", accessor: "StateAccessor", context: Dict[str, Any]) -> Optional[EventResult]:
+        ...
 
 
 @dataclass
@@ -33,7 +40,7 @@ class BehaviorManager:
     """
 
     def __init__(self) -> None:
-        self._behavior_cache: Dict[str, Callable] = {}
+        self._behavior_cache: Dict[str, EventCallable] = {}
         # Handler storage: verb -> list of (tier, handler, module_name) tuples (sorted by tier)
         self._handlers: Dict[str, List[Tuple[int, HandlerCallable, str]]] = {}
         # Track verb-to-event mappings with tiers: verb -> list of (tier, event_name) tuples
@@ -678,7 +685,7 @@ class BehaviorManager:
                             f"or rename the function to not use 'on_' prefix."
                         )
 
-    def load_behavior(self, behavior_path: str) -> Optional[Callable]:
+    def load_behavior(self, behavior_path: str) -> Optional[EventCallable]:
         """
         Load a behavior function from module path.
 
@@ -694,7 +701,7 @@ class BehaviorManager:
         try:
             module_path, function_name = behavior_path.split(':')
             module = importlib.import_module(module_path)
-            behavior_func: Callable[..., Any] = getattr(module, function_name)
+            behavior_func: EventCallable = getattr(module, function_name)
             self._behavior_cache[behavior_path] = behavior_func
             return behavior_func
 
@@ -785,8 +792,8 @@ class BehaviorManager:
             handler = getattr(module, event_name)
 
             try:
-                # Call handler with entity, state (via accessor), context
-                result = handler(entity, accessor.game_state, context)
+                # Call handler with entity, accessor, context
+                result = handler(entity, accessor, context)
 
                 if isinstance(result, EventResult):
                     results.append(result)

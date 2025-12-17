@@ -12,6 +12,7 @@ UC8 Tests:
 - TestUC8Functional: Statue becomes functional at health threshold
 - TestUC8GuardDuty: Activated statue guards location
 """
+from src.types import ActorId
 
 import sys
 import unittest
@@ -54,8 +55,8 @@ class TestUC8Repair(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors['player']
-        self.statue = self.engine.game_state.actors['npc_broken_statue']
+        self.player = self.engine.game_state.actors[ActorId('player')]
+        self.statue = self.engine.game_state.actors[ActorId('npc_broken_statue')]
         self.chisel = None
         for item in self.engine.game_state.items:
             if item.id == 'item_stone_chisel':
@@ -117,7 +118,7 @@ class TestUC8Functional(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.statue = self.engine.game_state.actors['npc_broken_statue']
+        self.statue = self.engine.game_state.actors[ActorId('npc_broken_statue')]
 
     def test_statue_not_functional_initially(self):
         """Statue starts non-functional."""
@@ -192,9 +193,9 @@ class TestUC8GuardDuty(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.statue = self.engine.game_state.actors['npc_broken_statue']
+        self.statue = self.engine.game_state.actors[ActorId('npc_broken_statue')]
         # Get a hostile actor (spider queen)
-        self.hostile = self.engine.game_state.actors.get('npc_spider_queen')
+        self.hostile = self.engine.game_state.actors.get(ActorId('npc_spider_queen'))
 
     def test_statue_has_guarding_location(self):
         """Statue has guarding property."""

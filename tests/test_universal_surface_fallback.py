@@ -3,6 +3,7 @@ Tests for universal surface fallback in handle_examine.
 
 Following TDD approach - these tests are written first before implementation.
 """
+from src.types import ActorId
 import unittest
 from src.state_manager import GameState, Metadata, Location, Item, Actor, Part
 from src.state_accessor import StateAccessor
@@ -102,7 +103,7 @@ class TestUniversalSurfaceFallback(unittest.TestCase):
 
     def test_universal_surface_fallback_does_not_set_focus(self):
         """Test examining universal surface fallback doesn't set focus."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
 
         action = make_action(verb="examine", object="ceiling")
         result = handle_examine(self.accessor, action)
@@ -202,7 +203,7 @@ class TestExplicitPartOverridesUniversalSurface(unittest.TestCase):
 
     def test_explicit_part_sets_focus(self):
         """Test examining explicit part sets focus."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
 
         action = make_action(verb="examine", object="ceiling")
         result = handle_examine(self.accessor, action)
@@ -225,7 +226,7 @@ class TestExplicitPartOverridesUniversalSurface(unittest.TestCase):
         )
         self.game_state.parts.append(wall_part)
 
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
 
         action = make_action(verb="examine", object="wall")
         result = handle_examine(self.accessor, action)

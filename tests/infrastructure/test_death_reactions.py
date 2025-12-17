@@ -1,4 +1,5 @@
 """Tests for death_reactions infrastructure dispatcher."""
+from src.types import ActorId
 
 import unittest
 from typing import Any
@@ -109,7 +110,7 @@ class TestDeathReactionsDataDriven(unittest.TestCase):
             "npc_beta_wolf",
             {"trust_state": {"current": 2, "floor": -5, "ceiling": 5}},
         )
-        self.accessor.state.actors["npc_beta_wolf"] = beta_wolf
+        self.accessor.state.actors[ActorId("npc_beta_wolf")] = beta_wolf
 
         entity = MockEntity(
             "npc_alpha_wolf",
@@ -131,7 +132,7 @@ class TestDeathReactionsDataDriven(unittest.TestCase):
             "npc_beta_wolf",
             {"trust_state": {"current": 0, "floor": -2, "ceiling": 5}},
         )
-        self.accessor.state.actors["npc_beta_wolf"] = beta_wolf
+        self.accessor.state.actors[ActorId("npc_beta_wolf")] = beta_wolf
 
         entity = MockEntity(
             "npc_alpha_wolf",
@@ -159,7 +160,7 @@ class TestDeathReactionsDataDriven(unittest.TestCase):
                 }
             },
         )
-        self.accessor.state.actors["npc_beta_wolf"] = beta_wolf
+        self.accessor.state.actors[ActorId("npc_beta_wolf")] = beta_wolf
 
         entity = MockEntity(
             "npc_alpha_wolf",
@@ -197,8 +198,8 @@ class TestDeathReactionsDataDriven(unittest.TestCase):
                 }
             },
         )
-        self.accessor.state.actors["npc_beta_wolf"] = beta_wolf
-        self.accessor.state.actors["npc_gamma_wolf"] = gamma_wolf
+        self.accessor.state.actors[ActorId("npc_beta_wolf")] = beta_wolf
+        self.accessor.state.actors[ActorId("npc_gamma_wolf")] = gamma_wolf
 
         entity = MockEntity(
             "npc_alpha_wolf",
@@ -231,7 +232,7 @@ class TestDeathReactionsDataDriven(unittest.TestCase):
                 },
             },
         )
-        self.accessor.state.actors["npc_beta_wolf"] = beta_wolf
+        self.accessor.state.actors[ActorId("npc_beta_wolf")] = beta_wolf
 
         entity = MockEntity(
             "npc_alpha_wolf",

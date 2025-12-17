@@ -4,6 +4,7 @@ Tests for posture property semantics.
 The posture property tracks an actor's special positioning mode
 (cover, concealed, climbing, etc.) and is automatically cleared when moving.
 """
+from src.types import ActorId
 import unittest
 from src.state_manager import GameState, Metadata, Location, Item, Actor
 from src.state_accessor import StateAccessor
@@ -131,7 +132,7 @@ class TestPostureClearingOnMovement(unittest.TestCase):
 
     def test_posture_cleared_when_moving_between_entities(self):
         """Test posture cleared when examining different entity with movement."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         player.properties["focused_on"] = "item_desk"
         player.properties["posture"] = "cover"
 
@@ -147,7 +148,7 @@ class TestPostureClearingOnMovement(unittest.TestCase):
 
     def test_posture_preserved_when_reexamining_same_entity(self):
         """Test posture preserved when examining same focused entity."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
         player.properties["focused_on"] = "item_desk"
         player.properties["posture"] = "cover"
 
@@ -163,7 +164,7 @@ class TestPostureClearingOnMovement(unittest.TestCase):
 
     def test_posture_preserved_when_no_movement_occurs(self):
         """Test posture preserved when examining 'any' distance item (no movement)."""
-        player = self.accessor.get_actor("player")
+        player = self.accessor.get_actor(ActorId("player"))
 
         # Add item with "any" distance (no movement)
         item_chandelier = Item(

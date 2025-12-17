@@ -1,4 +1,5 @@
 """Tests for scheduled events system."""
+from src.types import ActorId
 
 import unittest
 from unittest.mock import Mock
@@ -16,7 +17,7 @@ class TestScheduleEvent(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='start', name='Start', description='A room'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[]
         )
@@ -36,7 +37,7 @@ class TestScheduleEvent(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='start', name='Start', description='A room'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[]
         )
@@ -59,7 +60,7 @@ class TestCancelEvent(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='start', name='Start', description='A room'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[]
         )
@@ -81,7 +82,7 @@ class TestCancelEvent(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='start', name='Start', description='A room'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[]
         )
@@ -106,7 +107,7 @@ class TestGetScheduledEvents(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='start', name='Start', description='A room'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[]
         )
@@ -125,7 +126,7 @@ class TestGetScheduledEvents(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='start', name='Start', description='A room'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[]
         )
@@ -148,7 +149,7 @@ class TestOnCheckScheduledEvents(unittest.TestCase):
         state = GameState(metadata=Metadata(title="Test"))
         state.turn_count = 100
         state.locations.append(Location(id='start', name='Start', description='A room'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[]
         )
@@ -175,7 +176,7 @@ class TestOnCheckScheduledEvents(unittest.TestCase):
         state = GameState(metadata=Metadata(title="Test"))
         state.turn_count = 50
         state.locations.append(Location(id='start', name='Start', description='A room'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[]
         )
@@ -199,7 +200,7 @@ class TestOnCheckScheduledEvents(unittest.TestCase):
         state = GameState(metadata=Metadata(title="Test"))
         state.turn_count = 20
         state.locations.append(Location(id='start', name='Start', description='A room'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[]
         )

@@ -17,6 +17,7 @@ from typing import Dict, Optional
 from src.action_types import ActionDict
 from src.state_accessor import HandlerResult
 from src.word_entry import WordEntry
+from src.types import ActorId
 from utilities.utils import name_matches
 from utilities.handler_utils import get_display_name
 from behavior_libraries.dialog_lib.topics import handle_ask_about, handle_talk_to
@@ -56,11 +57,11 @@ def handle_ask(accessor, action: Dict) -> HandlerResult:
     Returns:
         HandlerResult with success and message
     """
-    actor_id = action.get('actor_id', 'player')
+    actor_id = ActorId(action.get('actor_id', ActorId("player")))
     npc_name = action.get('object')
     topic = action.get('indirect_object') or action.get('raw_after_preposition', '')
 
-    if not npc_name:
+    if not isinstance(npc_name, WordEntry):
         return HandlerResult(success=False, message="Ask who?")
 
     if not topic:
@@ -96,11 +97,11 @@ def handle_talk(accessor, action: Dict) -> HandlerResult:
     Returns:
         HandlerResult with success and message
     """
-    actor_id = action.get('actor_id', 'player')
+    actor_id = ActorId(action.get('actor_id', ActorId("player")))
     # Try indirect_object first (from "talk to X"), then object
     npc_name = action.get('indirect_object') or action.get('object')
 
-    if not npc_name:
+    if not isinstance(npc_name, WordEntry):
         return HandlerResult(success=False, message="Talk to whom?")
 
     # Find the NPC
@@ -121,7 +122,7 @@ def handle_talk(accessor, action: Dict) -> HandlerResult:
     return HandlerResult(success=result.success, message=result.message)
 
 
-def find_accessible_actor(accessor, name: WordEntry, actor_id: str = 'player'):
+def find_accessible_actor(accessor, name: WordEntry, actor_id: ActorId = ActorId("player")):
     """
     Find an actor accessible to the specified actor.
 

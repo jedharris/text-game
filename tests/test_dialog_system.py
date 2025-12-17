@@ -1,4 +1,5 @@
 """Tests for dialog/conversation system."""
+from src.types import ActorId
 
 import unittest
 from unittest.mock import Mock
@@ -16,11 +17,11 @@ class TestGetAvailableTopics(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='start', name='Start', description='A room'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[]
         )
-        state.actors['scholar'] = Actor(
+        state.actors[ActorId('scholar')] = Actor(
             id='scholar', name='Scholar', description='A scholar',
             location='start', inventory=[],
             properties={
@@ -35,7 +36,7 @@ class TestGetAvailableTopics(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        topics = get_available_topics(accessor, state.actors['scholar'])
+        topics = get_available_topics(accessor, state.actors[ActorId('scholar')])
 
         self.assertIn('infection', topics)
 
@@ -45,12 +46,12 @@ class TestGetAvailableTopics(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='start', name='Start', description='A room'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[],
             properties={'flags': {}}
         )
-        state.actors['scholar'] = Actor(
+        state.actors[ActorId('scholar')] = Actor(
             id='scholar', name='Scholar', description='A scholar',
             location='start', inventory=[],
             properties={
@@ -65,7 +66,7 @@ class TestGetAvailableTopics(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        topics = get_available_topics(accessor, state.actors['scholar'])
+        topics = get_available_topics(accessor, state.actors[ActorId('scholar')])
 
         self.assertNotIn('cure', topics)
 
@@ -75,12 +76,12 @@ class TestGetAvailableTopics(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='start', name='Start', description='A room'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[],
             properties={'flags': {'knows_about_infection': True}}
         )
-        state.actors['scholar'] = Actor(
+        state.actors[ActorId('scholar')] = Actor(
             id='scholar', name='Scholar', description='A scholar',
             location='start', inventory=[],
             properties={
@@ -95,7 +96,7 @@ class TestGetAvailableTopics(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        topics = get_available_topics(accessor, state.actors['scholar'])
+        topics = get_available_topics(accessor, state.actors[ActorId('scholar')])
 
         self.assertIn('cure', topics)
 
@@ -109,11 +110,11 @@ class TestGetTopicHints(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='start', name='Start', description='A room'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[]
         )
-        state.actors['scholar'] = Actor(
+        state.actors[ActorId('scholar')] = Actor(
             id='scholar', name='Scholar', description='A scholar',
             location='start', inventory=[],
             properties={
@@ -128,7 +129,7 @@ class TestGetTopicHints(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        hints = get_topic_hints(accessor, state.actors['scholar'])
+        hints = get_topic_hints(accessor, state.actors[ActorId('scholar')])
 
         self.assertIn('infection', hints)
 
@@ -142,12 +143,12 @@ class TestHandleAskAbout(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='start', name='Start', description='A room'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[],
             properties={'flags': {}}
         )
-        state.actors['scholar'] = Actor(
+        state.actors[ActorId('scholar')] = Actor(
             id='scholar', name='Scholar', description='A scholar',
             location='start', inventory=[],
             properties={
@@ -163,7 +164,7 @@ class TestHandleAskAbout(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        result = handle_ask_about(accessor, state.actors['scholar'], 'sick')
+        result = handle_ask_about(accessor, state.actors[ActorId('scholar')], 'sick')
 
         self.assertTrue(result.success)
         self.assertIn('infection', result.message.lower())
@@ -174,12 +175,12 @@ class TestHandleAskAbout(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='start', name='Start', description='A room'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[],
             properties={'flags': {}}
         )
-        state.actors['scholar'] = Actor(
+        state.actors[ActorId('scholar')] = Actor(
             id='scholar', name='Scholar', description='A scholar',
             location='start', inventory=[],
             properties={
@@ -195,9 +196,9 @@ class TestHandleAskAbout(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        handle_ask_about(accessor, state.actors['scholar'], 'infection')
+        handle_ask_about(accessor, state.actors[ActorId('scholar')], 'infection')
 
-        self.assertTrue(state.actors['player'].properties['flags'].get('knows_about_infection'))
+        self.assertTrue(state.actors[ActorId('player')].properties['flags'].get('knows_about_infection'))
 
     def test_handle_ask_about_unlocks_topics(self):
         """Unlocks new topics when discussed."""
@@ -205,12 +206,12 @@ class TestHandleAskAbout(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='start', name='Start', description='A room'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[],
             properties={'flags': {}}
         )
-        state.actors['scholar'] = Actor(
+        state.actors[ActorId('scholar')] = Actor(
             id='scholar', name='Scholar', description='A scholar',
             location='start', inventory=[],
             properties={
@@ -233,9 +234,9 @@ class TestHandleAskAbout(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        handle_ask_about(accessor, state.actors['scholar'], 'infection')
+        handle_ask_about(accessor, state.actors[ActorId('scholar')], 'infection')
 
-        unlocked = state.actors['scholar'].properties.get('unlocked_topics', [])
+        unlocked = state.actors[ActorId('scholar')].properties.get('unlocked_topics', [])
         self.assertIn('cure', unlocked)
 
     def test_handle_ask_about_unknown_topic(self):
@@ -244,12 +245,12 @@ class TestHandleAskAbout(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='start', name='Start', description='A room'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[],
             properties={'flags': {}}
         )
-        state.actors['scholar'] = Actor(
+        state.actors[ActorId('scholar')] = Actor(
             id='scholar', name='Scholar', description='A scholar',
             location='start', inventory=[],
             properties={
@@ -259,7 +260,7 @@ class TestHandleAskAbout(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        result = handle_ask_about(accessor, state.actors['scholar'], 'dragons')
+        result = handle_ask_about(accessor, state.actors[ActorId('scholar')], 'dragons')
 
         self.assertTrue(result.success)  # Still succeeds, just with default message
         self.assertIn("don't know", result.message.lower())
@@ -274,11 +275,11 @@ class TestHandleTalkTo(unittest.TestCase):
 
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(id='start', name='Start', description='A room'))
-        state.actors['player'] = Actor(
+        state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[]
         )
-        state.actors['scholar'] = Actor(
+        state.actors[ActorId('scholar')] = Actor(
             id='scholar', name='Scholar', description='A scholar',
             location='start', inventory=[],
             properties={
@@ -293,7 +294,7 @@ class TestHandleTalkTo(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        result = handle_talk_to(accessor, state.actors['scholar'])
+        result = handle_talk_to(accessor, state.actors[ActorId('scholar')])
 
         self.assertTrue(result.success)
         self.assertIn('infection', result.message.lower())

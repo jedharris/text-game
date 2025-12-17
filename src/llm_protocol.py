@@ -7,9 +7,9 @@ Processes commands and queries, returning structured JSON results.
 
 import json
 import random
-from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING, Callable, Tuple
+from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING, Callable, Tuple, cast
 
-from src.action_types import ActionDict, CommandMessage, ResultMessage, WordLike
+from src.action_types import ActionDict, CommandMessage, ResultMessage
 from .types import ActorId, HookName
 
 if TYPE_CHECKING:
@@ -256,9 +256,10 @@ class LLMProtocolHandler:
             event_name = self.behavior_manager.get_event_for_hook(HookName(hook_name))
             if event_name:
                 # Build context for the turn phase
+                actor_id: ActorId = action.get("actor_id") or ActorId("player")
                 context: Dict[str, Any] = {
                     "hook": hook_name,
-                    "actor_id": action.get("actor_id", "player"),
+                    "actor_id": actor_id,
                 }
 
                 # Invoke behaviors registered for this event
@@ -304,7 +305,7 @@ class LLMProtocolHandler:
 
         loc = self._get_current_location()
         include = message.get("include", [])
-        actor_id = message.get("actor_id", "player")
+        actor_id = cast(ActorId, message.get("actor_id") or ActorId("player"))
 
         accessor = StateAccessor(self.state, self.behavior_manager)
         full_data = serialize_location_for_llm(accessor, loc, actor_id)
