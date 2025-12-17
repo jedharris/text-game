@@ -13,18 +13,6 @@ behaviors/core/manipulation.py
 behaviors/core/meta.py
 behaviors/core/perception.py
 behaviors/core/spatial.py
-behaviors/infrastructure/__init__.py
-behaviors/infrastructure/commitments.py
-behaviors/infrastructure/death_reactions.py
-behaviors/infrastructure/dialog_reactions.py
-behaviors/infrastructure/dispatcher_utils.py
-behaviors/infrastructure/gift_reactions.py
-behaviors/infrastructure/gossip.py
-behaviors/infrastructure/item_use_reactions.py
-behaviors/infrastructure/pack_mirroring.py
-behaviors/infrastructure/scheduled_events.py
-behaviors/infrastructure/spreads.py
-behaviors/infrastructure/turn_phase_dispatcher.py
 behaviors/regions/beast_wilds/__init__.py
 behaviors/regions/beast_wilds/bear_cubs.py
 behaviors/regions/beast_wilds/bee_queen.py
@@ -109,6 +97,7 @@ tests/test_examine_doors.py
 tests/test_examine_exits.py
 tests/test_examine_implicit_positioning.py
 tests/test_examine_locks.py
+tests/test_exit_passage.py
 tests/test_exits_on_enter.py
 tests/test_exits_preposition.py
 tests/test_file_dialogs.py
