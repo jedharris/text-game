@@ -3,7 +3,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from examples.big_game.behaviors.infrastructure.dispatcher_utils import (
+from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import (
     clear_handler_cache,
     dispatch_or_process,
     load_handler,
@@ -30,25 +30,25 @@ class TestLoadHandler(unittest.TestCase):
 
     def test_load_handler_invalid_function(self) -> None:
         """Non-existent function returns None."""
-        result = load_handler("examples.big_game.behaviors.infrastructure.dispatcher_utils:nonexistent_func")
+        result = load_handler("examples.big_game.behaviors.shared.infrastructure.dispatcher_utils:nonexistent_func")
         self.assertIsNone(result)
 
     def test_load_handler_valid_path(self) -> None:
         """Valid handler path returns function."""
-        result = load_handler("examples.big_game.behaviors.infrastructure.dispatcher_utils:load_handler")
+        result = load_handler("examples.big_game.behaviors.shared.infrastructure.dispatcher_utils:load_handler")
         self.assertIsNotNone(result)
         self.assertEqual(result, load_handler)
 
     def test_load_handler_caching(self) -> None:
         """Handler is cached after first load."""
-        path = "examples.big_game.behaviors.infrastructure.dispatcher_utils:load_handler"
+        path = "examples.big_game.behaviors.shared.infrastructure.dispatcher_utils:load_handler"
         result1 = load_handler(path)
         result2 = load_handler(path)
         self.assertIs(result1, result2)
 
     def test_clear_handler_cache(self) -> None:
         """clear_handler_cache removes cached handlers."""
-        path = "examples.big_game.behaviors.infrastructure.dispatcher_utils:load_handler"
+        path = "examples.big_game.behaviors.shared.infrastructure.dispatcher_utils:load_handler"
         load_handler(path)
         clear_handler_cache()
         # After clear, handler should be reloaded (still works, just not cached)
@@ -72,7 +72,7 @@ class TestDispatchOrProcess(unittest.TestCase):
         mock_handler = MagicMock(return_value=handler_result)
 
         with patch(
-            "examples.big_game.behaviors.infrastructure.dispatcher_utils.load_handler",
+            "examples.big_game.behaviors.shared.infrastructure.dispatcher_utils.load_handler",
             return_value=mock_handler,
         ):
             config = {"handler": "some.module:handler_func"}

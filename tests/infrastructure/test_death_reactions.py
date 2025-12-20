@@ -5,8 +5,8 @@ import unittest
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-from examples.big_game.behaviors.infrastructure.dispatcher_utils import clear_handler_cache
-from examples.big_game.behaviors.infrastructure.death_reactions import on_entity_death
+from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
+from examples.big_game.behaviors.shared.infrastructure.death_reactions import on_entity_death
 from src.behavior_manager import EventResult
 
 
@@ -298,7 +298,7 @@ class TestDeathReactionsHandlerEscapeHatch(unittest.TestCase):
         mock_handler = MagicMock(return_value=handler_result)
 
         with patch(
-            "examples.big_game.behaviors.infrastructure.death_reactions.load_handler",
+            "examples.big_game.behaviors.shared.infrastructure.death_reactions.load_handler",
             return_value=mock_handler,
         ):
             result = on_entity_death(entity, self.accessor, context)

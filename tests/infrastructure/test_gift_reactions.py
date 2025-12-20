@@ -4,8 +4,8 @@ import unittest
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-from examples.big_game.behaviors.infrastructure.dispatcher_utils import clear_handler_cache
-from examples.big_game.behaviors.infrastructure.gift_reactions import on_gift_given
+from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
+from examples.big_game.behaviors.shared.infrastructure.gift_reactions import on_gift_given
 from src.behavior_manager import EventResult
 
 
@@ -57,7 +57,7 @@ class TestGiftReactionsHandlerEscapeHatch(unittest.TestCase):
         mock_handler = MagicMock(return_value=handler_result)
 
         with patch(
-            "examples.big_game.behaviors.infrastructure.gift_reactions.load_handler",
+            "examples.big_game.behaviors.shared.infrastructure.gift_reactions.load_handler",
             return_value=mock_handler,
         ):
             result = on_gift_given(item, self.accessor, context)

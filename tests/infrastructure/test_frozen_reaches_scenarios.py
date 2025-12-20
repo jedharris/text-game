@@ -10,7 +10,7 @@ from src.types import ActorId
 import unittest
 from typing import Any
 
-from examples.big_game.behaviors.infrastructure.dispatcher_utils import clear_handler_cache
+from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
 from examples.big_game.behaviors.regions.frozen_reaches.hypothermia import (
     COLD_RATES,
     GEAR_COLD_REDUCTION,

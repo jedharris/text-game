@@ -23,7 +23,7 @@ from src.types import ActorId
 
 from typing import Any
 
-from examples.big_game.behaviors.infrastructure.dispatcher_utils import load_handler
+from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import load_handler
 from src.behavior_manager import EventResult
 
 # Vocabulary: wire hooks to events

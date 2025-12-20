@@ -12,7 +12,7 @@ from src.types import ActorId
 import unittest
 from typing import Any
 
-from examples.big_game.behaviors.infrastructure.dispatcher_utils import clear_handler_cache
+from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
 from examples.big_game.behaviors.regions.beast_wilds.bee_queen import on_flower_offer
 from examples.big_game.behaviors.regions.beast_wilds.sira_rescue import on_sira_death, on_sira_encounter
 from examples.big_game.behaviors.regions.fungal_depths.fungal_death_mark import (

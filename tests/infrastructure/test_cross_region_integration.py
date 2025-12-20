@@ -9,11 +9,11 @@ from typing import Any
 import unittest
 from unittest.mock import MagicMock, patch
 
-from examples.big_game.behaviors.infrastructure.dispatcher_utils import clear_handler_cache
-from examples.big_game.behaviors.infrastructure.gift_reactions import on_gift_given
-from examples.big_game.behaviors.infrastructure.item_use_reactions import on_item_used
-from examples.big_game.behaviors.infrastructure.death_reactions import on_entity_death
-from examples.big_game.behaviors.infrastructure.pack_mirroring import on_leader_state_change
+from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
+from examples.big_game.behaviors.shared.infrastructure.gift_reactions import on_gift_given
+from examples.big_game.behaviors.shared.infrastructure.item_use_reactions import on_item_used
+from examples.big_game.behaviors.shared.infrastructure.death_reactions import on_entity_death
+from examples.big_game.behaviors.shared.infrastructure.pack_mirroring import on_leader_state_change
 from src.behavior_manager import EventResult
 
 

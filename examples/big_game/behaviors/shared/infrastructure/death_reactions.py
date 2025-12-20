@@ -26,7 +26,7 @@ Example handler escape hatch:
 
 from typing import Any
 
-from examples.big_game.behaviors.infrastructure.dispatcher_utils import load_handler
+from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import load_handler
 from src.behavior_manager import EventResult
 from src.infrastructure_types import GossipId
 from src.infrastructure_utils import (

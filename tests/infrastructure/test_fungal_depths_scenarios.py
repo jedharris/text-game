@@ -11,7 +11,7 @@ from src.types import ActorId
 import unittest
 from typing import Any
 
-from examples.big_game.behaviors.infrastructure.dispatcher_utils import clear_handler_cache
+from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
 from examples.big_game.behaviors.regions.fungal_depths.aldric_rescue import (
     on_aldric_commitment,
     on_aldric_heal,

@@ -14,7 +14,7 @@ from unittest.mock import MagicMock, patch
 if TYPE_CHECKING:
     from src.state_manager import GameState
 
-from examples.big_game.behaviors.infrastructure.dispatcher_utils import clear_handler_cache
+from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
 from src.behavior_manager import BehaviorManager, EventResult
 from src.infrastructure_utils import (
     create_commitment,

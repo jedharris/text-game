@@ -4,8 +4,8 @@ import unittest
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-from examples.big_game.behaviors.infrastructure.dispatcher_utils import clear_handler_cache
-from examples.big_game.behaviors.infrastructure.item_use_reactions import on_item_used
+from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
+from examples.big_game.behaviors.shared.infrastructure.item_use_reactions import on_item_used
 from src.behavior_manager import EventResult
 
 
@@ -329,7 +329,7 @@ class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
         mock_handler = MagicMock(return_value=handler_result)
 
         with patch(
-            "examples.big_game.behaviors.infrastructure.item_use_reactions.load_handler",
+            "examples.big_game.behaviors.shared.infrastructure.item_use_reactions.load_handler",
             return_value=mock_handler,
         ):
             result = on_item_used(item, self.accessor, context)
@@ -354,7 +354,7 @@ class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
         mock_handler = MagicMock(return_value=handler_result)
 
         with patch(
-            "examples.big_game.behaviors.infrastructure.item_use_reactions.load_handler",
+            "examples.big_game.behaviors.shared.infrastructure.item_use_reactions.load_handler",
             return_value=mock_handler,
         ):
             result = on_item_used(item, self.accessor, context)
@@ -385,7 +385,7 @@ class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
         mock_handler = MagicMock(return_value=target_result)
 
         with patch(
-            "examples.big_game.behaviors.infrastructure.item_use_reactions.load_handler",
+            "examples.big_game.behaviors.shared.infrastructure.item_use_reactions.load_handler",
             return_value=mock_handler,
         ):
             result = on_item_used(item, self.accessor, context)
