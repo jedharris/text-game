@@ -309,56 +309,119 @@ Created AST-based tool to safely refactor test assertions for the new format:
 
 ---
 
-## Phase 5: Update Narrator Classes
+## Phase 5: Update Narrator Classes ✅ COMPLETED
 
 **Goal:** Update all narrator classes to consume `NarrationResult`.
 
-**Files to modify:**
-- `src/mlx_narrator.py`
-- `src/llm_narrator.py`
-- `src/ollama_narrator.py`
+**Status:** Completed and closed (Issue #225)
 
-**Changes:**
+### Completed Work
 
-1. Remove verbosity determination logic (now in protocol handler)
+#### 1. Removed Duplicate Logic from All Narrators
 
-2. Remove visit tracking (now handled by protocol handler via assembler)
+Removed from `src/llm_narrator.py`, `src/mlx_narrator.py`, `src/ollama_narrator.py`:
+- `visited_locations` and `examined_entities` tracking sets
+- `_get_narration_mode()` method
+- `_determine_verbosity()` method
+- `_update_tracking()` method
 
-3. Simplify `process_turn`:
-   - Parse input
-   - Call handler
-   - Pass `NarrationResult` JSON to LLM
-   - Return prose
+These are now handled by `LLMProtocolHandler` which returns `verbosity` in the result.
 
-4. Update `_call_llm` to format `NarrationResult` appropriately
+#### 2. Simplified `process_turn` Method
 
-**Tests:**
-- Update narrator tests to use new result format
-- Test that narrators correctly pass through the narration plan
+Before:
+```python
+result = self.handler.handle_message(json_cmd)
+verbosity = self._determine_verbosity(json_cmd, result)
+self._update_tracking(json_cmd, result)
+result_with_verbosity = dict(result)
+result_with_verbosity["verbosity"] = verbosity
+narrative = self._call_llm(f"Narrate:\n{json.dumps(result_with_verbosity)}")
+```
+
+After:
+```python
+result = self.handler.handle_message(json_cmd)  # verbosity included
+self._print_traits(result)
+narrative = self._call_llm(f"Narrate:\n{json.dumps(result)}")
+```
+
+#### 3. Simplified `get_opening` Method
+
+Removed local tracking updates. Opening scene queries location but doesn't mark as visited (tracking happens on first command).
+
+#### 4. Updated Mock Narrators
+
+- Updated `MockLLMNarrator` (tests/llm_interaction/mock_narrator.py)
+- Updated `MockOllamaNarrator` (tests/llm_interaction/test_ollama_narrator.py)
+- Added `visited_locations` and `examined_entities` properties that proxy to handler
+
+#### 5. Updated Tests
+
+- Updated `TestNarrationMode` to test protocol handler's `_get_narration_mode`
+- Updated `test_opening_scene_marks_start_location_visited` → `test_opening_scene_queries_location`
+- Updated all tests that create handlers per-test instead of using setUp
+
+#### 6. Fixed Pre-existing mypy Issue
+
+Added `# type: ignore[import-untyped]` to `import requests` in `ollama_narrator.py`.
+
+**Tests:** All 1925 tests pass. mypy validates with no errors.
 
 ---
 
-## Phase 6: Update Prompts
+## Phase 6: Update Prompts ✅ COMPLETED
 
 **Goal:** Update all narrator prompts to match the unified prompt template.
 
-**Files to modify:**
-- `src/narrator_protocol.txt`
-- `src/ollama_narrator_protocol.txt`
+**Status:** Completed (Issue #227)
+
+### Completed Work
+
+#### 1. Updated Core Protocol Files
+
+Replaced `src/narrator_protocol.txt` and `src/ollama_narrator_protocol.txt` with unified structure:
+- Section A: Invariant API documentation describing NarrationResult format
+- `{{STYLE_PROMPT}}` placeholder for game-specific style rules
+- Documented all fields: `narration.primary_text`, `narration.secondary_beats`, `viewpoint`, `scope`, `entity_refs`, `must_mention`
+- Explained verbosity levels, viewpoint modes, scope fields, and rendering rules
+- Removed all references to old `message` field format
+
+#### 2. Updated Game-Specific Style Files
+
+Updated all narrator style files with new NarrationResult format examples:
 - `examples/fancy_game/narrator_style.txt`
-- Any other game-specific prompts
+- `examples/simple_game/narrator_style.txt`
+- `examples/extended_game/narrator_style.txt`
+- `examples/layered_game/narrator_style.txt`
+- `examples/spatial_game/narrator_style.txt`
 
-**Changes:**
+Each file now contains:
+- Style rules (voice, tone, verbosity guidelines)
+- Examples using new NarrationResult JSON format with `narration.primary_text`, `secondary_beats`, `scope`, `entity_refs`
 
-1. Replace current prompts with unified structure:
-   - Section A: Engine API (from `unified_narrator_prompt_revised_api.md`)
-   - Section B: Game-specific style
+#### 3. Key Format Changes in Examples
 
-2. Update style files to be Section B only (no API details)
+Old format:
+```json
+{"success": true, "message": "You pick up the sword.", "verbosity": "full"}
+```
 
-**Tests:**
-- Manual testing with each narrator
-- Verify narration quality matches or exceeds current
+New format:
+```json
+{
+  "success": true,
+  "verbosity": "full",
+  "narration": {
+    "primary_text": "You take the sword.",
+    "secondary_beats": ["Its weight feels reassuring."],
+    "scope": {"scene_kind": "action_result", "outcome": "success", "familiarity": "new"},
+    "entity_refs": {"item_sword": {"name": "sword", "traits": ["pitted blade"]}}
+  }
+}
+```
+
+**Tests:** All 1925 tests pass. mypy validates with no errors.
 
 ---
 

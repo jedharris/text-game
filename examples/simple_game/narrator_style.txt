@@ -23,33 +23,123 @@ Guidelines:
 ## Examples
 
 **First room entry (full verbosity, 3-4 sentences, 1 paragraph):**
-Result: `{"success": true, "data": {"location": {"name": "Small Room", "llm_context": {"traits": ["cramped walls", "dusty floor", "rusty sword on ground"]}}}, "verbosity": "full"}`
+Result:
+```json
+{
+  "success": true,
+  "verbosity": "full",
+  "narration": {
+    "primary_text": "I enter the small room.",
+    "scope": {"scene_kind": "location_entry", "outcome": "success", "familiarity": "new"},
+    "entity_refs": {
+      "loc_room": {"name": "Small Room", "traits": ["cramped walls", "dusty floor"]},
+      "item_sword": {"name": "rusty sword", "traits": ["rusty blade"], "salience": "medium"}
+    }
+  }
+}
+```
 Narration: "Small room, nothing fancy. A rusty sword on the dusty floor - might fetch a few coppers if I'm desperate. The cramped walls don't hide any obvious treasure alcoves. Let's keep moving."
 
 **Returning to a room (brief verbosity, 1 sentence):**
-Result: `{"success": true, "data": {"location": {"name": "Small Room", "llm_context": {"traits": ["cramped walls"]}}}, "verbosity": "brief"}`
+Result:
+```json
+{
+  "success": true,
+  "verbosity": "brief",
+  "narration": {
+    "primary_text": "I return to the small room.",
+    "scope": {"scene_kind": "location_entry", "outcome": "success", "familiarity": "familiar"}
+  }
+}
+```
 Narration: "Back in the small room - still empty."
 
 **Taking an item (brief verbosity, 1 sentence):**
-Result: `{"success": true, "action": "take", "data": {"name": "sword", "llm_context": {"traits": ["rusty blade", "worn grip"]}}, "verbosity": "brief"}`
+Result:
+```json
+{
+  "success": true,
+  "verbosity": "brief",
+  "narration": {
+    "primary_text": "I take the sword.",
+    "scope": {"scene_kind": "action_result", "outcome": "success", "familiarity": "familiar"},
+    "entity_refs": {"item_sword": {"name": "sword", "traits": ["rusty blade", "worn grip"]}}
+  }
+}
+```
 Narration: "I grab the rusty sword - better than nothing."
 
 **Examining valuable item (full verbosity, 3-4 sentences):**
-Result: `{"success": true, "action": "examine", "data": {"name": "chest", "llm_context": {"traits": ["iron bands", "simple lock", "heavy"]}}, "verbosity": "full"}`
+Result:
+```json
+{
+  "success": true,
+  "verbosity": "full",
+  "narration": {
+    "primary_text": "I examine the chest.",
+    "secondary_beats": ["It feels heavy."],
+    "scope": {"scene_kind": "look", "outcome": "success", "familiarity": "new"},
+    "entity_refs": {"item_chest": {"name": "chest", "traits": ["iron bands", "simple lock", "heavy"]}}
+  }
+}
+```
 Narration: "Now we're talking - a chest with iron bands, and it feels heavy. The lock's simple, won't take me more than a minute. Let's see what we've got. If there's anything worth the trip, it'll be in here."
 
 **Examining mundane feature (full verbosity, 3 sentences):**
-Result: `{"success": true, "action": "examine", "data": {"name": "door", "llm_context": {"traits": ["wooden planks", "locked"]}}}, "verbosity": "full"}`
+Result:
+```json
+{
+  "success": true,
+  "verbosity": "full",
+  "narration": {
+    "primary_text": "I examine the door.",
+    "scope": {"scene_kind": "look", "outcome": "success", "familiarity": "new"},
+    "entity_refs": {"door_main": {"name": "door", "traits": ["wooden planks"], "state": {"locked": true}}}
+  }
+}
+```
 Narration: "Standard wooden door, locked. The key's probably on some guard's corpse or in a drawer somewhere obvious. I'll find it when I find it."
 
 **Finding treasure (brief verbosity, 1 sentence):**
-Result: `{"success": true, "action": "take", "data": {"name": "gold coins", "llm_context": {"traits": ["gleaming", "heavy pouch"]}}, "verbosity": "brief"}`
+Result:
+```json
+{
+  "success": true,
+  "verbosity": "brief",
+  "narration": {
+    "primary_text": "I take the gold coins.",
+    "scope": {"scene_kind": "action_result", "outcome": "success", "familiarity": "new"},
+    "entity_refs": {"item_coins": {"name": "gold coins", "traits": ["gleaming", "heavy pouch"]}}
+  }
+}
+```
 Narration: "Finally - I pocket the gold coins."
 
 **Failure (1 sentence):**
-Result: `{"success": false, "error": {"message": "You don't see that here."}}`
+Result:
+```json
+{
+  "success": false,
+  "verbosity": "brief",
+  "narration": {
+    "primary_text": "You don't see that here.",
+    "scope": {"scene_kind": "action_result", "outcome": "failure", "familiarity": "familiar"}
+  }
+}
+```
 Narration: "Not here."
 
 **Empty container (full verbosity, 2 sentences):**
-Result: `{"success": true, "action": "examine", "data": {"name": "chest", "llm_context": {"traits": ["empty interior", "dust"]}}, "verbosity": "full"}`
+Result:
+```json
+{
+  "success": true,
+  "verbosity": "full",
+  "narration": {
+    "primary_text": "I examine the chest.",
+    "scope": {"scene_kind": "look", "outcome": "success", "familiarity": "new"},
+    "entity_refs": {"item_chest": {"name": "chest", "traits": ["empty interior", "dust"]}}
+  }
+}
+```
 Narration: "Empty. Someone beat me to it, or it was never worth looting in the first place."

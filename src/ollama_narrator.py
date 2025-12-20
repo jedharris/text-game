@@ -3,6 +3,9 @@
 Provides a thin layer between natural language input and the JSON protocol,
 translating player input to commands and game results to narrative prose.
 Uses local Ollama server instead of Anthropic API.
+
+As of Phase 5 (Narration API), verbosity determination and visit tracking are
+handled by LLMProtocolHandler. The narrator just passes through the NarrationResult.
 """
 
 import json
@@ -12,7 +15,7 @@ import time
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-import requests
+import requests  # type: ignore[import-untyped]
 
 logger = logging.getLogger(__name__)
 
@@ -33,10 +36,6 @@ DEFAULT_MODEL = "mistral:7b-instruct-q8_0"
 
 class OllamaNarrator:
     """Translates between natural language and the JSON protocol using Ollama."""
-
-    # Trait limits for verbosity modes
-    FULL_TRAITS = 8
-    BRIEF_TRAITS = 3
 
     def __init__(self, json_handler: LLMProtocolHandler,
                  model: str = DEFAULT_MODEL,
@@ -72,15 +71,11 @@ class OllamaNarrator:
         self.temperature = temperature
         self.num_predict = num_predict
 
-        # Store merged vocabulary for narration mode lookup (must be before _load_system_prompt)
+        # Store merged vocabulary for parser (must be before _load_system_prompt)
         self.merged_vocabulary = self._get_merged_vocabulary(vocabulary)
         self.parser = self._create_parser(self.merged_vocabulary)
         assert prompt_file is not None, "prompt_file is required"
         self.system_prompt = self._load_system_prompt(prompt_file)
-
-        # Visit tracking for verbosity control
-        self.visited_locations: set[str] = set()
-        self.examined_entities: set[str] = set()
 
     def check_connection(self) -> bool:
         """Check if Ollama server is reachable.
@@ -205,107 +200,18 @@ class OllamaNarrator:
                 return "I don't understand what you want to do."
             json_cmd = extracted
 
-        # 2. Execute command via game engine
+        # 2. Execute command via game engine (result includes verbosity from NarrationResult)
         result = self.handler.handle_message(json_cmd)
 
-        # 3. Determine verbosity and update tracking
-        verbosity = self._determine_verbosity(json_cmd, result)
-        self._update_tracking(json_cmd, result)
-
-        # 4. Print traits if enabled
+        # 3. Print traits if enabled
         self._print_traits(result)
 
-        # 5. Add verbosity hint to result for LLM
-        result_with_verbosity = dict(result)
-        result_with_verbosity["verbosity"] = verbosity
-
-        # 6. Get narrative from LLM
+        # 4. Get narrative from LLM (verbosity is already in result from protocol handler)
         narrative = self._call_llm(
-            f"Narrate this result:\n{json.dumps(result_with_verbosity, indent=2)}"
+            f"Narrate this result:\n{json.dumps(result, indent=2)}"
         )
 
         return narrative
-
-    def _get_narration_mode(self, verb: str) -> str:
-        """Look up narration_mode for a verb from merged vocabulary.
-
-        Args:
-            verb: The verb to look up
-
-        Returns:
-            "brief" or "tracking" (default: "tracking")
-        """
-        # Search for verb in merged vocabulary
-        for verb_entry in self.merged_vocabulary.get("verbs", []):
-            if verb_entry.get("word") == verb:
-                # Return narration_mode if specified, otherwise default to "tracking"
-                return verb_entry.get("narration_mode", "tracking")
-
-        # If verb not found in vocabulary, default to "tracking"
-        return "tracking"
-
-    def _determine_verbosity(self, json_cmd: Dict[str, Any], result: Dict[str, Any]) -> str:
-        """Determine verbosity level based on command and tracking state.
-
-        Args:
-            json_cmd: The JSON command that was executed
-            result: The result from the game engine
-
-        Returns:
-            "full" for first visits/examines, "brief" for subsequent or routine actions
-        """
-        verb = json_cmd.get("action", {}).get("verb", "")
-
-        # Look up narration_mode from merged vocabulary
-        narration_mode = self._get_narration_mode(verb)
-
-        # Brief mode is always brief
-        if narration_mode == "brief":
-            return "brief"
-
-        # Tracking mode: full on first occurrence, brief on subsequent
-        # For go/movement: check if destination is new
-        if verb == "go" and result.get("success"):
-            # Get the new location ID from the result (nested under data.location)
-            loc_id = result.get("data", {}).get("location", {}).get("id")
-            if loc_id and loc_id not in self.visited_locations:
-                return "full"
-            return "brief"
-
-        # For other verbs: check if entity is new
-        entity_id = result.get("data", {}).get("id")
-        if entity_id and entity_id not in self.examined_entities:
-            return "full"
-        return "brief"
-
-    def _update_tracking(self, json_cmd: Dict[str, Any], result: Dict[str, Any]) -> None:
-        """Update visit/examine tracking based on successful commands.
-
-        Args:
-            json_cmd: The JSON command that was executed
-            result: The result from the game engine
-        """
-        if not result.get("success"):
-            return
-
-        verb = json_cmd.get("action", {}).get("verb", "")
-
-        # Only track for verbs in tracking mode
-        narration_mode = self._get_narration_mode(verb)
-        if narration_mode != "tracking":
-            return
-
-        # Track visited locations on successful movement
-        if verb == "go":
-            # Location ID is nested under data.location
-            loc_id = result.get("data", {}).get("location", {}).get("id")
-            if loc_id:
-                self.visited_locations.add(loc_id)
-        else:
-            # Track entities for all other tracking verbs
-            entity_id = result.get("data", {}).get("id")
-            if entity_id:
-                self.examined_entities.add(entity_id)
 
     def get_opening(self) -> str:
         """Get opening narrative for game start.
@@ -319,11 +225,6 @@ class OllamaNarrator:
             "query_type": "location",
             "include": ["items", "doors", "exits", "actors"]
         })
-
-        # Mark starting location as visited
-        loc_id = result.get("data", {}).get("location", {}).get("id")
-        if loc_id:
-            self.visited_locations.add(loc_id)
 
         # Print traits if enabled
         self._print_traits(result)

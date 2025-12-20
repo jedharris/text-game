@@ -26,6 +26,10 @@ class MockOllamaNarrator(OllamaNarrator):
 
     This class bypasses the actual Ollama API and returns predetermined responses,
     useful for testing the narrator logic without API calls.
+
+    As of Phase 5 (Narration API), verbosity determination and visit tracking are
+    handled by LLMProtocolHandler. Access handler.visited_locations and
+    handler.examined_entities for tracking tests.
     """
 
     def __init__(self, json_handler: LLMProtocolHandler, responses: list,
@@ -53,13 +57,19 @@ class MockOllamaNarrator(OllamaNarrator):
         self.temperature = 0.8
         self.num_predict = 150
 
-        # Store merged vocabulary for narration mode lookup
+        # Store merged vocabulary for parser
         self.merged_vocabulary = self._get_merged_vocabulary(vocabulary)
         self.parser = self._create_parser(self.merged_vocabulary)
 
-        # Visit tracking for verbosity control (same as parent)
-        self.visited_locations: set[str] = set()
-        self.examined_entities: set[str] = set()
+    @property
+    def visited_locations(self) -> set:
+        """Proxy to handler's visited_locations for backward-compatible tests."""
+        return self.handler.visited_locations
+
+    @property
+    def examined_entities(self) -> set:
+        """Proxy to handler's examined_entities for backward-compatible tests."""
+        return self.handler.examined_entities
 
     def _call_llm(self, user_message: str) -> str:
         """Return mock response instead of calling API.
@@ -187,8 +197,13 @@ class TestOllamaGetOpening(unittest.TestCase):
         self.assertIn("stone", result.lower())
         self.assertEqual(narrator.call_count, 1)
 
-    def test_get_opening_marks_start_location_visited(self) -> None:
-        """Test that get_opening marks the starting location as visited."""
+    def test_get_opening_queries_location(self) -> None:
+        """Test that get_opening queries the starting location.
+
+        Note: As of Phase 5, get_opening does a query, which doesn't update tracking.
+        Tracking only happens on commands. The opening scene uses a query to get
+        location info but doesn't mark it as visited until the first command.
+        """
         self.state.actors[ActorId("player")].location = LocationId("loc_start")
 
         responses = ["You awaken in a small room."]
@@ -196,7 +211,9 @@ class TestOllamaGetOpening(unittest.TestCase):
 
         narrator.get_opening()
 
-        self.assertIn("loc_start", narrator.visited_locations)
+        # Verify the LLM was called with location info
+        self.assertEqual(narrator.call_count, 1)
+        self.assertIn("loc_start", narrator.calls[0])
 
 
 class TestOllamaVerbosityTracking(unittest.TestCase):

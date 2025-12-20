@@ -659,8 +659,13 @@ class TestVerbosityTracking(unittest.TestCase):
         close_call = narrator.calls[-1]
         self.assertIn('"verbosity": "brief"', close_call)
 
-    def test_opening_scene_marks_start_location_visited(self):
-        """Test that get_opening marks the starting location as visited."""
+    def test_opening_scene_queries_location(self):
+        """Test that get_opening queries the starting location.
+
+        Note: As of Phase 5, get_opening does a query, which doesn't update tracking.
+        Tracking only happens on commands. The opening scene uses a query to get
+        location info but doesn't mark it as visited until the first command.
+        """
         self.state.actors[ActorId("player")].location = "loc_start"
 
         responses = ["You awaken in a small room."]
@@ -668,8 +673,9 @@ class TestVerbosityTracking(unittest.TestCase):
 
         narrator.get_opening()
 
-        # Location query uses entity_to_dict which includes id
-        self.assertIn("loc_start", narrator.visited_locations)
+        # Verify the LLM was called with location info
+        self.assertEqual(narrator.call_count, 1)
+        self.assertIn("loc_start", narrator.calls[0])
 
     def test_location_added_to_visited_after_movement(self):
         """Test that new location is added to visited set after movement."""
@@ -702,13 +708,16 @@ class TestVerbosityTracking(unittest.TestCase):
 
 
 class TestNarrationMode(unittest.TestCase):
-    """Test narration_mode field from vocabulary."""
+    """Test narration_mode field from vocabulary.
+
+    Note: As of Phase 5, _get_narration_mode is on LLMProtocolHandler, not narrator.
+    These tests now test the protocol handler's method.
+    """
 
     def setUp(self):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.state = load_game_state(str(fixture_path))
-        self.handler = LLMProtocolHandler(self.state)
 
     def test_get_narration_mode_returns_brief_for_marked_verbs(self):
         """Test that verbs marked with narration_mode=brief return 'brief'."""
@@ -716,15 +725,14 @@ class TestNarrationMode(unittest.TestCase):
         behavior_manager = BehaviorManager()
         behavior_manager.load_module("behaviors.core.manipulation")
 
-        narrator = MockLLMNarrator(self.handler, ["response"],
-                                   behavior_manager=behavior_manager)
+        handler = LLMProtocolHandler(self.state, behavior_manager=behavior_manager)
 
         # drop is marked as brief in manipulation.py
-        mode = narrator._get_narration_mode("drop")
+        mode = handler._get_narration_mode("drop")
         self.assertEqual(mode, "brief")
 
         # put is also marked as brief
-        mode = narrator._get_narration_mode("put")
+        mode = handler._get_narration_mode("put")
         self.assertEqual(mode, "brief")
 
     def test_get_narration_mode_defaults_to_tracking(self):
@@ -732,23 +740,22 @@ class TestNarrationMode(unittest.TestCase):
         behavior_manager = BehaviorManager()
         behavior_manager.load_module("behaviors.core.manipulation")
 
-        narrator = MockLLMNarrator(self.handler, ["response"],
-                                   behavior_manager=behavior_manager)
+        handler = LLMProtocolHandler(self.state, behavior_manager=behavior_manager)
 
         # take has no narration_mode specified, should default to tracking
-        mode = narrator._get_narration_mode("take")
+        mode = handler._get_narration_mode("take")
         self.assertEqual(mode, "tracking")
 
         # give has no narration_mode specified, should default to tracking
-        mode = narrator._get_narration_mode("give")
+        mode = handler._get_narration_mode("give")
         self.assertEqual(mode, "tracking")
 
     def test_get_narration_mode_unknown_verb_defaults_to_tracking(self):
         """Test that unknown verbs default to 'tracking'."""
-        narrator = MockLLMNarrator(self.handler, ["response"])
+        handler = LLMProtocolHandler(self.state)
 
         # Unknown verb should default to tracking
-        mode = narrator._get_narration_mode("unknownverb")
+        mode = handler._get_narration_mode("unknownverb")
         self.assertEqual(mode, "tracking")
 
     def test_brief_mode_verbs_always_brief_verbosity(self):
@@ -759,11 +766,12 @@ class TestNarrationMode(unittest.TestCase):
         behavior_manager = BehaviorManager()
         behavior_manager.load_module("behaviors.core.manipulation")
 
+        handler = LLMProtocolHandler(self.state, behavior_manager=behavior_manager)
         responses = [
             '{"type": "command", "action": {"verb": "drop", "object": "sword"}}',
             "You drop the sword."
         ]
-        narrator = MockLLMNarrator(self.handler, responses,
+        narrator = MockLLMNarrator(handler, responses,
                                    behavior_manager=behavior_manager)
 
         narrator.process_turn("drop sword")
@@ -780,11 +788,12 @@ class TestNarrationMode(unittest.TestCase):
         behavior_manager = BehaviorManager()
         behavior_manager.load_module("behaviors.core.manipulation")
 
+        handler = LLMProtocolHandler(self.state, behavior_manager=behavior_manager)
         responses = [
             '{"type": "command", "action": {"verb": "drop", "object": "sword"}}',
             "You drop the sword."
         ]
-        narrator = MockLLMNarrator(self.handler, responses,
+        narrator = MockLLMNarrator(handler, responses,
                                    behavior_manager=behavior_manager)
 
         narrator.process_turn("drop sword")
@@ -799,11 +808,12 @@ class TestNarrationMode(unittest.TestCase):
         behavior_manager = BehaviorManager()
         behavior_manager.load_module("behaviors.core.manipulation")
 
+        handler = LLMProtocolHandler(self.state, behavior_manager=behavior_manager)
         responses = [
             '{"type": "command", "action": {"verb": "take", "object": "sword"}}',
             "You pick up the rusty sword."
         ]
-        narrator = MockLLMNarrator(self.handler, responses,
+        narrator = MockLLMNarrator(handler, responses,
                                    behavior_manager=behavior_manager)
 
         narrator.process_turn("take sword")
@@ -820,6 +830,7 @@ class TestNarrationMode(unittest.TestCase):
         behavior_manager.load_module("behaviors.core.manipulation")
         behavior_manager.load_module("behaviors.core.perception")
 
+        handler = LLMProtocolHandler(self.state, behavior_manager=behavior_manager)
         responses = [
             # First examine - full
             '{"type": "command", "action": {"verb": "examine", "object": "sword"}}',
@@ -828,7 +839,7 @@ class TestNarrationMode(unittest.TestCase):
             '{"type": "command", "action": {"verb": "examine", "object": "sword"}}',
             "The rusty sword."
         ]
-        narrator = MockLLMNarrator(self.handler, responses,
+        narrator = MockLLMNarrator(handler, responses,
                                    behavior_manager=behavior_manager)
 
         # First examine

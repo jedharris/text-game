@@ -16,6 +16,10 @@ class MockLLMNarrator(LLMNarrator):
 
     This class bypasses the actual LLM API and returns predetermined responses,
     useful for testing the narrator logic without API calls.
+
+    As of Phase 5 (Narration API), verbosity determination and visit tracking are
+    handled by LLMProtocolHandler. Access handler.visited_locations and
+    handler.examined_entities for tracking tests.
     """
 
     def __init__(self, json_handler: LLMProtocolHandler, responses: list,
@@ -39,13 +43,19 @@ class MockLLMNarrator(LLMNarrator):
         self.behavior_manager = behavior_manager
         self.show_traits = show_traits
 
-        # Store merged vocabulary for narration mode lookup
+        # Store merged vocabulary for parser
         self.merged_vocabulary = self._get_merged_vocabulary(vocabulary)
         self.parser = self._create_parser(self.merged_vocabulary)
 
-        # Visit tracking for verbosity control (same as parent)
-        self.visited_locations: set = set()
-        self.examined_entities: set = set()
+    @property
+    def visited_locations(self) -> set:
+        """Proxy to handler's visited_locations for backward-compatible tests."""
+        return self.handler.visited_locations
+
+    @property
+    def examined_entities(self) -> set:
+        """Proxy to handler's examined_entities for backward-compatible tests."""
+        return self.handler.examined_entities
 
     def _call_llm(self, user_message: str) -> str:
         """Return mock response instead of calling API.

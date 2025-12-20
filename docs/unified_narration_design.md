@@ -11,7 +11,9 @@ This document unifies several narration-related designs into a single coherent s
 
 ---
 
-## Core Principle: Mechanical Engine, Intelligent Model
+## Core Principles
+
+### Mechanical Engine, Intelligent Model
 
 The engine performs only **mechanical operations**:
 - State lookup
@@ -26,6 +28,16 @@ All **intelligence** resides in the model:
 - Contextual emphasis
 
 This separation ensures the engine remains simple, testable, and predictable.
+
+### Fail Loud, Not Silent
+
+Missing or invalid data is an authoring error. The engine must **fail loudly** at load time, never silently degrade at runtime.
+
+- **Missing fragments**: Raise `MissingFragmentError` with specific guidance
+- **Invalid keys**: Raise validation error listing the problem
+- **Malformed pools**: Raise error explaining the structure requirement
+
+Authors discover problems immediately during development, not after releasing the game. There are no silent fallbacks or graceful degradation for authoring errors.
 
 ---
 
@@ -141,9 +153,97 @@ Every fragment pool uses the same structure:
 
 Simple fragment types (traits, dialogue, state_variants) are just arrays—the engine treats the whole array as a pool and selects from it.
 
-### 1.4 Unified Fragment Vocabulary
+### 1.4 Fragment Key Vocabulary
 
-To avoid duplication, use consistent keys across all entities:
+Fragment keys must be consistent across entities so the engine can look them up. Keys are defined in **game data**, not engine code, allowing games to extend the vocabulary as they add behaviors.
+
+#### Where Keys Are Defined
+
+The game's `vocabulary.json` (or equivalent) defines fragment keys alongside word definitions:
+
+```json
+{
+  "vocabulary": {
+    "take": {
+      "type": "verb",
+      "synonyms": ["get", "grab", "pick up", "acquire"],
+      "fragment_key": "take"
+    },
+    "attack": {
+      "type": "verb",
+      "synonyms": ["hit", "strike", "fight"],
+      "fragment_key": "attack"
+    }
+  },
+
+  "fragment_keys": {
+    "actions": ["take", "drop", "open", "close", "lock", "unlock", "push", "pull",
+                "climb", "descend", "enter", "exit", "examine", "read", "light",
+                "extinguish", "attack", "give", "throw"],
+
+    "failures": ["too_heavy", "not_portable", "locked", "not_visible", "already_open",
+                 "already_closed", "no_key", "wrong_key", "not_container", "inventory_full",
+                 "out_of_reach", "no_target"],
+
+    "effects": ["position_change", "state_change", "inventory_change", "damage", "healing"],
+
+    "position_actions": ["step_up", "step_down", "climb_up", "climb_down", "enter", "exit"]
+  }
+}
+```
+
+#### How Keys Are Extended
+
+When a game adds new behaviors:
+
+1. **Add the fragment key** to `fragment_keys` in vocabulary
+2. **Add the verb mapping** if it's a new verb (maps synonyms → canonical key)
+3. **Author fragments** in entity `llm_context` using the new key
+
+Example: Adding a "repair" behavior:
+
+```json
+{
+  "fragment_keys": {
+    "actions": [..., "repair"]
+  },
+  "vocabulary": {
+    "repair": {
+      "type": "verb",
+      "synonyms": ["fix", "mend", "restore"],
+      "fragment_key": "repair"
+    }
+  }
+}
+```
+
+Then in entities:
+```json
+{
+  "id": "item_broken_sword",
+  "llm_context": {
+    "action_fragments": {
+      "repair": {
+        "core": ["you hammer out the dents", "you restore the blade"],
+        "color": ["sparks flying", "the metal singing"]
+      }
+    }
+  }
+}
+```
+
+#### Validation
+
+The engine validates at load time:
+- All `action_fragments` keys exist in `fragment_keys.actions`
+- All `failure_fragments` keys exist in `fragment_keys.failures`
+- All vocabulary entries with `fragment_key` reference valid keys
+
+This catches typos early rather than at runtime.
+
+#### Standard Keys
+
+Core engine behaviors use these standard keys (games may add more):
 
 **Action verbs** (maps from game vocabulary):
 `take`, `drop`, `open`, `close`, `lock`, `unlock`, `push`, `pull`, `climb`, `descend`, `enter`, `exit`, `examine`, `read`, `light`, `extinguish`, `attack`, `give`, `throw`
@@ -157,62 +257,97 @@ To avoid duplication, use consistent keys across all entities:
 **Position actions**:
 `step_up`, `step_down`, `climb_up`, `climb_down`, `enter`, `exit`
 
-### 1.5 Reducing Author Duplication
+### 1.5 Required Fragments — No Silent Fallbacks
 
-**Inherited defaults**: Entity types can define default fragments:
+**Critical design principle**: Missing fragments are authoring errors. The engine must fail loudly, not silently degrade.
 
-```json
-{
-  "entity_type": "weapon",
-  "default_fragments": {
-    "take": {
-      "core": ["you take the weapon", "you pick up the weapon"],
-      "color": ["testing its balance", "its weight familiar"]
-    }
-  }
-}
-```
+When the engine cannot find a required fragment, it raises an error:
 
-Individual weapons only override when they need something specific.
-
-**Shared fragment libraries**: Common fragments can be defined once and referenced:
-
-```json
-{
-  "fragment_library": {
-    "heavy_object_failure": {
-      "too_heavy": {
-        "core": ["it's too heavy to move", "you can't budge it"],
-        "color": ["muscles straining", "feet sliding on the floor"]
-      }
-    }
-  }
-}
-```
-
-Entities reference: `"failure_fragments": "@heavy_object_failure"`
-
-**Trait inheritance**: Sub-types can inherit and extend traits:
-- Base `weapon` traits: `["well-crafted", "balanced"]`
-- Specific `sword` adds: `["keen edge", "leather-wrapped hilt"]`
-
-### 1.6 Fallback Hierarchy
-
-When fragments are missing, the engine uses fallbacks (no authoring required for basic functionality):
-
-1. Entity-specific fragments
-2. Entity-type default fragments
-3. Global generic fragments
-
-Global generics (defined once in engine):
 ```python
-GENERIC_FRAGMENTS = {
-    "take": {"core": ["you take it"], "color": []},
-    "drop": {"core": ["you put it down"], "color": []},
-    "open": {"core": ["you open it"], "color": []},
-    # ... etc
-}
+class FragmentResolver:
+    def resolve_action(self, entity_id: str, verb: str) -> FragmentPool:
+        entity = self.get_entity(entity_id)
+        fragments = entity.llm_context.get("action_fragments", {})
+
+        if verb not in fragments:
+            raise MissingFragmentError(
+                f"Entity '{entity_id}' has no action_fragments for verb '{verb}'. "
+                f"Add action_fragments.{verb} to the entity's llm_context."
+            )
+
+        pool = fragments[verb]
+        if not pool.get("core"):
+            raise MissingFragmentError(
+                f"Entity '{entity_id}' action_fragments.{verb} has no 'core' pool. "
+                f"At least one core fragment is required."
+            )
+
+        return pool
 ```
+
+**What must be authored for each entity:**
+
+| Entity supports... | Required fragments |
+|-------------------|-------------------|
+| `take` action | `action_fragments.take.core` |
+| `open` action | `action_fragments.open.core` |
+| failure reason `locked` | `failure_fragments.locked.core` |
+| state `in_inventory` | `state_variants.in_inventory` |
+| narration at all | `traits` (minimum 5) |
+
+**Color fragments are optional** — if missing, the engine simply doesn't include color. This is not an error.
+
+**Validation timing**: The engine validates fragment completeness at game load time, not runtime. Authors discover missing fragments immediately when testing, not after releasing the game.
+
+### 1.6 Load-Time Validation
+
+The engine performs comprehensive validation when loading game data:
+
+```python
+def validate_entity_fragments(entity: Entity, vocabulary: Vocabulary) -> list[str]:
+    """Returns list of validation errors. Empty list = valid."""
+    errors = []
+    ctx = entity.llm_context or {}
+
+    # Check traits exist and meet minimum
+    traits = ctx.get("traits", [])
+    if len(traits) < 5:
+        errors.append(f"{entity.id}: traits has {len(traits)} items, minimum is 5")
+
+    # Check action_fragments keys are valid
+    for verb in ctx.get("action_fragments", {}):
+        if verb not in vocabulary.fragment_keys.actions:
+            errors.append(f"{entity.id}: action_fragments.{verb} is not a valid action key")
+
+    # Check failure_fragments keys are valid
+    for reason in ctx.get("failure_fragments", {}):
+        if reason not in vocabulary.fragment_keys.failures:
+            errors.append(f"{entity.id}: failure_fragments.{reason} is not a valid failure key")
+
+    # Check each pool has required core
+    for verb, pool in ctx.get("action_fragments", {}).items():
+        if not pool.get("core"):
+            errors.append(f"{entity.id}: action_fragments.{verb} missing 'core' pool")
+
+    return errors
+```
+
+**Validation runs at load time** and fails the game load if any errors are found. This ensures authors catch problems during development.
+
+### 1.7 Future: Reducing Author Duplication (Deferred)
+
+The following features could reduce authoring effort but add engine complexity. They are **not in scope for the initial implementation** but can be added later if needed:
+
+**Type-level defaults** (deferred): Entity types (weapon, container, door) could define default fragments inherited by all entities of that type.
+
+**Fragment libraries** (deferred): Shared fragment pools that multiple entities reference by name (e.g., `"@heavy_object_failure"`).
+
+**Trait inheritance** (deferred): Sub-types could inherit and extend parent type traits.
+
+These can be cleanly added later because:
+- The fragment lookup is already centralized in `FragmentResolver`
+- Adding inheritance just changes where `FragmentResolver` searches
+- Entity data format is forward-compatible (current entities won't break)
 
 ---
 
@@ -587,10 +722,10 @@ Never use exclamation marks.
 1. Create `FragmentResolver` class
 2. Implement pool selection with counts
 3. Implement repetition buffer
-4. Implement fallback hierarchy
-5. Create generic fallback fragments
+4. Implement `MissingFragmentError` for missing required fragments
+5. Add load-time validation for fragment completeness
 
-**Tests**: Selection counts, buffer behavior, fallbacks
+**Tests**: Selection counts, buffer behavior, missing fragment errors
 
 ### Phase 3: Handler Migration (Pilot)
 
@@ -666,12 +801,16 @@ Never use exclamation marks.
 
 More fragments = more variety. The engine selects small subsets, so large pools don't burden the model.
 
-### 7.3 Avoiding Duplication
+### 7.3 Authoring Workflow
 
-1. **Use type defaults**: Define once for entity type, override only when needed
-2. **Use fragment libraries**: Share common fragments across entities
-3. **Inherit traits**: Base type provides common traits, specific entity adds unique ones
-4. **Generic fallbacks exist**: Don't author fragments for every possible action—fallbacks work
+Fragments are required, not optional. The load-time validation ensures you author what's needed:
+
+1. **Add entity to game**: Define the entity with its behaviors
+2. **Run validation**: Load the game — validation will list missing fragments
+3. **Author required fragments**: Add the fragments the validator requests
+4. **Test and iterate**: Run the game, observe narration, improve weak fragments
+
+The validator tells you exactly what's missing. You can't accidentally ship a game with missing fragments because it won't load.
 
 ### 7.4 Fragment Testing
 
