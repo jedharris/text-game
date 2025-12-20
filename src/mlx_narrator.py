@@ -15,8 +15,10 @@ logger = logging.getLogger(__name__)
 
 # Check for MLX-LM availability
 try:
-    from mlx_lm import load, generate
+    from mlx_lm import load, generate, stream_generate
     from mlx_lm.sample_utils import make_sampler
+    from mlx_lm.models.cache import make_prompt_cache, trim_prompt_cache
+    import mlx.core as mx
     HAS_MLX = True
 except ImportError:
     HAS_MLX = False
@@ -90,6 +92,9 @@ class MLXNarrator:
         self.parser = self._create_parser(self.merged_vocabulary)
         assert prompt_file is not None, "prompt_file is required"
         self.system_prompt = self._load_system_prompt(prompt_file)
+
+        # Initialize prompt cache for faster generation
+        self._init_prompt_cache()
 
         # Visit tracking for verbosity control
         self.visited_locations: set[str] = set()
@@ -337,11 +342,50 @@ class MLXNarrator:
             f"Narrate the opening scene:\n{json.dumps(result_with_verbosity, indent=2)}"
         )
 
-    def _call_llm(self, user_message: str) -> str:
-        """Make a call to the MLX model.
+    def _init_prompt_cache(self) -> None:
+        """Initialize and warm the prompt cache with the system prompt.
 
-        Uses chat template with system and user messages for proper
-        instruction following.
+        This pre-computes the KV cache for the system prompt so that subsequent
+        generation calls only need to process the user message, significantly
+        reducing latency.
+        """
+        # Create the prompt cache
+        self.prompt_cache = make_prompt_cache(self.model)
+
+        # Build the system prompt prefix in chat format
+        # We use just the system message to establish the cached prefix
+        system_messages = [
+            {"role": "system", "content": self.system_prompt}
+        ]
+
+        # Get the tokenized system prompt prefix
+        # Note: We don't add_generation_prompt here since user message comes next
+        system_prefix = self.tokenizer.apply_chat_template(
+            system_messages,
+            add_generation_prompt=False,
+            tokenize=False
+        )
+
+        # Tokenize and convert to MLX array
+        system_tokens = self.tokenizer.encode(system_prefix)
+        self.system_prompt_length = len(system_tokens)
+
+        # Warm the cache by running the model on the system prompt
+        logger.info(f"Warming prompt cache with {self.system_prompt_length} tokens...")
+        prompt_array = mx.array(system_tokens)
+
+        # Process the system prompt through the model to fill the cache
+        # We process in one go since system prompts are typically not huge
+        self.model(prompt_array[None], cache=self.prompt_cache)
+        mx.eval([c.state for c in self.prompt_cache])
+
+        logger.info("Prompt cache initialized")
+
+    def _call_llm(self, user_message: str) -> str:
+        """Make a call to the MLX model using cached system prompt.
+
+        Uses the pre-warmed prompt cache for the system prompt, only processing
+        the user message tokens for each call.
 
         Args:
             user_message: The message to send
@@ -349,19 +393,24 @@ class MLXNarrator:
         Returns:
             The LLM's response text
         """
-        logger.debug(f"System prompt length: {len(self.system_prompt)} chars")
         logger.debug(f"User message: {user_message[:200]}...")
 
         try:
-            # Build messages in chat format
-            messages = [
-                {"role": "system", "content": self.system_prompt},
+            # Trim cache back to system prompt length for fresh generation
+            cache_len = self.prompt_cache[0].offset if self.prompt_cache else 0
+            tokens_to_trim = cache_len - self.system_prompt_length
+            if tokens_to_trim > 0:
+                trim_prompt_cache(self.prompt_cache, tokens_to_trim)
+
+            # Build just the user message portion (system prompt is cached)
+            # We need the continuation after the system prompt
+            user_messages = [
                 {"role": "user", "content": user_message}
             ]
 
-            # Apply chat template
-            prompt = self.tokenizer.apply_chat_template(
-                messages,
+            # Get the user message in chat format with generation prompt
+            user_portion = self.tokenizer.apply_chat_template(
+                user_messages,
                 add_generation_prompt=True,
                 tokenize=False
             )
@@ -369,15 +418,17 @@ class MLXNarrator:
             # Create sampler with temperature
             sampler = make_sampler(temp=self.temperature)
 
-            # Generate response
-            response = generate(
+            # Generate response using the cached system prompt
+            response = ""
+            for chunk in stream_generate(
                 self.model,
                 self.tokenizer,
-                prompt=prompt,
+                prompt=user_portion,
                 max_tokens=self.max_tokens,
                 sampler=sampler,
-                verbose=False
-            )
+                prompt_cache=self.prompt_cache,
+            ):
+                response += chunk.text
 
             return response.strip() if response else "[No response from model]"
 
