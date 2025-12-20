@@ -11,7 +11,7 @@ import unittest
 from typing import Any
 
 from examples.big_game.behaviors.infrastructure.dispatcher_utils import clear_handler_cache
-from behaviors.regions.sunken_district.drowning import (
+from examples.big_game.behaviors.regions.sunken_district.drowning import (
     MAX_BREATH,
     WARNING_BREATH,
     CRITICAL_BREATH,
@@ -20,7 +20,7 @@ from behaviors.regions.sunken_district.drowning import (
     on_underwater_turn,
     on_water_entry,
 )
-from behaviors.regions.sunken_district.dual_rescue import (
+from examples.big_game.behaviors.regions.sunken_district.dual_rescue import (
     on_delvan_encounter,
     on_garrett_encounter,
     on_npc_death,

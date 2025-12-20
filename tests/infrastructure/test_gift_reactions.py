@@ -46,7 +46,7 @@ class TestGiftReactionsHandlerEscapeHatch(unittest.TestCase):
             "npc_bee_queen",
             {
                 "gift_reactions": {
-                    "handler": "behaviors.regions.beast_wilds.bee_queen:on_flower_offer"
+                    "handler": "examples.big_game.behaviors.regions.beast_wilds.bee_queen:on_flower_offer"
                 }
             },
         )

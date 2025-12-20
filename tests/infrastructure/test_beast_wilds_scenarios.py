@@ -12,23 +12,23 @@ import unittest
 from typing import Any
 
 from examples.big_game.behaviors.infrastructure.dispatcher_utils import clear_handler_cache
-from behaviors.regions.beast_wilds.bear_cubs import (
+from examples.big_game.behaviors.regions.beast_wilds.bear_cubs import (
     on_bear_commitment,
     on_cubs_died,
     on_cubs_healed,
 )
-from behaviors.regions.beast_wilds.bee_queen import on_flower_offer, on_honey_theft
-from behaviors.regions.beast_wilds.sira_rescue import (
+from examples.big_game.behaviors.regions.beast_wilds.bee_queen import on_flower_offer, on_honey_theft
+from examples.big_game.behaviors.regions.beast_wilds.sira_rescue import (
     on_sira_death,
     on_sira_encounter,
     on_sira_healed,
 )
-from behaviors.regions.beast_wilds.spider_nest import (
+from examples.big_game.behaviors.regions.beast_wilds.spider_nest import (
     on_spider_queen_death,
     on_spider_respawn_check,
     on_web_movement,
 )
-from behaviors.regions.beast_wilds.wolf_pack import on_wolf_feed
+from examples.big_game.behaviors.regions.beast_wilds.wolf_pack import on_wolf_feed
 from src.behavior_manager import EventResult
 from src.infrastructure_utils import (
     get_pending_gossip_about,

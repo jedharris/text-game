@@ -93,7 +93,7 @@ class ScenarioState:
         }
         self.actors: dict[str, MockEntity] = {}
         self.items: list[MockItem] = []
-        self.locations: dict[str, MockLocation] = {}
+        self.locations: list[MockLocation] = []
 
     def add_actor(
         self,
@@ -127,7 +127,7 @@ class ScenarioState:
     ) -> MockLocation:
         """Add a location to the state."""
         location = MockLocation(loc_id, name, properties)
-        self.locations[loc_id] = location
+        self.locations.append(location)
         return location
 
     def advance_turns(self, count: int = 1) -> None:

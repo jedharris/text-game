@@ -91,9 +91,76 @@ class ChangeMethodCall(cst.CSTTransformer):
         return updated_node
 
 
+class RenameImportModule(cst.CSTTransformer):
+    """Rename module path in import statements.
+
+    Handles both:
+    - from old.path import X  ->  from new.path import X
+    - "old.path" in strings  ->  "new.path" in strings
+    """
+
+    def __init__(self, old_module: str, new_module: str):
+        self.old_module = old_module
+        self.new_module = new_module
+        self.old_parts = old_module.split('.')
+        self.new_parts = new_module.split('.')
+        self.changes = 0
+
+    def _build_module_attr(self, parts: list[str]) -> cst.BaseExpression:
+        """Build a nested Attribute node from module parts."""
+        if len(parts) == 1:
+            return cst.Name(parts[0])
+        result = cst.Name(parts[0])
+        for part in parts[1:]:
+            result = cst.Attribute(value=result, attr=cst.Name(part))
+        return result
+
+    def _get_module_string(self, node: cst.BaseExpression) -> str:
+        """Extract string representation of module path."""
+        if isinstance(node, cst.Name):
+            return node.value
+        elif isinstance(node, cst.Attribute):
+            return self._get_module_string(node.value) + '.' + node.attr.value
+        return ''
+
+    def leave_ImportFrom(
+        self, original_node: cst.ImportFrom, updated_node: cst.ImportFrom
+    ) -> cst.ImportFrom:
+        if updated_node.module is None:
+            return updated_node
+
+        module_str = self._get_module_string(updated_node.module)
+
+        # Check if this import starts with our old module path
+        if module_str == self.old_module or module_str.startswith(self.old_module + '.'):
+            # Replace the prefix
+            new_module_str = self.new_module + module_str[len(self.old_module):]
+            new_parts = new_module_str.split('.')
+            new_module = self._build_module_attr(new_parts)
+            self.changes += 1
+            return updated_node.with_changes(module=new_module)
+
+        return updated_node
+
+    def leave_SimpleString(
+        self, original_node: cst.SimpleString, updated_node: cst.SimpleString
+    ) -> cst.SimpleString:
+        """Also update string literals containing module paths (for handler references)."""
+        value = updated_node.value
+        # Handle both single and double quoted strings
+        quote_char = value[0]
+        if quote_char in ('"', "'"):
+            inner = value[1:-1]
+            if self.old_module in inner:
+                new_inner = inner.replace(self.old_module, self.new_module)
+                self.changes += 1
+                return updated_node.with_changes(value=f'{quote_char}{new_inner}{quote_char}')
+        return updated_node
+
+
 class AddImport(cst.CSTTransformer):
     """Add an import statement if not present."""
-    
+
     def __init__(self, module: str, name: str):
         self.module = module
         self.name = name
@@ -313,20 +380,21 @@ def create_transformer() -> cst.CSTTransformer:
     Configure which transformations to apply.
     Edit this function for your specific refactoring needs.
     """
-    
+
     # Example: Single transformer
     # return RenameFunction("old_func", "new_func")
-    
+
     # Example: Composite transformer (multiple changes at once)
     return CompositeTransformer([
         # Uncomment and customize the transformers you need:
-        
+
         # RenameFunction("old_name", "new_name"),
         # RenameKeywordArg("some_func", "old_arg", "new_arg"),
         # ChangeMethodCall("old_method", "new_method"),
         # UpdateTypeAnnotation("OldType", "NewType"),
         # ReplaceAssertEqual(),
-        
+        # RenameImportModule("old.module.path", "new.module.path"),
+
         # Default: no-op placeholder (remove this when adding real transformers)
         RenameFunction("__placeholder_do_not_use__", "__placeholder__"),
     ])

@@ -36,7 +36,8 @@
       "Bash(gh issue close:*)",
       "Bash(python -m pytest:*)",
       "Bash(gh issue comment:*)",
-      "Bash(python3 -m pytest:*)"
+      "Bash(python3 -m pytest:*)",
+      "Bash(python3 -m unittest:*)"
     ],
     "deny": [],
     "ask": []

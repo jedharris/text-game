@@ -4,19 +4,19 @@ from src.types import ActorId
 import unittest
 from typing import Any
 
-from behaviors.regions.fungal_depths.fungal_death_mark import (
+from examples.big_game.behaviors.regions.fungal_depths.fungal_death_mark import (
     on_fungal_kill,
     on_myconid_first_meeting,
 )
-from behaviors.regions.fungal_depths.aldric_rescue import (
+from examples.big_game.behaviors.regions.fungal_depths.aldric_rescue import (
     on_aldric_commitment,
     on_aldric_heal,
 )
-from behaviors.regions.fungal_depths.spore_mother import (
+from examples.big_game.behaviors.regions.fungal_depths.spore_mother import (
     on_spore_mother_heal,
     on_spore_mother_death,
 )
-from behaviors.regions.fungal_depths.light_puzzle import (
+from examples.big_game.behaviors.regions.fungal_depths.light_puzzle import (
     on_water_mushroom,
     on_examine_ceiling,
 )

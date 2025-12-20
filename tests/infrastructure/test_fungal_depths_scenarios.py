@@ -12,16 +12,16 @@ import unittest
 from typing import Any
 
 from examples.big_game.behaviors.infrastructure.dispatcher_utils import clear_handler_cache
-from behaviors.regions.fungal_depths.aldric_rescue import (
+from examples.big_game.behaviors.regions.fungal_depths.aldric_rescue import (
     on_aldric_commitment,
     on_aldric_heal,
     on_aldric_teach,
 )
-from behaviors.regions.fungal_depths.fungal_death_mark import (
+from examples.big_game.behaviors.regions.fungal_depths.fungal_death_mark import (
     on_fungal_kill,
     on_myconid_first_meeting,
 )
-from behaviors.regions.fungal_depths.spore_mother import (
+from examples.big_game.behaviors.regions.fungal_depths.spore_mother import (
     on_spore_mother_death,
     on_spore_mother_heal,
     on_spore_mother_presence,

@@ -320,7 +320,7 @@ class TestPackMirroringHandlerEscapeHatch(unittest.TestCase):
             "npc_alpha_wolf",
             {
                 "pack_behavior": {
-                    "handler": "behaviors.regions.beast_wilds.wolf_pack:on_alpha_state_change"
+                    "handler": "examples.big_game.behaviors.regions.beast_wilds.wolf_pack:on_alpha_state_change"
                 }
             },
         )

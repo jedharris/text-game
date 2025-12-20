@@ -1,0 +1,288 @@
+"""Tests for unified dialog_topics system via dialog_lib."""
+
+import unittest
+from unittest.mock import MagicMock, patch
+
+from behavior_libraries.dialog_lib.handlers import (
+    clear_dialog_handler_cache,
+    handle_ask,
+    handle_talk,
+)
+from src.behavior_manager import EventResult
+from src.state_accessor import HandlerResult
+from src.word_entry import WordEntry, WordType
+
+
+class MockActor:
+    """Mock actor for testing."""
+
+    def __init__(
+        self,
+        actor_id: str,
+        name: str = "Test Actor",
+        location: str = "test_room",
+        properties: dict | None = None,
+        inventory: list | None = None,
+    ) -> None:
+        self.id = actor_id
+        self.name = name
+        self.location = location
+        self.properties = properties or {}
+        self.inventory = inventory or []
+
+
+class MockGameState:
+    """Mock game state for testing."""
+
+    def __init__(self) -> None:
+        self.actors: dict = {}
+        self.extra: dict = {}
+
+
+class MockAccessor:
+    """Mock accessor for testing."""
+
+    def __init__(self) -> None:
+        self.game_state = MockGameState()
+
+    def get_actor(self, actor_id):
+        return self.game_state.actors.get(actor_id)
+
+
+def make_word_entry(word: str) -> WordEntry:
+    """Create a WordEntry for testing."""
+    return WordEntry(
+        word=word,
+        word_type=WordType.NOUN,
+        synonyms=[],
+    )
+
+
+class TestDialogHandlerEscapeHatch(unittest.TestCase):
+    """Tests for handler escape hatch in dialog_topics."""
+
+    def setUp(self) -> None:
+        """Set up test fixtures."""
+        clear_dialog_handler_cache()
+        self.accessor = MockAccessor()
+
+        # Create player and NPC in same location
+        self.player = MockActor("player", "Player", "test_room")
+        self.npc = MockActor(
+            "the_echo",
+            "Echo",
+            "test_room",
+            properties={
+                "dialog_topics": {
+                    "handler": "examples.big_game.behaviors.regions.meridian_nexus.echo:on_echo_dialog"
+                }
+            },
+        )
+        self.accessor.game_state.actors["player"] = self.player
+        self.accessor.game_state.actors["the_echo"] = self.npc
+
+    def test_ask_calls_handler(self) -> None:
+        """When handler is specified, ask command calls it."""
+        handler_result = EventResult(allow=True, feedback="Handler response")
+        mock_handler = MagicMock(return_value=handler_result)
+
+        with patch(
+            "behavior_libraries.dialog_lib.handlers._load_handler",
+            return_value=mock_handler,
+        ):
+            action = {
+                "verb": "ask",
+                "object": make_word_entry("echo"),
+                "indirect_object": make_word_entry("waystone"),
+            }
+            result = handle_ask(self.accessor, action)
+
+        self.assertTrue(result.success)
+        self.assertEqual(result.primary, "Handler response")
+        mock_handler.assert_called_once()
+
+        # Check context passed to handler
+        call_args = mock_handler.call_args
+        context = call_args[0][2]
+        self.assertEqual(context["keyword"], "waystone")
+
+    def test_talk_calls_handler(self) -> None:
+        """When handler is specified, talk command calls it."""
+        handler_result = EventResult(allow=True, feedback="Hello there!")
+        mock_handler = MagicMock(return_value=handler_result)
+
+        with patch(
+            "behavior_libraries.dialog_lib.handlers._load_handler",
+            return_value=mock_handler,
+        ):
+            action = {
+                "verb": "talk",
+                "indirect_object": make_word_entry("echo"),
+            }
+            result = handle_talk(self.accessor, action)
+
+        self.assertTrue(result.success)
+        self.assertEqual(result.primary, "Hello there!")
+        mock_handler.assert_called_once()
+
+        # Check context passed to handler - empty keyword for talk
+        call_args = mock_handler.call_args
+        context = call_args[0][2]
+        self.assertEqual(context["keyword"], "")
+
+    def test_handler_returns_none_feedback(self) -> None:
+        """When handler returns None feedback, default message is used."""
+        handler_result = EventResult(allow=True, feedback=None)
+        mock_handler = MagicMock(return_value=handler_result)
+
+        with patch(
+            "behavior_libraries.dialog_lib.handlers._load_handler",
+            return_value=mock_handler,
+        ):
+            action = {
+                "verb": "ask",
+                "object": make_word_entry("echo"),
+                "indirect_object": make_word_entry("nothing"),
+            }
+            result = handle_ask(self.accessor, action)
+
+        self.assertTrue(result.success)
+        self.assertIn("nothing to say", result.primary)
+
+
+class TestDialogDataDriven(unittest.TestCase):
+    """Tests for data-driven dialog_topics."""
+
+    def setUp(self) -> None:
+        """Set up test fixtures."""
+        clear_dialog_handler_cache()
+        self.accessor = MockAccessor()
+
+        # Create player and NPC with data-driven topics
+        self.player = MockActor(
+            "player", "Player", "test_room", properties={"flags": {}}
+        )
+        self.npc = MockActor(
+            "scholar",
+            "The Scholar",
+            "test_room",
+            properties={
+                "dialog_topics": {
+                    "infection": {
+                        "keywords": ["infection", "sick", "illness"],
+                        "summary": "'The infection spreads from the caves...'",
+                    },
+                    "cure": {
+                        "keywords": ["cure", "remedy"],
+                        "summary": "'You'll need the moonflower.'",
+                        "requires_flags": {"knows_about_infection": True},
+                    },
+                },
+                "default_topic_summary": "The scholar shakes their head.",
+            },
+        )
+        self.accessor.game_state.actors["player"] = self.player
+        self.accessor.game_state.actors["scholar"] = self.npc
+
+    def test_ask_matches_keyword(self) -> None:
+        """Ask command matches keyword and returns summary."""
+        action = {
+            "verb": "ask",
+            "object": make_word_entry("scholar"),
+            "indirect_object": make_word_entry("infection"),
+        }
+        result = handle_ask(self.accessor, action)
+
+        self.assertTrue(result.success)
+        self.assertIn("caves", result.primary)
+
+    def test_ask_unknown_topic(self) -> None:
+        """Ask about unknown topic returns default response."""
+        action = {
+            "verb": "ask",
+            "object": make_word_entry("scholar"),
+            "indirect_object": make_word_entry("weather"),
+        }
+        result = handle_ask(self.accessor, action)
+
+        self.assertTrue(result.success)
+        self.assertIn("shakes", result.primary)
+
+    def test_talk_lists_topics(self) -> None:
+        """Talk command lists available topic hints."""
+        action = {
+            "verb": "talk",
+            "indirect_object": make_word_entry("scholar"),
+        }
+        result = handle_talk(self.accessor, action)
+
+        self.assertTrue(result.success)
+        # Should mention infection (first keyword), not cure (requires flag)
+        self.assertIn("infection", result.primary)
+
+
+class TestDialogNoTopics(unittest.TestCase):
+    """Tests for NPCs without dialog_topics."""
+
+    def setUp(self) -> None:
+        """Set up test fixtures."""
+        clear_dialog_handler_cache()
+        self.accessor = MockAccessor()
+
+        self.player = MockActor("player", "Player", "test_room")
+        self.npc = MockActor("guard", "Guard", "test_room", properties={})
+        self.accessor.game_state.actors["player"] = self.player
+        self.accessor.game_state.actors["guard"] = self.npc
+
+    def test_ask_npc_without_topics(self) -> None:
+        """Ask NPC without dialog_topics returns not interested."""
+        action = {
+            "verb": "ask",
+            "object": make_word_entry("guard"),
+            "indirect_object": make_word_entry("anything"),
+        }
+        result = handle_ask(self.accessor, action)
+
+        self.assertFalse(result.success)
+        self.assertIn("interested in conversation", result.primary)
+
+    def test_talk_npc_without_topics(self) -> None:
+        """Talk to NPC without dialog_topics returns not interested."""
+        action = {
+            "verb": "talk",
+            "indirect_object": make_word_entry("guard"),
+        }
+        result = handle_talk(self.accessor, action)
+
+        self.assertFalse(result.success)
+        self.assertIn("interested in conversation", result.primary)
+
+
+class TestDialogNpcNotFound(unittest.TestCase):
+    """Tests for NPC not in location."""
+
+    def setUp(self) -> None:
+        """Set up test fixtures."""
+        clear_dialog_handler_cache()
+        self.accessor = MockAccessor()
+
+        self.player = MockActor("player", "Player", "test_room")
+        self.npc = MockActor("scholar", "Scholar", "other_room")  # Different location
+        self.accessor.game_state.actors["player"] = self.player
+        self.accessor.game_state.actors["scholar"] = self.npc
+
+    def test_ask_npc_not_here(self) -> None:
+        """Ask NPC in different location returns not found."""
+        action = {
+            "verb": "ask",
+            "object": make_word_entry("scholar"),
+            "indirect_object": make_word_entry("anything"),
+        }
+        result = handle_ask(self.accessor, action)
+
+        self.assertFalse(result.success)
+        self.assertIn("don't see", result.primary)
+
+
+if __name__ == "__main__":
+    unittest.main()

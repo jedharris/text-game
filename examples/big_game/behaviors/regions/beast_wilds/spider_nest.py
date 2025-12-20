@@ -122,14 +122,12 @@ def on_web_movement(
 
     state = accessor.state
 
-    # Check for web effects
-    dest_loc = state.locations.get(dest_id) if hasattr(state, "locations") else None
-    if not dest_loc:
-        # Try as list
-        for loc in getattr(state, "locations", []):
-            if hasattr(loc, "id") and loc.id == dest_id:
-                dest_loc = loc
-                break
+    # Check for web effects - find location by id in list
+    dest_loc = None
+    for loc in getattr(state, "locations", []):
+        if hasattr(loc, "id") and loc.id == dest_id:
+            dest_loc = loc
+            break
 
     if dest_loc and dest_loc.properties.get("web_effects"):
         # Double movement cost handled by engine based on property

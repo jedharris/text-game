@@ -413,7 +413,7 @@ class TestValidateCompanionRestrictions(unittest.TestCase):
         """Valid companion produces no errors."""
         state = MockState()
         state.actors[ActorId("echo")] = MockActor(id="echo")
-        state.extra["companions"] = [{"actor_id": "echo", "status": "following"}]
+        state.extra["companions"] = [{"actor_id": "echo", "following": True}]
 
         errors = validate_companion_restrictions(state)  # type: ignore[arg-type]
         self.assertEqual(errors, [])
@@ -421,7 +421,7 @@ class TestValidateCompanionRestrictions(unittest.TestCase):
     def test_missing_actor_id(self) -> None:
         """Missing actor_id produces error."""
         state = MockState()
-        state.extra["companions"] = [{"status": "following"}]
+        state.extra["companions"] = [{"following": True}]
 
         errors = validate_companion_restrictions(state)  # type: ignore[arg-type]
         self.assertIn("missing 'actor_id'", errors[0])
@@ -429,19 +429,19 @@ class TestValidateCompanionRestrictions(unittest.TestCase):
     def test_nonexistent_actor(self) -> None:
         """Reference to non-existent actor produces error."""
         state = MockState()
-        state.extra["companions"] = [{"actor_id": "ghost", "status": "following"}]
+        state.extra["companions"] = [{"actor_id": "ghost", "following": True}]
 
         errors = validate_companion_restrictions(state)  # type: ignore[arg-type]
         self.assertIn("non-existent actor", errors[0])
 
-    def test_invalid_status(self) -> None:
-        """Invalid status produces error."""
+    def test_invalid_following_type(self) -> None:
+        """Non-boolean following flag produces error."""
         state = MockState()
         state.actors[ActorId("echo")] = MockActor(id="echo")
-        state.extra["companions"] = [{"actor_id": "echo", "status": "dancing"}]
+        state.extra["companions"] = [{"actor_id": "echo", "following": "yes"}]
 
         errors = validate_companion_restrictions(state)  # type: ignore[arg-type]
-        self.assertIn("invalid status", errors[0])
+        self.assertIn("non-boolean 'following' flag", errors[0])
 
 
 class TestValidateZoneConsistency(unittest.TestCase):

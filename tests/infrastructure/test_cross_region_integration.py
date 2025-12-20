@@ -11,7 +11,6 @@ from unittest.mock import MagicMock, patch
 
 from examples.big_game.behaviors.infrastructure.dispatcher_utils import clear_handler_cache
 from examples.big_game.behaviors.infrastructure.gift_reactions import on_gift_given
-from examples.big_game.behaviors.infrastructure.dialog_reactions import on_dialog_received
 from examples.big_game.behaviors.infrastructure.item_use_reactions import on_item_used
 from examples.big_game.behaviors.infrastructure.death_reactions import on_entity_death
 from examples.big_game.behaviors.infrastructure.pack_mirroring import on_leader_state_change
@@ -62,7 +61,7 @@ class TestBeastWildsIntegration(unittest.TestCase):
                 },
                 "trust_state": {"current": 0, "floor": -3, "ceiling": 5},
                 "gift_reactions": {
-                    "handler": "behaviors.regions.beast_wilds.bee_queen:on_flower_offer"
+                    "handler": "examples.big_game.behaviors.regions.beast_wilds.bee_queen:on_flower_offer"
                 },
             },
         )
@@ -143,33 +142,6 @@ class TestFungalDepthsIntegration(unittest.TestCase):
         clear_handler_cache()
         self.accessor = MockAccessor()
 
-    def test_aldric_dialog_handler_wiring(self) -> None:
-        """Aldric dialog_reactions handler is callable via dispatcher."""
-        # Create Aldric with same config as game_state.json
-        aldric = MockEntity(
-            "npc_aldric",
-            {
-                "state_machine": {
-                    "states": ["critical", "stabilized", "recovering", "dead"],
-                    "initial": "critical",
-                },
-                "trust_state": {"current": 0, "floor": -3, "ceiling": 5},
-                "dialog_reactions": {
-                    "handler": "behaviors.regions.fungal_depths.aldric_rescue:on_aldric_commitment"
-                },
-            },
-        )
-        self.accessor.state.actors[ActorId("npc_aldric")] = aldric
-
-        context = {"keyword": "help", "dialog_text": ""}
-
-        # Call dialog dispatcher
-        result = on_dialog_received(aldric, self.accessor, context)
-
-        self.assertTrue(result.allow)
-        # Handler should return a message about commitment
-        self.assertIsNotNone(result.feedback)
-
     def test_spore_mother_pack_mirroring(self) -> None:
         """Spore Mother pack mirroring to sporelings."""
         # Create sporeling followers
@@ -242,7 +214,7 @@ class TestSunkenDistrictIntegration(unittest.TestCase):
                     "initial": "trapped",
                 },
                 "death_reactions": {
-                    "handler": "behaviors.regions.sunken_district.dual_rescue:on_npc_death",
+                    "handler": "examples.big_game.behaviors.regions.sunken_district.dual_rescue:on_npc_death",
                     "set_flags": {"delvan_died": True},
                 },
             },
@@ -279,7 +251,7 @@ class TestFrozenReachesIntegration(unittest.TestCase):
                 },
                 "trust_state": {"current": 0, "floor": 0, "ceiling": 5},
                 "gift_reactions": {
-                    "handler": "behaviors.regions.frozen_reaches.salamanders:on_fire_gift"
+                    "handler": "examples.big_game.behaviors.regions.frozen_reaches.salamanders:on_fire_gift"
                 },
             },
         )

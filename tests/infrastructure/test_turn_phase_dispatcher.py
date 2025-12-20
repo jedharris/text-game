@@ -185,7 +185,7 @@ class TestTurnPhaseDispatcherHandlerEscapeHatch(unittest.TestCase):
             "loc_spore_cave",
             {
                 "turn_phase_effects": {
-                    "handler": "behaviors.regions.fungal_depths.spore_zones:on_turn_in_spore_zone"
+                    "handler": "examples.big_game.behaviors.regions.fungal_depths.spore_zones:on_turn_in_spore_zone"
                 }
             },
         )

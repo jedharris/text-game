@@ -319,7 +319,7 @@ class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
             "npc_aldric",
             {
                 "item_use_reactions": {
-                    "handler": "behaviors.regions.fungal_depths.aldric_rescue:on_aldric_heal"
+                    "handler": "examples.big_game.behaviors.regions.fungal_depths.aldric_rescue:on_aldric_heal"
                 }
             },
         )

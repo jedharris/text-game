@@ -288,7 +288,7 @@ class TestDeathReactionsHandlerEscapeHatch(unittest.TestCase):
             "npc_alpha_wolf",
             {
                 "death_reactions": {
-                    "handler": "behaviors.regions.beast_wilds.wolf_pack:on_alpha_death"
+                    "handler": "examples.big_game.behaviors.regions.beast_wilds.wolf_pack:on_alpha_death"
                 }
             },
         )

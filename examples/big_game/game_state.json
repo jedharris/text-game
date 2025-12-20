@@ -1019,11 +1019,11 @@
         "trust_state": {"current": 0, "floor": -6, "ceiling": 6},
         "appearance_cooldown": 0,
         "is_spectral": true,
-        "dialog_reactions": {
-          "handler": "behaviors.regions.meridian_nexus.echo:on_echo_dialog"
+        "dialog_topics": {
+          "handler": "examples.big_game.behaviors.regions.meridian_nexus.echo:on_echo_dialog"
         },
         "gossip_reactions": {
-          "handler": "behaviors.regions.meridian_nexus.echo:on_echo_gossip"
+          "handler": "examples.big_game.behaviors.regions.meridian_nexus.echo:on_echo_gossip"
         }
       }
     },
@@ -1061,10 +1061,10 @@
         "pack_behavior": {
           "pack_follows_leader_state": true,
           "followers": ["frost_wolf_1", "frost_wolf_2"],
-          "handler": "behaviors.regions.beast_wilds.wolf_pack:on_wolf_state_change"
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.wolf_pack:on_wolf_state_change"
         },
         "gift_reactions": {
-          "handler": "behaviors.regions.beast_wilds.wolf_pack:on_wolf_feed"
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.wolf_pack:on_wolf_feed"
         }
       }
     },
@@ -1113,7 +1113,7 @@
         "heat_aura": true,
         "trust_state": {"current": 0, "floor": 0, "ceiling": 5},
         "gift_reactions": {
-          "handler": "behaviors.regions.frozen_reaches.salamanders:on_fire_gift"
+          "handler": "examples.big_game.behaviors.regions.frozen_reaches.salamanders:on_fire_gift"
         }
       }
     },
@@ -1138,17 +1138,17 @@
         "hope_bonus": 5,
         "connected_to": "healer_elara",
         "encounter_reactions": {
-          "handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_encounter"
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.sira_rescue:on_sira_encounter"
         },
         "death_reactions": {
-          "handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_death",
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.sira_rescue:on_sira_death",
           "set_flags": {"sira_dead": true},
           "message": "Hunter Sira's struggle has ended."
         },
         "item_use_reactions": {
           "healing": {
             "accepted_items": ["bandages", "healing_herbs"],
-            "handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
+            "handler": "examples.big_game.behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
           }
         }
       }
@@ -1167,7 +1167,7 @@
         "pack_id": "spider_brood",
         "pack_role": "alpha",
         "death_reactions": {
-          "handler": "behaviors.regions.beast_wilds.spider_nest:on_spider_queen_death",
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.spider_nest:on_spider_queen_death",
           "set_flags": {"spider_queen_dead": true}
         }
       }
@@ -1186,10 +1186,10 @@
         "trust_state": {"current": 0, "floor": -3, "ceiling": 5},
         "trades_for": ["moonpetal", "water_bloom", "frost_lily"],
         "gift_reactions": {
-          "handler": "behaviors.regions.beast_wilds.bee_queen:on_flower_offer"
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.bee_queen:on_flower_offer"
         },
         "take_reactions": {
-          "handler": "behaviors.regions.beast_wilds.bee_queen:on_honey_theft"
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.bee_queen:on_honey_theft"
         }
       }
     },
@@ -1239,12 +1239,12 @@
         "base_timer": 5,
         "hope_extends": false,
         "death_reactions": {
-          "handler": "behaviors.regions.sunken_district.dual_rescue:on_npc_death",
+          "handler": "examples.big_game.behaviors.regions.sunken_district.dual_rescue:on_npc_death",
           "set_flags": {"garrett_died": true}
         },
         "condition_reactions": {
           "drowning_stopped": {
-            "handler": "behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
+            "handler": "examples.big_game.behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
           }
         }
       }
@@ -1270,15 +1270,15 @@
         "hope_extends": true,
         "hope_bonus": 3,
         "encounter_reactions": {
-          "handler": "behaviors.regions.sunken_district.dual_rescue:on_delvan_encounter"
+          "handler": "examples.big_game.behaviors.regions.sunken_district.dual_rescue:on_delvan_encounter"
         },
         "death_reactions": {
-          "handler": "behaviors.regions.sunken_district.dual_rescue:on_npc_death",
+          "handler": "examples.big_game.behaviors.regions.sunken_district.dual_rescue:on_npc_death",
           "set_flags": {"delvan_died": true}
         },
         "condition_reactions": {
           "bleeding_stopped": {
-            "handler": "behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
+            "handler": "examples.big_game.behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
           }
         }
       }
@@ -1333,17 +1333,17 @@
         "base_timer": 50,
         "hope_extends": true,
         "hope_bonus": 10,
-        "dialog_reactions": {
-          "handler": "behaviors.regions.fungal_depths.aldric_rescue:on_aldric_commitment",
+        "dialog_topics": {
+          "handler": "examples.big_game.behaviors.regions.fungal_depths.aldric_rescue:on_aldric_commitment",
           "teaching": {
             "triggers": ["teach", "learn", "mycology", "fungi", "knowledge"],
-            "handler": "behaviors.regions.fungal_depths.aldric_rescue:on_aldric_teach"
+            "handler": "examples.big_game.behaviors.regions.fungal_depths.aldric_rescue:on_aldric_teach"
           }
         },
         "item_use_reactions": {
           "healing": {
             "accepted_items": ["silvermoss"],
-            "handler": "behaviors.regions.fungal_depths.aldric_rescue:on_aldric_heal"
+            "handler": "examples.big_game.behaviors.regions.fungal_depths.aldric_rescue:on_aldric_heal"
           }
         }
       }
@@ -1371,16 +1371,16 @@
         "pack_behavior": {
           "pack_follows_leader_state": true,
           "followers": ["npc_sporeling_1", "npc_sporeling_2", "npc_sporeling_3"],
-          "handler": "behaviors.regions.fungal_depths.spore_mother:on_spore_mother_state_change"
+          "handler": "examples.big_game.behaviors.regions.fungal_depths.spore_mother:on_spore_mother_state_change"
         },
         "item_use_reactions": {
           "healing": {
             "accepted_items": ["heartmoss"],
-            "handler": "behaviors.regions.fungal_depths.spore_mother:on_spore_mother_heal"
+            "handler": "examples.big_game.behaviors.regions.fungal_depths.spore_mother:on_spore_mother_heal"
           }
         },
         "death_reactions": {
-          "handler": "behaviors.regions.fungal_depths.spore_mother:on_spore_mother_death",
+          "handler": "examples.big_game.behaviors.regions.fungal_depths.spore_mother:on_spore_mother_death",
           "set_flags": {"spore_mother_dead": true, "has_killed_fungi": true}
         }
       }
@@ -1455,7 +1455,7 @@
         "accepts_payment": ["ice_crystal", "rare_mineral", "gold"],
         "fungal": true,
         "encounter_reactions": {
-          "handler": "behaviors.regions.fungal_depths.fungal_death_mark:on_myconid_first_meeting"
+          "handler": "examples.big_game.behaviors.regions.fungal_depths.fungal_death_mark:on_myconid_first_meeting"
         }
       }
     },

@@ -11,19 +11,18 @@ import unittest
 from typing import Any
 
 from examples.big_game.behaviors.infrastructure.dispatcher_utils import clear_handler_cache
-from behaviors.regions.frozen_reaches.hypothermia import (
+from examples.big_game.behaviors.regions.frozen_reaches.hypothermia import (
     COLD_RATES,
     GEAR_COLD_REDUCTION,
     on_cold_zone_turn,
     on_enter_hot_springs,
 )
-from behaviors.regions.frozen_reaches.salamanders import on_fire_gift
+from examples.big_game.behaviors.regions.frozen_reaches.salamanders import on_fire_gift
 from src.behavior_manager import EventResult
 from src.infrastructure_utils import transition_state
 from tests.infrastructure.test_scenario_framework import (
     MockEntity,
     MockItem,
-    MockLocation,
     ScenarioAccessor,
     ScenarioState,
     ScenarioTestCase,
@@ -147,15 +146,6 @@ class TestHypothermiaScenarios(ScenarioTestCase):
             name="Hot Springs",
             properties={"temperature": "warm"},
         )
-
-        # Store locations in a dict for handler access (by loc id)
-        self.state.locations = {
-            self.warm.id: self.warm,
-            self.cold.id: self.cold,
-            self.freezing.id: self.freezing,
-            self.extreme.id: self.extreme,
-            self.hot_springs.id: self.hot_springs,
-        }
 
     def test_warm_zone_no_hypothermia(self) -> None:
         """Warm zones don't cause hypothermia."""
@@ -338,12 +328,11 @@ class TestCombinedFrozenScenarios(ScenarioTestCase):
         )
 
         # Create extreme cold location
-        extreme = MockLocation(
+        self.state.add_location(
             "loc_frozen_observatory",
             name="Observatory",
             properties={"temperature": "extreme"},
         )
-        self.state.locations = {extreme.id: extreme}
 
     def test_befriend_salamander_then_survive_extreme(self) -> None:
         """Befriending salamander allows survival in extreme cold."""
