@@ -15,15 +15,78 @@ This plan implements the Narration-Oriented Engine API as specified in `game_eng
 
 ---
 
-## Phase 1: Define New Types
+## Phase 1: Define New Types ✅ COMPLETED
 
 **Goal:** Establish the type foundation for the new API.
 
-**Files to create/modify:**
-- `src/narration_types.py` (new)
-- `src/action_types.py` (modify)
+**Status:** Completed and closed (Issue #217)
 
-**New types in `narration_types.py`:**
+### Completed Work
+
+#### 1. Result Type Field Renames
+
+All `message` fields renamed to semantically distinct names:
+
+| Type | Old Field | New Field | Purpose |
+|------|-----------|-----------|---------|
+| `HandlerResult` | `message` | `primary` | Core statement of what occurred |
+| `EventResult` | `message` | `feedback` | Behavior response text |
+| `UpdateResult` | `message` | `detail` | Operation detail/error text |
+
+Domain-specific Result types (already had semantic names):
+
+| Type | Field | Semantic Type |
+|------|-------|---------------|
+| `AttackResult` | `narration` | NarrationText |
+| `FleeResult` | `narration` | NarrationText |
+| `CraftResult` | `description` | DescriptionText |
+| `DialogResult` | `response` | ResponseText |
+| `ServiceResult` | `outcome` | OutcomeText |
+| `TreatmentResult` | `effect` | EffectText |
+
+#### 2. Semantic Type Aliases (in `src/types.py`)
+
+NewType aliases for documentation and optional strict typing:
+
+```python
+# Core Result text types
+FeedbackText = NewType('FeedbackText', str)   # EventResult.feedback
+DetailText = NewType('DetailText', str)       # UpdateResult.detail
+PrimaryText = NewType('PrimaryText', str)     # HandlerResult.primary
+
+# Domain-specific text types
+NarrationText = NewType('NarrationText', str)     # Attack/flee descriptions
+DescriptionText = NewType('DescriptionText', str) # Crafting descriptions
+ResponseText = NewType('ResponseText', str)       # NPC dialog responses
+OutcomeText = NewType('OutcomeText', str)         # Service outcomes
+EffectText = NewType('EffectText', str)           # Treatment effects
+```
+
+**Note:** Field types remain `str` for practical use. Semantic types are:
+- Documented in docstrings with "Semantic type: TypeName"
+- Available for optional strict typing: `FeedbackText("message")`
+- No casting required for normal usage
+
+#### 3. HandlerResult Structure
+
+```python
+@dataclass
+class HandlerResult:
+    success: bool
+    primary: str      # Semantic type: PrimaryText
+    beats: list[str] = field(default_factory=list)
+    data: Optional[Dict[str, Any]] = None
+```
+
+#### 4. Files Modified
+
+- `src/types.py` - Added semantic type aliases
+- `src/state_accessor.py` - Renamed fields in EventResult, UpdateResult, HandlerResult
+- All handlers in `behaviors/core/`, `behavior_libraries/`, `utilities/`
+- All behavior files in `behaviors/regions/`
+- All test files
+
+#### 5. Narration Types (in `src/narration_types.py`)
 
 ```python
 from typing import TypedDict, Literal, Optional
@@ -69,20 +132,7 @@ class NarrationResult(TypedDict):
     data: dict  # Raw engine data for debugging/UI
 ```
 
-**Modify `HandlerResult` in `src/state_accessor.py`:**
-
-```python
-@dataclass
-class HandlerResult:
-    success: bool
-    primary: str  # Was: message
-    beats: list[str] = field(default_factory=list)  # New
-    data: Optional[Dict[str, Any]] = None
-```
-
-**Tests:**
-- Type validation tests ensuring TypedDict structure
-- Test that all required fields are present
+**Tests:** All 1893 tests pass. mypy validates with no field-naming errors.
 
 ---
 
