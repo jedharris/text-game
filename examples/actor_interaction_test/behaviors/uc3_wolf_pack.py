@@ -131,7 +131,7 @@ def directed_flee(accessor, actor) -> Optional[str]:
     # Fall back to library's random flee
     from behavior_libraries.actor_lib.morale import attempt_flee
     result = attempt_flee(accessor, actor, force_success=True)
-    return result.message
+    return result.narration
 
 
 def update_morale_on_damage(accessor, actor, damage: int) -> Optional[str]:
@@ -207,7 +207,7 @@ def on_give_food(entity, accessor, context) -> Optional[Any]:
     # Apply feeding
     message = apply_feeding(accessor, item, entity)
     if message:
-        return EventResult(allow=True, message=message)
+        return EventResult(allow=True, feedback=message)
 
     return None
 

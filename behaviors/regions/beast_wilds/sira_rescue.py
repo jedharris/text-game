@@ -47,14 +47,14 @@ def on_sira_encounter(
     # Check if this is Sira
     actor_id = entity.id if hasattr(entity, "id") else None
     if actor_id != "npc_hunter_sira":
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
     extra = state.extra
 
     # Check if commitment already exists
     if extra.get("sira_commitment_created"):
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Create the commitment (config must exist in game state)
     # Config ID "commit_sira_rescue" should be defined in game_state.json
@@ -70,7 +70,7 @@ def on_sira_encounter(
 
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             "Sira's condition is critical - the clock is now ticking. "
             "She needs bandages and medical care urgently."
         ),
@@ -97,7 +97,7 @@ def on_sira_death(
     """
     actor_id = entity.id if hasattr(entity, "id") else None
     if actor_id != "npc_hunter_sira":
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
 
@@ -119,7 +119,7 @@ def on_sira_death(
 
     return EventResult(
         allow=True,
-        message="Sira's struggle has ended. News will travel south in time.",
+        feedback="Sira's struggle has ended. News will travel south in time.",
     )
 
 
@@ -143,7 +143,7 @@ def on_sira_healed(
     """
     actor_id = entity.id if hasattr(entity, "id") else None
     if actor_id != "npc_hunter_sira":
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     condition_type = context.get("condition_type")
     state = accessor.state
@@ -152,7 +152,7 @@ def on_sira_healed(
         state.extra["sira_bleeding_stopped"] = True
         return EventResult(
             allow=True,
-            message="The bleeding stops. Sira's color improves slightly.",
+            feedback="The bleeding stops. Sira's color improves slightly.",
         )
 
     if condition_type == "leg_injury":
@@ -164,7 +164,7 @@ def on_sira_healed(
             # Fulfill commitment will be handled by commitment system
             return EventResult(
                 allow=True,
-                message=(
+                feedback=(
                     "Sira's leg is mended. She tests it carefully, then looks "
                     "at you with gratitude. 'You saved my life. I won't forget this.'"
                 ),
@@ -172,7 +172,7 @@ def on_sira_healed(
 
         return EventResult(
             allow=True,
-            message="The leg is splinted, but the bleeding must also be stopped.",
+            feedback="The leg is splinted, but the bleeding must also be stopped.",
         )
 
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)

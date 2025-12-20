@@ -49,7 +49,7 @@ class TestDeathReactionsBasic(unittest.TestCase):
         result = on_entity_death(entity, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
     def test_entity_without_death_reactions(self) -> None:
         """Entity without death_reactions returns allow with no message."""
@@ -59,7 +59,7 @@ class TestDeathReactionsBasic(unittest.TestCase):
         result = on_entity_death(entity, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
 
 class TestDeathReactionsDataDriven(unittest.TestCase):
@@ -101,7 +101,7 @@ class TestDeathReactionsDataDriven(unittest.TestCase):
 
         result = on_entity_death(entity, self.accessor, context)
 
-        self.assertEqual(result.message, "The pack howls in mourning.")
+        self.assertEqual(result.feedback, "The pack howls in mourning.")
 
     def test_trust_changes_on_other_entities(self) -> None:
         """Death reaction applies trust changes to other entities."""
@@ -252,7 +252,7 @@ class TestDeathReactionsDataDriven(unittest.TestCase):
         self.assertTrue(self.accessor.state.extra.get("alpha_dead"))
         self.assertEqual(beta_wolf.properties["trust_state"]["current"], 1)
         self.assertEqual(beta_wolf.properties["state_machine"]["current"], "hostile")
-        self.assertEqual(result.message, "The alpha falls. The pack is changed forever.")
+        self.assertEqual(result.feedback, "The alpha falls. The pack is changed forever.")
 
     def test_missing_target_entity_ignored(self) -> None:
         """Trust/state changes for missing entities are ignored."""
@@ -271,7 +271,7 @@ class TestDeathReactionsDataDriven(unittest.TestCase):
         # Should not raise, just ignore missing entities
         result = on_entity_death(entity, self.accessor, context)
 
-        self.assertEqual(result.message, "The alpha falls.")
+        self.assertEqual(result.feedback, "The alpha falls.")
 
 
 class TestDeathReactionsHandlerEscapeHatch(unittest.TestCase):
@@ -294,7 +294,7 @@ class TestDeathReactionsHandlerEscapeHatch(unittest.TestCase):
         )
         context: dict[str, Any] = {}
 
-        handler_result = EventResult(allow=True, message="Handler response")
+        handler_result = EventResult(allow=True, feedback="Handler response")
         mock_handler = MagicMock(return_value=handler_result)
 
         with patch(
@@ -303,7 +303,7 @@ class TestDeathReactionsHandlerEscapeHatch(unittest.TestCase):
         ):
             result = on_entity_death(entity, self.accessor, context)
 
-        self.assertEqual(result.message, "Handler response")
+        self.assertEqual(result.feedback, "Handler response")
         mock_handler.assert_called_once_with(entity, self.accessor, context)
 
     def test_handler_load_failure_falls_through(self) -> None:
@@ -323,7 +323,7 @@ class TestDeathReactionsHandlerEscapeHatch(unittest.TestCase):
         result = on_entity_death(entity, self.accessor, context)
 
         self.assertTrue(self.accessor.state.extra.get("alpha_dead"))
-        self.assertEqual(result.message, "Fallback death message.")
+        self.assertEqual(result.feedback, "Fallback death message.")
 
 
 if __name__ == "__main__":

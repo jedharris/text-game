@@ -19,7 +19,7 @@ class TestProtocolHandlerTierStorage(unittest.TestCase):
         module_name = "test_module"
 
         def mock_handler(accessor, action):
-            return HandlerResult(success=True, message="Test")
+            return HandlerResult(success=True, primary="Test")
 
         # Register handler with tier
         self.manager._register_handler(verb, mock_handler, module_name, tier)
@@ -40,10 +40,10 @@ class TestProtocolHandlerTierStorage(unittest.TestCase):
         module2 = "exits"
 
         def handler1(accessor, action):
-            return HandlerResult(success=True, message="Climb item (spatial)")
+            return HandlerResult(success=True, primary="Climb item (spatial)")
 
         def handler2(accessor, action):
-            return HandlerResult(success=True, message="Climb exit (navigation)")
+            return HandlerResult(success=True, primary="Climb exit (navigation)")
 
         # Register first handler
         self.manager._register_handler(verb, handler1, module1, tier)
@@ -64,7 +64,7 @@ class TestProtocolHandlerTierStorage(unittest.TestCase):
         module_name = "test_module"
 
         def handler(accessor, action):
-            return HandlerResult(success=True, message="Test")
+            return HandlerResult(success=True, primary="Test")
 
         # Register first time
         self.manager._register_handler(verb, handler, module_name, tier)
@@ -83,10 +83,10 @@ class TestProtocolHandlerTierStorage(unittest.TestCase):
         module2 = "module2"
 
         def handler1(accessor, action):
-            return HandlerResult(success=True, message="Handler 1")
+            return HandlerResult(success=True, primary="Handler 1")
 
         def handler2(accessor, action):
-            return HandlerResult(success=True, message="Handler 2")
+            return HandlerResult(success=True, primary="Handler 2")
 
         # Register in Tier 1
         self.manager._register_handler(verb, handler1, module1, tier=1)
@@ -103,13 +103,13 @@ class TestProtocolHandlerTierStorage(unittest.TestCase):
         verb = "take"
 
         def handler1(accessor, action):
-            return HandlerResult(success=True, message="Tier 1")
+            return HandlerResult(success=True, primary="Tier 1")
 
         def handler2(accessor, action):
-            return HandlerResult(success=True, message="Tier 2")
+            return HandlerResult(success=True, primary="Tier 2")
 
         def handler3(accessor, action):
-            return HandlerResult(success=True, message="Tier 3")
+            return HandlerResult(success=True, primary="Tier 3")
 
         # Register in different order (Tier 3, then Tier 1, then Tier 2)
         self.manager._register_handler(verb, handler3, "module3", tier=3)
@@ -138,7 +138,7 @@ class TestProtocolHandlerInvocation(unittest.TestCase):
         verb = "take"
 
         def tier1_handler(accessor, action):
-            return HandlerResult(success=True, message="Tier 1 success")
+            return HandlerResult(success=True, primary="Tier 1 success")
 
         def tier2_handler(accessor, action):
             # Should not be called
@@ -154,17 +154,17 @@ class TestProtocolHandlerInvocation(unittest.TestCase):
         # Should get Tier 1 result
         self.assertIsNotNone(result)
         self.assertTrue(result.success)
-        self.assertEqual(result.message, "Tier 1 success")
+        self.assertEqual(result.primary, "Tier 1 success")
 
     def test_invoke_handler_tier1_fails_tries_tier2(self):
         """Tier 1 handler fails, tries Tier 2."""
         verb = "take"
 
         def tier1_handler(accessor, action):
-            return HandlerResult(success=False, message="Tier 1 failed")
+            return HandlerResult(success=False, primary="Tier 1 failed")
 
         def tier2_handler(accessor, action):
-            return HandlerResult(success=True, message="Tier 2 success")
+            return HandlerResult(success=True, primary="Tier 2 success")
 
         # Register both tiers
         self.manager._register_handler(verb, tier1_handler, "module1", tier=1)
@@ -176,17 +176,17 @@ class TestProtocolHandlerInvocation(unittest.TestCase):
         # Should get Tier 2 result (Tier 1 failed)
         self.assertIsNotNone(result)
         self.assertTrue(result.success)
-        self.assertEqual(result.message, "Tier 2 success")
+        self.assertEqual(result.primary, "Tier 2 success")
 
     def test_invoke_handler_all_tiers_fail(self):
         """All tiers fail, returns last result."""
         verb = "take"
 
         def tier1_handler(accessor, action):
-            return HandlerResult(success=False, message="Tier 1 failed")
+            return HandlerResult(success=False, primary="Tier 1 failed")
 
         def tier2_handler(accessor, action):
-            return HandlerResult(success=False, message="Tier 2 failed")
+            return HandlerResult(success=False, primary="Tier 2 failed")
 
         # Register both tiers
         self.manager._register_handler(verb, tier1_handler, "module1", tier=1)
@@ -198,7 +198,7 @@ class TestProtocolHandlerInvocation(unittest.TestCase):
         # Should get Tier 2 result (last one tried)
         self.assertIsNotNone(result)
         self.assertFalse(result.success)
-        self.assertEqual(result.message, "Tier 2 failed")
+        self.assertEqual(result.primary, "Tier 2 failed")
 
     def test_invoke_handler_no_handler_returns_none(self):
         """No handler registered, returns None."""

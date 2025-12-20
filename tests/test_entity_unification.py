@@ -606,7 +606,7 @@ class TestOpenCloseDoorItems(unittest.TestCase):
         result = handle_open(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("locked", result.message.lower())
+        self.assertIn("locked", result.primary.lower())
 
     def test_open_already_open_door(self):
         """Opening an already open door reports appropriately."""
@@ -619,7 +619,7 @@ class TestOpenCloseDoorItems(unittest.TestCase):
         result = handle_open(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("already open", result.message.lower())
+        self.assertIn("already open", result.primary.lower())
 
 
 class TestLockUnlockDoorItems(unittest.TestCase):
@@ -696,7 +696,7 @@ class TestLockUnlockDoorItems(unittest.TestCase):
         result = handle_unlock(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("key", result.message.lower())
+        self.assertIn("key", result.primary.lower())
 
     def test_lock_door_with_key(self):
         """lock command works with key."""
@@ -724,7 +724,7 @@ class TestLockUnlockDoorItems(unittest.TestCase):
         result = handle_lock(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("close", result.message.lower())
+        self.assertIn("close", result.primary.lower())
 
 
 class TestMovementThroughDoorItems(unittest.TestCase):
@@ -782,7 +782,7 @@ class TestMovementThroughDoorItems(unittest.TestCase):
 
         self.assertFalse(result.success)
         # Should mention door is closed
-        self.assertTrue("closed" in result.message.lower() or "door" in result.message.lower())
+        self.assertTrue("closed" in result.primary.lower() or "door" in result.primary.lower())
 
     def test_can_go_through_open_door(self):
         """Movement allowed through open door."""

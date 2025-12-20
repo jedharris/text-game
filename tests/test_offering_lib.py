@@ -24,7 +24,7 @@ class TestOfferingHandler(unittest.TestCase):
         result = offering_handler.handle_offer(accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("what", result.message.lower())
+        self.assertIn("what", result.primary.lower())
 
     def test_handle_offer_missing_target(self):
         """Test offering without specifying target."""
@@ -37,7 +37,7 @@ class TestOfferingHandler(unittest.TestCase):
         result = offering_handler.handle_offer(accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("to what", result.message.lower())
+        self.assertIn("to what", result.primary.lower())
 
     def test_on_receive_offering_default(self):
         """Test default offering receiver rejects."""
@@ -49,7 +49,7 @@ class TestOfferingHandler(unittest.TestCase):
         result = offering_handler.on_receive_offering(entity, accessor, context)
 
         self.assertFalse(result.allow)
-        self.assertIn("does not accept", result.message)
+        self.assertIn("does not accept", result.feedback)
 
 
 class TestBlessingManager(unittest.TestCase):

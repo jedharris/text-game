@@ -23,29 +23,29 @@ class TestEventResult(unittest.TestCase):
 
     def test_default_values(self):
         """Test EventResult with allow=True has expected defaults."""
-        # allow is now required, message defaults to None
+        # allow is now required, feedback defaults to None
         result = EventResult(allow=True)
         self.assertIs(result.allow, True)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
     def test_custom_values(self):
         """Test EventResult with custom values."""
-        result = EventResult(allow=False, message="Action prevented")
+        result = EventResult(allow=False, feedback="Action prevented")
         self.assertIs(result.allow, False)
-        self.assertEqual(result.message, "Action prevented")
+        self.assertEqual(result.feedback, "Action prevented")
 
     def test_allow_only(self):
         """Test EventResult with only allow specified."""
         result = EventResult(allow=False)
         self.assertIs(result.allow, False)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
-    def test_message_only(self):
-        """Test EventResult with message and allow=True."""
+    def test_feedback_only(self):
+        """Test EventResult with feedback and allow=True."""
         # allow is required, specify explicitly
-        result = EventResult(allow=True, message="Custom message")
+        result = EventResult(allow=True, feedback="Custom message")
         self.assertIs(result.allow, True)
-        self.assertEqual(result.message, "Custom message")
+        self.assertEqual(result.feedback, "Custom message")
 
 
 class TestBehaviorManagerLoadModule(unittest.TestCase):
@@ -216,7 +216,7 @@ class TestBehaviorManagerInvokeBehavior(unittest.TestCase):
         accessor.game_state = game_state
         context = {"location": Mock()}
 
-        expected_result = EventResult(allow=True, message="Squeaked!")
+        expected_result = EventResult(allow=True, feedback="Squeaked!")
         mock_func = Mock(return_value=expected_result)
         mock_module = MagicMock()
         mock_module.on_squeeze = mock_func
@@ -229,9 +229,9 @@ class TestBehaviorManagerInvokeBehavior(unittest.TestCase):
 
         self.assertIsNotNone(result)
         self.assertEqual(result.allow, expected_result.allow)
-        self.assertEqual(result.message, expected_result.message)
-        # Dict format behaviors receive (entity, game_state, context)
-        mock_func.assert_called_once_with(entity, game_state, context)
+        self.assertEqual(result.feedback, expected_result.feedback)
+        # Behaviors receive (entity, accessor, context)
+        mock_func.assert_called_once_with(entity, accessor, context)
 
     def test_invoke_behavior_no_behaviors_dict(self):
         """Test invoking behavior on entity without behaviors."""
@@ -602,7 +602,7 @@ class TestBehaviorManagerIntegration(unittest.TestCase):
 
         mock_behavior = Mock(return_value=EventResult(
             allow=True,
-            message="Squeak!"
+            feedback="Squeak!"
         ))
         mock_module.on_squeeze = mock_behavior
         mock_module.__dir__ = lambda self=None: ['handle_squeeze', 'on_squeeze']
@@ -627,7 +627,7 @@ class TestBehaviorManagerIntegration(unittest.TestCase):
             result = manager.invoke_behavior(entity, "on_squeeze", state, context)
 
             self.assertTrue(result.allow)
-            self.assertEqual(result.message, "Squeak!")
+            self.assertEqual(result.feedback, "Squeak!")
 
     def test_behavior_modifies_state(self):
         """Test that behaviors can modify state directly."""
@@ -636,7 +636,7 @@ class TestBehaviorManagerIntegration(unittest.TestCase):
         # Behavior that modifies entity state
         def on_squeeze(entity, state, context):
             entity.states["squeeze_count"] = entity.states.get("squeeze_count", 0) + 1
-            return EventResult(allow=True, message="Squeaked!")
+            return EventResult(allow=True, feedback="Squeaked!")
 
         mock_module = MagicMock()
         mock_module.on_squeeze = on_squeeze

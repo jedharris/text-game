@@ -692,9 +692,10 @@ class _LLMProtocolHandlerReference:
 
     def _get_npc_by_id(self, npc_id: str):
         """Get NPC by ID."""
+        from src.types import ActorId
         if npc_id == "player":
             return None
-        return self.state.actors.get(npc_id)
+        return self.state.actors.get(ActorId(npc_id))
 
     def _get_lock_by_id(self, lock_id: str):
         """Get lock by ID."""

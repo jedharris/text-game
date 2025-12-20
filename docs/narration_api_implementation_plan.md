@@ -136,56 +136,63 @@ class NarrationResult(TypedDict):
 
 ---
 
-## Phase 2: Update HandlerResult and Core Handlers
+## Phase 2: Update HandlerResult and Core Handlers ✅ COMPLETED
 
 **Goal:** Update `HandlerResult` to use `primary`/`beats` structure and migrate core handlers.
 
-**Files to modify:**
-- `src/state_accessor.py`
-- `utilities/handler_utils.py`
-- `behaviors/core/manipulation.py`
-- `behaviors/core/perception.py`
-- `behaviors/core/containers.py`
-- `behaviors/core/locks.py`
-- `behaviors/core/exits.py`
-- `behaviors/core/spatial.py`
-- `behaviors/core/consumables.py`
-- `behaviors/core/meta.py`
-- `behaviors/core/combat.py`
-- `behaviors/core/actors.py`
-- `behaviors/core/interaction.py`
-- `behaviors/core/light_sources.py`
+**Status:** Completed and closed (Issue #219)
 
-**Strategy:**
+### Completed Work
 
-1. Update `HandlerResult` dataclass:
-   - Rename `message` to `primary`
-   - Add `beats: list[str]` with default empty list
+#### 1. Updated `build_message_with_positioning` (utilities/positioning.py)
 
-2. Update `build_action_result` helper:
-   ```python
-   def build_action_result(
-       item: Item,
-       primary: str,
-       beats: Optional[list[str]] = None,
-       data: Optional[dict] = None
-   ) -> HandlerResult:
-       return HandlerResult(
-           success=True,
-           primary=primary,
-           beats=beats or [],
-           data=data or serialize_for_handler_result(item)
-       )
-   ```
+Changed return type from `str` to `Tuple[str, List[str]]`:
+```python
+def build_message_with_positioning(
+    base_messages: List[str],
+    position_message: Optional[str]
+) -> Tuple[str, List[str]]:
+    """Returns (primary, beats) tuple."""
+```
 
-3. Migrate handlers:
-   - Most handlers: simple rename `message=` to `primary=`
-   - Compound handlers: split into `primary=` and `beats=`
-   - `build_message_with_positioning`: returns `(primary, beats)` tuple
+- `primary`: First message (core action statement)
+- `beats`: Positioning message + any additional messages
 
-**Tests:**
-- Update all existing handler tests to use new field names
-- Add tests for handlers that now return beats
+#### 2. Updated `build_action_result` (utilities/handler_utils.py)
+
+New signature:
+```python
+def build_action_result(
+    item: Item,
+    primary: str,
+    beats: Optional[List[str]] = None,
+    data: Optional[Dict[str, Any]] = None
+) -> HandlerResult:
+```
+
+#### 3. Updated `execute_entity_action` (utilities/handler_utils.py)
+
+Now uses `build_message_with_positioning` tuple return and populates `beats`.
+
+#### 4. Migrated handlers
+
+- `behaviors/core/manipulation.py` - Updated all 4 `build_action_result` calls
+- `behaviors/core/interaction.py` - Updated all `build_message_with_positioning` usages, removed unused import
+- `examples/spatial_game/behaviors/lib/spatial/look_out.py` - Updated to use beats
+
+#### 5. Updated Protocol Handler (src/llm_protocol.py)
+
+For backward compatibility, the protocol handler combines `primary` and `beats` into a single `message` field in the response. Phase 4 will change this to return the structured `NarrationResult`.
+
+#### 6. Updated Tests
+
+- `tests/test_handler_utils.py` - Updated `build_action_result` and `execute_entity_action` tests
+- `tests/test_take_implicit_positioning.py` - Movement checks now use `result.beats`
+- `tests/test_open_close_implicit_positioning.py` - Movement checks now use `result.beats`
+- `tests/test_entity_behavior_invocation.py` - Behavior message checks now use `result.beats`
+- `tests/test_trading.py` - Behavior message checks now use `result.beats`
+
+**Tests:** All 1893 tests pass. mypy validates with no new errors.
 
 ---
 

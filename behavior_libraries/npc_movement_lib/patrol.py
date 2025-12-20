@@ -82,19 +82,19 @@ def on_npc_movement(entity, accessor, context: dict) -> EventResult:
     # Check if this actor has a patrol route
     route = entity.properties.get('patrol_route', [])
     if not route:
-        return EventResult(allow=True, message='')
+        return EventResult(allow=True, feedback='')
 
     # Check frequency
     frequency = entity.properties.get('patrol_frequency', 1)
     turn = accessor.game_state.turn_count
 
     if turn % frequency != 0:
-        return EventResult(allow=True, message='')
+        return EventResult(allow=True, feedback='')
 
     # Execute patrol step
     message = patrol_step(accessor, entity)
 
-    return EventResult(allow=True, message=message or '')
+    return EventResult(allow=True, feedback=message or '')
 
 
 # Vocabulary extension

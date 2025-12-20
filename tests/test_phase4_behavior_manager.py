@@ -47,7 +47,7 @@ class TestPhase4ModuleLoading(unittest.TestCase):
 
         module = ModuleType("test_module")
         def handle_test(accessor, action):
-            return HandlerResult(success=True, message="test")
+            return HandlerResult(success=True, primary="test")
         module.handle_test = handle_test
 
         behavior_manager.load_module(module)
@@ -104,13 +104,13 @@ class TestPhase4ModuleLoading(unittest.TestCase):
         # First module
         first_module = ModuleType("first_module")
         def first_handle_test(accessor, action):
-            return HandlerResult(success=True, message="first")
+            return HandlerResult(success=True, primary="first")
         first_module.handle_test = first_handle_test
 
         # Second module with same verb
         second_module = ModuleType("second_module")
         def second_handle_test(accessor, action):
-            return HandlerResult(success=True, message="second")
+            return HandlerResult(success=True, primary="second")
         second_module.handle_test = second_handle_test
 
         # Load first module with tier=1
@@ -130,13 +130,13 @@ class TestPhase4ModuleLoading(unittest.TestCase):
         # Game-specific module (Tier 1)
         game_module = ModuleType("game_module")
         def game_handle_test(accessor, action):
-            return HandlerResult(success=True, message="game")
+            return HandlerResult(success=True, primary="game")
         game_module.handle_test = game_handle_test
 
         # Library module (Tier 2)
         core_module = ModuleType("core_module")
         def core_handle_test(accessor, action):
-            return HandlerResult(success=True, message="core")
+            return HandlerResult(success=True, primary="core")
         core_module.handle_test = core_handle_test
 
         # Load both - should succeed (different tiers)
@@ -200,12 +200,12 @@ class TestPhase4ModuleLoading(unittest.TestCase):
         # Create mock module objects with handler functions
         first_module = ModuleType("first_module")
         def first_handle_test(accessor, action):
-            return HandlerResult(success=True, message="first")
+            return HandlerResult(success=True, primary="first")
         first_module.handle_test = first_handle_test
 
         second_module = ModuleType("second_module")
         def second_handle_test(accessor, action):
-            return HandlerResult(success=True, message="second")
+            return HandlerResult(success=True, primary="second")
         second_module.handle_test = second_handle_test
 
         # Load in order with different tiers
@@ -215,7 +215,7 @@ class TestPhase4ModuleLoading(unittest.TestCase):
         # Verify first loaded is returned by get_handler()
         handler = behavior_manager.get_handler("test")
         result = handler(None, {})
-        self.assertTrue(result.success and result.message == "first",
+        self.assertTrue(result.success and result.primary == "first",
                        "First loaded handler should be called")
 
         # Verify handlers list is in tier order
@@ -228,8 +228,8 @@ class TestPhase4ModuleLoading(unittest.TestCase):
         self.assertEqual(tier1, 2)
         result0 = handler0(None, {})
         result1 = handler1(None, {})
-        self.assertTrue(result0.success and result0.message == "first")
-        self.assertTrue(result1.success and result1.message == "second")
+        self.assertTrue(result0.success and result0.primary == "first")
+        self.assertTrue(result1.success and result1.primary == "second")
 
     def test_get_event_for_verb_unknown(self):
         """Test that get_event_for_verb returns None for unknown verb."""

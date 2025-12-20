@@ -359,7 +359,7 @@ class TestTreatmentResult(unittest.TestCase):
             success=True,
             conditions_treated=["poison"],
             item_consumed=True,
-            message="Treated poison"
+            effect="Treated poison"
         )
 
         self.assertTrue(result.success)

@@ -53,22 +53,22 @@ def handle_check(accessor, action: Dict) -> HandlerResult:
     adjective = action.get("adjective")
 
     if not obj_name:
-        return HandlerResult(success=False, message="Check what?")
+        return HandlerResult(success=False, primary="Check what?")
 
     # Find the target
     target = find_accessible_item(accessor, obj_name, actor_id, adjective)
 
     if not target:
-        return HandlerResult(success=False, message=f"You don't see any {obj_name} here.")
+        return HandlerResult(success=False, primary=f"You don't see any {obj_name} here.")
 
     # Invoke entity behavior
     result = accessor.update(target, {}, verb="check", actor_id=actor_id)
 
     if not result.success:
         # Fall back to regular examine
-        return HandlerResult(success=False, message=result.message)
+        return HandlerResult(success=False, primary=result.detail)
 
-    return HandlerResult(success=True, message=result.message)
+    return HandlerResult(success=True, primary=result.detail)
 
 
 def on_check(entity: Any, accessor: Any, context: Dict) -> EventResult:
@@ -113,7 +113,7 @@ def on_check(entity: Any, accessor: Any, context: Dict) -> EventResult:
         f"{feedback}"
     )
 
-    return EventResult(allow=True, message=message)
+    return EventResult(allow=True, feedback=message)
 
 
 def on_after_item_moved(entity: Any, accessor: Any, context: Dict) -> EventResult:
@@ -155,9 +155,9 @@ def on_after_item_moved(entity: Any, accessor: Any, context: Dict) -> EventResul
             else:
                 message = "\nThe pressure plates are perfectly balanced."
 
-            return EventResult(allow=True, message=message)
+            return EventResult(allow=True, feedback=message)
 
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)
 
 
 # Hook into the core "put" and "take" handlers to trigger weight check

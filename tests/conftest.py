@@ -6,12 +6,12 @@ Based on behavior_refactoring_testing.md lines 14-106
 import unittest
 from pathlib import Path
 from dataclasses import field
-from typing import Dict, List, Any
+from typing import Any, Dict, List, Optional
 from src.state_manager import GameState, Item, Location, Actor, Metadata, load_game_state
 from src.behavior_manager import BehaviorManager
 from src.state_accessor import StateAccessor
 from src.word_entry import WordEntry, WordType
-from src.types import ActorId
+from src.types import ActorId, ItemId, LocationId
 
 
 def create_test_state() -> GameState:
@@ -43,7 +43,7 @@ def create_test_state() -> GameState:
         id=ActorId("player"),
         name="Adventurer",
         description="The player character",
-        location="location_room",
+        location=LocationId("location_room"),
         inventory=[],
         properties={"max_carry_weight": 100},
         behaviors=[]
@@ -51,18 +51,18 @@ def create_test_state() -> GameState:
 
     # Create location
     room = Location(
-        id="location_room",
+        id=LocationId("location_room"),
         name="Test Room",
         description="A room for testing",
         exits={},
-        items=["item_sword", "item_table", "item_lantern", "item_anvil", "item_feather"],
+        items=[ItemId("item_sword"), ItemId("item_table"), ItemId("item_lantern"), ItemId("item_anvil"), ItemId("item_feather")],
         properties={},
         behaviors=[]
     )
 
     # Create test items
     sword = Item(
-        id="item_sword",
+        id=ItemId("item_sword"),
         name="sword",
         description="A test sword",
         location="location_room",
@@ -71,7 +71,7 @@ def create_test_state() -> GameState:
     )
 
     table = Item(
-        id="item_table",
+        id=ItemId("item_table"),
         name="table",
         description="A heavy table",
         location="location_room",
@@ -80,7 +80,7 @@ def create_test_state() -> GameState:
     )
 
     lantern = Item(
-        id="item_lantern",
+        id=ItemId("item_lantern"),
         name="lantern",
         description="A magic lantern",
         location="location_room",
@@ -92,7 +92,7 @@ def create_test_state() -> GameState:
     )
 
     anvil = Item(
-        id="item_anvil",
+        id=ItemId("item_anvil"),
         name="anvil",
         description="A very heavy anvil",
         location="location_room",
@@ -104,7 +104,7 @@ def create_test_state() -> GameState:
     )
 
     feather = Item(
-        id="item_feather",
+        id=ItemId("item_feather"),
         name="feather",
         description="A light feather",
         location="location_room",
@@ -186,7 +186,7 @@ def make_game_data(
     return result
 
 
-def make_word_entry(word: str, word_type: WordType = WordType.NOUN, synonyms: List[str] = None) -> WordEntry:
+def make_word_entry(word: str, word_type: WordType = WordType.NOUN, synonyms: Optional[List[str]] = None) -> WordEntry:
     """
     Create a WordEntry for testing.
 
@@ -215,10 +215,10 @@ def make_word_entry(word: str, word_type: WordType = WordType.NOUN, synonyms: Li
     return WordEntry(word=word, word_type=word_type, synonyms=synonyms)
 
 
-def make_action(verb: str = None, object: str = None, adjective: str = None,
-                indirect_object: str = None, indirect_adjective: str = None,
-                preposition: str = None, direction: str = None,
-                actor_id: str = "player", **kwargs) -> Dict[str, Any]:
+def make_action(verb: Optional[str] = None, object: Optional[str] = None, adjective: Optional[str] = None,
+                indirect_object: Optional[str] = None, indirect_adjective: Optional[str] = None,
+                preposition: Optional[str] = None, direction: Optional[str] = None,
+                actor_id: str = "player", **kwargs: Any) -> Dict[str, Any]:
     """
     Create an action dictionary with strings auto-converted to WordEntry objects.
 
@@ -247,7 +247,7 @@ def make_action(verb: str = None, object: str = None, adjective: str = None,
         >>> make_action(object="key", adjective="brass")
         {"object": WordEntry("key", ...), "adjective": WordEntry("brass", ...), "actor_id": "player"}
     """
-    action = {"actor_id": actor_id}
+    action: Dict[str, Any] = {"actor_id": actor_id}
 
     # Add verb as string (verbs don't need to be WordEntry in action dicts)
     if verb is not None:

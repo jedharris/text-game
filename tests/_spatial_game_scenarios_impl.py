@@ -54,7 +54,7 @@ try:
 except ModuleNotFoundError as exc:
     if exc.name == "wx":
         WX_TEXT_GAME_AVAILABLE = False
-        GameEngine = None  # type: ignore[assignment]
+        GameEngine = None  # type: ignore[assignment,misc]
         format_command_result = None  # type: ignore[assignment]
     else:
         raise

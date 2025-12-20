@@ -61,4 +61,4 @@ def on_read(entity: Any, accessor: Any, context: Dict) -> EventResult:
     else:
         message = "You've read this book many times. The words begin to blur."
 
-    return EventResult(allow=True, message=message)
+    return EventResult(allow=True, feedback=message)

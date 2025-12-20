@@ -91,8 +91,9 @@ class TestTradingBehavior(unittest.TestCase):
         result = handle_give(accessor, action)
 
         self.assertTrue(result.success)
-        # Should include the trade message
-        self.assertIn("Thanks!", result.message)
+        # Should include the trade message in beats
+        all_beats = " ".join(result.beats)
+        self.assertIn("Thanks!", all_beats)
 
     def test_trade_execution_item_exchange(self):
         """Test that trade successfully exchanges items."""
@@ -146,8 +147,9 @@ class TestTradingBehavior(unittest.TestCase):
         result = handle_give(accessor, action)
 
         self.assertTrue(result.success)
-        # Should have generic acceptance message
-        self.assertIn("accepts", result.message.lower())
+        # Should have generic acceptance message in beats
+        all_beats = " ".join(result.beats).lower()
+        self.assertIn("accepts", all_beats)
 
     def test_trade_without_reward_item(self):
         """Test trade when NPC doesn't have the reward item."""
@@ -168,8 +170,9 @@ class TestTradingBehavior(unittest.TestCase):
         result = handle_give(accessor, action)
 
         self.assertTrue(result.success)
-        # Should mention they can't provide anything
-        self.assertIn("unable to provide", result.message.lower())
+        # Should mention they can't provide anything in beats
+        all_beats = " ".join(result.beats).lower()
+        self.assertIn("unable to provide", all_beats)
 
     def test_give_to_npc_without_trading_behavior(self):
         """Test giving to NPC that doesn't have trading behavior loads gracefully."""
@@ -267,7 +270,7 @@ class TestOnReceiveItemBehavior(unittest.TestCase):
         result = on_receive_item(trader, accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertEqual("Trade complete!", result.message)
+        self.assertEqual("Trade complete!", result.feedback)
 
         # Check reward transferred
         player = state.actors[ActorId("player")]
@@ -311,8 +314,8 @@ class TestOnReceiveItemBehavior(unittest.TestCase):
         result = on_receive_item(trader, accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIn("accepts", result.message.lower())
-        self.assertIn("sword", result.message.lower())
+        self.assertIn("accepts", result.feedback.lower())
+        self.assertIn("sword", result.feedback.lower())
 
 
 if __name__ == "__main__":

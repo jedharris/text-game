@@ -65,7 +65,7 @@ def on_regional_turn(
     # Get player location to determine which region is active
     player = state.actors.get(ActorId("player"))
     if not player:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     player_loc = player.properties.get("location", "")
 
@@ -86,17 +86,17 @@ def on_regional_turn(
                 handler = load_handler(handler_path)
                 if handler:
                     handler_result = handler(location, accessor, context)
-                    if handler_result and handler_result.message:
-                        messages.append(handler_result.message)
+                    if handler_result and handler_result.feedback:
+                        messages.append(handler_result.feedback)
                 # Handler failed or missing - fall through to data-driven
                 else:
                     effects_result = _process_turn_effects(turn_config, state, accessor, context)
-                    if effects_result and effects_result.message:
-                        messages.append(effects_result.message)
+                    if effects_result and effects_result.feedback:
+                        messages.append(effects_result.feedback)
             else:
                 effects_result = _process_turn_effects(turn_config, state, accessor, context)
-                if effects_result and effects_result.message:
-                    messages.append(effects_result.message)
+                if effects_result and effects_result.feedback:
+                    messages.append(effects_result.feedback)
 
     # Check player for turn-based conditions (drowning, hypothermia, etc)
     player_conditions = player.properties.get("conditions", [])
@@ -105,13 +105,13 @@ def on_regional_turn(
             cond_type = condition.get("type")
             if cond_type:
                 condition_result = _process_condition_turn(cond_type, condition, player, state)
-                if condition_result and condition_result.message:
-                    messages.append(condition_result.message)
+                if condition_result and condition_result.feedback:
+                    messages.append(condition_result.feedback)
 
     if messages:
-        return EventResult(allow=True, message="\n".join(messages))
+        return EventResult(allow=True, feedback="\n".join(messages))
 
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)
 
 
 def _process_turn_effects(

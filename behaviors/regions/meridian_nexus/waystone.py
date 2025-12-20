@@ -64,13 +64,13 @@ def on_fragment_place(
             break
 
     if not fragment_name:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check location is waystone
     target = context.get("target")
     target_id = target.id if target and hasattr(target, "id") else str(target) if target else ""
     if "waystone" not in target_id.lower():
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
 
@@ -82,7 +82,7 @@ def on_fragment_place(
     if fragment_name in fragments:
         return EventResult(
             allow=True,
-            message=f"This fragment ({fragment_name}) is already in place.",
+            feedback=f"This fragment ({fragment_name}) is already in place.",
         )
 
     fragments.append(fragment_name)
@@ -94,7 +94,7 @@ def on_fragment_place(
         state.extra["waystone_complete"] = True
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "The final fragment clicks into place. The waystone blazes with "
                 "brilliant light, its ancient power restored. The connection to "
                 "distant places awakens. You have completed the primary restoration."
@@ -103,7 +103,7 @@ def on_fragment_place(
 
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             f"The {fragment_name} slots into place. The waystone pulses with "
             f"renewed energy. {remaining} fragment(s) remain to complete repair."
         ),
@@ -127,7 +127,7 @@ def on_waystone_complete(
     """
     puzzle_id = context.get("puzzle_id")
     if puzzle_id != "waystone_repair":
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
     state.extra["waystone_complete"] = True
@@ -138,7 +138,7 @@ def on_waystone_complete(
 
     return EventResult(
         allow=True,
-        message="The waystone is restored. Echo's presence strengthens.",
+        feedback="The waystone is restored. Echo's presence strengthens.",
     )
 
 
@@ -163,10 +163,10 @@ def on_ending_check(
 
     # Check for ending trigger (waystone complete + all threats resolved)
     if not state.extra.get("waystone_complete"):
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     if state.extra.get("ending_triggered"):
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check ending conditions
     score = _calculate_ending_score(state)
@@ -186,7 +186,7 @@ def on_ending_check(
     state.extra["ending_tier"] = ending
     state.extra["ending_score"] = score
 
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)
 
 
 def _calculate_ending_score(state: Any) -> int:

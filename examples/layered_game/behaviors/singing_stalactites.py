@@ -57,27 +57,27 @@ def handle_play(accessor, action: Dict) -> HandlerResult:
     adjective = action.get("adjective")
 
     if not obj_name:
-        return HandlerResult(success=False, message="Play what?")
+        return HandlerResult(success=False, primary="Play what?")
 
     # Find the target (stalactite)
     target = find_accessible_item(accessor, obj_name, actor_id, adjective)
 
     if not target:
-        return HandlerResult(success=False, message=f"You don't see any {obj_name} here.")
+        return HandlerResult(success=False, primary=f"You don't see any {obj_name} here.")
 
     # Invoke entity behavior
     result = accessor.update(target, {}, verb="play", actor_id=actor_id)
 
     if not result.success:
-        return HandlerResult(success=False, message=result.message)
+        return HandlerResult(success=False, primary=result.detail)
 
     # Build response message
-    if result.message:
-        message = result.message
+    if result.detail:
+        message = result.detail
     else:
         message = f"You strike the {target.name}."
 
-    return HandlerResult(success=True, message=message)
+    return HandlerResult(success=True, primary=message)
 
 
 def on_play(entity: Any, accessor: Any, context: Dict) -> EventResult:
@@ -160,4 +160,4 @@ def on_play(entity: Any, accessor: Any, context: Dict) -> EventResult:
                 f"It rings with a '{note.upper()}' note."
             )
 
-    return EventResult(allow=True, message=message)
+    return EventResult(allow=True, feedback=message)

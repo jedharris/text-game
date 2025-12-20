@@ -57,12 +57,12 @@ def on_bear_commitment(
     # Check if this is the dire bear
     actor_id = entity.id if hasattr(entity, "id") else None
     if actor_id != "npc_dire_bear":
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check if keyword matches commitment triggers
     keyword = context.get("keyword", "").lower()
     if not any(trigger in keyword for trigger in COMMITMENT_KEYWORDS):
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
     extra = state.extra
@@ -71,7 +71,7 @@ def on_bear_commitment(
     if extra.get("bear_cubs_commitment_created"):
         return EventResult(
             allow=True,
-            message="You have already promised to help the cubs.",
+            feedback="You have already promised to help the cubs.",
         )
 
     # Create the commitment (config must exist in game state)
@@ -97,7 +97,7 @@ def on_bear_commitment(
 
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             "The bear's aggression lessens slightly. She looks at her cubs, "
             "then pointedly toward the southern trail. The message is clear: "
             "what they need lies to the south."
@@ -126,7 +126,7 @@ def on_cubs_healed(
     # Check if item is healing herbs
     item_id = entity.id if hasattr(entity, "id") else str(entity)
     if "healing_herbs" not in item_id.lower():
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check if target is cubs or bear (using on cubs affects them)
     target = context.get("target")
@@ -135,7 +135,7 @@ def on_cubs_healed(
     # Accept targeting cubs directly or the bear
     valid_targets = ["npc_bear_cub_1", "npc_bear_cub_2", "npc_dire_bear"]
     if target_id not in valid_targets:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
 
@@ -169,7 +169,7 @@ def on_cubs_healed(
 
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             "The cubs eagerly consume the healing herbs. Within moments, "
             "their labored breathing eases. The dire bear approaches slowly, "
             "her massive head lowering in what can only be gratitude."
@@ -196,7 +196,7 @@ def on_cubs_died(
     """
     commitment_id = context.get("commitment_id")
     if commitment_id != "commit_bear_cubs":
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
 
@@ -223,7 +223,7 @@ def on_cubs_died(
 
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             "The cubs' breathing has stopped. The dire bear's grief-stricken "
             "roar echoes through the forest, transforming into something darker. "
             "She will remember your face."

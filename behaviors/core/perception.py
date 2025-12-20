@@ -121,7 +121,7 @@ def handle_look(accessor, action):
 
     return HandlerResult(
         success=True,
-        message="\n".join(message_parts),
+        primary="\n".join(message_parts),
         data=llm_data
     )
 
@@ -204,15 +204,15 @@ def handle_examine(accessor, action):
         result = accessor.update(item, {}, verb="examine", actor_id=actor_id)
 
         # Append behavior message if present
-        if result.message:
-            message_parts.append(result.message)
+        if result.detail:
+            message_parts.append(result.detail)
 
         # Use unified serializer for llm_context with trait randomization
         data = serialize_for_handler_result(item)
 
         return HandlerResult(
             success=True,
-            message="\n".join(message_parts),
+            primary="\n".join(message_parts),
             data=data
         )
 
@@ -239,15 +239,15 @@ def handle_examine(accessor, action):
 
         # Invoke part behaviors (on_examine)
         result = accessor.update(part, {}, verb="examine", actor_id=actor_id)
-        if result.message:
-            message_parts.append(result.message)
+        if result.detail:
+            message_parts.append(result.detail)
 
         # Use unified serializer for llm_context
         data = serialize_for_handler_result(part)
 
         return HandlerResult(
             success=True,
-            message="\n".join(message_parts),
+            primary="\n".join(message_parts),
             data=data
         )
 
@@ -262,7 +262,7 @@ def handle_examine(accessor, action):
 
         return HandlerResult(
             success=True,
-            message=f"{door.description}",
+            primary=f"{door.description}",
             data=data
         )
 
@@ -292,7 +292,7 @@ def handle_examine(accessor, action):
 
         return HandlerResult(
             success=True,
-            message=desc,
+            primary=desc,
             data=data
         )
 
@@ -324,7 +324,7 @@ def handle_examine(accessor, action):
 
             return HandlerResult(
                 success=True,
-                message=desc,
+                primary=desc,
                 data=data
             )
 
@@ -332,17 +332,17 @@ def handle_examine(accessor, action):
         if lock_direction:
             return HandlerResult(
                 success=False,
-                message=f"There's no lock to the {lock_direction}."
+                primary=f"There's no lock to the {lock_direction}."
             )
         elif indirect_object:
             return HandlerResult(
                 success=False,
-                message=f"You don't see any lock on that."
+                primary=f"You don't see any lock on that."
             )
         else:
             return HandlerResult(
                 success=False,
-                message="You don't see any lock here."
+                primary="You don't see any lock here."
             )
 
     # Special case: redirect "examine player" to use "self"/"me"
@@ -350,7 +350,7 @@ def handle_examine(accessor, action):
     if name_matches(object_name, "player"):
         return HandlerResult(
             success=False,
-            message="To examine yourself, use 'examine self' or 'examine me'. To examine another player, use their name (e.g., 'examine Blake' or 'examine Ayomide')."
+            primary="To examine yourself, use 'examine self' or 'examine me'. To examine another player, use their name (e.g., 'examine Blake' or 'examine Ayomide')."
         )
 
     # Try to find an actor
@@ -387,15 +387,15 @@ def handle_examine(accessor, action):
 
             # Invoke actor behaviors (on_examine)
             result = accessor.update(target_actor, {}, verb="examine", actor_id=actor_id)
-            if result.message:
-                message_parts.append(result.message)
+            if result.detail:
+                message_parts.append(result.detail)
 
             # Use unified serializer for llm_context with trait randomization
             data = serialize_for_handler_result(target_actor)
 
             return HandlerResult(
                 success=True,
-                message="\n".join(message_parts),
+                primary="\n".join(message_parts),
                 data=data
             )
         # Invisible actor - fall through to "not found" message
@@ -408,12 +408,12 @@ def handle_examine(accessor, action):
         description = get_default_description(object_name)
         return HandlerResult(
             success=True,
-            message=description
+            primary=description
         )
 
     return HandlerResult(
         success=False,
-        message=f"You don't see any {get_display_name(object_name)} here."
+        primary=f"You don't see any {get_display_name(object_name)} here."
     )
 
 
@@ -439,7 +439,7 @@ def handle_inventory(accessor, action):
     if not actor:
         return HandlerResult(
             success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
+            primary=f"INCONSISTENT STATE: Actor {actor_id} not found"
         )
 
     # Use shared format_inventory helper
@@ -448,11 +448,11 @@ def handle_inventory(accessor, action):
     if not message:
         return HandlerResult(
             success=True,
-            message="You are carrying nothing."
+            primary="You are carrying nothing."
         )
 
     return HandlerResult(
         success=True,
-        message=message,
+        primary=message,
         data={"items": items_data}
     )

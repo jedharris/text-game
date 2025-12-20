@@ -242,7 +242,7 @@ def on_enter_spider_territory(entity, accessor, context) -> Optional[Any]:
     alerts = alert_swarm(accessor)
     if alerts:
         messages = ["The spiders sense your presence!"] + alerts
-        return EventResult(allow=True, message="\n".join(messages))
+        return EventResult(allow=True, feedback="\n".join(messages))
 
     return None
 
@@ -286,10 +286,10 @@ def on_use_torch_on_webs(entity, accessor, context) -> Optional[Any]:
                     break
 
     if not part_id:
-        return EventResult(allow=False, message="No webs to burn here.")
+        return EventResult(allow=True, feedback="No webs to burn here.")
 
     msg = burn_webs_with_torch(accessor, item, part_id)
-    return EventResult(allow=True, message=msg)
+    return EventResult(allow=True, feedback=msg)
 
 
 # Vocabulary extension for UC7-specific events

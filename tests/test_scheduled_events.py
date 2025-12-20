@@ -27,8 +27,8 @@ class TestScheduleEvent(unittest.TestCase):
 
         events = state.extra.get('scheduled_events', [])
         self.assertEqual(len(events), 1)
-        self.assertEqual(events[0]['event'], 'spore_spread')
-        self.assertEqual(events[0]['turn'], 100)
+        self.assertEqual(events[0]['event_type'], 'spore_spread')
+        self.assertEqual(events[0]['trigger_turn'], 100)
         self.assertEqual(events[0]['data'], {'severity': 'high'})
 
     def test_schedule_event_unique_id(self):
@@ -95,7 +95,7 @@ class TestCancelEvent(unittest.TestCase):
 
         events = state.extra.get('scheduled_events', [])
         self.assertEqual(len(events), 1)
-        self.assertEqual(events[0]['event'], 'event_b')
+        self.assertEqual(events[0]['event_type'], 'event_b')
 
 
 class TestGetScheduledEvents(unittest.TestCase):
@@ -165,7 +165,7 @@ class TestOnCheckScheduledEvents(unittest.TestCase):
         self.assertEqual(len(events), 0)
         # Result should indicate event fired
         self.assertTrue(result.allow)
-        self.assertIn('spore_spread', result.message)
+        self.assertIn('spore_spread', result.feedback)
 
     def test_does_not_fire_before_turn(self):
         """Event does not fire before trigger_turn."""
@@ -209,8 +209,8 @@ class TestOnCheckScheduledEvents(unittest.TestCase):
         # Schedule repeating event
         state.extra['scheduled_events'] = [{
             'id': 'weather_1',
-            'event': 'weather_change',
-            'turn': 20,
+            'event_type': 'weather_change',
+            'trigger_turn': 20,
             'data': {},
             'repeating': True,
             'interval': 10
@@ -222,7 +222,7 @@ class TestOnCheckScheduledEvents(unittest.TestCase):
         # Event should be rescheduled for turn 30
         events = state.extra.get('scheduled_events', [])
         self.assertEqual(len(events), 1)
-        self.assertEqual(events[0]['turn'], 30)
+        self.assertEqual(events[0]['trigger_turn'], 30)
 
 
 if __name__ == '__main__':

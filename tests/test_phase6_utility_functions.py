@@ -4,7 +4,9 @@ Tests for Phase 6: Utility Functions
 These tests validate utility functions for searching and visibility,
 with special emphasis on actor_id threading to ensure NPCs work correctly.
 """
-from src.types import ActorId
+from typing import Any, Dict, Optional
+
+from src.types import ActorId, ItemId
 import unittest
 import sys
 from pathlib import Path
@@ -20,14 +22,14 @@ from tests.conftest import create_test_state, make_word_entry
 
 
 def create_door_item(door_id: str, location_id: str, direction: str,
-                     open: bool = False, locked: bool = False, lock_id: str = None,
+                     open: bool = False, locked: bool = False, lock_id: Optional[str] = None,
                      description: str = "A door") -> Item:
     """Helper to create a door item in the new unified format."""
-    door_props = {"open": open, "locked": locked}
+    door_props: Dict[str, Any] = {"open": open, "locked": locked}
     if lock_id:
         door_props["lock_id"] = lock_id
     return Item(
-        id=door_id,
+        id=ItemId(door_id),
         name="door",
         description=description,
         location=f"exit:{location_id}:{direction}",

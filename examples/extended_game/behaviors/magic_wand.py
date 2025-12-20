@@ -44,7 +44,7 @@ def handle_wave(accessor, action: Dict) -> HandlerResult:
     obj_name = action.get("object")
 
     if not obj_name:
-        return HandlerResult(success=False, message="Wave what?")
+        return HandlerResult(success=False, primary="Wave what?")
 
     # Must be holding the item to wave it
     item = find_item_in_inventory(accessor, obj_name, actor_id)
@@ -52,22 +52,22 @@ def handle_wave(accessor, action: Dict) -> HandlerResult:
     if not item:
         return HandlerResult(
             success=False,
-            message=f"You need to be holding the {obj_name} to wave it."
+            primary=f"You need to be holding the {obj_name} to wave it."
         )
 
     # Invoke entity behavior via accessor.update() with verb
     result = accessor.update(item, {}, verb="wave", actor_id=actor_id)
 
     if not result.success:
-        return HandlerResult(success=False, message=result.message)
+        return HandlerResult(success=False, primary=result.detail)
 
     # Build response message
-    if result.message:
-        message = result.message
+    if result.detail:
+        message = result.detail
     else:
         message = f"You wave the {item.name} around, but nothing happens."
 
-    return HandlerResult(success=True, message=message)
+    return HandlerResult(success=True, primary=message)
 
 
 def on_wave(entity: Any, accessor: Any, context: Dict) -> EventResult:
@@ -88,7 +88,7 @@ def on_wave(entity: Any, accessor: Any, context: Dict) -> EventResult:
 
     # Check if this is a magical item
     if not properties.get("magical", False):
-        return EventResult(allow=True, message=None)  # Default message will be used
+        return EventResult(allow=True, feedback=None)  # Default message will be used
 
     # Track wand usage
     if not hasattr(entity, 'states') or entity.states is None:
@@ -127,4 +127,4 @@ def on_wave(entity: Any, accessor: Any, context: Dict) -> EventResult:
             "Perhaps some magics have limits."
         )
 
-    return EventResult(allow=True, message=message)
+    return EventResult(allow=True, feedback=message)

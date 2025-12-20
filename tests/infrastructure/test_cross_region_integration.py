@@ -79,7 +79,7 @@ class TestBeastWildsIntegration(unittest.TestCase):
         # Verify handler was called and returned a message
         self.assertTrue(result.allow)
         # The handler should return a message about the trade
-        self.assertIsNotNone(result.message)
+        self.assertIsNotNone(result.feedback)
 
     def test_wolf_pack_mirroring_wiring(self) -> None:
         """Wolf pack state mirroring via pack_behavior handler."""
@@ -168,7 +168,7 @@ class TestFungalDepthsIntegration(unittest.TestCase):
 
         self.assertTrue(result.allow)
         # Handler should return a message about commitment
-        self.assertIsNotNone(result.message)
+        self.assertIsNotNone(result.feedback)
 
     def test_spore_mother_pack_mirroring(self) -> None:
         """Spore Mother pack mirroring to sporelings."""
@@ -255,7 +255,7 @@ class TestSunkenDistrictIntegration(unittest.TestCase):
 
         self.assertTrue(result.allow)
         # Handler should return a message and set flags
-        self.assertIsNotNone(result.message)
+        self.assertIsNotNone(result.feedback)
         self.assertTrue(self.accessor.state.extra.get("delvan_died"))
 
 
@@ -295,7 +295,7 @@ class TestFrozenReachesIntegration(unittest.TestCase):
 
         self.assertTrue(result.allow)
         # Handler should return a message about fire gift
-        self.assertIsNotNone(result.message)
+        self.assertIsNotNone(result.feedback)
         # Trust should have increased
         self.assertGreater(salamander.properties["trust_state"]["current"], 0)
 
@@ -332,7 +332,7 @@ class TestHandlerLoadFallback(unittest.TestCase):
 
         self.assertTrue(result.allow)
         # Data-driven response should be returned
-        self.assertEqual(result.message, "Fallback data-driven response")
+        self.assertEqual(result.feedback, "Fallback data-driven response")
 
 
 if __name__ == "__main__":

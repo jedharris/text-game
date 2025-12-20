@@ -41,7 +41,7 @@ def handle_descend(accessor, action: Dict[str, Any]) -> HandlerResult:
     if not actor:
         return HandlerResult(
             success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
+            primary=f"INCONSISTENT STATE: Actor {actor_id} not found"
         )
 
     # Check if currently climbing
@@ -49,7 +49,7 @@ def handle_descend(accessor, action: Dict[str, Any]) -> HandlerResult:
     if posture != "climbing":
         return HandlerResult(
             success=False,
-            message="You're not climbing anything."
+            primary="You're not climbing anything."
         )
 
     # Get what they were climbing for the message
@@ -70,4 +70,4 @@ def handle_descend(accessor, action: Dict[str, Any]) -> HandlerResult:
     else:
         message = "You climb down."
 
-    return HandlerResult(success=True, message=message)
+    return HandlerResult(success=True, primary=message)

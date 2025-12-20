@@ -44,7 +44,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
         result = handle_drop(accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("sword", result.message.lower())
+        self.assertIn("sword", result.primary.lower())
 
         # Verify state changes
         self.assertNotIn("item_sword", player.inventory)
@@ -63,7 +63,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
         result = handle_drop(accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("don't have", result.message.lower())
+        self.assertIn("don't have", result.primary.lower())
 
     def test_handle_drop_npc(self):
         """Test NPC dropping an item (critical for actor_id threading)."""
@@ -91,7 +91,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
         action = make_action(object="sword", actor_id="npc_guard")
         result = handle_drop(accessor, action)
 
-        self.assertTrue(result.success, f"NPC drop failed: {result.message}")
+        self.assertTrue(result.success, f"NPC drop failed: {result.primary}")
         self.assertNotIn("item_sword", guard.inventory)
         self.assertEqual(sword.location, "location_room")
 
@@ -202,7 +202,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
         action = make_action(object="sword", indirect_object="Adventurer", actor_id="npc_guard")
         result = handle_give(accessor, action)
 
-        self.assertTrue(result.success, f"NPC give failed: {result.message}")
+        self.assertTrue(result.success, f"NPC give failed: {result.primary}")
         player = state.actors[ActorId("player")]
         self.assertNotIn("item_sword", guard.inventory, "Item should be removed from NPC")
         self.assertIn("item_sword", player.inventory, "Item should be in player inventory")

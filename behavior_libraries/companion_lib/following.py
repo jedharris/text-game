@@ -139,13 +139,13 @@ def on_player_move_companions_follow(entity, accessor, context: dict) -> EventRe
     context_actor_id = ActorId(context.get('actor_id', PLAYER_ID))
     if context_actor_id != PLAYER_ID:
         # Only process for player movement
-        return EventResult(allow=True, message='')
+        return EventResult(allow=True, feedback='')
 
     from_location = context.get('from_location')
     to_location = context.get('to_location')
 
     if not from_location or not to_location:
-        return EventResult(allow=True, message='')
+        return EventResult(allow=True, feedback='')
 
     # Find companions at the previous location
     messages = []
@@ -172,7 +172,7 @@ def on_player_move_companions_follow(entity, accessor, context: dict) -> EventRe
             # Companion stays behind
             messages.append(cannot_message)
 
-    return EventResult(allow=True, message='\n'.join(messages))
+    return EventResult(allow=True, feedback='\n'.join(messages))
 
 
 # Vocabulary extension - adds hooks for companion following

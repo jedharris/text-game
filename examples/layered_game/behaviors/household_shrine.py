@@ -43,7 +43,7 @@ def on_receive_offering(entity: Any, accessor: Any, context: Dict) -> EventResul
     if not offered_item:
         return EventResult(
             allow=False,
-            message="The altar sits silent, waiting for an offering."
+            feedback="The altar sits silent, waiting for an offering."
         )
 
     # Determine the type of offering
@@ -99,4 +99,4 @@ def on_receive_offering(entity: Any, accessor: Any, context: Dict) -> EventResul
             f"The altar seems indifferent to this offering."
         )
 
-    return EventResult(allow=True, message=response)
+    return EventResult(allow=True, feedback=response)

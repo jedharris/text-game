@@ -28,10 +28,10 @@ def on_climb(entity: Any, accessor: Any, context: Dict) -> EventResult:
     if posture != "on_surface" or focused != "item_garden_bench":
         return EventResult(
             allow=False,
-            message="The tree is too tall to climb from the ground. You need something to stand on."
+            feedback="The tree is too tall to climb from the ground. You need something to stand on."
         )
 
-    return EventResult(allow=True, message="")
+    return EventResult(allow=True, feedback="")
 
 
 def on_take(entity: Any, accessor: Any, context: Dict) -> EventResult:
@@ -46,7 +46,7 @@ def on_take(entity: Any, accessor: Any, context: Dict) -> EventResult:
     """
     # Only restrict if star is still in the tree
     if entity.location != "item_tree":
-        return EventResult(allow=True, message="")
+        return EventResult(allow=True, feedback="")
 
     actor_id = ActorId(context.get("actor_id", "player"))
     actor = accessor.get_actor(actor_id)
@@ -57,7 +57,7 @@ def on_take(entity: Any, accessor: Any, context: Dict) -> EventResult:
     if posture != "climbing" or focused != "item_tree":
         return EventResult(
             allow=False,
-            message="The star is too high up in the tree branches. You'll need to climb the tree to reach it."
+            feedback="The star is too high up in the tree branches. You'll need to climb the tree to reach it."
         )
 
-    return EventResult(allow=True, message="")
+    return EventResult(allow=True, feedback="")

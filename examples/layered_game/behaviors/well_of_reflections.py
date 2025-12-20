@@ -60,7 +60,7 @@ def on_receive_offering(entity: Any, accessor: Any, context: Dict) -> EventResul
     if not offered_item:
         return EventResult(
             allow=False,
-            message="The well ripples expectantly, but nothing was offered."
+            feedback="The well ripples expectantly, but nothing was offered."
         )
 
     # Determine the type of offering and its moral weight
@@ -111,4 +111,4 @@ def on_receive_offering(entity: Any, accessor: Any, context: Dict) -> EventResul
         f"Your alignment: {descriptor} ({alignment:.1f})"
     )
 
-    return EventResult(allow=True, message=message)
+    return EventResult(allow=True, feedback=message)

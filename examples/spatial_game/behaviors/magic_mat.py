@@ -53,4 +53,4 @@ def on_examine(entity: Any, accessor: Any, context: Dict) -> EventResult:
             "The message 'The crystal holds the key to the sanctum' is still there."
         )
 
-    return EventResult(allow=True, message=message)
+    return EventResult(allow=True, feedback=message)

@@ -35,7 +35,7 @@ class MockLLMNarrator(LLMNarrator):
         self.responses = responses
         self.call_count = 0
         self.system_prompt = ""  # Not used in mock
-        self.calls = []  # Track calls for testing
+        self.calls: list[str] = []  # Track calls for testing
         self.behavior_manager = behavior_manager
         self.show_traits = show_traits
 

@@ -25,7 +25,7 @@ def on_take(entity: Any, state: Any, context: Dict) -> EventResult:
 
     return EventResult(
         allow=True,
-        message="As your hand closes around the lantern, the runes flare to life, casting a warm glow."
+        feedback="As your hand closes around the lantern, the runes flare to life, casting a warm glow."
     )
 
 
@@ -45,7 +45,7 @@ def on_drop(entity: Any, state: Any, context: Dict) -> EventResult:
 
     return EventResult(
         allow=True,
-        message="The lantern's runes fade as you set it down, leaving it dark and cold."
+        feedback="The lantern's runes fade as you set it down, leaving it dark and cold."
     )
 
 

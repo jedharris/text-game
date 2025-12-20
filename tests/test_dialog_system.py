@@ -167,7 +167,7 @@ class TestHandleAskAbout(unittest.TestCase):
         result = handle_ask_about(accessor, state.actors[ActorId('scholar')], 'sick')
 
         self.assertTrue(result.success)
-        self.assertIn('infection', result.message.lower())
+        self.assertIn('infection', result.response.lower())
 
     def test_handle_ask_about_sets_flags(self):
         """Sets flags when topic is discussed."""
@@ -263,7 +263,7 @@ class TestHandleAskAbout(unittest.TestCase):
         result = handle_ask_about(accessor, state.actors[ActorId('scholar')], 'dragons')
 
         self.assertTrue(result.success)  # Still succeeds, just with default message
-        self.assertIn("don't know", result.message.lower())
+        self.assertIn("don't know", result.response.lower())
 
 
 class TestHandleTalkTo(unittest.TestCase):
@@ -297,7 +297,7 @@ class TestHandleTalkTo(unittest.TestCase):
         result = handle_talk_to(accessor, state.actors[ActorId('scholar')])
 
         self.assertTrue(result.success)
-        self.assertIn('infection', result.message.lower())
+        self.assertIn('infection', result.response.lower())
 
 
 if __name__ == '__main__':

@@ -193,7 +193,7 @@ class TestDeathMarkCrossRegionScenarios(ScenarioTestCase):
         result = on_myconid_first_meeting(self.myconid, self.accessor, {})
 
         self.assertTrue(result.allow)
-        self.assertIn("death of our kin", (result.message or "").lower())
+        self.assertIn("death of our kin", (result.feedback or "").lower())
         self.assert_actor_trust("npc_myconid_elder", -3)
 
     def test_kill_spore_mother_gossip_reaches_echo(self) -> None:
@@ -260,8 +260,8 @@ class TestEchoCrossRegionCommentaryScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIsNotNone(result.message)
-        self.assertIn("chose healing", (result.message or "").lower())
+        self.assertIsNotNone(result.feedback)
+        self.assertIn("chose healing", (result.feedback or "").lower())
         # Trust should increase (check echo's trust_state directly)
         trust = self.echo.properties.get("trust_state", {}).get("current", 0)
         self.assertGreater(trust, 0)
@@ -276,8 +276,8 @@ class TestEchoCrossRegionCommentaryScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIsNotNone(result.message)
-        self.assertIn("violence", (result.message or "").lower())
+        self.assertIsNotNone(result.feedback)
+        self.assertIn("violence", (result.feedback or "").lower())
         # Trust should decrease
         trust = self.echo.properties.get("trust_state", {}).get("current", 0)
         self.assertLess(trust, 0)
@@ -292,9 +292,9 @@ class TestEchoCrossRegionCommentaryScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIsNotNone(result.message)
-        self.assertIn("sira", (result.message or "").lower())
-        self.assertIn("elara", (result.message or "").lower())
+        self.assertIsNotNone(result.feedback)
+        self.assertIn("sira", (result.feedback or "").lower())
+        self.assertIn("elara", (result.feedback or "").lower())
 
     def test_echo_comments_on_salamander_death(self) -> None:
         """Echo comments negatively on salamander deaths."""
@@ -306,8 +306,8 @@ class TestEchoCrossRegionCommentaryScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIsNotNone(result.message)
-        self.assertIn("fire elementals", (result.message or "").lower())
+        self.assertIsNotNone(result.feedback)
+        self.assertIn("fire elementals", (result.feedback or "").lower())
         # Trust should decrease
         trust = self.echo.properties.get("trust_state", {}).get("current", 0)
         self.assertLess(trust, 0)
@@ -322,7 +322,7 @@ class TestEchoCrossRegionCommentaryScenarios(ScenarioTestCase):
 
         self.assertTrue(result.allow)
         # Should hint about something
-        self.assertIn("hunter", (result.message or "").lower())  # Sira hint
+        self.assertIn("hunter", (result.feedback or "").lower())  # Sira hint
 
     def test_echo_tracks_progress(self) -> None:
         """Echo can report on player progress."""
@@ -338,9 +338,9 @@ class TestEchoCrossRegionCommentaryScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("saved", (result.message or "").lower())
-        self.assertIn("lost", (result.message or "").lower())
-        self.assertIn("2 of 5", result.message or "")
+        self.assertIn("saved", (result.feedback or "").lower())
+        self.assertIn("lost", (result.feedback or "").lower())
+        self.assertIn("2 of 5", result.feedback or "")
 
 
 class TestBeeQueenCrossRegionCollectionScenarios(ScenarioTestCase):
@@ -391,7 +391,7 @@ class TestBeeQueenCrossRegionCollectionScenarios(ScenarioTestCase):
             self.accessor,
             {"target_actor": self.bee_queen, "item": self.moonpetal},
         )
-        self.assertIn("accepts", (result1.message or "").lower())
+        self.assertIn("accepts", (result1.feedback or "").lower())
         self.assert_actor_state("bee_queen", "trading")
 
         # Trade frost lily (from Frozen Reaches)
@@ -400,7 +400,7 @@ class TestBeeQueenCrossRegionCollectionScenarios(ScenarioTestCase):
             self.accessor,
             {"target_actor": self.bee_queen, "item": self.frost_lily},
         )
-        self.assertIn("1 more", result2.message or "")
+        self.assertIn("1 more", result2.feedback or "")
 
         # Trade water bloom (from Sunken District) - completes collection
         result3 = on_flower_offer(
@@ -409,7 +409,7 @@ class TestBeeQueenCrossRegionCollectionScenarios(ScenarioTestCase):
             {"target_actor": self.bee_queen, "item": self.water_bloom},
         )
 
-        self.assertIn("ally", (result3.message or "").lower())
+        self.assertIn("ally", (result3.feedback or "").lower())
         self.assert_actor_state("bee_queen", "allied")
 
         # Should have received 3 honey
@@ -432,7 +432,7 @@ class TestBeeQueenCrossRegionCollectionScenarios(ScenarioTestCase):
             {"target_actor": self.bee_queen, "item": moonpetal2},
         )
 
-        self.assertIn("already received", (result.message or "").lower())
+        self.assertIn("already received", (result.feedback or "").lower())
 
         # Should only have 1 honey
         self.assertEqual(self.state.extra.get("bee_queen_honey_count"), 1)

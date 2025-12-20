@@ -227,7 +227,7 @@ def perform_guard_attack(accessor, guard, target) -> str:
     attack = attacks[0]
     result = execute_attack(accessor, guard, target, attack)
 
-    return result.message if result else f"The {guard.name} attacks {target.name}!"
+    return result.narration if result else f"The {guard.name} attacks {target.name}!"
 
 
 def on_guard_duty(accessor, guard) -> List[str]:
@@ -291,14 +291,14 @@ def on_use_repair_item(entity, accessor, context) -> Optional[Any]:
 
     target = accessor.get_actor(target_id) if target_id else None
     if not target:
-        return EventResult(allow=False, message="Repair what?")
+        return EventResult(allow=True, feedback="Repair what?")
 
     if not can_repair(item, target):
         body = target.properties.get("body", {})
         form = body.get("form", "unknown")
         return EventResult(
             allow=False,
-            message=f"The {item.name} can't repair {form}s."
+            feedback=f"The {item.name} can't repair {form}s."
         )
 
     msg = apply_repair(accessor, item, target)
@@ -308,7 +308,7 @@ def on_use_repair_item(entity, accessor, context) -> Optional[Any]:
         if item_id in entity.inventory:
             entity.inventory.remove(item_id)
 
-    return EventResult(allow=True, message=msg)
+    return EventResult(allow=True, feedback=msg)
 
 
 # Vocabulary extension for UC8-specific events

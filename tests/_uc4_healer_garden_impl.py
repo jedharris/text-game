@@ -108,7 +108,7 @@ class TestUC4ToxicPlant(unittest.TestCase):
 
         self.assertIsNotNone(result)
         self.assertTrue(result.allow)  # Still allows taking
-        self.assertIn('toxic', result.message.lower())
+        self.assertIn('toxic', result.feedback.lower())
         self.assertTrue(has_condition(self.player, 'contact_poison'))
 
 
@@ -281,7 +281,7 @@ class TestUC4TeachService(unittest.TestCase):
         )
 
         self.assertTrue(result.success)
-        self.assertIn('learned', result.message.lower())
+        self.assertIn('learned', result.outcome.lower())
         self.assertTrue(has_knowledge(self.player, 'herbalism'))
 
 

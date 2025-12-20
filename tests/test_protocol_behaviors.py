@@ -113,7 +113,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
                 "entity": entity,
                 "context": context
             })
-            return EventResult(allow=True, message="You feel the sword's power!")
+            return EventResult(allow=True, feedback="You feel the sword's power!")
 
         manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
         self.state.items[0].behaviors = ["test_module"]
@@ -136,7 +136,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
 
         # Old dict format behaviors receive (entity, state, context)
         def on_take(entity, state, context):
-            return EventResult(allow=False, message="The sword is cursed and refuses to be picked up!")
+            return EventResult(allow=False, feedback="The sword is cursed and refuses to be picked up!")
 
         manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
         self.state.items[0].behaviors = ["test_module"]
@@ -159,7 +159,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         manager = create_behavior_manager_with_core_modules()
 
         def on_take(entity, accessor, context):
-            return EventResult(allow=True, message="The magic awakens!")
+            return EventResult(allow=True, feedback="The magic awakens!")
 
         manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
         self.state.items[0].behaviors = ["test_module"]
@@ -261,15 +261,15 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         self.assertEqual(entity_received[0].name, "sword")
         self.assertEqual(entity_received[0].id, "item1")
 
-    def test_behavior_receives_game_state(self):
-        """Test that behavior receives the game state (dict format uses state, not accessor)."""
+    def test_behavior_receives_accessor(self):
+        """Test that behavior receives StateAccessor (with access to game state)."""
         manager = create_behavior_manager_with_core_modules()
 
-        state_received = []
+        accessor_received = []
 
-        # Old dict format behaviors receive (entity, state, context)
-        def on_take(entity, state, context):
-            state_received.append(state)
+        # Behaviors receive (entity, accessor, context)
+        def on_take(entity, accessor, context):
+            accessor_received.append(accessor)
             return EventResult(allow=True)
 
         manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
@@ -282,9 +282,9 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
             "action": {"verb": "take", "object": "sword"}
         })
 
-        self.assertEqual(len(state_received), 1)
-        # Dict format behaviors receive the game state directly
-        self.assertIs(state_received[0], self.state)
+        self.assertEqual(len(accessor_received), 1)
+        # Behaviors receive StateAccessor which has .game_state
+        self.assertIs(accessor_received[0].game_state, self.state)
 
     def test_behavior_can_modify_entity_state(self):
         """Test that behavior can modify entity state."""
@@ -292,7 +292,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
 
         def on_take(entity, accessor, context):
             entity.states["enchanted"] = True
-            return EventResult(allow=True, message="The sword glows!")
+            return EventResult(allow=True, feedback="The sword glows!")
 
         manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
         self.state.items[0].behaviors = ["test_module"]
@@ -311,10 +311,10 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         manager = create_behavior_manager_with_core_modules()
 
         def on_take(entity, accessor, context):
-            return EventResult(allow=True, message="Taken!")
+            return EventResult(allow=True, feedback="Taken!")
 
         def on_drop(entity, accessor, context):
-            return EventResult(allow=True, message="Dropped!")
+            return EventResult(allow=True, feedback="Dropped!")
 
         manager._modules["test_module"] = SimpleNamespace(
             on_take=on_take,
@@ -481,7 +481,7 @@ class TestProtocolBehaviorCommands(unittest.TestCase):
 
         def on_drink(entity, state, context):
             behavior_called.append(True)
-            return EventResult(allow=True, message="The potion heals you!")
+            return EventResult(allow=True, feedback="The potion heals you!")
 
         self.manager._modules["test"] = SimpleNamespace(on_drink=on_drink)
         self.state.items[0].behaviors = ["test"]
@@ -508,7 +508,7 @@ class TestProtocolBehaviorCommands(unittest.TestCase):
 
         def on_read(entity, state, context):
             behavior_called.append(True)
-            return EventResult(allow=True, message="The book reveals ancient secrets!")
+            return EventResult(allow=True, feedback="The book reveals ancient secrets!")
 
         self.manager._modules["test"] = SimpleNamespace(on_read=on_read)
         self.state.items[1].behaviors = ["test"]
@@ -527,7 +527,7 @@ class TestProtocolBehaviorCommands(unittest.TestCase):
 
         def on_use(entity, state, context):
             behavior_called.append(True)
-            return EventResult(allow=True, message="You use the item!")
+            return EventResult(allow=True, feedback="You use the item!")
 
         self.manager._modules["test"] = SimpleNamespace(on_use=on_use)
         self.state.items[0].behaviors = ["test"]

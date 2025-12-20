@@ -67,15 +67,15 @@ def on_gift_given(
     """
     target = context.get("target_actor")
     if not target:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     if not hasattr(target, "properties"):
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check for gift_reactions configuration
     gift_config = target.properties.get("gift_reactions", {})
     if not gift_config:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check for handler escape hatch first
     handler_path = gift_config.get("handler")
@@ -118,9 +118,9 @@ def on_gift_given(
     # Check for rejection message
     reject_message = gift_config.get("reject_message")
     if reject_message:
-        return EventResult(allow=True, message=reject_message)
+        return EventResult(allow=True, feedback=reject_message)
 
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)
 
 
 def _process_gift_reaction(
@@ -177,4 +177,4 @@ def _process_gift_reaction(
     if message and "{item}" in message:
         message = message.format(item=item_id)
 
-    return EventResult(allow=True, message=message if message else None)
+    return EventResult(allow=True, feedback=message if message else None)

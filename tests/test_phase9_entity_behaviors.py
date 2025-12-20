@@ -30,7 +30,7 @@ class TestPhase9EntityBehaviors(unittest.TestCase):
         # Create behavior module with on_take
         behavior_module = ModuleType("test_behavior")
         def on_take(entity, accessor, context):
-            return EventResult(allow=False, message="Can't take this!")
+            return EventResult(allow=False, feedback="Can't take this!")
         behavior_module.on_take = on_take
 
         behavior_manager.load_module(behavior_module)
@@ -55,7 +55,7 @@ class TestPhase9EntityBehaviors(unittest.TestCase):
 
         self.assertIsNotNone(result)
         self.assertFalse(result.allow)
-        self.assertIn("Can't take", result.message)
+        self.assertIn("Can't take", result.feedback)
 
     def test_entity_behavior_multiple(self):
         """Test that multiple behaviors are all invoked."""
@@ -65,13 +65,13 @@ class TestPhase9EntityBehaviors(unittest.TestCase):
         # First behavior
         behavior1 = ModuleType("behavior1")
         def on_take_1(entity, accessor, context):
-            return EventResult(allow=True, message="Message from behavior1")
+            return EventResult(allow=True, feedback="Message from behavior1")
         behavior1.on_take = on_take_1
 
         # Second behavior
         behavior2 = ModuleType("behavior2")
         def on_take_2(entity, accessor, context):
-            return EventResult(allow=True, message="Message from behavior2")
+            return EventResult(allow=True, feedback="Message from behavior2")
         behavior2.on_take = on_take_2
 
         behavior_manager.load_module(behavior1)
@@ -98,8 +98,8 @@ class TestPhase9EntityBehaviors(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertTrue(result.allow)
         # Both messages should be present
-        self.assertIn("behavior1", result.message)
-        self.assertIn("behavior2", result.message)
+        self.assertIn("behavior1", result.feedback)
+        self.assertIn("behavior2", result.feedback)
 
     def test_entity_behavior_any_deny_wins(self):
         """Test that if any behavior denies, action is denied."""
@@ -109,13 +109,13 @@ class TestPhase9EntityBehaviors(unittest.TestCase):
         # First behavior allows
         behavior1 = ModuleType("behavior1")
         def on_take_1(entity, accessor, context):
-            return EventResult(allow=True, message="OK from behavior1")
+            return EventResult(allow=True, feedback="OK from behavior1")
         behavior1.on_take = on_take_1
 
         # Second behavior denies
         behavior2 = ModuleType("behavior2")
         def on_take_2(entity, accessor, context):
-            return EventResult(allow=False, message="Denied by behavior2")
+            return EventResult(allow=False, feedback="Denied by behavior2")
         behavior2.on_take = on_take_2
 
         behavior_manager.load_module(behavior1)
@@ -156,7 +156,7 @@ class TestPhase9EntityBehaviors(unittest.TestCase):
         # Create behavior that denies
         behavior_module = ModuleType("test_behavior")
         def on_take(entity, accessor, context):
-            return EventResult(allow=False, message="Behavior denies!")
+            return EventResult(allow=False, feedback="Behavior denies!")
         behavior_module.on_take = on_take
 
         behavior_manager.load_module(behavior_module)
@@ -185,7 +185,7 @@ class TestPhase9EntityBehaviors(unittest.TestCase):
 
         # Should be denied by behavior
         self.assertFalse(result.success)
-        self.assertIn("Behavior denies", result.message)
+        self.assertIn("Behavior denies", result.detail)
 
     def test_entity_no_behaviors_allows(self):
         """Test that entity with no behaviors allows changes."""
@@ -244,7 +244,7 @@ class TestPhase9EntityBehaviors(unittest.TestCase):
         # Create behavior module without on_take
         behavior_module = ModuleType("test_behavior")
         def on_drop(entity, accessor, context):
-            return EventResult(allow=True, message="Can drop")
+            return EventResult(allow=True, feedback="Can drop")
         behavior_module.on_drop = on_drop
 
         behavior_manager.load_module(behavior_module)
@@ -277,7 +277,7 @@ class TestPhase9EntityBehaviors(unittest.TestCase):
         # Create behavior that would deny
         behavior_module = ModuleType("test_behavior")
         def on_take(entity, accessor, context):
-            return EventResult(allow=False, message="Should not be called!")
+            return EventResult(allow=False, feedback="Should not be called!")
         behavior_module.on_take = on_take
 
         behavior_manager.load_module(behavior_module)

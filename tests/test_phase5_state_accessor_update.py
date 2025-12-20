@@ -65,8 +65,8 @@ class TestPhase5StateAccessorUpdate(unittest.TestCase):
         )
 
         self.assertFalse(result.success)
-        self.assertIsNotNone(result.message)
-        self.assertIn("nonexistent_field", result.message)
+        self.assertIsNotNone(result.detail)
+        self.assertIn("nonexistent_field", result.detail)
 
     def test_update_with_actor_id(self):
         """Test that update accepts actor_id parameter."""
@@ -161,7 +161,7 @@ class TestPhase5StateAccessorUpdate(unittest.TestCase):
         )
 
         self.assertFalse(result.success)
-        self.assertIsNotNone(result.message)
+        self.assertIsNotNone(result.detail)
 
     def test_update_empty_changes(self):
         """Test update with empty changes dict."""
@@ -189,7 +189,7 @@ class TestPhase5StateAccessorUpdate(unittest.TestCase):
 
         self.assertIsInstance(result, UpdateResult)
         self.assertTrue(hasattr(result, 'success'))
-        self.assertTrue(hasattr(result, 'message'))
+        self.assertTrue(hasattr(result, 'detail'))
 
 
 if __name__ == '__main__':

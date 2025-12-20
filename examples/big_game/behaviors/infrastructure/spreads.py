@@ -89,11 +89,11 @@ def on_spread_check(
             messages.append(f"Environmental change: {spread_id} milestone {turn}")
 
     if not messages:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     return EventResult(
         allow=True,
-        message="\n".join(messages),
+        feedback="\n".join(messages),
     )
 
 

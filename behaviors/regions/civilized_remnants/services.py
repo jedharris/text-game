@@ -41,7 +41,7 @@ def on_service_request(
     """
     actor_id = entity.id if hasattr(entity, "id") else None
     if not actor_id:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     keyword = context.get("keyword", "").lower()
 
@@ -55,7 +55,7 @@ def on_service_request(
         if any(k in keyword for k in SHOP_KEYWORDS):
             return _handle_marcus_shop(entity, accessor)
 
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)
 
 
 def on_gossip_received(
@@ -79,12 +79,12 @@ def on_gossip_received(
     gossip_content = context.get("content", "").lower()
 
     if not actor_id:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
     npc = state.actors.get(actor_id)
     if not npc:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     trust_change = 0
     message = None
@@ -116,9 +116,9 @@ def on_gossip_received(
         npc.properties["trust_state"] = trust_state
 
     if message:
-        return EventResult(allow=True, message=message)
+        return EventResult(allow=True, feedback=message)
 
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)
 
 
 def on_confession(
@@ -143,7 +143,7 @@ def on_confession(
 
     confession_keywords = ["confess", "admit", "tell you", "must know", "truth"]
     if not any(k in keyword for k in confession_keywords):
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
 
@@ -166,14 +166,14 @@ def on_confession(
 
             return EventResult(
                 allow=True,
-                message=(
+                feedback=(
                     "Elara's face falls as you tell her about Sira. "
                     "'Thank you for telling me yourself. That takes courage.' "
                     "Her voice is heavy with grief, but not anger."
                 ),
             )
 
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)
 
 
 def _handle_elara_healing(entity: Any, accessor: Any) -> EventResult:
@@ -187,7 +187,7 @@ def _handle_elara_healing(entity: Any, accessor: Any) -> EventResult:
     if trust < -2:
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "Elara turns away. 'I can't help someone I don't trust. "
                 "Perhaps you should think about the choices that brought you here.'"
             ),
@@ -213,7 +213,7 @@ def _handle_elara_healing(entity: Any, accessor: Any) -> EventResult:
         if healed:
             return EventResult(
                 allow=True,
-                message=(
+                feedback=(
                     f"Elara tends to your wounds with practiced care. "
                     f"'{', '.join(healed)}' - treated successfully."
                 ),
@@ -221,7 +221,7 @@ def _handle_elara_healing(entity: Any, accessor: Any) -> EventResult:
 
     return EventResult(
         allow=True,
-        message="Elara examines you. 'You seem well. Come back if you need healing.'",
+        feedback="Elara examines you. 'You seem well. Come back if you need healing.'",
     )
 
 
@@ -236,7 +236,7 @@ def _handle_marcus_shop(entity: Any, accessor: Any) -> EventResult:
     if trust < -1:
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "Marcus barely acknowledges you. 'Shop's closed. To you, at least.'"
             ),
         )
@@ -244,7 +244,7 @@ def _handle_marcus_shop(entity: Any, accessor: Any) -> EventResult:
     # Shop available
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             "Marcus spreads his wares before you. Bandages, herbs, basic supplies. "
             "'Fair prices for fair dealing,' he says."
         ),

@@ -33,7 +33,7 @@ class TestMetaCommandHandlers(unittest.TestCase):
 
         self.assertIsInstance(result, HandlerResult)
         self.assertTrue(result.success)
-        self.assertIn("playing", result.message.lower())
+        self.assertIn("playing", result.primary.lower())
         self.assertIsNotNone(result.data)
         self.assertEqual(result.data.get("signal"), "quit")
 

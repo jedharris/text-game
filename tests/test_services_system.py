@@ -425,7 +425,7 @@ class TestExecuteService(unittest.TestCase):
         result = execute_service(accessor, self.customer, self.npc, "heal", herb)
 
         self.assertFalse(result.success)
-        self.assertIn("doesn't accept", result.message.lower())
+        self.assertIn("doesn't accept", result.outcome.lower())
 
     def test_execute_service_insufficient_payment(self):
         """Insufficient payment amount is rejected."""
@@ -447,7 +447,7 @@ class TestExecuteService(unittest.TestCase):
         result = execute_service(accessor, self.customer, self.npc, "heal", self.gold)
 
         self.assertFalse(result.success)
-        self.assertIn("not enough", result.message.lower())
+        self.assertIn("not enough", result.outcome.lower())
 
     def test_execute_service_unknown_service(self):
         """Unknown service is rejected."""
@@ -467,7 +467,7 @@ class TestExecuteService(unittest.TestCase):
         result = execute_service(accessor, self.customer, self.npc, "unknown", self.gold)
 
         self.assertFalse(result.success)
-        self.assertIn("doesn't offer", result.message.lower())
+        self.assertIn("doesn't offer", result.outcome.lower())
 
     def test_execute_service_consumes_payment(self):
         """Payment item is consumed after service."""
@@ -501,7 +501,7 @@ class TestServiceResult(unittest.TestCase):
         result = ServiceResult(
             success=True,
             service_provided="heal",
-            message="Healer provides heal"
+            outcome="Healer provides heal"
         )
 
         self.assertTrue(result.success)

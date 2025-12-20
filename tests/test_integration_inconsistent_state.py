@@ -35,7 +35,7 @@ class TestInconsistentStateHandling(unittest.TestCase):
         def handle_test(accessor, action):
             return HandlerResult(
                 success=False,
-                message="INCONSISTENT STATE: Test corruption"
+                primary="INCONSISTENT STATE: Test corruption"
             )
         module.handle_test = handle_test
         self.behavior_manager.load_module(module)
@@ -92,7 +92,7 @@ class TestInconsistentStateHandling(unittest.TestCase):
             def handle_test2(accessor, action):
                 return HandlerResult(
                     success=False,
-                    message="INCONSISTENT STATE: Detailed error info"
+                    primary="INCONSISTENT STATE: Detailed error info"
                 )
             module.handle_test2 = handle_test2
             self.behavior_manager.load_module(module)

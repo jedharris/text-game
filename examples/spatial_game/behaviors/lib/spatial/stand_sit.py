@@ -58,14 +58,14 @@ def _handle_surface_action(accessor, action: Dict[str, Any], action_verb: str,
     adjective = action.get("adjective")
 
     if not surface_name:
-        return HandlerResult(success=False, message=f"What do you want to {action_verb}?")
+        return HandlerResult(success=False, primary=f"What do you want to {action_verb}?")
 
     # Get actor
     actor = accessor.get_actor(actor_id)
     if not actor:
         return HandlerResult(
             success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
+            primary=f"INCONSISTENT STATE: Actor {actor_id} not found"
         )
 
     # Find surface
@@ -73,7 +73,7 @@ def _handle_surface_action(accessor, action: Dict[str, Any], action_verb: str,
     if not surface:
         return HandlerResult(
             success=False,
-            message=f"You don't see any {surface_name} here."
+            primary=f"You don't see any {surface_name} here."
         )
 
     # Check if it's a surface
@@ -82,7 +82,7 @@ def _handle_surface_action(accessor, action: Dict[str, Any], action_verb: str,
     if not container_props.get("is_surface", False):
         return HandlerResult(
             success=False,
-            message=f"You can't {action_verb} the {surface.name}."
+            primary=f"You can't {action_verb} the {surface.name}."
         )
 
     # Set posture and focus
@@ -91,4 +91,4 @@ def _handle_surface_action(accessor, action: Dict[str, Any], action_verb: str,
 
     message = f"You {action_verb} the {surface.name}."
 
-    return HandlerResult(success=True, message=message)
+    return HandlerResult(success=True, primary=message)

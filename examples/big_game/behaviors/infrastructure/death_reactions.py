@@ -67,12 +67,12 @@ def on_entity_death(
         EventResult with death consequence
     """
     if not hasattr(entity, "properties"):
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check for death_reactions configuration
     death_config = entity.properties.get("death_reactions", {})
     if not death_config:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check for handler escape hatch first
     handler_path = death_config.get("handler")
@@ -131,4 +131,4 @@ def on_entity_death(
     # Get death message
     message = death_config.get("message", "")
 
-    return EventResult(allow=True, message=message if message else None)
+    return EventResult(allow=True, feedback=message if message else None)

@@ -66,12 +66,12 @@ def on_dialog_received(
         EventResult with dialog reaction
     """
     if not hasattr(entity, "properties"):
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check for dialog_reactions configuration
     dialog_config = entity.properties.get("dialog_reactions", {})
     if not dialog_config:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check for handler escape hatch first
     handler_path = dialog_config.get("handler")
@@ -119,7 +119,7 @@ def on_dialog_received(
             context=context,
         )
 
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)
 
 
 def _check_conditions(
@@ -200,4 +200,4 @@ def _process_dialog_reaction(
     # Get response message
     message = reaction_config.get("response", "")
 
-    return EventResult(allow=True, message=message if message else None)
+    return EventResult(allow=True, feedback=message if message else None)

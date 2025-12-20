@@ -102,7 +102,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
         result = handle_take(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("shelf", result.message.lower())
+        self.assertIn("shelf", result.primary.lower())
 
     def test_take_from_valid_container_succeeds(self):
         """Test that take from valid container succeeds."""
@@ -125,7 +125,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
 
         self.assertFalse(result.success)
         # Should mention can't find coin in/on table
-        self.assertIn("coin", result.message.lower())
+        self.assertIn("coin", result.primary.lower())
 
     def test_take_without_indirect_object_still_works(self):
         """Test that take without indirect_object finds item anywhere."""
@@ -161,7 +161,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
         result = handle_take(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("closed", result.message.lower())
+        self.assertIn("closed", result.primary.lower())
 
     def test_take_from_non_container_item_fails(self):
         """Test that take from non-container item fails gracefully."""
@@ -173,7 +173,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
 
         self.assertFalse(result.success)
         # Should mention sword is not a container
-        self.assertIn("sword", result.message.lower())
+        self.assertIn("sword", result.primary.lower())
 
 
 class TestTakeFromContainerWithAdjective(unittest.TestCase):

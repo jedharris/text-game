@@ -78,23 +78,23 @@ def handle_attack(accessor, action):
             actor_id=actor_id
         )
 
-        # Build message - include behavior message if present
+        # Build primary text - include behavior message if present
         base_message = f"You attack the {target_actor.name}!"
-        if result.message:
-            return HandlerResult(success=True, message=f"{base_message} {result.message}")
+        if result.detail:
+            return HandlerResult(success=True, primary=f"{base_message} {result.detail}")
 
-        return HandlerResult(success=True, message=base_message)
+        return HandlerResult(success=True, primary=base_message)
 
     # Check for items - can't attack items
     item = find_accessible_item(accessor, target_name, actor_id)
     if item:
         return HandlerResult(
             success=False,
-            message=f"You can't attack the {item.name}."
+            primary=f"You can't attack the {item.name}."
         )
 
     # Target not found
     return HandlerResult(
         success=False,
-        message=f"You don't see any {get_display_name(target_name)} here."
+        primary=f"You don't see any {get_display_name(target_name)} here."
     )

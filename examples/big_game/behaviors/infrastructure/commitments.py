@@ -56,7 +56,7 @@ def on_commitment_check(
     expired = get_expired_commitments(state, current_turn)
 
     if not expired:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     messages = []
     for commitment in expired:
@@ -74,5 +74,5 @@ def on_commitment_check(
 
     return EventResult(
         allow=True,
-        message="\n".join(messages) if messages else None,
+        feedback="\n".join(messages) if messages else None,
     )

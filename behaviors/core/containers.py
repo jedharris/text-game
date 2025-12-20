@@ -96,5 +96,5 @@ def on_open(entity: Any, state: Any, context: Dict) -> Optional[EventResult]:
 
     return EventResult(
         allow=True,
-        message="You open the chest and find glittering treasure! You win!"
+        feedback="You open the chest and find glittering treasure! You win!"
     )

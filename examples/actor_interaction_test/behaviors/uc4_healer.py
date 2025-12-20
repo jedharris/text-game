@@ -158,7 +158,7 @@ def on_take_toxic(entity, accessor, context) -> Optional[Any]:
     message = apply_toxic_effect(item, entity)
     if message:
         # Still allow taking the item, but with consequences
-        return EventResult(allow=True, message=message)
+        return EventResult(allow=True, feedback=message)
 
     return None
 
@@ -192,7 +192,7 @@ def on_examine_with_knowledge(entity, accessor, context) -> Optional[Any]:
     if has_knowledge(entity, "herbalism"):
         herbalism_desc = item.properties.get("description_with_herbalism")
         if herbalism_desc:
-            return EventResult(allow=True, message=herbalism_desc)
+            return EventResult(allow=True, feedback=herbalism_desc)
 
     return None
 

@@ -218,7 +218,7 @@ def golem_counterattack(accessor, golem, attacker) -> Optional[str]:
 
     # Execute counterattack
     result = execute_attack(accessor, golem, attacker, attack)
-    return f"The golem counterattacks! {result.message}"
+    return f"The golem counterattacks! {result.narration}"
 
 
 def on_golem_damaged(entity, accessor, context) -> Optional[Any]:
@@ -254,7 +254,7 @@ def on_golem_damaged(entity, accessor, context) -> Optional[Any]:
 
     message = golem_counterattack(accessor, entity, attacker)
     if message:
-        return EventResult(allow=True, message=message)
+        return EventResult(allow=True, feedback=message)
 
     return None
 

@@ -9,7 +9,7 @@ Tests cover:
 - Companion system (add, remove, comfort checks, movement)
 - Gossip system (create, deliver, confess)
 """
-from src.types import ActorId
+from src.types import ActorId, LocationId
 
 import unittest
 from typing import Any, cast
@@ -32,9 +32,7 @@ from typing import Any, cast
 #     get_gossip_by_id, get_pending_gossip_about,
 # )
 
-# Placeholder types for test writing
-ActorId = str
-LocationId = str
+# GossipId placeholder (not yet in src.types)
 GossipId = str
 
 

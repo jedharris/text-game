@@ -373,7 +373,7 @@ class TestUC2Counterattack(unittest.TestCase):
         result = on_golem_damaged(self.stone_golem, accessor, context)
 
         self.assertIsNotNone(result)
-        self.assertIsNotNone(result.message)
+        self.assertIsNotNone(result.feedback)
         # Player should have taken counterattack damage
         self.assertLess(self.player.properties.get('health'), initial_player_health)
 

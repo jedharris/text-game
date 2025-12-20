@@ -201,7 +201,7 @@ def on_turn_end_contagion(entity, accessor, context) -> Optional[Any]:
             all_messages.append(msg)
 
     if all_messages:
-        return EventResult(allow=True, message="\n".join(all_messages))
+        return EventResult(allow=True, feedback="\n".join(all_messages))
     return None
 
 

@@ -69,7 +69,7 @@ def npc_take_action(entity, accessor, context):
     attack = select_attack(entity, player, {})
     if attack:
         result = execute_attack(accessor, entity, player, attack)
-        return EventResult(allow=True, message=result.message)
+        return EventResult(allow=True, feedback=result.narration)
 
     return None
 
@@ -123,15 +123,15 @@ def fire_npc_actions(entity, accessor, context):
         )
 
         # If no entity behavior handled it, use default hostile attack logic
-        if not result or not result.message:
+        if not result or not result.feedback:
             result = npc_take_action(npc, accessor, context)
 
-        if result and result.message:
-            messages.append(result.message)
+        if result and result.feedback:
+            messages.append(result.feedback)
 
     if messages:
-        return EventResult(allow=True, message="\n".join(messages))
-    return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback="\n".join(messages))
+    return EventResult(allow=True, feedback=None)
 
 
 # Vocabulary extension - registers the NPC action event

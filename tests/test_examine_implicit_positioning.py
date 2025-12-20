@@ -93,9 +93,9 @@ class TestExamineImplicitPositioning(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Should not include movement prefix
-        self.assertNotIn("move", result.message.lower())
-        self.assertNotIn("approach", result.message.lower())
-        self.assertNotIn("closer", result.message.lower())
+        self.assertNotIn("move", result.primary.lower())
+        self.assertNotIn("approach", result.primary.lower())
+        self.assertNotIn("closer", result.primary.lower())
         # Player focused_on should be set (examining focuses even without movement)
         self.assertEqual(player.properties.get("focused_on"), "item_chandelier")
 
@@ -109,9 +109,9 @@ class TestExamineImplicitPositioning(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Should include movement prefix
-        self.assertIn("move", result.message.lower())
+        self.assertIn("move", result.primary.lower())
         # Should also include actual description
-        self.assertIn("desk", result.message.lower())
+        self.assertIn("desk", result.primary.lower())
         # Player focused_on should be set
         self.assertEqual(player.properties.get("focused_on"), "item_desk")
 
@@ -126,7 +126,7 @@ class TestExamineImplicitPositioning(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Should NOT include movement prefix
-        self.assertNotIn("move", result.message.lower())
+        self.assertNotIn("move", result.primary.lower())
 
     def test_examine_part_with_near_moves_player(self):
         """Test examining part with 'near' moves player."""
@@ -137,7 +137,7 @@ class TestExamineImplicitPositioning(unittest.TestCase):
         result = handle_examine(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("move", result.message.lower())
+        self.assertIn("move", result.primary.lower())
         self.assertEqual(player.properties.get("focused_on"), "part_room_north_wall")
 
     def test_implicit_movement_clears_posture(self):
@@ -172,7 +172,7 @@ class TestExamineImplicitPositioning(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Should mention the tapestry
-        self.assertIn("tapestry", result.message.lower())
+        self.assertIn("tapestry", result.primary.lower())
 
     def test_examine_part_of_item(self):
         """Test examining part of an item (multi-sided object)."""
@@ -183,7 +183,7 @@ class TestExamineImplicitPositioning(unittest.TestCase):
         result = handle_examine(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("left end", result.message.lower())
+        self.assertIn("left end", result.primary.lower())
         # Player should be focused on the part
         self.assertEqual(player.properties.get("focused_on"), "part_bench_left")
 

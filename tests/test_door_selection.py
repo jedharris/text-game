@@ -46,7 +46,7 @@ class TestDoorSelection(SimpleGameTestCase):
 
         # Should unlock door_treasure, not complain about door_wooden having no lock
         self.assertTrue(result.success)
-        self.assertIn("unlock", result.message.lower())
+        self.assertIn("unlock", result.primary.lower())
 
     def test_unlock_without_key_still_finds_locked_door(self):
         """Test that 'unlock door' finds the locked door even without key."""
@@ -56,7 +56,7 @@ class TestDoorSelection(SimpleGameTestCase):
 
         # Should fail because no key, but should have tried the locked door
         self.assertFalse(result.success)
-        self.assertIn("key", result.message.lower())
+        self.assertIn("key", result.primary.lower())
 
     def test_open_prefers_closed_unlocked_door(self):
         """Test that 'open door' prefers a closed but unlocked door."""
@@ -74,7 +74,7 @@ class TestDoorSelection(SimpleGameTestCase):
 
         # Should successfully open the wooden door
         self.assertTrue(result.success)
-        self.assertIn("open", result.message.lower())
+        self.assertIn("open", result.primary.lower())
 
     def test_open_locked_door_fails_appropriately(self):
         """Test that 'open door' on locked door fails with locked message."""
@@ -89,7 +89,7 @@ class TestDoorSelection(SimpleGameTestCase):
 
         # Should fail because the only closed door is locked
         self.assertFalse(result.success)
-        self.assertIn("locked", result.message.lower())
+        self.assertIn("locked", result.primary.lower())
 
     def test_adjective_overrides_smart_selection(self):
         """Test that explicit adjective still selects the specified door."""
@@ -103,7 +103,7 @@ class TestDoorSelection(SimpleGameTestCase):
 
         # Should try to unlock wooden door - it's not locked so "already unlocked"
         # (The wooden door has no lock_id but also locked=false in the game state)
-        self.assertIn("already unlocked", result.message.lower())
+        self.assertIn("already unlocked", result.primary.lower())
 
     def test_close_prefers_open_door(self):
         """Test that 'close door' prefers an open door."""
@@ -117,7 +117,7 @@ class TestDoorSelection(SimpleGameTestCase):
 
         # Should close the wooden door (the open one)
         self.assertTrue(result.success)
-        self.assertIn("close", result.message.lower())
+        self.assertIn("close", result.primary.lower())
 
 
 class TestDoorSelectionUtility(SimpleGameTestCase):

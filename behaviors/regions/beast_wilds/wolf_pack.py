@@ -43,17 +43,17 @@ def on_wolf_state_change(
     """
     # Check if this is the alpha wolf
     if not hasattr(entity, "id") or entity.id != "npc_alpha_wolf":
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Get pack followers from entity properties
     pack_config = entity.properties.get("pack_behavior", {})
     if not pack_config.get("pack_follows_alpha_state", False):
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     followers = pack_config.get("followers", [])
     new_state = context.get("new_state")
     if not new_state or not followers:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Mirror state to all followers
     state = accessor.state
@@ -67,8 +67,8 @@ def on_wolf_state_change(
                 messages.append(f"{follower_id} mirrors alpha's state")
 
     if messages:
-        return EventResult(allow=True, message="; ".join(messages))
-    return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback="; ".join(messages))
+    return EventResult(allow=True, feedback=None)
 
 
 def on_wolf_feed(
@@ -91,12 +91,12 @@ def on_wolf_feed(
     """
     target = context.get("target_actor")
     if not target:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check if target is a wolf
     target_id = target.id if hasattr(target, "id") else str(target)
     if not target_id.startswith("npc_") or "wolf" not in target_id:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check if item is food (meat/venison)
     item = context.get("item") or entity
@@ -104,13 +104,13 @@ def on_wolf_feed(
     food_items = ["venison", "meat", "rabbit"]
     is_food = any(food in item_id.lower() for food in food_items)
     if not is_food:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Get the alpha wolf (may be target or may need to find leader)
     state = accessor.state
     alpha = state.actors.get("npc_alpha_wolf")
     if not alpha:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Increase trust
     trust_state = alpha.properties.get("trust_state", {"current": 0})
@@ -143,5 +143,5 @@ def on_wolf_feed(
 
     return EventResult(
         allow=True,
-        message=f"The wolf accepts the {item_id}, watching you with less hostility.",
+        feedback=f"The wolf accepts the {item_id}, watching you with less hostility.",
     )

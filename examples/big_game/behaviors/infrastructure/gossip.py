@@ -53,7 +53,7 @@ def on_gossip_propagate(
     delivered = deliver_due_gossip(state, current_turn)
 
     if not delivered:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Build messages for narration
     # Note: These are internal state changes, not necessarily
@@ -66,4 +66,4 @@ def on_gossip_propagate(
         # The effect manifests in NPC dialog and reactions
 
     # Return without message - gossip effects are indirect
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)

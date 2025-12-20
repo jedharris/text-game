@@ -50,9 +50,9 @@ class TestUniversalSurfaceFallback(unittest.TestCase):
         result = handle_examine(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("ceiling", result.message.lower())
+        self.assertIn("ceiling", result.primary.lower())
         # Should not say "don't see"
-        self.assertNotIn("don't see", result.message.lower())
+        self.assertNotIn("don't see", result.primary.lower())
 
     def test_examine_floor_without_part_uses_fallback(self):
         """Test examining floor without explicit part uses fallback."""
@@ -60,8 +60,8 @@ class TestUniversalSurfaceFallback(unittest.TestCase):
         result = handle_examine(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("floor", result.message.lower())
-        self.assertNotIn("don't see", result.message.lower())
+        self.assertIn("floor", result.primary.lower())
+        self.assertNotIn("don't see", result.primary.lower())
 
     def test_examine_sky_without_part_uses_fallback(self):
         """Test examining sky without explicit part uses fallback."""
@@ -69,8 +69,8 @@ class TestUniversalSurfaceFallback(unittest.TestCase):
         result = handle_examine(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("sky", result.message.lower())
-        self.assertNotIn("don't see", result.message.lower())
+        self.assertIn("sky", result.primary.lower())
+        self.assertNotIn("don't see", result.primary.lower())
 
     def test_examine_walls_without_part_uses_fallback(self):
         """Test examining walls without explicit part uses fallback."""
@@ -78,8 +78,8 @@ class TestUniversalSurfaceFallback(unittest.TestCase):
         result = handle_examine(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("walls", result.message.lower())
-        self.assertNotIn("don't see", result.message.lower())
+        self.assertIn("walls", result.primary.lower())
+        self.assertNotIn("don't see", result.primary.lower())
 
     def test_examine_ground_synonym_uses_fallback(self):
         """Test examining ground (synonym for floor) uses fallback."""
@@ -89,9 +89,9 @@ class TestUniversalSurfaceFallback(unittest.TestCase):
         self.assertTrue(result.success)
         # Should mention floor or ground
         self.assertTrue(
-            "floor" in result.message.lower() or "ground" in result.message.lower()
+            "floor" in result.primary.lower() or "ground" in result.primary.lower()
         )
-        self.assertNotIn("don't see", result.message.lower())
+        self.assertNotIn("don't see", result.primary.lower())
 
     def test_examine_nonexistent_non_surface_still_fails(self):
         """Test examining non-existent non-surface still fails."""
@@ -99,7 +99,7 @@ class TestUniversalSurfaceFallback(unittest.TestCase):
         result = handle_examine(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.message.lower())
+        self.assertIn("don't see", result.primary.lower())
 
     def test_universal_surface_fallback_does_not_set_focus(self):
         """Test examining universal surface fallback doesn't set focus."""
@@ -119,8 +119,8 @@ class TestUniversalSurfaceFallback(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Should not include movement message
-        self.assertNotIn("move", result.message.lower())
-        self.assertNotIn("closer", result.message.lower())
+        self.assertNotIn("move", result.primary.lower())
+        self.assertNotIn("closer", result.primary.lower())
 
 
 class TestExplicitPartOverridesUniversalSurface(unittest.TestCase):
@@ -184,10 +184,10 @@ class TestExplicitPartOverridesUniversalSurface(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Should use explicit description, not fallback
-        self.assertIn("vaulted", result.message.lower())
-        self.assertIn("frescoes", result.message.lower())
+        self.assertIn("vaulted", result.primary.lower())
+        self.assertIn("frescoes", result.primary.lower())
         # Should NOT contain fallback text
-        self.assertNotIn("nothing remarkable", result.message.lower())
+        self.assertNotIn("nothing remarkable", result.primary.lower())
 
     def test_explicit_floor_part_overrides_fallback(self):
         """Test explicit floor part overrides universal fallback."""
@@ -196,10 +196,10 @@ class TestExplicitPartOverridesUniversalSurface(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Should use explicit description
-        self.assertIn("marble", result.message.lower())
-        self.assertIn("geometric", result.message.lower())
+        self.assertIn("marble", result.primary.lower())
+        self.assertIn("geometric", result.primary.lower())
         # Should NOT contain fallback text
-        self.assertNotIn("nothing remarkable", result.message.lower())
+        self.assertNotIn("nothing remarkable", result.primary.lower())
 
     def test_explicit_part_sets_focus(self):
         """Test examining explicit part sets focus."""
@@ -233,7 +233,7 @@ class TestExplicitPartOverridesUniversalSurface(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Should include movement message
-        self.assertIn("move", result.message.lower())
+        self.assertIn("move", result.primary.lower())
         # Should set focus
         self.assertEqual(player.properties.get("focused_on"), "part_room_wall")
 

@@ -217,7 +217,7 @@ class TestExamineExit(unittest.TestCase):
             "actor_id": "player"
         })
         self.assertTrue(result.success)
-        self.assertIn("spiral staircase", result.message.lower())
+        self.assertIn("spiral staircase", result.primary.lower())
 
     def test_examine_exit_by_name(self):
         """Examine exit using name returns description."""
@@ -228,7 +228,7 @@ class TestExamineExit(unittest.TestCase):
             "actor_id": "player"
         })
         self.assertTrue(result.success)
-        self.assertIn("spiral", result.message.lower())
+        self.assertIn("spiral", result.primary.lower())
 
     def test_examine_exit_returns_llm_context(self):
         """Examine exit includes llm_context in data."""
@@ -266,8 +266,8 @@ class TestExamineExit(unittest.TestCase):
             "actor_id": "player"
         })
         self.assertTrue(result.success)
-        self.assertIn("stone archway", result.message.lower())
-        self.assertIn("north", result.message.lower())
+        self.assertIn("stone archway", result.primary.lower())
+        self.assertIn("north", result.primary.lower())
 
     def test_examine_exit_without_name_or_description(self):
         """Exit with only direction gets minimal message."""
@@ -278,8 +278,8 @@ class TestExamineExit(unittest.TestCase):
             "actor_id": "player"
         })
         self.assertTrue(result.success)
-        self.assertIn("passage", result.message.lower())
-        self.assertIn("south", result.message.lower())
+        self.assertIn("passage", result.primary.lower())
+        self.assertIn("south", result.primary.lower())
 
     def test_examine_nonexistent_exit(self):
         """Examining nonexistent exit fails gracefully."""
@@ -290,7 +290,7 @@ class TestExamineExit(unittest.TestCase):
             "actor_id": "player"
         })
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.message.lower())
+        self.assertIn("don't see", result.primary.lower())
 
 
 class TestExitExaminationPriority(unittest.TestCase):
@@ -394,7 +394,7 @@ class TestExamineExitWithDirectionAdjective(unittest.TestCase):
         })
 
         self.assertTrue(result.success)
-        self.assertIn("north", result.message.lower())
+        self.assertIn("north", result.primary.lower())
         self.assertEqual(result.data["exit_direction"], "north")
 
     def test_examine_east_exit(self):
@@ -408,7 +408,7 @@ class TestExamineExitWithDirectionAdjective(unittest.TestCase):
         })
 
         self.assertTrue(result.success)
-        self.assertIn("east", result.message.lower())
+        self.assertIn("east", result.primary.lower())
         self.assertEqual(result.data["exit_direction"], "east")
 
     def test_examine_direction_passage(self):
@@ -430,7 +430,7 @@ class TestExamineExitWithDirectionAdjective(unittest.TestCase):
         })
 
         self.assertTrue(result.success)
-        self.assertIn("north", result.message.lower())
+        self.assertIn("north", result.primary.lower())
 
     def test_examine_nonexistent_direction_exit(self):
         """Test 'examine west exit' fails when no west exit exists."""
@@ -443,7 +443,7 @@ class TestExamineExitWithDirectionAdjective(unittest.TestCase):
         })
 
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.message.lower())
+        self.assertIn("don't see", result.primary.lower())
 
 
 class TestExitSynonymMatching(unittest.TestCase):
@@ -541,8 +541,8 @@ class TestExitSynonymMatching(unittest.TestCase):
             "actor_id": "player"
         })
 
-        self.assertTrue(result.success, f"Should succeed but got: {result.message}")
-        self.assertIn("spiral staircase", result.message.lower())
+        self.assertTrue(result.success, f"Should succeed but got: {result.primary}")
+        self.assertIn("spiral staircase", result.primary.lower())
 
     def test_wordentry_staircase_matches(self):
         """WordEntry 'staircase' matches exit named 'spiral staircase'."""
@@ -652,8 +652,8 @@ class TestExamineDirectionExitEndToEnd(unittest.TestCase):
         # Execute examine handler
         result = handle_examine(self.accessor, action)
 
-        self.assertTrue(result.success, f"Expected success but got: {result.message}")
-        self.assertIn("north", result.message.lower())
+        self.assertTrue(result.success, f"Expected success but got: {result.primary}")
+        self.assertIn("north", result.primary.lower())
 
 
 if __name__ == "__main__":

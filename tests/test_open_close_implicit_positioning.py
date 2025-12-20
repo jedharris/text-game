@@ -102,9 +102,8 @@ class TestOpenCloseImplicitPositioning(unittest.TestCase):
         result = handle_open(self.accessor, action)
 
         self.assertTrue(result.success)
-        # Should not include movement message
-        self.assertNotIn("move", result.message.lower())
-        self.assertNotIn("closer", result.message.lower())
+        # Should not include movement beat
+        self.assertFalse(any("move" in beat.lower() for beat in result.beats))
         # Should set focus
         self.assertEqual(player.properties.get("focused_on"), "item_bag")
         # Container should be open
@@ -119,10 +118,10 @@ class TestOpenCloseImplicitPositioning(unittest.TestCase):
         result = handle_open(self.accessor, action)
 
         self.assertTrue(result.success)
-        # Should include movement message
-        self.assertIn("move", result.message.lower())
-        # Should also include action result
-        self.assertIn("open", result.message.lower())
+        # Should include movement beat
+        self.assertTrue(any("move" in beat.lower() for beat in result.beats))
+        # Primary should include action result
+        self.assertIn("open", result.primary.lower())
         # Should set focus
         self.assertEqual(player.properties.get("focused_on"), "item_chest")
         # Container should be open
@@ -138,8 +137,8 @@ class TestOpenCloseImplicitPositioning(unittest.TestCase):
         result = handle_open(self.accessor, action)
 
         self.assertTrue(result.success)
-        # Should NOT include movement message
-        self.assertNotIn("move", result.message.lower())
+        # Should NOT include movement beat
+        self.assertFalse(any("move" in beat.lower() for beat in result.beats))
 
     def test_open_clears_posture_when_moving(self):
         """Test opening container clears posture when moving."""
@@ -168,8 +167,8 @@ class TestOpenCloseImplicitPositioning(unittest.TestCase):
         result = handle_close(self.accessor, action)
 
         self.assertTrue(result.success)
-        # Should include movement message
-        self.assertIn("move", result.message.lower())
+        # Should include movement beat
+        self.assertTrue(any("move" in beat.lower() for beat in result.beats))
         # Should set focus
         self.assertEqual(player.properties.get("focused_on"), "item_chest")
         # Container should be closed
@@ -187,8 +186,8 @@ class TestOpenCloseImplicitPositioning(unittest.TestCase):
         result = handle_close(self.accessor, action)
 
         self.assertTrue(result.success)
-        # Should NOT include movement message
-        self.assertNotIn("move", result.message.lower())
+        # Should NOT include movement beat
+        self.assertFalse(any("move" in beat.lower() for beat in result.beats))
 
     def test_close_any_distance_no_movement(self):
         """Test closing 'any' distance container doesn't move player."""
@@ -201,8 +200,8 @@ class TestOpenCloseImplicitPositioning(unittest.TestCase):
         result = handle_close(self.accessor, action)
 
         self.assertTrue(result.success)
-        # Should not include movement message
-        self.assertNotIn("move", result.message.lower())
+        # Should not include movement beat
+        self.assertFalse(any("move" in beat.lower() for beat in result.beats))
         # Should set focus
         self.assertEqual(player.properties.get("focused_on"), "item_bag")
 

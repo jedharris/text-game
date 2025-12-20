@@ -51,7 +51,7 @@ def on_water_mushroom(
     """
     item_id = entity.id if hasattr(entity, "id") else str(entity)
     if "bucket" not in item_id.lower() and "water" not in item_id.lower():
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     target = context.get("target")
     target_id = target.id if target and hasattr(target, "id") else str(target) if target else ""
@@ -64,7 +64,7 @@ def on_water_mushroom(
             break
 
     if not mushroom_key:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
 
@@ -80,7 +80,7 @@ def on_water_mushroom(
                 if charges <= 0:
                     return EventResult(
                         allow=True,
-                        message="The bucket is empty. Fill it from the pool first.",
+                        feedback="The bucket is empty. Fill it from the pool first.",
                     )
                 bucket["water_charges"] = charges - 1
             else:
@@ -89,7 +89,7 @@ def on_water_mushroom(
                 if water_charges <= 0:
                     return EventResult(
                         allow=True,
-                        message="The bucket is empty. Fill it from the pool first.",
+                        feedback="The bucket is empty. Fill it from the pool first.",
                     )
                 state.extra["bucket_water_charges"] = water_charges - 1
         else:
@@ -98,7 +98,7 @@ def on_water_mushroom(
             if water_charges <= 0:
                 return EventResult(
                     allow=True,
-                    message="The bucket is empty. Fill it from the pool first.",
+                    feedback="The bucket is empty. Fill it from the pool first.",
                 )
             state.extra["bucket_water_charges"] = water_charges - 1
 
@@ -163,7 +163,7 @@ def on_water_mushroom(
         state.extra["ceiling_readable"] = True
         msg += "\n\nThe ceiling is now bright enough to read!"
 
-    return EventResult(allow=True, message=msg)
+    return EventResult(allow=True, feedback=msg)
 
 
 def on_examine_ceiling(
@@ -185,7 +185,7 @@ def on_examine_ceiling(
     """
     entity_id = entity.id if hasattr(entity, "id") else str(entity)
     if "ceiling" not in entity_id.lower() and "inscription" not in entity_id.lower():
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
 
@@ -202,7 +202,7 @@ def on_examine_ceiling(
     if light_level < REQUIRED_LIGHT:
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "You can make out shapes on the high ceiling, but the light "
                 "is too dim to read the ancient inscription."
             ),
@@ -213,7 +213,7 @@ def on_examine_ceiling(
 
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             "In the bright light, ancient symbols become clear on the ceiling. "
             "They describe a path through the Spore Heart - where the air "
             "currents create pockets of clean breathing. You memorize the route. "
@@ -243,7 +243,7 @@ def on_light_decay(
     glowing = state.extra.get("glowing_mushrooms", {})
 
     if not glowing:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Decrement all glowing mushrooms
     expired = []
@@ -278,7 +278,7 @@ def on_light_decay(
             state.extra["grotto_light_level"] = max(2, current - total_light_loss)
 
     state.extra["glowing_mushrooms"] = glowing
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)
 
 
 def _apply_infection(state: Any, player: Any, amount: int) -> None:

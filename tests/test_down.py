@@ -20,7 +20,7 @@ class TestDownCommand(SimpleGameTestCase):
         result = self.behavior_manager.invoke_handler("down", self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("down", result.message.lower())
+        self.assertIn("down", result.primary.lower())
 
         # Verify posture cleared
         self.assertNotIn("posture", player.properties)
@@ -77,7 +77,7 @@ class TestDownCommand(SimpleGameTestCase):
 
         self.assertFalse(result.success)
         # Should get error about can't go down
-        self.assertIn("down", result.message.lower())
+        self.assertIn("down", result.primary.lower())
 
     def test_go_down_with_no_posture_uses_exit(self):
         """Test 'go down' when standing normally goes through down exit."""

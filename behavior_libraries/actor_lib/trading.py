@@ -52,7 +52,7 @@ def on_receive_item(entity: Any, accessor: Any, context: Dict) -> EventResult:
     giver_id = context.get("giver_id")
 
     if not item or not giver_id:
-        return EventResult(allow=True, message="")
+        return EventResult(allow=True, feedback="")
 
     # Check for direct trade
     trades = entity.properties.get("trades", {})
@@ -76,7 +76,7 @@ def on_receive_item(entity: Any, accessor: Any, context: Dict) -> EventResult:
     # No trade or service - generic acceptance
     return EventResult(
         allow=True,
-        message=f"{entity.name} accepts the {item.name}."
+        feedback=f"{entity.name} accepts the {item.name}."
     )
 
 
@@ -105,7 +105,7 @@ def _execute_trade(
 
     if not gives_item_id:
         # Trade config is incomplete - just accept
-        return EventResult(allow=True, message=message)
+        return EventResult(allow=True, feedback=message)
 
     # Find the item to give (must be in NPC's inventory)
     gives_item = None
@@ -118,13 +118,13 @@ def _execute_trade(
         # NPC doesn't have the item to trade - apologize
         return EventResult(
             allow=True,
-            message=f"{npc.name} accepts the {given_item.name} but seems unable to provide anything in return right now."
+            feedback=f"{npc.name} accepts the {given_item.name} but seems unable to provide anything in return right now."
         )
 
     # Get giver actor
     giver = accessor.get_actor(giver_id)
     if not giver:
-        return EventResult(allow=True, message=message)
+        return EventResult(allow=True, feedback=message)
 
     # Transfer item from NPC to giver
     # 1. Change item location
@@ -138,7 +138,7 @@ def _execute_trade(
     if gives_item_id not in giver.inventory:
         giver.inventory.append(gives_item_id)
 
-    return EventResult(allow=True, message=message)
+    return EventResult(allow=True, feedback=message)
 
 
 # Vocabulary extension - registers receive event

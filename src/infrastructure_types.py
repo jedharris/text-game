@@ -140,6 +140,8 @@ class ScheduledEvent(TypedDict):
     trigger_turn: TurnNumber
     event_type: str  # Handler looks this up
     data: NotRequired[dict[str, str]]  # Event-specific parameters
+    repeating: NotRequired[bool]  # If True, event reschedules after firing
+    interval: NotRequired[int]  # For repeating events, turns between fires
 
 
 # =============================================================================

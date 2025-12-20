@@ -71,7 +71,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
         result = handle_go(accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("can't go", result.message.lower())
+        self.assertIn("can't go", result.primary.lower())
 
     def test_handle_go_npc(self):
         """Test NPC movement (critical for actor_id threading)."""
@@ -110,7 +110,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
         action = make_action(object="east", actor_id="npc_guard")
         result = handle_go(accessor, action)
 
-        self.assertTrue(result.success, f"NPC movement failed: {result.message}")
+        self.assertTrue(result.success, f"NPC movement failed: {result.primary}")
 
         # Verify NPC moved (not player)
         self.assertEqual(guard.location, "location_hall")
@@ -133,7 +133,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Should mention items in room
-        self.assertIn("sword", result.message.lower())
+        self.assertIn("sword", result.primary.lower())
 
     def test_handle_look_npc_perspective(self):
         """Test look from NPC perspective in different location."""
@@ -172,10 +172,10 @@ class TestPhase11MovementPerception(unittest.TestCase):
         action = make_action(actor_id="npc_guard")
         result = handle_look(accessor, action)
 
-        self.assertTrue(result.success, f"NPC look failed: {result.message}")
+        self.assertTrue(result.success, f"NPC look failed: {result.primary}")
         # Should see table (in hall), not sword (in room)
-        self.assertIn("table", result.message.lower())
-        self.assertNotIn("sword", result.message.lower())
+        self.assertIn("table", result.primary.lower())
+        self.assertNotIn("sword", result.primary.lower())
 
     def test_handle_examine_item(self):
         """Test examining an item."""
@@ -191,7 +191,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Should show item description
-        self.assertIn("sword", result.message.lower())
+        self.assertIn("sword", result.primary.lower())
 
     def test_handle_examine_not_found(self):
         """Test examining non-existent item fails."""
@@ -227,7 +227,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
         result = handle_inventory(accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("sword", result.message.lower())
+        self.assertIn("sword", result.primary.lower())
 
     def test_handle_inventory_npc(self):
         """Test NPC inventory command (critical for actor_id threading)."""
@@ -261,10 +261,10 @@ class TestPhase11MovementPerception(unittest.TestCase):
         action = make_action(actor_id="npc_guard")
         result = handle_inventory(accessor, action)
 
-        self.assertTrue(result.success, f"NPC inventory failed: {result.message}")
+        self.assertTrue(result.success, f"NPC inventory failed: {result.primary}")
         # Should show NPC's items, not player's
-        self.assertIn("lantern", result.message.lower())
-        self.assertNotIn("sword", result.message.lower())
+        self.assertIn("lantern", result.primary.lower())
+        self.assertNotIn("sword", result.primary.lower())
 
     def test_handle_inventory_empty(self):
         """Test inventory when empty."""
@@ -280,7 +280,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Should indicate empty inventory (either "nothing" or "empty")
-        self.assertTrue("nothing" in result.message.lower() or "empty" in result.message.lower())
+        self.assertTrue("nothing" in result.primary.lower() or "empty" in result.primary.lower())
 
 
 if __name__ == '__main__':

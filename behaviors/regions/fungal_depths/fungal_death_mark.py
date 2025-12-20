@@ -38,12 +38,12 @@ def on_fungal_kill(
     # Check if killed entity is fungal
     props = entity.properties if hasattr(entity, "properties") else {}
     if not props.get("fungal", False):
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check if player did the killing
     killer = context.get("killer")
     if not killer or (hasattr(killer, "id") and killer.id != "player"):
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
 
@@ -54,7 +54,7 @@ def on_fungal_kill(
 
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             f"As the {entity_name} dies, you feel a ripple through the air - "
             "as if every fungus in these depths just learned what you did."
         ),
@@ -80,13 +80,13 @@ def on_myconid_first_meeting(
     """
     actor_id = entity.id if hasattr(entity, "id") else None
     if actor_id != "npc_myconid_elder":
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
 
     # Check for death mark
     if not state.extra.get("has_killed_fungi"):
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Apply trust penalty
     myconid = state.actors.get("npc_myconid_elder")
@@ -98,7 +98,7 @@ def on_myconid_first_meeting(
 
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             "The Myconid Elder recoils as you approach. Its spores shift to "
             "deep crimson. 'You carry the death of our kin upon you. We sense it.'"
         ),

@@ -85,8 +85,8 @@ class TestNPCTakeAction(unittest.TestCase):
 
         # Should have attacked player
         self.assertIsNotNone(result)
-        self.assertIn("Wolf", result.message)
-        self.assertIn("bite", result.message)
+        self.assertIn("Wolf", result.feedback)
+        self.assertIn("bite", result.feedback)
 
         # Player should have taken damage
         self.assertEqual(self.player.properties["health"], 90)
@@ -414,7 +414,7 @@ class TestFireNPCActions(unittest.TestCase):
         result = fire_npc_actions(None, accessor, {})
 
         # Should have messages from both wolves
-        self.assertIn("Wolf", result.message)
+        self.assertIn("Wolf", result.feedback)
 
 
 class TestNPCActionVocabulary(unittest.TestCase):

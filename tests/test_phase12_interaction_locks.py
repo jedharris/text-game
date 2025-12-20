@@ -14,21 +14,24 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
+from typing import Any, Dict, Optional
+
 from src.state_accessor import StateAccessor, HandlerResult
 from src.behavior_manager import BehaviorManager
 from src.state_manager import Actor, Lock, Item, Location, ExitDescriptor
+from src.types import ItemId
 from tests.conftest import create_test_state, make_action
 
 
 def create_door_item(door_id: str, location_id: str, direction: str,
-                     open: bool = False, locked: bool = False, lock_id: str = None,
+                     open: bool = False, locked: bool = False, lock_id: Optional[str] = None,
                      description: str = "A door") -> Item:
     """Helper to create a door item in the new unified format."""
-    door_props = {"open": open, "locked": locked}
+    door_props: Dict[str, Any] = {"open": open, "locked": locked}
     if lock_id:
         door_props["lock_id"] = lock_id
     return Item(
-        id=door_id,
+        id=ItemId(door_id),
         name="door",
         description=description,
         location=f"exit:{location_id}:{direction}",
@@ -122,7 +125,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         result = handle_open(accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("already open", result.message.lower())
+        self.assertIn("already open", result.primary.lower())
 
     def test_handle_open_npc(self):
         """Test NPC opening something (critical for actor_id threading)."""
@@ -156,7 +159,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         action = make_action(object="chest", actor_id="npc_guard")
         result = handle_open(accessor, action)
 
-        self.assertTrue(result.success, f"NPC open failed: {result.message}")
+        self.assertTrue(result.success, f"NPC open failed: {result.primary}")
         self.assertTrue(chest.container.open)
 
     def test_handle_close_container(self):
@@ -249,7 +252,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         action = make_action(object="chest", actor_id="npc_guard")
         result = handle_close(accessor, action)
 
-        self.assertTrue(result.success, f"NPC close failed: {result.message}")
+        self.assertTrue(result.success, f"NPC close failed: {result.primary}")
         self.assertFalse(chest.container.open)
 
     # ========== LOCK TESTS ==========
@@ -350,7 +353,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         result = handle_unlock(accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("key", result.message.lower())
+        self.assertIn("key", result.primary.lower())
 
     def test_handle_unlock_npc(self):
         """Test NPC unlocking with their key (critical for actor_id threading)."""
@@ -412,7 +415,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         action = make_action(object="door", actor_id="npc_guard")
         result = handle_unlock(accessor, action)
 
-        self.assertTrue(result.success, f"NPC unlock failed: {result.message}")
+        self.assertTrue(result.success, f"NPC unlock failed: {result.primary}")
         self.assertFalse(door.door_locked)
 
     def test_handle_lock_with_key(self):
@@ -523,7 +526,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         result = handle_lock(accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("close", result.message.lower())
+        self.assertIn("close", result.primary.lower())
 
     def test_handle_lock_npc(self):
         """Test NPC locking with their key (critical for actor_id threading)."""
@@ -585,7 +588,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
         action = make_action(object="door", actor_id="npc_guard")
         result = handle_lock(accessor, action)
 
-        self.assertTrue(result.success, f"NPC lock failed: {result.message}")
+        self.assertTrue(result.success, f"NPC lock failed: {result.primary}")
         self.assertTrue(door.door_locked)
 
 
@@ -627,7 +630,7 @@ class TestWordEntryHandling(unittest.TestCase):
         action = {"actor_id": "player", "object": umbrella_entry}
         result = handle_open(accessor, action)
 
-        self.assertTrue(result.success, f"Failed: {result.message}")
+        self.assertTrue(result.success, f"Failed: {result.primary}")
         self.assertTrue(umbrella.container.open)
 
     def test_handle_close_with_word_entry(self):
@@ -660,7 +663,7 @@ class TestWordEntryHandling(unittest.TestCase):
         action = {"actor_id": "player", "object": umbrella_entry}
         result = handle_close(accessor, action)
 
-        self.assertTrue(result.success, f"Failed: {result.message}")
+        self.assertTrue(result.success, f"Failed: {result.primary}")
         self.assertFalse(umbrella.container.open)
 
     def test_handle_lock_with_word_entry(self):
@@ -711,7 +714,7 @@ class TestWordEntryHandling(unittest.TestCase):
         action = {"actor_id": "player", "object": door_entry}
         result = handle_lock(accessor, action)
 
-        self.assertTrue(result.success, f"Failed: {result.message}")
+        self.assertTrue(result.success, f"Failed: {result.primary}")
         self.assertTrue(door.door_locked)
 
     def test_handle_unlock_with_word_entry(self):
@@ -762,7 +765,7 @@ class TestWordEntryHandling(unittest.TestCase):
         action = {"actor_id": "player", "object": door_entry}
         result = handle_unlock(accessor, action)
 
-        self.assertTrue(result.success, f"Failed: {result.message}")
+        self.assertTrue(result.success, f"Failed: {result.primary}")
         self.assertFalse(door.door_locked)
 
 

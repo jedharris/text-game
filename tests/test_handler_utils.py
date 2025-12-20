@@ -56,7 +56,7 @@ class TestValidateActorAndLocation(BaseTestCase):
         self.assertIsNone(location)
         self.assertIsNotNone(error)
         self.assertFalse(error.success)
-        self.assertIn("What do you want to", error.message)
+        self.assertIn("What do you want to", error.primary)
 
     def test_missing_actor_id_defaults_to_player(self):
         """Should default to 'player' when actor_id not in action"""
@@ -81,8 +81,8 @@ class TestValidateActorAndLocation(BaseTestCase):
         self.assertIsNone(actor)
         self.assertIsNone(location)
         self.assertIsNotNone(error)
-        self.assertIn("INCONSISTENT STATE", error.message)
-        self.assertIn("Actor ghost not found", error.message)
+        self.assertIn("INCONSISTENT STATE", error.primary)
+        self.assertIn("Actor ghost not found", error.primary)
 
     def test_actor_without_location(self):
         """Should return INCONSISTENT STATE error when location not found"""
@@ -101,8 +101,8 @@ class TestValidateActorAndLocation(BaseTestCase):
         self.assertIsNone(actor)
         self.assertIsNone(location)
         self.assertIsNotNone(error)
-        self.assertIn("INCONSISTENT STATE", error.message)
-        self.assertIn("Cannot find location", error.message)
+        self.assertIn("INCONSISTENT STATE", error.primary)
+        self.assertIn("Cannot find location", error.primary)
 
     def test_require_direction_present(self):
         """Should validate direction field when required"""
@@ -127,7 +127,7 @@ class TestValidateActorAndLocation(BaseTestCase):
         self.assertIsNone(actor)
         self.assertIsNone(location)
         self.assertIsNotNone(error)
-        self.assertIn("Which direction", error.message)
+        self.assertIn("Which direction", error.primary)
 
     def test_require_indirect_object_present(self):
         """Should validate indirect_object field when required"""
@@ -161,8 +161,8 @@ class TestValidateActorAndLocation(BaseTestCase):
         self.assertIsNone(actor)
         self.assertIsNone(location)
         self.assertIsNotNone(error)
-        self.assertIn("What do you want to", error.message)
-        self.assertIn("with", error.message)
+        self.assertIn("What do you want to", error.primary)
+        self.assertIn("with", error.primary)
 
     def test_no_requirements(self):
         """Should work with no field requirements (like 'look')"""
@@ -195,19 +195,19 @@ class TestExecuteEntityAction(BaseTestCase):
         )
 
         self.assertTrue(result.success)
-        self.assertIn("examine the sword", result.message)
+        self.assertIn("examine the sword", result.primary)
         self.assertIsNotNone(result.data)
         self.assertIn("id", result.data)
         self.assertEqual(result.data["id"], "item_sword")
 
     def test_success_with_behavior_message(self):
-        """Should append behavior message to base message"""
+        """Should include behavior message in beats"""
         # Mock accessor.update to return a message
         item = self.state.get_item("item_sword")
         original_update = self.accessor.update
 
         def mock_update(entity, changes, verb=None, actor_id=None):
-            return UpdateResult(success=True, message="The sword glows!")
+            return UpdateResult(success=True, detail="The sword glows!")
 
         self.accessor.update = mock_update
         try:
@@ -221,13 +221,13 @@ class TestExecuteEntityAction(BaseTestCase):
             )
 
             self.assertTrue(result.success)
-            self.assertIn("examine the sword", result.message)
-            self.assertIn("sword glows", result.message)
+            self.assertEqual(result.primary, "You examine the sword.")
+            self.assertEqual(result.beats, ["The sword glows!"])
         finally:
             self.accessor.update = original_update
 
     def test_success_with_positioning_message(self):
-        """Should prepend positioning message"""
+        """Should include positioning message in beats"""
         item = self.state.get_item("item_sword")
         result = execute_entity_action(
             self.accessor,
@@ -240,8 +240,8 @@ class TestExecuteEntityAction(BaseTestCase):
         )
 
         self.assertTrue(result.success)
-        self.assertIn("move closer", result.message)
-        self.assertIn("examine the sword", result.message)
+        self.assertEqual(result.primary, "You examine the sword.")
+        self.assertIn("You move closer.", result.beats)
 
     def test_failure_from_behavior(self):
         """Should return failure when behavior denies action"""
@@ -249,7 +249,7 @@ class TestExecuteEntityAction(BaseTestCase):
         original_update = self.accessor.update
 
         def mock_update(entity, changes, verb=None, actor_id=None):
-            return UpdateResult(success=False, message="The sword resists!")
+            return UpdateResult(success=False, detail="The sword resists!")
 
         self.accessor.update = mock_update
         try:
@@ -263,7 +263,7 @@ class TestExecuteEntityAction(BaseTestCase):
             )
 
             self.assertFalse(result.success)
-            self.assertIn("resists", result.message)
+            self.assertIn("resists", result.primary)
         finally:
             self.accessor.update = original_update
 
@@ -303,7 +303,7 @@ class TestTransferItemToActor(BaseTestCase):
 
         def mock_update(entity, changes, verb=None, actor_id=None):
             if hasattr(entity, 'location'):  # Item update
-                return UpdateResult(success=False, message="Cannot take that.")
+                return UpdateResult(success=False, detail="Cannot take that.")
             return original_update(entity, changes, verb, actor_id)
 
         self.accessor.update = mock_update
@@ -321,7 +321,7 @@ class TestTransferItemToActor(BaseTestCase):
             self.assertIsNone(result)
             self.assertIsNotNone(error)
             self.assertFalse(error.success)
-            self.assertIn("Cannot take", error.message)
+            self.assertIn("Cannot take", error.primary)
         finally:
             self.accessor.update = original_update
 
@@ -365,7 +365,7 @@ class TestTransferItemFromActor(BaseTestCase):
 
         def mock_update(entity, changes, verb=None, actor_id=None):
             if hasattr(entity, 'location') and entity.id == "item_sword":
-                return UpdateResult(success=False, message="Cannot drop that.")
+                return UpdateResult(success=False, detail="Cannot drop that.")
             return original_update(entity, changes, verb, actor_id)
 
         self.accessor.update = mock_update
@@ -382,7 +382,7 @@ class TestTransferItemFromActor(BaseTestCase):
             self.assertIsNone(result)
             self.assertIsNotNone(error)
             self.assertFalse(error.success)
-            self.assertIn("Cannot drop", error.message)
+            self.assertIn("Cannot drop", error.primary)
         finally:
             self.accessor.update = original_update
 
@@ -417,7 +417,7 @@ class TestValidateContainerAccessible(BaseTestCase):
         result = validate_container_accessible(item, "take from")
         self.assertIsNotNone(result)
         self.assertFalse(result.success)
-        self.assertIn("chest is closed", result.message)
+        self.assertIn("chest is closed", result.primary)
 
 
 class TestCheckActorHasKey(BaseTestCase):
@@ -445,9 +445,9 @@ class TestCheckActorHasKey(BaseTestCase):
         result = check_actor_has_key(actor, lock, "chest", "unlock")
         self.assertIsNotNone(result)
         self.assertFalse(result.success)
-        self.assertIn("don't have the right key", result.message)
-        self.assertIn("unlock", result.message)
-        self.assertIn("chest", result.message)
+        self.assertIn("don't have the right key", result.primary)
+        self.assertIn("unlock", result.primary)
+        self.assertIn("chest", result.primary)
 
     def test_empty_inventory(self):
         """Should return error when inventory is empty"""
@@ -471,36 +471,38 @@ class TestBuildActionResult(BaseTestCase):
         result = build_action_result(item, "You take the sword.")
 
         self.assertTrue(result.success)
-        self.assertEqual(result.message, "You take the sword.")
+        self.assertEqual(result.primary, "You take the sword.")
         self.assertIsNotNone(result.data)
         self.assertIn("id", result.data)
         self.assertEqual(result.data["id"], "item_sword")
 
-    def test_with_behavior_message(self):
-        """Should combine base and behavior messages"""
+    def test_with_beats(self):
+        """Should include beats in result"""
         item = self.state.get_item("item_sword")
         result = build_action_result(
             item,
             "You take the sword.",
-            behavior_message="It feels warm."
+            beats=["It feels warm."]
         )
 
         self.assertTrue(result.success)
-        self.assertIn("take the sword", result.message)
-        self.assertIn("feels warm", result.message)
+        self.assertEqual(result.primary, "You take the sword.")
+        self.assertEqual(result.beats, ["It feels warm."])
 
-    def test_with_positioning_message(self):
-        """Should prepend positioning message"""
+    def test_with_multiple_beats(self):
+        """Should include multiple beats from positioning and behavior"""
         item = self.state.get_item("item_sword")
         result = build_action_result(
             item,
             "You take the sword.",
-            positioning_msg="You step closer."
+            beats=["You step closer.", "It feels warm."]
         )
 
         self.assertTrue(result.success)
-        self.assertIn("step closer", result.message)
-        self.assertIn("take the sword", result.message)
+        self.assertEqual(result.primary, "You take the sword.")
+        self.assertEqual(len(result.beats), 2)
+        self.assertIn("step closer", result.beats[0])
+        self.assertIn("feels warm", result.beats[1])
 
 
 if __name__ == '__main__':

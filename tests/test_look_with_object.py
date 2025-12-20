@@ -67,7 +67,7 @@ class TestLookWithObject(unittest.TestCase):
         result = handle_look(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("test room", result.message.lower())
+        self.assertIn("test room", result.primary.lower())
         # Should not set focus when just looking at room
         player = self.accessor.get_actor(ActorId("player"))
         self.assertIsNone(player.properties.get("focused_on"))
@@ -78,8 +78,8 @@ class TestLookWithObject(unittest.TestCase):
         result = handle_look(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("chandelier", result.message.lower())
-        self.assertIn("crystal", result.message.lower())
+        self.assertIn("chandelier", result.primary.lower())
+        self.assertIn("crystal", result.primary.lower())
 
     def test_look_at_object_sets_focus(self):
         """Test look at object sets focus like examine."""
@@ -101,7 +101,7 @@ class TestLookWithObject(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Should include movement message
-        self.assertIn("move", result.message.lower())
+        self.assertIn("move", result.primary.lower())
         # Should set focus
         self.assertEqual(player.properties.get("focused_on"), "item_desk")
 
@@ -111,7 +111,7 @@ class TestLookWithObject(unittest.TestCase):
         result = handle_look(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.message.lower())
+        self.assertIn("don't see", result.primary.lower())
 
 
 if __name__ == '__main__':

@@ -53,7 +53,7 @@ class TestGiftReactionsHandlerEscapeHatch(unittest.TestCase):
         item = MockEntity("item_moonpetal")
         context = {"target_actor": target, "item": item}
 
-        handler_result = EventResult(allow=True, message="Handler processed")
+        handler_result = EventResult(allow=True, feedback="Handler processed")
         mock_handler = MagicMock(return_value=handler_result)
 
         with patch(
@@ -62,7 +62,7 @@ class TestGiftReactionsHandlerEscapeHatch(unittest.TestCase):
         ):
             result = on_gift_given(item, self.accessor, context)
 
-        self.assertEqual(result.message, "Handler processed")
+        self.assertEqual(result.feedback, "Handler processed")
         mock_handler.assert_called_once()
 
     def test_handler_load_failure_falls_through(self) -> None:
@@ -85,7 +85,7 @@ class TestGiftReactionsHandlerEscapeHatch(unittest.TestCase):
         result = on_gift_given(item, self.accessor, context)
 
         # Should fall through to data-driven and process the gift
-        self.assertIn("venison", (result.message or "").lower())
+        self.assertIn("venison", (result.feedback or "").lower())
 
 
 class TestGiftReactionsDataDriven(unittest.TestCase):
@@ -104,7 +104,7 @@ class TestGiftReactionsDataDriven(unittest.TestCase):
         result = on_gift_given(item, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
     def test_target_without_properties(self) -> None:
         """Target without properties returns allow with no message."""
@@ -115,7 +115,7 @@ class TestGiftReactionsDataDriven(unittest.TestCase):
         result = on_gift_given(item, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
     def test_target_without_gift_reactions(self) -> None:
         """Target without gift_reactions config returns allow with no message."""
@@ -126,7 +126,7 @@ class TestGiftReactionsDataDriven(unittest.TestCase):
         result = on_gift_given(item, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
     def test_accepted_item_returns_message(self) -> None:
         """Accepted item triggers accept_message."""
@@ -147,7 +147,7 @@ class TestGiftReactionsDataDriven(unittest.TestCase):
         result = on_gift_given(item, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIn("wolf accepts", (result.message or "").lower())
+        self.assertIn("wolf accepts", (result.feedback or "").lower())
 
     def test_rejected_item_returns_reject_message(self) -> None:
         """Rejected item triggers reject_message."""
@@ -169,7 +169,7 @@ class TestGiftReactionsDataDriven(unittest.TestCase):
         result = on_gift_given(item, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertEqual(result.message, "The wolf ignores the offering.")
+        self.assertEqual(result.feedback, "The wolf ignores the offering.")
 
     def test_trust_delta_applied(self) -> None:
         """Trust delta is applied to target."""

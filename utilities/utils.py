@@ -216,7 +216,7 @@ def is_observable(
         result = behavior_manager.invoke_behavior(entity, event, accessor, context)
 
         if result is not None:
-            return (result.allow, result.message)
+            return (result.allow, result.feedback)
 
     # No behavior or behavior didn't handle visibility check
     # Use core hidden state check

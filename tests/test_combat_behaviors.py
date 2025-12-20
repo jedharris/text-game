@@ -79,7 +79,7 @@ class TestHandleAttack(unittest.TestCase):
         result = handle_attack(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("what", result.message.lower())
+        self.assertIn("what", result.primary.lower())
 
     def test_attack_target_not_found(self):
         """Test attacking non-existent target."""
@@ -89,7 +89,7 @@ class TestHandleAttack(unittest.TestCase):
         result = handle_attack(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.message.lower())
+        self.assertIn("don't see", result.primary.lower())
 
     def test_attack_npc_success(self):
         """Test attacking an NPC."""
@@ -99,8 +99,8 @@ class TestHandleAttack(unittest.TestCase):
         result = handle_attack(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("attack", result.message.lower())
-        self.assertIn("goblin", result.message.lower())
+        self.assertIn("attack", result.primary.lower())
+        self.assertIn("goblin", result.primary.lower())
 
     def test_attack_item_fails(self):
         """Test attacking an item (should fail - can't attack items)."""
@@ -110,7 +110,7 @@ class TestHandleAttack(unittest.TestCase):
         result = handle_attack(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("can't attack", result.message.lower())
+        self.assertIn("can't attack", result.primary.lower())
 
     def test_attack_npc_by_npc(self):
         """Test NPC attacking another NPC (critical for actor_id threading)."""
@@ -120,7 +120,7 @@ class TestHandleAttack(unittest.TestCase):
         result = handle_attack(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("attack", result.message.lower())
+        self.assertIn("attack", result.primary.lower())
 
 
 class TestCombatVocabulary(unittest.TestCase):

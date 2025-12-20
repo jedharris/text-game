@@ -29,11 +29,16 @@ from behavior_libraries.actor_lib.conditions import treat_condition
 
 @dataclass
 class TreatmentResult:
-    """Result of applying treatment."""
+    """Result of applying treatment.
+
+    Fields:
+        effect: Description of the treatment effect.
+                Semantic type: EffectText
+    """
     success: bool
     conditions_treated: List[str]
     item_consumed: bool
-    message: str
+    effect: str
 
 
 def get_treatable_conditions(item) -> List[str]:
@@ -98,7 +103,7 @@ def apply_treatment(
             success=False,
             conditions_treated=[],
             item_consumed=False,
-            message=f"{item.name} cannot treat any conditions."
+            effect=f"{item.name} cannot treat any conditions."
         )
 
     cure_amount = item.properties.get("cure_amount", 100)
@@ -121,7 +126,7 @@ def apply_treatment(
             success=False,
             conditions_treated=[],
             item_consumed=False,
-            message=f"{target_actor.name} doesn't have any conditions {item.name} can treat."
+            effect=f"{target_actor.name} doesn't have any conditions {item.name} can treat."
         )
 
     # Consume item if consumable
@@ -142,7 +147,7 @@ def apply_treatment(
         success=True,
         conditions_treated=conditions_treated,
         item_consumed=item_consumed,
-        message=f"Treated {treated_list} on {target_actor.name}."
+        effect=f"Treated {treated_list} on {target_actor.name}."
     )
 
 
@@ -185,7 +190,7 @@ def on_receive_treatment(entity, accessor, context) -> Optional[Any]:
     # Apply treatment
     result = apply_treatment(accessor, item, entity)
     if result.success:
-        return EventResult(allow=True, message=result.message)
+        return EventResult(allow=True, feedback=result.effect)
 
     return None
 
@@ -230,7 +235,7 @@ def on_use_treatment(entity, accessor, context) -> Optional[Any]:
 
     # Apply treatment
     result = apply_treatment(accessor, item, target)
-    return EventResult(allow=result.success, message=result.message)
+    return EventResult(allow=result.success, feedback=result.effect)
 
 
 # Vocabulary extension - registers treatment events and verbs

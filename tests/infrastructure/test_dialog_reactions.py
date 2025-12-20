@@ -47,7 +47,7 @@ class TestDialogReactionsBasic(unittest.TestCase):
         result = on_dialog_received(entity, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
     def test_entity_without_dialog_reactions(self) -> None:
         """Entity without dialog_reactions config returns allow with no message."""
@@ -57,7 +57,7 @@ class TestDialogReactionsBasic(unittest.TestCase):
         result = on_dialog_received(entity, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
     def test_no_matching_trigger(self) -> None:
         """No matching trigger returns allow with no message."""
@@ -77,7 +77,7 @@ class TestDialogReactionsBasic(unittest.TestCase):
         result = on_dialog_received(entity, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
 
 class TestDialogReactionsDataDriven(unittest.TestCase):
@@ -106,7 +106,7 @@ class TestDialogReactionsDataDriven(unittest.TestCase):
         result = on_dialog_received(entity, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertEqual(result.message, "I can help you find the cure.")
+        self.assertEqual(result.feedback, "I can help you find the cure.")
 
     def test_trigger_in_dialog_text(self) -> None:
         """Trigger can match in dialog_text, not just keyword."""
@@ -126,7 +126,7 @@ class TestDialogReactionsDataDriven(unittest.TestCase):
         result = on_dialog_received(entity, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertEqual(result.message, "The cure is in the cave.")
+        self.assertEqual(result.feedback, "The cure is in the cave.")
 
     def test_set_flags(self) -> None:
         """Dialog reaction sets flags in game state."""
@@ -218,7 +218,7 @@ class TestDialogReactionsDataDriven(unittest.TestCase):
 
         result = on_dialog_received(entity, self.accessor, context)
 
-        self.assertEqual(result.message, "Please... help me...")
+        self.assertEqual(result.feedback, "Please... help me...")
 
     def test_requires_state_not_met(self) -> None:
         """Reaction doesn't fire when requires_state is not met."""
@@ -243,7 +243,7 @@ class TestDialogReactionsDataDriven(unittest.TestCase):
 
         result = on_dialog_received(entity, self.accessor, context)
 
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
     def test_requires_flags_met(self) -> None:
         """Reaction fires when requires_flags are met."""
@@ -265,7 +265,7 @@ class TestDialogReactionsDataDriven(unittest.TestCase):
 
         result = on_dialog_received(entity, self.accessor, context)
 
-        self.assertEqual(result.message, "The password is 'moonlight'.")
+        self.assertEqual(result.feedback, "The password is 'moonlight'.")
 
     def test_requires_flags_not_met(self) -> None:
         """Reaction doesn't fire when requires_flags are not met."""
@@ -285,7 +285,7 @@ class TestDialogReactionsDataDriven(unittest.TestCase):
 
         result = on_dialog_received(entity, self.accessor, context)
 
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
     def test_forbidden_flags_blocks(self) -> None:
         """Reaction doesn't fire when forbidden_flags are set."""
@@ -307,7 +307,7 @@ class TestDialogReactionsDataDriven(unittest.TestCase):
 
         result = on_dialog_received(entity, self.accessor, context)
 
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
 
 class TestDialogReactionsHandlerEscapeHatch(unittest.TestCase):
@@ -330,7 +330,7 @@ class TestDialogReactionsHandlerEscapeHatch(unittest.TestCase):
         )
         context = {"keyword": "help", "dialog_text": ""}
 
-        handler_result = EventResult(allow=True, message="Handler response")
+        handler_result = EventResult(allow=True, feedback="Handler response")
         mock_handler = MagicMock(return_value=handler_result)
 
         with patch(
@@ -339,7 +339,7 @@ class TestDialogReactionsHandlerEscapeHatch(unittest.TestCase):
         ):
             result = on_dialog_received(entity, self.accessor, context)
 
-        self.assertEqual(result.message, "Handler response")
+        self.assertEqual(result.feedback, "Handler response")
         mock_handler.assert_called_once_with(entity, self.accessor, context)
 
     def test_handler_load_failure_falls_through(self) -> None:
@@ -360,7 +360,7 @@ class TestDialogReactionsHandlerEscapeHatch(unittest.TestCase):
 
         result = on_dialog_received(entity, self.accessor, context)
 
-        self.assertEqual(result.message, "Fallback response.")
+        self.assertEqual(result.feedback, "Fallback response.")
 
 
 if __name__ == "__main__":

@@ -113,7 +113,7 @@ class TestHandlePut(unittest.TestCase):
         result = handle_put(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("what", result.message.lower())
+        self.assertIn("what", result.primary.lower())
 
     def test_put_no_container(self):
         """Test put without specifying container."""
@@ -123,7 +123,7 @@ class TestHandlePut(unittest.TestCase):
         result = handle_put(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("where", result.message.lower())
+        self.assertIn("where", result.primary.lower())
 
     def test_put_item_not_in_inventory(self):
         """Test putting item not in inventory."""
@@ -133,7 +133,7 @@ class TestHandlePut(unittest.TestCase):
         result = handle_put(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("don't have", result.message.lower())
+        self.assertIn("don't have", result.primary.lower())
 
     def test_put_in_open_container(self):
         """Test putting item in open container."""
@@ -143,7 +143,7 @@ class TestHandlePut(unittest.TestCase):
         result = handle_put(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("put", result.message.lower())
+        self.assertIn("put", result.primary.lower())
         # Key should be moved to box
         key = self.state.get_item("item_key")
         self.assertEqual(key.location, "item_box")
@@ -170,7 +170,7 @@ class TestHandlePut(unittest.TestCase):
         result = handle_put(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("closed", result.message.lower())
+        self.assertIn("closed", result.primary.lower())
 
     def test_put_in_noncontainer_fails(self):
         """Test putting item in non-container fails."""
@@ -180,7 +180,7 @@ class TestHandlePut(unittest.TestCase):
         result = handle_put(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("can't put", result.message.lower())
+        self.assertIn("can't put", result.primary.lower())
 
 
 class TestPutVocabulary(unittest.TestCase):

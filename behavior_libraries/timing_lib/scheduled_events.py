@@ -6,11 +6,11 @@ Events are stored in GameState.extra['scheduled_events'] as a list:
 [
     {
         "id": "unique_id",
-        "event": "on_spore_spread",
-        "turn": 100,
+        "event_type": "on_spore_spread",
+        "trigger_turn": 100,
         "data": {"severity": "high"},
-        "repeating": false,
-        "interval": null
+        "repeating": true,
+        "interval": 10
     }
 ]
 
@@ -22,9 +22,10 @@ Usage:
 """
 
 import uuid
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from src.behavior_manager import EventResult
+from src.infrastructure_types import ScheduledEvent, ScheduledEventId, TurnNumber
 from src.infrastructure_utils import get_scheduled_events as _get_state_scheduled_events
 
 
@@ -32,7 +33,7 @@ def schedule_event(
     accessor,
     event_name: str,
     trigger_turn: int,
-    data: Optional[Dict] = None,
+    data: Optional[Dict[str, str]] = None,
     repeating: bool = False,
     interval: Optional[int] = None
 ) -> str:
@@ -50,16 +51,19 @@ def schedule_event(
     Returns:
         Unique ID for the scheduled event
     """
-    event_id = str(uuid.uuid4())[:8]
+    event_id = ScheduledEventId(str(uuid.uuid4())[:8])
 
-    event = {
+    event: ScheduledEvent = {
         'id': event_id,
-        'event': event_name,
-        'turn': trigger_turn,
-        'data': data or {},
-        'repeating': repeating,
-        'interval': interval
+        'event_type': event_name,
+        'trigger_turn': TurnNumber(trigger_turn),
     }
+    if data:
+        event['data'] = data
+    if repeating:
+        event['repeating'] = repeating
+    if interval is not None:
+        event['interval'] = interval
 
     events = _get_state_scheduled_events(accessor.game_state)
     events.append(event)
@@ -80,19 +84,19 @@ def cancel_event(accessor, event_name: str) -> bool:
     events = _get_state_scheduled_events(accessor.game_state)
 
     for i, event in enumerate(events):
-        if event['event'] == event_name:
+        if event['event_type'] == event_name:
             events.pop(i)
             return True
 
     return False
 
 
-def get_scheduled_events(accessor) -> List[Dict]:
+def get_scheduled_events(accessor) -> List[ScheduledEvent]:
     """Expose scheduled events through the typed infrastructure helper."""
     return _get_state_scheduled_events(accessor.game_state)
 
 
-def on_check_scheduled_events(entity, accessor, context: dict) -> EventResult:
+def on_check_scheduled_events(entity: Any, accessor: Any, context: dict) -> EventResult:
     """
     Hook handler - check and fire due scheduled events.
 
@@ -109,19 +113,27 @@ def on_check_scheduled_events(entity, accessor, context: dict) -> EventResult:
     current_turn = accessor.game_state.turn_count
     events = _get_state_scheduled_events(accessor.game_state)
 
-    fired_messages = []
-    to_remove = []
-    to_add = []
+    fired_messages: List[str] = []
+    to_remove: List[int] = []
+    to_add: List[ScheduledEvent] = []
 
     for i, event in enumerate(events):
-        if event['turn'] <= current_turn:
+        if event['trigger_turn'] <= current_turn:
             # Event is due - fire it
-            fired_messages.append(f"Event '{event['event']}' triggered.")
+            fired_messages.append(f"Event '{event['event_type']}' triggered.")
 
             if event.get('repeating') and event.get('interval'):
                 # Reschedule for next interval
-                new_event = event.copy()
-                new_event['turn'] = current_turn + event['interval']
+                interval = event['interval']
+                new_event: ScheduledEvent = {
+                    'id': event['id'],
+                    'event_type': event['event_type'],
+                    'trigger_turn': TurnNumber(current_turn + interval),
+                    'repeating': True,
+                    'interval': interval,
+                }
+                if event.get('data'):
+                    new_event['data'] = event['data']
                 to_add.append(new_event)
                 to_remove.append(i)
             else:
@@ -137,7 +149,7 @@ def on_check_scheduled_events(entity, accessor, context: dict) -> EventResult:
         events.append(event)
 
     message = '\n'.join(fired_messages) if fired_messages else ''
-    return EventResult(allow=True, message=message)
+    return EventResult(allow=True, feedback=message)
 
 
 # Vocabulary extension

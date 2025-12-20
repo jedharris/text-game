@@ -3,11 +3,12 @@
 Vocabulary, handlers and entity behaviors for consumable items like potions and food.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 from src.action_types import ActionDict
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
+from src.types import ActorId
 from utilities.utils import find_item_in_inventory
 from utilities.handler_utils import get_display_name, validate_actor_and_location
 
@@ -70,18 +71,18 @@ def _handle_consume(accessor, action, property_name: str, verb: str) -> HandlerR
 
     object_name = action.get("object")
 
-    item = find_item_in_inventory(accessor, object_name, actor_id)
+    item = find_item_in_inventory(accessor, object_name, cast(ActorId, actor_id))
     if not item:
         return HandlerResult(
             success=False,
-            message=f"You're not carrying any {get_display_name(object_name)}."
+            primary=f"You're not carrying any {get_display_name(object_name)}."
         )
 
     # Check if item has the required property
     if not item.properties.get(property_name, False):
         return HandlerResult(
             success=False,
-            message=f"You can't {verb} the {item.name}."
+            primary=f"You can't {verb} the {item.name}."
         )
 
     # Invoke entity behaviors - behaviors decide what happens
@@ -90,15 +91,15 @@ def _handle_consume(accessor, action, property_name: str, verb: str) -> HandlerR
     if not result.success:
         return HandlerResult(
             success=False,
-            message=result.message or f"You can't {verb} the {item.name}."
+            primary=result.detail or f"You can't {verb} the {item.name}."
         )
 
-    # Build message - include behavior message if present
+    # Build primary - include behavior message if present
     base_message = f"You {verb} the {item.name}."
-    if result.message:
-        return HandlerResult(success=True, message=f"{base_message} {result.message}")
+    if result.detail:
+        return HandlerResult(success=True, primary=f"{base_message} {result.detail}")
 
-    return HandlerResult(success=True, message=base_message)
+    return HandlerResult(success=True, primary=base_message)
 
 
 def handle_drink(accessor, action):
@@ -156,7 +157,7 @@ def on_drink(entity: Any, state: Any, context: Dict) -> Optional[EventResult]:
 
     player = state.actors.get("player")
     if not player:
-        return EventResult(allow=False, message="No player found.")
+        return EventResult(allow=True, feedback="No player found.")
 
     # Remove from inventory
     if entity.id in player.inventory:
@@ -175,7 +176,7 @@ def on_drink(entity: Any, state: Any, context: Dict) -> Optional[EventResult]:
 
     return EventResult(
         allow=True,
-        message="You drink the glowing red potion. Warmth spreads through your body as your wounds heal."
+        feedback="You drink the glowing red potion. Warmth spreads through your body as your wounds heal."
     )
 
 
@@ -200,7 +201,7 @@ def on_eat(entity: Any, state: Any, context: Dict) -> Optional[EventResult]:
 
     player = state.actors.get("player")
     if not player:
-        return EventResult(allow=False, message="No player found.")
+        return EventResult(allow=True, feedback="No player found.")
 
     # Remove from inventory
     if entity.id in player.inventory:
@@ -211,5 +212,5 @@ def on_eat(entity: Any, state: Any, context: Dict) -> Optional[EventResult]:
 
     return EventResult(
         allow=True,
-        message="You eat the food. It's delicious and satisfying."
+        feedback="You eat the food. It's delicious and satisfying."
     )

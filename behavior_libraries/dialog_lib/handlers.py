@@ -62,28 +62,28 @@ def handle_ask(accessor, action: Dict) -> HandlerResult:
     topic = action.get('indirect_object') or action.get('raw_after_preposition', '')
 
     if not isinstance(npc_name, WordEntry):
-        return HandlerResult(success=False, message="Ask who?")
+        return HandlerResult(success=False, primary="Ask who?")
 
     if not topic:
-        return HandlerResult(success=False, message=f"Ask {get_display_name(npc_name)} about what?")
+        return HandlerResult(success=False, primary=f"Ask {get_display_name(npc_name)} about what?")
 
     # Find the NPC
     npc = find_accessible_actor(accessor, npc_name, actor_id)
     if not npc:
-        return HandlerResult(success=False, message=f"You don't see any {get_display_name(npc_name)} here.")
+        return HandlerResult(success=False, primary=f"You don't see any {get_display_name(npc_name)} here.")
 
     # Check if NPC has dialog topics
     if 'dialog_topics' not in npc.properties:
         return HandlerResult(
             success=False,
-            message=f"{npc.name} doesn't seem interested in conversation."
+            primary=f"{npc.name} doesn't seem interested in conversation."
         )
 
     # Handle the ask - convert topic to string if it's a WordEntry
     topic_str = topic.word if isinstance(topic, WordEntry) else str(topic)
     result = handle_ask_about(accessor, npc, topic_str)
 
-    return HandlerResult(success=result.success, message=result.message)
+    return HandlerResult(success=result.success, primary=result.response)
 
 
 def handle_talk(accessor, action: Dict) -> HandlerResult:
@@ -102,24 +102,24 @@ def handle_talk(accessor, action: Dict) -> HandlerResult:
     npc_name = action.get('indirect_object') or action.get('object')
 
     if not isinstance(npc_name, WordEntry):
-        return HandlerResult(success=False, message="Talk to whom?")
+        return HandlerResult(success=False, primary="Talk to whom?")
 
     # Find the NPC
     npc = find_accessible_actor(accessor, npc_name, actor_id)
     if not npc:
-        return HandlerResult(success=False, message=f"You don't see any {get_display_name(npc_name)} here.")
+        return HandlerResult(success=False, primary=f"You don't see any {get_display_name(npc_name)} here.")
 
     # Check if NPC has dialog topics
     if 'dialog_topics' not in npc.properties:
         return HandlerResult(
             success=False,
-            message=f"{npc.name} doesn't seem interested in conversation."
+            primary=f"{npc.name} doesn't seem interested in conversation."
         )
 
     # Handle the talk
     result = handle_talk_to(accessor, npc)
 
-    return HandlerResult(success=result.success, message=result.message)
+    return HandlerResult(success=result.success, primary=result.response)
 
 
 def find_accessible_actor(accessor, name: WordEntry, actor_id: ActorId = ActorId("player")):

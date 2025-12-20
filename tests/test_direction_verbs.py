@@ -177,7 +177,7 @@ class TestDirectionHandlers(unittest.TestCase):
         from behaviors.core.exits import handle_north
         result = handle_north(self.accessor, {"actor_id": "player"})
         self.assertFalse(result.success)
-        self.assertIn("can't go north", result.message.lower())
+        self.assertIn("can't go north", result.primary.lower())
 
 
 class TestDirectionHandlerChain(unittest.TestCase):

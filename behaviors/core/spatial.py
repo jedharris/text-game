@@ -153,14 +153,14 @@ def _handle_positioning(accessor, action, object_field: str, required_property: 
         display_name = object_name.word if hasattr(object_name, 'word') else object_name
         return HandlerResult(
             success=False,
-            message=f"You don't see any {display_name} here."
+            primary=f"You don't see any {display_name} here."
         )
 
     # Check if target is accessible
     if not _is_accessible(accessor, actor, target):
         return HandlerResult(
             success=False,
-            message=f"You can't reach the {target.name} from here."
+            primary=f"You can't reach the {target.name} from here."
         )
 
     # Check required property if specified
@@ -177,7 +177,7 @@ def _handle_positioning(accessor, action, object_field: str, required_property: 
                 message = f"You can't climb the {target.name}."
             else:
                 message = f"The {target.name} doesn't allow that."
-        return HandlerResult(success=False, message=message)
+        return HandlerResult(success=False, primary=message)
 
     # Invoke entity behaviors if requested (e.g., for climb)
     behavior_message = None
@@ -185,8 +185,8 @@ def _handle_positioning(accessor, action, object_field: str, required_property: 
         verb = action.get("verb", "interact")
         result = accessor.update(target, {}, verb=verb, actor_id=actor_id)
         if not result.success:
-            return HandlerResult(success=False, message=result.message)
-        behavior_message = result.message
+            return HandlerResult(success=False, primary=result.detail or f"You can't do that with the {target.name}.")
+        behavior_message = result.detail
 
     # Check if already positioned here (for approach-like operations without posture change)
     old_focus = actor.properties.get("focused_on")
@@ -215,7 +215,7 @@ def _handle_positioning(accessor, action, object_field: str, required_property: 
     if posture:
         data["posture"] = posture
 
-    return HandlerResult(success=True, message=message, data=data)
+    return HandlerResult(success=True, primary=message, data=data)
 
 
 def handle_approach(accessor, action):
@@ -258,7 +258,7 @@ def handle_take_cover(accessor, action):
     if not action.get("indirect_object"):
         return HandlerResult(
             success=False,
-            message="Take cover behind what?"
+            primary="Take cover behind what?"
         )
 
     return _handle_positioning(
@@ -290,7 +290,7 @@ def handle_hide_in(accessor, action):
     if not action.get("indirect_object"):
         return HandlerResult(
             success=False,
-            message="Hide in what?"
+            primary="Hide in what?"
         )
 
     return _handle_positioning(
@@ -338,7 +338,7 @@ def handle_climb(accessor, action):
         display_name = object_name.word if hasattr(object_name, 'word') else object_name
         return HandlerResult(
             success=False,
-            message=f"You don't see any {display_name} here."
+            primary=f"You don't see any {display_name} here."
         )
 
     # Check if entity is climbable
@@ -346,14 +346,14 @@ def handle_climb(accessor, action):
         # Not climbable - return failure so exits.py can try exit navigation
         return HandlerResult(
             success=False,
-            message=f"You can't climb the {climbable.name}."
+            primary=f"You can't climb the {climbable.name}."
         )
 
     # Check if target is accessible
     if not _is_accessible(accessor, actor, climbable):
         return HandlerResult(
             success=False,
-            message=f"You can't reach the {climbable.name} from here."
+            primary=f"You can't reach the {climbable.name} from here."
         )
 
     # Invoke entity behaviors (on_climb) before allowing climb
@@ -361,7 +361,7 @@ def handle_climb(accessor, action):
 
     if not result.success:
         # Entity behavior denied the climb
-        return HandlerResult(success=False, message=result.message)
+        return HandlerResult(success=False, primary=result.detail or f"You can't climb the {climbable.name}.")
 
     # Set climbing state
     actor.properties["focused_on"] = climbable.id
@@ -369,8 +369,8 @@ def handle_climb(accessor, action):
 
     # Build message - include behavior message if present
     base_message = f"You climb the {climbable.name}."
-    if result.message:
-        message = f"{base_message}\n{result.message}"
+    if result.detail:
+        message = f"{base_message}\n{result.detail}"
     else:
         message = base_message
 
@@ -378,7 +378,7 @@ def handle_climb(accessor, action):
     data = serialize_for_handler_result(climbable)
     data["posture"] = "climbing"
 
-    return HandlerResult(success=True, message=message, data=data)
+    return HandlerResult(success=True, primary=message, data=data)
 
 
 def handle_down(accessor, action):
@@ -410,7 +410,7 @@ def handle_down(accessor, action):
         # No posture - return failure so exits.py can handle 'down' as direction
         return HandlerResult(
             success=False,
-            message=""  # Empty message means "not handled, try next handler"
+            primary=""  # Empty message means "not handled, try next handler"
         )
 
     # Get focused entity name before clearing (for message)
@@ -440,7 +440,7 @@ def handle_down(accessor, action):
         }
         message = posture_messages.get(current_posture, "You return to ground level.")
 
-    return HandlerResult(success=True, message=message)
+    return HandlerResult(success=True, primary=message)
 
 
 def handle_up(accessor, action):

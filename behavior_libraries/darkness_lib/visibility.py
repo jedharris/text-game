@@ -156,7 +156,7 @@ def on_visibility_check(entity, accessor, context: dict) -> EventResult:
 
     # Always allow certain actions in darkness
     if verb.lower() in DARK_ALLOWED_VERBS:
-        return EventResult(allow=True, message='')
+        return EventResult(allow=True, feedback='')
 
     # Check if location has light
     location_id = entity.id if hasattr(entity, 'id') else None
@@ -167,15 +167,15 @@ def on_visibility_check(entity, accessor, context: dict) -> EventResult:
             location_id = actor.location
 
     if not location_id:
-        return EventResult(allow=True, message='')
+        return EventResult(allow=True, feedback='')
 
     # Check visibility
     if check_visibility(accessor, location_id):
-        return EventResult(allow=True, message='')
+        return EventResult(allow=True, feedback='')
 
     # Block action due to darkness
     darkness_msg = get_darkness_description(accessor, location_id)
-    return EventResult(allow=False, message=darkness_msg)
+    return EventResult(allow=False, feedback=darkness_msg)
 
 
 # Vocabulary extension - register hook

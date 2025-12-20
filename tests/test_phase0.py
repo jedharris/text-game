@@ -27,14 +27,14 @@ class TestPhase0Infrastructure(unittest.TestCase):
         """Verify result dataclasses have expected fields."""
         from src.state_accessor import EventResult, UpdateResult, HandlerResult
 
-        er = EventResult(allow=True, message="test")
+        er = EventResult(allow=True, feedback="test")
         self.assertIs(er.allow, True)
-        self.assertEqual(er.message, "test")
+        self.assertEqual(er.feedback, "test")
 
-        ur = UpdateResult(success=True, message="test")
+        ur = UpdateResult(success=True, detail="test")
         self.assertIs(ur.success, True)
 
-        hr = HandlerResult(success=True, message="test")
+        hr = HandlerResult(success=True, primary="test")
         self.assertIs(hr.success, True)
 
     def test_create_test_state(self):

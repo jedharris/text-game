@@ -64,27 +64,27 @@ def handle_combine(accessor, action: Dict) -> HandlerResult:
     item2_name = action.get('indirect_object') or action.get('target')
 
     if not isinstance(item1_name, WordEntry):
-        return HandlerResult(success=False, message="Combine what?")
+        return HandlerResult(success=False, primary="Combine what?")
 
     if not isinstance(item2_name, WordEntry):
         return HandlerResult(
             success=False,
-            message=f"Combine {get_display_name(item1_name)} with what?"
+            primary=f"Combine {get_display_name(item1_name)} with what?"
         )
 
     player = accessor.get_actor(actor_id)
     if not player:
-        return HandlerResult(success=False, message="No player found.")
+        return HandlerResult(success=False, primary="No player found.")
 
     # Find items in inventory by name/id
     item1_id = _find_item_in_inventory(accessor, player, item1_name)
     item2_id = _find_item_in_inventory(accessor, player, item2_name)
 
     if not item1_id:
-        return HandlerResult(success=False, message=f"You don't have any {get_display_name(item1_name)}.")
+        return HandlerResult(success=False, primary=f"You don't have any {get_display_name(item1_name)}.")
 
     if not item2_id:
-        return HandlerResult(success=False, message=f"You don't have any {get_display_name(item2_name)}.")
+        return HandlerResult(success=False, primary=f"You don't have any {get_display_name(item2_name)}.")
 
     # Find matching recipe
     recipe = find_recipe(accessor, [item1_id, item2_id])
@@ -92,18 +92,18 @@ def handle_combine(accessor, action: Dict) -> HandlerResult:
     if not recipe:
         return HandlerResult(
             success=False,
-            message=f"You can't combine {get_display_name(item1_name)} and {get_display_name(item2_name)}."
+            primary=f"You can't combine {get_display_name(item1_name)} and {get_display_name(item2_name)}."
         )
 
     # Check requirements
     can_craft, req_message = check_requirements(accessor, recipe)
     if not can_craft:
-        return HandlerResult(success=False, message=req_message)
+        return HandlerResult(success=False, primary=req_message)
 
     # Execute the craft
     result = execute_craft(accessor, recipe, [item1_id, item2_id])
 
-    return HandlerResult(success=result.success, message=result.message)
+    return HandlerResult(success=result.success, primary=result.description)
 
 
 def handle_craft(accessor, action: Dict) -> HandlerResult:
@@ -121,11 +121,11 @@ def handle_craft(accessor, action: Dict) -> HandlerResult:
     recipe_name = action.get('object')
 
     if not isinstance(recipe_name, WordEntry):
-        return HandlerResult(success=False, message="Craft what?")
+        return HandlerResult(success=False, primary="Craft what?")
 
     player = accessor.get_actor(actor_id)
     if not player:
-        return HandlerResult(success=False, message="No player found.")
+        return HandlerResult(success=False, primary="No player found.")
 
     # Find recipe by name - use the word string for lookup
     recipe_name_str = recipe_name.word
@@ -135,7 +135,7 @@ def handle_craft(accessor, action: Dict) -> HandlerResult:
     if not recipe:
         return HandlerResult(
             success=False,
-            message=f"You don't know how to craft {get_display_name(recipe_name)}."
+            primary=f"You don't know how to craft {get_display_name(recipe_name)}."
         )
 
     # Check if player has all ingredients
@@ -150,18 +150,18 @@ def handle_craft(accessor, action: Dict) -> HandlerResult:
     if missing:
         return HandlerResult(
             success=False,
-            message=f"You need: {', '.join(missing)}"
+            primary=f"You need: {', '.join(missing)}"
         )
 
     # Check requirements
     can_craft, req_message = check_requirements(accessor, recipe)
     if not can_craft:
-        return HandlerResult(success=False, message=req_message)
+        return HandlerResult(success=False, primary=req_message)
 
     # Execute the craft
     result = execute_craft(accessor, recipe, ingredients)
 
-    return HandlerResult(success=result.success, message=result.message)
+    return HandlerResult(success=result.success, primary=result.description)
 
 
 def _find_item_in_inventory(accessor, actor, name: WordEntry) -> Optional[str]:

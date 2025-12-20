@@ -299,13 +299,13 @@ class TestExitPassageMovementMessages(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Message should mention going through door, then climbing stairs
-        self.assertIn("ornate door", result.message)
-        self.assertIn("narrow stone stairs", result.message)
+        self.assertIn("ornate door", result.primary)
+        self.assertIn("narrow stone stairs", result.primary)
         # Door should come before stairs in the message
-        door_pos = result.message.find("ornate door")
-        stairs_pos = result.message.find("narrow stone stairs")
+        door_pos = result.primary.find("ornate door")
+        stairs_pos = result.primary.find("narrow stone stairs")
         self.assertLess(door_pos, stairs_pos,
-                       f"Door should be mentioned before stairs: {result.message}")
+                       f"Door should be mentioned before stairs: {result.primary}")
 
     def test_passage_first_when_door_at_destination(self):
         """When door_at == destination, message mentions passage first."""
@@ -319,13 +319,13 @@ class TestExitPassageMovementMessages(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Message should mention descending stairs, then going through door
-        self.assertIn("ornate door", result.message)
-        self.assertIn("narrow stone stairs", result.message)
+        self.assertIn("ornate door", result.primary)
+        self.assertIn("narrow stone stairs", result.primary)
         # Stairs should come before door in the message
-        door_pos = result.message.find("ornate door")
-        stairs_pos = result.message.find("narrow stone stairs")
+        door_pos = result.primary.find("ornate door")
+        stairs_pos = result.primary.find("narrow stone stairs")
         self.assertLess(stairs_pos, door_pos,
-                       f"Stairs should be mentioned before door: {result.message}")
+                       f"Stairs should be mentioned before door: {result.primary}")
 
     def test_no_passage_uses_exit_name_only(self):
         """When no passage field, message uses exit name only (backward compatible)."""
@@ -384,8 +384,8 @@ class TestExitPassageMovementMessages(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Should mention door but not any "passage" or "stairs"
-        self.assertIn("wooden door", result.message)
-        self.assertNotIn("stairs", result.message.lower())
+        self.assertIn("wooden door", result.primary)
+        self.assertNotIn("stairs", result.primary.lower())
 
 
 if __name__ == '__main__':

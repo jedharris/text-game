@@ -19,10 +19,11 @@ import unittest
 from pathlib import Path
 
 try:
-    import wx  # type: ignore[unused-import]
+    import wx
     WX_AVAILABLE = True
 except ModuleNotFoundError:
     WX_AVAILABLE = False
+    wx = None  # noqa: F841 - imported for availability check
 
 
 # Path to the project root

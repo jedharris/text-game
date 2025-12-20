@@ -48,12 +48,12 @@ def on_flower_offer(
     """
     target = context.get("target_actor")
     if not target:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check if target is bee queen
     target_id = target.id if hasattr(target, "id") else str(target)
     if target_id != "bee_queen":
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check if item is a valid flower
     item = context.get("item") or entity
@@ -70,7 +70,7 @@ def on_flower_offer(
         # Not a valid flower - queen rejects
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "The Bee Queen examines the offering, antennae twitching. "
                 "She backs away - this is not what she seeks."
             ),
@@ -89,7 +89,7 @@ def on_flower_offer(
     if flower_type in traded:
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 f"The Bee Queen has already received a {flower_type}. "
                 "She does not need another."
             ),
@@ -130,7 +130,7 @@ def on_flower_offer(
     if trade_count >= 3:
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "The Bee Queen's wings fan in pleased recognition - this completes "
                 "the exchange. She approaches, no longer a trader but an ally. "
                 "The grove is now sanctuary."
@@ -140,7 +140,7 @@ def on_flower_offer(
     remaining = 3 - trade_count
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             f"The Bee Queen accepts the {flower_type}, antennae quivering with "
             f"appreciation. She moves toward the honey cache, offering a portion "
             f"in exchange. {remaining} more flower type(s) would complete the bond."
@@ -168,13 +168,13 @@ def on_honey_theft(
     # Check if item is honey
     item_id = entity.id if hasattr(entity, "id") else str(entity)
     if "honey" not in item_id.lower():
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check if in bee grove
     location = context.get("location")
     loc_id = location.id if location and hasattr(location, "id") else str(location) if location else ""
     if "beehive" not in loc_id.lower():
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
 
@@ -183,7 +183,7 @@ def on_honey_theft(
     if queen:
         sm = queen.properties.get("state_machine")
         if sm and sm.get("current") == "allied":
-            return EventResult(allow=True, message=None)
+            return EventResult(allow=True, feedback=None)
 
         # Not allied - this is theft
         if sm:
@@ -195,7 +195,7 @@ def on_honey_theft(
 
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             "The moment you touch the honey, the air erupts with furious buzzing. "
             "The Bee Queen's compound eyes fix on you with unmistakable hatred. "
             "The trade relationship is destroyed forever."

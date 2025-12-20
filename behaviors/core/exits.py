@@ -195,7 +195,7 @@ def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_descriptor, 
                 if not door_item.door_open:
                     return HandlerResult(
                         success=False,
-                        message=f"The {door_item.name} is closed."
+                        primary=f"The {door_item.name} is closed."
                     )
             else:
                 # Fall back to old-style Door entity during migration
@@ -203,7 +203,7 @@ def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_descriptor, 
                 if door and not door.open:
                     return HandlerResult(
                         success=False,
-                        message=f"The {door.description or 'door'} is closed."
+                        primary=f"The {door.description or 'door'} is closed."
                     )
     else:
         # Plain string destination (backward compatibility)
@@ -214,7 +214,7 @@ def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_descriptor, 
     if not destination:
         return HandlerResult(
             success=False,
-            message=f"INCONSISTENT STATE: Destination {destination_id} not found"
+            primary=f"INCONSISTENT STATE: Destination {destination_id} not found"
         )
 
     # Capture source location before updating
@@ -226,7 +226,7 @@ def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_descriptor, 
     if not result.success:
         return HandlerResult(
             success=False,
-            message=f"INCONSISTENT STATE: Failed to move actor: {result.message}"
+            primary=f"INCONSISTENT STATE: Failed to move actor: {result.detail}"
         )
 
     # Invoke location_entered hook if destination location has behaviors
@@ -237,8 +237,8 @@ def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_descriptor, 
         behavior_result = accessor.behavior_manager.invoke_behavior(
             destination, event, accessor, context
         )
-        if behavior_result and behavior_result.message:
-            on_enter_message = behavior_result.message
+        if behavior_result and behavior_result.feedback:
+            on_enter_message = behavior_result.feedback
 
     # Build message with movement and auto-look
     movement_msg = _build_movement_message(
@@ -258,7 +258,7 @@ def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_descriptor, 
 
     return HandlerResult(
         success=True,
-        message="\n".join(message_parts),
+        primary="\n".join(message_parts),
         data=llm_data
     )
 
@@ -321,7 +321,7 @@ def handle_go(accessor, action):
         if not exit_result:
             return HandlerResult(
                 success=False,
-                message=f"You don't see any {get_display_name(object_entry)} here to go through."
+                primary=f"You don't see any {get_display_name(object_entry)} here to go through."
             )
         direction, exit_descriptor = exit_result
         # Check for ambiguity
@@ -330,7 +330,7 @@ def handle_go(accessor, action):
             names_str = " or ".join(f'"{name}"' for name in exit_names)
             return HandlerResult(
                 success=False,
-                message=f"Which {object_name} do you mean: {names_str}?"
+                primary=f"Which {object_name} do you mean: {names_str}?"
             )
     else:
         # Try to match as a compass direction first
@@ -347,7 +347,7 @@ def handle_go(accessor, action):
                 # Not found as direction or exit name
                 return HandlerResult(
                     success=False,
-                    message=f"You can't go {get_display_name(object_entry)} from here."
+                    primary=f"You can't go {get_display_name(object_entry)} from here."
                 )
             direction, exit_descriptor = exit_result
             # Check for ambiguity
@@ -356,7 +356,7 @@ def handle_go(accessor, action):
                 names_str = " or ".join(f'"{name}"' for name in exit_names)
                 return HandlerResult(
                     success=False,
-                    message=f"Which {object_name} do you mean: {names_str}?"
+                    primary=f"Which {object_name} do you mean: {names_str}?"
                 )
 
     # Perform the movement using shared helper
@@ -404,7 +404,7 @@ def handle_climb(accessor, action):
         # Not an exit - return failure silently so other handlers can try
         return HandlerResult(
             success=False,
-            message=""
+            primary=""
         )
 
     # Check for ambiguity - exit_result is (None, list_of_names) when ambiguous
@@ -415,7 +415,7 @@ def handle_climb(accessor, action):
         names_str = " or ".join(f'"{name}"' for name in exit_names)
         return HandlerResult(
             success=False,
-            message=f"Which stairs do you mean: {names_str}?"
+            primary=f"Which stairs do you mean: {names_str}?"
         )
 
     # Perform the movement using shared helper
@@ -441,17 +441,17 @@ def _handle_direction(accessor, action, direction: str) -> HandlerResult:
     actor_id = cast(ActorId, action.get("actor_id") or ActorId("player"))
     actor = accessor.get_actor(actor_id)
     if not actor:
-        return HandlerResult(success=False, message="No actor found.")
+        return HandlerResult(success=False, primary="No actor found.")
 
     location = accessor.get_location(actor.location)
     if not location:
-        return HandlerResult(success=False, message="Actor has no location.")
+        return HandlerResult(success=False, primary="Actor has no location.")
 
     visible_exits = accessor.get_visible_exits(location.id, actor_id)
     if direction not in visible_exits:
         return HandlerResult(
             success=False,
-            message=f"You can't go {direction} from here."
+            primary=f"You can't go {direction} from here."
         )
 
     exit_descriptor = visible_exits[direction]

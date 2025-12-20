@@ -15,7 +15,7 @@ try:
     WX_AVAILABLE = True
 except ModuleNotFoundError:
     WX_AVAILABLE = False
-    wx = None  # type: ignore[attr-defined]
+    wx = None
 
 
 # Force headless mode so this module can always run in CI (wx dialogs require a display).

@@ -92,8 +92,8 @@ class TestAldricRescueScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIsNotNone(result.message)
-        self.assertIn("silvermoss", (result.message or "").lower())
+        self.assertIsNotNone(result.feedback)
+        self.assertIn("silvermoss", (result.feedback or "").lower())
         self.assert_flag_set("aldric_commitment_created")
 
         # Trust should increase from hope
@@ -118,7 +118,7 @@ class TestAldricRescueScenarios(ScenarioTestCase):
             self.aldric, self.accessor, {"keyword": "help", "dialog_text": ""}
         )
 
-        self.assertIn("already promised", (result.message or "").lower())
+        self.assertIn("already promised", (result.feedback or "").lower())
 
     def test_first_silvermoss_stabilizes(self) -> None:
         """First silvermoss use stabilizes Aldric."""
@@ -127,7 +127,7 @@ class TestAldricRescueScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("sit up", (result.message or "").lower())
+        self.assertIn("sit up", (result.feedback or "").lower())
         self.assert_flag_set("aldric_stabilized")
         self.assert_actor_state("npc_aldric", "stabilized")
 
@@ -146,7 +146,7 @@ class TestAldricRescueScenarios(ScenarioTestCase):
         result = on_aldric_heal(silvermoss2, self.accessor, {"target": self.aldric})
 
         self.assertTrue(result.allow)
-        self.assertIn("whole again", (result.message or "").lower())
+        self.assertIn("whole again", (result.feedback or "").lower())
         self.assert_flag_set("aldric_helped")
         self.assert_flag_set("aldric_fully_healed")
         self.assert_actor_state("npc_aldric", "recovering")
@@ -162,7 +162,7 @@ class TestAldricRescueScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("barely breathe", (result.message or "").lower())
+        self.assertIn("barely breathe", (result.feedback or "").lower())
         self.assert_flag_not_set("learned_mycology")
 
     def test_teaching_requires_trust(self) -> None:
@@ -176,7 +176,7 @@ class TestAldricRescueScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("trust you more", (result.message or "").lower())
+        self.assertIn("trust you more", (result.feedback or "").lower())
         self.assert_flag_not_set("learned_mycology")
 
     def test_teaching_requires_gift(self) -> None:
@@ -190,7 +190,7 @@ class TestAldricRescueScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("research notes", (result.message or "").lower())
+        self.assertIn("research notes", (result.feedback or "").lower())
         self.assert_flag_not_set("learned_mycology")
 
     def test_teaching_succeeds_with_notes(self) -> None:
@@ -211,7 +211,7 @@ class TestAldricRescueScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("mycology", (result.message or "").lower())
+        self.assertIn("mycology", (result.feedback or "").lower())
         self.assert_flag_set("learned_mycology")
         self.assertTrue(player.properties.get("skills", {}).get("mycology"))
 
@@ -293,13 +293,13 @@ class TestSporeMotherScenarios(ScenarioTestCase):
         # Simulate 3 turns of presence
         for _ in range(2):
             result = on_spore_mother_presence(None, self.accessor, {})
-            self.assertIsNone(result.message)  # Not yet
+            self.assertIsNone(result.feedback)  # Not yet
 
         # Third turn should trigger
         result = on_spore_mother_presence(None, self.accessor, {})
 
         self.assertTrue(result.allow)
-        self.assertIn("curiosity", (result.message or "").lower())
+        self.assertIn("curiosity", (result.feedback or "").lower())
         self.assert_actor_state("npc_spore_mother", "wary")
 
     def test_attack_resets_presence_counter(self) -> None:
@@ -323,8 +323,8 @@ class TestSporeMotherScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("gratitude", (result.message or "").lower())
-        self.assertIn("spore heart", (result.message or "").lower())
+        self.assertIn("gratitude", (result.feedback or "").lower())
+        self.assertIn("spore heart", (result.feedback or "").lower())
 
         self.assert_flag_set("spore_mother_healed")
         self.assert_flag_set("has_spore_heart")
@@ -346,8 +346,8 @@ class TestSporeMotherScenarios(ScenarioTestCase):
         result = on_spore_mother_death(self.mother, self.accessor, {})
 
         self.assertTrue(result.allow)
-        self.assertIn("death cry", (result.message or "").lower())
-        self.assertIn("horror", (result.message or "").lower())
+        self.assertIn("death cry", (result.feedback or "").lower())
+        self.assertIn("horror", (result.feedback or "").lower())
 
         self.assert_flag_set("spore_mother_dead")
         self.assert_flag_set("has_killed_fungi")  # Death mark!
@@ -410,8 +410,8 @@ class TestFungalDeathMarkScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("ripple", (result.message or "").lower())
-        self.assertIn("learned what you did", (result.message or "").lower())
+        self.assertIn("ripple", (result.feedback or "").lower())
+        self.assertIn("learned what you did", (result.feedback or "").lower())
         self.assert_flag_set("has_killed_fungi")
 
     def test_killing_non_fungal_no_mark(self) -> None:
@@ -419,7 +419,7 @@ class TestFungalDeathMarkScenarios(ScenarioTestCase):
         result = on_fungal_kill(self.beast, self.accessor, {"killer": self.player})
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
         self.assert_flag_not_set("has_killed_fungi")
 
     def test_myconid_detects_death_mark(self) -> None:
@@ -430,8 +430,8 @@ class TestFungalDeathMarkScenarios(ScenarioTestCase):
         result = on_myconid_first_meeting(self.myconid, self.accessor, {})
 
         self.assertTrue(result.allow)
-        self.assertIn("recoils", (result.message or "").lower())
-        self.assertIn("death of our kin", (result.message or "").lower())
+        self.assertIn("recoils", (result.feedback or "").lower())
+        self.assertIn("death of our kin", (result.feedback or "").lower())
 
         # Trust should start at -3
         self.assert_actor_trust("npc_myconid_elder", -3)
@@ -442,7 +442,7 @@ class TestFungalDeathMarkScenarios(ScenarioTestCase):
         result = on_myconid_first_meeting(self.myconid, self.accessor, {})
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
         self.assert_flag_not_set("myconid_detected_death_mark")
 
 
@@ -506,7 +506,7 @@ class TestCombinedFungalScenarios(ScenarioTestCase):
         result = on_myconid_first_meeting(self.myconid, self.accessor, {})
 
         self.assertTrue(result.allow)
-        self.assertIn("recoils", (result.message or "").lower())
+        self.assertIn("recoils", (result.feedback or "").lower())
 
         # Trust penalty from death (applied by on_spore_mother_death) AND mark detection
         # Death gave -5, then first meeting sets to -3 (the mark penalty)
@@ -524,7 +524,7 @@ class TestCombinedFungalScenarios(ScenarioTestCase):
         result = on_myconid_first_meeting(self.myconid, self.accessor, {})
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)  # No hostile reaction
+        self.assertIsNone(result.feedback)  # No hostile reaction
         self.assert_flag_not_set("has_killed_fungi")
 
         # Trust should be unchanged

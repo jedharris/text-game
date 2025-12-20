@@ -178,25 +178,32 @@ class LLMProtocolHandler:
             }
 
         # Check for inconsistent state errors
-        if not result.success and result.message.startswith("INCONSISTENT STATE:"):
+        if not result.success and result.primary.startswith("INCONSISTENT STATE:"):
             self.state_corrupted = True
-            print(f"ERROR: {verb}: {result.message}", file=sys.stderr)
+            print(f"ERROR: {verb}: {result.primary}", file=sys.stderr)
             return {
                 "type": "result",
                 "success": False,
                 "action": verb,
                 "error": {
-                    "message": result.message,
+                    "message": result.primary,
                     "fatal": True
                 }
             }
 
         if result.success:
+            # Combine primary and beats into combined_message for backward compatibility
+            # (Phase 4 will change this to return NarrationResult)
+            message_parts = [result.primary]
+            if result.beats:
+                message_parts.extend(result.beats)
+            combined_message = "\n".join(message_parts)
+
             response = {
                 "type": "result",
                 "success": True,
                 "action": verb,
-                "message": result.message
+                "message": combined_message
             }
             # Include optional data (e.g., llm_context for examine)
             if result.data:
@@ -213,7 +220,7 @@ class LLMProtocolHandler:
             "type": "result",
             "success": False,
             "action": verb,
-            "error": {"message": result.message}
+            "error": {"message": result.primary}
         }
 
     def _get_turn_phase_hooks(self) -> List[str]:
@@ -269,8 +276,8 @@ class LLMProtocolHandler:
                     None, event_name, accessor, context
                 )
 
-                if result and result.message:
-                    messages.append(result.message)
+                if result and result.feedback:
+                    messages.append(result.feedback)
 
         return messages
 

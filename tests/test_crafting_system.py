@@ -302,7 +302,7 @@ class TestExecuteCraft(unittest.TestCase):
 
         result = execute_craft(accessor, recipe, ['herb', 'water'])
 
-        self.assertEqual(result.message, 'You brew a healing potion.')
+        self.assertEqual(result.description, 'You brew a healing potion.')
 
     def test_execute_craft_preserves_ingredients_when_not_consumed(self):
         """When consumes_ingredients is False, ingredients remain."""
@@ -407,7 +407,7 @@ class TestHandleCombine(unittest.TestCase):
         result = handle_combine(accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("can't", result.message.lower())
+        self.assertIn("can't", result.primary.lower())
 
     def test_handle_combine_missing_item(self):
         """Combine fails when player doesn't have item."""

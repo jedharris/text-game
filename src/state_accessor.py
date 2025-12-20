@@ -3,7 +3,7 @@ StateAccessor - Clean API for state queries and mutations with automatic behavio
 
 This module provides the core abstraction for accessing and modifying game state.
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, cast, TYPE_CHECKING
 
 from src.types import LocationId, ActorId, ItemId, LockId, PartId, EntityId, EventName
@@ -20,10 +20,17 @@ class EventResult:
     """
     Result from an entity behavior event handler.
 
-    Behaviors return this to indicate whether an action should be allowed.
+    Behaviors return this to indicate whether an action should be allowed
+    and provide optional feedback text for the player.
+
+    Fields:
+        allow: Whether the action should proceed
+        feedback: Optional feedback text describing behavior's response.
+                  Semantic type: FeedbackText
+                  Examples: "The door creaks open.", "The sword is stuck to the altar."
     """
     allow: bool
-    message: Optional[str] = None
+    feedback: Optional[str] = None
 
 
 @dataclass
@@ -32,9 +39,15 @@ class UpdateResult:
     Result from a state update operation.
 
     Returned by StateAccessor.update() to indicate success or failure.
+
+    Fields:
+        success: Whether the update succeeded
+        detail: Error message if update failed, or behavior feedback on success.
+                Semantic type: DetailText
+                Examples: "Item moved to inventory.", "Field 'location' not found."
     """
     success: bool
-    message: Optional[str] = None
+    detail: Optional[str] = None
 
 
 @dataclass
@@ -43,11 +56,23 @@ class HandlerResult:
     Result from a command handler.
 
     Command handlers return this to indicate success/failure and provide
-    a message for the user. Optional data dict can include extra info
-    like llm_context for narration.
+    text for narration. The primary field contains the core statement of
+    what occurred, while beats contains supplemental sentences (e.g.,
+    positioning changes, side effects).
+
+    Optional data dict can include extra info like llm_context for narration.
+
+    Fields:
+        success: Whether the action succeeded
+        primary: The core statement of what occurred.
+                 Semantic type: PrimaryText
+                 Examples: "You pick up the sword.", "You can't go that way."
+        beats: Supplemental sentences (e.g., ["You step down from the table."])
+        data: Optional extra data for narration (llm_context, etc.)
     """
     success: bool
-    message: str
+    primary: str
+    beats: list[str] = field(default_factory=list)
     data: Optional[Dict[str, Any]] = None
 
 
@@ -594,7 +619,7 @@ class StateAccessor:
 
                     # If behavior explicitly denies, try next tier
                     if behavior_result and behavior_result.allow is False:
-                        behavior_message = behavior_result.message
+                        behavior_message = behavior_result.feedback
                         last_deny = True
                         continue  # Try next tier
 
@@ -605,13 +630,13 @@ class StateAccessor:
 
                     # If behavior allows (explicitly or implicitly), stop trying tiers
                     if behavior_result and behavior_result.allow:
-                        behavior_message = behavior_result.message
+                        behavior_message = behavior_result.feedback
                         last_deny = False
                         break  # Success, stop delegation
 
                 # After trying all tiers, if last result was deny, return failure
                 if last_deny:
-                    return UpdateResult(success=False, message=behavior_message)
+                    return UpdateResult(success=False, detail=behavior_message)
             else:
                 behavior_message = None
         else:
@@ -623,8 +648,8 @@ class StateAccessor:
             if error:
                 # Log to stderr and return failure
                 print(f"Error updating {path}: {error}", file=sys.stderr)
-                return UpdateResult(success=False, message=error)
+                return UpdateResult(success=False, detail=error)
 
         # All changes applied successfully
         # Return behavior message if present, otherwise None
-        return UpdateResult(success=True, message=behavior_message)
+        return UpdateResult(success=True, detail=behavior_message)

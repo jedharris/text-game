@@ -119,15 +119,15 @@ def handle_take(accessor, action):
     # Extract remaining action parameters
     object_name = action.get("object")
     if not isinstance(object_name, WordEntry):
-        return HandlerResult(success=False, message="I didn't understand what to drop.")
+        return HandlerResult(success=False, primary="I didn't understand what to drop.")
     if not isinstance(object_name, WordEntry):
-        return HandlerResult(success=False, message="I didn't understand what to take.")
+        return HandlerResult(success=False, primary="I didn't understand what to take.")
     adjective = action.get("adjective")
     container_name = action.get("indirect_object")
     if container_name is not None and not isinstance(container_name, WordEntry):
         return HandlerResult(
             success=False,
-            message="I didn't understand which container you meant."
+            primary="I didn't understand which container you meant."
         )
     container_adjective = action.get("indirect_adjective")
 
@@ -144,11 +144,11 @@ def handle_take(accessor, action):
                 if name_matches(container_name, item.name):
                     return HandlerResult(
                         success=False,
-                        message=f"The {item.name} is not a container."
+                        primary=f"The {item.name} is not a container."
                     )
             return HandlerResult(
                 success=False,
-                message=f"You don't see any {get_display_name(container_name)} here."
+                primary=f"You don't see any {get_display_name(container_name)} here."
             )
 
         # Check if container is accessible
@@ -164,7 +164,7 @@ def handle_take(accessor, action):
             preposition = "on" if is_surface else "in"
             return HandlerResult(
                 success=False,
-                message=f"You don't see any {get_display_name(object_name)} {preposition} the {container.name}."
+                primary=f"You don't see any {get_display_name(object_name)} {preposition} the {container.name}."
             )
     else:
         # No container specified - find item anywhere accessible
@@ -173,7 +173,7 @@ def handle_take(accessor, action):
     if not item:
         return HandlerResult(
             success=False,
-            message=f"You don't see any {get_display_name(object_name)} here."
+            primary=f"You don't see any {get_display_name(object_name)} here."
         )
 
     # Apply implicit positioning (to container if specified, else to item)
@@ -184,14 +184,14 @@ def handle_take(accessor, action):
     if item.location == actor_id:
         return HandlerResult(
             success=True,
-            message=f"You already have the {item.name}."
+            primary=f"You already have the {item.name}."
         )
 
     # Check if item is portable
     if not item.portable:
         return HandlerResult(
             success=False,
-            message=f"You can't take the {item.name}."
+            primary=f"You can't take the {item.name}."
         )
 
     # Transfer item to actor's inventory
@@ -203,12 +203,17 @@ def handle_take(accessor, action):
     if error:
         return error
 
-    # Build and return result
+    # Build beats from positioning and behavior messages
+    beats = []
+    if move_msg:
+        beats.append(move_msg)
+    if result.detail:
+        beats.append(result.detail)
+
     return build_action_result(
         item,
         f"You take the {item.name}.",
-        behavior_message=result.message,
-        positioning_msg=move_msg
+        beats=beats if beats else None
     )
 
 
@@ -243,7 +248,7 @@ def handle_drop(accessor, action):
     if not item:
         return HandlerResult(
             success=False,
-            message=f"You don't have any {get_display_name(object_name)}."
+            primary=f"You don't have any {get_display_name(object_name)}."
         )
 
     # Transfer item from actor's inventory to location
@@ -255,10 +260,11 @@ def handle_drop(accessor, action):
         return error
 
     # Build and return result
+    beats = [result.detail] if result.detail else None
     return build_action_result(
         item,
         f"You drop the {item.name}.",
-        behavior_message=result.message
+        beats=beats
     )
 
 
@@ -289,17 +295,17 @@ def handle_give(accessor, action):
 
     object_name = action.get("object")
     if not isinstance(object_name, WordEntry):
-        return HandlerResult(success=False, message="I didn't understand what to give.")
+        return HandlerResult(success=False, primary="I didn't understand what to give.")
     recipient_name = action.get("indirect_object")
     if not isinstance(recipient_name, WordEntry):
-        return HandlerResult(success=False, message="I didn't catch who should receive it.")
+        return HandlerResult(success=False, primary="I didn't catch who should receive it.")
 
     # Find the item in giver's inventory
     item = find_item_in_inventory(accessor, object_name, actor_id)
     if not item:
         return HandlerResult(
             success=False,
-            message=f"You don't have any {get_display_name(object_name)}."
+            primary=f"You don't have any {get_display_name(object_name)}."
         )
 
     # Search for recipient in current location
@@ -312,7 +318,7 @@ def handle_give(accessor, action):
     if not recipient:
         return HandlerResult(
             success=False,
-            message=f"You don't see any {get_display_name(recipient_name)} here."
+            primary=f"You don't see any {get_display_name(recipient_name)} here."
         )
 
     # Step 1: Transfer item from giver's inventory
@@ -332,7 +338,7 @@ def handle_give(accessor, action):
         accessor.update(item, {"location": actor_id})
         return HandlerResult(
             success=False,
-            message=f"INCONSISTENT STATE: Failed to add item to recipient inventory: {add_result.message}"
+            primary=f"INCONSISTENT STATE: Failed to add item to recipient inventory: {add_result.detail}"
         )
 
     # Build base message
@@ -348,18 +354,17 @@ def handle_give(accessor, action):
         recipient, "on_receive_item", accessor, receive_context
     )
 
-    # Combine messages (ensure strings, not Mocks from tests)
-    behavior_msg = result.message if isinstance(result.message, str) else ""
-    if receive_result and hasattr(receive_result, 'message') and isinstance(receive_result.message, str):
-        if behavior_msg:
-            behavior_msg = f"{behavior_msg}\n{receive_result.message}"
-        else:
-            behavior_msg = receive_result.message
+    # Build beats from behavior messages (ensure strings, not Mocks from tests)
+    beats = []
+    if result.detail and isinstance(result.detail, str):
+        beats.append(result.detail)
+    if receive_result and hasattr(receive_result, 'feedback') and isinstance(receive_result.feedback, str):
+        beats.append(receive_result.feedback)
 
     return build_action_result(
         item,
         base_message,
-        behavior_message=behavior_msg if behavior_msg else None
+        beats=beats if beats else None
     )
 
 
@@ -390,17 +395,17 @@ def handle_put(accessor, action):
 
     object_name = action.get("object")
     if not isinstance(object_name, WordEntry):
-        return HandlerResult(success=False, message="I didn't understand what to put.")
+        return HandlerResult(success=False, primary="I didn't understand what to put.")
     container_name = action.get("indirect_object")
     if not isinstance(container_name, WordEntry):
-        return HandlerResult(success=False, message="I didn't catch where to put it.")
+        return HandlerResult(success=False, primary="I didn't catch where to put it.")
 
     # Find item in actor's inventory
     item = find_item_in_inventory(accessor, object_name, actor_id)
     if not item:
         return HandlerResult(
             success=False,
-            message=f"You don't have the {get_display_name(object_name)}."
+            primary=f"You don't have the {get_display_name(object_name)}."
         )
 
     # Search for container
@@ -413,7 +418,7 @@ def handle_put(accessor, action):
     if not container:
         return HandlerResult(
             success=False,
-            message=f"You don't see any {get_display_name(container_name)} here."
+            primary=f"You don't see any {get_display_name(container_name)} here."
         )
 
     # Check if target is a container
@@ -421,7 +426,7 @@ def handle_put(accessor, action):
     if not container_props:
         return HandlerResult(
             success=False,
-            message=f"You can't put things in the {container.name}."
+            primary=f"You can't put things in the {container.name}."
         )
 
     # Check if container is accessible
@@ -438,7 +443,7 @@ def handle_put(accessor, action):
         if current_count >= capacity:
             return HandlerResult(
                 success=False,
-                message=f"The {container.name} is full."
+                primary=f"The {container.name} is full."
             )
 
     # Transfer item from actor's inventory to container
@@ -451,8 +456,9 @@ def handle_put(accessor, action):
 
     # Build message based on container type
     preposition = "on" if is_surface else "in"
+    beats = [result.detail] if result.detail else None
     return build_action_result(
         item,
         f"You put the {item.name} {preposition} the {container.name}.",
-        behavior_message=result.message
+        beats=beats
     )

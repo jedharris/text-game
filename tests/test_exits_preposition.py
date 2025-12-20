@@ -102,7 +102,7 @@ class TestGoThroughPreposition(unittest.TestCase):
         result = handle_go(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("second room", result.message.lower())
+        self.assertIn("second room", result.primary.lower())
         player = self.accessor.get_actor(ActorId("player"))
         self.assertEqual(player.location, "room2")
 
@@ -115,7 +115,7 @@ class TestGoThroughPreposition(unittest.TestCase):
         result = handle_go(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.message.lower())
+        self.assertIn("don't see", result.primary.lower())
         # Player should not have moved
         player = self.accessor.get_actor(ActorId("player"))
         self.assertEqual(player.location, "room1")

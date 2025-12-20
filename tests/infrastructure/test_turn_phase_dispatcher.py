@@ -57,7 +57,7 @@ class TestTurnPhaseDispatcherBasic(unittest.TestCase):
         result = on_regional_turn(None, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
     def test_player_with_no_location(self) -> None:
         """Player with no location returns allow with no message."""
@@ -68,7 +68,7 @@ class TestTurnPhaseDispatcherBasic(unittest.TestCase):
         result = on_regional_turn(None, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
     def test_location_not_found(self) -> None:
         """Player location not in locations list returns allow with no message."""
@@ -80,7 +80,7 @@ class TestTurnPhaseDispatcherBasic(unittest.TestCase):
         result = on_regional_turn(None, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
     def test_location_without_turn_phase_effects(self) -> None:
         """Location without turn_phase_effects returns allow with no message."""
@@ -93,7 +93,7 @@ class TestTurnPhaseDispatcherBasic(unittest.TestCase):
         result = on_regional_turn(None, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
 
 class TestTurnPhaseDispatcherDataDriven(unittest.TestCase):
@@ -193,7 +193,7 @@ class TestTurnPhaseDispatcherHandlerEscapeHatch(unittest.TestCase):
         self.accessor.state.locations = [location]
         context: dict[str, Any] = {}
 
-        handler_result = EventResult(allow=True, message="Spores swirl around you.")
+        handler_result = EventResult(allow=True, feedback="Spores swirl around you.")
         mock_handler = MagicMock(return_value=handler_result)
 
         with patch(
@@ -202,7 +202,7 @@ class TestTurnPhaseDispatcherHandlerEscapeHatch(unittest.TestCase):
         ):
             result = on_regional_turn(None, self.accessor, context)
 
-        self.assertIn("Spores swirl around you.", result.message or "")
+        self.assertIn("Spores swirl around you.", result.feedback or "")
         mock_handler.assert_called_once_with(location, self.accessor, context)
 
     def test_handler_load_failure_falls_through(self) -> None:
@@ -253,7 +253,7 @@ class TestTurnPhaseDispatcherMultipleLocations(unittest.TestCase):
         self.accessor.state.locations = [loc1, loc2, loc3]
         context: dict[str, Any] = {}
 
-        handler_result = EventResult(allow=True, message="Correct location!")
+        handler_result = EventResult(allow=True, feedback="Correct location!")
         mock_handler = MagicMock(return_value=handler_result)
 
         with patch(
@@ -264,7 +264,7 @@ class TestTurnPhaseDispatcherMultipleLocations(unittest.TestCase):
 
         # Verify the handler was called with loc2, not loc1 or loc3
         mock_handler.assert_called_once_with(loc2, self.accessor, context)
-        self.assertIn("Correct location!", result.message or "")
+        self.assertIn("Correct location!", result.feedback or "")
 
 
 if __name__ == "__main__":

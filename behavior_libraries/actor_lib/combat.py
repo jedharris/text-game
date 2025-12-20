@@ -35,11 +35,16 @@ from behavior_libraries.actor_lib.conditions import has_condition, apply_conditi
 
 @dataclass
 class AttackResult:
-    """Result of an attack execution."""
+    """Result of an attack execution.
+
+    Fields:
+        narration: Description of the attack for narration.
+                   Semantic type: NarrationText
+    """
     success: bool
     damage: int
     conditions_applied: List[str]
-    message: str
+    narration: str
 
 
 def get_attacks(actor) -> List[Dict]:
@@ -197,7 +202,7 @@ def execute_attack(accessor, attacker, target, attack: Dict) -> AttackResult:
         success=True,
         damage=damage,
         conditions_applied=conditions_applied,
-        message="; ".join(messages)
+        narration="; ".join(messages)
     )
 
 
@@ -225,10 +230,10 @@ def on_death_check(entity, accessor, context) -> Optional[Any]:
             result = accessor.behavior_manager.invoke_behavior(
                 entity, "on_death", accessor, {}
             )
-            if result and result.message:
+            if result and result.feedback:
                 return result
 
-        return EventResult(allow=True, message=f"{entity.name} has died")
+        return EventResult(allow=True, feedback=f"{entity.name} has died")
 
     return None
 
@@ -254,12 +259,12 @@ def on_death_check_all(entity, accessor, context):
 
     for actor_id, actor in accessor.game_state.actors.items():
         result = on_death_check(actor, accessor, context)
-        if result and result.message:
-            all_messages.append(result.message)
+        if result and result.feedback:
+            all_messages.append(result.feedback)
 
     if all_messages:
-        return EventResult(allow=True, message="\n".join(all_messages))
-    return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback="\n".join(all_messages))
+    return EventResult(allow=True, feedback=None)
 
 
 def on_attack(entity, accessor, context) -> Optional[Any]:
@@ -282,28 +287,28 @@ def on_attack(entity, accessor, context) -> Optional[Any]:
 
     target_id = context.get("target_id")
     if not target_id:
-        return EventResult(allow=False, message="Attack what?")
+        return EventResult(allow=False, feedback="Attack what?")
 
     target = accessor.get_actor(target_id)
     if not target:
-        return EventResult(allow=False, message=f"Cannot find target to attack.")
+        return EventResult(allow=False, feedback=f"Cannot find target to attack.")
 
     # Check if target is in same location
     if entity.location != target.location:
-        return EventResult(allow=False, message=f"{target.name} is not here.")
+        return EventResult(allow=False, feedback=f"{target.name} is not here.")
 
     # Get attacker's attacks
     attacks = get_attacks(entity)
     if not attacks:
-        return EventResult(allow=False, message="You don't have any attacks.")
+        return EventResult(allow=False, feedback="You don't have any attacks.")
 
     # Select and execute attack
     attack = select_attack(entity, target, {})
     if not attack:
-        return EventResult(allow=False, message="No suitable attack available.")
+        return EventResult(allow=False, feedback="No suitable attack available.")
 
     result = execute_attack(accessor, entity, target, attack)
-    return EventResult(allow=result.success, message=result.message)
+    return EventResult(allow=result.success, feedback=result.narration)
 
 
 # Vocabulary extension - registers combat events

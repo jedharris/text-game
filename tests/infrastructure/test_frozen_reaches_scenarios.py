@@ -68,7 +68,7 @@ class TestSalamanderScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("brightens", (result.message or "").lower())
+        self.assertIn("brightens", (result.feedback or "").lower())
         self.assertGreater(self.get_actor_trust("salamander"), initial_trust)
 
     def test_first_fire_gift_transitions_to_friendly(self) -> None:
@@ -80,7 +80,7 @@ class TestSalamanderScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("approaches cautiously", (result.message or "").lower())
+        self.assertIn("approaches cautiously", (result.feedback or "").lower())
         self.assert_actor_state("salamander", "friendly")
 
     def test_non_fire_gift_rejected(self) -> None:
@@ -92,7 +92,7 @@ class TestSalamanderScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("shaking its head", (result.message or "").lower())
+        self.assertIn("shaking its head", (result.feedback or "").lower())
         self.assert_actor_state("salamander", "neutral")  # No change
 
     def test_high_trust_indicates_companion_ready(self) -> None:
@@ -108,7 +108,7 @@ class TestSalamanderScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("willing to follow", (result.message or "").lower())
+        self.assertIn("willing to follow", (result.feedback or "").lower())
         self.assertEqual(self.get_actor_trust("salamander"), 3)
 
 
@@ -165,7 +165,7 @@ class TestHypothermiaScenarios(ScenarioTestCase):
         result = on_cold_zone_turn(None, self.accessor, {})
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
     def test_cold_zone_causes_hypothermia(self) -> None:
         """Cold zones cause gradual hypothermia."""
@@ -240,7 +240,7 @@ class TestHypothermiaScenarios(ScenarioTestCase):
         # Run turns in extreme cold
         for _ in range(3):
             result = on_cold_zone_turn(None, self.accessor, {})
-            self.assertIsNone(result.message)  # No warnings
+            self.assertIsNone(result.feedback)  # No warnings
 
     def test_hypothermia_severity_warnings(self) -> None:
         """Different severity levels show different warnings."""
@@ -249,15 +249,15 @@ class TestHypothermiaScenarios(ScenarioTestCase):
 
         # First turn - severity 20
         result = on_cold_zone_turn(None, self.accessor, {})
-        self.assertIn("getting cold", (result.message or "").lower())
+        self.assertIn("getting cold", (result.feedback or "").lower())
 
         # After more turns - severity increases
         on_cold_zone_turn(None, self.accessor, {})  # 40
         result = on_cold_zone_turn(None, self.accessor, {})  # 60
-        self.assertIn("shivers", (result.message or "").lower())
+        self.assertIn("shivers", (result.feedback or "").lower())
 
         result = on_cold_zone_turn(None, self.accessor, {})  # 80
-        self.assertIn("freezing to death", (result.message or "").lower())
+        self.assertIn("freezing to death", (result.feedback or "").lower())
 
 
 class TestHotSpringsScenarios(ScenarioTestCase):
@@ -289,7 +289,7 @@ class TestHotSpringsScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("fully restored", (result.message or "").lower())
+        self.assertIn("fully restored", (result.feedback or "").lower())
 
         # Check hypothermia cured
         conditions = player.properties["conditions"]
@@ -311,7 +311,7 @@ class TestHotSpringsScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("warmth envelops", (result.message or "").lower())
+        self.assertIn("warmth envelops", (result.feedback or "").lower())
 
 
 class TestCombinedFrozenScenarios(ScenarioTestCase):
@@ -367,7 +367,7 @@ class TestCombinedFrozenScenarios(ScenarioTestCase):
         # Should survive without hypothermia
         for _ in range(5):
             result = on_cold_zone_turn(None, self.accessor, {})
-            self.assertIsNone(result.message)
+            self.assertIsNone(result.feedback)
 
         # No hypothermia condition
         conditions = player.properties.get("conditions", [])

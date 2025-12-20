@@ -45,7 +45,7 @@ def handle_peer(accessor, action: Dict) -> HandlerResult:
     adjective = action.get("adjective")
 
     if not obj_name:
-        return HandlerResult(success=False, message="Peer into what?")
+        return HandlerResult(success=False, primary="Peer into what?")
 
     # Find item - check inventory first, then location
     item = find_item_in_inventory(accessor, obj_name, actor_id)
@@ -53,30 +53,30 @@ def handle_peer(accessor, action: Dict) -> HandlerResult:
         item = find_accessible_item(accessor, obj_name, actor_id, adjective)
 
     if not item:
-        return HandlerResult(success=False, message=f"You don't see any {obj_name} here.")
+        return HandlerResult(success=False, primary=f"You don't see any {obj_name} here.")
 
     # Check if item can be peered into
     properties = item.properties if hasattr(item, 'properties') else {}
     if not properties.get("magical", False):
         return HandlerResult(
             success=False,
-            message=f"You stare at the {item.name}, but nothing happens."
+            primary=f"You stare at the {item.name}, but nothing happens."
         )
 
     # Invoke entity behavior via accessor.update() with verb
     result = accessor.update(item, {}, verb="peer", actor_id=actor_id)
 
     if not result.success:
-        return HandlerResult(success=False, message=result.message)
+        return HandlerResult(success=False, primary=result.detail)
 
     # Build response message
     base_message = f"You peer deeply into the {item.name}..."
-    if result.message:
-        message = f"{base_message}\n{result.message}"
+    if result.detail:
+        message = f"{base_message}\n{result.detail}"
     else:
         message = base_message
 
-    return HandlerResult(success=True, message=message)
+    return HandlerResult(success=True, primary=message)
 
 
 def on_peer(entity: Any, accessor: Any, context: Dict) -> EventResult:
@@ -99,7 +99,7 @@ def on_peer(entity: Any, accessor: Any, context: Dict) -> EventResult:
     sanctum_key = accessor.get_item("item_sanctum_key")
     if not sanctum_key:
         message = "The mists swirl mysteriously but reveal nothing."
-        return EventResult(allow=True, message=message)
+        return EventResult(allow=True, feedback=message)
 
     # Initialize states if needed
     if not hasattr(sanctum_key, 'states') or sanctum_key.states is None:
@@ -139,4 +139,4 @@ def on_peer(entity: Any, accessor: Any, context: Dict) -> EventResult:
             "You've already claimed what was hidden within."
         )
 
-    return EventResult(allow=True, message=message)
+    return EventResult(allow=True, feedback=message)

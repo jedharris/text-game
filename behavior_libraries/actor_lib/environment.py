@@ -344,8 +344,8 @@ def on_environmental_effect(entity, accessor, context):
         all_messages.extend(messages)
 
     if all_messages:
-        return EventResult(allow=True, message="\n".join(all_messages))
-    return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback="\n".join(all_messages))
+    return EventResult(allow=True, feedback=None)
 
 
 def on_enter_part(entity, accessor, context):

@@ -53,12 +53,12 @@ def on_fire_gift(
     """
     target = context.get("target_actor")
     if not target:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check if target is a salamander
     target_id = target.id if hasattr(target, "id") else str(target)
     if "salamander" not in target_id.lower():
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check if item is fire-aspected
     item = context.get("item") or entity
@@ -69,7 +69,7 @@ def on_fire_gift(
     if not is_fire_item:
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "The salamander sniffs at the offering, then backs away, "
                 "shaking its head. Its flame dims with disappointment."
             ),
@@ -104,7 +104,7 @@ def on_fire_gift(
 
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "The salamander's flame brightens with delight as it accepts the "
                 f"{item_id}. It approaches cautiously, curling near you with a "
                 "contented crackle. The other salamanders watch with interest."
@@ -115,7 +115,7 @@ def on_fire_gift(
         # Ready for companion - but needs invitation
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "The lead salamander's flame burns bright and steady. It nuzzles "
                 f"against you after accepting the {item_id}, clearly comfortable "
                 "in your presence. It seems willing to follow if you ask."
@@ -124,7 +124,7 @@ def on_fire_gift(
 
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             f"The salamander accepts the {item_id}, its flame flickering with "
             "gratitude. A pleasant crackle sounds as it moves closer."
         ),
@@ -150,16 +150,16 @@ def on_salamander_state_change(
     """
     actor_id = entity.id if hasattr(entity, "id") else None
     if actor_id != "salamander":
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     new_state = context.get("new_state")
     if not new_state:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
     _mirror_salamander_state(state, new_state)
 
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)
 
 
 def _mirror_salamander_state(state: Any, new_state: str) -> None:

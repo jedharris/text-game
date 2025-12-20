@@ -60,12 +60,12 @@ def on_leader_state_change(
         EventResult allowing the change
     """
     if not hasattr(entity, "properties"):
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check for pack_behavior configuration
     pack_config = entity.properties.get("pack_behavior", {})
     if not pack_config:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check for handler escape hatch first
     handler_path = pack_config.get("handler")
@@ -81,12 +81,12 @@ def on_leader_state_change(
     follows_leader = pack_config.get("pack_follows_leader_state", False)
     follows_alpha = pack_config.get("pack_follows_alpha_state", False)
     if not follows_leader and not follows_alpha:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     followers = pack_config.get("followers", [])
     new_state = context.get("new_state")
     if not new_state or not followers:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Mirror state to all followers
     state = accessor.state
@@ -100,4 +100,4 @@ def on_leader_state_change(
                 sm["states"] = states + [new_state]
             transition_state(sm, new_state)
 
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)

@@ -809,12 +809,12 @@ class BehaviorManager:
         if not results:
             return None
 
-        # Combine results: AND logic for allow, concatenate messages
+        # Combine results: AND logic for allow, concatenate feedback
         combined_allow = all(r.allow for r in results)
-        messages = [r.message for r in results if r.message]
+        messages = [r.feedback for r in results if r.feedback]
         combined_message = "\n".join(messages) if messages else None
 
-        return EventResult(allow=combined_allow, message=combined_message)
+        return EventResult(allow=combined_allow, feedback=combined_message)
 
     def invoke_handler(self, verb: str, accessor: "StateAccessor", action: ActionDict) -> Optional[HandlerResult]:
         """
@@ -837,13 +837,13 @@ class BehaviorManager:
 
         # Try handlers in tier order
         result = None
-        last_message_result = None  # Track last result with a non-empty message
+        last_message_result = None  # Track last result with a non-empty primary text
         for tier, handler, module in handlers:
             result = handler(accessor, action)
             if result and result.success:
                 return result  # Success, stop trying deeper tiers
             # Track last failure with a message for better error reporting
-            if result and not result.success and result.message:
+            if result and not result.success and result.primary:
                 last_message_result = result
             # Continue to next tier on failure
 

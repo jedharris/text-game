@@ -92,7 +92,7 @@ class TestWolfFeed(unittest.TestCase):
         result = on_wolf_feed(item, accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
     def test_feeding_hostile_wolf_transitions_to_wary(self) -> None:
         """First feeding transitions hostile wolf to wary."""
@@ -152,7 +152,7 @@ class TestSiraEncounter(unittest.TestCase):
 
         self.assertTrue(result.allow)
         self.assertTrue(state.extra.get("sira_commitment_created"))
-        self.assertIsNotNone(result.message)
+        self.assertIsNotNone(result.feedback)
 
     def test_second_encounter_does_not_duplicate(self) -> None:
         """Second encounter doesn't create duplicate commitment."""
@@ -166,7 +166,7 @@ class TestSiraEncounter(unittest.TestCase):
         result = on_sira_encounter(sira, accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
 
 class TestSiraDeath(unittest.TestCase):
@@ -186,7 +186,7 @@ class TestSiraDeath(unittest.TestCase):
 
         self.assertTrue(result.allow)
         self.assertTrue(state.extra.get("sira_died_with_player"))
-        self.assertIsNotNone(result.message)
+        self.assertIsNotNone(result.feedback)
 
 
 # =============================================================================
@@ -349,7 +349,7 @@ class TestFlowerOffer(unittest.TestCase):
         result = on_flower_offer(item, accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIn("not what she seeks", result.message or "")
+        self.assertIn("not what she seeks", result.feedback or "")
 
     def test_three_flowers_unlock_allied(self) -> None:
         """Trading three unique flowers unlocks allied state."""

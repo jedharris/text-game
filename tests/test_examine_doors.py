@@ -72,7 +72,7 @@ class TestExamineDoor(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Should find first door (wooden)
-        self.assertIn("wooden", result.message.lower())
+        self.assertIn("wooden", result.primary.lower())
 
     def test_examine_door_with_adjective(self):
         """Test that examine with adjective finds specific door."""
@@ -83,8 +83,8 @@ class TestExamineDoor(unittest.TestCase):
         result = handle_examine(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("heavy", result.message.lower())
-        self.assertIn("sturdy lock", result.message.lower())
+        self.assertIn("heavy", result.primary.lower())
+        self.assertIn("sturdy lock", result.primary.lower())
 
     def test_examine_wooden_door(self):
         """Test examining the wooden door specifically."""
@@ -94,8 +94,8 @@ class TestExamineDoor(unittest.TestCase):
         result = handle_examine(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("wooden", result.message.lower())
-        self.assertIn("iron hinges", result.message.lower())
+        self.assertIn("wooden", result.primary.lower())
+        self.assertIn("iron hinges", result.primary.lower())
 
     def test_examine_nonexistent_door_fails(self):
         """Test that examining nonexistent door fails."""
@@ -106,7 +106,7 @@ class TestExamineDoor(unittest.TestCase):
         result = handle_examine(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.message.lower())
+        self.assertIn("don't see", result.primary.lower())
 
     def test_examine_door_in_connected_location(self):
         """Test that door is found from connected location."""
@@ -130,7 +130,7 @@ class TestExamineDoor(unittest.TestCase):
         result = handle_examine(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("sword", result.message.lower())
+        self.assertIn("sword", result.primary.lower())
 
     def test_examine_prefers_item_over_door(self):
         """Test that items are found before doors with same name."""
@@ -153,7 +153,7 @@ class TestExamineDoor(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Should find the item first, not the actual door
-        self.assertIn("ornament", result.message.lower())
+        self.assertIn("ornament", result.primary.lower())
 
 
 class TestExamineDoorWithDirectionAdjective(unittest.TestCase):
@@ -220,7 +220,7 @@ class TestExamineDoorWithDirectionAdjective(unittest.TestCase):
         result = handle_examine(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("wooden", result.message.lower())
+        self.assertIn("wooden", result.primary.lower())
 
     def test_examine_east_door(self):
         """Test 'examine east door' finds the east door."""
@@ -230,7 +230,7 @@ class TestExamineDoorWithDirectionAdjective(unittest.TestCase):
         result = handle_examine(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("iron", result.message.lower())
+        self.assertIn("iron", result.primary.lower())
 
     def test_examine_nonexistent_direction_door(self):
         """Test 'examine west door' fails when no west door exists."""
@@ -240,7 +240,7 @@ class TestExamineDoorWithDirectionAdjective(unittest.TestCase):
         result = handle_examine(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.message.lower())
+        self.assertIn("don't see", result.primary.lower())
 
 
 class TestExamineDoorIntegration(unittest.TestCase):

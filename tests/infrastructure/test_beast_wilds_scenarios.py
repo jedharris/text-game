@@ -83,8 +83,8 @@ class TestSiraRescueScenarios(ScenarioTestCase):
         result = on_sira_encounter(self.sira, self.accessor, {})
 
         self.assertTrue(result.allow)
-        self.assertIsNotNone(result.message)
-        self.assertIn("critical", (result.message or "").lower())
+        self.assertIsNotNone(result.feedback)
+        self.assertIn("critical", (result.feedback or "").lower())
         self.assert_flag_set("sira_commitment_created")
         self.assert_flag_set("sira_first_encounter_turn")
 
@@ -110,7 +110,7 @@ class TestSiraRescueScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("bleeding stops", (result.message or "").lower())
+        self.assertIn("bleeding stops", (result.feedback or "").lower())
         self.assert_flag_set("sira_bleeding_stopped")
 
     def test_sira_healing_leg_after_bleeding(self) -> None:
@@ -126,7 +126,7 @@ class TestSiraRescueScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("saved my life", (result.message or "").lower())
+        self.assertIn("saved my life", (result.feedback or "").lower())
         self.assert_flag_set("sira_healed")
         self.assert_flag_set("sira_leg_healed")
 
@@ -139,7 +139,7 @@ class TestSiraRescueScenarios(ScenarioTestCase):
         result = on_sira_death(self.sira, self.accessor, {})
 
         self.assertTrue(result.allow)
-        self.assertIn("travel", (result.message or "").lower())
+        self.assertIn("travel", (result.feedback or "").lower())
         self.assert_flag_set("sira_died_with_player")
         self.assert_gossip_pending("Sira")
 
@@ -212,7 +212,7 @@ class TestBearCubsScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
         self.assert_flag_not_set("bear_cubs_commitment_created")
 
     def test_commitment_triggers_on_help_keyword(self) -> None:
@@ -222,8 +222,8 @@ class TestBearCubsScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIsNotNone(result.message)
-        self.assertIn("southern", (result.message or "").lower())
+        self.assertIsNotNone(result.feedback)
+        self.assertIn("southern", (result.feedback or "").lower())
         self.assert_flag_set("bear_cubs_commitment_created")
 
     def test_commitment_idempotent(self) -> None:
@@ -236,7 +236,7 @@ class TestBearCubsScenarios(ScenarioTestCase):
             self.bear, self.accessor, {"keyword": "help", "dialog_text": ""}
         )
 
-        self.assertIn("already promised", (result.message or "").lower())
+        self.assertIn("already promised", (result.feedback or "").lower())
 
     def test_healing_cubs_with_herbs(self) -> None:
         """Using healing herbs on cubs heals them."""
@@ -245,7 +245,7 @@ class TestBearCubsScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("cubs eagerly consume", (result.message or "").lower())
+        self.assertIn("cubs eagerly consume", (result.feedback or "").lower())
         self.assert_flag_set("cubs_healed")
 
         # Cubs should be recovering
@@ -265,7 +265,7 @@ class TestBearCubsScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("breathing has stopped", (result.message or "").lower())
+        self.assertIn("breathing has stopped", (result.feedback or "").lower())
         self.assert_flag_set("cubs_died")
 
         # Bear should be vengeful
@@ -341,7 +341,7 @@ class TestWolfPackScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("accepts", (result.message or "").lower())
+        self.assertIn("accepts", (result.feedback or "").lower())
         self.assertGreater(self.get_actor_trust("npc_alpha_wolf"), initial_trust)
 
     def test_feeding_transitions_state_at_threshold(self) -> None:
@@ -366,7 +366,7 @@ class TestWolfPackScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)  # No reaction
+        self.assertIsNone(result.feedback)  # No reaction
 
     def test_trust_progression_to_neutral(self) -> None:
         """Multiple feedings can progress wolf through states."""
@@ -436,8 +436,8 @@ class TestBeeQueenScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("accepts", (result.message or "").lower())
-        self.assertIn("2 more", result.message or "")
+        self.assertIn("accepts", (result.feedback or "").lower())
+        self.assertIn("2 more", result.feedback or "")
 
         # Should track flower
         traded = self.state.extra.get("bee_queen_flowers_traded", [])
@@ -465,7 +465,7 @@ class TestBeeQueenScenarios(ScenarioTestCase):
             {"target_actor": self.queen, "item": self.moonpetal},
         )
 
-        self.assertIn("already received", (result.message or "").lower())
+        self.assertIn("already received", (result.feedback or "").lower())
 
     def test_three_flowers_allies_queen(self) -> None:
         """Trading three different flowers transitions to allied."""
@@ -486,7 +486,7 @@ class TestBeeQueenScenarios(ScenarioTestCase):
             {"target_actor": self.queen, "item": self.water_bloom},
         )
 
-        self.assertIn("ally", (result.message or "").lower())
+        self.assertIn("ally", (result.feedback or "").lower())
         self.assert_actor_state("bee_queen", "allied")
         self.assert_flag_set("bee_queen_honey_count")
         self.assertEqual(self.state.extra["bee_queen_honey_count"], 3)
@@ -499,7 +499,7 @@ class TestBeeQueenScenarios(ScenarioTestCase):
             stone, self.accessor, {"target_actor": self.queen, "item": stone}
         )
 
-        self.assertIn("not what she seeks", (result.message or "").lower())
+        self.assertIn("not what she seeks", (result.feedback or "").lower())
 
     def test_honey_theft_makes_hostile(self) -> None:
         """Taking honey without permission makes queen hostile."""
@@ -511,7 +511,7 @@ class TestBeeQueenScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("hatred", (result.message or "").lower())
+        self.assertIn("hatred", (result.feedback or "").lower())
         self.assert_actor_state("bee_queen", "hostile")
         self.assert_flag_set("bee_grove_hostile")
         self.assert_flag_set("bee_trade_destroyed")
@@ -530,7 +530,7 @@ class TestBeeQueenScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)  # No hostile reaction
+        self.assertIsNone(result.feedback)  # No hostile reaction
         self.assert_flag_not_set("bee_grove_hostile")
 
 
@@ -596,15 +596,15 @@ class TestSpiderNestScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("webs cling", (result.message or "").lower())
-        self.assertIn("vibrations", (result.message or "").lower())
+        self.assertIn("webs cling", (result.feedback or "").lower())
+        self.assertIn("vibrations", (result.feedback or "").lower())
 
     def test_queen_death_stops_respawns(self) -> None:
         """Killing queen sets flag to stop future respawns."""
         result = on_spider_queen_death(self.queen, self.accessor, {})
 
         self.assertTrue(result.allow)
-        self.assertIn("broken", (result.message or "").lower())
+        self.assertIn("broken", (result.feedback or "").lower())
         self.assert_flag_set("spider_queen_dead")
 
     def test_respawn_requires_living_queen(self) -> None:
@@ -619,7 +619,7 @@ class TestSpiderNestScenarios(ScenarioTestCase):
         result = on_spider_respawn_check(None, self.accessor, {})
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)  # No respawn message
+        self.assertIsNone(result.feedback)  # No respawn message
 
     def test_respawn_happens_with_living_queen(self) -> None:
         """Spiders respawn periodically while queen lives."""
@@ -634,8 +634,8 @@ class TestSpiderNestScenarios(ScenarioTestCase):
 
         self.assertTrue(result.allow)
         # With only 1 living spider, 1 should respawn
-        self.assertIsNotNone(result.message)
-        self.assertIn("emerge", (result.message or "").lower())
+        self.assertIsNotNone(result.feedback)
+        self.assertIn("emerge", (result.feedback or "").lower())
 
     def test_no_respawn_if_enough_spiders_alive(self) -> None:
         """No respawn if 2+ spiders are already alive."""
@@ -647,7 +647,7 @@ class TestSpiderNestScenarios(ScenarioTestCase):
 
         self.assertTrue(result.allow)
         # No message because no respawn needed
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
 
 if __name__ == "__main__":

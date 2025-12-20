@@ -24,7 +24,7 @@ def on_examine(entity: Any, accessor: Any, context: Dict) -> EventResult:
     actor = accessor.get_actor(actor_id)
 
     if not actor:
-        return EventResult(allow=True, message="")
+        return EventResult(allow=True, feedback="")
 
     # Check if player has the magic star
     inventory = actor.inventory or []
@@ -34,7 +34,7 @@ def on_examine(entity: Any, accessor: Any, context: Dict) -> EventResult:
         # Add the staircase to the description
         return EventResult(
             allow=True,
-            message="The magic star pulses warmly in your possession, and you notice a spiral staircase leading upward that you hadn't seen before."
+            feedback="The magic star pulses warmly in your possession, and you notice a spiral staircase leading upward that you hadn't seen before."
         )
 
-    return EventResult(allow=True, message="")
+    return EventResult(allow=True, feedback="")

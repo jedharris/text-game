@@ -39,7 +39,7 @@ class TestPhase7HandleTake(unittest.TestCase):
         result = handle_take(accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("sword", result.message.lower())
+        self.assertIn("sword", result.primary.lower())
 
         # Verify state changes
         sword = state.get_item("item_sword")
@@ -60,7 +60,7 @@ class TestPhase7HandleTake(unittest.TestCase):
         result = handle_take(accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("can't take", result.message.lower())
+        self.assertIn("can't take", result.primary.lower())
 
     def test_handle_take_not_found(self):
         """Test taking item that doesn't exist."""
@@ -76,7 +76,7 @@ class TestPhase7HandleTake(unittest.TestCase):
         result = handle_take(accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.message.lower())
+        self.assertIn("don't see", result.primary.lower())
 
     def test_handle_take_npc(self):
         """Test NPC taking an item (critical for actor_id threading)."""
@@ -96,7 +96,7 @@ class TestPhase7HandleTake(unittest.TestCase):
         action = make_action(object="sword", actor_id="npc_guard")
         result = handle_take(accessor, action)
 
-        self.assertTrue(result.success, f"NPC take failed: {result.message}")
+        self.assertTrue(result.success, f"NPC take failed: {result.primary}")
 
         # Verify item went to NPC, not player
         sword = state.get_item("item_sword")

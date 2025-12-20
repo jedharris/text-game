@@ -51,13 +51,13 @@ def handle_water(accessor, action: Dict) -> HandlerResult:
     adjective = action.get("adjective")
 
     if not obj_name:
-        return HandlerResult(success=False, message="Water what?")
+        return HandlerResult(success=False, primary="Water what?")
 
     # Find the target (mushroom)
     target = find_accessible_item(accessor, obj_name, actor_id, adjective)
 
     if not target:
-        return HandlerResult(success=False, message=f"You don't see any {obj_name} here.")
+        return HandlerResult(success=False, primary=f"You don't see any {obj_name} here.")
 
     # Check if player has the bucket
     bucket_word = WordEntry(word="bucket", synonyms=[], word_type=WordType.NOUN)
@@ -65,22 +65,22 @@ def handle_water(accessor, action: Dict) -> HandlerResult:
     if not bucket:
         return HandlerResult(
             success=False,
-            message="You need a bucket of water to water things."
+            primary="You need a bucket of water to water things."
         )
 
     # Invoke entity behavior
     result = accessor.update(target, {}, verb="water", actor_id=actor_id)
 
     if not result.success:
-        return HandlerResult(success=False, message=result.message)
+        return HandlerResult(success=False, primary=result.detail)
 
     # Build response message
-    if result.message:
-        message = result.message
+    if result.detail:
+        message = result.detail
     else:
         message = f"You water the {target.name}."
 
-    return HandlerResult(success=True, message=message)
+    return HandlerResult(success=True, primary=message)
 
 
 def on_water(entity: Any, accessor: Any, context: Dict) -> EventResult:
@@ -106,7 +106,7 @@ def on_water(entity: Any, accessor: Any, context: Dict) -> EventResult:
     if entity.states.get("watered", False):
         return EventResult(
             allow=True,
-            message=f"The {entity.properties.get('color', '')} mushroom is already glowing brightly."
+            feedback=f"The {entity.properties.get('color', '')} mushroom is already glowing brightly."
         )
 
     # Mark as watered
@@ -148,4 +148,4 @@ def on_water(entity: Any, accessor: Any, context: Dict) -> EventResult:
     else:
         message = f"The {color} mushroom glows brighter."
 
-    return EventResult(allow=True, message=message)
+    return EventResult(allow=True, feedback=message)

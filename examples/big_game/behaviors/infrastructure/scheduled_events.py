@@ -45,7 +45,7 @@ def on_scheduled_event_check(
     fired_events = fire_due_events(state)
 
     if not fired_events:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Build message about fired events
     messages = []
@@ -57,5 +57,5 @@ def on_scheduled_event_check(
 
     return EventResult(
         allow=True,
-        message="\n".join(messages) if messages else None,
+        feedback="\n".join(messages) if messages else None,
     )

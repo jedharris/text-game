@@ -53,12 +53,12 @@ def handle_offer(accessor, action: Dict) -> HandlerResult:
     target_name = action.get("indirect_object") or action.get("target")
 
     if not item_name:
-        return HandlerResult(success=False, message="Offer what?")
+        return HandlerResult(success=False, primary="Offer what?")
 
     if not target_name:
         return HandlerResult(
             success=False,
-            message=f"Offer the {get_display_name(item_name)} to what?"
+            primary=f"Offer the {get_display_name(item_name)} to what?"
         )
 
     # Find the item - must be in inventory or accessible
@@ -69,7 +69,7 @@ def handle_offer(accessor, action: Dict) -> HandlerResult:
     if not item:
         return HandlerResult(
             success=False,
-            message=f"You don't have any {get_display_name(item_name)} to offer."
+            primary=f"You don't have any {get_display_name(item_name)} to offer."
         )
 
     # Find the target (altar, shrine, well, etc.)
@@ -78,7 +78,7 @@ def handle_offer(accessor, action: Dict) -> HandlerResult:
     if not target:
         return HandlerResult(
             success=False,
-            message=f"You don't see any {get_display_name(target_name)} here."
+            primary=f"You don't see any {get_display_name(target_name)} here."
         )
 
     # Check if target accepts offerings (has on_receive_offering behavior)
@@ -95,22 +95,22 @@ def handle_offer(accessor, action: Dict) -> HandlerResult:
     if not result.success:
         # Target doesn't accept offerings or rejected this one
         default_msg = f"The {target.name} does not respond to your offering."
-        return HandlerResult(success=False, message=result.message or default_msg)
+        return HandlerResult(success=False, primary=result.detail or default_msg)
 
     # Offering accepted - remove item from game (consumed by offering)
     # The target's behavior may have already handled this, but we'll ensure it
     if hasattr(item, 'location'):
-        # Mark as consumed (remove from world)
-        item.location = None
+        # Mark as consumed (empty location means removed from world)
+        item.location = ""
 
     # Build response message
     base_message = f"You offer the {item.name} to the {target.name}."
-    if result.message:
-        message = f"{base_message}\n{result.message}"
+    if result.detail:
+        message = f"{base_message}\n{result.detail}"
     else:
         message = base_message
 
-    return HandlerResult(success=True, message=message)
+    return HandlerResult(success=True, primary=message)
 
 
 def on_receive_offering(entity: Any, accessor: Any, context: Dict) -> EventResult:
@@ -135,13 +135,13 @@ def on_receive_offering(entity: Any, accessor: Any, context: Dict) -> EventResul
             # Custom logic here
             if context["offered_item"].name == "flower":
                 # Apply blessing
-                return EventResult(allow=True, message="The shrine glows warmly!")
+                return EventResult(allow=True, feedback="The shrine glows warmly!")
             else:
                 # Fall back to default rejection
-                return EventResult(allow=False, message="The shrine rejects your offering.")
+                return EventResult(allow=False, feedback="The shrine rejects your offering.")
     """
     # Default: reject all offerings
     return EventResult(
         allow=False,
-        message=f"The {entity.name} does not accept offerings."
+        feedback=f"The {entity.name} does not accept offerings."
     )

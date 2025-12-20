@@ -103,8 +103,8 @@ class TestDualRescueScenarios(ScenarioTestCase):
         result = on_delvan_encounter(self.delvan, self.accessor, {})
 
         self.assertTrue(result.allow)
-        self.assertIn("pinned beneath", (result.message or "").lower())
-        self.assertIn("morse code", (result.message or "").lower())
+        self.assertIn("pinned beneath", (result.feedback or "").lower())
+        self.assertIn("morse code", (result.feedback or "").lower())
         self.assert_flag_set("delvan_commitment_created")
         self.assert_flag_set("delvan_encounter_turn")
 
@@ -124,8 +124,8 @@ class TestDualRescueScenarios(ScenarioTestCase):
         result = on_garrett_encounter(self.garrett_room, self.accessor, {})
 
         self.assertTrue(result.allow)
-        self.assertIn("filling with water", (result.message or "").lower())
-        self.assertIn("minutes, not hours", (result.message or "").lower())
+        self.assertIn("filling with water", (result.feedback or "").lower())
+        self.assertIn("minutes, not hours", (result.feedback or "").lower())
         self.assert_flag_set("garrett_commitment_created")
 
     def test_delvan_rescue_success(self) -> None:
@@ -137,8 +137,8 @@ class TestDualRescueScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("stop", (result.message or "").lower())
-        self.assertIn("tapping stops", (result.message or "").lower())
+        self.assertIn("stop", (result.feedback or "").lower())
+        self.assertIn("tapping stops", (result.feedback or "").lower())
         self.assert_flag_set("delvan_rescued")
 
     def test_garrett_rescue_success(self) -> None:
@@ -150,7 +150,7 @@ class TestDualRescueScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("pull", (result.message or "").lower())
+        self.assertIn("pull", (result.feedback or "").lower())
         self.assert_flag_set("garrett_rescued")
 
     def test_delvan_death_creates_gossip(self) -> None:
@@ -160,7 +160,7 @@ class TestDualRescueScenarios(ScenarioTestCase):
         result = on_npc_death(self.delvan, self.accessor, {})
 
         self.assertTrue(result.allow)
-        self.assertIn("tapping stops", (result.message or "").lower())
+        self.assertIn("tapping stops", (result.feedback or "").lower())
         self.assert_flag_set("delvan_died")
         self.assert_gossip_pending("Delvan")
 
@@ -171,8 +171,8 @@ class TestDualRescueScenarios(ScenarioTestCase):
         result = on_npc_death(self.garrett, self.accessor, {})
 
         self.assertTrue(result.allow)
-        self.assertIn("water closes", (result.message or "").lower())
-        self.assertIn("chose", (result.message or "").lower())
+        self.assertIn("water closes", (result.feedback or "").lower())
+        self.assertIn("chose", (result.feedback or "").lower())
         self.assert_flag_set("garrett_died")
         self.assert_gossip_pending("Garrett")
 
@@ -211,8 +211,8 @@ class TestDrowningScenarios(ScenarioTestCase):
         result = on_water_entry(player, self.accessor, {"destination": self.flooded})
 
         self.assertTrue(result.allow)
-        self.assertIn("hold your breath", (result.message or "").lower())
-        self.assertIn(str(MAX_BREATH), result.message or "")
+        self.assertIn("hold your breath", (result.feedback or "").lower())
+        self.assertIn(str(MAX_BREATH), result.feedback or "")
         self.assertTrue(player.properties.get("underwater"))
 
     def test_breathing_equipment_prevents_timer(self) -> None:
@@ -223,7 +223,7 @@ class TestDrowningScenarios(ScenarioTestCase):
         result = on_water_entry(player, self.accessor, {"destination": self.flooded})
 
         self.assertTrue(result.allow)
-        self.assertIn("breathing mask", (result.message or "").lower())
+        self.assertIn("breathing mask", (result.feedback or "").lower())
 
     def test_breath_warning_at_threshold(self) -> None:
         """Warning appears when breath gets low."""
@@ -238,7 +238,7 @@ class TestDrowningScenarios(ScenarioTestCase):
         result = on_underwater_turn(None, self.accessor, {})
 
         self.assertTrue(result.allow)
-        self.assertIn("burning", (result.message or "").lower())
+        self.assertIn("burning", (result.feedback or "").lower())
 
     def test_breath_critical_warning(self) -> None:
         """Critical warning appears when near drowning."""
@@ -253,7 +253,7 @@ class TestDrowningScenarios(ScenarioTestCase):
         result = on_underwater_turn(None, self.accessor, {})
 
         self.assertTrue(result.allow)
-        self.assertIn("suffocating", (result.message or "").lower())
+        self.assertIn("suffocating", (result.feedback or "").lower())
 
     def test_drowning_damage_at_max(self) -> None:
         """Drowning causes damage when breath exceeds max."""
@@ -269,7 +269,7 @@ class TestDrowningScenarios(ScenarioTestCase):
         result = on_underwater_turn(None, self.accessor, {})
 
         self.assertTrue(result.allow)
-        self.assertIn("drowning", (result.message or "").lower())
+        self.assertIn("drowning", (result.feedback or "").lower())
         self.assertEqual(player.properties["health"], 100 - DROWN_DAMAGE)
 
     def test_surfacing_resets_breath(self) -> None:
@@ -283,7 +283,7 @@ class TestDrowningScenarios(ScenarioTestCase):
         result = on_surface(player, self.accessor, {"destination": self.surface})
 
         self.assertTrue(result.allow)
-        self.assertIn("gasping", (result.message or "").lower())
+        self.assertIn("gasping", (result.feedback or "").lower())
         self.assertFalse(player.properties.get("underwater"))
 
         # Breath should be reset
@@ -342,7 +342,7 @@ class TestDualRescueImpossibleChoiceScenarios(ScenarioTestCase):
 
         self.assert_flag_set("garrett_rescued")
         self.assert_flag_set("delvan_died")
-        self.assertIn("too late", (result.message or "").lower())
+        self.assertIn("too late", (result.feedback or "").lower())
 
     def test_save_delvan_garrett_drowns(self) -> None:
         """Choosing to save Delvan first leaves Garrett to drown."""
@@ -358,7 +358,7 @@ class TestDualRescueImpossibleChoiceScenarios(ScenarioTestCase):
 
         self.assert_flag_set("delvan_rescued")
         self.assert_flag_set("garrett_died")
-        self.assertIn("chose", (result.message or "").lower())
+        self.assertIn("chose", (result.feedback or "").lower())
 
     def test_both_die_if_delayed(self) -> None:
         """Both die if player doesn't act quickly enough."""

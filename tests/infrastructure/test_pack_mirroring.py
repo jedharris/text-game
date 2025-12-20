@@ -49,7 +49,7 @@ class TestPackMirroringBasic(unittest.TestCase):
         result = on_leader_state_change(entity, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
     def test_entity_without_pack_behavior(self) -> None:
         """Entity without pack_behavior returns allow with no message."""
@@ -59,7 +59,7 @@ class TestPackMirroringBasic(unittest.TestCase):
         result = on_leader_state_change(entity, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
     def test_pack_behavior_without_mirroring(self) -> None:
         """Pack without mirroring enabled returns allow with no message."""
@@ -77,7 +77,7 @@ class TestPackMirroringBasic(unittest.TestCase):
         result = on_leader_state_change(entity, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
     def test_no_new_state_in_context(self) -> None:
         """No new_state in context returns allow with no message."""
@@ -95,7 +95,7 @@ class TestPackMirroringBasic(unittest.TestCase):
         result = on_leader_state_change(entity, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
     def test_empty_followers_list(self) -> None:
         """Empty followers list returns allow with no message."""
@@ -113,7 +113,7 @@ class TestPackMirroringBasic(unittest.TestCase):
         result = on_leader_state_change(entity, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
 
 class TestPackMirroringDataDriven(unittest.TestCase):
@@ -326,7 +326,7 @@ class TestPackMirroringHandlerEscapeHatch(unittest.TestCase):
         )
         context = {"new_state": "hostile"}
 
-        handler_result = EventResult(allow=True, message="Handler response")
+        handler_result = EventResult(allow=True, feedback="Handler response")
         mock_handler = MagicMock(return_value=handler_result)
 
         with patch(
@@ -335,7 +335,7 @@ class TestPackMirroringHandlerEscapeHatch(unittest.TestCase):
         ):
             result = on_leader_state_change(entity, self.accessor, context)
 
-        self.assertEqual(result.message, "Handler response")
+        self.assertEqual(result.feedback, "Handler response")
         mock_handler.assert_called_once_with(entity, self.accessor, context)
 
     def test_handler_load_failure_falls_through(self) -> None:

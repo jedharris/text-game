@@ -12,7 +12,7 @@ try:
     WX_AVAILABLE = True
 except ModuleNotFoundError:
     WX_AVAILABLE = False
-    wx = None  # type: ignore[attr-defined]
+    wx = None
 
 
 @unittest.skipUnless(WX_AVAILABLE, "wxPython not installed")

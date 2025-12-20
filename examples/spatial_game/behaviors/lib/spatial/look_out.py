@@ -31,10 +31,10 @@ def handle_look(accessor, action: Dict[str, Any]) -> HandlerResult:
 
     # Positive testing: only handle "look out of X" or "look out X"
     if not preposition or preposition not in ["out of", "out"]:
-        return HandlerResult(success=False, message="")  # Let other handlers try
+        return HandlerResult(success=False, primary="")  # Let other handlers try
 
     if not object_name:
-        return HandlerResult(success=False, message="Look out of what?")
+        return HandlerResult(success=False, primary="Look out of what?")
 
     # Find the object (can be Item or Part)
     from utilities.positioning import find_and_position_part, find_and_position_item
@@ -42,7 +42,7 @@ def handle_look(accessor, action: Dict[str, Any]) -> HandlerResult:
     # Get actor's location
     actor = accessor.get_actor(actor_id)
     if not actor:
-        return HandlerResult(success=False, message="Actor not found")
+        return HandlerResult(success=False, primary="Actor not found")
 
     # Try finding as part first (windows are often parts)
     part, move_msg = find_and_position_part(accessor, actor_id, object_name, actor.location)
@@ -57,15 +57,13 @@ def handle_look(accessor, action: Dict[str, Any]) -> HandlerResult:
         else:
             return HandlerResult(
                 success=False,
-                message=f"You don't see any {object_name} here."
+                primary=f"You don't see any {object_name} here."
             )
 
     # Get description (the view)
     properties = target.properties if hasattr(target, 'properties') else {}
     description = properties.get("description", f"Nothing special to see through the {target.name}.")
 
-    # Build message with optional positioning prefix
-    from utilities.positioning import build_message_with_positioning
-    message = build_message_with_positioning([description], move_msg)
-
-    return HandlerResult(success=True, message=message)
+    # Build result with optional positioning beat
+    beats = [move_msg] if move_msg else []
+    return HandlerResult(success=True, primary=description, beats=beats)

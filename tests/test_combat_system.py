@@ -346,9 +346,9 @@ class TestExecuteAttack(unittest.TestCase):
 
         result = execute_attack(self.mock_accessor, self.attacker, self.target, attack)
 
-        self.assertIn("Wolf", result.message)
-        self.assertIn("bite", result.message)
-        self.assertIn("15", result.message)
+        self.assertIn("Wolf", result.narration)
+        self.assertIn("bite", result.narration)
+        self.assertIn("15", result.narration)
 
     def test_execute_attack_fires_on_damage_behavior(self):
         """Attack invokes on_damage behavior on target."""
@@ -416,7 +416,7 @@ class TestOnDeathCheck(unittest.TestCase):
 
         # Should return message about death
         self.assertIsNotNone(result)
-        self.assertIn("died", result.message.lower())
+        self.assertIn("died", result.feedback.lower())
 
         # Should have invoked on_death behavior
         mock_accessor.behavior_manager.invoke_behavior.assert_called()
@@ -479,12 +479,12 @@ class TestOnDeathCheck(unittest.TestCase):
         mock_accessor.behavior_manager = Mock()
         mock_accessor.behavior_manager.invoke_behavior.return_value = EventResult(
             allow=True,
-            message="The wolf collapses and dissolves into shadow."
+            feedback="The wolf collapses and dissolves into shadow."
         )
 
         result = on_death_check(self.actor, mock_accessor, {})
 
-        self.assertIn("dissolves into shadow", result.message)
+        self.assertIn("dissolves into shadow", result.feedback)
 
 
 class TestOnDeathCheckAll(unittest.TestCase):
@@ -532,7 +532,7 @@ class TestOnDeathCheckAll(unittest.TestCase):
 
         # Should have a message about the dead wolf
         self.assertIsNotNone(result)
-        self.assertIn("Wolf", result.message)
+        self.assertIn("Wolf", result.feedback)
 
 
 class TestAttackResult(unittest.TestCase):
@@ -546,13 +546,13 @@ class TestAttackResult(unittest.TestCase):
             success=True,
             damage=15,
             conditions_applied=["poison"],
-            message="Wolf bites Player for 15 damage"
+            narration="Wolf bites Player for 15 damage"
         )
 
         self.assertTrue(result.success)
         self.assertEqual(result.damage, 15)
         self.assertEqual(result.conditions_applied, ["poison"])
-        self.assertIn("15", result.message)
+        self.assertIn("15", result.narration)
 
 
 class TestCombatVocabulary(unittest.TestCase):

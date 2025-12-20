@@ -11,7 +11,7 @@ from src.types import ActorId
 from utilities.utils import find_accessible_item
 from utilities.handler_utils import find_action_target, find_openable_target
 from utilities.entity_serializer import serialize_for_handler_result
-from utilities.positioning import try_implicit_positioning, build_message_with_positioning
+from utilities.positioning import try_implicit_positioning
 
 
 # Vocabulary extension - adds interaction verbs
@@ -132,29 +132,24 @@ def handle_open(accessor, action):
     # Check if it's a door item
     if hasattr(item, 'is_door') and item.is_door:
         data = serialize_for_handler_result(item)
+        beats = [move_msg] if move_msg else []
         if item.door_open:
-            message = build_message_with_positioning(
-                [f"The {item.name} is already open."],
-                move_msg
-            )
             return HandlerResult(
                 success=True,
-                message=message,
+                primary=f"The {item.name} is already open.",
+                beats=beats,
                 data=data
             )
         if item.door_locked:
             return HandlerResult(
                 success=False,
-                message=f"The {item.name} is locked."
+                primary=f"The {item.name} is locked."
             )
         item.door_open = True
-        message = build_message_with_positioning(
-            [f"You open the {item.name}."],
-            move_msg
-        )
         return HandlerResult(
             success=True,
-            message=message,
+            primary=f"You open the {item.name}.",
+            beats=beats,
             data=data
         )
 
@@ -162,19 +157,17 @@ def handle_open(accessor, action):
     if not item.container:
         return HandlerResult(
             success=False,
-            message=f"You can't open the {item.name}."
+            primary=f"You can't open the {item.name}."
         )
 
     # Check if already open
     if item.container.open:
         data = serialize_for_handler_result(item)
-        message = build_message_with_positioning(
-            [f"The {item.name} is already open."],
-            move_msg
-        )
+        beats = [move_msg] if move_msg else []
         return HandlerResult(
             success=True,
-            message=message,
+            primary=f"The {item.name} is already open.",
+            beats=beats,
             data=data
         )
 
@@ -189,20 +182,23 @@ def handle_open(accessor, action):
     if not result.success:
         return HandlerResult(
             success=False,
-            message=result.message or f"You can't open the {item.name}."
+            primary=result.detail or f"You can't open the {item.name}."
         )
 
-    # Build message - include behavior message if present
-    base_messages = [f"You open the {item.name}."]
-    if result.message:
-        base_messages.append(result.message)
+    # Build primary and beats
+    primary = f"You open the {item.name}."
+    beats = []
+    if move_msg:
+        beats.append(move_msg)
+    if result.detail:
+        beats.append(result.detail)
 
-    message = build_message_with_positioning(base_messages, move_msg)
     data = serialize_for_handler_result(item)
 
     return HandlerResult(
         success=True,
-        message=message,
+        primary=primary,
+        beats=beats,
         data=data
     )
 
@@ -233,24 +229,19 @@ def handle_close(accessor, action):
     # Check if it's a door item
     if hasattr(item, 'is_door') and item.is_door:
         data = serialize_for_handler_result(item)
+        beats = [move_msg] if move_msg else []
         if not item.door_open:
-            message = build_message_with_positioning(
-                [f"The {item.name} is already closed."],
-                move_msg
-            )
             return HandlerResult(
                 success=True,
-                message=message,
+                primary=f"The {item.name} is already closed.",
+                beats=beats,
                 data=data
             )
         item.door_open = False
-        message = build_message_with_positioning(
-            [f"You close the {item.name}."],
-            move_msg
-        )
         return HandlerResult(
             success=True,
-            message=message,
+            primary=f"You close the {item.name}.",
+            beats=beats,
             data=data
         )
 
@@ -258,32 +249,27 @@ def handle_close(accessor, action):
     if not item.container:
         return HandlerResult(
             success=False,
-            message=f"You can't close the {item.name}."
+            primary=f"You can't close the {item.name}."
         )
 
     # Check if already closed
     data = serialize_for_handler_result(item)
+    beats = [move_msg] if move_msg else []
     if not item.container.open:
-        message = build_message_with_positioning(
-            [f"The {item.name} is already closed."],
-            move_msg
-        )
         return HandlerResult(
             success=True,
-            message=message,
+            primary=f"The {item.name} is already closed.",
+            beats=beats,
             data=data
         )
 
     # Close the container
     item.container.open = False
 
-    message = build_message_with_positioning(
-        [f"You close the {item.name}."],
-        move_msg
-    )
     return HandlerResult(
         success=True,
-        message=message,
+        primary=f"You close the {item.name}.",
+        beats=beats,
         data=data
     )
 
@@ -312,7 +298,7 @@ def _handle_generic_interaction(accessor, action, required_property: Optional[st
     if not verb:
         return HandlerResult(
             success=False,
-            message="INCONSISTENT STATE: verb not provided in action"
+            primary="INCONSISTENT STATE: verb not provided in action"
         )
 
     actor_id = cast(ActorId, action.get("actor_id") or ActorId("player"))
@@ -321,7 +307,7 @@ def _handle_generic_interaction(accessor, action, required_property: Optional[st
     if required_property and not item.properties.get(required_property, False):
         return HandlerResult(
             success=False,
-            message=f"You can't {verb} the {item.name}."
+            primary=f"You can't {verb} the {item.name}."
         )
 
     # Invoke entity behaviors
@@ -334,10 +320,10 @@ def _handle_generic_interaction(accessor, action, required_property: Optional[st
         base_message = f"You {verb} the {item.name}."
 
     data = serialize_for_handler_result(item)
-    if result.message:
-        return HandlerResult(success=True, message=f"{base_message} {result.message}", data=data)
+    if result.detail:
+        return HandlerResult(success=True, primary=f"{base_message} {result.detail}", data=data)
 
-    return HandlerResult(success=True, message=base_message, data=data)
+    return HandlerResult(success=True, primary=base_message, data=data)
 
 
 def handle_use(accessor, action):

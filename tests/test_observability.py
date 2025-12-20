@@ -197,7 +197,7 @@ class TestIsObservableWithBehaviors(unittest.TestCase):
         mock_module = MagicMock()
         mock_module.on_observe = Mock(return_value=EventResult(
             allow=True,
-            message="The key gleams faintly."
+            feedback="The key gleams faintly."
         ))
 
         self.behavior_manager._modules["test_message"] = mock_module
@@ -228,7 +228,7 @@ class TestIsObservableWithBehaviors(unittest.TestCase):
             if context["method"] == "search":
                 # Reveal the item
                 entity.states["hidden"] = False
-                return EventResult(allow=True, message="You find a key hidden in a crack!")
+                return EventResult(allow=True, feedback="You find a key hidden in a crack!")
             return EventResult(allow=False)
 
         mock_module = MagicMock()
@@ -720,7 +720,7 @@ class TestHiddenExitsIntegration(unittest.TestCase):
         )
 
         self.assertFalse(result.success)
-        self.assertIn("can't go south", result.message.lower())
+        self.assertIn("can't go south", result.primary.lower())
 
     def test_visible_exit_allows_movement(self):
         """Visible exit allows movement."""

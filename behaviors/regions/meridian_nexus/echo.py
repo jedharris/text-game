@@ -38,7 +38,7 @@ def on_echo_gossip(
     """
     actor_id = entity.id if hasattr(entity, "id") else None
     if "echo" not in (actor_id or "").lower():
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     gossip_content = context.get("content", "").lower()
     state = accessor.state
@@ -46,7 +46,7 @@ def on_echo_gossip(
     # Track Echo's trust changes
     echo = state.actors.get("the_echo") or state.actors.get("echo")
     if not echo:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     trust_state = echo.properties.get("trust_state", {"current": 0})
 
@@ -57,7 +57,7 @@ def on_echo_gossip(
         )
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "Echo's form brightens. 'You chose healing over violence. "
                 "The world is grateful, even if it cannot say so.'"
             ),
@@ -69,7 +69,7 @@ def on_echo_gossip(
         )
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "Echo's form dims. 'Violence was the easy path. "
                 "The spores will spread now, and the Myconids grieve.'"
             ),
@@ -81,7 +81,7 @@ def on_echo_gossip(
         )
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "Echo sighs. 'The fire elementals meant no harm. "
                 "Was their death necessary?'"
             ),
@@ -90,7 +90,7 @@ def on_echo_gossip(
     if "sira" in gossip_content and "died" in gossip_content:
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "Echo's voice is heavy. 'Hunter Sira is gone. "
                 "Elara will mourn her deeply.'"
             ),
@@ -99,7 +99,7 @@ def on_echo_gossip(
     if "aldric" in gossip_content and "died" in gossip_content:
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "'Scholar Aldric's knowledge is lost,' Echo murmurs. "
                 "'So much wisdom, gone to the dark.'"
             ),
@@ -111,14 +111,14 @@ def on_echo_gossip(
         )
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "Echo's form flickers with sadness. 'The mother bear's cubs... "
                 "Promises broken have consequences that echo.'"
             ),
         )
 
     echo.properties["trust_state"] = trust_state
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)
 
 
 def on_echo_dialog(
@@ -140,7 +140,7 @@ def on_echo_dialog(
     """
     actor_id = entity.id if hasattr(entity, "id") else None
     if "echo" not in (actor_id or "").lower():
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     keyword = context.get("keyword", "").lower()
     state = accessor.state
@@ -153,11 +153,11 @@ def on_echo_dialog(
         if remaining == 0:
             return EventResult(
                 allow=True,
-                message="'The waystone is complete. Your journey here ends... or begins anew.'",
+                feedback="'The waystone is complete. Your journey here ends... or begins anew.'",
             )
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 f"'{remaining} fragments remain to restore the waystone. "
                 "Each region holds one, earned through deeds, not taken by force.'"
             ),
@@ -174,11 +174,11 @@ def on_echo_dialog(
             hints.append("'The Spore Mother suffers. She can be healed... or ended.'")
 
         if hints:
-            return EventResult(allow=True, message=hints[0])
+            return EventResult(allow=True, feedback=hints[0])
 
         return EventResult(
             allow=True,
-            message="'Explore. Learn. Choose wisely. The world responds to your actions.'",
+            feedback="'Explore. Learn. Choose wisely. The world responds to your actions.'",
         )
 
     # Status check
@@ -192,10 +192,10 @@ def on_echo_dialog(
 
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 f"'You have saved {saved} souls. {lost} have been lost. "
                 f"The waystone holds {len(extra.get('waystone_fragments', []))} of 5 fragments.'"
             ),
         )
 
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)

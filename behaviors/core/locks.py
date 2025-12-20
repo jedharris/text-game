@@ -78,7 +78,7 @@ def _handle_lock_operation(accessor, action, verb: str, target_state: bool) -> H
         if target_state and item.door_open:
             return HandlerResult(
                 success=False,
-                message=f"You must close the {item.name} first."
+                primary=f"You must close the {item.name} first."
             )
 
         # Check if already in target state
@@ -86,7 +86,7 @@ def _handle_lock_operation(accessor, action, verb: str, target_state: bool) -> H
             already_msg = "already locked" if target_state else "already unlocked"
             return HandlerResult(
                 success=True,
-                message=f"The {item.name} is {already_msg}.",
+                primary=f"The {item.name} is {already_msg}.",
                 data=data
             )
 
@@ -94,7 +94,7 @@ def _handle_lock_operation(accessor, action, verb: str, target_state: bool) -> H
         if not item.door_lock_id:
             return HandlerResult(
                 success=False,
-                message=f"The {item.name} has no lock."
+                primary=f"The {item.name} has no lock."
             )
 
         # Get lock and validate
@@ -102,7 +102,7 @@ def _handle_lock_operation(accessor, action, verb: str, target_state: bool) -> H
         if not lock:
             return HandlerResult(
                 success=False,
-                message=f"INCONSISTENT STATE: Lock {item.door_lock_id} not found"
+                primary=f"INCONSISTENT STATE: Lock {item.door_lock_id} not found"
             )
 
         # Check for key using helper
@@ -114,7 +114,7 @@ def _handle_lock_operation(accessor, action, verb: str, target_state: bool) -> H
         item.door_locked = target_state
         return HandlerResult(
             success=True,
-            message=f"You {verb} the {item.name}.",
+            primary=f"You {verb} the {item.name}.",
             data=data
         )
 
@@ -122,7 +122,7 @@ def _handle_lock_operation(accessor, action, verb: str, target_state: bool) -> H
     if not item.container:
         return HandlerResult(
             success=False,
-            message=f"The {item.name} has no lock."
+            primary=f"The {item.name} has no lock."
         )
 
     data = serialize_for_handler_result(item)
@@ -131,7 +131,7 @@ def _handle_lock_operation(accessor, action, verb: str, target_state: bool) -> H
     if target_state and item.container.open:
         return HandlerResult(
             success=False,
-            message=f"You must close the {item.name} first."
+            primary=f"You must close the {item.name} first."
         )
 
     # Check if already in target state
@@ -140,7 +140,7 @@ def _handle_lock_operation(accessor, action, verb: str, target_state: bool) -> H
         already_msg = "already locked" if target_state else "already unlocked"
         return HandlerResult(
             success=True,
-            message=f"The {item.name} is {already_msg}.",
+            primary=f"The {item.name} is {already_msg}.",
             data=data
         )
 
@@ -149,7 +149,7 @@ def _handle_lock_operation(accessor, action, verb: str, target_state: bool) -> H
     if not lock_id:
         return HandlerResult(
             success=False,
-            message=f"The {item.name} has no lock."
+            primary=f"The {item.name} has no lock."
         )
 
     # Get lock and validate
@@ -157,7 +157,7 @@ def _handle_lock_operation(accessor, action, verb: str, target_state: bool) -> H
     if not lock:
         return HandlerResult(
             success=False,
-            message=f"INCONSISTENT STATE: Lock {lock_id} not found"
+            primary=f"INCONSISTENT STATE: Lock {lock_id} not found"
         )
 
     # Check for key using helper
@@ -170,7 +170,7 @@ def _handle_lock_operation(accessor, action, verb: str, target_state: bool) -> H
 
     return HandlerResult(
         success=True,
-        message=f"You {verb} the {item.name}.",
+        primary=f"You {verb} the {item.name}.",
         data=data
     )
 

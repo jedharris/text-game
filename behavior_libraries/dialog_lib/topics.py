@@ -34,9 +34,14 @@ from typing import Dict, List, Optional
 
 @dataclass
 class DialogResult:
-    """Result of a dialog interaction."""
+    """Result of a dialog interaction.
+
+    Fields:
+        response: The NPC's response text.
+                  Semantic type: ResponseText
+    """
     success: bool
-    message: str
+    response: str
     topic_name: Optional[str] = None
 
 
@@ -156,7 +161,7 @@ def handle_ask_about(accessor, npc, topic_text: str) -> DialogResult:
     """
     player = accessor.get_actor(ActorId('player'))
     if not player:
-        return DialogResult(success=False, message="No player found.")
+        return DialogResult(success=False, response="No player found.")
 
     # Find matching topic
     topic_name = _find_topic_by_keyword(npc, topic_text)
@@ -167,7 +172,7 @@ def handle_ask_about(accessor, npc, topic_text: str) -> DialogResult:
             'default_topic_summary',
             f"{npc.name} doesn't know about that."
         )
-        return DialogResult(success=True, message=default_msg)
+        return DialogResult(success=True, response=default_msg)
 
     topics = npc.properties.get('dialog_topics', {})
     topic = topics.get(topic_name, {})
@@ -179,7 +184,7 @@ def handle_ask_about(accessor, npc, topic_text: str) -> DialogResult:
             'default_topic_summary',
             f"{npc.name} doesn't know about that."
         )
-        return DialogResult(success=True, message=default_msg)
+        return DialogResult(success=True, response=default_msg)
 
     # Topic found and available - process it
 
@@ -214,7 +219,7 @@ def handle_ask_about(accessor, npc, topic_text: str) -> DialogResult:
 
     # Return summary
     summary = topic.get('summary', f"{npc.name} discusses {topic_name}.")
-    return DialogResult(success=True, message=summary, topic_name=topic_name)
+    return DialogResult(success=True, response=summary, topic_name=topic_name)
 
 
 def handle_talk_to(accessor, npc) -> DialogResult:
@@ -233,11 +238,11 @@ def handle_talk_to(accessor, npc) -> DialogResult:
     if not hints:
         return DialogResult(
             success=True,
-            message=f"{npc.name} has nothing to discuss right now."
+            response=f"{npc.name} has nothing to discuss right now."
         )
 
     topic_list = ', '.join(hints)
     return DialogResult(
         success=True,
-        message=f"You could ask {npc.name} about: {topic_list}"
+        response=f"You could ask {npc.name} about: {topic_list}"
     )

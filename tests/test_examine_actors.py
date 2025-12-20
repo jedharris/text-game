@@ -265,9 +265,9 @@ class TestHandleExamineActors(unittest.TestCase):
         self_entry = make_self_word_entry()
         result = handle_examine(self.accessor, {"actor_id": "player", "object": self_entry})
         self.assertTrue(result.success)
-        self.assertIn("brave adventurer", result.message)
-        self.assertIn("You are carrying", result.message)
-        self.assertIn("sword", result.message)
+        self.assertIn("brave adventurer", result.primary)
+        self.assertIn("You are carrying", result.primary)
+        self.assertIn("sword", result.primary)
 
     def test_examine_me(self):
         """examine me returns player description (synonym handled via canonical WordEntry)."""
@@ -276,7 +276,7 @@ class TestHandleExamineActors(unittest.TestCase):
         self_entry = make_self_word_entry()
         result = handle_examine(self.accessor, {"actor_id": "player", "object": self_entry})
         self.assertTrue(result.success)
-        self.assertIn("brave adventurer", result.message)
+        self.assertIn("brave adventurer", result.primary)
 
     def test_examine_myself(self):
         """examine myself returns player description (synonym handled via canonical WordEntry)."""
@@ -285,7 +285,7 @@ class TestHandleExamineActors(unittest.TestCase):
         self_entry = make_self_word_entry()
         result = handle_examine(self.accessor, {"actor_id": "player", "object": self_entry})
         self.assertTrue(result.success)
-        self.assertIn("brave adventurer", result.message)
+        self.assertIn("brave adventurer", result.primary)
 
     def test_examine_npc_in_same_location(self):
         """examine guard returns guard description."""
@@ -293,7 +293,7 @@ class TestHandleExamineActors(unittest.TestCase):
         guard_entry = make_word_entry("guard")
         result = handle_examine(self.accessor, {"actor_id": "player", "object": guard_entry})
         self.assertTrue(result.success)
-        self.assertIn("stern guard", result.message)
+        self.assertIn("stern guard", result.primary)
 
     def test_examine_player_gives_helpful_message(self):
         """examine player gives helpful message to use self/me."""
@@ -301,8 +301,8 @@ class TestHandleExamineActors(unittest.TestCase):
         player_entry = make_word_entry("player")
         result = handle_examine(self.accessor, {"actor_id": "player", "object": player_entry})
         self.assertFalse(result.success)
-        self.assertIn("examine self", result.message)
-        self.assertIn("examine me", result.message)
+        self.assertIn("examine self", result.primary)
+        self.assertIn("examine me", result.primary)
 
     def test_examine_self_no_description(self):
         """examine self with no description shows default message."""
@@ -312,7 +312,7 @@ class TestHandleExamineActors(unittest.TestCase):
         self_entry = make_self_word_entry()
         result = handle_examine(self.accessor, {"actor_id": "player", "object": self_entry})
         self.assertTrue(result.success)
-        self.assertIn("You examine yourself", result.message)
+        self.assertIn("You examine yourself", result.primary)
 
     def test_examine_npc_no_description(self):
         """examine NPC with no description shows 'You see Name'."""
@@ -321,7 +321,7 @@ class TestHandleExamineActors(unittest.TestCase):
         guard_entry = make_word_entry("guard")
         result = handle_examine(self.accessor, {"actor_id": "player", "object": guard_entry})
         self.assertTrue(result.success)
-        self.assertIn("You see Guard", result.message)
+        self.assertIn("You see Guard", result.primary)
 
     def test_examine_self_empty_inventory(self):
         """examine self with empty inventory doesn't show inventory line."""
@@ -330,7 +330,7 @@ class TestHandleExamineActors(unittest.TestCase):
         self_entry = make_self_word_entry()
         result = handle_examine(self.accessor, {"actor_id": "player", "object": self_entry})
         self.assertTrue(result.success)
-        self.assertNotIn("carrying", result.message.lower())
+        self.assertNotIn("carrying", result.primary.lower())
 
     def test_examine_actor_returns_llm_context(self):
         """examine actor includes llm_context in data."""
@@ -347,7 +347,7 @@ class TestHandleExamineActors(unittest.TestCase):
         wizard_entry = make_word_entry("wizard")
         result = handle_examine(self.accessor, {"actor_id": "player", "object": wizard_entry})
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.message)
+        self.assertIn("don't see", result.primary)
 
     def test_npc_examines_player(self):
         """NPC can examine the player by name."""
@@ -355,10 +355,10 @@ class TestHandleExamineActors(unittest.TestCase):
         landry_entry = make_word_entry("Landry")
         result = handle_examine(self.accessor, {"actor_id": "guard", "object": landry_entry})
         self.assertTrue(result.success)
-        self.assertIn("brave adventurer", result.message)
+        self.assertIn("brave adventurer", result.primary)
         # NPC sees player's inventory
-        self.assertIn("Carrying", result.message)
-        self.assertIn("sword", result.message)
+        self.assertIn("Carrying", result.primary)
+        self.assertIn("sword", result.primary)
 
 
 class TestValidateActorNames(unittest.TestCase):

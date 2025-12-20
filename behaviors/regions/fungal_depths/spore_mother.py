@@ -48,31 +48,31 @@ def on_spore_mother_presence(
     # Check if player is in Spore Heart
     player = state.actors.get("player")
     if not player:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     player_loc = player.properties.get("location")
     if player_loc != "spore_heart":
         # Reset counter if not in spore heart
         state.extra["spore_mother_presence_turns"] = 0
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Get Spore Mother
     mother = state.actors.get("npc_spore_mother")
     if not mother:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     sm = mother.properties.get("state_machine", {})
     current_state = sm.get("current", sm.get("initial", "hostile"))
 
     # Only track for hostile state
     if current_state != "hostile":
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check if player attacked this turn
     if state.extra.get("player_attacked_this_turn"):
         state.extra["spore_mother_presence_turns"] = 0
         state.extra["player_attacked_this_turn"] = False
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Increment presence counter
     turns = state.extra.get("spore_mother_presence_turns", 0) + 1
@@ -85,14 +85,14 @@ def on_spore_mother_presence(
 
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "The Spore Mother's hostility fades to watchful curiosity. "
                 "Through empathic spores, you sense... questions. Confusion. "
                 "Why didn't you attack? The sporelings hesitate, mirroring her uncertainty."
             ),
         )
 
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)
 
 
 def on_spore_mother_heal(
@@ -114,17 +114,17 @@ def on_spore_mother_heal(
     """
     item_id = entity.id if hasattr(entity, "id") else str(entity)
     if "heartmoss" not in item_id.lower():
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     target = context.get("target")
     target_id = target.id if target and hasattr(target, "id") else str(target) if target else ""
     if target_id != "npc_spore_mother":
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
     mother = state.actors.get("npc_spore_mother")
     if not mother:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Transition to allied
     sm = mother.properties.get("state_machine", {})
@@ -160,7 +160,7 @@ def on_spore_mother_heal(
 
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             "As the heartmoss touches the Spore Mother, a wave of relief floods "
             "through the empathic connection. The dark blight veins fade, replaced "
             "by healthy bioluminescence. She pulses with gratitude - and gently "
@@ -190,7 +190,7 @@ def on_spore_mother_death(
     """
     actor_id = entity.id if hasattr(entity, "id") else None
     if actor_id != "npc_spore_mother":
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
 
@@ -223,7 +223,7 @@ def on_spore_mother_death(
 
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             "The Spore Mother's death cry echoes through your mind - raw pain, "
             "then emptiness. The organic walls shudder and begin to decay. "
             "The sporelings wander aimlessly, confused. You sense a ripple of "
@@ -250,16 +250,16 @@ def on_spore_mother_state_change(
     """
     actor_id = entity.id if hasattr(entity, "id") else None
     if actor_id != "npc_spore_mother":
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     new_state = context.get("new_state")
     if not new_state:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
     _update_sporeling_states(state, new_state)
 
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)
 
 
 def _update_sporeling_states(state: Any, new_state: str) -> None:

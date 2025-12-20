@@ -45,13 +45,13 @@ def on_delvan_encounter(
     """
     actor_id = entity.id if hasattr(entity, "id") else None
     if actor_id != "merchant_delvan":
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
     extra = state.extra
 
     if extra.get("delvan_commitment_created"):
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Create commitment (config must exist in game state)
     current_turn = get_current_turn(state)
@@ -66,7 +66,7 @@ def on_delvan_encounter(
 
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             "You find Delvan pinned beneath fallen debris, blood seeping from "
             "a gash on his arm. He taps frantically on a pipe - Morse code. "
             "SOS. He's been signaling for help. Without treatment, he won't last long."
@@ -93,13 +93,13 @@ def on_garrett_encounter(
     """
     loc_id = entity.id if hasattr(entity, "id") else None
     if "garrett" not in (loc_id or "").lower() and "rising_water" not in (loc_id or "").lower():
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
     extra = state.extra
 
     if extra.get("garrett_commitment_created"):
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Create commitment (config must exist in game state)
     current_turn = get_current_turn(state)
@@ -114,7 +114,7 @@ def on_garrett_encounter(
 
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             "The chamber is filling with water. Garrett clings to debris, "
             "head barely above the rising tide. 'Help! Please!' "
             "The water is rising fast - he has minutes, not hours."
@@ -146,7 +146,7 @@ def on_rescue_success(
         state.extra["delvan_rescued"] = True
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "You stop Delvan's bleeding. He grasps your hand. "
                 "'You came. I wasn't sure anyone would.' His tapping stops - "
                 "he doesn't need to signal anymore."
@@ -157,13 +157,13 @@ def on_rescue_success(
         state.extra["garrett_rescued"] = True
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "You pull Garrett from the rising water. He coughs, sputters, "
                 "then laughs with relief. 'I thought I was dead. Thank you.'"
             ),
         )
 
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)
 
 
 def on_npc_death(
@@ -200,7 +200,7 @@ def on_npc_death(
 
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "The tapping stops. Delvan's hand falls still. "
                 "You were too late."
             ),
@@ -220,10 +220,10 @@ def on_npc_death(
 
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "The water closes over Garrett's head. His struggles cease. "
                 "You chose, and someone paid the price."
             ),
         )
 
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)

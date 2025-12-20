@@ -51,7 +51,7 @@ def on_golem_password(
     """
     actor_id = entity.id if hasattr(entity, "id") else None
     if not actor_id or "golem" not in actor_id.lower():
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check for password in dialog
     dialog_text = context.get("dialog_text", "").lower()
@@ -63,7 +63,7 @@ def on_golem_password(
     matches = sum(1 for phrase in key_phrases if phrase in full_text)
 
     if matches < 2:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
 
@@ -72,7 +72,7 @@ def on_golem_password(
 
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             "The ancient words echo through the sanctum. Both golems freeze, "
             "their runes shifting from red to a calm blue. They step aside, "
             "allowing passage but not offering service. The password is accepted."
@@ -120,7 +120,7 @@ def _handle_control_crystal(
     target = context.get("target")
     target_id = target.id if target and hasattr(target, "id") else str(target) if target else ""
     if "golem" not in target_id.lower() and "sanctum" not in target_id.lower():
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
 
@@ -130,7 +130,7 @@ def _handle_control_crystal(
 
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             "The control crystal flares with power as you raise it. Both golems "
             "immediately kneel, their runes blazing white. They await your commands, "
             "bound to serve whoever holds the crystal. This is their original purpose."
@@ -162,23 +162,23 @@ def _handle_ritual(
     # Check if other component is present
     player = state.actors.get("player")
     if not player:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     inventory = str(player.properties.get("inventory", []))
 
     if has_fire and not has_water:
         if "spring" not in inventory.lower() and "water" not in inventory.lower():
-            return EventResult(allow=True, message=None)
+            return EventResult(allow=True, feedback=None)
     elif has_water and not has_fire:
         if not any(f in inventory.lower() for f in ["fire", "torch", "flame", "ember"]):
-            return EventResult(allow=True, message=None)
+            return EventResult(allow=True, feedback=None)
     elif not has_fire and not has_water:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check location (must be in temple)
     player_loc = player.properties.get("location", "")
     if "temple" not in player_loc.lower() and "sanctum" not in player_loc.lower():
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Ritual succeeds
     _deactivate_golems(state, "passive")
@@ -186,7 +186,7 @@ def _handle_ritual(
 
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             "You combine fire and water in the ancient manner. Steam rises, "
             "carrying the essence of both elements. The golems pause, recognizing "
             "the protocol of their creators. Their runes shift to blue as they "
@@ -214,7 +214,7 @@ def on_golem_death(
     """
     actor_id = entity.id if hasattr(entity, "id") else None
     if not actor_id or "golem" not in actor_id.lower():
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
 
@@ -237,7 +237,7 @@ def on_golem_death(
         state.extra["golem_protection_lost"] = True
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "The last guardian crumbles. The temple is now unprotected - "
                 "whatever these golems would have guarded against, you now face alone."
             ),
@@ -245,7 +245,7 @@ def on_golem_death(
 
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             "The golem falls, its runes flickering out. Ancient protection, "
             "lost to violence."
         ),

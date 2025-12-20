@@ -23,7 +23,7 @@ class TestEventDelegationLogic(unittest.TestCase):
 
         # Mock invoke_behavior to succeed
         self.behavior_manager.invoke_behavior.return_value = EventResult(
-            allow=True, message="Success"
+            allow=True, feedback="Success"
         )
 
         # Create mock entity
@@ -35,7 +35,7 @@ class TestEventDelegationLogic(unittest.TestCase):
 
         # Should succeed
         self.assertTrue(result.success)
-        self.assertEqual(result.message, "Success")
+        self.assertEqual(result.detail, "Success")
 
         # Should only invoke once
         self.assertEqual(self.behavior_manager.invoke_behavior.call_count, 1)
@@ -50,7 +50,7 @@ class TestEventDelegationLogic(unittest.TestCase):
 
         # Mock invoke_behavior to succeed on first call
         self.behavior_manager.invoke_behavior.return_value = EventResult(
-            allow=True, message="Tier 1"
+            allow=True, feedback="Tier 1"
         )
 
         entity = Mock()
@@ -60,7 +60,7 @@ class TestEventDelegationLogic(unittest.TestCase):
 
         # Should succeed with Tier 1 message
         self.assertTrue(result.success)
-        self.assertEqual(result.message, "Tier 1")
+        self.assertEqual(result.detail, "Tier 1")
 
         # Should only invoke Tier 1 event (first call)
         self.assertEqual(self.behavior_manager.invoke_behavior.call_count, 1)
@@ -77,8 +77,8 @@ class TestEventDelegationLogic(unittest.TestCase):
 
         # Mock invoke_behavior to block first, succeed second
         self.behavior_manager.invoke_behavior.side_effect = [
-            EventResult(allow=False, message="Tier 1 blocked"),
-            EventResult(allow=True, message="Tier 2 allowed")
+            EventResult(allow=False, feedback="Tier 1 blocked"),
+            EventResult(allow=True, feedback="Tier 2 allowed")
         ]
 
         entity = Mock()
@@ -88,7 +88,7 @@ class TestEventDelegationLogic(unittest.TestCase):
 
         # Should succeed with Tier 2 message
         self.assertTrue(result.success)
-        self.assertEqual(result.message, "Tier 2 allowed")
+        self.assertEqual(result.detail, "Tier 2 allowed")
 
         # Should invoke both events
         self.assertEqual(self.behavior_manager.invoke_behavior.call_count, 2)
@@ -104,7 +104,7 @@ class TestEventDelegationLogic(unittest.TestCase):
         # Mock invoke_behavior to return None first, succeed second
         self.behavior_manager.invoke_behavior.side_effect = [
             None,  # Tier 1 doesn't handle
-            EventResult(allow=True, message="Tier 2 handled")
+            EventResult(allow=True, feedback="Tier 2 handled")
         ]
 
         entity = Mock()
@@ -114,7 +114,7 @@ class TestEventDelegationLogic(unittest.TestCase):
 
         # Should succeed with Tier 2 message
         self.assertTrue(result.success)
-        self.assertEqual(result.message, "Tier 2 handled")
+        self.assertEqual(result.detail, "Tier 2 handled")
 
         # Should invoke both events
         self.assertEqual(self.behavior_manager.invoke_behavior.call_count, 2)
@@ -129,8 +129,8 @@ class TestEventDelegationLogic(unittest.TestCase):
 
         # Mock invoke_behavior to block both times
         self.behavior_manager.invoke_behavior.side_effect = [
-            EventResult(allow=False, message="Tier 1 blocked"),
-            EventResult(allow=False, message="Tier 2 also blocked")
+            EventResult(allow=False, feedback="Tier 1 blocked"),
+            EventResult(allow=False, feedback="Tier 2 also blocked")
         ]
 
         entity = Mock()
@@ -140,7 +140,7 @@ class TestEventDelegationLogic(unittest.TestCase):
 
         # Should fail with Tier 2 message
         self.assertFalse(result.success)
-        self.assertEqual(result.message, "Tier 2 also blocked")
+        self.assertEqual(result.detail, "Tier 2 also blocked")
 
         # Should invoke both events
         self.assertEqual(self.behavior_manager.invoke_behavior.call_count, 2)

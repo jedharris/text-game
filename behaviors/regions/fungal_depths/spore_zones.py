@@ -55,11 +55,11 @@ def on_spore_zone_turn(
     # Get player location
     player = state.actors.get("player")
     if not player:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     player_loc = player.properties.get("location")
     if not player_loc:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Get location spore level
     location = None
@@ -69,16 +69,16 @@ def on_spore_zone_turn(
             break
 
     if not location:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     spore_level = location.properties.get("spore_level", "none")
     if spore_level == "none":
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Calculate infection rate
     base_rate = SPORE_RATES.get(spore_level, 0)
     if base_rate == 0:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check for safe path knowledge (reduces high spore rate)
     if spore_level == "high" and state.extra.get("safe_path_known"):
@@ -86,7 +86,7 @@ def on_spore_zone_turn(
 
     # Check for breathing mask (full protection)
     if _has_breathing_mask(player):
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check for spore resistance skill (50% reduction)
     if player.properties.get("skills", {}).get("spore_resistance"):
@@ -126,7 +126,7 @@ def on_spore_zone_turn(
     else:
         msg = None
 
-    return EventResult(allow=True, message=msg)
+    return EventResult(allow=True, feedback=msg)
 
 
 def on_enter_spore_zone(
@@ -146,13 +146,13 @@ def on_enter_spore_zone(
     """
     destination = context.get("destination")
     if not destination:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     dest_props = destination.properties if hasattr(destination, "properties") else {}
     spore_level = dest_props.get("spore_level", "none")
 
     if spore_level == "none":
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
     player = state.actors.get("player")
@@ -164,9 +164,9 @@ def on_enter_spore_zone(
         if spore_level == "high":
             return EventResult(
                 allow=True,
-                message="Your mask filters the thick spores filling this chamber.",
+                feedback="Your mask filters the thick spores filling this chamber.",
             )
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # No mask - warn based on level
     if spore_level == "high":
@@ -174,14 +174,14 @@ def on_enter_spore_zone(
         if safe_known:
             return EventResult(
                 allow=True,
-                message=(
+                feedback=(
                     "Thick spores fill the air, but you know where the "
                     "clean air pockets are."
                 ),
             )
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "The air is thick with golden spores. Each breath brings "
                 "the infection closer to your lungs."
             ),
@@ -190,10 +190,10 @@ def on_enter_spore_zone(
     if spore_level == "medium":
         return EventResult(
             allow=True,
-            message="Spores drift lazily in the bioluminescent light.",
+            feedback="Spores drift lazily in the bioluminescent light.",
         )
 
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)
 
 
 def _has_breathing_mask(player: Any) -> bool:

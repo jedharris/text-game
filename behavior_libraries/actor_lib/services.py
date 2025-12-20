@@ -45,10 +45,15 @@ TRUST_DISCOUNT_THRESHOLD = 3
 
 @dataclass
 class ServiceResult:
-    """Result of a service transaction."""
+    """Result of a service transaction.
+
+    Fields:
+        outcome: Description of the service outcome.
+                 Semantic type: OutcomeText
+    """
     success: bool
     service_provided: Optional[str]
-    message: str
+    outcome: str
 
 
 def get_available_services(actor) -> Dict[str, Dict]:
@@ -169,7 +174,7 @@ def execute_service(
         return ServiceResult(
             success=False,
             service_provided=None,
-            message=f"{npc.name} doesn't offer {service_name}"
+            outcome=f"{npc.name} doesn't offer {service_name}"
         )
 
     # Verify payment type
@@ -179,7 +184,7 @@ def execute_service(
         return ServiceResult(
             success=False,
             service_provided=None,
-            message=f"{npc.name} doesn't accept that for {service_name}"
+            outcome=f"{npc.name} doesn't accept that for {service_name}"
         )
 
     # Verify payment amount
@@ -189,7 +194,7 @@ def execute_service(
         return ServiceResult(
             success=False,
             service_provided=None,
-            message=f"Not enough - {npc.name} requires {required}"
+            outcome=f"Not enough - {npc.name} requires {required}"
         )
 
     # Execute service effects
@@ -232,7 +237,7 @@ def execute_service(
     return ServiceResult(
         success=True,
         service_provided=service_name,
-        message="; ".join(messages)
+        outcome="; ".join(messages)
     )
 
 
@@ -284,12 +289,12 @@ def on_receive_for_service(entity, accessor, context) -> Optional[Any]:
         if item_amount < required:
             return EventResult(
                 allow=True,
-                message=f"{entity.name} needs {required} for {service_name}, but you only offered {item_amount}."
+                feedback=f"{entity.name} needs {required} for {service_name}, but you only offered {item_amount}."
             )
 
         # Execute the service
         result = execute_service(accessor, giver, entity, service_name, item)
-        return EventResult(allow=result.success, message=result.message)
+        return EventResult(allow=result.success, feedback=result.outcome)
 
     # Item not accepted for any service
     return None

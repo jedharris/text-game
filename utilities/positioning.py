@@ -157,7 +157,7 @@ def find_and_position_item(accessor, actor_id: ActorId, object_name, adjective: 
     Example:
         item, move_msg = find_and_position_item(accessor, actor_id, object_name, adjective)
         if not item:
-            return HandlerResult(success=False, message="You don't see that here.")
+            return HandlerResult(success=False, primary="You don't see that here.")
 
         message_parts = []
         if move_msg:
@@ -205,28 +205,45 @@ def find_and_position_part(accessor, actor_id: ActorId, object_name, location_id
     return (part, move_message)
 
 
-def build_message_with_positioning(base_messages: List[str], position_message: Optional[str]) -> str:
+def build_message_with_positioning(
+    base_messages: List[str],
+    position_message: Optional[str]
+) -> Tuple[str, List[str]]:
     """
-    Build final message with optional positioning prefix.
+    Build primary message and beats from action messages and positioning.
 
-    Ensures movement messages always appear before action results.
+    Separates the core action statement (primary) from supplemental
+    information (beats) for the narrator to weave together.
 
     Args:
-        base_messages: List of message parts from the action
+        base_messages: List of message parts from the action.
+                      First message is the primary action statement.
+                      Additional messages are supplemental beats.
         position_message: Optional movement message from implicit positioning
 
     Returns:
-        Combined message string
+        Tuple of (primary, beats):
+        - primary: The core action statement (first base message)
+        - beats: List of supplemental sentences (positioning + extra messages)
 
     Example:
-        message = build_message_with_positioning(
+        primary, beats = build_message_with_positioning(
             ["You picked up the key.", "It's cold to the touch."],
             "(You move closer to the desk.)"
         )
-        # Returns: "(You move closer to the desk.)\nYou picked up the key.\nIt's cold to the touch."
+        # Returns: ("You picked up the key.", ["(You move closer to the desk.)", "It's cold to the touch."])
     """
-    parts = []
+    if not base_messages:
+        return ("", [])
+
+    primary = base_messages[0]
+    beats: List[str] = []
+
     if position_message:
-        parts.append(position_message)
-    parts.extend(base_messages)
-    return "\n".join(parts)
+        beats.append(position_message)
+
+    # Additional base messages become beats
+    if len(base_messages) > 1:
+        beats.extend(base_messages[1:])
+
+    return (primary, beats)

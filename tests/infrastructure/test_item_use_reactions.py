@@ -48,7 +48,7 @@ class TestItemUseReactionsBasic(unittest.TestCase):
         result = on_item_used(item, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
     def test_target_without_properties(self) -> None:
         """Target without properties returns allow with no message."""
@@ -58,7 +58,7 @@ class TestItemUseReactionsBasic(unittest.TestCase):
         result = on_item_used(item, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
     def test_target_without_item_use_reactions(self) -> None:
         """Target without item_use_reactions returns allow with no message."""
@@ -69,7 +69,7 @@ class TestItemUseReactionsBasic(unittest.TestCase):
         result = on_item_used(item, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
 
 class TestItemUseReactionsTargetDataDriven(unittest.TestCase):
@@ -99,7 +99,7 @@ class TestItemUseReactionsTargetDataDriven(unittest.TestCase):
         result = on_item_used(item, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertEqual(result.message, "The medicine takes effect...")
+        self.assertEqual(result.feedback, "The medicine takes effect...")
 
     def test_item_pattern_matching(self) -> None:
         """Item matching uses substring matching."""
@@ -119,7 +119,7 @@ class TestItemUseReactionsTargetDataDriven(unittest.TestCase):
 
         result = on_item_used(item, self.accessor, context)
 
-        self.assertEqual(result.message, "Healed!")
+        self.assertEqual(result.feedback, "Healed!")
 
     def test_non_accepted_item_no_response(self) -> None:
         """Non-accepted item returns no message."""
@@ -139,7 +139,7 @@ class TestItemUseReactionsTargetDataDriven(unittest.TestCase):
 
         result = on_item_used(item, self.accessor, context)
 
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
     def test_set_flags(self) -> None:
         """Item use reaction sets flags."""
@@ -231,7 +231,7 @@ class TestItemUseReactionsTargetDataDriven(unittest.TestCase):
 
         result = on_item_used(item, self.accessor, context)
 
-        self.assertEqual(result.message, "Healed!")
+        self.assertEqual(result.feedback, "Healed!")
 
     def test_requires_flags_not_met(self) -> None:
         """Reaction doesn't fire when requires_flags not met."""
@@ -252,7 +252,7 @@ class TestItemUseReactionsTargetDataDriven(unittest.TestCase):
 
         result = on_item_used(item, self.accessor, context)
 
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
 
 class TestItemUseReactionsItemSelfReactions(unittest.TestCase):
@@ -281,7 +281,7 @@ class TestItemUseReactionsItemSelfReactions(unittest.TestCase):
 
         result = on_item_used(item, self.accessor, context)
 
-        self.assertEqual(result.message, "You pour water from the bucket.")
+        self.assertEqual(result.feedback, "You pour water from the bucket.")
 
     def test_item_self_reaction_wrong_target(self) -> None:
         """Item self-reaction doesn't fire on wrong target type."""
@@ -301,7 +301,7 @@ class TestItemUseReactionsItemSelfReactions(unittest.TestCase):
 
         result = on_item_used(item, self.accessor, context)
 
-        self.assertIsNone(result.message)
+        self.assertIsNone(result.feedback)
 
 
 class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
@@ -325,7 +325,7 @@ class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
         )
         context = {"target": target}
 
-        handler_result = EventResult(allow=True, message="Handler response")
+        handler_result = EventResult(allow=True, feedback="Handler response")
         mock_handler = MagicMock(return_value=handler_result)
 
         with patch(
@@ -334,7 +334,7 @@ class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
         ):
             result = on_item_used(item, self.accessor, context)
 
-        self.assertEqual(result.message, "Handler response")
+        self.assertEqual(result.feedback, "Handler response")
         mock_handler.assert_called_once_with(item, self.accessor, context)
 
     def test_item_handler_called(self) -> None:
@@ -350,7 +350,7 @@ class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
         target = MockEntity("npc_guard", {})
         context = {"target": target}
 
-        handler_result = EventResult(allow=True, message="Magic!")
+        handler_result = EventResult(allow=True, feedback="Magic!")
         mock_handler = MagicMock(return_value=handler_result)
 
         with patch(
@@ -359,7 +359,7 @@ class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
         ):
             result = on_item_used(item, self.accessor, context)
 
-        self.assertEqual(result.message, "Magic!")
+        self.assertEqual(result.feedback, "Magic!")
 
     def test_target_handler_takes_precedence(self) -> None:
         """Target handler is checked before item handler."""
@@ -381,7 +381,7 @@ class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
         )
         context = {"target": target}
 
-        target_result = EventResult(allow=True, message="Target handler")
+        target_result = EventResult(allow=True, feedback="Target handler")
         mock_handler = MagicMock(return_value=target_result)
 
         with patch(
@@ -390,7 +390,7 @@ class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
         ):
             result = on_item_used(item, self.accessor, context)
 
-        self.assertEqual(result.message, "Target handler")
+        self.assertEqual(result.feedback, "Target handler")
 
     def test_handler_load_failure_falls_through(self) -> None:
         """When handler fails to load, data-driven processing continues."""
@@ -411,7 +411,7 @@ class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
 
         result = on_item_used(item, self.accessor, context)
 
-        self.assertEqual(result.message, "Fallback response.")
+        self.assertEqual(result.feedback, "Fallback response.")
 
 
 if __name__ == "__main__":

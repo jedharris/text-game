@@ -73,7 +73,7 @@ class TestHideCommand(unittest.TestCase):
         result = handle_hide_in(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("hide", result.message.lower())
+        self.assertIn("hide", result.primary.lower())
         self.assertEqual(player.properties.get("focused_on"), "item_wardrobe")
         self.assertEqual(player.properties.get("posture"), "concealed")
 
@@ -83,7 +83,7 @@ class TestHideCommand(unittest.TestCase):
         result = handle_hide_in(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("can't hide", result.message.lower())
+        self.assertIn("can't hide", result.primary.lower())
 
     def test_hide_in_nonexistent_fails(self):
         """Test hiding in non-existent object fails."""
@@ -91,7 +91,7 @@ class TestHideCommand(unittest.TestCase):
         result = handle_hide_in(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.message.lower())
+        self.assertIn("don't see", result.primary.lower())
 
     def test_hide_without_object_fails(self):
         """Test hide without specifying object fails."""
@@ -99,7 +99,7 @@ class TestHideCommand(unittest.TestCase):
         result = handle_hide_in(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("hide in what", result.message.lower())
+        self.assertIn("hide in what", result.primary.lower())
 
     def test_hide_replaces_existing_posture(self):
         """Test hiding replaces existing posture."""
@@ -185,7 +185,7 @@ class TestClimbCommand(unittest.TestCase):
         result = handle_climb(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("climb", result.message.lower())
+        self.assertIn("climb", result.primary.lower())
         self.assertEqual(player.properties.get("focused_on"), "item_ladder")
         self.assertEqual(player.properties.get("posture"), "climbing")
 
@@ -195,7 +195,7 @@ class TestClimbCommand(unittest.TestCase):
         result = handle_climb(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("can't climb", result.message.lower())
+        self.assertIn("can't climb", result.primary.lower())
 
     def test_climb_nonexistent_fails(self):
         """Test climbing non-existent object fails."""
@@ -203,7 +203,7 @@ class TestClimbCommand(unittest.TestCase):
         result = handle_climb(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.message.lower())
+        self.assertIn("don't see", result.primary.lower())
 
     def test_climb_without_object_fails(self):
         """Test climb without specifying object fails."""
@@ -211,7 +211,7 @@ class TestClimbCommand(unittest.TestCase):
         result = handle_climb(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("what do you want to climb", result.message.lower())
+        self.assertIn("what do you want to climb", result.primary.lower())
 
     def test_climb_replaces_existing_posture(self):
         """Test climbing replaces existing posture."""

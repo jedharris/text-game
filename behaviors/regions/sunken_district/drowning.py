@@ -43,16 +43,16 @@ def on_underwater_turn(
     state = accessor.state
     player = state.actors.get("player")
     if not player:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check if underwater
     if not player.properties.get("underwater"):
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check for breathing equipment
     equipment = player.properties.get("equipment", {})
     if "breathing" in str(equipment) or "gill" in str(equipment).lower():
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Get/create breath condition
     conditions = player.properties.get("conditions", [])
@@ -82,7 +82,7 @@ def on_underwater_turn(
         player.properties["health"] = max(0, health - DROWN_DAMAGE)
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 f"You're drowning! [{DROWN_DAMAGE} damage] "
                 "Your lungs scream for air. You must surface NOW."
             ),
@@ -91,16 +91,16 @@ def on_underwater_turn(
     if current >= CRITICAL_BREATH:
         return EventResult(
             allow=True,
-            message="You're suffocating! Find air immediately!",
+            feedback="You're suffocating! Find air immediately!",
         )
 
     if current >= WARNING_BREATH:
         return EventResult(
             allow=True,
-            message="Your lungs are burning. You need air soon.",
+            feedback="Your lungs are burning. You need air soon.",
         )
 
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)
 
 
 def on_water_entry(
@@ -120,18 +120,18 @@ def on_water_entry(
     """
     destination = context.get("destination")
     if not destination:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     dest_props = destination.properties if hasattr(destination, "properties") else {}
     water_level = dest_props.get("water_level", "none")
 
     if water_level not in ["submerged", "flooded"]:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
     player = state.actors.get("player")
     if not player:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     player.properties["underwater"] = True
 
@@ -140,12 +140,12 @@ def on_water_entry(
     if "breathing" in str(equipment):
         return EventResult(
             allow=True,
-            message="You enter the flooded passage. Your breathing mask keeps you safe.",
+            feedback="You enter the flooded passage. Your breathing mask keeps you safe.",
         )
 
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             f"You plunge into the flooded passage. Hold your breath! "
             f"You have {MAX_BREATH} turns of air."
         ),
@@ -169,22 +169,22 @@ def on_surface(
     """
     destination = context.get("destination")
     if not destination:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     dest_props = destination.properties if hasattr(destination, "properties") else {}
     water_level = dest_props.get("water_level", "none")
 
     if water_level in ["submerged", "flooded"]:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
     player = state.actors.get("player")
     if not player:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check if was underwater
     if not player.properties.get("underwater"):
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     player.properties["underwater"] = False
 
@@ -197,5 +197,5 @@ def on_surface(
 
     return EventResult(
         allow=True,
-        message="You break the surface, gasping for air. Sweet oxygen fills your lungs.",
+        feedback="You break the surface, gasping for air. Sweet oxygen fills your lungs.",
     )

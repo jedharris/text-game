@@ -59,11 +59,11 @@ def on_cold_zone_turn(
     # Get player location
     player = state.actors.get("player")
     if not player:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     player_loc = player.properties.get("location")
     if not player_loc:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Get location temperature
     location = None
@@ -73,20 +73,20 @@ def on_cold_zone_turn(
             break
 
     if not location:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     temp_zone = location.properties.get("temperature", "normal")
     base_rate = COLD_RATES.get(temp_zone, 0)
 
     if base_rate == 0:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check for salamander companion (full immunity)
     companions = player.properties.get("companions", [])
     for comp in companions:
         comp_id = comp.get("id", "") if isinstance(comp, dict) else str(comp)
         if "salamander" in comp_id.lower():
-            return EventResult(allow=True, message=None)
+            return EventResult(allow=True, feedback=None)
 
     # Check for cold resistance cloak
     equipment = player.properties.get("equipment", {})
@@ -94,7 +94,7 @@ def on_cold_zone_turn(
 
     if has_cloak:
         if temp_zone == "cold":
-            return EventResult(allow=True, message=None)  # Full immunity
+            return EventResult(allow=True, feedback=None)  # Full immunity
         else:
             base_rate = int(base_rate * CLOAK_FREEZING_REDUCTION)
 
@@ -105,7 +105,7 @@ def on_cold_zone_turn(
         base_rate = int(base_rate * GEAR_COLD_REDUCTION)
 
     if base_rate == 0:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Apply hypothermia
     conditions = player.properties.get("conditions", [])
@@ -139,7 +139,7 @@ def on_cold_zone_turn(
     else:
         msg = None
 
-    return EventResult(allow=True, message=msg)
+    return EventResult(allow=True, feedback=msg)
 
 
 def on_enter_hot_springs(
@@ -162,16 +162,16 @@ def on_enter_hot_springs(
     """
     destination = context.get("destination")
     if not destination:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     dest_id = destination.id if hasattr(destination, "id") else str(destination)
     if "hot_springs" not in dest_id.lower():
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
     player = state.actors.get("player")
     if not player:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check for hypothermia
     conditions = player.properties.get("conditions", [])
@@ -184,7 +184,7 @@ def on_enter_hot_springs(
     if not hypothermia or hypothermia.get("severity", 0) == 0:
         return EventResult(
             allow=True,
-            message="Warmth envelops you as you enter the hot springs refuge.",
+            feedback="Warmth envelops you as you enter the hot springs refuge.",
         )
 
     # Instant cure
@@ -192,7 +192,7 @@ def on_enter_hot_springs(
 
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             "The warmth of the hot springs washes over you like an embrace. "
             "The cold drains from your body, your limbs tingling as feeling returns. "
             "You are fully restored."

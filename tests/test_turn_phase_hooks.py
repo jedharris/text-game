@@ -66,7 +66,7 @@ class TestTurnPhaseFiring(unittest.TestCase):
         self.mock_behavior_manager = Mock(spec=BehaviorManager)
         self.mock_behavior_manager.has_handler.return_value = True
         self.mock_behavior_manager.invoke_handler.return_value = HandlerResult(
-            success=True, message="Action succeeded"
+            success=True, primary="Action succeeded"
         )
         # No events registered for hooks by default
         self.mock_behavior_manager.get_event_for_hook.return_value = None
@@ -102,7 +102,7 @@ class TestTurnPhaseFiring(unittest.TestCase):
         """Turn phase hooks do NOT fire after failed command."""
         # Make the command fail
         self.mock_behavior_manager.invoke_handler.return_value = HandlerResult(
-            success=False, message="Action failed"
+            success=False, primary="Action failed"
         )
 
         result = self.handler.handle_command({
@@ -180,7 +180,7 @@ class TestTurnPhaseFiring(unittest.TestCase):
 
         # Mock EventResult with message
         mock_event_result = Mock()
-        mock_event_result.message = "Poison deals 2 damage"
+        mock_event_result.primary = "Poison deals 2 damage"
         mock_event_result.allow = True
         self.mock_behavior_manager.invoke_behavior.return_value = mock_event_result
 

@@ -230,7 +230,7 @@ def on_player_move(entity, accessor, context) -> Optional[Any]:
                     messages.append(reward_msg)
 
     if messages:
-        return EventResult(allow=True, message="\n".join(messages))
+        return EventResult(allow=True, feedback="\n".join(messages))
 
     return None
 
@@ -251,23 +251,23 @@ def on_guide_merchant(entity, accessor, context) -> Optional[Any]:
 
     target_id = context.get("target_id")
     if not target_id:
-        return EventResult(allow=False, message="Guide who?")
+        return EventResult(allow=True, feedback="Guide who?")
 
     npc = accessor.get_actor(target_id)
     if not npc:
-        return EventResult(allow=False, message="That person isn't here.")
+        return EventResult(allow=True, feedback="That person isn't here.")
 
     # Check if NPC needs escort
     if not npc.properties.get("escort_destination"):
-        return EventResult(allow=False, message=f"{npc.name} doesn't need an escort.")
+        return EventResult(allow=True, feedback=f"{npc.name} doesn't need an escort.")
 
     # Check if already following
     if is_following(npc, entity.id):
-        return EventResult(allow=False, message=f"{npc.name} is already following you.")
+        return EventResult(allow=True, feedback=f"{npc.name} is already following you.")
 
     # Start escort
     msg = start_escort(accessor, npc, entity)
-    return EventResult(allow=True, message=msg)
+    return EventResult(allow=True, feedback=msg)
 
 
 # Vocabulary extension for UC6-specific events

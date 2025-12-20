@@ -55,13 +55,13 @@ def validate_actor_and_location(
     if require_object and not action.get("object"):
         return None, None, None, HandlerResult(
             success=False,
-            message=f"What do you want to {verb}?"
+            primary=f"What do you want to {verb}?"
         )
 
     if require_direction and not action.get("direction"):
         return None, None, None, HandlerResult(
             success=False,
-            message="Which direction do you want to go?"
+            primary="Which direction do you want to go?"
         )
 
     if require_indirect_object and not action.get("indirect_object"):
@@ -69,18 +69,18 @@ def validate_actor_and_location(
         if verb == "put":
             return None, None, None, HandlerResult(
                 success=False,
-                message="Where do you want to put it?"
+                primary="Where do you want to put it?"
             )
         elif verb == "give":
             return None, None, None, HandlerResult(
                 success=False,
-                message="Give it to whom?"
+                primary="Give it to whom?"
             )
         else:
             obj_name = get_display_name(action.get("object"))
             return None, None, None, HandlerResult(
                 success=False,
-                message=f"What do you want to {verb} {obj_name} with?"
+                primary=f"What do you want to {verb} {obj_name} with?"
             )
 
     # Validate actor exists
@@ -88,7 +88,7 @@ def validate_actor_and_location(
     if not actor:
         return None, None, None, HandlerResult(
             success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
+            primary=f"INCONSISTENT STATE: Actor {actor_id} not found"
         )
 
     # Validate location exists
@@ -96,7 +96,7 @@ def validate_actor_and_location(
     if not location:
         return None, None, None, HandlerResult(
             success=False,
-            message=f"INCONSISTENT STATE: Cannot find location for actor {actor_id}"
+            primary=f"INCONSISTENT STATE: Cannot find location for actor {actor_id}"
         )
 
     return actor_id, actor, location, None
@@ -167,21 +167,21 @@ def find_action_target(
     if not object_name:
         return None, HandlerResult(
             success=False,
-            message=f"What do you want to {verb}?"
+            primary=f"What do you want to {verb}?"
         )
 
     actor = accessor.get_actor(actor_id)
     if not actor:
         return None, HandlerResult(
             success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
+            primary=f"INCONSISTENT STATE: Actor {actor_id} not found"
         )
 
     item = find_accessible_item(accessor, object_name, actor_id, adjective)
     if not item:
         return None, HandlerResult(
             success=False,
-            message=f"You don't see any {get_display_name(object_name)} here."
+            primary=f"You don't see any {get_display_name(object_name)} here."
         )
 
     return item, None
@@ -221,14 +221,14 @@ def find_openable_target(
     if not object_name:
         return None, actor_id, HandlerResult(
             success=False,
-            message=f"What do you want to {verb}?"
+            primary=f"What do you want to {verb}?"
         )
 
     actor = accessor.get_actor(actor_id)
     if not actor:
         return None, actor_id, HandlerResult(
             success=False,
-            message=f"INCONSISTENT STATE: Actor {actor_id} not found"
+            primary=f"INCONSISTENT STATE: Actor {actor_id} not found"
         )
 
     # Get current location for door searches
@@ -251,7 +251,7 @@ def find_openable_target(
     if not item:
         return None, actor_id, HandlerResult(
             success=False,
-            message=f"You don't see any {get_display_name(object_name)} here."
+            primary=f"You don't see any {get_display_name(object_name)} here."
         )
 
     return item, actor_id, None
@@ -278,7 +278,7 @@ def execute_entity_action(
     1. Calling accessor.update() with verb/actor_id to invoke behaviors
     2. Checking for failure and returning appropriate error
     3. Building success message with behavior result appended
-    4. Including positioning message if provided
+    4. Building beats from positioning and behavior messages
     5. Serializing entity for llm_context
 
     Args:
@@ -288,27 +288,27 @@ def execute_entity_action(
         verb: The verb for behavior invocation (e.g., "examine", "open")
         actor_id: ID of actor performing the action
         base_message: Success message (e.g., "You open the chest.")
-        positioning_msg: Optional positioning message to prepend
+        positioning_msg: Optional positioning message to add to beats
         failure_message: Optional custom failure message (defaults to behavior message)
 
     Returns:
-        HandlerResult with success/failure and appropriate message
+        HandlerResult with primary, beats, and serialized data
     """
     result = accessor.update(entity, changes, verb=verb, actor_id=actor_id)
 
     if not result.success:
-        msg = failure_message or result.message or f"You can't {verb} the {getattr(entity, 'name', 'that')}."
-        return HandlerResult(success=False, message=msg)
+        msg = failure_message or result.detail or f"You can't {verb} the {getattr(entity, 'name', 'that')}."
+        return HandlerResult(success=False, primary=msg)
 
-    # Build message with behavior result
+    # Build primary and beats
     base_messages = [base_message]
-    if result.message:
-        base_messages.append(result.message)
+    if result.detail:
+        base_messages.append(result.detail)
 
-    message = build_message_with_positioning(base_messages, positioning_msg)
+    primary, beats = build_message_with_positioning(base_messages, positioning_msg)
     data = serialize_for_handler_result(entity)
 
-    return HandlerResult(success=True, message=message, data=data)
+    return HandlerResult(success=True, primary=primary, beats=beats, data=data)
 
 
 # =============================================================================
@@ -350,7 +350,7 @@ def transfer_item_to_actor(
     result = accessor.update(item, item_changes, verb=verb, actor_id=actor_id)
 
     if not result.success:
-        return None, HandlerResult(success=False, message=result.message or f"Cannot {verb} the {item.name}.")
+        return None, HandlerResult(success=False, primary=result.detail or f"Cannot {verb} the {item.name}.")
 
     # Add to inventory
     inv_result = accessor.update(actor, {"+inventory": item.id})
@@ -360,7 +360,7 @@ def transfer_item_to_actor(
         accessor.update(item, {"location": rollback_location})
         return None, HandlerResult(
             success=False,
-            message=f"INCONSISTENT STATE: Failed to add item to inventory: {inv_result.message}"
+            primary=f"INCONSISTENT STATE: Failed to add item to inventory: {inv_result.detail}"
         )
 
     return result, None
@@ -399,7 +399,7 @@ def transfer_item_from_actor(
     result = accessor.update(item, item_changes, verb=verb, actor_id=actor_id)
 
     if not result.success:
-        return None, HandlerResult(success=False, message=result.message or f"Cannot {verb} the {item.name}.")
+        return None, HandlerResult(success=False, primary=result.detail or f"Cannot {verb} the {item.name}.")
 
     # Remove from inventory
     inv_result = accessor.update(actor, {"-inventory": item.id})
@@ -409,7 +409,7 @@ def transfer_item_from_actor(
         accessor.update(item, {"location": actor_id})
         return None, HandlerResult(
             success=False,
-            message=f"INCONSISTENT STATE: Failed to remove item from inventory: {inv_result.message}"
+            primary=f"INCONSISTENT STATE: Failed to remove item from inventory: {inv_result.detail}"
         )
 
     return result, None
@@ -439,7 +439,7 @@ def validate_container_accessible(
     if not is_surface and not container_info.get("open", False):
         return HandlerResult(
             success=False,
-            message=f"The {container.name} is closed."
+            primary=f"The {container.name} is closed."
         )
 
     return None
@@ -469,7 +469,7 @@ def check_actor_has_key(
     if not has_key:
         return HandlerResult(
             success=False,
-            message=f"You don't have the right key to {verb} the {item_name}."
+            primary=f"You don't have the right key to {verb} the {item_name}."
         )
 
     return None
@@ -481,30 +481,26 @@ def check_actor_has_key(
 
 def build_action_result(
     item: Item,
-    base_message: str,
-    behavior_message: Optional[str] = None,
-    positioning_msg: Optional[str] = None
+    primary: str,
+    beats: Optional[List[str]] = None,
+    data: Optional[Dict[str, Any]] = None
 ) -> HandlerResult:
     """
-    Build a successful HandlerResult with message and serialized entity.
-
-    Combines base message, behavior message, and positioning message
-    into a single response with serialized entity data.
+    Build a successful HandlerResult with primary message, beats, and entity data.
 
     Args:
         item: The item to serialize for llm_context
-        base_message: The primary success message
-        behavior_message: Optional message from behavior invocation
-        positioning_msg: Optional positioning/movement message
+        primary: The core action statement (e.g., "You pick up the sword.")
+        beats: Optional list of supplemental sentences
+               (e.g., ["You step down from the table.", "It's cold to the touch."])
+        data: Optional extra data. If not provided, serializes the item.
 
     Returns:
-        HandlerResult with combined message and serialized data
+        HandlerResult with primary, beats, and serialized data
     """
-    base_messages = [base_message]
-    if behavior_message:
-        base_messages.append(behavior_message)
-
-    message = build_message_with_positioning(base_messages, positioning_msg)
-    data = serialize_for_handler_result(item)
-
-    return HandlerResult(success=True, message=message, data=data)
+    return HandlerResult(
+        success=True,
+        primary=primary,
+        beats=beats or [],
+        data=data if data is not None else serialize_for_handler_result(item)
+    )

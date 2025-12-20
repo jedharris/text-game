@@ -73,7 +73,7 @@ class TestOnEnterEvent(unittest.TestCase):
             """Invoked when entering the windy room."""
             return EventResult(
                 allow=True,
-                message="A gust of wind nearly knocks you over!"
+                feedback="A gust of wind nearly knocks you over!"
             )
 
         windy_room_module.on_enter = on_enter
@@ -96,8 +96,8 @@ class TestOnEnterEvent(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Check that on_enter message is included
-        self.assertIn("gust of wind", result.message.lower())
-        self.assertIn("windy room", result.message.lower())
+        self.assertIn("gust of wind", result.primary.lower())
+        self.assertIn("windy room", result.primary.lower())
         # Player should have moved
         player = self.accessor.get_actor(ActorId("player"))
         self.assertEqual(player.location, "room2")
@@ -114,8 +114,8 @@ class TestOnEnterEvent(unittest.TestCase):
 
         self.assertTrue(result.success)
         # No on_enter message
-        self.assertNotIn("gust of wind", result.message.lower())
-        self.assertIn("safe room", result.message.lower())
+        self.assertNotIn("gust of wind", result.primary.lower())
+        self.assertIn("safe room", result.primary.lower())
         # Player should have moved
         player = self.accessor.get_actor(ActorId("player"))
         self.assertEqual(player.location, "room3")
@@ -149,7 +149,7 @@ class TestOnEnterEvent(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Check that on_enter message is included
-        self.assertIn("gust of wind", result.message.lower())
+        self.assertIn("gust of wind", result.primary.lower())
         # Player should have moved
         player = self.accessor.get_actor(ActorId("player"))
         self.assertEqual(player.location, "room2")
@@ -169,7 +169,7 @@ class TestOnEnterEvent(unittest.TestCase):
 
         self.assertTrue(result.success)
         # The behavior was invoked (message present)
-        self.assertIn("gust of wind", result.message.lower())
+        self.assertIn("gust of wind", result.primary.lower())
 
 
 if __name__ == '__main__':

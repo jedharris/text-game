@@ -54,7 +54,7 @@ def handle_quit(accessor, action):
     """
     return HandlerResult(
         success=True,
-        message="Thanks for playing!",
+        primary="Thanks for playing!",
         data={
             "signal": "quit"
         }
@@ -89,7 +89,7 @@ def handle_save(accessor, action):
 
     return HandlerResult(
         success=True,
-        message="Saving game...",
+        primary="Saving game...",
         data={
             "signal": "save",
             "filename": filename,
@@ -127,7 +127,7 @@ def handle_load(accessor, action):
 
     return HandlerResult(
         success=True,
-        message="Loading game...",
+        primary="Loading game...",
         data={
             "signal": "load",
             "filename": filename,

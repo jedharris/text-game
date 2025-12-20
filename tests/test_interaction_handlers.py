@@ -100,7 +100,7 @@ class TestHandleUse(unittest.TestCase):
         result = handle_use(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("what", result.message.lower())
+        self.assertIn("what", result.primary.lower())
 
     def test_use_item_not_found(self):
         """Test using non-existent item."""
@@ -110,7 +110,7 @@ class TestHandleUse(unittest.TestCase):
         result = handle_use(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.message.lower())
+        self.assertIn("don't see", result.primary.lower())
 
     def test_use_item_success(self):
         """Test using a usable item."""
@@ -120,7 +120,7 @@ class TestHandleUse(unittest.TestCase):
         result = handle_use(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("use", result.message.lower())
+        self.assertIn("use", result.primary.lower())
 
 
 class TestHandleRead(unittest.TestCase):
@@ -143,7 +143,7 @@ class TestHandleRead(unittest.TestCase):
         result = handle_read(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("what", result.message.lower())
+        self.assertIn("what", result.primary.lower())
 
     def test_read_item_not_found(self):
         """Test reading non-existent item."""
@@ -153,7 +153,7 @@ class TestHandleRead(unittest.TestCase):
         result = handle_read(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.message.lower())
+        self.assertIn("don't see", result.primary.lower())
 
     def test_read_not_readable(self):
         """Test reading non-readable item."""
@@ -163,7 +163,7 @@ class TestHandleRead(unittest.TestCase):
         result = handle_read(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("can't read", result.message.lower())
+        self.assertIn("can't read", result.primary.lower())
 
     def test_read_success(self):
         """Test reading a readable item."""
@@ -173,7 +173,7 @@ class TestHandleRead(unittest.TestCase):
         result = handle_read(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("read", result.message.lower())
+        self.assertIn("read", result.primary.lower())
 
 
 class TestHandleClimb(unittest.TestCase):
@@ -196,7 +196,7 @@ class TestHandleClimb(unittest.TestCase):
         result = handle_climb(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("what", result.message.lower())
+        self.assertIn("what", result.primary.lower())
 
     def test_climb_item_not_found(self):
         """Test climbing non-existent item."""
@@ -206,7 +206,7 @@ class TestHandleClimb(unittest.TestCase):
         result = handle_climb(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.message.lower())
+        self.assertIn("don't see", result.primary.lower())
 
     def test_climb_not_climbable(self):
         """Test climbing non-climbable item."""
@@ -216,7 +216,7 @@ class TestHandleClimb(unittest.TestCase):
         result = handle_climb(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("can't climb", result.message.lower())
+        self.assertIn("can't climb", result.primary.lower())
 
     def test_climb_success(self):
         """Test climbing a climbable item."""
@@ -226,7 +226,7 @@ class TestHandleClimb(unittest.TestCase):
         result = handle_climb(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("climb", result.message.lower())
+        self.assertIn("climb", result.primary.lower())
 
 
 class TestHandlePull(unittest.TestCase):
@@ -249,7 +249,7 @@ class TestHandlePull(unittest.TestCase):
         result = handle_pull(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("what", result.message.lower())
+        self.assertIn("what", result.primary.lower())
 
     def test_pull_item_not_found(self):
         """Test pulling non-existent item."""
@@ -259,7 +259,7 @@ class TestHandlePull(unittest.TestCase):
         result = handle_pull(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.message.lower())
+        self.assertIn("don't see", result.primary.lower())
 
     def test_pull_success(self):
         """Test pulling a pullable item."""
@@ -269,7 +269,7 @@ class TestHandlePull(unittest.TestCase):
         result = handle_pull(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("pull", result.message.lower())
+        self.assertIn("pull", result.primary.lower())
 
 
 class TestHandlePush(unittest.TestCase):
@@ -292,7 +292,7 @@ class TestHandlePush(unittest.TestCase):
         result = handle_push(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("what", result.message.lower())
+        self.assertIn("what", result.primary.lower())
 
     def test_push_item_not_found(self):
         """Test pushing non-existent item."""
@@ -302,7 +302,7 @@ class TestHandlePush(unittest.TestCase):
         result = handle_push(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.message.lower())
+        self.assertIn("don't see", result.primary.lower())
 
     def test_push_success(self):
         """Test pushing a pushable item."""
@@ -312,7 +312,7 @@ class TestHandlePush(unittest.TestCase):
         result = handle_push(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("push", result.message.lower())
+        self.assertIn("push", result.primary.lower())
 
 
 class TestPushWithAdjective(unittest.TestCase):
@@ -356,7 +356,7 @@ class TestPushWithAdjective(unittest.TestCase):
         self.assertTrue(result.success)
         # Check that the message mentions the correct door
         # The data should contain the iron door
-        self.assertIn("door", result.message.lower())
+        self.assertIn("door", result.primary.lower())
         # Verify we got the right door by checking data.id
         if result.data and "id" in result.data:
             self.assertEqual(result.data["id"], "door_iron")
@@ -483,7 +483,7 @@ class TestReadWithAdjective(unittest.TestCase):
         if result.data and "id" in result.data:
             self.assertEqual(result.data["id"], "book_ancient")
         # Verify the text is in the message
-        self.assertIn("Ancient secrets", result.message)
+        self.assertIn("Ancient secrets", result.primary)
 
     def test_read_with_different_adjective_selects_other_item(self):
         """Test that read with different adjective selects other item."""
@@ -497,7 +497,7 @@ class TestReadWithAdjective(unittest.TestCase):
         if result.data and "id" in result.data:
             self.assertEqual(result.data["id"], "book_leather")
         # Verify the text is in the message
-        self.assertIn("Dear diary", result.message)
+        self.assertIn("Dear diary", result.primary)
 
 
 class TestClimbWithAdjective(unittest.TestCase):
@@ -691,9 +691,9 @@ class TestClimbExit(unittest.TestCase):
         result = handle_climb(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("climb", result.message.lower())
-        self.assertIn("spiral staircase", result.message.lower())
-        self.assertIn("Tower Room", result.message)
+        self.assertIn("climb", result.primary.lower())
+        self.assertIn("spiral staircase", result.primary.lower())
+        self.assertIn("Tower Room", result.primary)
         # Verify player actually moved
         player = self.accessor.get_actor(ActorId("player"))
         self.assertEqual(player.location, "loc_tower")
@@ -732,7 +732,7 @@ class TestClimbExit(unittest.TestCase):
 
         self.assertFalse(result.success)
         # Should return empty message to allow other handlers to try
-        self.assertEqual(result.message, "")
+        self.assertEqual(result.primary, "")
 
     def test_climb_unnamed_exit_does_not_match(self):
         """Test climbing something that doesn't match an exit name fails."""

@@ -148,7 +148,7 @@ def on_enter_water(entity, accessor, context) -> Optional[Any]:
 
     warning = get_breath_warning(entity)
     if warning:
-        return EventResult(allow=True, message=warning)
+        return EventResult(allow=True, feedback=warning)
 
     return None
 

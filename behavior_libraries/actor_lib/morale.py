@@ -42,10 +42,15 @@ ENEMY_PENALTY = 15
 
 @dataclass
 class FleeResult:
-    """Result of a flee attempt."""
+    """Result of a flee attempt.
+
+    Fields:
+        narration: Description of the flee attempt for narration.
+                   Semantic type: NarrationText
+    """
     success: bool
     destination: Optional[str]
-    message: str
+    narration: str
 
 
 def get_allies(accessor, actor) -> List:
@@ -217,7 +222,7 @@ def attempt_flee(
         return FleeResult(
             success=False,
             destination=None,
-            message="Invalid actor"
+            narration="Invalid actor"
         )
 
     # Get current location
@@ -226,7 +231,7 @@ def attempt_flee(
         return FleeResult(
             success=False,
             destination=None,
-            message="Invalid location"
+            narration="Invalid location"
         )
 
     # Get available exits (excluding locked door exits)
@@ -250,7 +255,7 @@ def attempt_flee(
         return FleeResult(
             success=False,
             destination=None,
-            message=f"{actor.name} looks for an escape but there is no escape route!"
+            narration=f"{actor.name} looks for an escape but there is no escape route!"
         )
 
     # Determine success
@@ -264,7 +269,7 @@ def attempt_flee(
         return FleeResult(
             success=False,
             destination=None,
-            message=f"{actor.name} tries to flee but fails!"
+            narration=f"{actor.name} tries to flee but fails!"
         )
 
     # Choose random exit and move
@@ -274,7 +279,7 @@ def attempt_flee(
     return FleeResult(
         success=True,
         destination=destination,
-        message=f"{actor.name} flees to the {direction}!"
+        narration=f"{actor.name} flees to the {direction}!"
     )
 
 

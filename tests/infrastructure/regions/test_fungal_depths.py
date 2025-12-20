@@ -118,7 +118,7 @@ class TestMyconidFirstMeeting(unittest.TestCase):
 
         self.assertTrue(result.allow)
         self.assertEqual(myconid.properties["trust_state"]["current"], -3)
-        self.assertIn("crimson", result.message or "")
+        self.assertIn("crimson", result.feedback or "")
 
     def test_myconid_no_mark_normal_trust(self) -> None:
         """Myconid has normal trust without death mark."""
@@ -307,7 +307,7 @@ class TestLightPuzzle(unittest.TestCase):
         result = on_examine_ceiling(ceiling, accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIn("too dim", result.message or "")
+        self.assertIn("too dim", result.feedback or "")
         self.assertFalse(state.extra.get("safe_path_known", False))
 
     def test_examining_ceiling_with_light_grants_safe_path(self) -> None:
@@ -323,7 +323,7 @@ class TestLightPuzzle(unittest.TestCase):
 
         self.assertTrue(result.allow)
         self.assertTrue(state.extra.get("safe_path_known"))
-        self.assertIn("memorize", result.message or "")
+        self.assertIn("memorize", result.feedback or "")
 
 
 if __name__ == "__main__":

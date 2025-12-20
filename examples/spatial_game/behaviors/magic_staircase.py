@@ -24,13 +24,14 @@ def on_observe(entity: Any, accessor: Any, context: Dict) -> EventResult:
     actor = accessor.get_actor(actor_id)
 
     if not actor:
-        return EventResult(allow=False, message="")
+        return EventResult(allow=True, feedback="")
 
     # Check if player has the magic star in inventory
     inventory = actor.inventory or []
     has_star = "item_magic_star" in inventory
 
     if has_star:
-        return EventResult(allow=True, message="")
+        return EventResult(allow=True, feedback="")
     else:
-        return EventResult(allow=False, message="")
+        # Hide the staircase if player doesn't have the star
+        return EventResult(allow=False, feedback="")

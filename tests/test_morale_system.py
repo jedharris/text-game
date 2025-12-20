@@ -438,7 +438,7 @@ class TestAttemptFlee(unittest.TestCase):
         result = attempt_flee(accessor, self.npc)
 
         self.assertFalse(result.success)
-        self.assertIn("no escape", result.message.lower())
+        self.assertIn("no escape", result.narration.lower())
 
     def test_flee_failure_stays_in_place(self):
         """Failed flee keeps actor in current location."""
@@ -491,7 +491,7 @@ class TestAttemptFlee(unittest.TestCase):
         result = attempt_flee(accessor, self.npc)
 
         self.assertFalse(result.success)
-        self.assertIn("no escape", result.message.lower())
+        self.assertIn("no escape", result.narration.lower())
 
 
 class TestFleeResult(unittest.TestCase):
@@ -504,7 +504,7 @@ class TestFleeResult(unittest.TestCase):
         result = FleeResult(
             success=True,
             destination="loc_tunnel",
-            message="Goblin flees to the north!"
+            narration="Goblin flees to the north!"
         )
 
         self.assertTrue(result.success)

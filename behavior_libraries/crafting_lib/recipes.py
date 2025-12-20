@@ -41,9 +41,14 @@ Recipe = Dict[str, Any]
 
 @dataclass
 class CraftResult:
-    """Result of a crafting operation."""
+    """Result of a crafting operation.
+
+    Fields:
+        description: Description of the crafting outcome.
+                     Semantic type: DescriptionText
+    """
     success: bool
-    message: str
+    description: str
     created_item_id: Optional[str] = None
 
 
@@ -116,7 +121,7 @@ def execute_craft(accessor, recipe: Recipe, item_ids: List[str]) -> CraftResult:
     """
     player = accessor.get_actor(ActorId('player'))
     if not player:
-        return CraftResult(success=False, message="Player is not available.")
+        return CraftResult(success=False, description="Player is not available.")
     result_id = recipe.get('creates')
     consumes = recipe.get('consumes_ingredients', True)
 
@@ -134,10 +139,13 @@ def execute_craft(accessor, recipe: Recipe, item_ids: List[str]) -> CraftResult:
             # Create from template
             templates = get_item_templates(accessor)
             template = templates.get(result_id, {})
+            # Get name from template with fallback to result_id
+            item_name: str = template.get('name') or result_id
+            item_description: str = template.get('description') or 'A crafted item'
             new_item = Item(
                 id=result_id,
-                name=template.get('name', result_id),
-                description=template.get('description', 'A crafted item'),
+                name=item_name,
+                description=item_description,
                 location="",  # Will be in inventory
                 properties=template.get('properties', {})
             )
@@ -150,6 +158,6 @@ def execute_craft(accessor, recipe: Recipe, item_ids: List[str]) -> CraftResult:
 
     return CraftResult(
         success=True,
-        message=message,
+        description=message,
         created_item_id=result_id
     )

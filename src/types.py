@@ -54,3 +54,48 @@ EventName = NewType('EventName', str)
 
 HookName = NewType('HookName', str)
 """Name of a hook (e.g., 'visibility_check', 'on_save')."""
+
+
+# Semantic text types for Result fields
+# These distinguish different kinds of text used in result types,
+# enabling stronger type checking and clearer documentation.
+
+FeedbackText = NewType('FeedbackText', str)
+"""Text from entity behaviors describing their response (EventResult.feedback).
+Examples: "The door creaks open.", "The sword is stuck to the altar."
+"""
+
+DetailText = NewType('DetailText', str)
+"""Text describing operation details or errors (UpdateResult.detail).
+Examples: "Item moved to inventory.", "Field 'location' not found."
+"""
+
+PrimaryText = NewType('PrimaryText', str)
+"""Primary narration text from command handlers (HandlerResult.primary).
+Examples: "You pick up the sword.", "You can't go that way."
+"""
+
+NarrationText = NewType('NarrationText', str)
+"""Narrative description of actions (AttackResult.narration, FleeResult.narration).
+Examples: "The wolf lunges at you, fangs bared.", "You flee to the north."
+"""
+
+DescriptionText = NewType('DescriptionText', str)
+"""Description of crafted items or processes (CraftResult.description).
+Examples: "You combine the herbs into a healing poultice."
+"""
+
+ResponseText = NewType('ResponseText', str)
+"""NPC dialog response text (DialogResult.response).
+Examples: "The merchant nods. 'I've heard tales of that sword.'"
+"""
+
+OutcomeText = NewType('OutcomeText', str)
+"""Description of service outcomes (ServiceResult.outcome).
+Examples: "The healer tends to your wounds, and you feel refreshed."
+"""
+
+EffectText = NewType('EffectText', str)
+"""Description of treatment effects (TreatmentResult.effect).
+Examples: "The antidote neutralizes the poison in your veins."
+"""

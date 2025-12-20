@@ -94,7 +94,7 @@ class TestApproachCommand(unittest.TestCase):
         result = handle_approach(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("move", result.message.lower())
+        self.assertIn("move", result.primary.lower())
         self.assertEqual(player.properties.get("focused_on"), "item_bench")
 
     def test_approach_already_there(self):
@@ -106,7 +106,7 @@ class TestApproachCommand(unittest.TestCase):
         result = handle_approach(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("already", result.message.lower())
+        self.assertIn("already", result.primary.lower())
         self.assertEqual(player.properties.get("focused_on"), "item_bench")
 
     def test_approach_part_of_location(self):
@@ -158,7 +158,7 @@ class TestApproachCommand(unittest.TestCase):
         result = handle_approach(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.message.lower())
+        self.assertIn("don't see", result.primary.lower())
 
     def test_approach_no_object(self):
         """Test approach without object fails with helpful message."""
@@ -166,7 +166,7 @@ class TestApproachCommand(unittest.TestCase):
         result = handle_approach(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("what", result.message.lower())
+        self.assertIn("what", result.primary.lower())
 
     def test_approach_changes_focus_from_one_entity_to_another(self):
         """Test approach updates focus when moving between entities."""

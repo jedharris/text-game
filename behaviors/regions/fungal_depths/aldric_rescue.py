@@ -61,12 +61,12 @@ def on_aldric_commitment(
     """
     actor_id = entity.id if hasattr(entity, "id") else None
     if actor_id != "npc_aldric":
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check if keyword matches commitment triggers
     keyword = context.get("keyword", "").lower()
     if not any(trigger in keyword for trigger in COMMITMENT_KEYWORDS):
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
     extra = state.extra
@@ -75,7 +75,7 @@ def on_aldric_commitment(
     if extra.get("aldric_commitment_created"):
         return EventResult(
             allow=True,
-            message="'You've already promised to help. Please... hurry.'",
+            feedback="'You've already promised to help. Please... hurry.'",
         )
 
     # Create the commitment (config must exist in game state)
@@ -104,7 +104,7 @@ def on_aldric_commitment(
 
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             "Aldric's eyes brighten with hope. 'The silvermoss grows in the "
             "Luminous Grotto below. Be careful - the spores are thicker there.' "
             "His hope seems to strengthen him slightly."
@@ -131,17 +131,17 @@ def on_aldric_heal(
     """
     item_id = entity.id if hasattr(entity, "id") else str(entity)
     if "silvermoss" not in item_id.lower():
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     target = context.get("target")
     target_id = target.id if target and hasattr(target, "id") else str(target) if target else ""
     if target_id != "npc_aldric":
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
     aldric = state.actors.get("npc_aldric")
     if not aldric:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Get current state
     sm = aldric.properties.get("state_machine", {})
@@ -162,7 +162,7 @@ def on_aldric_heal(
 
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "Color returns to Aldric's cheeks as the silvermoss takes effect. "
                 "He can sit up now, breathing easier. 'Thank you... but I'm not "
                 "fully cured. One more dose, or the Myconid's remedy, would heal me completely.'"
@@ -192,7 +192,7 @@ def on_aldric_heal(
 
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "Aldric stands straighter, his strength returning. 'I feel... whole again. "
                 "You've done more than save my life - you've given me hope.' "
                 "He looks at you with gratitude. 'If you wish, I could teach you "
@@ -203,10 +203,10 @@ def on_aldric_heal(
     if current_state == "recovering":
         return EventResult(
             allow=True,
-            message="Aldric is already fully recovered. He doesn't need more silvermoss.",
+            feedback="Aldric is already fully recovered. He doesn't need more silvermoss.",
         )
 
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)
 
 
 def on_aldric_teach(
@@ -228,16 +228,16 @@ def on_aldric_teach(
     """
     actor_id = entity.id if hasattr(entity, "id") else None
     if actor_id != "npc_aldric":
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     keyword = context.get("keyword", "").lower()
     if not any(trigger in keyword for trigger in TEACH_KEYWORDS):
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     state = accessor.state
     aldric = state.actors.get("npc_aldric")
     if not aldric:
-        return EventResult(allow=True, message=None)
+        return EventResult(allow=True, feedback=None)
 
     # Check state
     sm = aldric.properties.get("state_machine", {})
@@ -246,7 +246,7 @@ def on_aldric_teach(
     if current_state == "critical":
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "'I wish I could teach you...' Aldric coughs weakly. "
                 "'But I can barely breathe, let alone explain the subtleties "
                 "of mycology. Help me first.'"
@@ -260,7 +260,7 @@ def on_aldric_teach(
     if current_trust < 2:
         return EventResult(
             allow=True,
-            message=(
+            feedback=(
                 "'Teaching mycology is... intimate. I need to trust you more "
                 "before I share my life's work. Talk with me, help me understand "
                 "who you are.'"
@@ -272,7 +272,7 @@ def on_aldric_teach(
     if player and player.properties.get("skills", {}).get("mycology"):
         return EventResult(
             allow=True,
-            message="'You already know what I can teach. Use it well.'",
+            feedback="'You already know what I can teach. Use it well.'",
         )
 
     # Check for gift item
@@ -283,7 +283,7 @@ def on_aldric_teach(
         if "research_notes" not in gift_id and "rare" not in gift_id:
             return EventResult(
                 allow=True,
-                message=(
+                feedback=(
                     "'I would gladly teach you, but... tradition demands an exchange. "
                     "Bring me something of scholarly value - research notes, perhaps, "
                     "or a rare herb I haven't catalogued.'"
@@ -300,7 +300,7 @@ def on_aldric_teach(
 
     return EventResult(
         allow=True,
-        message=(
+        feedback=(
             "Aldric spends time teaching you the subtle art of mycology - "
             "how to identify beneficial fungi, understand spore patterns, "
             "and navigate fungal environments safely. 'This knowledge saved "

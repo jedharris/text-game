@@ -84,7 +84,7 @@ class TestTakeCover(unittest.TestCase):
         result = handle_take_cover(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("take cover", result.message.lower())
+        self.assertIn("take cover", result.primary.lower())
         self.assertEqual(player.properties.get("focused_on"), "item_pillar")
         self.assertEqual(player.properties.get("posture"), "cover")
 
@@ -96,7 +96,7 @@ class TestTakeCover(unittest.TestCase):
         result = handle_take_cover(self.accessor, action)
 
         self.assertTrue(result.success)
-        self.assertIn("take cover", result.message.lower())
+        self.assertIn("take cover", result.primary.lower())
         self.assertEqual(player.properties.get("focused_on"), "part_room_wall")
         self.assertEqual(player.properties.get("posture"), "cover")
 
@@ -106,7 +106,7 @@ class TestTakeCover(unittest.TestCase):
         result = handle_take_cover(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("doesn't provide cover", result.message.lower())
+        self.assertIn("doesn't provide cover", result.primary.lower())
 
     def test_take_cover_behind_nonexistent_object_fails(self):
         """Test taking cover behind non-existent object fails."""
@@ -114,7 +114,7 @@ class TestTakeCover(unittest.TestCase):
         result = handle_take_cover(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.message.lower())
+        self.assertIn("don't see", result.primary.lower())
 
     def test_take_cover_without_object_fails(self):
         """Test take cover without specifying object fails."""
@@ -122,7 +122,7 @@ class TestTakeCover(unittest.TestCase):
         result = handle_take_cover(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("behind what", result.message.lower())
+        self.assertIn("behind what", result.primary.lower())
 
     def test_take_cover_replaces_existing_posture(self):
         """Test taking cover replaces existing posture."""

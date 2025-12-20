@@ -31,7 +31,7 @@ class TestConsumableProperties(unittest.TestCase):
         result = handle_eat(accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("can't eat", result.message.lower())
+        self.assertIn("can't eat", result.primary.lower())
 
     def test_eat_edible_item_succeeds(self):
         """Test that eating an edible item succeeds."""
@@ -70,7 +70,7 @@ class TestConsumableProperties(unittest.TestCase):
         result = handle_drink(accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("can't drink", result.message.lower())
+        self.assertIn("can't drink", result.primary.lower())
 
     def test_drink_drinkable_item_succeeds(self):
         """Test that drinking a drinkable item succeeds."""
@@ -115,7 +115,7 @@ class TestConsumableProperties(unittest.TestCase):
         result = handle_eat(accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("can't eat", result.message.lower())
+        self.assertIn("can't eat", result.primary.lower())
 
     def test_drink_item_with_drinkable_false_fails(self):
         """Test that items with drinkable=False explicitly cannot be drunk."""
@@ -138,7 +138,7 @@ class TestConsumableProperties(unittest.TestCase):
         result = handle_drink(accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("can't drink", result.message.lower())
+        self.assertIn("can't drink", result.primary.lower())
 
 
 if __name__ == '__main__':

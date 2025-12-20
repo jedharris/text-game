@@ -82,7 +82,7 @@ def on_item_used(
 
             # Data-driven processing
             result = _check_target_reactions(target, item_lower, accessor, context)
-            if result and result.message:
+            if result and result.feedback:
                 return result
 
     # Check item for self-reactions (e.g., using bucket to water)
@@ -98,10 +98,10 @@ def on_item_used(
                 # Handler failed to load - fall through to data-driven
 
             result = _process_item_use(entity, item_config, accessor, context)
-            if result and result.message:
+            if result and result.feedback:
                 return result
 
-    return EventResult(allow=True, message=None)
+    return EventResult(allow=True, feedback=None)
 
 
 def _check_target_reactions(
@@ -204,4 +204,4 @@ def _process_reaction(
     # Get response message
     message = reaction_config.get("response", "")
 
-    return EventResult(allow=True, message=message if message else None)
+    return EventResult(allow=True, feedback=message if message else None)

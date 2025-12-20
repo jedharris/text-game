@@ -30,7 +30,12 @@
       "Bash(if ! grep -q \"from typing import.*Any\" \"$f\")",
       "Bash(echo:*)",
       "Bash(fi)",
-      "Bash(gh issue create:*)"
+      "Bash(gh issue create:*)",
+      "Bash(gh issue view:*)",
+      "Bash(python -m mypy:*)",
+      "Bash(gh issue close:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(gh issue comment:*)"
     ],
     "deny": [],
     "ask": []

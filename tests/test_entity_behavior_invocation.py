@@ -92,13 +92,14 @@ class TestEntityBehaviorInvocationOnTake(unittest.TestCase):
             "Entity on_take behavior was not invoked - lantern should be lit")
 
     def test_take_returns_behavior_message(self):
-        """Test that taking an item returns the behavior message."""
+        """Test that taking an item returns the behavior message in beats."""
         action = make_action(object="lantern", actor_id="player")
         result = handle_take(self.accessor, action)
 
-        # Result message should include behavior message about runes
-        self.assertIn("runes", result.message.lower(),
-            "Behavior message not included in result")
+        # Result beats should include behavior message about runes
+        all_beats = " ".join(result.beats).lower()
+        self.assertIn("runes", all_beats,
+            "Behavior message not included in result beats")
 
 
 class TestEntityBehaviorInvocationOnDrop(unittest.TestCase):
@@ -141,13 +142,14 @@ class TestEntityBehaviorInvocationOnDrop(unittest.TestCase):
             "Entity on_drop behavior was not invoked - lantern should be unlit")
 
     def test_drop_returns_behavior_message(self):
-        """Test that dropping an item returns the behavior message."""
+        """Test that dropping an item returns the behavior message in beats."""
         action = make_action(object="lantern", actor_id="player")
         result = handle_drop(self.accessor, action)
 
-        # Result message should include behavior message about runes fading
-        self.assertIn("runes", result.message.lower(),
-            "Behavior message not included in result")
+        # Result beats should include behavior message about runes fading
+        all_beats = " ".join(result.beats).lower()
+        self.assertIn("runes", all_beats,
+            "Behavior message not included in result beats")
 
 
 class TestEntityBehaviorInvocationNPC(unittest.TestCase):

@@ -285,7 +285,7 @@ class TestOnPlayerMoveCompanionsFollow(unittest.TestCase):
         self.assertEqual(state.actors[ActorId('wolf')].location, 'meadow')
         # Result should include follow message
         self.assertIsInstance(result, EventResult)
-        self.assertIn('wolf', result.message.lower())
+        self.assertIn('wolf', result.feedback.lower())
 
     def test_companion_stays_when_restricted(self):
         """Companion stays at previous location when restricted from destination."""
@@ -328,7 +328,7 @@ class TestOnPlayerMoveCompanionsFollow(unittest.TestCase):
         # Wolf should NOT have moved
         self.assertEqual(state.actors[ActorId('wolf')].location, 'forest')
         # Result should include cannot follow message
-        self.assertIn('refuses', result.message.lower())
+        self.assertIn('refuses', result.feedback.lower())
 
     def test_multiple_companions(self):
         """Multiple companions all follow if able."""
@@ -404,7 +404,7 @@ class TestOnPlayerMoveCompanionsFollow(unittest.TestCase):
 
         # Should allow but with empty message
         self.assertTrue(result.allow)
-        self.assertEqual(result.message, '')
+        self.assertEqual(result.feedback, '')
 
 
 if __name__ == '__main__':

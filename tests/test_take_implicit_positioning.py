@@ -84,8 +84,8 @@ class TestTakeImplicitPositioning(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Should not include movement prefix
-        self.assertNotIn("move", result.message.lower())
-        self.assertNotIn("closer", result.message.lower())
+        self.assertNotIn("move", result.primary.lower())
+        self.assertNotIn("closer", result.primary.lower())
         # Item should be taken
         self.assertIn("item_coin", player.inventory)
         # Focus should be set
@@ -99,8 +99,8 @@ class TestTakeImplicitPositioning(unittest.TestCase):
         result = handle_take(self.accessor, action)
 
         self.assertTrue(result.success)
-        # Should include movement prefix
-        self.assertIn("move", result.message.lower())
+        # Should include movement beat
+        self.assertTrue(any("move" in beat.lower() for beat in result.beats))
         # Item should be taken
         self.assertIn("item_key", player.inventory)
         # Focus should be set
@@ -115,8 +115,8 @@ class TestTakeImplicitPositioning(unittest.TestCase):
         result = handle_take(self.accessor, action)
 
         self.assertTrue(result.success)
-        # Should NOT include movement prefix
-        self.assertNotIn("move", result.message.lower())
+        # Should NOT include movement beat
+        self.assertFalse(any("move" in beat.lower() for beat in result.beats))
         # Item should be taken
         self.assertIn("item_key", player.inventory)
 
@@ -142,7 +142,7 @@ class TestTakeImplicitPositioning(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Should move to box (container), not gem (item being taken)
-        self.assertIn("move", result.message.lower())
+        self.assertTrue(any("move" in beat.lower() for beat in result.beats))
         self.assertEqual(player.properties.get("focused_on"), "item_box")
         # Item should be taken
         self.assertIn("item_gem", player.inventory)
@@ -157,7 +157,7 @@ class TestTakeImplicitPositioning(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Should NOT move
-        self.assertNotIn("move", result.message.lower())
+        self.assertNotIn("move", result.primary.lower())
         # Item should be taken
         self.assertIn("item_gem", player.inventory)
 

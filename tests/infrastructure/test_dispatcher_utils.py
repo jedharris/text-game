@@ -68,7 +68,7 @@ class TestDispatchOrProcess(unittest.TestCase):
 
     def test_dispatch_to_handler(self) -> None:
         """When handler is specified and valid, it is called."""
-        handler_result = EventResult(allow=True, message="Handler called")
+        handler_result = EventResult(allow=True, feedback="Handler called")
         mock_handler = MagicMock(return_value=handler_result)
 
         with patch(
@@ -78,7 +78,7 @@ class TestDispatchOrProcess(unittest.TestCase):
             config = {"handler": "some.module:handler_func"}
 
             def process_func(e: object, a: object, c: dict, cfg: dict) -> EventResult:
-                return EventResult(allow=True, message="Process called")
+                return EventResult(allow=True, feedback="Process called")
 
             result = dispatch_or_process(
                 entity=self.entity,
@@ -89,7 +89,7 @@ class TestDispatchOrProcess(unittest.TestCase):
                 process_func=process_func,
             )
 
-        self.assertEqual(result.message, "Handler called")
+        self.assertEqual(result.feedback, "Handler called")
         mock_handler.assert_called_once_with(self.entity, self.accessor, self.context)
 
     def test_fallback_to_process_func(self) -> None:
@@ -97,7 +97,7 @@ class TestDispatchOrProcess(unittest.TestCase):
         config = {"some_key": "some_value"}
 
         def process_func(e: object, a: object, c: dict, cfg: dict) -> EventResult:
-            return EventResult(allow=True, message="Process called")
+            return EventResult(allow=True, feedback="Process called")
 
         result = dispatch_or_process(
             entity=self.entity,
@@ -108,14 +108,14 @@ class TestDispatchOrProcess(unittest.TestCase):
             process_func=process_func,
         )
 
-        self.assertEqual(result.message, "Process called")
+        self.assertEqual(result.feedback, "Process called")
 
     def test_fallback_on_handler_load_failure(self) -> None:
         """When handler fails to load, process_func is called."""
         config = {"handler": "invalid.module:nonexistent"}
 
         def process_func(e: object, a: object, c: dict, cfg: dict) -> EventResult:
-            return EventResult(allow=True, message="Process called")
+            return EventResult(allow=True, feedback="Process called")
 
         result = dispatch_or_process(
             entity=self.entity,
@@ -126,7 +126,7 @@ class TestDispatchOrProcess(unittest.TestCase):
             process_func=process_func,
         )
 
-        self.assertEqual(result.message, "Process called")
+        self.assertEqual(result.feedback, "Process called")
 
 
 if __name__ == "__main__":

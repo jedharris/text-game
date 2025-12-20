@@ -87,8 +87,8 @@ class TestCrystalBallRevealHiddenItem(unittest.TestCase):
 
         # Result should be successful with reveal message
         self.assertTrue(result.allow)
-        self.assertIn("golden key", result.message.lower())
-        self.assertIn("materializes", result.message.lower())
+        self.assertIn("golden key", result.feedback.lower())
+        self.assertIn("materializes", result.feedback.lower())
 
         # Key should now be revealed
         self.assertFalse(sanctum_key.states.get("hidden", True))
@@ -109,7 +109,7 @@ class TestCrystalBallRevealHiddenItem(unittest.TestCase):
         result = on_peer(crystal_ball, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIn("already claimed", result.message.lower())
+        self.assertIn("already claimed", result.feedback.lower())
 
     def test_revealed_key_becomes_accessible(self):
         """After reveal, key can be found by find_accessible_item."""
@@ -248,8 +248,8 @@ class TestCrystalBallInContainers(unittest.TestCase):
         self.assertEqual(sanctum_key.location, crystal_ball.location)
 
         # Message should use "on the desk"
-        self.assertIn("on the desk", result.message.lower())
-        self.assertNotIn("on the floor", result.message.lower())
+        self.assertIn("on the desk", result.feedback.lower())
+        self.assertNotIn("on the floor", result.feedback.lower())
 
     def test_key_appears_in_container_when_crystal_ball_in_container(self):
         """When crystal ball is in a non-surface container, key appears in same container with 'in' preposition."""
@@ -270,8 +270,8 @@ class TestCrystalBallInContainers(unittest.TestCase):
         self.assertEqual(sanctum_key.location, crystal_ball.location)
 
         # Message should use "in the box"
-        self.assertIn("in the box", result.message.lower())
-        self.assertNotIn("on the floor", result.message.lower())
+        self.assertIn("in the box", result.feedback.lower())
+        self.assertNotIn("on the floor", result.feedback.lower())
 
 
 class TestCrystalBallMissingKey(unittest.TestCase):
@@ -326,7 +326,7 @@ class TestCrystalBallMissingKey(unittest.TestCase):
         result = on_peer(crystal_ball, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIn("reveal nothing", result.message.lower())
+        self.assertIn("reveal nothing", result.feedback.lower())
 
 
 if __name__ == "__main__":

@@ -506,7 +506,7 @@ class TestBehaviorFunctionSignatures(unittest.TestCase):
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
-        self.assertIsNotNone(result.message)
+        self.assertIsNotNone(result.feedback)
 
     def test_on_drink_returns_none_for_non_drinkable(self):
         """Test that on_drink returns None for non-drinkable entities."""
@@ -547,7 +547,7 @@ class TestBehaviorFunctionSignatures(unittest.TestCase):
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
-        self.assertIsNotNone(result.message)
+        self.assertIsNotNone(result.feedback)
 
     def test_on_eat_returns_none_for_non_edible(self):
         """Test that on_eat returns None for non-edible entities."""
@@ -580,7 +580,7 @@ class TestBehaviorFunctionSignatures(unittest.TestCase):
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
-        self.assertIsNotNone(result.message)
+        self.assertIsNotNone(result.feedback)
 
     def test_on_drop_light_source_returns_event_result(self):
         """Test that on_drop returns EventResult."""
@@ -596,7 +596,7 @@ class TestBehaviorFunctionSignatures(unittest.TestCase):
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
-        self.assertIsNotNone(result.message)
+        self.assertIsNotNone(result.feedback)
 
     def test_on_open_returns_event_result_for_treasure_chest(self):
         """Test that on_open returns EventResult for treasure chest."""
@@ -618,7 +618,7 @@ class TestBehaviorFunctionSignatures(unittest.TestCase):
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
-        self.assertIsNotNone(result.message)
+        self.assertIsNotNone(result.feedback)
 
     def test_on_open_returns_none_for_non_treasure_chest(self):
         """Test that on_open returns None for non-treasure-chest entities."""
