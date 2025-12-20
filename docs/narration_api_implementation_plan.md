@@ -196,41 +196,17 @@ For backward compatibility, the protocol handler combines `primary` and `beats` 
 
 ---
 
-## Phase 3: Create NarrationAssembler
+## Phase 3: Create NarrationAssembler ✅ COMPLETED
 
 **Goal:** Build the module that constructs `NarrationPlan` from handler results.
 
-**Files to create:**
-- `src/narration_assembler.py` (new)
-- `tests/test_narration_assembler.py` (new)
+**Status:** Completed and closed (Issue #223)
 
-**NarrationAssembler responsibilities:**
+### Completed Work
 
-1. **Build primary_text**: Direct from handler's `primary`
+#### 1. Created NarrationAssembler class (`src/narration_assembler.py`)
 
-2. **Build secondary_beats**:
-   - Include handler's `beats`
-   - Select trait beats from entity data (for full verbosity)
-
-3. **Build viewpoint**:
-   - Get actor posture and focused_on from state
-   - Determine mode from posture
-   - Resolve focus_name from entity
-
-4. **Build scope**:
-   - Determine scene_kind from verb
-   - Set outcome from success
-   - Determine familiarity from tracking state
-
-5. **Build entity_refs**:
-   - Serialize relevant entities with traits
-   - Compute spatial_relation based on viewpoint
-   - Assign salience based on action context
-
-6. **Build must_mention**:
-   - Format exits_text for location scenes
-
-**Interface:**
+The `NarrationAssembler` class takes a `HandlerResult` and game state context, and builds a complete `NarrationPlan` for the LLM narrator.
 
 ```python
 class NarrationAssembler:
@@ -247,38 +223,89 @@ class NarrationAssembler:
         ...
 ```
 
-**Tests:**
-- Test each component builder in isolation
-- Test full assembly for different scene types
-- Test trait selection and randomization
-- Test viewpoint mode determination
+#### 2. Implemented component builders
+
+1. **`_build_secondary_beats`**: Includes handler beats; extracts trait beats from `llm_context` for full verbosity
+2. **`_build_viewpoint`**: Maps posture to mode (ground/elevated/concealed); resolves focus_name from entity
+3. **`_build_scope`**: Determines scene_kind from verb (location_entry/look/action_result); maps success to outcome
+4. **`_build_entity_refs`**: Builds EntityRef from handler data including traits, state flags, and spatial_relation
+5. **`_build_must_mention`**: Formats exits_text for location/look scenes
+
+#### 3. Verb classification constants
+
+- `LOCATION_ENTRY_VERBS`: go, north, south, east, west, up, down, etc.
+- `LOOK_VERBS`: look, l, examine, x, inspect
+
+#### 4. Posture normalization
+
+- `cover` → `behind_cover`
+- `climbing`, `on_surface` → elevated mode
+- `behind_cover`, `concealed` → concealed mode
+
+#### 5. Created unit tests (`tests/test_narration_assembler.py`)
+
+32 tests covering:
+- Viewpoint building (ground, elevated, concealed modes)
+- Scope building (scene_kind, outcome, familiarity)
+- Secondary beats (handler beats, trait extraction)
+- Entity refs (from handler data, with traits/state)
+- Must mention (exits_text formatting)
+- Full assembly integration
+
+**Tests:** All 1925 tests pass. mypy validates with no errors.
 
 ---
 
-## Phase 4: Update LLMProtocolHandler
+## Phase 4: Update LLMProtocolHandler ✅ COMPLETED
 
 **Goal:** Have the protocol handler return `NarrationResult` instead of current format.
 
-**Files to modify:**
-- `src/llm_protocol.py`
-- `src/action_types.py` (deprecate old `ResultMessage`)
+**Status:** Completed and closed (Issue #224)
 
-**Changes:**
+### Completed Work
 
-1. Import and use `NarrationAssembler`
+#### 1. Core Implementation (src/llm_protocol.py)
 
-2. Update `handle_command` to:
-   - Create `NarrationAssembler`
-   - Call handler as before
-   - Use assembler to build `NarrationPlan`
-   - Return `NarrationResult`
+- Imported NarrationAssembler and NarrationResult types
+- Added visit tracking sets (`visited_locations`, `examined_entities`)
+- Rewrote `handle_command` to use NarrationAssembler
+- Added helper methods:
+  - `_get_narration_mode`: Looks up verb's narration_mode from merged vocabulary
+  - `_determine_verbosity`: Decides "brief" vs "full" based on mode, success, and tracking
+  - `_determine_familiarity`: Decides "new" vs "familiar" based on visit/examine tracking
+  - `_update_tracking`: Updates visited_locations and examined_entities sets
 
-3. Update `handle_query` for location queries:
-   - Return `NarrationResult` format for consistency
+#### 2. Frontend Update (src/text_game.py)
 
-**Tests:**
-- Update all protocol handler tests
-- Test that returned structure matches `NarrationResult` type
+Updated `format_command_result()` to extract text from new NarrationResult format:
+```python
+def format_command_result(response: Dict[str, Any]) -> str:
+    if "narration" in response:
+        narration = response["narration"]
+        parts = [narration.get("primary_text", "")]
+        if "secondary_beats" in narration:
+            parts.extend(narration["secondary_beats"])
+        return "\n".join(part for part in parts if part)
+    # Old format backward compatibility...
+```
+
+#### 3. Refactoring Tool (tools/refactor_result_message.py)
+
+Created AST-based tool to safely refactor test assertions for the new format:
+- Handles `result["message"]` → `get_result_message(result)`
+- Handles `result.get("message", "")` → `get_result_message(result)`
+- Handles `result.get("error", {}).get("message", "")` → `get_result_message(result)`
+- Handles `assertIn("message", result)` → `assertIn("narration", result)`
+- Automatically adds helper function and typing imports where needed
+
+#### 4. Test Updates
+
+- Updated 15+ test files to handle new NarrationResult format
+- Added `get_result_message()` helper functions where needed
+- Updated assertions checking for "error" key to check for "narration" key
+- Fixed mocking in test_turn_phase_hooks.py to patch vocabulary service
+
+**Tests:** All 1925 tests pass. mypy validates with no errors.
 
 ---
 

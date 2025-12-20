@@ -2,14 +2,45 @@
 Tests for inventory command refactoring.
 
 Tests that inventory works as a command behavior instead of a query.
+
+Updated for Phase 4 (Narration API) to handle NarrationResult format.
 """
 from src.types import ActorId
+from typing import Any, Dict
 
 import unittest
 from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
 from src.state_manager import Actor, Item
 from tests.conftest import BaseTestCase
+
+
+def get_result_message(result: Dict[str, Any]) -> str:
+    """
+    Extract message text from result, handling both old and new formats.
+
+    New format (Phase 4): result["narration"]["primary_text"]
+    Old format: result["message"] or result["error"]["message"]
+
+    For the new format, also concatenates secondary_beats.
+    """
+    # New format: NarrationResult
+    if "narration" in result:
+        narration = result["narration"]
+        parts = [narration.get("primary_text", "")]
+        if "secondary_beats" in narration:
+            parts.extend(narration["secondary_beats"])
+        return "\n".join(parts)
+
+    # Old format - success case
+    if result.get("success") and "message" in result:
+        return result["message"]
+
+    # Old format - error case
+    if "error" in result and "message" in result["error"]:
+        return result["error"]["message"]
+
+    return result.get("message", "")
 
 
 class TestInventoryCommandRefactoring(BaseTestCase):
@@ -36,7 +67,7 @@ class TestInventoryCommandRefactoring(BaseTestCase):
 
         self.assertEqual(result["type"], "result")
         self.assertTrue(result["success"])
-        self.assertIn("sword", result["message"].lower())
+        self.assertIn("sword", get_result_message(result).lower())
 
     def test_inventory_command_npc(self):
         """Test inventory command for NPC.
@@ -66,8 +97,8 @@ class TestInventoryCommandRefactoring(BaseTestCase):
         result = self.handler.handle_message(message)
 
         self.assertTrue(result["success"])
-        self.assertIn("key", result["message"].lower())
-        self.assertNotIn("sword", result["message"].lower())
+        self.assertIn("key", get_result_message(result).lower())
+        self.assertNotIn("sword", get_result_message(result).lower())
 
     def test_inventory_command_explicit_player(self):
         """Test inventory command with explicit player actor_id."""
@@ -82,7 +113,7 @@ class TestInventoryCommandRefactoring(BaseTestCase):
         result = self.handler.handle_message(message)
 
         self.assertTrue(result["success"])
-        self.assertIn("sword", result["message"].lower())
+        self.assertIn("sword", get_result_message(result).lower())
 
     def test_inventory_command_empty(self):
         """Test inventory command with no items."""
@@ -94,7 +125,7 @@ class TestInventoryCommandRefactoring(BaseTestCase):
         result = self.handler.handle_message(message)
 
         self.assertTrue(result["success"])
-        self.assertIn("carrying nothing", result["message"].lower())
+        self.assertIn("carrying nothing", get_result_message(result).lower())
 
 
 if __name__ == '__main__':

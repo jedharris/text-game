@@ -1,12 +1,13 @@
 """Tests for protocol handler behavior integration (Phase 2).
 
 Updated to use actual GameState classes and new behavior system architecture.
+Updated for Phase 4 (Narration API) to use NarrationResult format.
 """
 
 import unittest
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List
+from typing import Any, Dict, List
 from types import SimpleNamespace
 
 from src.behavior_manager import BehaviorManager, EventResult
@@ -14,6 +15,27 @@ from src.llm_protocol import LLMProtocolHandler
 from src.state_manager import (
     GameState, Metadata, Location, Item, Actor
 )
+
+
+def get_result_message(result: Dict[str, Any]) -> str:
+    """
+    Extract message text from result, handling both old and new formats.
+
+    New format (Phase 4): result["narration"]["primary_text"]
+    Old format: result["message"]
+
+    For the new format, also concatenates secondary_beats.
+    """
+    # New format: NarrationResult
+    if "narration" in result:
+        narration = result["narration"]
+        parts = [narration.get("primary_text", "")]
+        if "secondary_beats" in narration:
+            parts.extend(narration["secondary_beats"])
+        return "\n".join(parts)
+
+    # Old format
+    return result.get("message", "")
 
 
 def create_behavior_manager_with_core_modules():
@@ -98,7 +120,8 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
 
         # Should use builtin take handler
         self.assertTrue(result.get("success"))
-        self.assertEqual(result.get("action"), "take")
+        # New format (Phase 4) uses narration instead of message
+        self.assertIn("narration", result)
 
     def test_behavior_invocation_after_successful_command(self):
         """Test that behavior is invoked after successful command."""
@@ -127,8 +150,8 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
 
         self.assertTrue(result.get("success"))
         self.assertEqual(len(behavior_called), 1)
-        # Behavior message should be included
-        self.assertIn("You feel the sword's power!", result.get("message", ""))
+        # Behavior message should be included in narration
+        self.assertIn("You feel the sword's power!", get_result_message(result))
 
     def test_behavior_can_prevent_action(self):
         """Test that behavior can prevent action with allow=False."""
@@ -150,8 +173,8 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
 
         # Action should fail
         self.assertFalse(result.get("success"))
-        # Error message could be in message or in error.message
-        error_msg = result.get("message", "") or result.get("error", {}).get("message", "")
+        # Error message is in narration.primary_text for new format
+        error_msg = get_result_message(result) or get_result_message(result)
         self.assertIn("cursed", error_msg.lower())
 
     def test_message_appears_in_result(self):
@@ -171,7 +194,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
             "action": {"verb": "take", "object": "sword"}
         })
 
-        self.assertIn("The magic awakens!", result.get("message", ""))
+        self.assertIn("The magic awakens!", get_result_message(result))
 
     def test_entity_obj_removed_from_final_result(self):
         """Test that entity_obj is removed from final result."""
@@ -185,8 +208,8 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
 
         # entity_obj should not be in result
         self.assertNotIn("entity_obj", result)
-        # New format uses message, not entity dict
-        self.assertIn("message", result)
+        # New format (Phase 4) uses narration, not message
+        self.assertIn("narration", result)
 
     def test_context_contains_location(self):
         """Test that context passed to behavior contains location info."""
@@ -330,14 +353,14 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
             "type": "command",
             "action": {"verb": "take", "object": "sword"}
         })
-        self.assertIn("Taken!", result.get("message", ""))
+        self.assertIn("Taken!", get_result_message(result))
 
         # Drop the item
         result = handler.handle_command({
             "type": "command",
             "action": {"verb": "drop", "object": "sword"}
         })
-        self.assertIn("Dropped!", result.get("message", ""))
+        self.assertIn("Dropped!", get_result_message(result))
 
     def test_no_behavior_manager_works_without_behaviors(self):
         """Test that handler works with auto-created behavior manager."""
@@ -349,7 +372,8 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertEqual(result.get("action"), "take")
+        # New format (Phase 4) uses narration instead of message
+        self.assertIn("narration", result)
 
     def test_entity_without_behaviors_attribute(self):
         """Test handling entity that doesn't have behaviors defined."""
@@ -552,8 +576,8 @@ class TestProtocolBehaviorCommands(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        # Should return the item's description
-        self.assertIn("potion", result.get("message", "").lower())
+        # Should return the item's description in narration
+        self.assertIn("potion", get_result_message(result).lower())
 
 
 if __name__ == '__main__':

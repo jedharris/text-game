@@ -2,8 +2,11 @@
 
 These tests verify that commands like 'look', 'put X on Y', and 'examine'
 work correctly through the JSON protocol interface.
+
+Updated for Phase 4 (Narration API) to handle NarrationResult format.
 """
 from src.types import ActorId
+from typing import Any, Dict
 
 import unittest
 import json
@@ -30,6 +33,34 @@ except ModuleNotFoundError as exc:
         format_command_result = None  # type: ignore[assignment]
     else:
         raise
+
+
+def get_result_message(result: Dict[str, Any]) -> str:
+    """
+    Extract message text from result, handling both old and new formats.
+
+    New format (Phase 4): result["narration"]["primary_text"]
+    Old format: result["message"] or result["error"]["message"]
+
+    For the new format, also concatenates secondary_beats.
+    """
+    # New format: NarrationResult
+    if "narration" in result:
+        narration = result["narration"]
+        parts = [narration.get("primary_text", "")]
+        if "secondary_beats" in narration:
+            parts.extend(narration["secondary_beats"])
+        return "\n".join(parts)
+
+    # Old format - success case
+    if result.get("success") and "message" in result:
+        return result["message"]
+
+    # Old format - error case
+    if "error" in result and "message" in result["error"]:
+        return result["error"]["message"]
+
+    return result.get("message", "")
 
 
 class TestVocabularyMerging(unittest.TestCase):
@@ -217,7 +248,7 @@ class TestExamineCommand(unittest.TestCase):
         })
 
         self.assertTrue(response.get("success"))
-        self.assertIn("table", response.get("message", "").lower())
+        self.assertIn("table", get_result_message(response).lower())
 
 
 if __name__ == "__main__":

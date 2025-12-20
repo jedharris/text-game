@@ -2,7 +2,10 @@
 
 Tests that meta commands (quit, save, load) work through the full
 parser -> handler -> signal -> game loop flow.
+
+Updated for Phase 4 (Narration API) to handle NarrationResult format.
 """
+from typing import Any, Dict
 
 import unittest
 import json
@@ -12,6 +15,34 @@ from unittest.mock import patch, MagicMock
 
 from src.game_engine import GameEngine
 from src.parser import Parser
+
+
+def get_result_message(result: Dict[str, Any]) -> str:
+    """
+    Extract message text from result, handling both old and new formats.
+
+    New format (Phase 4): result["narration"]["primary_text"]
+    Old format: result["message"] or result["error"]["message"]
+
+    For the new format, also concatenates secondary_beats.
+    """
+    # New format: NarrationResult
+    if "narration" in result:
+        narration = result["narration"]
+        parts = [narration.get("primary_text", "")]
+        if "secondary_beats" in narration:
+            parts.extend(narration["secondary_beats"])
+        return "\n".join(parts)
+
+    # Old format - success case
+    if result.get("success") and "message" in result:
+        return result["message"]
+
+    # Old format - error case
+    if "error" in result and "message" in result["error"]:
+        return result["error"]["message"]
+
+    return result.get("message", "")
 
 
 class TestMetaCommandSignalIntegration(unittest.TestCase):
@@ -41,7 +72,7 @@ class TestMetaCommandSignalIntegration(unittest.TestCase):
         self.assertTrue(response.get("success"))
         self.assertIsNotNone(response.get("data"))
         self.assertEqual(response["data"].get("signal"), "quit")
-        self.assertIn("playing", response.get("message", "").lower())
+        self.assertIn("playing", get_result_message(response).lower())
 
     def test_exit_synonym_conflict(self):
         """Test that 'exit' has vocabulary conflict (noun vs verb synonym).

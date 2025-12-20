@@ -32,4 +32,12 @@
 
 ## Breaking changes
 - For the current development phase, we will continue to change the code base in ways that make a new version of the game unable to run old game save files. Right now such changes are are fine if they lead to cleaner designs.
-- Going forward, when changes make incompatible changes to the game save format, do not provide backward compatibility within the code base. Instead create a separate tool that migrates the previous format game save files to the new format files. 
+- Going forward, when changes make incompatible changes to the game save format, do not provide backward compatibility within the code base. Instead create a separate tool that migrates the previous format game save files to the new format files.
+
+## Refactoring
+- For codebase-wide refactoring (renaming functions, changing method calls, updating type annotations), use `tools/refactor_using_LibCST`
+- LibCST (Concrete Syntax Tree) preserves formatting and comments, unlike AST-based approaches
+- The tool has composable transformers: RenameFunction, ChangeMethodCall, RenameKeywordArg, UpdateTypeAnnotation, AddImport, etc.
+- Edit `create_transformer()` in the script to configure which transformations to apply
+- Run with `--dry-run` first to preview changes before applying
+- Avoid sed for refactoring; it introduces errors and doesn't understand Python syntax

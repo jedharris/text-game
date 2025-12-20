@@ -3,14 +3,19 @@ LLM protocol handler for LLM-Game Engine communication.
 
 Implements the JSON interaction protocol as specified in LLM_game_interaction.md.
 Processes commands and queries, returning structured JSON results.
+
+As of Phase 4 (Narration API), handle_command returns NarrationResult format
+with a NarrationPlan that the LLM narrator can render directly.
 """
 
 import json
 import random
-from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING, Callable, Tuple, cast
+from typing import Any, Dict, List, Literal, Optional, Set, Union, TYPE_CHECKING, Callable, Tuple, cast
 
 from src.action_types import ActionDict, CommandMessage, ResultMessage
-from .types import ActorId, HookName
+from src.narration_assembler import NarrationAssembler
+from src.narration_types import NarrationResult, NarrationPlan
+from .types import ActorId, HookName, ItemId, LocationId
 
 if TYPE_CHECKING:
     from src.state_manager import Location, Item, Actor
@@ -47,6 +52,10 @@ class LLMProtocolHandler:
     def __init__(self, state: GameState, behavior_manager: Optional[BehaviorManager] = None):
         self.state = state
         self.state_corrupted = False
+
+        # Visit tracking for verbosity/familiarity determination
+        self.visited_locations: Set[LocationId] = set()
+        self.examined_entities: Set[ItemId] = set()
 
         # Auto-create behavior manager if not provided
         # This ensures all handlers work even without explicit behavior_manager
@@ -122,7 +131,15 @@ class LLMProtocolHandler:
         return action
 
     def handle_command(self, message: Dict[str, Any]) -> Dict[str, Any]:
-        """Process a command message and return result."""
+        """
+        Process a command message and return NarrationResult.
+
+        Returns a NarrationResult with:
+        - success: Whether the action succeeded
+        - verbosity: "brief" or "full" based on verb and tracking
+        - narration: NarrationPlan with all info needed for LLM narration
+        - data: Raw engine data for debugging/UI
+        """
         import sys
 
         action: ActionDict = message.get("action", {})
@@ -149,6 +166,8 @@ class LLMProtocolHandler:
         # Ensure action has actor_id
         if "actor_id" not in action:
             action["actor_id"] = ActorId("player")
+
+        actor_id: ActorId = action.get("actor_id") or ActorId("player")
 
         # Convert string fields to WordEntry objects for handlers
         action = self._convert_action_strings_to_wordentry(action)
@@ -191,37 +210,176 @@ class LLMProtocolHandler:
                 }
             }
 
+        # Determine verbosity and familiarity
+        verbosity = self._determine_verbosity(verb, result.success, result.data)
+        familiarity = self._determine_familiarity(verb, result.success, result.data)
+
+        # Build NarrationPlan using assembler
+        assembler = NarrationAssembler(accessor, actor_id)
+        narration_plan = assembler.assemble(result, verb, verbosity, familiarity)
+
+        # Update tracking after successful command
         if result.success:
-            # Combine primary and beats into combined_message for backward compatibility
-            # (Phase 4 will change this to return NarrationResult)
-            message_parts = [result.primary]
-            if result.beats:
-                message_parts.extend(result.beats)
-            combined_message = "\n".join(message_parts)
+            self._update_tracking(verb, result.data)
 
-            response = {
-                "type": "result",
-                "success": True,
-                "action": verb,
-                "message": combined_message
-            }
-            # Include optional data (e.g., llm_context for examine)
-            if result.data:
-                response["data"] = result.data
+        # Build response
+        response: Dict[str, Any] = {
+            "type": "result",
+            "success": result.success,
+            "action": verb,  # Included for backward compatibility
+            "verbosity": verbosity,
+            "narration": narration_plan,
+            "data": result.data or {}
+        }
 
-            # Fire turn phase hooks after successful command
+        # Fire turn phase hooks after successful command
+        if result.success:
             turn_messages = self._fire_turn_phases(accessor, action)
             if turn_messages:
                 response["turn_phase_messages"] = turn_messages
 
-            return response
+        return response
 
-        return {
-            "type": "result",
-            "success": False,
-            "action": verb,
-            "error": {"message": result.primary}
-        }
+    def _get_narration_mode(self, verb: str) -> str:
+        """
+        Look up narration_mode for a verb from merged vocabulary.
+
+        Args:
+            verb: The verb to look up
+
+        Returns:
+            "brief" or "tracking" (default: "tracking")
+        """
+        if not self.behavior_manager:
+            return "tracking"
+
+        from src.vocabulary_service import build_merged_vocabulary
+
+        vocab = build_merged_vocabulary(self.state, self.behavior_manager)
+        for verb_entry in vocab.get("verbs", []):
+            if verb_entry.get("word") == verb:
+                mode = verb_entry.get("narration_mode", "tracking")
+                return str(mode) if mode else "tracking"
+
+        return "tracking"
+
+    def _determine_verbosity(
+        self,
+        verb: str,
+        success: bool,
+        data: Optional[Dict[str, Any]]
+    ) -> Literal["brief", "full"]:
+        """
+        Determine verbosity level based on verb, tracking state, and result.
+
+        Args:
+            verb: The verb that was executed
+            success: Whether the action succeeded
+            data: Handler result data
+
+        Returns:
+            "brief" or "full"
+        """
+        narration_mode = self._get_narration_mode(verb)
+
+        # Brief mode is always brief
+        if narration_mode == "brief":
+            return "brief"
+
+        # Tracking mode: full on first occurrence, brief on subsequent
+        # For go/movement: check if destination is new
+        if verb == "go" and success and data:
+            loc_id = data.get("location", {}).get("id")
+            if loc_id and loc_id not in self.visited_locations:
+                return "full"
+            return "brief"
+
+        # For examine: check if entity is new
+        if verb in ("examine", "x", "inspect") and success and data:
+            entity_id = data.get("id")
+            if entity_id and entity_id not in self.examined_entities:
+                return "full"
+            return "brief"
+
+        # For look: check if location is new
+        if verb in ("look", "l") and success:
+            player = self.state.actors.get(ActorId("player"))
+            if player and player.location not in self.visited_locations:
+                return "full"
+            return "brief"
+
+        # Default: full for first time, brief for repeat
+        return "full"
+
+    def _determine_familiarity(
+        self,
+        verb: str,
+        success: bool,
+        data: Optional[Dict[str, Any]]
+    ) -> Literal["new", "familiar"]:
+        """
+        Determine familiarity based on tracking state.
+
+        Args:
+            verb: The verb that was executed
+            success: Whether the action succeeded
+            data: Handler result data
+
+        Returns:
+            "new" or "familiar"
+        """
+        if not success:
+            return "familiar"
+
+        # For movement: check if destination was visited
+        if verb == "go" and data:
+            loc_id = data.get("location", {}).get("id")
+            if loc_id and loc_id not in self.visited_locations:
+                return "new"
+            return "familiar"
+
+        # For examine: check if entity was examined
+        if verb in ("examine", "x", "inspect") and data:
+            entity_id = data.get("id")
+            if entity_id and entity_id not in self.examined_entities:
+                return "new"
+            return "familiar"
+
+        # For look: check current location
+        if verb in ("look", "l"):
+            player = self.state.actors.get(ActorId("player"))
+            if player and player.location not in self.visited_locations:
+                return "new"
+            return "familiar"
+
+        # Default
+        return "familiar"
+
+    def _update_tracking(self, verb: str, data: Optional[Dict[str, Any]]) -> None:
+        """
+        Update visit/examination tracking after successful command.
+
+        Args:
+            verb: The verb that was executed
+            data: Handler result data
+        """
+        # Track visited locations on successful movement
+        if verb == "go" and data:
+            loc_id = data.get("location", {}).get("id")
+            if loc_id:
+                self.visited_locations.add(LocationId(loc_id))
+
+        # Track examined entities
+        if verb in ("examine", "x", "inspect") and data:
+            entity_id = data.get("id")
+            if entity_id:
+                self.examined_entities.add(ItemId(entity_id))
+
+        # Track location on look
+        if verb in ("look", "l"):
+            player = self.state.actors.get(ActorId("player"))
+            if player:
+                self.visited_locations.add(player.location)
 
     def _get_turn_phase_hooks(self) -> List[str]:
         """

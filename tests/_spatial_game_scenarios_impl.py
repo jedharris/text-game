@@ -6,8 +6,11 @@ to ensure module isolation.
 
 DO NOT import this module directly in the test suite - it will cause
 module pollution issues.
+
+Updated for Phase 4 (Narration API) to handle NarrationResult format.
 """
 from src.types import ActorId
+from typing import Any, Dict
 
 import sys
 import unittest
@@ -17,6 +20,34 @@ from pathlib import Path
 # Path to spatial_game - must be absolute before importing game modules
 SPATIAL_GAME_DIR = (Path(__file__).parent.parent / 'examples' / 'spatial_game').resolve()
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
+
+
+def get_result_message(result: Dict[str, Any]) -> str:
+    """
+    Extract message text from result, handling both old and new formats.
+
+    New format (Phase 4): result["narration"]["primary_text"]
+    Old format: result["message"] or result["error"]["message"]
+
+    For the new format, also concatenates secondary_beats.
+    """
+    # New format: NarrationResult
+    if "narration" in result:
+        narration = result["narration"]
+        parts = [narration.get("primary_text", "")]
+        if "secondary_beats" in narration:
+            parts.extend(narration["secondary_beats"])
+        return "\n".join(parts)
+
+    # Old format - success case
+    if result.get("success") and "message" in result:
+        return result["message"]
+
+    # Old format - error case
+    if "error" in result and "message" in result["error"]:
+        return result["error"]["message"]
+
+    return result.get("message", "")
 
 
 def _setup_paths():
@@ -154,11 +185,23 @@ class TestMagicStarPuzzle(unittest.TestCase):
         })
 
     def _get_message(self, response):
-        """Get message from response (handles both success and error formats)."""
+        """Get message from response (handles both success and error formats).
+
+        Updated for Phase 4 (Narration API) to handle NarrationResult format.
+        """
+        # New format: NarrationResult with narration.primary_text
+        if "narration" in response:
+            narration = response["narration"]
+            parts = [narration.get("primary_text", "")]
+            if "secondary_beats" in narration:
+                parts.extend(narration["secondary_beats"])
+            return "\n".join(parts)
+
+        # Old format
         if response.get("success"):
-            return response.get("message", "")
+            return get_result_message(response)
         else:
-            return response.get("error", {}).get("message", "")
+            return get_result_message(response)
 
     def test_cannot_take_star_from_ground(self):
         """Cannot take star directly from ground - it's in the tree."""
@@ -302,7 +345,7 @@ class TestFullPuzzleSolution(unittest.TestCase):
 
         # 2. Verify staircase is hidden
         look_response = self._execute("look")
-        self.assertNotIn("spiral staircase", look_response.get("message", ""))
+        self.assertNotIn("spiral staircase", get_result_message(look_response))
 
         # 3. Go back south to garden
         response = self._execute("south")
@@ -333,7 +376,7 @@ class TestFullPuzzleSolution(unittest.TestCase):
 
         # 9. Verify staircase is now visible
         look_response = self._execute("look")
-        self.assertIn("spiral staircase", look_response.get("message", ""))
+        self.assertIn("spiral staircase", get_result_message(look_response))
 
         # 10. Go up the staircase
         response = self._execute("up")

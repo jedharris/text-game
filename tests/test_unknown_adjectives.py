@@ -348,7 +348,8 @@ class TestGracefulErrorHandling(unittest.TestCase):
         })
 
         self.assertFalse(result.get("success"))
-        self.assertIn("error", result)
+        # In new format, errors are indicated by success=False and message in narration
+        self.assertIn("narration", result)
 
     def test_wrong_adjective_for_existing_object(self):
         """Test using wrong adjective for existing object."""

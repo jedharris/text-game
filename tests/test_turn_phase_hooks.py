@@ -1,4 +1,7 @@
-"""Tests for turn phase hook system (Phase 0 of Actor Interaction)."""
+"""Tests for turn phase hook system (Phase 0 of Actor Interaction).
+
+Updated for Phase 4 (Narration API) to handle NarrationResult format.
+"""
 
 import unittest
 from unittest.mock import Mock, MagicMock, patch, call
@@ -7,6 +10,16 @@ from src import hooks
 from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
 from src.state_accessor import HandlerResult
+
+
+# Mock vocabulary for tests that mock the state
+MOCK_VOCABULARY = {
+    "verbs": [
+        {"word": "look", "narration_mode": "brief"},
+        {"word": "go", "narration_mode": "tracking"},
+        {"word": "take", "narration_mode": "brief"},
+    ]
+}
 
 
 class TestTurnPhaseHookConstants(unittest.TestCase):
@@ -47,6 +60,7 @@ class TestTurnPhaseHookConstants(unittest.TestCase):
         self.assertEqual(len(turn_phase_hooks), len(set(turn_phase_hooks)))
 
 
+@patch('src.vocabulary_service.build_merged_vocabulary', return_value=MOCK_VOCABULARY)
 class TestTurnPhaseFiring(unittest.TestCase):
     """Test that turn phases fire after successful commands."""
 
@@ -77,7 +91,7 @@ class TestTurnPhaseFiring(unittest.TestCase):
             self.mock_behavior_manager
         )
 
-    def test_turn_phases_fire_on_success(self):
+    def test_turn_phases_fire_on_success(self, mock_vocab):
         """Turn phase hooks are checked after successful command."""
         # Execute a successful command
         result = self.handler.handle_command({
@@ -98,7 +112,7 @@ class TestTurnPhaseFiring(unittest.TestCase):
             hook_calls, any_order=False
         )
 
-    def test_turn_phases_skip_on_failure(self):
+    def test_turn_phases_skip_on_failure(self, mock_vocab):
         """Turn phase hooks do NOT fire after failed command."""
         # Make the command fail
         self.mock_behavior_manager.invoke_handler.return_value = HandlerResult(
@@ -115,7 +129,7 @@ class TestTurnPhaseFiring(unittest.TestCase):
         # get_event_for_hook should NOT be called for turn phases
         self.mock_behavior_manager.get_event_for_hook.assert_not_called()
 
-    def test_turn_phase_order(self):
+    def test_turn_phase_order(self, mock_vocab):
         """Turn phases fire in correct order: NPC_ACTION, ENVIRONMENTAL_EFFECT, CONDITION_TICK, DEATH_CHECK."""
         # Track order of hook calls
         hook_call_order = []
@@ -141,7 +155,7 @@ class TestTurnPhaseFiring(unittest.TestCase):
         ]
         self.assertEqual(hook_call_order, expected_order)
 
-    def test_turn_phase_invokes_registered_event(self):
+    def test_turn_phase_invokes_registered_event(self, mock_vocab):
         """When a hook has a registered event, invoke_behavior is called."""
         # Register an event for NPC_ACTION hook
         def get_event(hook_name):
@@ -168,7 +182,7 @@ class TestTurnPhaseFiring(unittest.TestCase):
         event_names = [args[1] if len(args) > 1 else None for args in call_args]
         self.assertIn("npc_take_action", event_names)
 
-    def test_turn_phase_messages_collected(self):
+    def test_turn_phase_messages_collected(self, mock_vocab):
         """Messages from turn phase handlers are collected and returned."""
         # Register events that produce messages
         def get_event(hook_name):

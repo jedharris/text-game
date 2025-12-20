@@ -1,0 +1,377 @@
+#!/usr/bin/env python3
+"""
+Reusable refactoring script using LibCST.
+
+Usage:
+    python refactor.py [--dry-run] [--verbose] <path>...
+
+Examples:
+    python refactor.py src/
+    python refactor.py --dry-run tests/
+    python refactor.py src/module.py tests/test_module.py
+
+Install dependencies:
+    pip install libcst
+
+To customize: Edit the transformer class(es) below for your specific refactoring needs.
+"""
+
+import argparse
+import sys
+from pathlib import Path
+from typing import Union, Sequence
+
+import libcst as cst
+from libcst import matchers as m
+
+
+# =============================================================================
+# TRANSFORMER CLASSES - Edit these for your refactoring needs
+# =============================================================================
+
+class RenameFunction(cst.CSTTransformer):
+    """Rename function calls and definitions."""
+    
+    def __init__(self, old_name: str, new_name: str):
+        self.old_name = old_name
+        self.new_name = new_name
+        self.changes = 0
+    
+    def leave_Name(self, original_node: cst.Name, updated_node: cst.Name) -> cst.Name:
+        if updated_node.value == self.old_name:
+            self.changes += 1
+            return updated_node.with_changes(value=self.new_name)
+        return updated_node
+
+
+class RenameKeywordArg(cst.CSTTransformer):
+    """Rename keyword argument in function calls."""
+    
+    def __init__(self, func_name: str, old_arg: str, new_arg: str):
+        self.func_name = func_name
+        self.old_arg = old_arg
+        self.new_arg = new_arg
+        self.changes = 0
+        self._in_target_call = False
+    
+    def visit_Call(self, node: cst.Call) -> bool:
+        if m.matches(node.func, m.Name(self.func_name)):
+            self._in_target_call = True
+        return True
+    
+    def leave_Call(self, original_node: cst.Call, updated_node: cst.Call) -> cst.Call:
+        self._in_target_call = False
+        return updated_node
+    
+    def leave_Arg(self, original_node: cst.Arg, updated_node: cst.Arg) -> cst.Arg:
+        if (self._in_target_call and 
+            updated_node.keyword and 
+            updated_node.keyword.value == self.old_arg):
+            self.changes += 1
+            return updated_node.with_changes(
+                keyword=cst.Name(self.new_arg)
+            )
+        return updated_node
+
+
+class ChangeMethodCall(cst.CSTTransformer):
+    """Change obj.old_method() to obj.new_method()."""
+    
+    def __init__(self, old_method: str, new_method: str):
+        self.old_method = old_method
+        self.new_method = new_method
+        self.changes = 0
+    
+    def leave_Attribute(self, original_node: cst.Attribute, updated_node: cst.Attribute) -> cst.Attribute:
+        if updated_node.attr.value == self.old_method:
+            self.changes += 1
+            return updated_node.with_changes(
+                attr=cst.Name(self.new_method)
+            )
+        return updated_node
+
+
+class AddImport(cst.CSTTransformer):
+    """Add an import statement if not present."""
+    
+    def __init__(self, module: str, name: str):
+        self.module = module
+        self.name = name
+        self.import_exists = False
+        self.added = False
+    
+    def visit_ImportFrom(self, node: cst.ImportFrom) -> bool:
+        if isinstance(node.module, cst.Attribute):
+            return True
+        if node.module and node.module.value == self.module:
+            if isinstance(node.names, cst.ImportStar):
+                self.import_exists = True
+            elif any(
+                alias.name.value == self.name 
+                for alias in node.names
+            ):
+                self.import_exists = True
+        return True
+    
+    def leave_Module(self, original_node: cst.Module, updated_node: cst.Module) -> cst.Module:
+        if self.import_exists:
+            return updated_node
+        
+        new_import = cst.SimpleStatementLine(
+            body=[
+                cst.ImportFrom(
+                    module=cst.Attribute(
+                        value=cst.Name(self.module.split('.')[0]),
+                        attr=cst.Name(self.module.split('.')[1])
+                    ) if '.' in self.module else cst.Name(self.module),
+                    names=[cst.ImportAlias(name=cst.Name(self.name))]
+                )
+            ]
+        )
+        
+        # Find position after existing imports
+        insert_pos = 0
+        for i, stmt in enumerate(updated_node.body):
+            if isinstance(stmt, (cst.SimpleStatementLine,)):
+                if any(isinstance(s, (cst.Import, cst.ImportFrom)) for s in stmt.body):
+                    insert_pos = i + 1
+        
+        new_body = list(updated_node.body)
+        new_body.insert(insert_pos, new_import)
+        self.added = True
+        
+        return updated_node.with_changes(body=new_body)
+
+
+class ReplaceAssertEqual(cst.CSTTransformer):
+    """Replace self.assertEqual(a, b) with assert a == b."""
+    
+    def __init__(self):
+        self.changes = 0
+    
+    def leave_Expr(self, original_node: cst.Expr, updated_node: cst.Expr) -> Union[cst.Expr, cst.SimpleStatementLine]:
+        if not isinstance(updated_node.value, cst.Call):
+            return updated_node
+        
+        call = updated_node.value
+        
+        # Match self.assertEqual(a, b)
+        if (m.matches(call.func, m.Attribute(attr=m.Name("assertEqual"))) and
+            len(call.args) >= 2):
+            
+            left = call.args[0].value
+            right = call.args[1].value
+            
+            self.changes += 1
+            return updated_node.with_changes(
+                value=cst.Assert(
+                    test=cst.Comparison(
+                        left=left,
+                        comparisons=[cst.ComparisonTarget(
+                            operator=cst.Equal(),
+                            comparator=right
+                        )]
+                    )
+                )
+            )
+        
+        return updated_node
+
+
+class UpdateTypeAnnotation(cst.CSTTransformer):
+    """Replace old type with new type in annotations."""
+    
+    def __init__(self, old_type: str, new_type: str):
+        self.old_type = old_type
+        self.new_type = new_type
+        self.changes = 0
+    
+    def leave_Annotation(self, original_node: cst.Annotation, updated_node: cst.Annotation) -> cst.Annotation:
+        if m.matches(updated_node.annotation, m.Name(self.old_type)):
+            self.changes += 1
+            return updated_node.with_changes(
+                annotation=cst.Name(self.new_type)
+            )
+        return updated_node
+
+
+class WrapInOptional(cst.CSTTransformer):
+    """Wrap specific type annotations in Optional[]."""
+    
+    def __init__(self, type_name: str):
+        self.type_name = type_name
+        self.changes = 0
+    
+    def leave_Annotation(self, original_node: cst.Annotation, updated_node: cst.Annotation) -> cst.Annotation:
+        # Skip if already Optional
+        if m.matches(updated_node.annotation, m.Subscript(value=m.Name("Optional"))):
+            return updated_node
+        
+        if m.matches(updated_node.annotation, m.Name(self.type_name)):
+            self.changes += 1
+            return updated_node.with_changes(
+                annotation=cst.Subscript(
+                    value=cst.Name("Optional"),
+                    slice=[cst.SubscriptElement(
+                        slice=cst.Index(value=cst.Name(self.type_name))
+                    )]
+                )
+            )
+        return updated_node
+
+
+# =============================================================================
+# COMPOSITE TRANSFORMER - Combine multiple transformers
+# =============================================================================
+
+class CompositeTransformer(cst.CSTTransformer):
+    """Run multiple transformers in sequence."""
+    
+    def __init__(self, transformers: Sequence[cst.CSTTransformer]):
+        self.transformers = transformers
+    
+    def transform(self, tree: cst.Module) -> cst.Module:
+        for transformer in self.transformers:
+            tree = tree.visit(transformer)
+        return tree
+
+
+# =============================================================================
+# FILE PROCESSING
+# =============================================================================
+
+def process_file(
+    filepath: Path,
+    transformer: cst.CSTTransformer,
+    dry_run: bool = False,
+    verbose: bool = False
+) -> bool:
+    """Process a single file. Returns True if changes were made."""
+    
+    try:
+        source = filepath.read_text()
+    except Exception as e:
+        print(f"Error reading {filepath}: {e}", file=sys.stderr)
+        return False
+    
+    try:
+        tree = cst.parse_module(source)
+    except Exception as e:
+        print(f"Error parsing {filepath}: {e}", file=sys.stderr)
+        return False
+    
+    # Apply transformation
+    if isinstance(transformer, CompositeTransformer):
+        modified_tree = transformer.transform(tree)
+    else:
+        modified_tree = tree.visit(transformer)
+    
+    new_source = modified_tree.code
+    
+    if new_source == source:
+        if verbose:
+            print(f"  No changes: {filepath}")
+        return False
+    
+    if dry_run:
+        print(f"  Would modify: {filepath}")
+        if verbose:
+            # Show diff
+            import difflib
+            diff = difflib.unified_diff(
+                source.splitlines(keepends=True),
+                new_source.splitlines(keepends=True),
+                fromfile=str(filepath),
+                tofile=str(filepath)
+            )
+            print(''.join(diff))
+    else:
+        filepath.write_text(new_source)
+        print(f"  Modified: {filepath}")
+    
+    return True
+
+
+def find_python_files(paths: list[str]) -> list[Path]:
+    """Find all Python files in given paths."""
+    files = []
+    for path_str in paths:
+        path = Path(path_str)
+        if path.is_file() and path.suffix == '.py':
+            files.append(path)
+        elif path.is_dir():
+            files.extend(path.rglob('*.py'))
+    return sorted(set(files))
+
+
+# =============================================================================
+# MAIN - Configure your refactoring here
+# =============================================================================
+
+def create_transformer() -> cst.CSTTransformer:
+    """
+    Configure which transformations to apply.
+    Edit this function for your specific refactoring needs.
+    """
+    
+    # Example: Single transformer
+    # return RenameFunction("old_func", "new_func")
+    
+    # Example: Composite transformer (multiple changes at once)
+    return CompositeTransformer([
+        # Uncomment and customize the transformers you need:
+        
+        # RenameFunction("old_name", "new_name"),
+        # RenameKeywordArg("some_func", "old_arg", "new_arg"),
+        # ChangeMethodCall("old_method", "new_method"),
+        # UpdateTypeAnnotation("OldType", "NewType"),
+        # ReplaceAssertEqual(),
+        
+        # Default: no-op placeholder (remove this when adding real transformers)
+        RenameFunction("__placeholder_do_not_use__", "__placeholder__"),
+    ])
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Refactor Python code using LibCST",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s src/                    # Refactor all .py files in src/
+  %(prog)s --dry-run tests/        # Preview changes without applying
+  %(prog)s -v src/module.py        # Verbose output for single file
+        """
+    )
+    parser.add_argument('paths', nargs='+', help='Files or directories to process')
+    parser.add_argument('--dry-run', '-n', action='store_true',
+                        help='Show what would be changed without modifying files')
+    parser.add_argument('--verbose', '-v', action='store_true',
+                        help='Show detailed output including diffs')
+    
+    args = parser.parse_args()
+    
+    files = find_python_files(args.paths)
+    if not files:
+        print("No Python files found", file=sys.stderr)
+        return 1
+    
+    print(f"Processing {len(files)} file(s)...")
+    if args.dry_run:
+        print("(dry run - no files will be modified)")
+    
+    transformer = create_transformer()
+    modified_count = 0
+    
+    for filepath in files:
+        # Create fresh transformer for each file to reset state
+        transformer = create_transformer()
+        if process_file(filepath, transformer, args.dry_run, args.verbose):
+            modified_count += 1
+    
+    print(f"\nDone. {modified_count} file(s) {'would be ' if args.dry_run else ''}modified.")
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

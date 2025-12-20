@@ -4,8 +4,11 @@ Tests consumable items, light sources, and container behaviors:
 - consumables.py (drink, eat)
 - light_sources.py (lantern auto-light)
 - containers.py (chest win condition)
+
+Updated for Phase 4 (Narration API) to handle NarrationResult format.
 """
 from src.types import ActorId
+from typing import Any, Dict
 
 import unittest
 from pathlib import Path
@@ -14,6 +17,34 @@ from unittest.mock import Mock, MagicMock
 from src.state_manager import load_game_state
 from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager, EventResult
+
+
+def get_result_message(result: Dict[str, Any]) -> str:
+    """
+    Extract message text from result, handling both old and new formats.
+
+    New format (Phase 4): result["narration"]["primary_text"]
+    Old format: result["message"] or result["error"]["message"]
+
+    For the new format, also concatenates secondary_beats.
+    """
+    # New format: NarrationResult
+    if "narration" in result:
+        narration = result["narration"]
+        parts = [narration.get("primary_text", "")]
+        if "secondary_beats" in narration:
+            parts.extend(narration["secondary_beats"])
+        return "\n".join(parts)
+
+    # Old format - success case
+    if result.get("success") and "message" in result:
+        return result["message"]
+
+    # Old format - error case
+    if "error" in result and "message" in result["error"]:
+        return result["error"]["message"]
+
+    return result.get("message", "")
 
 
 class TestConsumablesBehaviors(unittest.TestCase):
@@ -100,7 +131,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
             "action": {"verb": "drink", "object": "potion"}
         })
 
-        self.assertIn("message", result)
+        self.assertIn("narration", result)
 
     def test_drink_not_in_inventory(self):
         """Test drinking item not in inventory fails."""
@@ -178,7 +209,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
             "action": {"verb": "eat", "object": "bread"}
         })
 
-        self.assertIn("message", result)
+        self.assertIn("narration", result)
 
     def test_eat_not_in_inventory(self):
         """Test eating item not in inventory fails."""
@@ -205,8 +236,8 @@ class TestConsumablesBehaviors(unittest.TestCase):
 
         self.assertTrue(result.get("success"))
         # Handler always provides a message
-        self.assertIn("message", result)
-        self.assertIn("drink", result.get("message", "").lower())
+        self.assertIn("narration", result)
+        self.assertIn("drink", get_result_message(result).lower())
 
 
 class TestLightSourcesBehaviors(unittest.TestCase):
@@ -253,7 +284,7 @@ class TestLightSourcesBehaviors(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertIn("message", result)
+        self.assertIn("narration", result)
 
     def test_drop_lantern_extinguishes(self):
         """Test that dropping lantern extinguishes it."""
@@ -293,7 +324,7 @@ class TestLightSourcesBehaviors(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertIn("message", result)
+        self.assertIn("narration", result)
 
     def test_take_non_light_item_no_behavior(self):
         """Test that taking non-light item has no special light behavior."""
@@ -306,7 +337,7 @@ class TestLightSourcesBehaviors(unittest.TestCase):
         self.assertTrue(result.get("success"))
         # Message present (all commands return message now)
         # but no light-specific behavior message
-        msg = result.get("message", "")
+        msg = get_result_message(result)
         self.assertNotIn("rune", msg.lower())
         self.assertNotIn("glow", msg.lower())
         self.assertNotIn("lit", msg.lower())
@@ -350,7 +381,7 @@ class TestLightSourcesBehaviors(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        msg = result.get("message", "").lower()
+        msg = get_result_message(result).lower()
         self.assertIn("unlit", msg)
 
     def test_examine_lantern_shows_lit_state(self):
@@ -367,7 +398,7 @@ class TestLightSourcesBehaviors(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        msg = result.get("message", "").lower()
+        msg = get_result_message(result).lower()
         self.assertIn("lit", msg)
         self.assertNotIn("unlit", msg)
 
@@ -420,9 +451,9 @@ class TestContainersBehaviors(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertIn("message", result)
+        self.assertIn("narration", result)
         # Message should mention treasure or winning
-        msg = result["message"].lower()
+        msg = get_result_message(result).lower()
         self.assertTrue("treasure" in msg or "win" in msg)
 
     def test_open_nonexistent_item(self):

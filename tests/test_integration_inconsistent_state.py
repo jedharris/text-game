@@ -3,7 +3,10 @@ Tests for inconsistent state handling (Phase I-2).
 
 Reference: behavior_refactoring_testing.md - test pattern for inconsistent state
 Reference: behavior_refactoring_implementation.md lines 297-332
+
+Updated for Phase 4 (Narration API) to handle NarrationResult format.
 """
+from typing import Any, Dict
 
 import unittest
 import sys
@@ -12,6 +15,34 @@ from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
 from src.state_accessor import HandlerResult
 from tests.conftest import create_test_state
+
+
+def get_result_message(result: Dict[str, Any]) -> str:
+    """
+    Extract message text from result, handling both old and new formats.
+
+    New format (Phase 4): result["narration"]["primary_text"]
+    Old format: result["message"] or result["error"]["message"]
+
+    For the new format, also concatenates secondary_beats.
+    """
+    # New format: NarrationResult
+    if "narration" in result:
+        narration = result["narration"]
+        parts = [narration.get("primary_text", "")]
+        if "secondary_beats" in narration:
+            parts.extend(narration["secondary_beats"])
+        return "\n".join(parts)
+
+    # Old format - success case
+    if result.get("success") and "message" in result:
+        return result["message"]
+
+    # Old format - error case
+    if "error" in result and "message" in result["error"]:
+        return result["error"]["message"]
+
+    return result.get("message", "")
 
 
 class TestInconsistentStateHandling(unittest.TestCase):
@@ -63,7 +94,7 @@ class TestInconsistentStateHandling(unittest.TestCase):
         result = self.handler.handle_message(message)
 
         self.assertFalse(result["success"])
-        self.assertIn("corrupted", result["error"]["message"].lower())
+        self.assertIn("corrupted", get_result_message(result).lower())
 
     def test_meta_commands_allowed_after_corruption(self):
         """Test that save/quit are allowed after corruption."""
@@ -76,7 +107,7 @@ class TestInconsistentStateHandling(unittest.TestCase):
                 "action": {"verb": verb}
             }
             result = self.handler.handle_message(message)
-            error_msg = result.get("error", {}).get("message", "")
+            error_msg = get_result_message(result)
             self.assertNotIn("corrupted", error_msg.lower(),
                            f"Meta-command '{verb}' should not be blocked")
 

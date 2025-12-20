@@ -5,8 +5,11 @@ These tests verify that:
 2. Light sources WITH behaviors ARE lit by the behavior system
 3. Items with on_open behavior are openable regardless of name
 4. The "chest" name is no longer hardcoded as openable
+
+Updated for Phase 4 (Narration API) to handle NarrationResult format.
 """
 from src.types import ActorId
+from typing import Any, Dict
 
 import unittest
 from pathlib import Path
@@ -14,6 +17,34 @@ from pathlib import Path
 from src.state_manager import load_game_state
 from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
+
+
+def get_result_message(result: Dict[str, Any]) -> str:
+    """
+    Extract message text from result, handling both old and new formats.
+
+    New format (Phase 4): result["narration"]["primary_text"]
+    Old format: result["message"] or result["error"]["message"]
+
+    For the new format, also concatenates secondary_beats.
+    """
+    # New format: NarrationResult
+    if "narration" in result:
+        narration = result["narration"]
+        parts = [narration.get("primary_text", "")]
+        if "secondary_beats" in narration:
+            parts.extend(narration["secondary_beats"])
+        return "\n".join(parts)
+
+    # Old format - success case
+    if result.get("success") and "message" in result:
+        return result["message"]
+
+    # Old format - error case
+    if "error" in result and "message" in result["error"]:
+        return result["error"]["message"]
+
+    return result.get("message", "")
 
 
 class TestHardcodedLightSourceRemoval(unittest.TestCase):
@@ -264,7 +295,7 @@ class TestHardcodedChestRemoval(unittest.TestCase):
         # Should set win flag (behavior attached)
         self.assertTrue(self.state.actors[ActorId("player")].flags.get("won", False))
         # Should have behavior message
-        self.assertIn("message", result)
+        self.assertIn("narration", result)
 
     def test_magic_box_with_behavior_openable(self):
         """Test that non-chest item with on_open behavior is openable."""
@@ -276,7 +307,7 @@ class TestHardcodedChestRemoval(unittest.TestCase):
         # Should succeed because it has on_open behavior
         self.assertTrue(result.get("success"))
         # Should invoke behavior
-        self.assertIn("message", result)
+        self.assertIn("narration", result)
 
     def test_rock_not_openable(self):
         """Test that rock without behavior/container is not openable."""
@@ -390,8 +421,8 @@ class TestBehaviorDrivenApproach(unittest.TestCase):
         self.assertTrue(result.get("success"))
         self.assertEqual(self.state.actors[ActorId("player")].stats["health"], initial_health)
         # Handler provides message (entity behavior may add to it)
-        self.assertIn("message", result)
-        self.assertIn("drink", result.get("message", "").lower())
+        self.assertIn("narration", result)
+        self.assertIn("drink", get_result_message(result).lower())
 
 
 if __name__ == '__main__':

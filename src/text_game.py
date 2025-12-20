@@ -66,7 +66,20 @@ def format_inventory_query(response: Dict[str, Any]) -> str:
 
 
 def format_command_result(response: Dict[str, Any]) -> str:
-    """Format a command result as text."""
+    """Format a command result as text.
+
+    Updated for Phase 4 (Narration API) - handles NarrationResult format
+    where the message is in narration.primary_text.
+    """
+    # New format (NarrationResult): message in narration.primary_text
+    if "narration" in response:
+        narration = response["narration"]
+        parts = [narration.get("primary_text", "")]
+        if "secondary_beats" in narration:
+            parts.extend(narration["secondary_beats"])
+        return "\n".join(part for part in parts if part)
+
+    # Old format (backward compatibility)
     if response.get("success"):
         return response.get("message", "Done.")
     else:

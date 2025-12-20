@@ -2,8 +2,11 @@
 
 Tests for phases 1, 3, 5, and 6 of the enhanced containers implementation.
 These tests are written before implementation and will initially fail.
+
+Updated for Phase 4 (Narration API) to handle NarrationResult format.
 """
 from src.types import ActorId
+from typing import Any, Dict
 
 import unittest
 import json
@@ -12,6 +15,34 @@ from pathlib import Path
 from src.state_manager import load_game_state, Item, GameState, ContainerInfo
 from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
+
+
+def get_result_message(result: Dict[str, Any]) -> str:
+    """
+    Extract message text from result, handling both old and new formats.
+
+    New format (Phase 4): result["narration"]["primary_text"]
+    Old format: result["message"] or result["error"]["message"]
+
+    For the new format, also concatenates secondary_beats.
+    """
+    # New format: NarrationResult
+    if "narration" in result:
+        narration = result["narration"]
+        parts = [narration.get("primary_text", "")]
+        if "secondary_beats" in narration:
+            parts.extend(narration["secondary_beats"])
+        return "\n".join(parts)
+
+    # Old format - success case
+    if result.get("success") and "message" in result:
+        return result["message"]
+
+    # Old format - error case
+    if "error" in result and "message" in result["error"]:
+        return result["error"]["message"]
+
+    return result.get("message", "")
 
 
 class TestPhase1DataModel(unittest.TestCase):
@@ -280,7 +311,7 @@ class TestPhase3EnhancedTake(unittest.TestCase):
 
         # Should fail because chest is closed
         self.assertFalse(result.get("success"))
-        error_msg = result.get("error", {}).get("message", "").lower()
+        error_msg = get_result_message(result).lower()
         self.assertTrue(
             "closed" in error_msg or "don't see" in error_msg,
             f"Expected error about closed container, got: {error_msg}"
@@ -461,7 +492,7 @@ class TestPhase5GameState(unittest.TestCase):
         self.assertTrue(lantern.states.get("lit", False))
 
         # Should have behavior message
-        self.assertIn("message", result)
+        self.assertIn("narration", result)
 
     def test_tower_description_mentions_pedestal(self):
         """Test that tower description or items include pedestal reference."""
@@ -603,7 +634,7 @@ class TestPhase6RoomDescriptions(unittest.TestCase):
 
         # Should fail asking what to examine
         self.assertFalse(result.get("success"))
-        self.assertIn("what", result.get("error", {}).get("message", "").lower())
+        self.assertIn("what", get_result_message(result).lower())
 
     def test_examine_container_returns_description(self):
         """Test that examining a container returns its description.
@@ -618,7 +649,7 @@ class TestPhase6RoomDescriptions(unittest.TestCase):
 
         self.assertTrue(result.get("success"))
         # New format returns message with description
-        self.assertIn("wooden table", result.get("message", "").lower())
+        self.assertIn("wooden table", get_result_message(result).lower())
 
     def test_surface_items_include_container_context(self):
         """Test that surface items include reference to their container."""
@@ -787,7 +818,7 @@ class TestPhase2PutCommand(unittest.TestCase):
         })
 
         self.assertFalse(result.get("success"))
-        error_msg = result.get("error", {}).get("message", "").lower()
+        error_msg = get_result_message(result).lower()
         self.assertTrue("closed" in error_msg, f"Expected error about closed container, got: {error_msg}")
 
     def test_put_fails_when_container_full(self):
@@ -803,7 +834,7 @@ class TestPhase2PutCommand(unittest.TestCase):
         })
 
         self.assertFalse(result.get("success"))
-        error_msg = result.get("error", {}).get("message", "").lower()
+        error_msg = get_result_message(result).lower()
         self.assertTrue(
             "full" in error_msg or "capacity" in error_msg or "fit" in error_msg,
             f"Expected error about capacity, got: {error_msg}"
@@ -821,7 +852,7 @@ class TestPhase2PutCommand(unittest.TestCase):
         })
 
         self.assertFalse(result.get("success"))
-        error_msg = result.get("error", {}).get("message", "").lower()
+        error_msg = get_result_message(result).lower()
         self.assertTrue(
             "have" in error_msg or "inventory" in error_msg or "don't" in error_msg,
             f"Expected error about not having item, got: {error_msg}"
@@ -886,8 +917,8 @@ class TestPhase2PutCommand(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertIn("message", result)
-        msg = result.get("message", "").lower()
+        self.assertIn("narration", result)
+        msg = get_result_message(result).lower()
         self.assertIn("key", msg)
         self.assertIn("table", msg)
 
@@ -955,7 +986,7 @@ class TestPhase4PushCommand(unittest.TestCase):
 
         # Behavior handlers succeed unless entity behavior vetoes
         self.assertTrue(result.get("success"))
-        self.assertIn("push", result.get("message", "").lower())
+        self.assertIn("push", get_result_message(result).lower())
 
     def test_push_portable_item_succeeds(self):
         """Test pushing a portable item succeeds (entity behaviors decide outcome)."""
@@ -966,7 +997,7 @@ class TestPhase4PushCommand(unittest.TestCase):
 
         # Behavior handlers succeed unless entity behavior vetoes
         self.assertTrue(result.get("success"))
-        self.assertIn("push", result.get("message", "").lower())
+        self.assertIn("push", get_result_message(result).lower())
 
     def test_push_nonexistent_item_fails(self):
         """Test pushing nonexistent item fails."""
@@ -985,7 +1016,7 @@ class TestPhase4PushCommand(unittest.TestCase):
         })
 
         self.assertFalse(result.get("success"))
-        error_msg = result.get("error", {}).get("message", "").lower()
+        error_msg = get_result_message(result).lower()
         self.assertIn("what", error_msg)
 
     def test_push_returns_message(self):
@@ -996,8 +1027,8 @@ class TestPhase4PushCommand(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertIn("message", result)
-        self.assertIn("crate", result.get("message", "").lower())
+        self.assertIn("narration", result)
+        self.assertIn("crate", get_result_message(result).lower())
 
 
 class TestContainerCapacity(unittest.TestCase):

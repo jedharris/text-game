@@ -9,7 +9,7 @@ import copy
 import json
 import unittest
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict
 
 from src.behavior_manager import BehaviorManager
 from src.llm_protocol import LLMProtocolHandler
@@ -24,6 +24,34 @@ from src.vocabulary_service import build_merged_vocabulary
 BIG_GAME_DIR = Path(__file__).parent.parent.parent / "examples" / "big_game"
 GAME_STATE_FILE = BIG_GAME_DIR / "game_state.json"
 BEHAVIORS_DIR = Path(__file__).parent.parent.parent / "behaviors"
+
+
+def get_result_message(result: Dict[str, Any]) -> str:
+    """
+    Extract message text from result, handling both old and new formats.
+
+    New format (Phase 4): result["narration"]["primary_text"]
+    Old format: result["message"] or result["error"]["message"]
+
+    For the new format, also concatenates secondary_beats.
+    """
+    # New format: NarrationResult
+    if "narration" in result:
+        narration = result["narration"]
+        parts = [narration.get("primary_text", "")]
+        if "secondary_beats" in narration:
+            parts.extend(narration["secondary_beats"])
+        return "\n".join(parts)
+
+    # Old format - success case
+    if result.get("success") and "message" in result:
+        return result["message"]
+
+    # Old format - error case
+    if "error" in result and "message" in result["error"]:
+        return result["error"]["message"]
+
+    return result.get("message", "")
 
 
 class E2EScenarioTestCase(unittest.TestCase):
@@ -228,7 +256,7 @@ class E2EScenarioTestCase(unittest.TestCase):
 
     def assert_message_contains(self, result: dict[str, Any], substring: str) -> None:
         """Assert result message contains substring."""
-        message = result.get("message", "")
+        message = get_result_message(result)
         self.assertIn(
             substring.lower(),
             message.lower(),

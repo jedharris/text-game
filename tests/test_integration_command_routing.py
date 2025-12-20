@@ -5,13 +5,44 @@ Verifies that commands route through behavior_manager.invoke_handler()
 instead of the old _cmd_* methods.
 
 Reference: behavior_refactoring_testing.md lines 113-153 (basic handler tests)
+
+Updated for Phase 4 (Narration API) to handle NarrationResult format.
 """
 from src.types import ActorId
+from typing import Any, Dict
 
 import unittest
 from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
 from tests.conftest import create_test_state
+
+
+def get_result_message(result: Dict[str, Any]) -> str:
+    """
+    Extract message text from result, handling both old and new formats.
+
+    New format (Phase 4): result["narration"]["primary_text"]
+    Old format: result["message"] or result["error"]["message"]
+
+    For the new format, also concatenates secondary_beats.
+    """
+    # New format: NarrationResult
+    if "narration" in result:
+        narration = result["narration"]
+        parts = [narration.get("primary_text", "")]
+        if "secondary_beats" in narration:
+            parts.extend(narration["secondary_beats"])
+        return "\n".join(parts)
+
+    # Old format - success case
+    if result.get("success") and "message" in result:
+        return result["message"]
+
+    # Old format - error case
+    if "error" in result and "message" in result["error"]:
+        return result["error"]["message"]
+
+    return result.get("message", "")
 
 
 class TestCommandRouting(unittest.TestCase):
@@ -83,7 +114,7 @@ class TestCommandRouting(unittest.TestCase):
         self.assertEqual(result["type"], "result")
         self.assertFalse(result["success"])
         # Should get error about direction, not "unknown command"
-        error_msg = result.get("error", {}).get("message", "").lower()
+        error_msg = get_result_message(result).lower()
         self.assertTrue(
             "can't go" in error_msg or "no exit" in error_msg or "north" in error_msg,
             f"Expected direction-related error, got: {error_msg}"
@@ -100,7 +131,7 @@ class TestCommandRouting(unittest.TestCase):
 
         self.assertEqual(result["type"], "result")
         self.assertTrue(result["success"], f"look failed: {result}")
-        self.assertIn("message", result)
+        self.assertIn("narration", result)
 
     def test_inventory_routes_to_behavior_handler(self):
         """Test that 'inventory' command uses behavior handler."""
@@ -125,7 +156,8 @@ class TestCommandRouting(unittest.TestCase):
 
         self.assertEqual(result["type"], "result")
         self.assertFalse(result["success"])
-        self.assertIn("error", result)
+        # In new format, errors are indicated by success=False and message in narration
+        self.assertIn("narration", result)
 
     def test_unknown_verb_returns_error(self):
         """Test that unknown verbs get proper error."""

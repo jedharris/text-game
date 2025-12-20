@@ -3,8 +3,11 @@ Comprehensive test suite for LLM-Game Engine JSON interaction protocol.
 
 Tests the JSON message formats for commands, queries, and results
 as specified in LLM_game_interaction.md.
+
+Updated for Phase 4 (Narration API) to handle NarrationResult format.
 """
 from src.types import ActorId
+from typing import Any, Dict
 
 import unittest
 import json
@@ -18,6 +21,34 @@ sys.path.insert(0, str(project_root))
 
 from src.state_manager import load_game_state, GameState
 from src.llm_protocol import LLMProtocolHandler
+
+
+def get_result_message(result: Dict[str, Any]) -> str:
+    """
+    Extract message text from result, handling both old and new formats.
+
+    New format (Phase 4): result["narration"]["primary_text"]
+    Old format: result["message"] or result["error"]["message"]
+
+    For the new format, also concatenates secondary_beats.
+    """
+    # New format: NarrationResult
+    if "narration" in result:
+        narration = result["narration"]
+        parts = [narration.get("primary_text", "")]
+        if "secondary_beats" in narration:
+            parts.extend(narration["secondary_beats"])
+        return "\n".join(parts)
+
+    # Old format - success case
+    if result.get("success") and "message" in result:
+        return result["message"]
+
+    # Old format - error case
+    if "error" in result and "message" in result["error"]:
+        return result["error"]["message"]
+
+    return result.get("message", "")
 
 
 class _LLMProtocolHandlerReference:
@@ -843,8 +874,8 @@ class TestCommandMessages(unittest.TestCase):
         self.assertTrue(result["success"])
         self.assertEqual(result["action"], "take")
         # New format uses message instead of entity
-        self.assertIn("message", result)
-        self.assertIn("key", result["message"])
+        self.assertIn("narration", result)
+        self.assertIn("key", get_result_message(result))
 
         # Verify state changed
         self.assertIn("item_key", self.state.actors[ActorId("player")].inventory)
@@ -860,8 +891,9 @@ class TestCommandMessages(unittest.TestCase):
 
         self.assertEqual(result["type"], "result")
         self.assertFalse(result["success"])
-        self.assertIn("error", result)
-        self.assertIn("diamond", result["error"]["message"].lower())
+        # In new format, errors are indicated by success=False and message in narration
+        self.assertIn("narration", result)
+        self.assertIn("diamond", get_result_message(result).lower())
 
     def test_take_non_portable_item(self):
         """Test take command for non-portable item."""
@@ -876,7 +908,7 @@ class TestCommandMessages(unittest.TestCase):
         result = self.handler.handle_message(message)
 
         self.assertFalse(result["success"])
-        self.assertIn("can't take", result["error"]["message"].lower())
+        self.assertIn("can't take", get_result_message(result).lower())
 
     def test_drop_item_success(self):
         """Test successful drop command."""
@@ -906,7 +938,7 @@ class TestCommandMessages(unittest.TestCase):
 
         self.assertFalse(result["success"])
         # Check for any message indicating item not in inventory
-        error_msg = result["error"]["message"].lower()
+        error_msg = get_result_message(result).lower()
         self.assertTrue("don't have" in error_msg or "not carrying" in error_msg)
 
     def test_go_direction_success(self):
@@ -932,7 +964,7 @@ class TestCommandMessages(unittest.TestCase):
         result = self.handler.handle_message(message)
 
         self.assertFalse(result["success"])
-        self.assertIn("can't go", result["error"]["message"].lower())
+        self.assertIn("can't go", get_result_message(result).lower())
 
     def test_go_through_closed_door(self):
         """Test movement through closed door."""
@@ -948,7 +980,7 @@ class TestCommandMessages(unittest.TestCase):
 
         self.assertFalse(result["success"])
         # Door is closed, message says "closed" not "locked"
-        self.assertIn("closed", result["error"]["message"].lower())
+        self.assertIn("closed", get_result_message(result).lower())
 
     def test_open_door_success(self):
         """Test opening an unlocked door."""
@@ -1015,7 +1047,7 @@ class TestCommandMessages(unittest.TestCase):
         result = self.handler.handle_message(message)
 
         self.assertFalse(result["success"])
-        self.assertIn("locked", result["error"]["message"].lower())
+        self.assertIn("locked", get_result_message(result).lower())
 
     def test_open_already_open_door(self):
         """Test opening already open door."""
@@ -1029,7 +1061,7 @@ class TestCommandMessages(unittest.TestCase):
 
         # Behavior handler returns success with informative message
         self.assertTrue(result["success"])
-        self.assertIn("already open", result["message"].lower())
+        self.assertIn("already open", get_result_message(result).lower())
 
     def test_close_door_success(self):
         """Test closing an open door."""
@@ -1055,7 +1087,7 @@ class TestCommandMessages(unittest.TestCase):
         self.assertTrue(result["success"])
         self.assertEqual(result["action"], "examine")
         # New format uses message instead of entity
-        self.assertIn("message", result)
+        self.assertIn("narration", result)
 
     def test_examine_room(self):
         """Test looking at room (no object) - use look verb for room description."""
@@ -1069,8 +1101,8 @@ class TestCommandMessages(unittest.TestCase):
 
         self.assertTrue(result["success"])
         # New format uses message instead of entity
-        self.assertIn("message", result)
-        self.assertIn("Small Room", result["message"])
+        self.assertIn("narration", result)
+        self.assertIn("Small Room", get_result_message(result))
 
     def test_unlock_door_with_key(self):
         """Test unlocking a door with key."""
@@ -1107,7 +1139,7 @@ class TestCommandMessages(unittest.TestCase):
         result = self.handler.handle_message(message)
 
         self.assertFalse(result["success"])
-        self.assertIn("key", result["error"]["message"].lower())
+        self.assertIn("key", get_result_message(result).lower())
 
     def test_unknown_verb(self):
         """Test command with unknown verb."""
@@ -1119,7 +1151,7 @@ class TestCommandMessages(unittest.TestCase):
         result = self.handler.handle_message(message)
 
         self.assertFalse(result["success"])
-        self.assertIn("don't understand", result["error"]["message"].lower())
+        self.assertIn("don't understand", get_result_message(result).lower())
 
     def test_inventory_command(self):
         """Test inventory command."""
@@ -1271,7 +1303,7 @@ class TestQueryMessages(unittest.TestCase):
         result = self.handler.handle_message(message)
 
         self.assertEqual(result["type"], "error")
-        self.assertIn("not found", result["message"].lower())
+        self.assertIn("not found", get_result_message(result).lower())
 
     def test_location_query_includes_exit_llm_context(self):
         """Location query includes llm_context for exits that have it."""
@@ -1449,7 +1481,7 @@ class TestErrorHandling(unittest.TestCase):
         result = self.handler.handle_message(message)
 
         self.assertEqual(result["type"], "error")
-        self.assertIn("unknown", result["message"].lower())
+        self.assertIn("unknown", get_result_message(result).lower())
 
     def test_command_without_action(self):
         """Test command without action field."""
@@ -1460,7 +1492,7 @@ class TestErrorHandling(unittest.TestCase):
         result = self.handler.handle_message(message)
 
         self.assertEqual(result["type"], "error")
-        self.assertIn("action", result["message"].lower())
+        self.assertIn("action", get_result_message(result).lower())
 
     def test_command_without_verb(self):
         """Test command with action but no verb."""
@@ -1516,7 +1548,12 @@ class TestResultFormat(unittest.TestCase):
             self.assertIn("name", entity)
 
     def test_error_result_format(self):
-        """Test that error results have correct format."""
+        """Test that error results have correct format.
+
+        In the new NarrationResult format, errors are indicated by:
+        - success=False
+        - Error message in narration.primary_text
+        """
         message = {
             "type": "command",
             "action": {"verb": "take", "object": "nonexistent"}
@@ -1526,8 +1563,9 @@ class TestResultFormat(unittest.TestCase):
 
         self.assertEqual(result["type"], "result")
         self.assertFalse(result["success"])
-        self.assertIn("error", result)
-        self.assertIn("message", result["error"])
+        # New format uses narration instead of error
+        self.assertIn("narration", result)
+        self.assertIn("primary_text", result["narration"])
 
     def test_query_response_format(self):
         """Test that query responses have correct format."""
@@ -1619,7 +1657,7 @@ class TestEndToEndInteractions(unittest.TestCase):
         })
 
         self.assertTrue(result["success"])
-        self.assertIn("key", result["message"].lower())
+        self.assertIn("key", get_result_message(result).lower())
 
     def test_disambiguation_with_adjective(self):
         """Test using adjective to disambiguate doors."""
@@ -1763,8 +1801,8 @@ class TestLightSourceFunctionality(unittest.TestCase):
         self.assertTrue(result["success"])
         self.assertEqual(result["action"], "take")
         # New format uses message instead of entity
-        self.assertIn("message", result)
-        self.assertIn("lantern", result["message"].lower())
+        self.assertIn("narration", result)
+        self.assertIn("lantern", get_result_message(result).lower())
 
         # Verify item is in inventory
         self.assertIn("item_lantern", self.state.actors[ActorId("player")].inventory)
@@ -1848,7 +1886,7 @@ class TestLightSourceFunctionality(unittest.TestCase):
 
         self.assertTrue(result["success"])
         # New format uses message key
-        self.assertIn("message", result)
+        self.assertIn("narration", result)
 
         # Verify the entity state is lit
         lantern = None
@@ -1954,7 +1992,7 @@ class TestLightSourceFunctionality(unittest.TestCase):
 
         self.assertTrue(result["success"])
         # New format uses message key
-        self.assertIn("message", result)
+        self.assertIn("narration", result)
 
         # Verify lit state in entity object
         lantern = None

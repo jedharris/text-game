@@ -123,7 +123,7 @@ class TestMessageKeyConsistency(unittest.TestCase):
 
         self.assertTrue(result.get("success"))
         # Should use 'message' key
-        self.assertIn("message", result)
+        self.assertIn("narration", result)
         # Should NOT use old 'behavior_message' key
         self.assertNotIn("behavior_message", result)
 
@@ -142,7 +142,7 @@ class TestMessageKeyConsistency(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertIn("message", result)
+        self.assertIn("narration", result)
         self.assertNotIn("behavior_message", result)
 
 
@@ -195,7 +195,7 @@ class TestLLMGameSetup(unittest.TestCase):
 
         # Verify behavior was invoked (message present and lit state changed)
         self.assertTrue(result.get("success"))
-        self.assertIn("message", result, "Behavior message missing - behavior not invoked")
+        self.assertIn("narration", result, "Behavior message missing - behavior not invoked")
         # Behavior sets lit=True via entity.states["lit"]
         # Check actual state, not response format
         lantern = next((i for i in state.items if i.name == "lantern"), None)
