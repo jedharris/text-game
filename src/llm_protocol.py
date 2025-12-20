@@ -81,9 +81,12 @@ class LLMProtocolHandler:
             case "query":
                 return self.handle_query(message)
             case _:
+                error_msg = f"Unknown message type: {message.get('type')}"
                 return {
                     "type": "error",
-                    "message": f"Unknown message type: {message.get('type')}"
+                    "success": False,
+                    "verbosity": "brief",
+                    "narration": {"primary_text": error_msg}
                 }
 
     def handle_json_string(self, json_str: str) -> Dict[str, Any]:
@@ -92,9 +95,12 @@ class LLMProtocolHandler:
             message = json.loads(json_str)
             return self.handle_message(message)
         except json.JSONDecodeError as e:
+            error_msg = f"Invalid JSON: {e}"
             return {
                 "type": "error",
-                "message": f"Invalid JSON: {e}"
+                "success": False,
+                "verbosity": "brief",
+                "narration": {"primary_text": error_msg}
             }
 
     def _convert_action_strings_to_wordentry(self, action: ActionDict) -> ActionDict:
@@ -148,19 +154,21 @@ class LLMProtocolHandler:
         if not verb:
             return {
                 "type": "error",
-                "message": "Missing required field: action"
+                "success": False,
+                "verbosity": "brief",
+                "narration": {"primary_text": "Missing required field: action"}
             }
 
         # Check for corrupted state - block non-meta commands
         if self.state_corrupted and verb not in self.META_COMMANDS:
+            error_msg = "Game state is corrupted. Please save and restart."
             return {
                 "type": "result",
                 "success": False,
                 "action": verb,
-                "error": {
-                    "message": "Game state is corrupted. Please save and restart.",
-                    "fatal": True
-                }
+                "verbosity": "brief",
+                "narration": {"primary_text": error_msg},
+                "error": {"fatal": True}
             }
 
         # Ensure action has actor_id
@@ -174,13 +182,13 @@ class LLMProtocolHandler:
 
         # Ensure we have a handler for the verb
         if not self.behavior_manager or not self.behavior_manager.has_handler(verb):
+            error_msg = f"I don't understand '{verb}'. Try actions like go, take, open, or examine."
             return {
                 "type": "result",
                 "success": False,
                 "action": verb,
-                "error": {
-                    "message": f"I don't understand '{verb}'. Try actions like go, take, open, or examine."
-                }
+                "verbosity": "brief",
+                "narration": {"primary_text": error_msg}
             }
 
         from src.state_accessor import StateAccessor
@@ -193,7 +201,8 @@ class LLMProtocolHandler:
                 "type": "result",
                 "success": False,
                 "action": verb,
-                "error": {"message": "No handler registered for verb"}
+                "verbosity": "brief",
+                "narration": {"primary_text": "No handler registered for verb"}
             }
 
         # Check for inconsistent state errors
@@ -204,8 +213,9 @@ class LLMProtocolHandler:
                 "type": "result",
                 "success": False,
                 "action": verb,
+                "verbosity": "brief",
+                "narration": {"primary_text": result.primary},
                 "error": {
-                    "message": result.primary,
                     "fatal": True
                 }
             }
@@ -453,9 +463,12 @@ class LLMProtocolHandler:
             case "metadata":
                 return self._query_metadata(message)
             case _:
+                error_msg = f"Unknown query type: {message.get('query_type')}"
                 return {
                     "type": "error",
-                    "message": f"Unknown query type: {message.get('query_type')}"
+                    "success": False,
+                    "verbosity": "brief",
+                    "narration": {"primary_text": error_msg}
                 }
 
     # Query handlers
@@ -510,9 +523,12 @@ class LLMProtocolHandler:
                 entity = converter(raw_entity)
 
         if not entity:
+            error_msg = f"Entity not found: {entity_id}"
             return {
                 "type": "error",
-                "message": f"Entity not found: {entity_id}"
+                "success": False,
+                "verbosity": "brief",
+                "narration": {"primary_text": error_msg}
             }
 
         return {
@@ -529,9 +545,12 @@ class LLMProtocolHandler:
         entities = []
         loc = self._get_location_by_id(location_id) if location_id else self._get_current_location()
         if loc is None:
+            error_msg = f"Location not found: {location_id}"
             return {
                 "type": "error",
-                "message": f"Location not found: {location_id}"
+                "success": False,
+                "verbosity": "brief",
+                "narration": {"primary_text": error_msg}
             }
 
         match entity_type:

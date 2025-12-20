@@ -29,23 +29,29 @@ class CommandMessage(TypedDict):
 
 
 class ResultError(TypedDict, total=False):
-    """Error payload for unsuccessful results."""
+    """Error payload for fatal errors only."""
 
-    message: str
     fatal: bool
 
 
-class ResultMessage(TypedDict, total=False):
-    """Result payload returned by protocol handler."""
+class NarrationPlanDict(TypedDict, total=False):
+    """Narration plan for LLM rendering."""
 
-    type: Literal["result", "error"]
+    primary_text: str
+    secondary_beats: list[str]
+
+
+class ResultMessage(TypedDict, total=False):
+    """Result payload returned by protocol handler (NarrationResult format)."""
+
+    type: Literal["result", "error", "query_response"]
     success: bool
     action: str
-    message: str
+    verbosity: str
+    narration: NarrationPlanDict
     data: dict
     error: ResultError
     turn_phase_messages: list[str]
-    verbosity: str
 
 
 class HandlerCallable(Protocol):

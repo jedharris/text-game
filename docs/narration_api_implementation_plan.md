@@ -425,77 +425,102 @@ New format:
 
 ---
 
-## Phase 7: Update GameEngine and Frontends
+## Phase 7: Update GameEngine and Frontends ✅ COMPLETED
 
 **Goal:** Ensure all entry points work with the new API.
 
-**Files to modify:**
-- `src/game_engine.py`
-- `src/mlx_game.py`
-- `src/text_game.py`
-- `src/llm_game.py` (if exists)
-- Any other game frontends
+**Status:** Completed (Issue #228)
 
-### text_game.py Changes
+### Completed Work
 
-`text_game.py` directly consumes JSON from `LLMProtocolHandler` without an LLM narrator. It needs to extract display text from the new `NarrationResult` format.
+#### 1. Updated text_game.py
 
-**Current:**
+Removed backward compatibility code from `format_command_result`:
+
 ```python
 def format_command_result(response: Dict[str, Any]) -> str:
-    if response.get("success"):
-        return response.get("message", "Done.")
-    else:
-        error = response.get("error", {})
-        return error.get("message", "That didn't work.")
-```
+    """Format a command result as text.
 
-**New:**
-```python
-def format_command_result(response: NarrationResult) -> str:
+    Extracts text from NarrationResult format where the message is in
+    narration.primary_text and optional secondary_beats.
+    """
     narration = response.get("narration", {})
-    if response.get("success"):
-        # For text_game, just use primary_text directly
-        # (no LLM to weave in beats/traits)
-        return narration.get("primary_text", "Done.")
-    else:
-        return narration.get("primary_text", "That didn't work.")
+    parts = [narration.get("primary_text", "")]
+    if "secondary_beats" in narration:
+        parts.extend(narration["secondary_beats"])
+    return "\n".join(part for part in parts if part)
 ```
 
-**Additional changes:**
-- Update `format_item_query` and `format_inventory_query` if query responses also change
-- Import `NarrationResult` type for type hints
+Fixed remaining references to old message field:
+- Updated quit signal handling to use `format_command_result`
+- Updated win condition check to use `narration.primary_text`
 
-### Other Frontend Changes
+#### 2. Verified Other Frontends
 
-1. Remove any verbosity/tracking logic that moved to protocol handler
+- `src/game_engine.py` - No old format references
+- `src/llm_game.py` - Uses narrator which handles format internally
+- `src/mlx_game.py` - Uses narrator which handles format internally
 
-2. Ensure narrator creation passes correct parameters
+#### 3. Updated Tests
 
-3. Update any direct protocol handler usage
+Updated `tests/test_text_game.py`:
+- `test_format_command_result_success` - Uses NarrationResult format
+- `test_format_command_result_failure` - Uses NarrationResult format
+- Added `test_format_command_result_with_beats` - Tests secondary_beats
 
-**Tests:**
-- End-to-end tests with each frontend
-- Manual playtesting with `text_game` to verify basic text output
-- Verify save/load/quit signals still work
+**Tests:** All 1926 tests pass. mypy validates with no errors.
 
 ---
 
-## Phase 8: Cleanup and Documentation
+## Phase 8: Cleanup and Documentation ✅ COMPLETED
 
 **Goal:** Remove deprecated code and update documentation.
 
-**Files to modify:**
-- Remove deprecated `ResultMessage` usage
-- Update docstrings throughout
-- Update `user_docs/` if affected
+**Status:** Completed (Issue #229)
 
-**Tasks:**
+### Completed Work
 
-1. Remove any backward-compatibility shims
-2. Run mypy and fix any type errors
-3. Run full test suite
-4. Update README if API changes affect users
+#### 1. Updated Protocol Error Responses in llm_protocol.py
+
+Converted all error responses from old format:
+```python
+{"type": "error", "message": "..."}
+```
+To new NarrationResult format:
+```python
+{
+    "type": "error",
+    "success": False,
+    "verbosity": "brief",
+    "narration": {"primary_text": "..."}
+}
+```
+
+Updated error responses in:
+- `handle_message()` - Unknown message type
+- `handle_json_string()` - Invalid JSON
+- `handle_command()` - Missing action, corrupted state, unknown verb, no handler, inconsistent state
+- `handle_query()` - Unknown query type, entity not found, location not found
+
+#### 2. Updated ResultMessage Type in action_types.py
+
+- Removed deprecated `message` field from `ResultMessage`
+- Removed `message` field from `ResultError` (kept only `fatal`)
+- Added `NarrationPlanDict` type for narration field
+- Added `narration` and `verbosity` fields to `ResultMessage`
+
+#### 3. Updated User Documentation
+
+Updated `user_docs/engine_manual.md`:
+- Response format section now shows NarrationResult format
+- Command flow example uses new format
+- Protocol reference uses new format
+
+Updated `user_docs/integration_testing.md`:
+- Error message extraction uses `narration.primary_text`
+- Helper function updated for new format
+
+**Tests:** All 1926 tests pass. mypy validates with no errors.
 
 ---
 

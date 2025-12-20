@@ -224,15 +224,36 @@ class TestFormatFunctions(unittest.TestCase):
 
     def test_format_command_result_success(self):
         """Test formatting successful command result."""
-        result = {"success": True, "message": "You did the thing."}
+        result = {
+            "success": True,
+            "verbosity": "brief",
+            "narration": {"primary_text": "You did the thing."}
+        }
         output = format_command_result(result)
         self.assertEqual(output, "You did the thing.")
 
     def test_format_command_result_failure(self):
         """Test formatting failed command result."""
-        result = {"success": False, "error": {"code": "NOTFOUND", "message": "Item not found."}}
+        result = {
+            "success": False,
+            "verbosity": "brief",
+            "narration": {"primary_text": "Item not found."}
+        }
         output = format_command_result(result)
         self.assertEqual(output, "Item not found.")
+
+    def test_format_command_result_with_beats(self):
+        """Test formatting result with secondary beats."""
+        result = {
+            "success": True,
+            "verbosity": "full",
+            "narration": {
+                "primary_text": "You pick up the sword.",
+                "secondary_beats": ["It feels heavy in your hand."]
+            }
+        }
+        output = format_command_result(result)
+        self.assertEqual(output, "You pick up the sword.\nIt feels heavy in your hand.")
 
     def test_format_inventory_query_empty(self):
         """Test formatting empty inventory."""

@@ -7,7 +7,8 @@
 This document unifies several narration-related designs into a single coherent specification:
 - `game_engine_narration_api_design.md` — Core API structure
 - `structured_action_reports_design.md` — Fragment pools and handler structure
-- `combat_stealth_scopes_and_beats_design.md` — Domain handling and beat counts
+
+Note: `combat_stealth_scopes_and_beats_design.md` is superseded by this document. Domain classification is replaced with pass-through narration hints.
 
 ---
 
@@ -351,66 +352,105 @@ These can be cleanly added later because:
 
 ---
 
-## Part 2: Domain Handling
+## Part 2: Narration Hints
 
-### 2.1 Domain Classification
+### 2.1 Design Philosophy
 
-The engine classifies each turn into a domain:
+The engine does not interpret pacing, tone, or situational context. Instead, behaviors can attach **narration hints**—arbitrary strings that pass through to the model. The model interprets hints according to the game's style prompt.
 
-- **default**: Normal exploration and interaction
-- **combat**: Active combat resolution
-- **stealth**: Stealth/infiltration mode
+This separation maintains clean boundaries:
+- **Behaviors**: Know the game situation and attach relevant hints
+- **Engine**: Passes hints through unchanged (no interpretation)
+- **Model**: Uses hints to adjust narration style per the style prompt
 
-Domain is determined mechanically from game state (combat_active, stealth_active flags).
+### 2.2 Hint Structure
 
-### 2.2 Scope Extension
-
-The existing `scope` object gains domain information:
+Hints are simple strings in the scope:
 
 ```json
 "scope": {
   "scene_kind": "action_result",
   "outcome": "success",
   "familiarity": "familiar",
-  "domain": "combat",
-  "subtype": "melee"
+  "hints": ["tension", "time-pressure"]
 }
 ```
 
-**Domain values**: `default`, `combat`, `stealth`
+**Hint values are game-defined**. The engine imposes no vocabulary—any string is valid.
 
-**Subtype values**:
-- Combat: `melee`, `ranged`, `spell`, `defense`
-- Stealth: `infiltration`, `detection`, `pursuit`
-- Default: (empty)
+Example hints a game might use:
+- Pacing: `"urgent"`, `"leisurely"`, `"tense"`
+- Atmosphere: `"intimate"`, `"vast"`, `"oppressive"`
+- Situation: `"rescue"`, `"negotiation"`, `"discovery"`
+- Tone: `"hopeful"`, `"grim"`, `"matter-of-fact"`
 
-### 2.3 Fragment Counts by Domain and Verbosity
+### 2.3 How Behaviors Attach Hints
 
-The engine uses fixed counts—no scoring, no token budgets, no "smart" selection:
+Behaviors attach hints when returning results:
 
-| Domain | Verbosity | Core | Color | Traits | State |
-|--------|-----------|------|-------|--------|-------|
-| default | brief | 1 | 0 | 0 | 0 |
-| default | full | 1 | 1-2 | 2-3 | 1 |
-| combat | brief | 1 | 0 | 0 | 0 |
-| combat | full | 1 | 1 | 1-2 | 0 |
-| stealth | brief | 1 | 0 | 1 | 0 |
-| stealth | full | 1 | 1-2 | 2-4 | 1 |
+```python
+@dataclass
+class HandlerResult:
+    success: bool
+    action: ActionReport
+    effects: list[EffectReport] = field(default_factory=list)
+    hints: list[str] = field(default_factory=list)  # Narration hints
+    data: dict = field(default_factory=dict)
+```
 
-Combat uses fewer fragments (fast pacing). Stealth uses more sensory traits (atmosphere).
+Example: A rescue behavior might return:
 
-Selection is purely random within these counts. No relevance scoring.
+```python
+return HandlerResult(
+    success=True,
+    action=ActionReport(verb="untie", object_id="captive_aldric", outcome="success"),
+    hints=["urgent", "rescue", "trust-building"]
+)
+```
 
-### 2.4 Stealth Visibility Rule
+The engine collects hints from the handler result and includes them in the scope.
 
-**Critical constraint**: Stealth narration never reveals unrevealed entities.
+### 2.4 How the Model Uses Hints
 
-The engine enforces this mechanically:
-- Only entities marked `revealed: true` appear in `entity_refs`
-- Only fragments from revealed entities are included
-- If an entity isn't revealed, it doesn't exist for narration
+The style prompt tells the model how to interpret hints. Hints guide narration but are **never reported literally**—the player never sees "urgent" or "trust-building" in the output.
 
-This is a hard filter, not a scoring adjustment.
+Example style prompt section:
+
+```
+NARRATION HINTS
+
+The scope may include hints like ["urgent", "rescue"].
+Use these to adjust your narration style:
+- "urgent": Short sentences. Active verbs. No dwelling.
+- "rescue": Emphasize relief, hope, connection.
+- "tense": Heighten sensory details. Slow moments down.
+- "intimate": Focus on close details. Quiet observations.
+
+Hints guide how you tell the story, not what you say.
+Never mention hints in your output.
+```
+
+### 2.5 Fragment Counts by Verbosity
+
+The engine uses fixed counts based only on verbosity—no scoring, no "smart" selection:
+
+| Verbosity | Core | Color | Traits | State |
+|-----------|------|-------|--------|-------|
+| brief | 1 | 0 | 0 | 0 |
+| full | 1 | 1-2 | 2-3 | 1 |
+
+Selection is purely random within these counts. Hints do not affect fragment counts—they only affect how the model weaves fragments into prose.
+
+### 2.6 Visibility Rules
+
+Entities that shouldn't be narrated are excluded from `entity_refs` before the narration plan is built. This is a mechanical filter in the engine, not a narration concern.
+
+The engine enforces this by:
+- Only including entities the player can perceive in `entity_refs`
+- Only including fragments from visible entities
+- If an entity isn't visible, it doesn't exist for narration
+
+This is a hard filter at plan-building time.
 
 ---
 
@@ -458,8 +498,6 @@ No "unless critical" exceptions. If the buffer is exhausted for a pool, simply s
 
 Default: 5 turns. This prevents immediate repetition while allowing reasonable cycling.
 
-Combat may use a smaller buffer (3) due to faster pace and fewer fragments.
-
 ---
 
 ## Part 4: Engine API
@@ -474,6 +512,7 @@ class HandlerResult:
     success: bool
     action: ActionReport
     effects: list[EffectReport] = field(default_factory=list)
+    hints: list[str] = field(default_factory=list)  # Narration hints
     data: dict = field(default_factory=dict)
 
 @dataclass
@@ -503,10 +542,9 @@ class FragmentResolver:
         self,
         action: ActionReport,
         effects: list[EffectReport],
-        domain: str,
         verbosity: str
     ) -> ResolvedFragments:
-        counts = FRAGMENT_COUNTS[domain][verbosity]
+        counts = FRAGMENT_COUNTS[verbosity]
 
         return ResolvedFragments(
             action_core=self._select_one(entity.action_fragments[action.verb].core),
@@ -554,7 +592,7 @@ The complete plan sent to the model:
       "scene_kind": "action_result",
       "outcome": "success",
       "familiarity": "familiar",
-      "domain": "default"
+      "hints": []
     },
     "entity_refs": {
       "item_sword": {
@@ -582,6 +620,12 @@ class ResolvedEffect(TypedDict, total=False):
     type: str
     core: str
     color: Optional[str]
+
+class ScopeInfo(TypedDict):
+    scene_kind: Literal["location_entry", "look", "action_result"]
+    outcome: Literal["success", "failure"]
+    familiarity: Literal["new", "familiar"]
+    hints: list[str]  # Pass-through narration hints from behaviors
 
 class NarrationPlan(TypedDict, total=False):
     action: ActionReport
@@ -663,10 +707,7 @@ SCOPE
 
 - scene_kind: location_entry (arrival), look (observation), action_result (action)
 - outcome: success or failure
-- domain: default, combat, stealth
-
-For combat: Keep descriptions punchy. Fast pace.
-For stealth: Emphasize sensory details. Tension.
+- hints: list of narration hints (see style section for interpretation)
 
 FAILURES
 
@@ -682,7 +723,7 @@ Include any text in must_mention verbatim (typically exits).
 
 ### 5.2 Section B: Style (Game-Specific)
 
-Game authors provide style instructions:
+Game authors provide style instructions, including hint interpretation:
 
 ```
 {{STYLE_PROMPT}}
@@ -693,8 +734,18 @@ Example:
 Write in second person, present tense.
 Use vivid, sensory language.
 Keep sentences varied in length.
-For combat, favor short punchy sentences.
 Never use exclamation marks.
+
+NARRATION HINTS
+
+The scope may include hints. Use them to adjust narration style:
+- "urgent": Short sentences. Active verbs. No dwelling.
+- "tense": Heighten sensory details. Slow moments down.
+- "rescue": Emphasize relief, hope, connection.
+- "intimate": Focus on close details. Quiet observations.
+- "vast": Emphasize scale and distance.
+
+Hints guide HOW you tell the story. Never mention hints in output.
 ```
 
 ---
@@ -709,7 +760,7 @@ Never use exclamation marks.
 1. Add fragment types to `llm_context` schema documentation
 2. Extend `NarrationPlan` types with `fragments` and `effects`
 3. Define `ResolvedFragments` and `ResolvedEffect` types
-4. Add `domain` and `subtype` to `ScopeInfo`
+4. Add `hints` to `ScopeInfo`
 5. Write validation for fragment structure
 
 **Tests**: Schema validation, type checking
@@ -758,18 +809,9 @@ Never use exclamation marks.
 **Tasks**:
 1. Migration in handler groups (manipulation, containers, etc.)
 2. Author fragments for game entities
-3. Update integration tests
-4. Performance validation
-
-### Phase 6: Domain Implementation
-
-**Goal**: Add combat/stealth domain handling.
-
-**Tasks**:
-1. Implement domain classification
-2. Apply fragment count tables
-3. Implement stealth visibility filter
-4. Update prompt with domain guidance
+3. Add narration hints to handlers where appropriate
+4. Update integration tests
+5. Performance validation
 
 ---
 
@@ -828,13 +870,12 @@ Validate fragments produce good narration:
 from typing import TypedDict, Literal, Optional
 from dataclasses import dataclass, field
 
-# Scope with domain
+# Scope with hints
 class ScopeInfo(TypedDict):
     scene_kind: Literal["location_entry", "look", "action_result"]
     outcome: Literal["success", "failure"]
     familiarity: Literal["new", "familiar"]
-    domain: Literal["default", "combat", "stealth"]
-    subtype: Optional[str]
+    hints: list[str]  # Pass-through narration hints from behaviors
 
 # Handler output
 @dataclass
@@ -858,6 +899,7 @@ class HandlerResult:
     success: bool
     action: ActionReport
     effects: list[EffectReport] = field(default_factory=list)
+    hints: list[str] = field(default_factory=list)  # Narration hints
     data: dict = field(default_factory=dict)
 
 # Resolved fragments for narration
@@ -916,28 +958,20 @@ class NarrationResult(TypedDict):
 
 ---
 
-## Appendix B: Fragment Count Tables
+## Appendix B: Fragment Count Table
 
-### Default Domain
+Fragment counts are determined solely by verbosity. Narration hints affect how the model weaves fragments, not how many are selected.
 
 | Verbosity | Core | Color | Traits | State |
 |-----------|------|-------|--------|-------|
 | brief | 1 | 0 | 0 | 0 |
 | full | 1 | 1-2 | 2-3 | 1 |
 
-### Combat Domain
-
-| Verbosity | Core | Color | Traits | State |
-|-----------|------|-------|--------|-------|
-| brief | 1 | 0 | 0 | 0 |
-| full | 1 | 1 | 1-2 | 0 |
-
-### Stealth Domain
-
-| Verbosity | Core | Color | Traits | State |
-|-----------|------|-------|--------|-------|
-| brief | 1 | 0 | 1 | 0 |
-| full | 1 | 1-2 | 2-4 | 1 |
+**Notes:**
+- **Core** is always exactly 1 (required)
+- **Color** range means random selection: 0 for brief, 1-2 for full
+- **Traits** are sensory details from the entity
+- **State** is the entity's current state variant (in_inventory, in_location, etc.)
 
 ---
 
@@ -947,18 +981,31 @@ class NarrationResult(TypedDict):
 
 | Source Document | What's Kept | What's Changed |
 |-----------------|-------------|----------------|
-| game_engine_narration_api_design.md | Viewpoint, scope, entity_refs, must_mention | Added fragments, domain |
+| game_engine_narration_api_design.md | Viewpoint, scope, entity_refs, must_mention | Added fragments, hints |
 | structured_action_reports_design.md | Fragment pools, core/color structure | Removed scoring, simplified selection |
-| combat_stealth_scopes_and_beats_design.md | Domain classification, stealth visibility | Fixed counts replace token budgets |
+| combat_stealth_scopes_and_beats_design.md | (Superseded) | Replaced domain classification with pass-through hints |
 
 ### What's Removed
 
-1. **Relevance scoring** — Pure random selection instead
-2. **Topic filtering at runtime** — Authoring-time concern
-3. **"Unless critical" exceptions** — Simple buffer exhaustion fallback
-4. **Token budget packing** — Fixed counts by domain/verbosity
-5. **Beat selection complexity** — Fragments replace beats
+1. **Domain classification** — Replaced with pass-through hints
+2. **Combat/stealth special handling** — Model interprets hints via style prompt instead
+3. **Relevance scoring** — Pure random selection instead
+4. **Topic filtering at runtime** — Authoring-time concern
+5. **"Unless critical" exceptions** — Simple buffer exhaustion fallback
+6. **Token budget packing** — Fixed counts by verbosity only
+7. **Beat selection complexity** — Fragments replace beats
+
+### What's Added
+
+1. **Narration hints** — Arbitrary strings that behaviors attach for model interpretation
+2. **Hint interpretation in style prompt** — Game authors define how hints affect narration
 
 ### Rationale
 
-The previous designs included "smart" features that required engine-side judgment. This unified design removes all such features, keeping the engine purely mechanical. The model handles all intelligent prose decisions.
+The previous designs included "smart" features that required engine-side judgment. This unified design removes all such features, keeping the engine purely mechanical:
+
+- **Hints are pass-through**: The engine doesn't interpret hints—just passes them to the model
+- **Model interprets hints**: The style prompt tells the model how to adjust narration
+- **Hints never appear in output**: They guide style, not content
+
+This separation keeps the engine simple while giving game authors flexible control over narration tone and pacing.

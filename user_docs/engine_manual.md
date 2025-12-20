@@ -643,7 +643,11 @@ Typical parse time: < 1ms for common commands.
   "type": "result",
   "success": true,
   "action": "verb",
-  "message": "Human-readable result",
+  "verbosity": "full",
+  "narration": {
+    "primary_text": "Human-readable result",
+    "secondary_beats": ["Optional additional context"]
+  },
   "data": {
     // Optional additional data (e.g., entity details, location info)
   }
@@ -656,8 +660,11 @@ Typical parse time: < 1ms for common commands.
   "type": "result",
   "success": false,
   "action": "verb",
+  "verbosity": "brief",
+  "narration": {
+    "primary_text": "Error description"
+  },
   "error": {
-    "message": "Error description",
     "fatal": false  // true for state corruption
   }
 }
@@ -1231,35 +1238,36 @@ Player Input: "take the red key from the wooden box"
     ├─ Update state: move item_red_key from box to player inventory
     ├─ Return EventResult(success=True, message="You take the red key.")
     ↓
-4. LLMProtocolHandler formats result:
+4. LLMProtocolHandler determines verbosity and formats NarrationResult:
+    ├─ Check if item_red_key in examined_entities
+    ├─ First examination → verbosity: "full"
+    ├─ Build NarrationPlan with primary_text, entity_refs, etc.
     {
       "type": "result",
       "success": true,
       "action": "take",
-      "message": "You take the red key from the wooden box.",
+      "verbosity": "full",
+      "narration": {
+        "primary_text": "You take the red key from the wooden box.",
+        "entity_refs": {
+          "item_red_key": {
+            "name": "red key",
+            "traits": ["ornate", "red", "cold iron"]
+          }
+        }
+      },
       "data": {
         "id": "item_red_key",
-        "name": "key",
-        "description": "An ornate red key...",
-        "llm_context": {
-          "traits": ["ornate", "red", "cold iron"],
-          "state_variants": {...}
-        }
+        "name": "key"
       }
     }
     ↓
-5. LLMNarrator determines verbosity:
-    ├─ Check if item_red_key in examined_entities
-    ├─ First examination → verbosity: "full"
-    ├─ Add verbosity to result
-    ├─ Mark item_red_key as examined
+5. LLMNarrator._call_llm() for narration:
+    ├─ Send NarrationResult to Claude
+    ├─ Claude weaves narration.primary_text with entity traits
+    ├─ Return narrative prose
     ↓
-6. LLMNarrator._call_llm() for narration:
-    ├─ Send result + verbosity to Claude
-    ├─ Claude generates prose from result + llm_context
-    ├─ Return narrative
-    ↓
-7. Display to player:
+6. Display to player:
     "You carefully lift the ornate red key from the wooden box.
     The cold iron feels heavy in your hand, and intricate runes
     gleam along its length."
@@ -1514,19 +1522,24 @@ def _query_my_new_type(self, message: Dict) -> Dict:
 
 **Adding new command result fields:**
 
-Result format is flexible - add any fields needed:
+Result format uses NarrationResult - add custom fields to data:
 ```python
 return {
     "type": "result",
     "success": True,
     "action": "my_verb",
-    "message": "Result message",
-    "data": {...},
-    "custom_field": "custom_value"  # New field
+    "verbosity": "full",
+    "narration": {
+        "primary_text": "Result message",
+        "secondary_beats": ["Additional context"]
+    },
+    "data": {
+        "custom_field": "custom_value"  # Custom data here
+    }
 }
 ```
 
-LLM narrator will have access to all fields.
+LLM narrator will have access to narration plan and data fields.
 
 ---
 
@@ -2300,15 +2313,19 @@ utilities/*
 }
 ```
 
-**Result:**
+**Result (NarrationResult format):**
 ```json
 {
   "type": "result",
   "success": true|false,
   "action": "string",
-  "message": "string",
+  "verbosity": "brief|full",
+  "narration": {
+    "primary_text": "string",
+    "secondary_beats": ["string"]
+  },
   "data": {...},
-  "error": {"message": "string", "fatal": true|false}
+  "error": {"fatal": true|false}
 }
 ```
 

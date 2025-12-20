@@ -217,9 +217,10 @@ def test_cannot_take_without_condition(self):
     response = self._execute("take", "star")
 
     self.assertFalse(response.get("success"))
-    # Check error message mentions the reason
-    error_msg = response.get("error", {}).get("message", "")
-    self.assertIn("too high", error_msg.lower())
+    # Check narration mentions the reason
+    narration = response.get("narration", {})
+    primary_text = narration.get("primary_text", "")
+    self.assertIn("too high", primary_text.lower())
 
 def test_can_take_with_condition(self):
     """Can take item when precondition is met."""
@@ -279,17 +280,15 @@ def _execute(self, verb, obj=None):
 
 ## Common Patterns
 
-### Getting Error Messages
+### Getting Response Text
 
-Responses have different structures for success vs failure:
+Responses use NarrationResult format with narration.primary_text:
 
 ```python
 def _get_message(self, response):
-    """Get message from response (handles both success and error formats)."""
-    if response.get("success"):
-        return response.get("message", "")
-    else:
-        return response.get("error", {}).get("message", "")
+    """Get message from response (NarrationResult format)."""
+    narration = response.get("narration", {})
+    return narration.get("primary_text", "")
 ```
 
 ### Setting Up Actor State

@@ -68,23 +68,14 @@ def format_inventory_query(response: Dict[str, Any]) -> str:
 def format_command_result(response: Dict[str, Any]) -> str:
     """Format a command result as text.
 
-    Updated for Phase 4 (Narration API) - handles NarrationResult format
-    where the message is in narration.primary_text.
+    Extracts text from NarrationResult format where the message is in
+    narration.primary_text and optional secondary_beats.
     """
-    # New format (NarrationResult): message in narration.primary_text
-    if "narration" in response:
-        narration = response["narration"]
-        parts = [narration.get("primary_text", "")]
-        if "secondary_beats" in narration:
-            parts.extend(narration["secondary_beats"])
-        return "\n".join(part for part in parts if part)
-
-    # Old format (backward compatibility)
-    if response.get("success"):
-        return response.get("message", "Done.")
-    else:
-        error = response.get("error", {})
-        return error.get("message", "That didn't work.")
+    narration = response.get("narration", {})
+    parts = [narration.get("primary_text", "")]
+    if "secondary_beats" in narration:
+        parts.extend(narration["secondary_beats"])
+    return "\n".join(part for part in parts if part)
 
 
 def save_game(state: GameState, filename: str):
@@ -190,7 +181,7 @@ def main(game_dir: Optional[str] = None):
             signal = response["data"]["signal"]
 
             if signal == "quit":
-                print(response.get("message", "Thanks for playing!"))
+                print(format_command_result(response) or "Thanks for playing!")
                 break
 
             elif signal == "save":
@@ -232,10 +223,12 @@ def main(game_dir: Optional[str] = None):
         print(format_command_result(response))
 
         # Check for win condition
+        narration = response.get("narration", {})
+        primary_text = narration.get("primary_text", "").lower()
         if (response.get("success") and
             response.get("action") == "open" and
-            "chest" in response.get("message", "").lower() and
-            "treasure" in response.get("message", "").lower()):
+            "chest" in primary_text and
+            "treasure" in primary_text):
             break
 
 
