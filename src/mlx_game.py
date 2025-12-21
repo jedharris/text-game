@@ -7,8 +7,15 @@ using Apple's MLX framework for native Metal GPU acceleration on Apple Silicon.
 
 import argparse
 import logging
+import os
 import sys
 from pathlib import Path
+
+# Set HuggingFace cache location before any HF imports
+# This ensures MLX-LM finds cached models in the user's custom location
+_hf_cache = Path.home() / "jed.cache" / "huggingface"
+if _hf_cache.exists() and not os.environ.get("HF_HOME"):
+    os.environ["HF_HOME"] = str(_hf_cache)
 
 # Add project root to path when run as script (not when imported as module)
 if __name__ == '__main__':

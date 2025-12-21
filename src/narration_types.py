@@ -93,19 +93,23 @@ class NarrationPlan(TypedDict, total=False):
     The complete narration plan - sole authoritative input for prose rendering.
 
     Fields:
+        action_verb: The specific verb that was executed (e.g., "unlock", "open", "examine")
         primary_text: The core statement of what occurred (from handler's primary field)
         secondary_beats: Supplemental sentences (from handler beats + selected traits)
         viewpoint: Mechanical perspective data
         scope: Scene type classification
         entity_refs: Relevant entities with narration-ready data
         must_mention: Required text that must appear
+        target_state: For door/container actions, the CURRENT state AFTER the action
     """
+    action_verb: str
     primary_text: str
     secondary_beats: list[str]
     viewpoint: ViewpointInfo
     scope: ScopeInfo
     entity_refs: dict[str, EntityRef]
     must_mention: MustMention
+    target_state: EntityState
 
 
 class NarrationResult(TypedDict):

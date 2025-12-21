@@ -28,8 +28,47 @@ Usage:
 """
 from src.types import ActorId
 
+import importlib
+import logging
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
+
+logger = logging.getLogger(__name__)
+
+# Cache for loaded handler functions
+_topic_handler_cache: dict[str, Callable[..., Any]] = {}
+
+
+def _load_topic_handler(handler_path: str) -> Callable[..., Any] | None:
+    """Load a handler function from a module:function path.
+
+    Args:
+        handler_path: Path like "module.path:function_name"
+
+    Returns:
+        The handler function, or None if loading fails
+    """
+    if handler_path in _topic_handler_cache:
+        return _topic_handler_cache[handler_path]
+
+    try:
+        if ":" not in handler_path:
+            logger.warning(f"Invalid handler path (missing ':'): {handler_path}")
+            return None
+
+        module_path, func_name = handler_path.rsplit(":", 1)
+        module = importlib.import_module(module_path)
+        handler = getattr(module, func_name)
+        _topic_handler_cache[handler_path] = handler
+        return handler
+    except (ValueError, ImportError, AttributeError) as e:
+        logger.warning(f"Failed to load topic handler {handler_path}: {e}")
+        return None
+
+
+def clear_topic_handler_cache() -> None:
+    """Clear the handler cache. Useful for testing."""
+    _topic_handler_cache.clear()
 
 
 @dataclass
@@ -74,6 +113,10 @@ def get_available_topics(accessor, npc) -> List[str]:
 
     available = []
     for topic_name, topic in topics.items():
+        # Skip non-dict entries (e.g., "handler" key)
+        if not isinstance(topic, dict):
+            continue
+
         # Check required flags
         required_flags = topic.get('requires_flags', {})
         flags_met = all(
@@ -92,6 +135,22 @@ def get_available_topics(accessor, npc) -> List[str]:
         # Check one_time topics
         if topic.get('one_time') and topic_name in discussed:
             continue
+
+        # Check requires_state (NPC state machine gating)
+        requires_state = topic.get('requires_state')
+        if requires_state is not None:
+            state_machine = npc.properties.get('state_machine')
+            if not state_machine:
+                # Topic requires state but NPC has no state machine
+                continue
+            current_state = state_machine.get('current')
+            # Support both single string and list of states
+            if isinstance(requires_state, str):
+                if current_state != requires_state:
+                    continue
+            elif isinstance(requires_state, list):
+                if current_state not in requires_state:
+                    continue
 
         available.append(topic_name)
 
@@ -139,6 +198,9 @@ def _find_topic_by_keyword(npc, query: str) -> Optional[str]:
     query_lower = query.lower()
 
     for topic_name, topic in topics.items():
+        # Skip non-dict entries (e.g., "handler" key)
+        if not isinstance(topic, dict):
+            continue
         keywords = topic.get('keywords', [])
         for keyword in keywords:
             if keyword.lower() in query_lower or query_lower in keyword.lower():
@@ -188,6 +250,29 @@ def handle_ask_about(accessor, npc, topic_text: str) -> DialogResult:
 
     # Topic found and available - process it
 
+    # Check for per-topic handler
+    handler_path = topic.get('handler')
+    if handler_path:
+        handler = _load_topic_handler(handler_path)
+        if handler:
+            # Call handler with context
+            context = {
+                "keyword": topic_text,
+                "topic_name": topic_name,
+                "dialog_text": topic_text
+            }
+            result = handler(npc, accessor, context)
+            # If handler returns feedback, use it
+            if result.feedback:
+                return DialogResult(
+                    success=result.allow,
+                    response=result.feedback,
+                    topic_name=topic_name
+                )
+            # Handler returned no feedback - fall through to summary and effects
+        else:
+            logger.warning(f"Topic handler failed to load for {npc.id}.{topic_name}: {handler_path}")
+
     # Set flags
     sets_flags = topic.get('sets_flags', {})
     if 'flags' not in player.properties:
@@ -216,6 +301,24 @@ def handle_ask_about(accessor, npc, topic_text: str) -> DialogResult:
             npc.properties['discussed_topics'] = []
         if topic_name not in npc.properties['discussed_topics']:
             npc.properties['discussed_topics'].append(topic_name)
+
+    # Apply trust_delta
+    trust_delta = topic.get('trust_delta')
+    if trust_delta is not None and trust_delta != 0:
+        # Initialize trust_state if missing
+        if 'trust_state' not in npc.properties:
+            npc.properties['trust_state'] = {'current': 0}
+        trust_state = npc.properties['trust_state']
+        # Get bounds if defined
+        floor = trust_state.get('floor')
+        ceiling = trust_state.get('ceiling')
+        # Calculate new value with bounds
+        new_trust = trust_state['current'] + trust_delta
+        if floor is not None and new_trust < floor:
+            new_trust = floor
+        if ceiling is not None and new_trust > ceiling:
+            new_trust = ceiling
+        trust_state['current'] = new_trust
 
     # Return summary
     summary = topic.get('summary', f"{npc.name} discusses {topic_name}.")

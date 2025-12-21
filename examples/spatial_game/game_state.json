@@ -167,7 +167,7 @@
     {
       "id": "item_garden_bench",
       "name": "bench",
-      "description": "A weathered stone bench, covered in moss. It looks sturdy enough to stand on.",
+      "description": "A weathered stone bench, covered in moss.",
       "location": "loc_garden",
       "properties": {
         "type": "furniture",
@@ -178,7 +178,7 @@
         "llm_context": {
           "traits": ["weathered stone", "moss-covered", "sturdy construction", "cool to the touch"],
           "perspective_variants": {
-            "default": "A weathered stone bench sits among the weeds, its surface covered in soft moss.",
+            "default": "A weathered stone bench sits among the weeds, its surface covered in soft moss. It looks sturdy enough to stand on.",
             "on_surface:item_garden_bench": "You stand atop the mossy bench, gaining a better view of the overgrown garden."
           }
         }
@@ -187,7 +187,7 @@
     {
       "id": "item_tree",
       "name": "tree",
-      "description": "An old oak tree with thick branches. You might be able to climb it if you had something to stand on.",
+      "description": "An old oak tree with thick branches that spread wide overhead.",
       "location": "loc_garden",
       "properties": {
         "type": "object",
@@ -199,7 +199,7 @@
         "llm_context": {
           "traits": ["ancient oak", "thick gnarled branches", "rough bark", "leafy canopy"],
           "perspective_variants": {
-            "default": "An old oak tree rises from the overgrown garden, its thick branches spreading wide overhead.",
+            "default": "An old oak tree rises from the overgrown garden, its thick branches spreading wide overhead. You might be able to climb it if you had something to stand on.",
             "on_surface:item_garden_bench": "From atop the bench, the tree's lower branches seem almost within reach.",
             "climbing:item_tree": "You cling to the rough bark, branches spreading around you in all directions."
           }
@@ -212,7 +212,7 @@
     {
       "id": "item_magic_star",
       "name": "star",
-      "description": "A crystalline star that glows with inner light, nestled in the tree branches.",
+      "description": "A crystalline star that glows with inner light.",
       "location": "item_tree",
       "properties": {
         "type": "object",

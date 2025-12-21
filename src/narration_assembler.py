@@ -86,6 +86,9 @@ class NarrationAssembler:
         """
         plan: NarrationPlan = {}
 
+        # 0. Include the action verb for precise narration
+        plan["action_verb"] = verb
+
         # 1. Build primary_text (direct from handler)
         plan["primary_text"] = handler_result.primary
 
@@ -111,6 +114,11 @@ class NarrationAssembler:
         must_mention = self._build_must_mention(scene_kind)
         if must_mention:
             plan["must_mention"] = must_mention
+
+        # 7. Build target_state for door/container actions (top-level for visibility)
+        target_state = self._build_target_state(handler_result)
+        if target_state:
+            plan["target_state"] = target_state
 
         return plan
 
@@ -464,3 +472,35 @@ class NarrationAssembler:
             return dest_location.name
 
         return None
+
+    def _build_target_state(
+        self,
+        handler_result: HandlerResult
+    ) -> Optional[EntityState]:
+        """
+        Build target_state for door/container actions.
+
+        Extracts open/locked state from handler result data and returns it
+        as a top-level field for high visibility to the narrator.
+
+        Args:
+            handler_result: Handler result with optional data
+
+        Returns:
+            EntityState dict or None if not applicable
+        """
+        if not handler_result.data:
+            return None
+
+        data = handler_result.data
+        state: EntityState = {}
+
+        # Check for open/locked state in the data (from entity_serializer)
+        if "open" in data:
+            state["open"] = bool(data["open"])
+        if "locked" in data:
+            state["locked"] = bool(data["locked"])
+        if "lit" in data:
+            state["lit"] = bool(data["lit"])
+
+        return state if state else None

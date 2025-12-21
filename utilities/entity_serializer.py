@@ -13,6 +13,8 @@ from typing import Any, Dict, Optional, TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
     from src.state_manager import Item, Location, Actor, ExitDescriptor, Lock
+    from src.state_accessor import StateAccessor
+    from src.types import ActorId
 
 
 def entity_to_dict(entity: Any, include_llm_context: bool = True,
@@ -281,16 +283,48 @@ def _get_llm_context(entity: Any) -> Optional[Dict[str, Any]]:
     return None
 
 
-def serialize_for_handler_result(entity: Any) -> Dict[str, Any]:
+def _build_player_context(accessor: "StateAccessor", actor_id: "ActorId") -> Dict[str, Any]:
+    """Build player context dict from accessor and actor_id.
+
+    Args:
+        accessor: StateAccessor for state queries
+        actor_id: ID of the actor
+
+    Returns:
+        Dict with posture and focused_on keys
+    """
+    actor = accessor.get_actor(actor_id)
+    if not actor:
+        return {"posture": None, "focused_on": None}
+
+    return {
+        "posture": actor.properties.get("posture"),
+        "focused_on": actor.properties.get("focused_on")
+    }
+
+
+def serialize_for_handler_result(
+    entity: Any,
+    accessor: Optional["StateAccessor"] = None,
+    actor_id: Optional["ActorId"] = None
+) -> Dict[str, Any]:
     """Serialize entity for inclusion in HandlerResult.data.
 
     Convenience function for behavior handlers. Always includes llm_context
-    with randomized traits.
+    with randomized traits. When accessor and actor_id are provided, also
+    computes spatial_relation and selects appropriate perspective_variant
+    based on the actor's current posture.
 
     Args:
         entity: Entity to serialize
+        accessor: Optional StateAccessor for player context
+        actor_id: Optional actor ID for player context
 
     Returns:
         Dict suitable for HandlerResult.data
     """
-    return entity_to_dict(entity, include_llm_context=True)
+    player_context = None
+    if accessor is not None and actor_id is not None:
+        player_context = _build_player_context(accessor, actor_id)
+
+    return entity_to_dict(entity, include_llm_context=True, player_context=player_context)

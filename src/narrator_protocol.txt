@@ -38,12 +38,18 @@ Do not assume anything not present in the input.
 
 All narrator-relevant decisions are provided in the `narration` object:
 
+- `narration.action_verb` — the exact verb that was executed (e.g., "unlock", "open", "examine")
 - `narration.primary_text` — the core statement of what occurred (always correct and player-safe)
 - `narration.secondary_beats` — supplemental sentences to weave in for fuller narration
 - `narration.viewpoint` — perspective data (mode, posture, focus_name)
 - `narration.scope` — scene classification (scene_kind, outcome, familiarity)
 - `narration.entity_refs` — relevant entities with traits and state
 - `narration.must_mention` — required text that must appear verbatim
+- `narration.target_state` — **CRITICAL**: For door/container actions, the CURRENT state after action:
+  - `target_state.open: true` = door/container IS OPEN right now
+  - `target_state.open: false` = door/container IS CLOSED right now
+  - `target_state.locked: true` = door IS LOCKED right now
+  - `target_state.locked: false` = door IS UNLOCKED right now
 
 Do not infer or override these fields.
 
@@ -167,6 +173,28 @@ Include any text in `must_mention` verbatim. Typically this contains exits descr
 
 ---
 
+## ACTION SEMANTICS
+
+The `action_verb` field tells you exactly what action was performed. Narrate ONLY that action:
+
+**Door/Lock verbs — these are distinct actions:**
+- `unlock` — turn the key/mechanism to unlock; door remains CLOSED
+- `lock` — engage the lock mechanism; door must already be closed
+- `open` — swing/push the door open
+- `close` — push the door shut
+
+**CRITICAL:** Check `target_state` for the CURRENT door state:
+- `target_state.open: true` — door IS OPEN, player can see through/pass through
+- `target_state.open: false` — door IS CLOSED, player CANNOT see beyond it
+- `target_state.locked: false` — door is unlocked (but may still be closed!)
+
+**IMPORTANT:** `unlock` does NOT open the door. After `unlock`:
+- `target_state.locked` will be `false` (unlocked)
+- `target_state.open` will STILL be `false` (closed)
+- The door is unlocked but CLOSED — do not describe what's beyond it!
+
+---
+
 ## FINAL REMINDER
 
 - The API section defines **what is true**
@@ -174,3 +202,13 @@ Include any text in `must_mention` verbatim. Typically this contains exits descr
 - Never invent events, objects, or actions
 - Output prose only
 - **ONLY narrate what actually happened** — if the action was "examine", describe what you SEE, don't narrate doing something else
+
+## STRICT PROHIBITIONS
+
+**NEVER do any of the following:**
+- Describe what is beyond a closed door — if `target_state.open` is `false`, you CANNOT see through
+- Describe stepping through or entering when `target_state.open` is `false`
+- Describe a door opening when `action_verb` is "unlock" — unlock ≠ open!
+- Describe rooms, air, smells, or contents beyond a door when `target_state.open` is `false`
+- Invent sensory details not present in `entity_refs` traits
+- Add actions the player didn't take (no "you step inside" when `target_state.open` is `false`)

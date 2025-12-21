@@ -208,7 +208,7 @@ def handle_examine(accessor, action):
             message_parts.append(result.detail)
 
         # Use unified serializer for llm_context with trait randomization
-        data = serialize_for_handler_result(item)
+        data = serialize_for_handler_result(item, accessor, actor_id)
 
         return HandlerResult(
             success=True,
@@ -243,7 +243,7 @@ def handle_examine(accessor, action):
             message_parts.append(result.detail)
 
         # Use unified serializer for llm_context
-        data = serialize_for_handler_result(part)
+        data = serialize_for_handler_result(part, accessor, actor_id)
 
         return HandlerResult(
             success=True,
@@ -258,7 +258,7 @@ def handle_examine(accessor, action):
 
     if door:
         # Use unified serializer for llm_context with trait randomization
-        data = serialize_for_handler_result(door)
+        data = serialize_for_handler_result(door, accessor, actor_id)
 
         return HandlerResult(
             success=True,
@@ -283,7 +283,7 @@ def handle_examine(accessor, action):
             desc = f"A passage leads {exit_direction}."
 
         # Use unified serializer for llm_context with trait randomization
-        data = serialize_for_handler_result(exit_desc)
+        data = serialize_for_handler_result(exit_desc, accessor, actor_id)
         # Add exit-specific fields
         data["exit_direction"] = exit_direction
         data["exit_type"] = exit_desc.type
@@ -320,7 +320,7 @@ def handle_examine(accessor, action):
             desc = lock.description if hasattr(lock, 'description') and lock.description else "A lock."
 
             # Use unified serializer for llm_context with trait randomization
-            data = serialize_for_handler_result(lock)
+            data = serialize_for_handler_result(lock, accessor, actor_id)
 
             return HandlerResult(
                 success=True,
@@ -381,7 +381,7 @@ def handle_examine(accessor, action):
                     message_parts.append(f"You see {target_actor.name}.")
 
             # Show inventory using shared helper
-            inv_message, inv_data = format_inventory(accessor, target_actor, for_self=is_self)
+            inv_message, inv_data = format_inventory(accessor, target_actor, for_self=is_self, observer_actor_id=actor_id)
             if inv_message:
                 message_parts.append(inv_message)
 
@@ -391,7 +391,7 @@ def handle_examine(accessor, action):
                 message_parts.append(result.detail)
 
             # Use unified serializer for llm_context with trait randomization
-            data = serialize_for_handler_result(target_actor)
+            data = serialize_for_handler_result(target_actor, accessor, actor_id)
 
             return HandlerResult(
                 success=True,
@@ -443,7 +443,7 @@ def handle_inventory(accessor, action):
         )
 
     # Use shared format_inventory helper
-    message, items_data = format_inventory(accessor, actor, for_self=True)
+    message, items_data = format_inventory(accessor, actor, for_self=True, observer_actor_id=actor_id)
 
     if not message:
         return HandlerResult(

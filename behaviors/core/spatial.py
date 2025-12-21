@@ -211,7 +211,7 @@ def _handle_positioning(accessor, action, object_field: str, required_property: 
             message = f"{message}\n{behavior_message}"
 
     # Serialize target for LLM consumption
-    data = serialize_for_handler_result(target)
+    data = serialize_for_handler_result(target, accessor, actor_id)
     if posture:
         data["posture"] = posture
 
@@ -375,7 +375,7 @@ def handle_climb(accessor, action):
         message = base_message
 
     # Serialize climbable object for LLM consumption
-    data = serialize_for_handler_result(climbable)
+    data = serialize_for_handler_result(climbable, accessor, actor_id)
     data["posture"] = "climbing"
 
     return HandlerResult(success=True, primary=message, data=data)
