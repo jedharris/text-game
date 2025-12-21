@@ -1,1 +1,0 @@
-ollama run mistral:7b-instruct-q8_0 "You are an text game narrator. Describe an abandoned dungeon entrance with a gothic atmosphere."

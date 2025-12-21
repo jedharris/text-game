@@ -11,14 +11,12 @@ dependencies = []
 
 [project.optional-dependencies]
 llm = ["anthropic"]
-ollama = ["requests"]
 mlx = ["mlx-lm"]
 gui = ["wxPython"]
 
 [project.scripts]
 text-game = "src.text_game:cli_main"
 llm-game = "src.llm_game:cli_main"
-ollm-game = "src.ollama_game:cli_main"
 xllm-game = "src.mlx_game:cli_main"
 
 [tool.setuptools.packages.find]

@@ -51,8 +51,6 @@ src/llm_narrator.py
 src/llm_protocol.py
 src/mlx_game.py
 src/mlx_narrator.py
-src/ollama_game.py
-src/ollama_narrator.py
 src/parsed_command.py
 src/parser.py
 src/state_accessor.py

@@ -319,7 +319,7 @@ Created AST-based tool to safely refactor test assertions for the new format:
 
 #### 1. Removed Duplicate Logic from All Narrators
 
-Removed from `src/llm_narrator.py`, `src/mlx_narrator.py`, `src/ollama_narrator.py`:
+Removed from `src/llm_narrator.py` and `src/mlx_narrator.py` (Ollama narrator retired):
 - `visited_locations` and `examined_entities` tracking sets
 - `_get_narration_mode()` method
 - `_determine_verbosity()` method
@@ -350,10 +350,9 @@ narrative = self._call_llm(f"Narrate:\n{json.dumps(result)}")
 
 Removed local tracking updates. Opening scene queries location but doesn't mark as visited (tracking happens on first command).
 
-#### 4. Updated Mock Narrators
+#### 4. Updated Mock Narrators and Tests
 
 - Updated `MockLLMNarrator` (tests/llm_interaction/mock_narrator.py)
-- Updated `MockOllamaNarrator` (tests/llm_interaction/test_ollama_narrator.py)
 - Added `visited_locations` and `examined_entities` properties that proxy to handler
 
 #### 5. Updated Tests
@@ -363,8 +362,6 @@ Removed local tracking updates. Opening scene queries location but doesn't mark 
 - Updated all tests that create handlers per-test instead of using setUp
 
 #### 6. Fixed Pre-existing mypy Issue
-
-Added `# type: ignore[import-untyped]` to `import requests` in `ollama_narrator.py`.
 
 **Tests:** All 1925 tests pass. mypy validates with no errors.
 
@@ -380,7 +377,7 @@ Added `# type: ignore[import-untyped]` to `import requests` in `ollama_narrator.
 
 #### 1. Updated Core Protocol Files
 
-Replaced `src/narrator_protocol.txt` and `src/ollama_narrator_protocol.txt` with unified structure:
+Replaced `src/narrator_protocol.txt` with unified structure:
 - Section A: Invariant API documentation describing NarrationResult format
 - `{{STYLE_PROMPT}}` placeholder for game-specific style rules
 - Documented all fields: `narration.primary_text`, `narration.secondary_beats`, `viewpoint`, `scope`, `entity_refs`, `must_mention`

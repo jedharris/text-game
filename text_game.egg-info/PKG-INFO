@@ -5,8 +5,6 @@ Summary: A text adventure game engine with optional LLM narration
 Requires-Python: >=3.8
 Provides-Extra: llm
 Requires-Dist: anthropic; extra == "llm"
-Provides-Extra: ollama
-Requires-Dist: requests; extra == "ollama"
 Provides-Extra: mlx
 Requires-Dist: mlx-lm; extra == "mlx"
 Provides-Extra: gui
