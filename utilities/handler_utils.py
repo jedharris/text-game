@@ -21,7 +21,7 @@ def validate_actor_and_location(
     require_object: bool = True,
     require_direction: bool = False,
     require_indirect_object: bool = False
-) -> Tuple[Optional[str], Optional[Any], Optional[Any], Optional[HandlerResult]]:
+) -> Tuple[Optional[ActorId], Optional[Any], Optional[Any], Optional[HandlerResult]]:
     """
     Standard handler preamble: validates actor, location, and required action fields.
 
@@ -191,7 +191,7 @@ def find_openable_target(
     accessor,
     action: Dict[str, Any],
     verb: str
-) -> Tuple[Optional[Any], Optional[str], Optional[HandlerResult]]:
+) -> Tuple[Optional[Any], Optional[ActorId], Optional[HandlerResult]]:
     """
     Shared preamble for door/container handlers (open, close, lock, unlock).
 
