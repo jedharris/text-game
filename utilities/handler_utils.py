@@ -306,7 +306,7 @@ def execute_entity_action(
         base_messages.append(result.detail)
 
     primary, beats = build_message_with_positioning(base_messages, positioning_msg)
-    data = serialize_for_handler_result(entity)
+    data = serialize_for_handler_result(entity, accessor, actor_id)
 
     return HandlerResult(success=True, primary=primary, beats=beats, data=data)
 
@@ -483,7 +483,9 @@ def build_action_result(
     item: Item,
     primary: str,
     beats: Optional[List[str]] = None,
-    data: Optional[Dict[str, Any]] = None
+    data: Optional[Dict[str, Any]] = None,
+    accessor: Optional[StateAccessor] = None,
+    actor_id: Optional[ActorId] = None
 ) -> HandlerResult:
     """
     Build a successful HandlerResult with primary message, beats, and entity data.
@@ -494,6 +496,8 @@ def build_action_result(
         beats: Optional list of supplemental sentences
                (e.g., ["You step down from the table.", "It's cold to the touch."])
         data: Optional extra data. If not provided, serializes the item.
+        accessor: Optional StateAccessor for player context (perspective variants)
+        actor_id: Optional actor ID for player context
 
     Returns:
         HandlerResult with primary, beats, and serialized data
@@ -502,5 +506,5 @@ def build_action_result(
         success=True,
         primary=primary,
         beats=beats or [],
-        data=data if data is not None else serialize_for_handler_result(item)
+        data=data if data is not None else serialize_for_handler_result(item, accessor, actor_id)
     )

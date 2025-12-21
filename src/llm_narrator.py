@@ -326,8 +326,12 @@ class LLMNarrator:
 
         style = prompt_file.read_text()
 
-        # Combine protocol + style
-        base_prompt = f"{protocol}\n\n{style}"
+        # Replace {{STYLE_PROMPT}} placeholder with game-specific style
+        if "{{STYLE_PROMPT}}" in protocol:
+            base_prompt = protocol.replace("{{STYLE_PROMPT}}", style)
+        else:
+            # Append style if no placeholder found
+            base_prompt = f"{protocol}\n\n{style}"
 
         # Load vocabulary and inject into prompt
         vocab_section = self._build_vocabulary_section()

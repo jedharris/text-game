@@ -22,26 +22,6 @@ vocabulary: Dict[str, Any] = {
     "events": []
 }
 
-# Keywords that trigger the commitment
-COMMITMENT_KEYWORDS = [
-    "silvermoss",
-    "help",
-    "save",
-    "cure",
-    "promise",
-    "moss",
-]
-
-# Keywords that trigger teaching
-TEACH_KEYWORDS = [
-    "teach",
-    "learn",
-    "mycology",
-    "fungi",
-    "knowledge",
-]
-
-
 def on_aldric_commitment(
     entity: Any,
     accessor: Any,
@@ -50,22 +30,18 @@ def on_aldric_commitment(
     """Create Aldric commitment when player promises to help.
 
     Timer starts on commitment, not on first encounter.
+    Called by per-topic handler when player asks about help/promise.
 
     Args:
         entity: The actor being spoken to (Aldric)
         accessor: StateAccessor instance
-        context: Context with keyword, dialog_text
+        context: Context with keyword, topic_name, dialog_text
 
     Returns:
         EventResult with commitment creation result
     """
     actor_id = entity.id if hasattr(entity, "id") else None
     if actor_id != "npc_aldric":
-        return EventResult(allow=True, feedback=None)
-
-    # Check if keyword matches commitment triggers
-    keyword = context.get("keyword", "").lower()
-    if not any(trigger in keyword for trigger in COMMITMENT_KEYWORDS):
         return EventResult(allow=True, feedback=None)
 
     state = accessor.state
@@ -216,12 +192,14 @@ def on_aldric_teach(
 ) -> EventResult:
     """Handle Aldric teaching mycology skill.
 
-    Requires: stabilized or recovering state, trust >= 2, gift item.
+    Requires: trust >= 2, gift item.
+    Note: State checking (stabilized/recovering) is now handled by
+    requires_state in the topic config.
 
     Args:
         entity: The actor being spoken to (Aldric)
         accessor: StateAccessor instance
-        context: Context with keyword
+        context: Context with keyword, topic_name
 
     Returns:
         EventResult with teaching result
@@ -230,16 +208,13 @@ def on_aldric_teach(
     if actor_id != "npc_aldric":
         return EventResult(allow=True, feedback=None)
 
-    keyword = context.get("keyword", "").lower()
-    if not any(trigger in keyword for trigger in TEACH_KEYWORDS):
-        return EventResult(allow=True, feedback=None)
-
     state = accessor.state
     aldric = state.actors.get("npc_aldric")
     if not aldric:
         return EventResult(allow=True, feedback=None)
 
-    # Check state
+    # Check state (also enforced by requires_state in topic config,
+    # but we check here for robustness when handler is called directly)
     sm = aldric.properties.get("state_machine", {})
     current_state = sm.get("current", sm.get("initial", "critical"))
 

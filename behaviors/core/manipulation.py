@@ -213,7 +213,9 @@ def handle_take(accessor, action):
     return build_action_result(
         item,
         f"You take the {item.name}.",
-        beats=beats if beats else None
+        beats=beats if beats else None,
+        accessor=accessor,
+        actor_id=actor_id
     )
 
 
@@ -264,7 +266,9 @@ def handle_drop(accessor, action):
     return build_action_result(
         item,
         f"You drop the {item.name}.",
-        beats=beats
+        beats=beats,
+        accessor=accessor,
+        actor_id=actor_id
     )
 
 
@@ -364,7 +368,9 @@ def handle_give(accessor, action):
     return build_action_result(
         item,
         base_message,
-        beats=beats if beats else None
+        beats=beats if beats else None,
+        accessor=accessor,
+        actor_id=actor_id
     )
 
 
@@ -460,5 +466,7 @@ def handle_put(accessor, action):
     return build_action_result(
         item,
         f"You put the {item.name} {preposition} the {container.name}.",
-        beats=beats
+        beats=beats,
+        accessor=accessor,
+        actor_id=actor_id
     )

@@ -72,8 +72,6 @@ def _handle_lock_operation(accessor, action, verb: str, target_state: bool) -> H
 
     # Check if it's a door item
     if hasattr(item, 'is_door') and item.is_door:
-        data = serialize_for_handler_result(item)
-
         # Check for special case: can't lock an open door
         if target_state and item.door_open:
             return HandlerResult(
@@ -84,6 +82,7 @@ def _handle_lock_operation(accessor, action, verb: str, target_state: bool) -> H
         # Check if already in target state
         if item.door_locked == target_state:
             already_msg = "already locked" if target_state else "already unlocked"
+            data = serialize_for_handler_result(item, accessor, actor_id)
             return HandlerResult(
                 success=True,
                 primary=f"The {item.name} is {already_msg}.",
@@ -110,8 +109,9 @@ def _handle_lock_operation(accessor, action, verb: str, target_state: bool) -> H
         if key_error:
             return key_error
 
-        # Update state
+        # Update state, then serialize to capture new state
         item.door_locked = target_state
+        data = serialize_for_handler_result(item, accessor, actor_id)
         return HandlerResult(
             success=True,
             primary=f"You {verb} the {item.name}.",
@@ -125,7 +125,7 @@ def _handle_lock_operation(accessor, action, verb: str, target_state: bool) -> H
             primary=f"The {item.name} has no lock."
         )
 
-    data = serialize_for_handler_result(item)
+    data = serialize_for_handler_result(item, accessor, actor_id)
 
     # Check for special case: can't lock an open container
     if target_state and item.container.open:

@@ -188,13 +188,14 @@ def handle_talk(accessor, action: Dict) -> HandlerResult:
             # Call handler with empty keyword for general talk
             context = {"keyword": "", "dialog_text": ""}
             result = handler(npc, accessor, context)
-            # Convert EventResult to HandlerResult
-            feedback = result.feedback if result.feedback else f"{npc.name} has nothing to say right now."
-            return HandlerResult(success=result.allow, primary=feedback)
+            # If handler returns feedback, use it; otherwise fall through to data-driven topics
+            if result.feedback:
+                return HandlerResult(success=result.allow, primary=result.feedback)
+            # Handler returned no feedback - fall through to data-driven topic listing
         else:
             logger.warning(f"Dialog handler failed to load for {npc.id}: {handler_path}")
 
-    # Handle the talk
+    # Handle the talk - list available topics from data-driven config
     result = handle_talk_to(accessor, npc)
 
     return HandlerResult(success=result.success, primary=result.response)

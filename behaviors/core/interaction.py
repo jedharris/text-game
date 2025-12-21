@@ -131,9 +131,9 @@ def handle_open(accessor, action):
 
     # Check if it's a door item
     if hasattr(item, 'is_door') and item.is_door:
-        data = serialize_for_handler_result(item)
         beats = [move_msg] if move_msg else []
         if item.door_open:
+            data = serialize_for_handler_result(item, accessor, actor_id)
             return HandlerResult(
                 success=True,
                 primary=f"The {item.name} is already open.",
@@ -145,7 +145,9 @@ def handle_open(accessor, action):
                 success=False,
                 primary=f"The {item.name} is locked."
             )
+        # Update state, then serialize to capture new state
         item.door_open = True
+        data = serialize_for_handler_result(item, accessor, actor_id)
         return HandlerResult(
             success=True,
             primary=f"You open the {item.name}.",
@@ -162,7 +164,7 @@ def handle_open(accessor, action):
 
     # Check if already open
     if item.container.open:
-        data = serialize_for_handler_result(item)
+        data = serialize_for_handler_result(item, accessor, actor_id)
         beats = [move_msg] if move_msg else []
         return HandlerResult(
             success=True,
@@ -193,7 +195,7 @@ def handle_open(accessor, action):
     if result.detail:
         beats.append(result.detail)
 
-    data = serialize_for_handler_result(item)
+    data = serialize_for_handler_result(item, accessor, actor_id)
 
     return HandlerResult(
         success=True,
@@ -228,16 +230,18 @@ def handle_close(accessor, action):
 
     # Check if it's a door item
     if hasattr(item, 'is_door') and item.is_door:
-        data = serialize_for_handler_result(item)
         beats = [move_msg] if move_msg else []
         if not item.door_open:
+            data = serialize_for_handler_result(item, accessor, actor_id)
             return HandlerResult(
                 success=True,
                 primary=f"The {item.name} is already closed.",
                 beats=beats,
                 data=data
             )
+        # Update state, then serialize to capture new state
         item.door_open = False
+        data = serialize_for_handler_result(item, accessor, actor_id)
         return HandlerResult(
             success=True,
             primary=f"You close the {item.name}.",
@@ -253,7 +257,7 @@ def handle_close(accessor, action):
         )
 
     # Check if already closed
-    data = serialize_for_handler_result(item)
+    data = serialize_for_handler_result(item, accessor, actor_id)
     beats = [move_msg] if move_msg else []
     if not item.container.open:
         return HandlerResult(
@@ -319,7 +323,7 @@ def _handle_generic_interaction(accessor, action, required_property: Optional[st
     else:
         base_message = f"You {verb} the {item.name}."
 
-    data = serialize_for_handler_result(item)
+    data = serialize_for_handler_result(item, accessor, actor_id)
     if result.detail:
         return HandlerResult(success=True, primary=f"{base_message} {result.detail}", data=data)
 

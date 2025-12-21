@@ -1334,9 +1334,33 @@
         "hope_extends": true,
         "hope_bonus": 10,
         "dialog_topics": {
-          "handler": "examples.big_game.behaviors.regions.fungal_depths.aldric_rescue:on_aldric_commitment",
+          "infection": {
+            "keywords": ["infection", "sick", "illness", "help"],
+            "summary": "Aldric winces. 'The spores got into my blood weeks ago. I've been rationing the last of my silvermoss, but it only slows the progression. More grows in the Luminous Grotto below, but I can barely stand. And the air down there would finish me in minutes.'",
+            "sets_flags": {"knows_aldric_needs_silvermoss": true},
+            "trust_delta": 1
+          },
+          "research": {
+            "keywords": ["research", "study", "mycology", "knowledge"],
+            "summary": "His eyes light up despite his illness. 'I've spent years studying these fungi. The spores aren't just a disease - they're communication. The Spore Mother sends them to find hosts, yes, but also to connect. If I survive this, I can teach you what I know.'",
+            "trust_delta": 1
+          },
+          "spore_mother": {
+            "keywords": ["spore mother", "source", "creature", "monster"],
+            "requires_flags": {"knows_aldric_needs_silvermoss": true},
+            "summary": "'She's not evil, you know. She's dying too - the same blight that's killing me originated from her. She spreads spores in desperation. There's a rare moss in the Deep Root Caverns - heartmoss - that might heal her. But the air down there...'",
+            "sets_flags": {"knows_about_heartmoss": true},
+            "trust_delta": 1,
+            "one_time": true
+          },
+          "help_commitment": {
+            "keywords": ["promise", "save", "cure", "commitment", "help you"],
+            "requires_state": ["critical"],
+            "handler": "examples.big_game.behaviors.regions.fungal_depths.aldric_rescue:on_aldric_commitment"
+          },
           "teaching": {
-            "triggers": ["teach", "learn", "mycology", "fungi", "knowledge"],
+            "keywords": ["teach", "learn"],
+            "requires_state": ["stabilized", "recovering"],
             "handler": "examples.big_game.behaviors.regions.fungal_depths.aldric_rescue:on_aldric_teach"
           }
         },

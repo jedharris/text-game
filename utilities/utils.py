@@ -77,7 +77,8 @@ def find_actor_by_name(
 def format_inventory(
     accessor: "StateAccessor",
     actor: "Actor",
-    for_self: bool = True
+    for_self: bool = True,
+    observer_actor_id: Optional[ActorId] = None
 ) -> Tuple[Optional[str], List[Dict[str, Any]]]:
     """
     Format an actor's inventory for display.
@@ -90,6 +91,7 @@ def format_inventory(
         actor: Actor whose inventory to format
         for_self: If True, use "You are carrying" and show all items;
                   if False, use "Carrying" and only show equipped items
+        observer_actor_id: Optional actor ID of the observer (for perspective context)
 
     Returns:
         Tuple of (message string or None if empty, list of serialized items)
@@ -106,7 +108,7 @@ def format_inventory(
             if not for_self and not item.states.get("equipped", False):
                 continue
             item_names.append(item.name)
-            items_data.append(serialize_for_handler_result(item))
+            items_data.append(serialize_for_handler_result(item, accessor, observer_actor_id))
 
     if not item_names:
         return None, []

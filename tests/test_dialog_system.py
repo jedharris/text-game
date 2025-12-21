@@ -318,13 +318,13 @@ class TestRequiresState(unittest.TestCase):
         from behavior_libraries.dialog_lib.topics import get_available_topics
 
         state = GameState(metadata=Metadata(title="Test"))
-        state.locations.append(Location(id=LocationId('start'), name='Start', description='A room'))
+        state.locations.append(Location(id='start', name='Start', description='A room'))
         state.actors[ActorId('player')] = Actor(
-            id=ActorId('player'), name='Hero', description='The hero',
-            location=LocationId('start'), inventory=[]
+            id='player', name='Hero', description='The hero',
+            location='start', inventory=[]
         )
 
-        npc_props: dict[str, Any] = {
+        npc_props = {
             'dialog_topics': {
                 'teaching': {
                     'keywords': ['teach', 'learn'],
@@ -337,8 +337,8 @@ class TestRequiresState(unittest.TestCase):
             npc_props['state_machine'] = {'current': npc_state}
 
         state.actors[ActorId('scholar')] = Actor(
-            id=ActorId('scholar'), name='Scholar', description='A scholar',
-            location=LocationId('start'), inventory=[],
+            id='scholar', name='Scholar', description='A scholar',
+            location='start', inventory=[],
             properties=npc_props
         )
 
@@ -449,14 +449,14 @@ class TestTrustDelta(unittest.TestCase):
             Tuple of (GameState, Accessor, NPC)
         """
         state = GameState(metadata=Metadata(title="Test"))
-        state.locations.append(Location(id=LocationId('start'), name='Start', description='A room'))
+        state.locations.append(Location(id='start', name='Start', description='A room'))
         state.actors[ActorId('player')] = Actor(
-            id=ActorId('player'), name='Hero', description='The hero',
-            location=LocationId('start'), inventory=[],
+            id='player', name='Hero', description='The hero',
+            location='start', inventory=[],
             properties={'flags': {}}
         )
 
-        topic_config: dict[str, Any] = {
+        topic_config = {
             'keywords': ['infection', 'sick'],
             'summary': 'The scholar explains the infection.'
         }
@@ -464,8 +464,8 @@ class TestTrustDelta(unittest.TestCase):
             topic_config['trust_delta'] = trust_delta
 
         state.actors[ActorId('scholar')] = Actor(
-            id=ActorId('scholar'), name='Scholar', description='A scholar',
-            location=LocationId('start'), inventory=[],
+            id='scholar', name='Scholar', description='A scholar',
+            location='start', inventory=[],
             properties={
                 'dialog_topics': {
                     'infection': topic_config
