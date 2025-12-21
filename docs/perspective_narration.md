@@ -154,7 +154,7 @@ Always narrate from this perspective. If the player is climbing, describe things
 ### Phase 5: Update narrator prompts
 
 **Files**:
-- `src/ollama_narrator_protocol.txt`
+- `src/narrator_protocol.txt`
 - `src/llm_narrator.py` (Anthropic prompt)
 - `src/mlx_narrator.py` (if it has its own prompt)
 
@@ -180,7 +180,7 @@ Always narrate from this perspective. If the player is climbing, describe things
 |------|-------------|
 | `utilities/location_serializer.py` | Modify |
 | `utilities/entity_serializer.py` | Modify |
-| `src/ollama_narrator_protocol.txt` | Modify |
+| `src/narrator_protocol.txt` | Modify |
 | `src/llm_narrator.py` | Modify |
 | `src/mlx_narrator.py` | Check/Modify |
 | `tests/test_location_serializer.py` | Create |

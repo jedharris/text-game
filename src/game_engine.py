@@ -138,54 +138,6 @@ class GameEngine:
             show_traits=show_traits
         )
 
-    def create_ollama_narrator(self,
-                               model: str = "mistral:7b-instruct-q8_0",
-                               ollama_url: str = "http://localhost:11434",
-                               show_traits: bool = False,
-                               temperature: float = 0.8,
-                               num_predict: int = 150):
-        """Create an OllamaNarrator with game-specific configuration.
-
-        Automatically loads narrator_style.txt from game directory and combines
-        it with the protocol template from src/narrator_protocol.txt.
-
-        Args:
-            model: Ollama model to use for generation
-            ollama_url: Base URL for Ollama server
-            show_traits: If True, print llm_context traits before narration
-            temperature: Temperature for generation (0.0-2.0)
-            num_predict: Max tokens to generate
-
-        Returns:
-            OllamaNarrator instance ready for natural language interaction
-
-        Raises:
-            FileNotFoundError: If narrator_style.txt not found in game directory
-        """
-        from src.ollama_narrator import OllamaNarrator
-
-        # Check for narrator style in game directory
-        style_path = self.game_dir / "narrator_style.txt"
-        if not style_path.exists():
-            raise FileNotFoundError(
-                f"narrator_style.txt not found in game directory: {self.game_dir}\n"
-                "Each game must have its own narrator_style.txt file.\n"
-                "This file contains game-specific narration style and examples.\n"
-                "The protocol specification is automatically loaded from src/narrator_protocol.txt."
-            )
-
-        return OllamaNarrator(
-            json_handler=self.json_handler,
-            model=model,
-            ollama_url=ollama_url,
-            prompt_file=style_path,
-            behavior_manager=self.behavior_manager,
-            vocabulary=self.merged_vocabulary,
-            show_traits=show_traits,
-            temperature=temperature,
-            num_predict=num_predict
-        )
-
     def create_mlx_narrator(self,
                             model: str = "mlx-community/Llama-3.2-3B-Instruct-4bit",
                             show_traits: bool = False,
@@ -218,7 +170,7 @@ class GameEngine:
                 f"narrator_style.txt not found in game directory: {self.game_dir}\n"
                 "Each game must have its own narrator_style.txt file.\n"
                 "This file contains game-specific narration style and examples.\n"
-                "The protocol specification is automatically loaded from src/ollama_narrator_protocol.txt."
+                "The protocol specification is automatically loaded from src/narrator_protocol.txt."
             )
 
         return MLXNarrator(

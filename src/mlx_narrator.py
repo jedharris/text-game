@@ -363,8 +363,8 @@ class MLXNarrator:
     def _load_system_prompt(self, prompt_file: Path) -> str:
         """Load the system prompt from protocol template and game style file.
 
-        Combines the protocol specification from src/ollama_narrator_protocol.txt
-        (a simpler, narration-focused prompt) with game-specific style guidance.
+        Combines the protocol specification from src/narrator_protocol.txt
+        with game-specific style guidance.
 
         Args:
             prompt_file: Path to game-specific style file (narrator_style.txt)
@@ -375,12 +375,11 @@ class MLXNarrator:
         Raises:
             FileNotFoundError: If protocol template or style file does not exist
         """
-        # Load the simpler narration-focused protocol (same as Ollama)
-        protocol_path = Path(__file__).parent / "ollama_narrator_protocol.txt"
+        protocol_path = Path(__file__).parent / "narrator_protocol.txt"
         if not protocol_path.exists():
             raise FileNotFoundError(
                 f"Protocol template not found: {protocol_path}\n"
-                "The ollama_narrator_protocol.txt file should be in the src/ directory."
+                "The narrator_protocol.txt file should be in the src/ directory."
             )
 
         protocol = protocol_path.read_text()
