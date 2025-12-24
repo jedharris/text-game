@@ -74,13 +74,8 @@ class BehaviorManager:
         base_path = Path(base_behavior_dir)
 
         # Get relative path from base to behavior file
-        try:
-            relative_path = behavior_path.relative_to(base_path)
-        except ValueError:
-            # behavior_file_path is not relative to base_behavior_dir
-            raise ValueError(
-                f"Behavior file {behavior_file_path} is not under base directory {base_behavior_dir}"
-            )
+        # ValueError here indicates misconfigured behavior paths (authoring error)
+        relative_path = behavior_path.relative_to(base_path)
 
         # Calculate depth: number of directory levels (excluding the file itself)
         # e.g., "consumables.py" -> 0 levels (Tier 1)
@@ -357,11 +352,8 @@ class BehaviorManager:
             ValueError: If conflicts detected (duplicate handlers/vocabulary within same tier)
         """
         if isinstance(module_or_path, str):
-            try:
-                module = importlib.import_module(module_or_path)
-            except ImportError as e:
-                print(f"Warning: Could not load behavior module {module_or_path}: {e}")
-                return
+            # ImportError here indicates missing behavior module (authoring error)
+            module = importlib.import_module(module_or_path)
             module_name = module_or_path
         else:
             module = module_or_path
@@ -702,12 +694,8 @@ class BehaviorManager:
         # Invalid format indicates configuration error and should fail loudly
         module_path, function_name = behavior_path.split(':')
 
-        try:
-            module = importlib.import_module(module_path)
-        except ImportError as e:
-            print(f"Warning: Could not load behavior module {module_path}: {e}")
-            return None
-
+        # ImportError here indicates missing behavior module (authoring error)
+        module = importlib.import_module(module_path)
         behavior_func: EventCallable = getattr(module, function_name)
         self._behavior_cache[behavior_path] = behavior_func
         return behavior_func

@@ -46,10 +46,8 @@ class GameEngine:
             raise FileNotFoundError(f"game_state.json not found in: {self.game_dir}")
 
         # Load game state
-        try:
-            self.game_state = load_game_state(str(game_state_path))
-        except (json.JSONDecodeError, ValueError) as e:
-            raise ValueError(f"Invalid game_state.json: {e}")
+        # JSONDecodeError or ValueError here indicates invalid game_state.json (authoring error)
+        self.game_state = load_game_state(str(game_state_path))
 
         # Validate behaviors directory
         behaviors_dir = self.game_dir / "behaviors"

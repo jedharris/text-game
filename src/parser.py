@@ -265,18 +265,16 @@ class Parser:
             # Check if token is a quoted string placeholder
             if token.startswith('__quoted_') and token.endswith('__'):
                 # Extract index from __quoted_N__
-                try:
-                    idx = int(token[9:-2])
-                    if 0 <= idx < len(quoted_strings):
-                        # Create WordEntry for quoted literal
-                        entry = WordEntry(
-                            word=quoted_strings[idx],
-                            word_type=WordType.QUOTED_LITERAL
-                        )
-                        entries.append(entry)
-                        continue
-                except (ValueError, IndexError):
-                    pass  # Fall through to normal lookup
+                # ValueError or IndexError here indicates parser bug with placeholder generation
+                idx = int(token[9:-2])
+                if 0 <= idx < len(quoted_strings):
+                    # Create WordEntry for quoted literal
+                    entry = WordEntry(
+                        word=quoted_strings[idx],
+                        word_type=WordType.QUOTED_LITERAL
+                    )
+                    entries.append(entry)
+                    continue
 
             if entry is None:
                 entry = self._lookup_word(token)
