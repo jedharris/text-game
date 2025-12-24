@@ -254,15 +254,15 @@ class TestRegionTestBed(unittest.TestCase):
         bed = RegionTestBed(game_dir=SIMPLE_GAME_DIR)
         bed.load_context()
 
-        self.assertIsNotNone(bed.game_state)
-        self.assertIn("player", bed.game_state.actors)
+        self.assertIsNotNone(bed.state)
+        self.assertIn("player", bed.state.actors)
 
     def test_state_raises_without_context(self) -> None:
         """Accessing state without loading raises error."""
         bed = RegionTestBed()
 
         with self.assertRaises(RuntimeError):
-            _ = bed.game_state
+            _ = bed.state
 
     def test_assert_flag_success(self) -> None:
         """assert_flag succeeds when flag matches."""
@@ -301,7 +301,7 @@ class TestRegionTestBed(unittest.TestCase):
         bed.load_context()
 
         # Get player's actual location
-        player_loc = bed.game_state.actors[ActorId("player")].location
+        player_loc = bed.state.actors[ActorId("player")].location
 
         # Should pass
         bed.assert_location("player", player_loc)

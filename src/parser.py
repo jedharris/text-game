@@ -260,6 +260,8 @@ class Parser:
 
         entries: List[WordEntry] = []
         for i, token in enumerate(tokens):
+            entry: Optional[WordEntry] = None
+
             # Check if token is a quoted string placeholder
             if token.startswith('__quoted_') and token.endswith('__'):
                 # Extract index from __quoted_N__
@@ -276,7 +278,8 @@ class Parser:
                 except (ValueError, IndexError):
                     pass  # Fall through to normal lookup
 
-            entry = self._lookup_word(token)
+            if entry is None:
+                entry = self._lookup_word(token)
             if entry is None:
                 # Unknown word - determine type based on context
                 # If followed by another unknown word or known noun, treat as adjective

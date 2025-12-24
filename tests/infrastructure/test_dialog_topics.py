@@ -268,6 +268,7 @@ class TestDialogNoTopics(unittest.TestCase):
         self.assertFalse(result.success)
         # Even failures should include entity data so narrator doesn't hallucinate
         self.assertIsNotNone(result.data)
+        assert result.data is not None
         self.assertEqual(result.data["id"], "guard")
         self.assertEqual(result.data["name"], "Guard")
 
@@ -283,6 +284,7 @@ class TestDialogNoTopics(unittest.TestCase):
         self.assertFalse(result.success)
         # Even failures should include entity data so narrator doesn't hallucinate
         self.assertIsNotNone(result.data)
+        assert result.data is not None
         self.assertEqual(result.data["id"], "guard")
         self.assertEqual(result.data["name"], "Guard")
 
@@ -424,6 +426,7 @@ class TestDialogHandlerResultData(unittest.TestCase):
 
         self.assertTrue(result.success)
         self.assertIsNotNone(result.data)
+        assert result.data is not None
         self.assertEqual(result.data["id"], "scholar")
         self.assertEqual(result.data["name"], "The Scholar")
         self.assertEqual(result.data["type"], "actor")
@@ -438,6 +441,7 @@ class TestDialogHandlerResultData(unittest.TestCase):
 
         self.assertTrue(result.success)
         self.assertIsNotNone(result.data)
+        assert result.data is not None
         self.assertEqual(result.data["id"], "scholar")
         self.assertEqual(result.data["name"], "The Scholar")
         self.assertEqual(result.data["type"], "actor")
@@ -462,6 +466,7 @@ class TestDialogHandlerResultData(unittest.TestCase):
 
         self.assertTrue(result.success)
         self.assertIsNotNone(result.data)
+        assert result.data is not None
         self.assertEqual(result.data["id"], "scholar")
 
     def test_talk_includes_available_topics(self) -> None:
@@ -474,6 +479,7 @@ class TestDialogHandlerResultData(unittest.TestCase):
 
         self.assertTrue(result.success)
         self.assertIsNotNone(result.data)
+        assert result.data is not None
         self.assertIn("available_topics", result.data)
         # The topic's first keyword should be in available_topics
         self.assertIn("infection", result.data["available_topics"])
@@ -489,6 +495,7 @@ class TestDialogHandlerResultData(unittest.TestCase):
 
         self.assertTrue(result.success)
         self.assertIsNotNone(result.data)
+        assert result.data is not None
         self.assertIn("available_topics", result.data)
 
 

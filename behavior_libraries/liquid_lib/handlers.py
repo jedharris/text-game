@@ -111,7 +111,7 @@ def handle_fill(accessor: StateAccessor, action: Dict[str, Any]) -> HandlerResul
     )
     if error:
         return error
-
+    assert actor_id is not None and actor is not None and location is not None
     object_name = action.get("object")
     if not isinstance(object_name, WordEntry):
         return HandlerResult(success=False, primary="I didn't understand what to fill.")
@@ -184,7 +184,7 @@ def handle_pour(accessor: StateAccessor, action: Dict[str, Any]) -> HandlerResul
     )
     if error:
         return error
-
+    assert actor_id is not None and actor is not None and location is not None
     object_name = action.get("object")
     if not isinstance(object_name, WordEntry):
         return HandlerResult(success=False, primary="I didn't understand what to pour.")
@@ -251,7 +251,7 @@ def handle_pour(accessor: StateAccessor, action: Dict[str, Any]) -> HandlerResul
         if handler:
             context = {"target": target}
             result = handler(container, accessor, context)
-            if result.feedback:
+            if result and result.feedback:
                 # Handler consumed the water
                 return HandlerResult(
                     success=result.allow,
@@ -287,7 +287,7 @@ def handle_water(accessor: StateAccessor, action: Dict[str, Any]) -> HandlerResu
     )
     if error:
         return error
-
+    assert actor_id is not None and actor is not None and location is not None
     target_name = action.get("object")
     if not isinstance(target_name, WordEntry):
         return HandlerResult(success=False, primary="I didn't understand what to water.")
@@ -336,7 +336,7 @@ def handle_water(accessor: StateAccessor, action: Dict[str, Any]) -> HandlerResu
         if handler:
             context = {"target": target}
             result = handler(bucket, accessor, context)
-            if result.feedback:
+            if result and result.feedback:
                 return HandlerResult(
                     success=result.allow,
                     primary=result.feedback

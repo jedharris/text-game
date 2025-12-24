@@ -10,6 +10,7 @@ from src.types import LocationId, ActorId, ItemId, LockId, PartId, EntityId, Eve
 from src.state_manager import (
     GameState, Location, Item, Actor, Lock, Part, ExitDescriptor, Entity
 )
+from src.narration_types import ReactionRef
 
 if TYPE_CHECKING:
     from src.behavior_manager import BehaviorManager
@@ -93,7 +94,7 @@ class HandlerResult:
     context: Optional[Dict[str, Any]] = None
     hints: list[str] = field(default_factory=list)
     fragments: Optional[Dict[str, Any]] = None
-    reactions: Optional[List[Dict[str, Any]]] = None
+    reactions: Optional[List[ReactionRef]] = None
 
 
 class StateAccessor:

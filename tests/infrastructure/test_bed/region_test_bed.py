@@ -158,7 +158,7 @@ class RegionTestBed:
 
         # Log the interaction
         entry = LogEntry(
-            turn=self.game_state.extra.get("turn_count", 0),
+            turn=self.state.extra.get("turn_count", 0),
             phase="command",
             action=f"{verb} {obj}" if obj else verb,
             state_before=state_before,
@@ -226,9 +226,9 @@ class RegionTestBed:
             scope: "global" or actor ID
         """
         if scope == "global":
-            flags = self.game_state.extra.get("flags", {})
+            flags = self.state.extra.get("flags", {})
         else:
-            actor = self.game_state.actors.get(ActorId(scope))
+            actor = self.state.actors.get(ActorId(scope))
             if not actor:
                 raise AssertionError(f"Actor not found: {scope}")
             flags = actor.properties.get("flags", {})
@@ -254,7 +254,7 @@ class RegionTestBed:
             min_value: Minimum expected value (if checking range)
             max_value: Maximum expected value (if checking range)
         """
-        actor = self.game_state.actors.get(ActorId(actor_id))
+        actor = self.state.actors.get(ActorId(actor_id))
         if not actor:
             raise AssertionError(f"Actor not found: {actor_id}")
 
@@ -283,7 +283,7 @@ class RegionTestBed:
             actor_id: Actor ID
             expected_state: Expected state name
         """
-        actor = self.game_state.actors.get(ActorId(actor_id))
+        actor = self.state.actors.get(ActorId(actor_id))
         if not actor:
             raise AssertionError(f"Actor not found: {actor_id}")
 
@@ -312,7 +312,7 @@ class RegionTestBed:
             severity: Exact severity (if checking exact)
             min_severity: Minimum severity (if checking threshold)
         """
-        actor = self.game_state.actors.get(ActorId(actor_id))
+        actor = self.state.actors.get(ActorId(actor_id))
         if not actor:
             raise AssertionError(f"Actor not found: {actor_id}")
 
@@ -354,7 +354,7 @@ class RegionTestBed:
             actor_id: Actor ID
             expected_location: Expected location ID
         """
-        actor = self.game_state.actors.get(ActorId(actor_id))
+        actor = self.state.actors.get(ActorId(actor_id))
         if not actor:
             raise AssertionError(f"Actor not found: {actor_id}")
 
@@ -382,7 +382,7 @@ class RegionTestBed:
 
         # Find item
         item = None
-        for i in self.game_state.items:
+        for i in self.state.items:
             if i.id == item_id:
                 item = i
                 break
@@ -397,7 +397,7 @@ class RegionTestBed:
                 )
 
         if holder:
-            actor = self.game_state.actors.get(ActorId(holder))
+            actor = self.state.actors.get(ActorId(holder))
             if not actor:
                 raise AssertionError(f"Holder not found: {holder}")
             if item_id not in actor.inventory:
@@ -419,7 +419,7 @@ class RegionTestBed:
         from src.infrastructure_types import CommitmentId
         from src.infrastructure_utils import get_active_commitment
 
-        commitment = get_active_commitment(self.game_state, CommitmentId(commitment_id))
+        commitment = get_active_commitment(self.state, CommitmentId(commitment_id))
 
         if exists and commitment is None:
             raise AssertionError(f"Commitment not found: {commitment_id}")
@@ -447,7 +447,7 @@ class RegionTestBed:
         """
         from src.infrastructure_utils import get_pending_gossip_about
 
-        matches = get_pending_gossip_about(self.game_state, content_contains)
+        matches = get_pending_gossip_about(self.state, content_contains)
 
         if exists and not matches:
             raise AssertionError(f"No pending gossip containing: {content_contains}")
@@ -464,7 +464,7 @@ class RegionTestBed:
         """
         from src.infrastructure_utils import check_spread_active
 
-        actual = check_spread_active(self.game_state, spread_id)
+        actual = check_spread_active(self.state, spread_id)
 
         if actual != expected:
             status = "active" if expected else "halted"
@@ -488,9 +488,9 @@ class RegionTestBed:
             Flag value or None if not set
         """
         if scope == "global":
-            flags = self.game_state.extra.get("flags", {})
+            flags = self.state.extra.get("flags", {})
         else:
-            actor = self.game_state.actors.get(ActorId(scope))
+            actor = self.state.actors.get(ActorId(scope))
             if not actor:
                 return None
             flags = actor.properties.get("flags", {})
@@ -499,7 +499,7 @@ class RegionTestBed:
 
     def get_trust(self, actor_id: str) -> int:
         """Get actor's current trust value."""
-        actor = self.game_state.actors.get(ActorId(actor_id))
+        actor = self.state.actors.get(ActorId(actor_id))
         if not actor:
             return 0
         trust_data = actor.properties.get("trust", {})
@@ -507,7 +507,7 @@ class RegionTestBed:
 
     def get_actor_state(self, actor_id: str) -> str | None:
         """Get actor's current state machine state."""
-        actor = self.game_state.actors.get(ActorId(actor_id))
+        actor = self.state.actors.get(ActorId(actor_id))
         if not actor:
             return None
         sm = actor.properties.get("state_machine", {})
@@ -515,4 +515,4 @@ class RegionTestBed:
 
     def get_current_turn(self) -> int:
         """Get current turn number."""
-        return self.game_state.extra.get("turn_count", 0)
+        return self.state.extra.get("turn_count", 0)

@@ -3,10 +3,11 @@
 Vocabulary for general object interactions.
 """
 
-from typing import Dict, Any, Optional, cast
+from typing import Dict, Any, Optional, cast, Union
 
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
+from src.state_manager import Item, Actor
 from src.types import ActorId
 from utilities.utils import find_accessible_item
 from utilities.handler_utils import find_action_target, find_openable_target
@@ -403,7 +404,7 @@ def _handle_use_on_target(accessor, action) -> HandlerResult:
     display_name = f"{indirect_adj_word} {target_word}".strip() if indirect_adj_word else target_word
 
     # Find the target - could be item or actor
-    target = find_accessible_item(accessor, target_name, actor_id, action.get("indirect_adjective"))
+    target: Union[Item, Actor, None] = find_accessible_item(accessor, target_name, actor_id, action.get("indirect_adjective"))
     if not target:
         # Try finding as actor
         from utilities.utils import find_actor_by_name

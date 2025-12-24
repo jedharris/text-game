@@ -430,7 +430,7 @@ class NarrationAssembler:
                 result["dialog_topics"] = f"You can ask about: {topic_str}"
 
         if result:
-            return MustMention(**result)
+            return cast(MustMention, result)
 
         return None
 
