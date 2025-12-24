@@ -126,10 +126,7 @@ class StateAccessor:
         continue to read fields like .actors or .extra while new code can
         call accessor methods directly.
         """
-        try:
-            return getattr(self.game_state, name)
-        except AttributeError as exc:
-            raise AttributeError(f"StateAccessor has no attribute '{name}'") from exc
+        return getattr(self.game_state, name)
 
     # Getter methods
 
@@ -506,11 +503,8 @@ class StateAccessor:
 
         if hasattr(current, final_field):
             # Dataclass field
-            try:
-                setattr(current, final_field, value)
-                return None
-            except AttributeError as e:
-                return f"Cannot set field '{final_field}': {e}"
+            setattr(current, final_field, value)
+            return None
         elif isinstance(current, dict):
             # Dict key
             current[final_field] = value
@@ -585,12 +579,9 @@ class StateAccessor:
         if not isinstance(target, list):
             return f"Cannot remove from non-list field '{final_field}' (type: {type(target).__name__})"
 
-        # Try to remove the value
-        try:
-            target.remove(value)
-            return None
-        except ValueError:
-            return f"Value not in list '{final_field}'"
+        # Remove the value - will raise ValueError if not present (indicates state bug)
+        target.remove(value)
+        return None
 
     def update(self, entity: Entity, changes: Dict[str, Any], verb: Optional[str] = None, actor_id: ActorId = ActorId("player")) -> UpdateResult:
         """

@@ -698,16 +698,19 @@ class BehaviorManager:
         if behavior_path in self._behavior_cache:
             return self._behavior_cache[behavior_path]
 
-        try:
-            module_path, function_name = behavior_path.split(':')
-            module = importlib.import_module(module_path)
-            behavior_func: EventCallable = getattr(module, function_name)
-            self._behavior_cache[behavior_path] = behavior_func
-            return behavior_func
+        # Split behavior path - must be in format "module.path:function_name"
+        # Invalid format indicates configuration error and should fail loudly
+        module_path, function_name = behavior_path.split(':')
 
-        except (ValueError, ImportError, AttributeError) as e:
-            print(f"Warning: Could not load behavior {behavior_path}: {e}")
+        try:
+            module = importlib.import_module(module_path)
+        except ImportError as e:
+            print(f"Warning: Could not load behavior module {module_path}: {e}")
             return None
+
+        behavior_func: EventCallable = getattr(module, function_name)
+        self._behavior_cache[behavior_path] = behavior_func
+        return behavior_func
 
     def invoke_behavior(
         self,
@@ -791,19 +794,12 @@ class BehaviorManager:
             # Get handler function
             handler = getattr(module, event_name)
 
-            try:
-                # Call handler with entity, accessor, context
-                result = handler(entity, accessor, context)
+            # Call handler with entity, accessor, context
+            # Errors here indicate bugs in behavior code and should fail loudly during development
+            result = handler(entity, accessor, context)
 
-                if isinstance(result, EventResult):
-                    results.append(result)
-
-            except Exception as e:
-                import traceback
-                import sys
-                print(f"Error invoking behavior {behavior_module_name}.{event_name}:", file=sys.stderr)
-                traceback.print_exc()
-                # Continue with other behaviors
+            if isinstance(result, EventResult):
+                results.append(result)
 
         # If no behaviors were invoked, return None
         if not results:

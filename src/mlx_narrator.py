@@ -323,46 +323,43 @@ class MLXNarrator:
             max_tokens = self.max_tokens
         logger.debug(f"User message: {user_message[:200]}...")
 
-        try:
-            # Trim cache back to system prompt length for fresh generation
-            cache_len = self.prompt_cache[0].offset if self.prompt_cache else 0
-            tokens_to_trim = cache_len - self.system_prompt_length
-            if tokens_to_trim > 0:
-                trim_prompt_cache(self.prompt_cache, tokens_to_trim)
+        # Trim cache back to system prompt length for fresh generation
+        cache_len = self.prompt_cache[0].offset if self.prompt_cache else 0
+        tokens_to_trim = cache_len - self.system_prompt_length
+        if tokens_to_trim > 0:
+            trim_prompt_cache(self.prompt_cache, tokens_to_trim)
 
-            # Build just the user message portion (system prompt is cached)
-            # We need the continuation after the system prompt
-            user_messages = [
-                {"role": "user", "content": user_message}
-            ]
+        # Build just the user message portion (system prompt is cached)
+        # We need the continuation after the system prompt
+        user_messages = [
+            {"role": "user", "content": user_message}
+        ]
 
-            # Get the user message in chat format with generation prompt
-            user_portion = self.tokenizer.apply_chat_template(
-                user_messages,
-                add_generation_prompt=True,
-                tokenize=False
-            )
+        # Get the user message in chat format with generation prompt
+        user_portion = self.tokenizer.apply_chat_template(
+            user_messages,
+            add_generation_prompt=True,
+            tokenize=False
+        )
 
-            # Create sampler with temperature
-            sampler = make_sampler(temp=self.temperature)
+        # Create sampler with temperature
+        sampler = make_sampler(temp=self.temperature)
 
-            # Generate response using the cached system prompt
-            response = ""
-            for chunk in stream_generate(
-                self.model,
-                self.tokenizer,
-                prompt=user_portion,
-                max_tokens=max_tokens,
-                sampler=sampler,
-                prompt_cache=self.prompt_cache,
-            ):
-                response += chunk.text
+        # Generate response using the cached system prompt
+        # Any errors here indicate bugs in MLX library usage or model issues
+        # and should fail loudly during development
+        response = ""
+        for chunk in stream_generate(
+            self.model,
+            self.tokenizer,
+            prompt=user_portion,
+            max_tokens=max_tokens,
+            sampler=sampler,
+            prompt_cache=self.prompt_cache,
+        ):
+            response += chunk.text
 
-            return response.strip() if response else "[No response from model]"
-
-        except Exception as e:
-            logger.error(f"MLX generation error: {e}")
-            return f"[Narrator error: {e}]"
+        return response.strip() if response else "[No response from model]"
 
     def _extract_json(self, response: str) -> Optional[Dict[str, Any]]:
         """Extract JSON from LLM response.
