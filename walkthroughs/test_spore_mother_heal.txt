@@ -1,0 +1,63 @@
+# Test Spore Mother Healing with Heartmoss
+# Tests: get heartmoss, use on Spore Mother, receive fragment, place on waystone
+# Prerequisites: None (fresh game)
+
+# ============================================================
+# Part 1: Navigate to Deep Root Caverns to get Heartmoss
+# ============================================================
+
+# Go to Cavern Entrance
+go west
+
+# Go to Luminous Grotto
+go down
+
+# Go to Spore Heart
+go down
+
+# Go to Deep Root Caverns (down from Spore Heart)
+go down
+
+# Look around
+look
+
+# Take the heartmoss
+take heartmoss
+
+# Check inventory
+inventory
+
+# ============================================================
+# Part 2: Return to Spore Heart and Heal Spore Mother
+# ============================================================
+
+# Return to Spore Heart
+go up
+
+# Use heartmoss on Spore Mother
+use heartmoss on spore mother
+
+# Check that we received the fragment
+inventory
+
+# ============================================================
+# Part 3: Go to Meridian Nexus and Place Fragment
+# ============================================================
+
+# Return to Luminous Grotto
+go up
+
+# Return to Cavern Entrance
+go up
+
+# Go east to Meridian Nexus
+go east
+
+# Look for waystone
+look
+
+# Use fragment on waystone (using shorter name to avoid parser issues)
+use fragment on waystone
+
+# Check result
+look

@@ -209,6 +209,53 @@ def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_descriptor, 
         # Plain string destination (backward compatibility)
         destination_id = exit_descriptor
 
+    # Check for territorial NPCs blocking the exit
+    source_location_id = actor.location
+    source_location = accessor.get_location(source_location_id)
+    if source_location:
+        blocking_npcs = []
+        for npc in accessor.get_actors_in_location(source_location_id):
+            # Don't check the actor who's trying to move
+            if npc.id == actor_id:
+                continue
+
+            # Check if NPC is territorial and in a blocking state
+            if npc.properties.get("territorial"):
+                # Get current state - check in order: state, state_machine.current, state_machine.initial
+                npc_state = npc.properties.get("state")
+                if npc_state is None:
+                    state_machine = npc.properties.get("state_machine", {})
+                    npc_state = state_machine.get("current") or state_machine.get("initial", "neutral")
+
+                # Territorial NPCs block exits when in guarding or hostile states
+                if npc_state in ("guarding", "hostile"):
+                    blocking_npcs.append(npc)
+
+        if blocking_npcs:
+            # Build blocking message
+            if len(blocking_npcs) == 1:
+                blocker_name = blocking_npcs[0].name
+                return HandlerResult(
+                    success=False,
+                    primary=f"The {blocker_name} blocks your path."
+                )
+            else:
+                # Get unique names and build appropriate message
+                unique_names = list(dict.fromkeys(npc.name for npc in blocking_npcs))
+                if len(unique_names) == 1:
+                    # Multiple NPCs with same name (e.g., two Stone Guardians)
+                    return HandlerResult(
+                        success=False,
+                        primary=f"The {unique_names[0]}s block your path."
+                    )
+                else:
+                    # Multiple different NPCs
+                    blocker_names = " and ".join(unique_names)
+                    return HandlerResult(
+                        success=False,
+                        primary=f"The {blocker_names} block your path."
+                    )
+
     destination = accessor.get_location(destination_id)
 
     if not destination:
@@ -216,9 +263,6 @@ def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_descriptor, 
             success=False,
             primary=f"INCONSISTENT STATE: Destination {destination_id} not found"
         )
-
-    # Capture source location before updating
-    source_location_id = actor.location
 
     # Update actor location
     result = accessor.update(actor, {"location": destination_id})
@@ -255,6 +299,22 @@ def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_descriptor, 
 
     # Serialize location for LLM consumption
     llm_data = serialize_location_for_llm(accessor, destination, actor_id)
+
+    # Add transition context for narrator
+    source_location = accessor.get_location(source_location_id)
+    transition = {
+        "from_location_id": source_location_id,
+        "from_location_name": source_location.name if source_location else None,
+        "direction": direction,
+    }
+    # Add exit details if available
+    if hasattr(exit_descriptor, 'name') and exit_descriptor.name:
+        transition["via_exit_name"] = exit_descriptor.name
+    if hasattr(exit_descriptor, 'type'):
+        transition["via_exit_type"] = exit_descriptor.type
+    if hasattr(exit_descriptor, 'passage') and exit_descriptor.passage:
+        transition["via_passage"] = exit_descriptor.passage
+    llm_data["transition"] = transition
 
     return HandlerResult(
         success=True,

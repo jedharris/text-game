@@ -97,13 +97,13 @@ class TestHandlePut(unittest.TestCase):
     """Test handle_put behavior handler."""
 
     def setUp(self):
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
 
         import behaviors.core.manipulation
         self.behavior_manager.load_module(behaviors.core.manipulation)
 
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_put_no_object(self):
         """Test put without specifying object."""
@@ -145,10 +145,10 @@ class TestHandlePut(unittest.TestCase):
         self.assertTrue(result.success)
         self.assertIn("put", result.primary.lower())
         # Key should be moved to box
-        key = self.state.get_item("item_key")
+        key = self.game_state.get_item("item_key")
         self.assertEqual(key.location, "item_box")
         # Key should be removed from inventory
-        self.assertNotIn("item_key", self.state.actors[ActorId("player")].inventory)
+        self.assertNotIn("item_key", self.game_state.actors[ActorId("player")].inventory)
 
     def test_put_on_surface(self):
         """Test putting item on surface container."""
@@ -159,7 +159,7 @@ class TestHandlePut(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Key should be moved to table
-        key = self.state.get_item("item_key")
+        key = self.game_state.get_item("item_key")
         self.assertEqual(key.location, "item_table")
 
     def test_put_in_closed_container_fails(self):

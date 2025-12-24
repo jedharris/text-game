@@ -59,7 +59,7 @@ def on_regional_turn(
     Returns:
         EventResult with combined messages
     """
-    state = accessor.state
+    state = accessor.game_state
     messages: list[str] = []
 
     # Get player location to determine which region is active

@@ -204,6 +204,16 @@ class MLXNarrator:
 
             if extracted is None:
                 return "I don't understand what you want to do."
+
+            # Check for error or query responses from LLM - don't send to engine
+            msg_type = extracted.get("type")
+            if msg_type == "error":
+                return extracted.get("message", "I don't understand what you want to do.")
+            if msg_type == "query":
+                # LLM should not send queries when parsing - return error
+                logger.warning(f"LLM sent query instead of command: {extracted}")
+                return "I don't understand what you want to do."
+
             json_cmd = extracted
 
         # 2. Execute command via game engine (result includes verbosity from NarrationResult)
@@ -212,10 +222,22 @@ class MLXNarrator:
         # 3. Print traits if enabled
         self._print_traits(result)
 
-        # 4. Get narrative from LLM (verbosity is already in result from protocol handler)
-        narrative = self._call_llm(
-            f"Narrate this result:\n{json.dumps(result, indent=2)}"
-        )
+        # 4. Build narration input - only include fields needed for narration
+        # The 'data' field contains raw engine data (including state_fragments) that
+        # would confuse the LLM. Only send 'narration' (the NarrationPlan), 'success',
+        # and 'verbosity' fields.
+        narration_dict: Dict[str, Any] = {
+            "success": result.get("success", True),
+            "verbosity": result.get("verbosity", "full"),
+        }
+        if "narration" in result:
+            narration_dict.update(result["narration"])
+
+        # 5. Get narrative from LLM
+        narration_input = f"Narrate this result:\n{json.dumps(narration_dict, indent=2)}"
+        logger.debug(f"Narration input ({len(narration_input)} chars): {narration_input[:500]}...")
+        narrative = self._call_llm(narration_input)
+        logger.debug(f"Narration output ({len(narrative)} chars): {narrative[:200]}...")
 
         return narrative
 
@@ -239,8 +261,10 @@ class MLXNarrator:
         result_with_verbosity = dict(result)
         result_with_verbosity["verbosity"] = "full"
 
+        # Opening scene needs more tokens than regular commands
         return self._call_llm(
-            f"Narrate the opening scene:\n{json.dumps(result_with_verbosity, indent=2)}"
+            f"Narrate the opening scene:\n{json.dumps(result_with_verbosity, indent=2)}",
+            max_tokens=500
         )
 
     def _init_prompt_cache(self) -> None:
@@ -282,7 +306,7 @@ class MLXNarrator:
 
         logger.info("Prompt cache initialized")
 
-    def _call_llm(self, user_message: str) -> str:
+    def _call_llm(self, user_message: str, max_tokens: Optional[int] = None) -> str:
         """Make a call to the MLX model using cached system prompt.
 
         Uses the pre-warmed prompt cache for the system prompt, only processing
@@ -290,10 +314,13 @@ class MLXNarrator:
 
         Args:
             user_message: The message to send
+            max_tokens: Optional override for max tokens (uses self.max_tokens if not specified)
 
         Returns:
             The LLM's response text
         """
+        if max_tokens is None:
+            max_tokens = self.max_tokens
         logger.debug(f"User message: {user_message[:200]}...")
 
         try:
@@ -325,7 +352,7 @@ class MLXNarrator:
                 self.model,
                 self.tokenizer,
                 prompt=user_portion,
-                max_tokens=self.max_tokens,
+                max_tokens=max_tokens,
                 sampler=sampler,
                 prompt_cache=self.prompt_cache,
             ):

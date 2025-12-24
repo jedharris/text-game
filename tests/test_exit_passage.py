@@ -231,7 +231,7 @@ class TestExitPassageMovementMessages(unittest.TestCase):
 
     def setUp(self):
         """Set up test game state with door+passage exits."""
-        self.state = GameState(
+        self.game_state = GameState(
             metadata=Metadata(title="Test", start_location="library"),
             locations=[
                 Location(
@@ -288,7 +288,7 @@ class TestExitPassageMovementMessages(unittest.TestCase):
         import behaviors.core.interaction
         self.behavior_manager.load_module(behaviors.core.exits)
         self.behavior_manager.load_module(behaviors.core.interaction)
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_door_first_when_at_current_location(self):
         """When door_at == current location, message mentions door first."""
@@ -310,7 +310,7 @@ class TestExitPassageMovementMessages(unittest.TestCase):
     def test_passage_first_when_door_at_destination(self):
         """When door_at == destination, message mentions passage first."""
         # Move player to sanctum first
-        self.state.actors[ActorId("player")].location = "sanctum"
+        self.game_state.actors[ActorId("player")].location = "sanctum"
 
         # Player is at sanctum, door_at is library (the destination)
         # So: passage first, then door

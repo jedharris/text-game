@@ -151,6 +151,10 @@ class LLMProtocolHandler:
         action: ActionDict = message.get("action", {})
         verb = action.get("verb")
 
+        # Support both string and WordEntry for verb
+        if verb and hasattr(verb, 'word'):
+            verb = verb.word
+
         if not verb:
             return {
                 "type": "error",

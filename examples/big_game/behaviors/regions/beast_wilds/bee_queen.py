@@ -76,7 +76,7 @@ def on_flower_offer(
             ),
         )
 
-    state = accessor.state
+    state = accessor.game_state
     extra = state.extra
 
     # Track which flowers have been traded
@@ -176,7 +176,7 @@ def on_honey_theft(
     if "beehive" not in loc_id.lower():
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
 
     # Check if queen is allied (theft allowed when allied)
     queen = state.actors.get("bee_queen")
@@ -201,3 +201,99 @@ def on_honey_theft(
             "The trade relationship is destroyed forever."
         ),
     )
+
+
+def on_bee_queen_talk(
+    entity: Any,
+    accessor: Any,
+    context: dict[str, Any],
+) -> EventResult:
+    """Handle talk/ask commands directed at the Bee Queen.
+
+    The Bee Queen communicates through body language, not words.
+    Her communication vocabulary (from design Section 1.5):
+    - Antennae: twitching = interest, still = waiting, rapid = agitation
+    - Wings: folded = calm, buzzing = warning, slow fan = pleased
+    - Positioning: toward honey = offering trade, hovering over flowers = interested,
+                   backing away = rejection, approaching = acceptance
+
+    Args:
+        entity: The Bee Queen actor
+        accessor: StateAccessor instance
+        context: Context with keyword (topic) if ask command
+
+    Returns:
+        EventResult with non-verbal communication description
+    """
+    state = accessor.game_state
+    queen = state.actors.get("bee_queen")
+    if not queen:
+        return EventResult(allow=True, feedback=None)
+
+    sm = queen.properties.get("state_machine", {})
+    current_state = sm.get("current", sm.get("initial", "defensive"))
+
+    # Check what flowers have been traded
+    traded = state.extra.get("bee_queen_flowers_traded", [])
+    trade_count = len(traded)
+
+    # Generate non-verbal response based on current state
+    if current_state == "hostile":
+        feedback = (
+            "The Bee Queen's wings blur with furious buzzing. Her antennae "
+            "snap back and forth in rapid, aggressive patterns. The swarm "
+            "around her thickens, a living wall of stingers. Her compound "
+            "eyes track your every movement with cold hatred. There is "
+            "no trade here, not anymore. Only threat."
+        )
+    elif current_state == "defensive":
+        feedback = (
+            "The Bee Queen regards you with still antennae, waiting. Her wings "
+            "remain folded against her golden-furred body, but the swarm hovers "
+            "close, watchful. She seems to be... expecting something. Her gaze "
+            "drifts briefly toward the flowers blooming at the grove's edge, "
+            "then back to you. An offering, perhaps? Something beautiful, "
+            "something from far away?"
+        )
+    elif current_state == "neutral":
+        feedback = (
+            "The Bee Queen's antennae twitch with interest as you approach. "
+            "Her wings give a slow, welcoming fan. She hovers near the honey "
+            "cache, glancing between you and the golden combs. The message "
+            "is clear enough: she has something you want. What can you bring "
+            "her in return? Her gaze lingers on the colorful plants of the grove."
+        )
+    elif current_state == "trading":
+        remaining = 3 - trade_count
+        flower_hint = ""
+        if "moonpetal" not in traded:
+            flower_hint = "moonpetal"
+        elif "frost_lily" not in traded:
+            flower_hint = "frost lily"
+        elif "water_bloom" not in traded:
+            flower_hint = "water bloom"
+
+        feedback = (
+            f"The Bee Queen's antennae quiver with pleased recognition. Her wings "
+            f"fan slowly, contentedly. She moves toward the honey cache, then back "
+            f"toward you - the dance of trade, of fair exchange. {remaining} more "
+            f"flower type(s) would complete the bond. "
+        )
+        if flower_hint:
+            feedback += f"Perhaps a {flower_hint} would please her?"
+    elif current_state == "allied":
+        feedback = (
+            "The Bee Queen approaches with a warm, slow buzz of recognition. "
+            "Her antennae reach toward you in greeting, almost touching. "
+            "The swarm parts to let you pass, no longer guards but escorts. "
+            "She fans her wings in lazy contentment - the grove is yours "
+            "as much as hers now. The honey cache stands open, freely given "
+            "to a friend of the hive."
+        )
+    else:
+        feedback = (
+            "The Bee Queen's compound eyes fix on you. Her antennae wave "
+            "in patterns you cannot quite read. She waits, patient and ancient."
+        )
+
+    return EventResult(allow=True, feedback=feedback)

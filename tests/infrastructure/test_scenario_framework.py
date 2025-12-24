@@ -154,7 +154,7 @@ class ScenarioAccessor:
     """Mock accessor for scenario testing."""
 
     def __init__(self, state: ScenarioState) -> None:
-        self.state = state
+        self.game_state = state
 
 
 class ScenarioTestCase(unittest.TestCase):
@@ -166,8 +166,8 @@ class ScenarioTestCase(unittest.TestCase):
     def setUp(self) -> None:
         """Set up test fixtures."""
         clear_handler_cache()
-        self.state = ScenarioState()
-        self.accessor = ScenarioAccessor(self.state)
+        self.game_state = ScenarioState()
+        self.accessor = ScenarioAccessor(self.game_state)
 
     # =========================================================================
     # Helper methods for common scenario operations
@@ -175,7 +175,7 @@ class ScenarioTestCase(unittest.TestCase):
 
     def setup_player(self, location: str | None = None) -> MockEntity:
         """Set up player entity."""
-        return self.state.add_actor(
+        return self.game_state.add_actor(
             "player",
             name="Player",
             properties={"inventory": []},
@@ -210,7 +210,7 @@ class ScenarioTestCase(unittest.TestCase):
         if extra_props:
             properties.update(extra_props)
 
-        return self.state.add_actor(actor_id, name, properties, location)
+        return self.game_state.add_actor(actor_id, name, properties, location)
 
     def create_npc_with_condition(
         self,
@@ -235,11 +235,11 @@ class ScenarioTestCase(unittest.TestCase):
                 "current": initial_state,
             }
 
-        return self.state.add_actor(actor_id, name, properties, location)
+        return self.game_state.add_actor(actor_id, name, properties, location)
 
     def get_actor_state(self, actor_id: str) -> str | None:
         """Get an actor's current state machine state."""
-        actor = self.state.actors.get(actor_id)
+        actor = self.game_state.actors.get(actor_id)
         if not actor:
             return None
         sm = actor.properties.get("state_machine", {})
@@ -247,7 +247,7 @@ class ScenarioTestCase(unittest.TestCase):
 
     def get_actor_trust(self, actor_id: str) -> int:
         """Get an actor's current trust value."""
-        actor = self.state.actors.get(actor_id)
+        actor = self.game_state.actors.get(actor_id)
         if not actor:
             return 0
         trust = actor.properties.get("trust_state", {})
@@ -255,7 +255,7 @@ class ScenarioTestCase(unittest.TestCase):
 
     def get_condition_severity(self, actor_id: str, condition_type: str) -> int | None:
         """Get the severity of an actor's condition."""
-        actor = self.state.actors.get(actor_id)
+        actor = self.game_state.actors.get(actor_id)
         if not actor:
             return None
         conditions = actor.properties.get("conditions", {})
@@ -266,7 +266,7 @@ class ScenarioTestCase(unittest.TestCase):
 
     def transition_actor_state(self, actor_id: str, new_state: str) -> bool:
         """Transition an actor to a new state."""
-        actor = self.state.actors.get(actor_id)
+        actor = self.game_state.actors.get(actor_id)
         if not actor:
             return False
         sm = actor.properties.get("state_machine")
@@ -279,7 +279,7 @@ class ScenarioTestCase(unittest.TestCase):
         self, actor_id: str, delta: int, floor: int | None = None, ceiling: int | None = None
     ) -> int:
         """Modify an actor's trust value."""
-        actor = self.state.actors.get(actor_id)
+        actor = self.game_state.actors.get(actor_id)
         if not actor:
             return 0
         trust = actor.properties.get("trust_state", {"current": 0})
@@ -313,7 +313,7 @@ class ScenarioTestCase(unittest.TestCase):
 
     def assert_flag_set(self, flag_name: str) -> None:
         """Assert a global flag is set (exists and not None/False)."""
-        value = self.state.extra.get(flag_name)
+        value = self.game_state.extra.get(flag_name)
         # Allow 0 as a valid value (e.g., turn numbers)
         if value is None or value is False:
             self.fail(f"Flag '{flag_name}' not set")
@@ -323,12 +323,12 @@ class ScenarioTestCase(unittest.TestCase):
 
     def assert_flag_not_set(self, flag_name: str) -> None:
         """Assert a global flag is not set."""
-        value = self.state.extra.get(flag_name)
+        value = self.game_state.extra.get(flag_name)
         self.assertFalse(value, f"Flag '{flag_name}' unexpectedly set to {value}")
 
     def assert_gossip_pending(self, content_substring: str) -> None:
         """Assert gossip containing substring is pending."""
-        matches = get_pending_gossip_about(cast("GameState", self.state), content_substring)
+        matches = get_pending_gossip_about(cast("GameState", self.game_state), content_substring)
         self.assertTrue(
             len(matches) > 0,
             f"No pending gossip containing '{content_substring}'",
@@ -336,7 +336,7 @@ class ScenarioTestCase(unittest.TestCase):
 
     def assert_no_gossip_pending(self, content_substring: str) -> None:
         """Assert no gossip containing substring is pending."""
-        matches = get_pending_gossip_about(cast("GameState", self.state), content_substring)
+        matches = get_pending_gossip_about(cast("GameState", self.game_state), content_substring)
         self.assertEqual(
             len(matches),
             0,

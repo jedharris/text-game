@@ -30,7 +30,7 @@ class MockAccessor:
     """Mock accessor for testing."""
 
     def __init__(self) -> None:
-        self.state = MockState()
+        self.game_state = MockState()
 
 
 class TestPackMirroringBasic(unittest.TestCase):
@@ -136,7 +136,7 @@ class TestPackMirroringDataDriven(unittest.TestCase):
                 }
             },
         )
-        self.accessor.state.actors[ActorId("npc_beta_wolf")] = beta_wolf
+        self.accessor.game_state.actors[ActorId("npc_beta_wolf")] = beta_wolf
 
         entity = MockEntity(
             "npc_alpha_wolf",
@@ -175,8 +175,8 @@ class TestPackMirroringDataDriven(unittest.TestCase):
                 }
             },
         )
-        self.accessor.state.actors[ActorId("npc_beta_wolf")] = beta_wolf
-        self.accessor.state.actors[ActorId("npc_gamma_wolf")] = gamma_wolf
+        self.accessor.game_state.actors[ActorId("npc_beta_wolf")] = beta_wolf
+        self.accessor.game_state.actors[ActorId("npc_gamma_wolf")] = gamma_wolf
 
         entity = MockEntity(
             "npc_alpha_wolf",
@@ -206,7 +206,7 @@ class TestPackMirroringDataDriven(unittest.TestCase):
                 }
             },
         )
-        self.accessor.state.actors[ActorId("npc_beta_wolf")] = beta_wolf
+        self.accessor.game_state.actors[ActorId("npc_beta_wolf")] = beta_wolf
 
         entity = MockEntity(
             "npc_alpha_wolf",
@@ -236,7 +236,7 @@ class TestPackMirroringDataDriven(unittest.TestCase):
                 }
             },
         )
-        self.accessor.state.actors[ActorId("npc_beta_wolf")] = beta_wolf
+        self.accessor.game_state.actors[ActorId("npc_beta_wolf")] = beta_wolf
 
         entity = MockEntity(
             "npc_alpha_wolf",
@@ -265,7 +265,7 @@ class TestPackMirroringDataDriven(unittest.TestCase):
                 }
             },
         )
-        self.accessor.state.actors[ActorId("npc_beta_wolf")] = beta_wolf
+        self.accessor.game_state.actors[ActorId("npc_beta_wolf")] = beta_wolf
         # npc_gamma_wolf is NOT in actors
 
         entity = MockEntity(
@@ -287,7 +287,7 @@ class TestPackMirroringDataDriven(unittest.TestCase):
     def test_follower_without_state_machine_ignored(self) -> None:
         """Followers without state_machine are silently ignored."""
         beta_wolf = MockEntity("npc_beta_wolf", {})  # No state_machine
-        self.accessor.state.actors[ActorId("npc_beta_wolf")] = beta_wolf
+        self.accessor.game_state.actors[ActorId("npc_beta_wolf")] = beta_wolf
 
         entity = MockEntity(
             "npc_alpha_wolf",
@@ -350,7 +350,7 @@ class TestPackMirroringHandlerEscapeHatch(unittest.TestCase):
                 }
             },
         )
-        self.accessor.state.actors[ActorId("npc_beta_wolf")] = beta_wolf
+        self.accessor.game_state.actors[ActorId("npc_beta_wolf")] = beta_wolf
 
         entity = MockEntity(
             "npc_alpha_wolf",

@@ -78,7 +78,7 @@ class E2EScenarioTestCase(unittest.TestCase):
         state_dict = copy.deepcopy(self._game_state_template)
 
         # Load game state
-        self.state = load_game_state(state_dict)
+        self.game_state = load_game_state(state_dict)
 
         # Initialize behavior manager
         self.behavior_manager = BehaviorManager()
@@ -87,11 +87,11 @@ class E2EScenarioTestCase(unittest.TestCase):
             self.behavior_manager.load_modules(modules)
 
         # Build vocabulary and parser
-        self.vocab = build_merged_vocabulary(self.state, self.behavior_manager)
+        self.vocab = build_merged_vocabulary(self.game_state, self.behavior_manager)
         self.parser = Parser.from_vocab(self.vocab)
 
         # Initialize protocol handler
-        self.handler = LLMProtocolHandler(self.state, self.behavior_manager)
+        self.handler = LLMProtocolHandler(self.game_state, self.behavior_manager)
 
     def execute(self, command_text: str) -> dict[str, Any]:
         """Parse and execute a text command.
@@ -178,12 +178,12 @@ class E2EScenarioTestCase(unittest.TestCase):
 
     def get_player_location(self) -> str | None:
         """Get current player location ID."""
-        player = self.state.actors.get(ActorId("player"))
+        player = self.game_state.actors.get(ActorId("player"))
         return player.location if player else None
 
     def get_actor_state(self, actor_id: ActorId) -> str | None:
         """Get actor's current state machine state."""
-        actor = self.state.actors.get(actor_id)
+        actor = self.game_state.actors.get(actor_id)
         if not actor:
             return None
         sm = actor.properties.get("state_machine", {})
@@ -191,7 +191,7 @@ class E2EScenarioTestCase(unittest.TestCase):
 
     def get_actor_trust(self, actor_id: ActorId) -> int:
         """Get actor's current trust value."""
-        actor = self.state.actors.get(actor_id)
+        actor = self.game_state.actors.get(actor_id)
         if not actor:
             return 0
         trust = actor.properties.get("trust_state", {})
@@ -199,11 +199,11 @@ class E2EScenarioTestCase(unittest.TestCase):
 
     def get_flag(self, flag_name: str) -> Any:
         """Get a global flag value."""
-        return self.state.extra.get(flag_name)
+        return self.game_state.extra.get(flag_name)
 
     def get_condition_severity(self, actor_id: ActorId, condition_type: str) -> int | None:
         """Get severity of an actor's condition."""
-        actor = self.state.actors.get(actor_id)
+        actor = self.game_state.actors.get(actor_id)
         if not actor:
             return None
         conditions = actor.properties.get("conditions", {})
@@ -219,20 +219,20 @@ class E2EScenarioTestCase(unittest.TestCase):
 
     def player_has_item(self, item_id: str) -> bool:
         """Check if player has an item in inventory."""
-        player = self.state.actors.get(ActorId("player"))
+        player = self.game_state.actors.get(ActorId("player"))
         if not player:
             return False
         return item_id in player.inventory
 
     def move_player_to(self, location_id: str) -> None:
         """Directly move player to a location (for test setup)."""
-        player = self.state.actors.get(ActorId("player"))
+        player = self.game_state.actors.get(ActorId("player"))
         if player:
             player.location = LocationId(location_id)
 
     def give_player_item(self, item_id: str) -> None:
         """Give player an item (for test setup)."""
-        player = self.state.actors.get(ActorId("player"))
+        player = self.game_state.actors.get(ActorId("player"))
         if player and item_id not in player.inventory:
             player.inventory.append(ItemId(item_id))
 
@@ -354,7 +354,7 @@ class TestE2EBeastWildsScenarios(E2EScenarioTestCase):
         result = self.execute_json("look")
         self.assert_success(result)
         # Sira should be visible in the room
-        sira = self.state.actors.get(ActorId("hunter_sira"))
+        sira = self.game_state.actors.get(ActorId("hunter_sira"))
         self.assertIsNotNone(sira)
         assert sira is not None
         self.assertEqual(sira.location, "hunters_camp")
@@ -372,7 +372,7 @@ class TestE2EBeastWildsScenarios(E2EScenarioTestCase):
     def test_spider_matriarch_at_lair(self) -> None:
         """Spider Matriarch is present at lair."""
         self.move_player_to("spider_matriarch_lair")
-        matriarch = self.state.actors.get(ActorId("spider_matriarch"))
+        matriarch = self.game_state.actors.get(ActorId("spider_matriarch"))
         self.assertIsNotNone(matriarch)
         assert matriarch is not None
         self.assertEqual(matriarch.location, "spider_matriarch_lair")
@@ -390,7 +390,7 @@ class TestE2EBeastWildsScenarios(E2EScenarioTestCase):
     def test_bee_queen_at_clearing(self) -> None:
         """Bee Queen is present at clearing."""
         self.move_player_to("bee_queen_clearing")
-        queen = self.state.actors.get(ActorId("bee_queen"))
+        queen = self.game_state.actors.get(ActorId("bee_queen"))
         self.assertIsNotNone(queen)
         assert queen is not None
         self.assertEqual(queen.location, "bee_queen_clearing")
@@ -409,7 +409,7 @@ class TestE2EFungalDepthsScenarios(E2EScenarioTestCase):
     def test_aldric_at_entrance(self) -> None:
         """Scholar Aldric is at cavern entrance."""
         self.move_player_to("cavern_entrance")
-        aldric = self.state.actors.get(ActorId("npc_aldric"))
+        aldric = self.game_state.actors.get(ActorId("npc_aldric"))
         self.assertIsNotNone(aldric)
         assert aldric is not None
         self.assertEqual(aldric.location, "cavern_entrance")
@@ -421,7 +421,7 @@ class TestE2EFungalDepthsScenarios(E2EScenarioTestCase):
         self.execute("go down")  # luminous_grotto
         # Check what exits are available from luminous_grotto
         loc = None
-        for l in self.state.locations:
+        for l in self.game_state.locations:
             if l.id == "luminous_grotto":
                 loc = l
                 break
@@ -437,7 +437,7 @@ class TestE2EFungalDepthsScenarios(E2EScenarioTestCase):
     def test_spore_mother_at_heart(self) -> None:
         """Spore Mother is present at Spore Heart."""
         self.move_player_to("spore_heart")
-        mother = self.state.actors.get(ActorId("npc_spore_mother"))
+        mother = self.game_state.actors.get(ActorId("npc_spore_mother"))
         self.assertIsNotNone(mother)
         assert mother is not None
         self.assertEqual(mother.location, "spore_heart")
@@ -446,7 +446,7 @@ class TestE2EFungalDepthsScenarios(E2EScenarioTestCase):
         """Sporelings are present at Spore Heart with Spore Mother."""
         self.move_player_to("spore_heart")
         for sporeling_id in ["npc_sporeling_1", "npc_sporeling_2", "npc_sporeling_3"]:
-            sporeling = self.state.actors.get(ActorId(sporeling_id))
+            sporeling = self.game_state.actors.get(ActorId(sporeling_id))
             self.assertIsNotNone(sporeling, f"Missing {sporeling_id}")
             assert sporeling is not None
             self.assertEqual(sporeling.location, "spore_heart")
@@ -454,7 +454,7 @@ class TestE2EFungalDepthsScenarios(E2EScenarioTestCase):
     def test_myconid_elder_at_sanctuary(self) -> None:
         """Myconid Elder is at sanctuary."""
         self.move_player_to("myconid_sanctuary")
-        elder = self.state.actors.get(ActorId("npc_myconid_elder"))
+        elder = self.game_state.actors.get(ActorId("npc_myconid_elder"))
         self.assertIsNotNone(elder)
         assert elder is not None
         self.assertEqual(elder.location, "myconid_sanctuary")
@@ -483,7 +483,7 @@ class TestE2EFrozenReachesScenarios(E2EScenarioTestCase):
     def test_alpha_wolf_at_den(self) -> None:
         """Alpha Wolf is present at Wolf Den."""
         self.move_player_to("wolf_den")
-        alpha = self.state.actors.get(ActorId("alpha_wolf"))
+        alpha = self.game_state.actors.get(ActorId("alpha_wolf"))
         self.assertIsNotNone(alpha)
         assert alpha is not None
         self.assertEqual(alpha.location, "wolf_den")
@@ -492,7 +492,7 @@ class TestE2EFrozenReachesScenarios(E2EScenarioTestCase):
         """Frost wolves are present at Wolf Den."""
         self.move_player_to("wolf_den")
         for wolf_id in ["frost_wolf_1", "frost_wolf_2"]:
-            wolf = self.state.actors.get(ActorId(wolf_id))
+            wolf = self.game_state.actors.get(ActorId(wolf_id))
             self.assertIsNotNone(wolf, f"Missing {wolf_id}")
             assert wolf is not None
             self.assertEqual(wolf.location, "wolf_den")
@@ -509,7 +509,7 @@ class TestE2EFrozenReachesScenarios(E2EScenarioTestCase):
     def test_salamander_at_hot_springs(self) -> None:
         """Fire Salamander is present at Hot Springs."""
         self.move_player_to("hot_springs")
-        salamander = self.state.actors.get(ActorId("salamander"))
+        salamander = self.game_state.actors.get(ActorId("salamander"))
         self.assertIsNotNone(salamander)
         assert salamander is not None
         self.assertEqual(salamander.location, "hot_springs")
@@ -546,12 +546,12 @@ class TestE2ESunkenDistrictScenarios(E2EScenarioTestCase):
     def test_survivors_at_camp(self) -> None:
         """Survivors present at camp."""
         self.move_player_to("survivor_camp")
-        mira = self.state.actors.get(ActorId("camp_leader_mira"))
+        mira = self.game_state.actors.get(ActorId("camp_leader_mira"))
         self.assertIsNotNone(mira)
         assert mira is not None
         self.assertEqual(mira.location, "survivor_camp")
 
-        jek = self.state.actors.get(ActorId("old_swimmer_jek"))
+        jek = self.game_state.actors.get(ActorId("old_swimmer_jek"))
         self.assertIsNotNone(jek)
         assert jek is not None
         self.assertEqual(jek.location, "survivor_camp")
@@ -569,7 +569,7 @@ class TestE2ESunkenDistrictScenarios(E2EScenarioTestCase):
     def test_garrett_at_sea_caves(self) -> None:
         """Sailor Garrett is at Sea Caves."""
         self.move_player_to("sea_caves")
-        garrett = self.state.actors.get(ActorId("sailor_garrett"))
+        garrett = self.game_state.actors.get(ActorId("sailor_garrett"))
         self.assertIsNotNone(garrett)
         assert garrett is not None
         self.assertEqual(garrett.location, "sea_caves")
@@ -586,7 +586,7 @@ class TestE2ESunkenDistrictScenarios(E2EScenarioTestCase):
     def test_delvan_at_warehouse(self) -> None:
         """Merchant Delvan is at Warehouse."""
         self.move_player_to("merchant_warehouse")
-        delvan = self.state.actors.get(ActorId("merchant_delvan"))
+        delvan = self.game_state.actors.get(ActorId("merchant_delvan"))
         self.assertIsNotNone(delvan)
         assert delvan is not None
         self.assertEqual(delvan.location, "merchant_warehouse")
@@ -594,7 +594,7 @@ class TestE2ESunkenDistrictScenarios(E2EScenarioTestCase):
     def test_archivist_at_archive(self) -> None:
         """The Archivist is at Deep Archive."""
         self.move_player_to("deep_archive")
-        archivist = self.state.actors.get(ActorId("the_archivist"))
+        archivist = self.game_state.actors.get(ActorId("the_archivist"))
         self.assertIsNotNone(archivist)
         assert archivist is not None
         self.assertEqual(archivist.location, "deep_archive")
@@ -615,7 +615,7 @@ class TestE2ECivilizedRemnantsScenarios(E2EScenarioTestCase):
     def test_gate_guard_at_gate(self) -> None:
         """Gate Guard is at Town Gate."""
         self.move_player_to("town_gate")
-        guard = self.state.actors.get(ActorId("gate_guard"))
+        guard = self.game_state.actors.get(ActorId("gate_guard"))
         self.assertIsNotNone(guard)
         assert guard is not None
         self.assertEqual(guard.location, "town_gate")
@@ -633,7 +633,7 @@ class TestE2ECivilizedRemnantsScenarios(E2EScenarioTestCase):
         self.move_player_to("market_square")
         merchants = ["herbalist_maren", "weaponsmith_toran", "curiosity_dealer_vex"]
         for merchant_id in merchants:
-            merchant = self.state.actors.get(ActorId(merchant_id))
+            merchant = self.game_state.actors.get(ActorId(merchant_id))
             self.assertIsNotNone(merchant, f"Missing {merchant_id}")
             assert merchant is not None
             self.assertEqual(merchant.location, "market_square")
@@ -641,7 +641,7 @@ class TestE2ECivilizedRemnantsScenarios(E2EScenarioTestCase):
     def test_healer_at_sanctuary(self) -> None:
         """Healer Elara is at Healer's Sanctuary."""
         self.move_player_to("healers_sanctuary")
-        healer = self.state.actors.get(ActorId("healer_elara"))
+        healer = self.game_state.actors.get(ActorId("healer_elara"))
         self.assertIsNotNone(healer)
         assert healer is not None
         self.assertEqual(healer.location, "healers_sanctuary")
@@ -651,7 +651,7 @@ class TestE2ECivilizedRemnantsScenarios(E2EScenarioTestCase):
         self.move_player_to("council_hall")
         councilors = ["councilor_hurst", "councilor_asha", "councilor_varn"]
         for councilor_id in councilors:
-            councilor = self.state.actors.get(ActorId(councilor_id))
+            councilor = self.game_state.actors.get(ActorId(councilor_id))
             self.assertIsNotNone(councilor, f"Missing {councilor_id}")
             assert councilor is not None
             self.assertEqual(councilor.location, "council_hall")
@@ -661,7 +661,7 @@ class TestE2ECivilizedRemnantsScenarios(E2EScenarioTestCase):
         self.move_player_to("undercity")
         denizens = ["the_fence", "whisper", "shadow"]
         for denizen_id in denizens:
-            denizen = self.state.actors.get(ActorId(denizen_id))
+            denizen = self.game_state.actors.get(ActorId(denizen_id))
             self.assertIsNotNone(denizen, f"Missing {denizen_id}")
             assert denizen is not None
             self.assertEqual(denizen.location, "undercity")
@@ -677,14 +677,14 @@ class TestE2EMeridianNexusScenarios(E2EScenarioTestCase):
     def test_echo_at_keepers_quarters(self) -> None:
         """The Echo is at Keeper's Quarters."""
         self.move_player_to("keepers_quarters")
-        echo = self.state.actors.get(ActorId("the_echo"))
+        echo = self.game_state.actors.get(ActorId("the_echo"))
         self.assertIsNotNone(echo)
         assert echo is not None
         self.assertEqual(echo.location, "keepers_quarters")
 
     def test_waystone_spirit_at_nexus(self) -> None:
         """Waystone Spirit is at Nexus Chamber."""
-        waystone = self.state.actors.get(ActorId("waystone_spirit"))
+        waystone = self.game_state.actors.get(ActorId("waystone_spirit"))
         self.assertIsNotNone(waystone)
         assert waystone is not None
         self.assertEqual(waystone.location, "nexus_chamber")
@@ -753,7 +753,7 @@ class TestE2EWorldConsistency(E2EScenarioTestCase):
             "healer_elara",
         ]
         for npc_id in key_npcs:
-            npc = self.state.actors.get(ActorId(npc_id))
+            npc = self.game_state.actors.get(ActorId(npc_id))
             self.assertIsNotNone(npc, f"Missing NPC: {npc_id}")
             assert npc is not None
             self.assertIsNotNone(npc.location, f"NPC {npc_id} has no location")
@@ -786,7 +786,7 @@ class TestE2EWorldConsistency(E2EScenarioTestCase):
             "council_hall",
             "undercity",
         ]
-        location_ids = {loc.id for loc in self.state.locations}
+        location_ids = {loc.id for loc in self.game_state.locations}
         for loc_id in expected_locations:
             self.assertIn(loc_id, location_ids, f"Missing location: {loc_id}")
 
@@ -797,7 +797,7 @@ class TestE2EWorldConsistency(E2EScenarioTestCase):
             "npc_spore_mother",
         ]
         for npc_id in npcs_with_state_machines:
-            npc = self.state.actors.get(ActorId(npc_id))
+            npc = self.game_state.actors.get(ActorId(npc_id))
             self.assertIsNotNone(npc, f"Missing NPC: {npc_id}")
             assert npc is not None
             sm = npc.properties.get("state_machine")

@@ -16,6 +16,7 @@ class WordType(Enum):
     PREPOSITION = "PREPOSITION"
     ARTICLE = "ARTICLE"
     FILENAME = "FILENAME"
+    QUOTED_LITERAL = "QUOTED_LITERAL"  # Quoted strings that bypass parsing
 
 
 @dataclass

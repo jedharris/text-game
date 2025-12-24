@@ -1,0 +1,136 @@
+{
+  "summary": {
+    "total_scenarios": 3,
+    "passed": 2,
+    "failed": 1,
+    "pass_rate": 0.6666666666666666,
+    "total_hallucinations": 4,
+    "total_missing_required": 0
+  },
+  "results": [
+    {
+      "scenario": "unlock_closed_door",
+      "command": "unlock door",
+      "narration": "As I approach the door, I examine it closely. The door is locked, and I can see a small keyhole in the center. I wonder what's behind this door - maybe it leads to a treasure trove or a secret passage. I try turning the handle, but it's locked. I search my pockets and realize I don't have the right key to unlock the door. I'm not sure what's inside, but I'm determined to find out.",
+      "passed": false,
+      "missing_required": [],
+      "unwanted_present": [
+        "enter",
+        "inside",
+        "see",
+        "pass"
+      ],
+      "sentence_count": 6,
+      "notes": "Too many sentences (6 > 4). ",
+      "json_sent": {
+        "type": "result",
+        "success": false,
+        "action": "unlock",
+        "verbosity": "full",
+        "narration": {
+          "action_verb": "unlock",
+          "primary_text": "You don't have the right key to unlock the door.",
+          "secondary_beats": [],
+          "viewpoint": {
+            "mode": "ground"
+          },
+          "scope": {
+            "scene_kind": "action_result",
+            "outcome": "failure",
+            "familiarity": "familiar"
+          },
+          "entity_refs": {}
+        },
+        "data": {}
+      }
+    },
+    {
+      "scenario": "open_unlocked_door",
+      "command": "open door",
+      "narration": "I try to open the door, but it doesn't budge. I press down on the handle, but it feels like there's nothing beneath my fingers. The door is locked, and I can tell it's been that way for a while. I wonder who locked it and why.",
+      "passed": true,
+      "missing_required": [],
+      "unwanted_present": [],
+      "sentence_count": 4,
+      "notes": "",
+      "json_sent": {
+        "type": "result",
+        "success": false,
+        "action": "open",
+        "verbosity": "full",
+        "narration": {
+          "action_verb": "open",
+          "primary_text": "The door is locked.",
+          "secondary_beats": [],
+          "viewpoint": {
+            "mode": "ground",
+            "focus_name": "door"
+          },
+          "scope": {
+            "scene_kind": "action_result",
+            "outcome": "failure",
+            "familiarity": "familiar"
+          },
+          "entity_refs": {}
+        },
+        "data": {}
+      }
+    },
+    {
+      "scenario": "examine_closed_door",
+      "command": "examine door",
+      "narration": "I cautiously approach the ornate door covered in glowing runes. It's unlike anything I've ever seen before, and I can feel a strange energy emanating from it. The air around me seems to vibrate with an otherworldly power, making my skin tingle. The door appears to be locked, and I can see a small, intricate keyhole in the shape of a serpent eating its own tail. I wonder what kind of magic is embedded in these runes, and what secrets the door might hold.",
+      "passed": true,
+      "missing_required": [],
+      "unwanted_present": [],
+      "sentence_count": 5,
+      "notes": "",
+      "json_sent": {
+        "type": "result",
+        "success": true,
+        "action": "examine",
+        "verbosity": "full",
+        "narration": {
+          "action_verb": "examine",
+          "primary_text": "door: An ornate door covered in glowing runes.",
+          "secondary_beats": [],
+          "viewpoint": {
+            "mode": "ground",
+            "focus_name": "door"
+          },
+          "scope": {
+            "scene_kind": "look",
+            "outcome": "success",
+            "familiarity": "new"
+          },
+          "entity_refs": {
+            "door_sanctum": {
+              "name": "door",
+              "type": "door",
+              "state": {
+                "open": false,
+                "locked": true
+              },
+              "salience": "medium"
+            }
+          },
+          "must_mention": {
+            "exits_text": "Exits lead down (spiral staircase to Tower Entrance) and up (ornate door to Wizard's Sanctum)."
+          },
+          "target_state": {
+            "open": false,
+            "locked": true
+          }
+        },
+        "data": {
+          "id": "door_sanctum",
+          "name": "door",
+          "description": "An ornate door covered in glowing runes.",
+          "type": "door",
+          "open": false,
+          "locked": true
+        }
+      }
+    }
+  ]
+}

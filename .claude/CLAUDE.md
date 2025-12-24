@@ -10,6 +10,10 @@
 - NEVER build vocabulary into the code, instead ALWAYS use the merged vocabulary and WordEntry.
 - NEVER add local heuristics for word matching or special vocabulary
 - Vocabulary handling rules apply to testing as well as normal code
+- When writing or modifying handlers and utility functions, consult:
+  - `docs/authoring_guide.md` for utility routines, handler patterns, and common pitfalls
+  - `docs/debugging_guide.md` for vocabulary, parsing, and error diagnosis
+- Use existing utility functions from `utilities/handler_utils.py` and `utilities/utils.py` rather than writing custom code
 
 ## Handler design
 - Handlers should test positively for what they CAN handle, not negatively for what they CAN'T handle
@@ -29,6 +33,36 @@
 - Test helpers should wrap complexity, not change interfaces
 - When loading game state for tests, use the same loading functions as the real game
 - When sending commands for tests, use the same message format as the real game engine
+
+## Game Authoring Workflow (MANDATORY)
+
+When authoring or updating game content (regions, behaviors, items, NPCs), follow these requirements:
+
+### 1. Walkthrough-Driven Development
+- ALWAYS create a comprehensive walkthrough test file BEFORE claiming completion
+- The walkthrough must cover all new/modified mechanics, items, NPCs, and interactions
+- Include EXPECTED FAILURES in walkthrough comments where mechanics intentionally block actions
+- 100% success means all expected behaviors occur (including expected failures), not all actions succeeding
+- Run the walkthrough using `tools/walkthrough.py` and verify results
+- NEVER declare completion without a successful walkthrough run
+
+### 2. Common Pitfalls (Red Flags)
+If you encounter any of these, STOP and discuss with user:
+- Event handler function names don't exactly match event names in vocabulary
+- Behavior module paths in game_state.json don't match actual load paths
+- Using `state.items.get()` instead of `next()` comprehension (items is a list)
+- Using `next()` for `state.actors` instead of `.get()` (actors is a dict)
+- Item_use_reactions on the tool instead of the target item
+- Multi-word item names sharing common words without unique synonyms
+- Claiming "mostly working" or "98% complete" without walkthrough verification
+
+### 3. Completion Criteria
+Work is complete ONLY when:
+- Comprehensive walkthrough file exists in `walkthroughs/`
+- Walkthrough has been run with `tools/walkthrough.py`
+- All expected behaviors occur (success AND intentional failures as documented)
+- Any unexpected failures have been diagnosed and fixed
+- Results have been verified and shared with user
 
 ## Breaking changes
 - For the current development phase, we will continue to change the code base in ways that make a new version of the game unable to run old game save files. Right now such changes are are fine if they lead to cleaner designs.

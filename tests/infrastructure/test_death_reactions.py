@@ -30,7 +30,7 @@ class MockAccessor:
     """Mock accessor for testing."""
 
     def __init__(self) -> None:
-        self.state = MockState()
+        self.game_state = MockState()
 
 
 class TestDeathReactionsBasic(unittest.TestCase):
@@ -84,8 +84,8 @@ class TestDeathReactionsDataDriven(unittest.TestCase):
 
         on_entity_death(entity, self.accessor, context)
 
-        self.assertTrue(self.accessor.state.extra.get("alpha_wolf_dead"))
-        self.assertTrue(self.accessor.state.extra.get("pack_leaderless"))
+        self.assertTrue(self.accessor.game_state.extra.get("alpha_wolf_dead"))
+        self.assertTrue(self.accessor.game_state.extra.get("pack_leaderless"))
 
     def test_death_message(self) -> None:
         """Death reaction returns configured message."""
@@ -110,7 +110,7 @@ class TestDeathReactionsDataDriven(unittest.TestCase):
             "npc_beta_wolf",
             {"trust_state": {"current": 2, "floor": -5, "ceiling": 5}},
         )
-        self.accessor.state.actors[ActorId("npc_beta_wolf")] = beta_wolf
+        self.accessor.game_state.actors[ActorId("npc_beta_wolf")] = beta_wolf
 
         entity = MockEntity(
             "npc_alpha_wolf",
@@ -132,7 +132,7 @@ class TestDeathReactionsDataDriven(unittest.TestCase):
             "npc_beta_wolf",
             {"trust_state": {"current": 0, "floor": -2, "ceiling": 5}},
         )
-        self.accessor.state.actors[ActorId("npc_beta_wolf")] = beta_wolf
+        self.accessor.game_state.actors[ActorId("npc_beta_wolf")] = beta_wolf
 
         entity = MockEntity(
             "npc_alpha_wolf",
@@ -160,7 +160,7 @@ class TestDeathReactionsDataDriven(unittest.TestCase):
                 }
             },
         )
-        self.accessor.state.actors[ActorId("npc_beta_wolf")] = beta_wolf
+        self.accessor.game_state.actors[ActorId("npc_beta_wolf")] = beta_wolf
 
         entity = MockEntity(
             "npc_alpha_wolf",
@@ -198,8 +198,8 @@ class TestDeathReactionsDataDriven(unittest.TestCase):
                 }
             },
         )
-        self.accessor.state.actors[ActorId("npc_beta_wolf")] = beta_wolf
-        self.accessor.state.actors[ActorId("npc_gamma_wolf")] = gamma_wolf
+        self.accessor.game_state.actors[ActorId("npc_beta_wolf")] = beta_wolf
+        self.accessor.game_state.actors[ActorId("npc_gamma_wolf")] = gamma_wolf
 
         entity = MockEntity(
             "npc_alpha_wolf",
@@ -232,7 +232,7 @@ class TestDeathReactionsDataDriven(unittest.TestCase):
                 },
             },
         )
-        self.accessor.state.actors[ActorId("npc_beta_wolf")] = beta_wolf
+        self.accessor.game_state.actors[ActorId("npc_beta_wolf")] = beta_wolf
 
         entity = MockEntity(
             "npc_alpha_wolf",
@@ -249,7 +249,7 @@ class TestDeathReactionsDataDriven(unittest.TestCase):
 
         result = on_entity_death(entity, self.accessor, context)
 
-        self.assertTrue(self.accessor.state.extra.get("alpha_dead"))
+        self.assertTrue(self.accessor.game_state.extra.get("alpha_dead"))
         self.assertEqual(beta_wolf.properties["trust_state"]["current"], 1)
         self.assertEqual(beta_wolf.properties["state_machine"]["current"], "hostile")
         self.assertEqual(result.feedback, "The alpha falls. The pack is changed forever.")
@@ -322,7 +322,7 @@ class TestDeathReactionsHandlerEscapeHatch(unittest.TestCase):
 
         result = on_entity_death(entity, self.accessor, context)
 
-        self.assertTrue(self.accessor.state.extra.get("alpha_dead"))
+        self.assertTrue(self.accessor.game_state.extra.get("alpha_dead"))
         self.assertEqual(result.feedback, "Fallback death message.")
 
 

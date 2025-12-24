@@ -50,9 +50,9 @@ class TestInconsistentStateHandling(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
-        self.handler = LLMProtocolHandler(self.state, self.behavior_manager)
+        self.handler = LLMProtocolHandler(self.game_state, self.behavior_manager)
 
     def test_state_corrupted_flag_starts_false(self):
         """Test that state_corrupted flag initializes to False."""

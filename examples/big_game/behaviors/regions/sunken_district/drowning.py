@@ -40,7 +40,7 @@ def on_underwater_turn(
     Returns:
         EventResult with drowning message if applicable
     """
-    state = accessor.state
+    state = accessor.game_state
     player = state.actors.get("player")
     if not player:
         return EventResult(allow=True, feedback=None)
@@ -128,7 +128,7 @@ def on_water_entry(
     if water_level not in ["submerged", "flooded"]:
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
     player = state.actors.get("player")
     if not player:
         return EventResult(allow=True, feedback=None)
@@ -177,7 +177,7 @@ def on_surface(
     if water_level in ["submerged", "flooded"]:
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
     player = state.actors.get("player")
     if not player:
         return EventResult(allow=True, feedback=None)

@@ -39,7 +39,7 @@ class MockAccessor:
     """Mock accessor for testing."""
 
     def __init__(self) -> None:
-        self.state = MockState()
+        self.game_state = MockState()
 
 
 class TestTurnPhaseDispatcherBasic(unittest.TestCase):
@@ -62,7 +62,7 @@ class TestTurnPhaseDispatcherBasic(unittest.TestCase):
     def test_player_with_no_location(self) -> None:
         """Player with no location returns allow with no message."""
         player = MockEntity("player", {})
-        self.accessor.state.actors[ActorId("player")] = player
+        self.accessor.game_state.actors[ActorId("player")] = player
         context: dict[str, Any] = {}
 
         result = on_regional_turn(None, self.accessor, context)
@@ -73,8 +73,8 @@ class TestTurnPhaseDispatcherBasic(unittest.TestCase):
     def test_location_not_found(self) -> None:
         """Player location not in locations list returns allow with no message."""
         player = MockEntity("player", {"location": "loc_unknown"})
-        self.accessor.state.actors[ActorId("player")] = player
-        self.accessor.state.locations = []
+        self.accessor.game_state.actors[ActorId("player")] = player
+        self.accessor.game_state.locations = []
         context: dict[str, Any] = {}
 
         result = on_regional_turn(None, self.accessor, context)
@@ -86,8 +86,8 @@ class TestTurnPhaseDispatcherBasic(unittest.TestCase):
         """Location without turn_phase_effects returns allow with no message."""
         player = MockEntity("player", {"location": "loc_cave"})
         location = MockLocation("loc_cave", {})
-        self.accessor.state.actors[ActorId("player")] = player
-        self.accessor.state.locations = [location]
+        self.accessor.game_state.actors[ActorId("player")] = player
+        self.accessor.game_state.locations = [location]
         context: dict[str, Any] = {}
 
         result = on_regional_turn(None, self.accessor, context)
@@ -116,8 +116,8 @@ class TestTurnPhaseDispatcherDataDriven(unittest.TestCase):
                 }
             },
         )
-        self.accessor.state.actors[ActorId("player")] = player
-        self.accessor.state.locations = [location]
+        self.accessor.game_state.actors[ActorId("player")] = player
+        self.accessor.game_state.locations = [location]
         context: dict[str, Any] = {}
 
         # Currently _process_turn_effects is mostly placeholder
@@ -140,8 +140,8 @@ class TestTurnPhaseDispatcherDataDriven(unittest.TestCase):
             },
         )
         location = MockLocation("loc_cave", {})
-        self.accessor.state.actors[ActorId("player")] = player
-        self.accessor.state.locations = [location]
+        self.accessor.game_state.actors[ActorId("player")] = player
+        self.accessor.game_state.locations = [location]
         context: dict[str, Any] = {}
 
         # Currently _process_condition_turn is placeholder
@@ -160,8 +160,8 @@ class TestTurnPhaseDispatcherDataDriven(unittest.TestCase):
             },
         )
         location = MockLocation("loc_cave", {})
-        self.accessor.state.actors[ActorId("player")] = player
-        self.accessor.state.locations = [location]
+        self.accessor.game_state.actors[ActorId("player")] = player
+        self.accessor.game_state.locations = [location]
         context: dict[str, Any] = {}
 
         # Should not raise
@@ -189,8 +189,8 @@ class TestTurnPhaseDispatcherHandlerEscapeHatch(unittest.TestCase):
                 }
             },
         )
-        self.accessor.state.actors[ActorId("player")] = player
-        self.accessor.state.locations = [location]
+        self.accessor.game_state.actors[ActorId("player")] = player
+        self.accessor.game_state.locations = [location]
         context: dict[str, Any] = {}
 
         handler_result = EventResult(allow=True, feedback="Spores swirl around you.")
@@ -217,8 +217,8 @@ class TestTurnPhaseDispatcherHandlerEscapeHatch(unittest.TestCase):
                 }
             },
         )
-        self.accessor.state.actors[ActorId("player")] = player
-        self.accessor.state.locations = [location]
+        self.accessor.game_state.actors[ActorId("player")] = player
+        self.accessor.game_state.locations = [location]
         context: dict[str, Any] = {}
 
         # Should not raise, falls through to data-driven
@@ -249,8 +249,8 @@ class TestTurnPhaseDispatcherMultipleLocations(unittest.TestCase):
         )
         loc3 = MockLocation("loc_other2", {"turn_phase_effects": {"also_wrong": True}})
 
-        self.accessor.state.actors[ActorId("player")] = player
-        self.accessor.state.locations = [loc1, loc2, loc3]
+        self.accessor.game_state.actors[ActorId("player")] = player
+        self.accessor.game_state.locations = [loc1, loc2, loc3]
         context: dict[str, Any] = {}
 
         handler_result = EventResult(allow=True, feedback="Correct location!")

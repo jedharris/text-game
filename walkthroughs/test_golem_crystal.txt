@@ -1,0 +1,72 @@
+# Phase 4.2 Validation: Golem Puzzle - Control Crystal Solution
+# Tests the command orb deactivation path for stone golems
+# Run with: python tools/walkthrough.py examples/big_game --file walkthroughs/test_golem_crystal.txt
+#
+# NOTE: Multi-word item names (e.g. "fire crystal") don't parse correctly with all words.
+# Use single-word references: "crystal" for fire crystal, "cloak" for cold resistance cloak
+
+# Navigate to Frozen Reaches
+go north
+look
+
+# Get supplies from frozen pass camp
+examine gear
+take gear
+examine supplies
+take torch from supplies
+inventory
+
+# Navigate to Ice Caves to find command orb
+go east
+look
+
+# Find and extract command orb from ice
+examine orb
+examine command orb
+
+# EXPECTED FAILURE: Try to take frozen orb without heat
+take orb
+
+# Use heat to extract command orb
+use torch on orb
+take orb
+inventory
+
+# Navigate to Temple Sanctum
+go west
+go north
+look
+
+# Examine golems in initial guarding state
+examine guardian
+look
+
+# EXPECTED FAILURE: Try to access observatory while golems are guarding
+go up
+
+# Come back to temple to use orb on golems
+go down
+look
+
+# Use command orb on golems to deactivate them
+use orb on guardian
+examine guardian
+look
+
+# Verify linked behavior - both golems should have transitioned
+examine stone guardian
+
+# Access observatory now that golems are deactivated
+go up
+look
+
+# Return to temple and verify golems remain deactivated (now serving state)
+go down
+look
+examine guardian
+
+# Take temple rewards (using single-word references that parse correctly)
+take cloak
+take gem
+take mounting bracket
+inventory

@@ -1,0 +1,166 @@
+# Phase 3: Beast Wilds Complete Test
+# Tests all implemented content in the Beast Wilds region
+# Prerequisites: None (fresh game)
+
+# ============================================================
+# Part 1: Entry and Forest Edge Items
+# ============================================================
+
+# Navigate to Forest Edge
+go south
+
+# Check we're in the right place
+look
+
+# Examine and take items
+examine venison
+take venison
+
+# Note: tracking equipment has parser issues with "take"
+examine tracking equipment
+
+# Note: apostrophe in "hunter's journal" causes parser issues
+# Using simple "journal" works for read command
+examine journal
+take journal
+
+# Read the journal (should reveal hints)
+read journal
+
+# Check inventory
+inventory
+
+# ============================================================
+# Part 2: Hunter Sira - Dialog and Rescue
+# ============================================================
+
+# Navigate to Hunter's Camp via Southern Trail
+go east
+go east
+
+# Check the location and Sira
+look
+
+# Talk to Sira
+talk to sira
+
+# Ask about various topics
+ask sira about injury
+ask sira about beasts
+ask sira about elara
+
+# Note: To fully rescue Sira, would need bandages from Civilized Remnants
+# For now, just verify dialog works
+
+# ============================================================
+# Part 3: Wolf Pack - Feeding and Trust
+# ============================================================
+
+# Return to forest and go to wolf clearing
+go west
+go west
+go south
+go east
+
+# Check the location and wolves
+look
+
+# The pack should be hostile initially
+examine alpha wolf
+
+# Feed the alpha with venison
+give venison to alpha wolf
+
+# Check that trust increased (would need multiple feedings to ally)
+
+# ============================================================
+# Part 4: Bee Queen - Trade and Talk
+# ============================================================
+
+# Return to tangled path and go to ancient grove
+go west
+go southwest
+
+# Check the location
+look
+
+# Go to bee queen clearing
+go east
+
+# Check the location and queen
+look
+
+# Talk to the bee queen (non-verbal handler)
+talk to bee queen
+
+# Note: To trade with queen, would need flowers from other regions
+# - moonpetal from Civilized Remnants
+# - frost_lily from Frozen Reaches
+# - water_bloom from Sunken District
+
+# ============================================================
+# Part 5: Predator's Den - Bear and Cubs
+# ============================================================
+
+# Return to tangled path
+go west
+go northeast
+
+# Go to predator's den
+go south
+
+# Check the location (encounter with dire bear)
+look
+
+# Examine the bear
+examine dire bear
+
+# Examine the cubs (use first cub specifically to avoid ambiguity)
+examine cub
+
+# Note: To heal cubs, would need healing_herbs from Civilized Remnants
+# The bear is hostile and protecting sick cubs
+
+# ============================================================
+# Part 6: Spider Nest - Combat Zone
+# ============================================================
+
+# Return to tangled path
+go north
+
+# Go to spider thicket
+go west
+
+# Check the location (web hazards)
+look
+
+# Examine spiders
+examine giant spider
+
+# Go to spider matriarch lair
+go west
+
+# Check the location
+look
+
+# Examine the matriarch
+examine spider matriarch
+
+# Note: Spiders are combat-only, no diplomatic path
+
+# ============================================================
+# Part 7: Check Region Connectivity
+# ============================================================
+
+# Return through the region
+go east
+go east
+
+# Back to forest edge
+go north
+
+# Back to nexus
+go north
+
+# Final check
+inventory

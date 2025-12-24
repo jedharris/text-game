@@ -15,8 +15,9 @@ from src.narration_types import (
     MustMention,
     NarrationPlan,
     NarrationResult,
+    ReactionRef,
 )
-from src.state_accessor import HandlerResult
+from src.state_accessor import HandlerResult, EventResult
 
 
 class TestViewpointInfo(unittest.TestCase):
@@ -379,6 +380,296 @@ class TestHandlerResult(unittest.TestCase):
         result = HandlerResult(success=True, primary="Done.")
         self.assertIsInstance(result.beats, list)
         self.assertEqual(len(result.beats), 0)
+
+
+class TestReactionRef(unittest.TestCase):
+    """Tests for ReactionRef TypedDict (new for multi-entity reactions)."""
+
+    def test_basic_reaction(self) -> None:
+        """ReactionRef represents a single entity's reaction."""
+        reaction: ReactionRef = {
+            "entity": "npc_guard",
+            "entity_name": "Town Guard",
+            "state": "hostile",
+            "fragments": ["hand moves to sword hilt", "steps forward"],
+            "response": "confrontation"
+        }
+        self.assertEqual(reaction["entity"], "npc_guard")
+        self.assertEqual(reaction["entity_name"], "Town Guard")
+        self.assertEqual(reaction["state"], "hostile")
+        self.assertEqual(len(reaction["fragments"]), 2)
+        self.assertEqual(reaction["response"], "confrontation")
+
+    def test_minimal_reaction(self) -> None:
+        """ReactionRef allows minimal fields (total=False)."""
+        reaction: ReactionRef = {
+            "entity": "npc_villager",
+            "entity_name": "Villager"
+        }
+        self.assertEqual(reaction["entity"], "npc_villager")
+        self.assertNotIn("state", reaction)
+
+    def test_empty_fragments(self) -> None:
+        """ReactionRef can have empty fragments list."""
+        reaction: ReactionRef = {
+            "entity": "npc_merchant",
+            "entity_name": "Merchant",
+            "state": "nervous",
+            "fragments": [],
+            "response": "avoidance"
+        }
+        self.assertEqual(reaction["fragments"], [])
+
+
+class TestEventResultExtensions(unittest.TestCase):
+    """Tests for new EventResult fields (context, hints, fragments)."""
+
+    def test_event_result_basic(self) -> None:
+        """EventResult still works with just allow and feedback."""
+        result = EventResult(allow=True, feedback="The door creaks open.")
+        self.assertTrue(result.allow)
+        self.assertEqual(result.feedback, "The door creaks open.")
+
+    def test_event_result_with_context(self) -> None:
+        """EventResult accepts author-defined context."""
+        result = EventResult(
+            allow=True,
+            feedback="The wolf sniffs the offering.",
+            context={
+                "npc_state": {"previous": "hostile", "current": "wary"},
+                "communication": {"type": "body_language", "signal": "accepting"}
+            }
+        )
+        self.assertTrue(result.allow)
+        self.assertIsNotNone(result.context)
+        assert result.context is not None  # Type guard
+        self.assertEqual(result.context["npc_state"]["current"], "wary")
+
+    def test_event_result_with_hints(self) -> None:
+        """EventResult accepts hints list."""
+        result = EventResult(
+            allow=True,
+            feedback="Relief floods his features.",
+            hints=["rescue", "urgent", "trust-building"]
+        )
+        self.assertEqual(len(result.hints), 3)
+        self.assertIn("rescue", result.hints)
+
+    def test_event_result_with_fragments(self) -> None:
+        """EventResult accepts pre-selected fragments."""
+        result = EventResult(
+            allow=True,
+            feedback="Aldric accepts the silvermoss.",
+            fragments={
+                "state": ["trembling hands", "labored breathing"],
+                "action": ["accepts with gratitude"]
+            }
+        )
+        self.assertIsNotNone(result.fragments)
+        assert result.fragments is not None  # Type guard
+        self.assertEqual(len(result.fragments["state"]), 2)
+
+    def test_event_result_defaults(self) -> None:
+        """EventResult new fields have sensible defaults."""
+        result = EventResult(allow=True)
+        self.assertIsNone(result.context)
+        self.assertEqual(result.hints, [])
+        self.assertIsNone(result.fragments)
+
+    def test_event_result_with_reaction(self) -> None:
+        """EventResult can include reaction context for multi-entity scenes."""
+        result = EventResult(
+            allow=True,
+            context={
+                "reaction": {
+                    "entity": "npc_guard",
+                    "entity_name": "Town Guard",
+                    "state": "hostile",
+                    "fragments": ["hand moves to sword"],
+                    "response": "confrontation"
+                }
+            }
+        )
+        assert result.context is not None
+        self.assertIn("reaction", result.context)
+        self.assertEqual(result.context["reaction"]["state"], "hostile")
+
+
+class TestHandlerResultExtensions(unittest.TestCase):
+    """Tests for new HandlerResult fields (context, hints, fragments, reactions)."""
+
+    def test_handler_result_basic(self) -> None:
+        """HandlerResult still works with original fields."""
+        result = HandlerResult(
+            success=True,
+            primary="You unlock the door.",
+            beats=["The lock clicks."],
+            data={"item_id": "door_sanctum"}
+        )
+        self.assertTrue(result.success)
+        self.assertEqual(result.primary, "You unlock the door.")
+
+    def test_handler_result_with_context(self) -> None:
+        """HandlerResult accepts author-defined context."""
+        result = HandlerResult(
+            success=True,
+            primary="You give the silvermoss to Aldric.",
+            context={
+                "npc_state": {"previous": "critical", "current": "stabilized"},
+                "urgency": {"level": "critical"}
+            }
+        )
+        self.assertIsNotNone(result.context)
+        assert result.context is not None  # Type guard
+        self.assertEqual(result.context["npc_state"]["current"], "stabilized")
+
+    def test_handler_result_with_hints(self) -> None:
+        """HandlerResult accepts hints list."""
+        result = HandlerResult(
+            success=True,
+            primary="You apply the bandages.",
+            hints=["rescue", "urgent"]
+        )
+        self.assertEqual(len(result.hints), 2)
+        self.assertIn("urgent", result.hints)
+
+    def test_handler_result_with_fragments(self) -> None:
+        """HandlerResult accepts pre-selected fragments."""
+        result = HandlerResult(
+            success=True,
+            primary="You unlock the door.",
+            fragments={
+                "action_core": "the lock clicks open",
+                "action_color": ["runes flicker momentarily"],
+                "traits": ["glowing runes", "heavy iron"]
+            }
+        )
+        self.assertIsNotNone(result.fragments)
+        assert result.fragments is not None  # Type guard
+        self.assertEqual(result.fragments["action_core"], "the lock clicks open")
+
+    def test_handler_result_with_reactions(self) -> None:
+        """HandlerResult accepts reactions list for multi-entity scenes."""
+        result = HandlerResult(
+            success=True,
+            primary="You enter the market square with your wolf.",
+            reactions=[
+                {
+                    "entity": "npc_guard",
+                    "entity_name": "Town Guard",
+                    "state": "hostile",
+                    "fragments": ["hand moves to sword hilt"],
+                    "response": "confrontation"
+                },
+                {
+                    "entity": "npc_merchant",
+                    "entity_name": "Merchant",
+                    "state": "nervous",
+                    "fragments": ["backs away"],
+                    "response": "avoidance"
+                }
+            ]
+        )
+        self.assertIsNotNone(result.reactions)
+        assert result.reactions is not None  # Type guard
+        self.assertEqual(len(result.reactions), 2)
+        self.assertEqual(result.reactions[0]["state"], "hostile")
+        self.assertEqual(result.reactions[1]["response"], "avoidance")
+
+    def test_handler_result_defaults(self) -> None:
+        """HandlerResult new fields have sensible defaults."""
+        result = HandlerResult(success=True, primary="Done.")
+        self.assertIsNone(result.context)
+        self.assertEqual(result.hints, [])
+        self.assertIsNone(result.fragments)
+        self.assertIsNone(result.reactions)
+
+
+class TestNarrationPlanExtensions(unittest.TestCase):
+    """Tests for new NarrationPlan fields (context, hints, fragments, reactions)."""
+
+    def test_narration_plan_with_context(self) -> None:
+        """NarrationPlan accepts author-defined context."""
+        plan: NarrationPlan = {
+            "primary_text": "You give the silvermoss to Aldric.",
+            "context": {
+                "npc_state": {"previous": "critical", "current": "stabilized"},
+                "relationship": {"trust_level": "grateful"}
+            }
+        }
+        self.assertIn("context", plan)
+        self.assertEqual(plan["context"]["npc_state"]["current"], "stabilized")
+
+    def test_narration_plan_with_hints(self) -> None:
+        """NarrationPlan accepts hints list."""
+        plan: NarrationPlan = {
+            "primary_text": "You apply the bandages to Sira.",
+            "hints": ["rescue", "urgent", "trust-building"]
+        }
+        self.assertIn("hints", plan)
+        self.assertEqual(len(plan["hints"]), 3)
+
+    def test_narration_plan_with_fragments(self) -> None:
+        """NarrationPlan accepts pre-selected fragments."""
+        plan: NarrationPlan = {
+            "primary_text": "You unlock the door.",
+            "fragments": {
+                "action_core": "the lock clicks open",
+                "action_color": ["runes flicker"],
+                "traits": ["glowing runes", "heavy iron"]
+            }
+        }
+        self.assertIn("fragments", plan)
+        self.assertEqual(plan["fragments"]["action_core"], "the lock clicks open")
+
+    def test_narration_plan_with_reactions(self) -> None:
+        """NarrationPlan accepts reactions list."""
+        plan: NarrationPlan = {
+            "primary_text": "You enter with the wolf.",
+            "reactions": [
+                {
+                    "entity": "npc_guard",
+                    "entity_name": "Guard",
+                    "state": "hostile",
+                    "fragments": ["draws sword"],
+                    "response": "confrontation"
+                }
+            ]
+        }
+        self.assertIn("reactions", plan)
+        self.assertEqual(len(plan["reactions"]), 1)
+
+    def test_narration_plan_full_new_structure(self) -> None:
+        """NarrationPlan with all new fields for complex scene."""
+        plan: NarrationPlan = {
+            "action_verb": "give",
+            "primary_text": "You offer the venison to the wolf.",
+            "secondary_beats": [],
+            "context": {
+                "npc_state": {"previous": "hostile", "current": "wary"},
+                "communication": {"type": "body_language", "signal": "accepting"}
+            },
+            "hints": ["trust-building", "tense"],
+            "fragments": {
+                "action_core": "the wolf sniffs the meat",
+                "action_color": ["its posture relaxes slightly"],
+                "traits": ["massive", "grey-furred"]
+            },
+            "reactions": [
+                {
+                    "entity": "npc_alpha_wolf",
+                    "entity_name": "Alpha Wolf",
+                    "state": "wary",
+                    "fragments": ["ears prick forward"],
+                    "response": "cautious_acceptance"
+                }
+            ]
+        }
+        self.assertEqual(plan["action_verb"], "give")
+        self.assertEqual(plan["context"]["npc_state"]["current"], "wary")
+        self.assertIn("trust-building", plan["hints"])
+        self.assertEqual(plan["fragments"]["action_core"], "the wolf sniffs the meat")
+        self.assertEqual(len(plan["reactions"]), 1)
 
 
 if __name__ == "__main__":

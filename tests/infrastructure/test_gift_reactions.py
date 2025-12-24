@@ -29,7 +29,7 @@ class MockAccessor:
     """Mock accessor for testing."""
 
     def __init__(self) -> None:
-        self.state = MockState()
+        self.game_state = MockState()
 
 
 class TestGiftReactionsHandlerEscapeHatch(unittest.TestCase):
@@ -212,7 +212,7 @@ class TestGiftReactionsDataDriven(unittest.TestCase):
 
         on_gift_given(item, self.accessor, context)
 
-        self.assertTrue(self.accessor.state.extra.get("wolf_fed"))
+        self.assertTrue(self.accessor.game_state.extra.get("wolf_fed"))
 
     def test_track_items_key(self) -> None:
         """Track items key appends item to list."""
@@ -233,7 +233,7 @@ class TestGiftReactionsDataDriven(unittest.TestCase):
 
         on_gift_given(item, self.accessor, context)
 
-        tracked = self.accessor.state.extra.get("flowers_given", [])
+        tracked = self.accessor.game_state.extra.get("flowers_given", [])
         self.assertIn("moonpetal", tracked)
 
 

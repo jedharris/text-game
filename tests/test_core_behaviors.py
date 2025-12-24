@@ -53,7 +53,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_with_core_behaviors.json"
-        self.state = load_game_state(fixture_path)
+        self.game_state = load_game_state(fixture_path)
 
         # Create behavior manager and load core modules
         self.manager = BehaviorManager()
@@ -62,7 +62,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
         self.manager.load_modules(modules)
 
         # Create handler with behavior manager
-        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
 
     def test_drink_potion_success(self):
         """Test drinking a potion successfully."""
@@ -83,7 +83,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
 
     def test_drink_potion_heals(self):
         """Test that drinking health potion increases health."""
-        initial_health = self.state.actors[ActorId("player")].stats.get("health", 100)
+        initial_health = self.game_state.actors[ActorId("player")].stats.get("health", 100)
 
         # Take and drink the potion
         self.handler.handle_command({
@@ -96,7 +96,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
         })
 
         # Health should have increased
-        new_health = self.state.actors[ActorId("player")].stats.get("health", 100)
+        new_health = self.game_state.actors[ActorId("player")].stats.get("health", 100)
         self.assertGreater(new_health, initial_health)
 
     def test_drink_potion_removes_from_inventory(self):
@@ -108,7 +108,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
         })
 
         # Verify it's in inventory
-        self.assertIn("health_potion", self.state.actors[ActorId("player")].inventory)
+        self.assertIn("health_potion", self.game_state.actors[ActorId("player")].inventory)
 
         # Drink the potion
         self.handler.handle_command({
@@ -117,7 +117,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
         })
 
         # Should be removed from inventory
-        self.assertNotIn("health_potion", self.state.actors[ActorId("player")].inventory)
+        self.assertNotIn("health_potion", self.game_state.actors[ActorId("player")].inventory)
 
     def test_drink_potion_has_message(self):
         """Test that drinking potion returns a behavior message."""
@@ -186,7 +186,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
         })
 
         # Verify it's in inventory
-        self.assertIn("bread", self.state.actors[ActorId("player")].inventory)
+        self.assertIn("bread", self.game_state.actors[ActorId("player")].inventory)
 
         # Eat the bread
         self.handler.handle_command({
@@ -195,7 +195,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
         })
 
         # Should be removed from inventory
-        self.assertNotIn("bread", self.state.actors[ActorId("player")].inventory)
+        self.assertNotIn("bread", self.game_state.actors[ActorId("player")].inventory)
 
     def test_eat_food_has_message(self):
         """Test that eating food returns a behavior message."""
@@ -246,7 +246,7 @@ class TestLightSourcesBehaviors(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_with_core_behaviors.json"
-        self.state = load_game_state(fixture_path)
+        self.game_state = load_game_state(fixture_path)
 
         # Create behavior manager and load core modules
         self.manager = BehaviorManager()
@@ -255,16 +255,16 @@ class TestLightSourcesBehaviors(unittest.TestCase):
         self.manager.load_modules(modules)
 
         # Create handler with behavior manager
-        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
 
     def test_lantern_starts_unlit(self):
         """Test that lantern starts in unlit state."""
-        lantern = self.state.get_item("magic_lantern")
+        lantern = self.game_state.get_item("magic_lantern")
         self.assertFalse(lantern.states.get("lit", True))
 
     def test_take_lantern_auto_lights(self):
         """Test that taking lantern automatically lights it."""
-        lantern = self.state.get_item("magic_lantern")
+        lantern = self.game_state.get_item("magic_lantern")
 
         # Take the lantern
         result = self.handler.handle_command({
@@ -288,7 +288,7 @@ class TestLightSourcesBehaviors(unittest.TestCase):
 
     def test_drop_lantern_extinguishes(self):
         """Test that dropping lantern extinguishes it."""
-        lantern = self.state.get_item("magic_lantern")
+        lantern = self.game_state.get_item("magic_lantern")
 
         # Take then drop
         self.handler.handle_command({
@@ -409,10 +409,10 @@ class TestContainersBehaviors(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_with_core_behaviors.json"
-        self.state = load_game_state(fixture_path)
+        self.game_state = load_game_state(fixture_path)
 
         # Move player to room2 where chest is
-        self.state.actors[ActorId("player")].location = "room2"
+        self.game_state.actors[ActorId("player")].location = "room2"
 
         # Create behavior manager and load core modules
         self.manager = BehaviorManager()
@@ -421,7 +421,7 @@ class TestContainersBehaviors(unittest.TestCase):
         self.manager.load_modules(modules)
 
         # Create handler with behavior manager
-        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
 
     def test_open_chest_succeeds(self):
         """Test opening treasure chest succeeds."""
@@ -441,7 +441,7 @@ class TestContainersBehaviors(unittest.TestCase):
         })
 
         # Win flag should be set
-        self.assertTrue(self.state.actors[ActorId("player")].flags.get("won", False))
+        self.assertTrue(self.game_state.actors[ActorId("player")].flags.get("won", False))
 
     def test_open_chest_has_message(self):
         """Test that opening chest returns a behavior message."""

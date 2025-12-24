@@ -188,10 +188,22 @@ class LLMNarrator:
         # 3. Print traits if enabled
         self._print_traits(result)
 
-        # 4. Get narrative from LLM (verbosity is already in result from protocol handler)
-        narrative = self._call_llm(
-            f"Narrate this result:\n{json.dumps(result, indent=2)}"
-        )
+        # 4. Build narration input - only include fields needed for narration
+        # The 'data' field contains raw engine data (including state_fragments) that
+        # would confuse the LLM. Only send 'narration' (the NarrationPlan), 'success',
+        # and 'verbosity' fields.
+        narration_dict = {
+            "success": result.get("success", True),
+            "verbosity": result.get("verbosity", "full"),
+        }
+        if "narration" in result:
+            narration_dict.update(result["narration"])
+
+        # 5. Get narrative from LLM
+        narration_input = f"Narrate this result:\n{json.dumps(narration_dict, indent=2)}"
+        logger.debug(f"Narration input ({len(narration_input)} chars): {narration_input[:500]}...")
+        narrative = self._call_llm(narration_input)
+        logger.debug(f"Narration output ({len(narrative)} chars): {narrative[:200]}...")
 
         return narrative
 

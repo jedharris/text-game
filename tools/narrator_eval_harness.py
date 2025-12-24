@@ -90,14 +90,21 @@ class TestScenario:
     criteria: EvalCriteria
 
 
-# Define test scenarios for door interactions
-DOOR_TEST_SCENARIOS = [
+# =============================================================================
+# GAME-SPECIFIC TEST SCENARIOS
+# =============================================================================
+# Each game can have its own scenarios. Scenarios are keyed by game directory name.
+# The harness will automatically select the appropriate scenarios based on the
+# game being tested.
+
+# Scenarios for extended_game (has door_sanctum in loc_library)
+EXTENDED_GAME_DOOR_SCENARIOS = [
     TestScenario(
         name="unlock_closed_door",
         description="Unlock a locked door - should NOT describe opening or what's beyond",
         setup_commands=[
-            "go north",  # Enter tower
-            "go up",     # Go to library (if staircase visible)
+            "go north",  # Enter tower from garden
+            "go up",     # Go to library
         ],
         test_command="unlock door",
         criteria=EvalCriteria(
@@ -149,6 +156,36 @@ DOOR_TEST_SCENARIOS = [
         )
     ),
 ]
+
+# Map game directory names to their scenarios
+GAME_SCENARIOS: Dict[str, List[TestScenario]] = {
+    "extended_game": EXTENDED_GAME_DOOR_SCENARIOS,
+    # Add other games here as scenarios are created:
+    # "big_game": BIG_GAME_SCENARIOS,
+    # "spatial_game": SPATIAL_GAME_SCENARIOS,
+}
+
+# Default scenarios (used when game has no specific scenarios)
+DEFAULT_SCENARIOS: List[TestScenario] = []
+
+
+def get_scenarios_for_game(game_dir: Path) -> List[TestScenario]:
+    """Get the appropriate test scenarios for a game.
+
+    Args:
+        game_dir: Path to the game directory
+
+    Returns:
+        List of TestScenario objects for this game, or empty list if none defined.
+    """
+    game_name = game_dir.name
+    scenarios = GAME_SCENARIOS.get(game_name, DEFAULT_SCENARIOS)
+
+    if not scenarios:
+        print(f"NOTE: No test scenarios defined for '{game_name}'.", file=sys.stderr)
+        print(f"      Available games with scenarios: {list(GAME_SCENARIOS.keys())}", file=sys.stderr)
+
+    return scenarios
 
 
 class NarratorEvalHarness:
@@ -233,15 +270,24 @@ class NarratorEvalHarness:
         # Execute via handler - this returns the NarrationResult
         result = self.handler.handle_message(json_cmd)
 
+        # Build narration dict - only include fields needed for narration
+        # (matches the filtering in llm_narrator.py)
+        narration_dict: Dict[str, Any] = {
+            "success": result.get("success", True),
+            "verbosity": result.get("verbosity", "full"),
+        }
+        if "narration" in result:
+            narration_dict.update(result["narration"])
+
         # Capture the JSON that would be sent to narrator
-        self.captured_json.append(result)
+        self.captured_json.append(narration_dict)
 
         # Get narration
         narration = self.narrator._call_llm(
-            f"Narrate this result:\n{json.dumps(result, indent=2)}"
+            f"Narrate this result:\n{json.dumps(narration_dict, indent=2)}"
         )
 
-        return result, narration
+        return narration_dict, narration
 
     def run_scenario(self, scenario: TestScenario) -> EvalResult:
         """Run a single test scenario and evaluate."""
@@ -253,7 +299,7 @@ class NarratorEvalHarness:
             try:
                 self.run_command(cmd)
             except Exception as e:
-                print(f"  Setup command '{cmd}' failed: {e}")
+                print(f"  Setup command '{cmd}' failed: {e}", file=sys.stderr)
 
         # Run test command and capture
         json_sent, narration = self.run_command(scenario.test_command)
@@ -332,11 +378,17 @@ def main():
         print(f"Game directory not found: {args.game_dir}")
         sys.exit(1)
 
-    print(f"Evaluating narrator for: {args.game_dir}")
+    print(f"Evaluating narrator for: {args.game_dir}", file=sys.stderr)
+
+    # Get scenarios for this specific game
+    scenarios = get_scenarios_for_game(args.game_dir)
+    if not scenarios:
+        print("No scenarios to run. Exiting.", file=sys.stderr)
+        sys.exit(0)
 
     harness = NarratorEvalHarness(args.game_dir)
 
-    results = harness.run_all_scenarios(DOOR_TEST_SCENARIOS)
+    results = harness.run_all_scenarios(scenarios)
     summary = harness.summarize(results)
 
     print("\n" + "="*60)

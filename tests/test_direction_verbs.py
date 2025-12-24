@@ -104,7 +104,7 @@ class TestDirectionHandlers(unittest.TestCase):
         """Set up test game state with exits in multiple directions."""
         # Clear cached modules to ensure fresh load
         _clear_behavior_modules()
-        self.state = GameState(
+        self.game_state = GameState(
             metadata=Metadata(title="Test"),
             locations=[
                 Location(
@@ -140,40 +140,40 @@ class TestDirectionHandlers(unittest.TestCase):
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
-        self.accessor = StateAccessor(self.state, self.manager)
+        self.accessor = StateAccessor(self.game_state, self.manager)
 
     def test_handle_north_moves_player(self):
         """handle_north should move player north."""
         from behaviors.core.exits import handle_north
         result = handle_north(self.accessor, {"actor_id": "player"})
         self.assertTrue(result.success)
-        self.assertEqual(self.state.actors[ActorId("player")].location, "north_room")
+        self.assertEqual(self.game_state.actors[ActorId("player")].location, "north_room")
 
     def test_handle_south_moves_player(self):
         """handle_south should move player south."""
         from behaviors.core.exits import handle_south
         result = handle_south(self.accessor, {"actor_id": "player"})
         self.assertTrue(result.success)
-        self.assertEqual(self.state.actors[ActorId("player")].location, "south_room")
+        self.assertEqual(self.game_state.actors[ActorId("player")].location, "south_room")
 
     def test_handle_up_moves_player(self):
         """handle_up should move player up."""
         from behaviors.core.exits import handle_up
         result = handle_up(self.accessor, {"actor_id": "player"})
         self.assertTrue(result.success)
-        self.assertEqual(self.state.actors[ActorId("player")].location, "upper_room")
+        self.assertEqual(self.game_state.actors[ActorId("player")].location, "upper_room")
 
     def test_handle_down_moves_player(self):
         """handle_down should move player down."""
         from behaviors.core.exits import handle_down
         result = handle_down(self.accessor, {"actor_id": "player"})
         self.assertTrue(result.success)
-        self.assertEqual(self.state.actors[ActorId("player")].location, "lower_room")
+        self.assertEqual(self.game_state.actors[ActorId("player")].location, "lower_room")
 
     def test_direction_no_exit_fails(self):
         """Direction handler should fail if no exit in that direction."""
         # Move to north_room which has no exits
-        self.state.actors[ActorId("player")].location = "north_room"
+        self.game_state.actors[ActorId("player")].location = "north_room"
         from behaviors.core.exits import handle_north
         result = handle_north(self.accessor, {"actor_id": "player"})
         self.assertFalse(result.success)
@@ -187,7 +187,7 @@ class TestDirectionHandlerChain(unittest.TestCase):
         """Set up game state without up/down exits but with climbable item."""
         # Clear cached modules to ensure fresh load
         _clear_behavior_modules()
-        self.state = GameState(
+        self.game_state = GameState(
             metadata=Metadata(title="Test"),
             locations=[
                 Location(
@@ -211,7 +211,7 @@ class TestDirectionHandlerChain(unittest.TestCase):
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
-        self.accessor = StateAccessor(self.state, self.manager)
+        self.accessor = StateAccessor(self.game_state, self.manager)
 
     def test_down_with_posture_uses_spatial_handler(self):
         """'down' when climbing should use spatial handler to descend."""
@@ -220,13 +220,13 @@ class TestDirectionHandlerChain(unittest.TestCase):
         result = self.manager.invoke_handler("down", self.accessor, {"actor_id": "player"})
         self.assertTrue(result.success)
         # Posture should be cleared
-        self.assertNotIn("posture", self.state.actors[ActorId("player")].properties)
+        self.assertNotIn("posture", self.game_state.actors[ActorId("player")].properties)
 
     def test_up_with_posture_uses_spatial_handler(self):
         """'up' when climbing should use spatial handler to descend."""
         result = self.manager.invoke_handler("up", self.accessor, {"actor_id": "player"})
         self.assertTrue(result.success)
-        self.assertNotIn("posture", self.state.actors[ActorId("player")].properties)
+        self.assertNotIn("posture", self.game_state.actors[ActorId("player")].properties)
 
 
 class TestDirectionVerbsEndToEnd(unittest.TestCase):

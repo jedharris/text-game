@@ -435,6 +435,94 @@ class TestRequiresState(unittest.TestCase):
         self.assertNotIn('teaching', topics)
 
 
+class TestRequiresTrust(unittest.TestCase):
+    """Tests for requires_trust gating in dialog topics."""
+
+    def _make_game_state_with_trust(
+        self, npc_trust: int, topic_requires_trust: int | None
+    ) -> tuple[GameState, StateAccessor, Actor]:
+        """Create game state with NPC having specific trust level.
+
+        Args:
+            npc_trust: Current NPC trust level
+            topic_requires_trust: Required trust for topic (None = no requirement)
+
+        Returns:
+            Tuple of (GameState, Accessor, NPC)
+        """
+        state = GameState(metadata=Metadata(title="Test"))
+        state.locations.append(Location(id=LocationId('start'), name='Start', description='A room'))
+        state.actors[ActorId('player')] = Actor(
+            id=ActorId('player'), name='Hero', description='The hero',
+            location=LocationId('start'), inventory=[]
+        )
+
+        topic_config: dict[str, Any] = {
+            'keywords': ['secret'],
+            'summary': 'A secret is revealed.'
+        }
+        if topic_requires_trust is not None:
+            topic_config['requires_trust'] = topic_requires_trust
+
+        state.actors[ActorId('npc')] = Actor(
+            id=ActorId('npc'), name='Dealer', description='A dealer',
+            location=LocationId('start'), inventory=[],
+            properties={
+                'dialog_topics': {
+                    'secret': topic_config
+                },
+                'trust_state': {'current': npc_trust}
+            }
+        )
+
+        accessor = StateAccessor(state, Mock())
+        return state, accessor, state.actors[ActorId('npc')]
+
+    def test_requires_trust_met(self):
+        """Topic available when trust requirement is met."""
+        from behavior_libraries.dialog_lib.topics import get_available_topics
+
+        _, accessor, npc = self._make_game_state_with_trust(
+            npc_trust=3, topic_requires_trust=2
+        )
+
+        topics = get_available_topics(accessor, npc)
+        self.assertIn('secret', topics)
+
+    def test_requires_trust_exact(self):
+        """Topic available when trust exactly equals requirement."""
+        from behavior_libraries.dialog_lib.topics import get_available_topics
+
+        _, accessor, npc = self._make_game_state_with_trust(
+            npc_trust=2, topic_requires_trust=2
+        )
+
+        topics = get_available_topics(accessor, npc)
+        self.assertIn('secret', topics)
+
+    def test_requires_trust_not_met(self):
+        """Topic hidden when trust requirement not met."""
+        from behavior_libraries.dialog_lib.topics import get_available_topics
+
+        _, accessor, npc = self._make_game_state_with_trust(
+            npc_trust=1, topic_requires_trust=2
+        )
+
+        topics = get_available_topics(accessor, npc)
+        self.assertNotIn('secret', topics)
+
+    def test_no_requires_trust_always_available(self):
+        """Topic without requires_trust is available regardless of trust level."""
+        from behavior_libraries.dialog_lib.topics import get_available_topics
+
+        _, accessor, npc = self._make_game_state_with_trust(
+            npc_trust=0, topic_requires_trust=None
+        )
+
+        topics = get_available_topics(accessor, npc)
+        self.assertIn('secret', topics)
+
+
 class TestTrustDelta(unittest.TestCase):
     """Tests for trust_delta modification in dialog topics."""
 

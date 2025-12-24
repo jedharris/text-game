@@ -6,11 +6,7 @@
     "permissions": {
       "allow": [
         "gh:*",
-        "Bash(gh:*)",
-        "Bash(gh auth:*)",
-        "Bash(gh pr:*)",
-        "Bash(gh issue:*)",
-        "Bash(cat:*)"
+        "Bash(gh:*)"
       ],
       "deny": [],
       "ask": []

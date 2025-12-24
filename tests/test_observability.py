@@ -418,7 +418,7 @@ class TestObservabilityIntegration(unittest.TestCase):
         """Set up test fixtures with a real game state."""
         from src.state_manager import GameState, Metadata, Location, Actor as StateActor
 
-        self.state = GameState(
+        self.game_state = GameState(
             metadata=Metadata(title="Observability Test"),
             locations=[
                 Location(
@@ -475,7 +475,7 @@ class TestObservabilityIntegration(unittest.TestCase):
         self.behavior_manager = BehaviorManager()
 
         from src.state_accessor import StateAccessor
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_hidden_item_not_in_location_contents(self):
         """Hidden item excluded from gather_location_contents."""
@@ -537,9 +537,9 @@ class TestObservabilityIntegration(unittest.TestCase):
             properties={},
             behaviors=[]
         )
-        self.state.items.append(container)
-        self.state.items.append(hidden_gem)
-        self.state.items.append(visible_coin)
+        self.game_state.items.append(container)
+        self.game_state.items.append(hidden_gem)
+        self.game_state.items.append(visible_coin)
 
         contents = gather_location_contents(self.accessor, "room1", "player")
 
@@ -574,7 +574,7 @@ class TestObservabilityIntegration(unittest.TestCase):
         """Actor becomes visible after states.hidden=False."""
         from utilities.utils import gather_location_contents
 
-        ghost = self.state.actors[ActorId("ghost")]
+        ghost = self.game_state.actors[ActorId("ghost")]
         ghost.states["hidden"] = False
 
         contents = gather_location_contents(self.accessor, "room1", "player")
@@ -597,7 +597,7 @@ class TestObservabilityIntegration(unittest.TestCase):
         from utilities.utils import get_visible_actors_in_location
 
         # Set explicit hidden=False
-        merchant = self.state.actors[ActorId("merchant")]
+        merchant = self.game_state.actors[ActorId("merchant")]
         merchant.states["hidden"] = False
 
         actors = get_visible_actors_in_location(self.accessor, "room1", "player")
@@ -613,7 +613,7 @@ class TestHiddenExitsIntegration(unittest.TestCase):
         """Set up test fixtures with exits."""
         from src.state_manager import GameState, Metadata, Location, Actor as StateActor
 
-        self.state = GameState(
+        self.game_state = GameState(
             metadata=Metadata(title="Hidden Exits Test"),
             locations=[
                 Location(
@@ -677,13 +677,13 @@ class TestHiddenExitsIntegration(unittest.TestCase):
         self.behavior_manager = BehaviorManager()
 
         from src.state_accessor import StateAccessor
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_hidden_exit_not_in_query_response(self):
         """Hidden exit excluded from _query_location response."""
         from src.llm_protocol import LLMProtocolHandler
 
-        protocol = LLMProtocolHandler(self.state, self.behavior_manager)
+        protocol = LLMProtocolHandler(self.game_state, self.behavior_manager)
         response = protocol.handle_message({
             "type": "query",
             "query_type": "location",
@@ -699,7 +699,7 @@ class TestHiddenExitsIntegration(unittest.TestCase):
         """Visible exit included in _query_location response."""
         from src.llm_protocol import LLMProtocolHandler
 
-        protocol = LLMProtocolHandler(self.state, self.behavior_manager)
+        protocol = LLMProtocolHandler(self.game_state, self.behavior_manager)
         response = protocol.handle_message({
             "type": "query",
             "query_type": "location",
@@ -732,14 +732,14 @@ class TestHiddenExitsIntegration(unittest.TestCase):
         )
 
         self.assertTrue(result.success)
-        self.assertEqual(self.state.actors[ActorId("player")].location, "room2")
+        self.assertEqual(self.game_state.actors[ActorId("player")].location, "room2")
 
     def test_revealed_exit_becomes_usable(self):
         """Exit becomes usable after states.hidden=False."""
         from behaviors.core.exits import handle_go
 
         # Reveal the hidden exit
-        hidden_exit = self.state.locations[0].exits["south"]
+        hidden_exit = self.game_state.locations[0].exits["south"]
         hidden_exit.states["hidden"] = False
 
         result = handle_go(
@@ -748,13 +748,13 @@ class TestHiddenExitsIntegration(unittest.TestCase):
         )
 
         self.assertTrue(result.success)
-        self.assertEqual(self.state.actors[ActorId("player")].location, "secret_room")
+        self.assertEqual(self.game_state.actors[ActorId("player")].location, "secret_room")
 
     def test_exit_without_hidden_state_is_visible(self):
         """Exit without states.hidden is visible by default."""
         from src.llm_protocol import LLMProtocolHandler
 
-        protocol = LLMProtocolHandler(self.state, self.behavior_manager)
+        protocol = LLMProtocolHandler(self.game_state, self.behavior_manager)
         response = protocol.handle_message({
             "type": "query",
             "query_type": "location",

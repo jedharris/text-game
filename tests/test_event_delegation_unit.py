@@ -12,9 +12,9 @@ class TestEventDelegationLogic(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = MagicMock(spec=BehaviorManager)
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_single_event_success(self):
         """Single event that succeeds (backward compat)."""

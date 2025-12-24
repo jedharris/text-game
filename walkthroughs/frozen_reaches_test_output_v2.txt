@@ -1,0 +1,384 @@
+Loading game from examples/big_game...
+Running 54 commands...
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Nexus Chamber
+The heart of the meridian convergence, a vast circular chamber where reality itself seems to bend. At the center stands the damaged waystone, its surface cracked and dim. Twilight suffuses the space from no visible source. Exits lead north to the frozen passes, south to the forest edge, east to flooded ruins, and west to dark caverns. A stairway spirals upward to an observatory.
+
+Also here: Waystone
+
+Exits: north (north), south (south), east (east), west (west), up (up)
+
+============================================================
+> go north
+------------------------------------------------------------
+[✓] You go north north to Frozen Pass.
+
+Frozen Pass
+The entrance to the Frozen Reaches, where an eternal winter has gripped the land. Cold wind howls through the pass, carrying flurries of snow. The temperature drops noticeably as you move away from the nexus. An abandoned camp sits to one side, half-buried in snow, its former occupants frozen where they fell.
+
+You see: cold weather gear, preserved supplies, partial map
+In the preserved supplies: dried meat, bandages, ancient torch
+
+Exits: south (south), north (north), east (east), west (west), northwest (northwest)
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Frozen Pass
+The entrance to the Frozen Reaches, where an eternal winter has gripped the land. Cold wind howls through the pass, carrying flurries of snow. The temperature drops noticeably as you move away from the nexus. An abandoned camp sits to one side, half-buried in snow, its former occupants frozen where they fell.
+
+You see: cold weather gear, preserved supplies, partial map
+In the preserved supplies: dried meat, bandages, ancient torch
+
+Exits: south (south), north (north), east (east), west (west), northwest (northwest)
+
+============================================================
+> go north
+------------------------------------------------------------
+[✓] You go north north to Temple Sanctum.
+
+Temple Sanctum
+A vast chamber lined with frost-covered stone pillars. Ancient carved faces watch from the walls, their expressions frozen in time. Two massive stone guardians stand at the far end, runes glowing dimly along their limbs. A side chamber near the entrance holds treasures, while an altar with intricate carvings dominates the center. Inscriptions cover the walls - fragments of forgotten knowledge.
+
+You see: lore tablets, mounting bracket, cold resistance cloak, fire crystal
+
+Also here: Stone Guardian, Stone Guardian
+
+Exits: south (south), up (up), north (north)
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Temple Sanctum
+A vast chamber lined with frost-covered stone pillars. Ancient carved faces watch from the walls, their expressions frozen in time. Two massive stone guardians stand at the far end, runes glowing dimly along their limbs. A side chamber near the entrance holds treasures, while an altar with intricate carvings dominates the center. Inscriptions cover the walls - fragments of forgotten knowledge.
+
+You see: lore tablets, mounting bracket, cold resistance cloak, fire crystal
+
+Also here: Stone Guardian, Stone Guardian
+
+Exits: south (south), up (up), north (north)
+
+============================================================
+> go south
+------------------------------------------------------------
+[✓] You go south south to Frozen Pass.
+
+Frozen Pass
+The entrance to the Frozen Reaches, where an eternal winter has gripped the land. Cold wind howls through the pass, carrying flurries of snow. The temperature drops noticeably as you move away from the nexus. An abandoned camp sits to one side, half-buried in snow, its former occupants frozen where they fell.
+
+You see: cold weather gear, preserved supplies, partial map
+In the preserved supplies: dried meat, bandages, ancient torch
+
+Exits: south (south), north (north), east (east), west (west), northwest (northwest)
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Frozen Pass
+The entrance to the Frozen Reaches, where an eternal winter has gripped the land. Cold wind howls through the pass, carrying flurries of snow. The temperature drops noticeably as you move away from the nexus. An abandoned camp sits to one side, half-buried in snow, its former occupants frozen where they fell.
+
+You see: cold weather gear, preserved supplies, partial map
+In the preserved supplies: dried meat, bandages, ancient torch
+
+Exits: south (south), north (north), east (east), west (west), northwest (northwest)
+
+============================================================
+> examine gear
+------------------------------------------------------------
+[✓] cold weather gear: Thick furs and layered clothing designed for extreme cold. Found in an abandoned camp, still usable despite years of exposure. Halves the rate of hypothermia in cold and freezing zones.
+
+============================================================
+> take gear
+------------------------------------------------------------
+[✓] You take the cold weather gear.
+
+============================================================
+> examine supplies
+------------------------------------------------------------
+[✓] preserved supplies: A pack of supplies from the abandoned camp, preserved by the intense cold. Contains dried meat, bandages, and a lit torch - still burning after all these years due to some enchantment.
+In the preserved supplies: dried meat, bandages, ancient torch
+
+============================================================
+> open supplies
+------------------------------------------------------------
+[✓] The preserved supplies is already open.
+
+============================================================
+> go north
+------------------------------------------------------------
+[✓] You go north north to Temple Sanctum.
+
+Temple Sanctum
+A vast chamber lined with frost-covered stone pillars. Ancient carved faces watch from the walls, their expressions frozen in time. Two massive stone guardians stand at the far end, runes glowing dimly along their limbs. A side chamber near the entrance holds treasures, while an altar with intricate carvings dominates the center. Inscriptions cover the walls - fragments of forgotten knowledge.
+
+You see: lore tablets, mounting bracket, cold resistance cloak, fire crystal
+
+Also here: Stone Guardian, Stone Guardian
+
+Exits: south (south), up (up), north (north)
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Temple Sanctum
+A vast chamber lined with frost-covered stone pillars. Ancient carved faces watch from the walls, their expressions frozen in time. Two massive stone guardians stand at the far end, runes glowing dimly along their limbs. A side chamber near the entrance holds treasures, while an altar with intricate carvings dominates the center. Inscriptions cover the walls - fragments of forgotten knowledge.
+
+You see: lore tablets, mounting bracket, cold resistance cloak, fire crystal
+
+Also here: Stone Guardian, Stone Guardian
+
+Exits: south (south), up (up), north (north)
+
+============================================================
+> examine pillar
+------------------------------------------------------------
+[✓] (You move closer to the stone pillar.)
+stone pillar: A massive stone pillar carved with ancient geometric patterns. Wide enough to shelter behind during combat.
+
+============================================================
+> hide behind pillar
+------------------------------------------------------------
+[✗] I don't understand 'hide'. Try actions like go, take, open, or examine.
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Temple Sanctum
+A vast chamber lined with frost-covered stone pillars. Ancient carved faces watch from the walls, their expressions frozen in time. Two massive stone guardians stand at the far end, runes glowing dimly along their limbs. A side chamber near the entrance holds treasures, while an altar with intricate carvings dominates the center. Inscriptions cover the walls - fragments of forgotten knowledge.
+
+You see: lore tablets, mounting bracket, cold resistance cloak, fire crystal
+
+Also here: Stone Guardian, Stone Guardian
+
+Exits: south (south), up (up), north (north)
+
+============================================================
+> examine golem
+------------------------------------------------------------
+[✗] You don't see any golem here.
+
+============================================================
+> go east
+------------------------------------------------------------
+[✗] You can't go east from here.
+
+============================================================
+> go north
+------------------------------------------------------------
+[✓] You go north north to Glacier Approach.
+
+Glacier Approach
+A treacherous path winding between massive ice formations. The glacier looms ahead, its surface scarred by deep crevasses. The cold here is intense, threatening hypothermia to the unprepared.
+
+Exits: south (south), southeast (southeast), north (north)
+
+============================================================
+> go north
+------------------------------------------------------------
+[✓] You go north north to Glacier Surface.
+
+Glacier Surface
+The surface of the ancient glacier, a landscape of blue ice and white snow. Crevasses yawn open without warning. The cold here is brutal, sapping strength with every breath.
+
+You see: ice crystal
+
+Exits: south (south), north (north)
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Glacier Surface
+The surface of the ancient glacier, a landscape of blue ice and white snow. Crevasses yawn open without warning. The cold here is brutal, sapping strength with every breath.
+
+You see: ice crystal
+
+Exits: south (south), north (north)
+
+============================================================
+> take crystal
+------------------------------------------------------------
+[✓] You take the ice crystal.
+
+============================================================
+> go south
+------------------------------------------------------------
+[✓] You go south south to Glacier Approach.
+
+Glacier Approach
+A treacherous path winding between massive ice formations. The glacier looms ahead, its surface scarred by deep crevasses. The cold here is intense, threatening hypothermia to the unprepared.
+
+Exits: south (south), southeast (southeast), north (north)
+
+============================================================
+> go south
+------------------------------------------------------------
+[✓] You go south south to Temple Sanctum.
+
+Temple Sanctum
+A vast chamber lined with frost-covered stone pillars. Ancient carved faces watch from the walls, their expressions frozen in time. Two massive stone guardians stand at the far end, runes glowing dimly along their limbs. A side chamber near the entrance holds treasures, while an altar with intricate carvings dominates the center. Inscriptions cover the walls - fragments of forgotten knowledge.
+
+You see: lore tablets, mounting bracket, cold resistance cloak, fire crystal
+
+Also here: Stone Guardian, Stone Guardian
+
+Exits: south (south), up (up), north (north)
+
+============================================================
+> go west
+------------------------------------------------------------
+[✗] You can't go west from here.
+
+============================================================
+> go north
+------------------------------------------------------------
+[✓] You go north north to Glacier Approach.
+
+Glacier Approach
+A treacherous path winding between massive ice formations. The glacier looms ahead, its surface scarred by deep crevasses. The cold here is intense, threatening hypothermia to the unprepared.
+
+Exits: south (south), southeast (southeast), north (north)
+
+============================================================
+> use crystal on golem
+------------------------------------------------------------
+[✗] You don't see any golem here.
+
+============================================================
+> go south
+------------------------------------------------------------
+[✓] You go south south to Temple Sanctum.
+
+Temple Sanctum
+A vast chamber lined with frost-covered stone pillars. Ancient carved faces watch from the walls, their expressions frozen in time. Two massive stone guardians stand at the far end, runes glowing dimly along their limbs. A side chamber near the entrance holds treasures, while an altar with intricate carvings dominates the center. Inscriptions cover the walls - fragments of forgotten knowledge.
+
+You see: lore tablets, mounting bracket, cold resistance cloak, fire crystal
+
+Also here: Stone Guardian, Stone Guardian
+
+Exits: south (south), up (up), north (north)
+
+============================================================
+> go east
+------------------------------------------------------------
+[✗] You can't go east from here.
+
+============================================================
+> go north
+------------------------------------------------------------
+[✓] You go north north to Glacier Approach.
+
+Glacier Approach
+A treacherous path winding between massive ice formations. The glacier looms ahead, its surface scarred by deep crevasses. The cold here is intense, threatening hypothermia to the unprepared.
+
+Exits: south (south), southeast (southeast), north (north)
+
+============================================================
+> go north
+------------------------------------------------------------
+[✓] You go north north to Glacier Surface.
+
+Glacier Surface
+The surface of the ancient glacier, a landscape of blue ice and white snow. Crevasses yawn open without warning. The cold here is brutal, sapping strength with every breath.
+
+Exits: south (south), north (north)
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Glacier Surface
+The surface of the ancient glacier, a landscape of blue ice and white snow. Crevasses yawn open without warning. The cold here is brutal, sapping strength with every breath.
+
+Exits: south (south), north (north)
+
+============================================================
+> talk to salamander
+------------------------------------------------------------
+[✗] You don't see any salamander here.
+
+============================================================
+> go south
+------------------------------------------------------------
+[✓] You go south south to Glacier Approach.
+
+Glacier Approach
+A treacherous path winding between massive ice formations. The glacier looms ahead, its surface scarred by deep crevasses. The cold here is intense, threatening hypothermia to the unprepared.
+
+Exits: south (south), southeast (southeast), north (north)
+
+============================================================
+> go south
+------------------------------------------------------------
+[✓] You go south south to Temple Sanctum.
+
+Temple Sanctum
+A vast chamber lined with frost-covered stone pillars. Ancient carved faces watch from the walls, their expressions frozen in time. Two massive stone guardians stand at the far end, runes glowing dimly along their limbs. A side chamber near the entrance holds treasures, while an altar with intricate carvings dominates the center. Inscriptions cover the walls - fragments of forgotten knowledge.
+
+You see: lore tablets, mounting bracket, cold resistance cloak, fire crystal
+
+Also here: Stone Guardian, Stone Guardian
+
+Exits: south (south), up (up), north (north)
+
+============================================================
+> go west
+------------------------------------------------------------
+[✗] You can't go west from here.
+
+============================================================
+> take crystal
+------------------------------------------------------------
+[✓] You take the fire crystal.
+
+============================================================
+> go east
+------------------------------------------------------------
+[✗] You can't go east from here.
+
+============================================================
+> go north
+------------------------------------------------------------
+[✓] You go north north to Glacier Approach.
+
+Glacier Approach
+A treacherous path winding between massive ice formations. The glacier looms ahead, its surface scarred by deep crevasses. The cold here is intense, threatening hypothermia to the unprepared.
+
+Exits: south (south), southeast (southeast), north (north)
+
+============================================================
+> go north
+------------------------------------------------------------
+[✓] You go north north to Glacier Surface.
+
+Glacier Surface
+The surface of the ancient glacier, a landscape of blue ice and white snow. Crevasses yawn open without warning. The cold here is brutal, sapping strength with every breath.
+
+Exits: south (south), north (north)
+
+============================================================
+> give crystal to salamander
+------------------------------------------------------------
+[✗] You don't see any salamander here.
+
+============================================================
+> talk to salamander
+------------------------------------------------------------
+[✗] You don't see any salamander here.
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Glacier Surface
+The surface of the ancient glacier, a landscape of blue ice and white snow. Crevasses yawn open without warning. The cold here is brutal, sapping strength with every breath.
+
+Exits: south (south), north (north)
+
+============================================================
+> examine salamander
+------------------------------------------------------------
+[✗] You don't see any salamander here.
+
+============================================================
+Summary: 32/44 commands succeeded

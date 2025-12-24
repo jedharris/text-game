@@ -66,7 +66,7 @@ def on_water_mushroom(
     if not mushroom_key:
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
 
     # Check bucket has charges
     player = state.actors.get("player")
@@ -187,7 +187,7 @@ def on_examine_ceiling(
     if "ceiling" not in entity_id.lower() and "inscription" not in entity_id.lower():
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
 
     # Get light level
     grotto = None
@@ -239,7 +239,7 @@ def on_light_decay(
     Returns:
         EventResult (silent)
     """
-    state = accessor.state
+    state = accessor.game_state
     glowing = state.extra.get("glowing_mushrooms", {})
 
     if not glowing:

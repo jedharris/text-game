@@ -1,0 +1,45 @@
+# Frozen Reaches Phase 4 Walkthrough Tests
+# Run with: python tools/walkthrough.py examples/big_game --file walkthroughs/frozen_reaches_test_commands.txt
+
+# TEST 1: New Locations Accessible (temple_sanctum, ice_caves)
+look
+go north
+look
+go north
+look
+go south
+go east
+look
+
+# TEST 2: Items Available (cold weather gear, preserved supplies)
+go west
+look
+examine gear
+take gear
+examine supplies
+open supplies
+
+# TEST 3: Navigate to temple sanctum and test spatial positioning
+go north
+look
+examine pillar
+examine guardian
+
+# TEST 4: Control Crystal Solution (use fire crystal from temple on guardian)
+take crystal
+use crystal on guardian
+
+# TEST 5: Navigate to hot springs and talk to salamander
+go south
+go east
+go north
+go north
+look
+talk to salamander
+
+# TEST 6: Salamander State Changes (fire gift)
+# Note: salamander already has fire crystal nearby at hot springs
+examine salamander
+
+# TEST 7: Test follower salamanders exist
+look

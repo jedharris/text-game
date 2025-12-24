@@ -17,9 +17,9 @@ class TestLocationQueryRefactoring(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
-        self.handler = LLMProtocolHandler(self.state, self.behavior_manager)
+        self.handler = LLMProtocolHandler(self.game_state, self.behavior_manager)
 
     def test_query_location_returns_items(self):
         """Test that location query returns items."""
@@ -45,7 +45,7 @@ class TestLocationQueryRefactoring(unittest.TestCase):
         # Add NPC to same location as player
         npc = Actor(id="npc_guard", name="guard", description="A guard",
                    location="location_room", inventory=[], properties={}, behaviors=[])
-        self.state.actors[ActorId("npc_guard")] = npc
+        self.game_state.actors[ActorId("npc_guard")] = npc
 
         message = {
             "type": "query",
@@ -67,7 +67,7 @@ class TestLocationQueryRefactoring(unittest.TestCase):
         """
         npc = Actor(id="npc_guard", name="guard", description="A guard",
                    location="location_room", inventory=[], properties={}, behaviors=[])
-        self.state.actors[ActorId("npc_guard")] = npc
+        self.game_state.actors[ActorId("npc_guard")] = npc
 
         message = {
             "type": "query",
@@ -86,7 +86,7 @@ class TestLocationQueryRefactoring(unittest.TestCase):
         """Test that missing actor_id defaults to player."""
         npc = Actor(id="npc_guard", name="guard", description="A guard",
                    location="location_room", inventory=[], properties={}, behaviors=[])
-        self.state.actors[ActorId("npc_guard")] = npc
+        self.game_state.actors[ActorId("npc_guard")] = npc
 
         message = {
             "type": "query",

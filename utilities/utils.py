@@ -26,6 +26,15 @@ if TYPE_CHECKING:
 EntityLike = Union["Item", "Actor", "ExitDescriptor", "Lock"]
 
 
+def _extract_word(value: Optional[Union[str, WordEntry]]) -> Optional[str]:
+    """Extract string from WordEntry or return string as-is."""
+    if value is None:
+        return None
+    if hasattr(value, 'word'):
+        return value.word
+    return value
+
+
 def find_actor_by_name(
     accessor: "StateAccessor",
     name: WordEntry,
@@ -262,7 +271,7 @@ def find_accessible_item(
     accessor: "StateAccessor",
     name: WordEntry,
     actor_id: ActorId,
-    adjective: Optional[str] = None
+    adjective: Optional[Union[str, WordEntry]] = None
 ) -> Optional["Item"]:
     """
     Find an item that is accessible to the actor, optionally filtered by adjective.
@@ -300,7 +309,8 @@ def find_accessible_item(
     if not location:
         return None
 
-    has_adjective = adjective and adjective.strip()
+    adjective_str = _extract_word(adjective)
+    has_adjective = adjective_str and adjective_str.strip()
 
     # Collect all accessible items matching name
     matching_items = []
@@ -379,9 +389,9 @@ def find_accessible_item(
         return matching_items[0]
 
     # Filter by adjective
-    assert adjective is not None  # Guaranteed by has_adjective check
+    assert adjective_str is not None  # Guaranteed by has_adjective check
     for item in matching_items:
-        if _matches_adjective(adjective, item):
+        if _matches_adjective(adjective_str, item):
             return item
 
     # No match with adjective
@@ -621,7 +631,8 @@ def find_container_with_adjective(
     Returns:
         Item if found and is a container, None otherwise
     """
-    has_adjective = adjective and adjective.strip()
+    adjective_str = _extract_word(adjective)
+    has_adjective = adjective_str and adjective_str.strip()
 
     # Collect all containers in location matching name
     matching_containers = []
@@ -645,9 +656,9 @@ def find_container_with_adjective(
         return matching_containers[0]
 
     # Filter by adjective
-    assert adjective is not None  # Guaranteed by has_adjective check
+    assert adjective_str is not None  # Guaranteed by has_adjective check
     for container in matching_containers:
-        if _matches_adjective(adjective, container):
+        if _matches_adjective(adjective_str, container):
             return container
 
     # No match with adjective
@@ -669,7 +680,8 @@ def find_item_in_container(
     Returns:
         Item if found in container, None otherwise
     """
-    has_adjective = adjective and adjective.strip()
+    adjective_str = _extract_word(adjective)
+    has_adjective = adjective_str and adjective_str.strip()
 
     # Get items in this container
     items_in_container = accessor.get_items_in_location(LocationId(container_id))
@@ -686,9 +698,9 @@ def find_item_in_container(
         return matching_items[0]
 
     # Filter by adjective
-    assert adjective is not None  # Guaranteed by has_adjective check
+    assert adjective_str is not None  # Guaranteed by has_adjective check
     for item in matching_items:
-        if _matches_adjective(adjective, item):
+        if _matches_adjective(adjective_str, item):
             return item
 
     return None
@@ -734,7 +746,8 @@ def find_door_with_adjective(
     Returns:
         Door Item if found, None otherwise
     """
-    has_adjective = adjective and adjective.strip()
+    adjective_str = _extract_word(adjective)
+    has_adjective = adjective_str and adjective_str.strip()
     # Collect all doors in location matching name
     matching_doors = []
 
@@ -755,8 +768,8 @@ def find_door_with_adjective(
 
     # If adjective provided, filter by it
     if has_adjective:
-        assert adjective is not None  # Guaranteed by has_adjective check
-        adj_lower = adjective.lower().strip()
+        assert adjective_str is not None  # Guaranteed by has_adjective check
+        adj_lower = adjective_str.lower().strip()
 
         # Check if adjective is a direction (e.g., "north door", "east door")
         direction_adj = DIRECTION_ABBREVIATIONS.get(adj_lower, adj_lower)
@@ -777,7 +790,7 @@ def find_door_with_adjective(
 
         # Not a direction - check regular adjective matching
         for door in matching_doors:
-            if _matches_adjective(adjective, door):
+            if _matches_adjective(adjective_str, door):
                 return door
         # No match with adjective
         return None
@@ -1221,7 +1234,9 @@ def find_exit_by_name(
     # This handles cases like "spiral stairs" where adjective="spiral", name="stairs"
     # Must check this BEFORE simple name match to avoid "stairs" matching wrong exit
     if adjective:
-        adj_lower = adjective.lower().strip()
+        # Handle both WordEntry and string adjectives
+        adj_str = adjective.word if hasattr(adjective, 'word') else str(adjective)
+        adj_lower = adj_str.lower().strip()
         canonical = name.word
         full_search = f"{adj_lower} {canonical}".lower()
         for direction, exit_desc in visible_exits.items():

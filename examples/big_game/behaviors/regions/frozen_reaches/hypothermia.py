@@ -18,7 +18,14 @@ from src.infrastructure_utils import (
 # Note: Movement events are handled by infrastructure/movement_reactions.py
 # Locations must have turn_phase_effects and movement_effects configuration
 vocabulary: Dict[str, Any] = {
-    "events": []
+    "events": [],
+    # Add adjectives for multi-word item names
+    "adjectives": [
+        {"word": "cold", "synonyms": []},
+        {"word": "weather", "synonyms": []},
+        {"word": "preserved", "synonyms": []},
+        {"word": "partial", "synonyms": []},
+    ]
 }
 
 # Temperature zones and their hypothermia rates
@@ -54,7 +61,7 @@ def on_cold_zone_turn(
     Returns:
         EventResult with hypothermia message if applicable
     """
-    state = accessor.state
+    state = accessor.game_state
 
     # Get player location
     player = state.actors.get("player")
@@ -168,7 +175,7 @@ def on_enter_hot_springs(
     if "hot_springs" not in dest_id.lower():
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
     player = state.actors.get("player")
     if not player:
         return EventResult(allow=True, feedback=None)

@@ -68,7 +68,7 @@ class TestVocabularyMerging(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
+        self.game_state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
         self.behavior_manager = BehaviorManager()
         behaviors_dir = project_root / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
@@ -77,7 +77,7 @@ class TestVocabularyMerging(unittest.TestCase):
         with open(project_root / "src" / "vocabulary.json", 'r') as f:
             self.base_vocab = json.load(f)
 
-        extracted_nouns = extract_nouns_from_state(self.state)
+        extracted_nouns = extract_nouns_from_state(self.game_state)
         vocab_with_nouns = merge_vocabulary(self.base_vocab, extracted_nouns)
         self.merged_vocab = self.behavior_manager.get_merged_vocabulary(vocab_with_nouns)
 
@@ -101,7 +101,7 @@ class TestParserCommands(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures with proper vocabulary."""
-        self.state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
+        self.game_state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
         self.behavior_manager = BehaviorManager()
         behaviors_dir = project_root / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
@@ -110,7 +110,7 @@ class TestParserCommands(unittest.TestCase):
         with open(project_root / "src" / "vocabulary.json", 'r') as f:
             base_vocab = json.load(f)
 
-        extracted_nouns = extract_nouns_from_state(self.state)
+        extracted_nouns = extract_nouns_from_state(self.game_state)
         vocab_with_nouns = merge_vocabulary(base_vocab, extracted_nouns)
         merged_vocab = self.behavior_manager.get_merged_vocabulary(vocab_with_nouns)
 
@@ -165,7 +165,7 @@ class TestGameEngineIntegration(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
+        self.game_state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
         self.behavior_manager = BehaviorManager()
         behaviors_dir = project_root / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
@@ -185,15 +185,15 @@ class TestLocationQuery(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
+        self.game_state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
         self.behavior_manager = BehaviorManager()
         behaviors_dir = project_root / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
-        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.behavior_manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.behavior_manager)
 
         # Move player to hallway where table with lantern is
-        self.state.actors[ActorId("player")].location = "loc_hallway"
+        self.game_state.actors[ActorId("player")].location = "loc_hallway"
 
     @unittest.skipUnless(WX_TEXT_GAME_AVAILABLE, "wxPython not installed")
     def test_look_command_shows_items_on_surfaces(self):
@@ -230,15 +230,15 @@ class TestExamineCommand(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
+        self.game_state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
         self.behavior_manager = BehaviorManager()
         behaviors_dir = project_root / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
-        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.behavior_manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.behavior_manager)
 
         # Move player to hallway where table with lantern is
-        self.state.actors[ActorId("player")].location = "loc_hallway"
+        self.game_state.actors[ActorId("player")].location = "loc_hallway"
 
     def test_examine_command_finds_item_by_name(self):
         """Test that examine command finds items by name."""

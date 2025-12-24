@@ -13,6 +13,7 @@ from src.infrastructure_utils import (
     modify_trust,
     transition_state,
 )
+from src.narrator_helpers import select_state_fragments
 
 # Vocabulary: wire hooks to events
 # Note: Dialog reactions are handled by infrastructure/dialog_reactions.py
@@ -44,7 +45,7 @@ def on_aldric_commitment(
     if actor_id != "npc_aldric":
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
     extra = state.extra
 
     # Check if commitment already exists
@@ -114,7 +115,7 @@ def on_aldric_heal(
     if target_id != "npc_aldric":
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
     aldric = state.actors.get("npc_aldric")
     if not aldric:
         return EventResult(allow=True, feedback=None)
@@ -136,6 +137,9 @@ def on_aldric_heal(
             infection["severity"] = max(0, old_severity - 40)
             infection["progression_rate"] = 0  # Stops progression
 
+        # Select fragments for the new state
+        fragments = select_state_fragments(aldric, "stabilized", max_count=2)
+
         return EventResult(
             allow=True,
             feedback=(
@@ -143,6 +147,11 @@ def on_aldric_heal(
                 "He can sit up now, breathing easier. 'Thank you... but I'm not "
                 "fully cured. One more dose, or the Myconid's remedy, would heal me completely.'"
             ),
+            context={
+                "npc_state": {"previous": "critical", "current": "stabilized"}
+            },
+            hints=["rescue", "relief"],
+            fragments={"state": fragments},
         )
 
     if current_state == "stabilized":
@@ -166,6 +175,9 @@ def on_aldric_heal(
         trust_state["current"] = new_trust
         aldric.properties["trust_state"] = trust_state
 
+        # Select fragments for the new state
+        fragments = select_state_fragments(aldric, "recovering", max_count=2)
+
         return EventResult(
             allow=True,
             feedback=(
@@ -174,6 +186,12 @@ def on_aldric_heal(
                 "He looks at you with gratitude. 'If you wish, I could teach you "
                 "what I know of these depths.'"
             ),
+            context={
+                "npc_state": {"previous": "stabilized", "current": "recovering"},
+                "relationship": {"trust_delta": 2}
+            },
+            hints=["rescue", "gratitude", "trust-building"],
+            fragments={"state": fragments},
         )
 
     if current_state == "recovering":
@@ -208,7 +226,7 @@ def on_aldric_teach(
     if actor_id != "npc_aldric":
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
     aldric = state.actors.get("npc_aldric")
     if not aldric:
         return EventResult(allow=True, feedback=None)

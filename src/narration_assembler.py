@@ -110,8 +110,8 @@ class NarrationAssembler:
         else:
             plan["entity_refs"] = {}
 
-        # 6. Build must_mention (exits_text for location scenes)
-        must_mention = self._build_must_mention(scene_kind)
+        # 6. Build must_mention (exits_text for location scenes, available_topics for dialog)
+        must_mention = self._build_must_mention(scene_kind, handler_result)
         if must_mention:
             plan["must_mention"] = must_mention
 
@@ -119,6 +119,22 @@ class NarrationAssembler:
         target_state = self._build_target_state(handler_result)
         if target_state:
             plan["target_state"] = target_state
+
+        # 8. Pass through context (author-defined narrator context)
+        if handler_result.context:
+            plan["context"] = handler_result.context
+
+        # 9. Pass through hints (author-defined style hints)
+        if handler_result.hints:
+            plan["hints"] = handler_result.hints
+
+        # 10. Pass through fragments (pre-selected narration fragments)
+        if handler_result.fragments:
+            plan["fragments"] = handler_result.fragments
+
+        # 11. Pass through reactions (multi-entity reactions)
+        if handler_result.reactions:
+            plan["reactions"] = handler_result.reactions
 
         return plan
 
@@ -378,38 +394,43 @@ class NarrationAssembler:
 
     def _build_must_mention(
         self,
-        scene_kind: Literal["location_entry", "look", "action_result"]
+        scene_kind: Literal["location_entry", "look", "action_result"],
+        handler_result: HandlerResult
     ) -> Optional[MustMention]:
         """
-        Build must_mention fields (exits_text for location scenes).
+        Build must_mention fields (exits_text for location scenes, dialog_topics for dialog).
 
         Args:
             scene_kind: The type of scene
+            handler_result: The handler result containing data
 
         Returns:
             MustMention dict or None if not applicable
         """
-        # Only include exits_text for location-related scenes
-        if scene_kind not in ("location_entry", "look"):
-            return None
+        result: Dict[str, Any] = {}
 
-        actor = self.accessor.get_actor(self.actor_id)
-        if not actor:
-            return None
+        # Include exits_text for location-related scenes
+        if scene_kind in ("location_entry", "look"):
+            actor = self.accessor.get_actor(self.actor_id)
+            if actor:
+                location = self.accessor.get_location(actor.location)
+                if location:
+                    visible_exits = self.accessor.get_visible_exits(location.id, self.actor_id)
+                    if visible_exits:
+                        exits_text = self._format_exits_text(visible_exits)
+                        if exits_text:
+                            result["exits_text"] = exits_text
 
-        location = self.accessor.get_location(actor.location)
-        if not location:
-            return None
+        # Include available_topics for dialog actions
+        if handler_result.data and "available_topics" in handler_result.data:
+            topics = handler_result.data["available_topics"]
+            if topics:
+                # Format as explicit instruction for narrator
+                topic_str = ", ".join(topics)
+                result["dialog_topics"] = f"You can ask about: {topic_str}"
 
-        # Get visible exits
-        visible_exits = self.accessor.get_visible_exits(location.id, self.actor_id)
-        if not visible_exits:
-            return None
-
-        # Format exits text
-        exits_text = self._format_exits_text(visible_exits)
-        if exits_text:
-            return MustMention(exits_text=exits_text)
+        if result:
+            return MustMention(**result)
 
         return None
 

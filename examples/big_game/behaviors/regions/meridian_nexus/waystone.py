@@ -28,11 +28,11 @@ vocabulary: Dict[str, Any] = {
 
 # Required waystone fragments
 WAYSTONE_FRAGMENTS = [
-    "alpha_fang",      # Beast Wilds - wolf trust
-    "spore_heart",     # Fungal Depths - heal Spore Mother
-    "ice_shard",       # Frozen Reaches - ice caves
-    "water_bloom",     # Sunken District - flooded areas
-    "echo_essence",    # Meridian Nexus - Echo's gift
+    "alpha_fang_fragment",      # Beast Wilds - wolf trust
+    "spore_heart_fragment",     # Fungal Depths - heal Spore Mother
+    "ice_shard_fragment",       # Frozen Reaches - ice caves
+    "water_bloom_fragment",     # Sunken District - flooded areas
+    "echo_essence_fragment",    # Meridian Nexus - Echo's gift
 ]
 
 
@@ -72,7 +72,7 @@ def on_fragment_place(
     if "waystone" not in target_id.lower():
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
 
     # Track placed fragments
     if "waystone_fragments" not in state.extra:
@@ -129,7 +129,7 @@ def on_waystone_complete(
     if puzzle_id != "waystone_repair":
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
     state.extra["waystone_complete"] = True
 
     # Calculate ending factors
@@ -159,7 +159,7 @@ def on_ending_check(
     Returns:
         EventResult (silent unless ending triggered)
     """
-    state = accessor.state
+    state = accessor.game_state
 
     # Check for ending trigger (waystone complete + all threats resolved)
     if not state.extra.get("waystone_complete"):

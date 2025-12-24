@@ -59,7 +59,7 @@ class TestExamineLockBase(unittest.TestCase):
         """Set up test fixtures with simple game state."""
         # Load game state
         state_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
-        self.state = load_game_state(str(state_path))
+        self.game_state = load_game_state(str(state_path))
 
         # Set up behavior manager
         self.behavior_manager = BehaviorManager()
@@ -68,11 +68,11 @@ class TestExamineLockBase(unittest.TestCase):
         self.behavior_manager.load_modules(modules)
 
         # Create protocol handler
-        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.behavior_manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.behavior_manager)
 
     def move_player_to(self, location_id: str):
         """Helper to move player to a specific location."""
-        self.state.actors[ActorId("player")].location = location_id
+        self.game_state.actors[ActorId("player")].location = location_id
 
 
 class TestExamineLockBasic(TestExamineLockBase):
@@ -275,7 +275,7 @@ class TestFindLockByContext(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         state_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
-        self.state = load_game_state(str(state_path))
+        self.game_state = load_game_state(str(state_path))
 
         self.behavior_manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
@@ -283,7 +283,7 @@ class TestFindLockByContext(unittest.TestCase):
         self.behavior_manager.load_modules(modules)
 
         from src.state_accessor import StateAccessor
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_find_lock_by_direction(self):
         """Test finding lock via direction."""
@@ -420,7 +420,7 @@ class TestExamineLockHidden(TestExamineLockBase):
 
         # Make the treasure lock hidden
         treasure_lock = None
-        for lock in self.state.locks:
+        for lock in self.game_state.locks:
             if lock.id == "lock_treasure":
                 treasure_lock = lock
                 break

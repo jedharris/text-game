@@ -1,0 +1,78 @@
+# Phase 4.2 Validation: Golem Puzzle - Ritual Offering Solution
+# Tests the ritual offering deactivation path for stone golems
+# Run with: python tools/walkthrough.py examples/big_game --file walkthroughs/test_golem_ritual.txt
+
+# Navigate to Frozen Reaches
+go north
+look
+
+# Get supplies from frozen pass camp
+examine gear
+take gear
+examine supplies
+take torch from supplies
+inventory
+
+# Gather ritual items
+# Note: Need to determine what ritual requires - checking design
+# Likely: frost_lily, ice_shard, or other elemental items
+
+# Navigate to Ice Caves to gather ritual components
+go east
+look
+
+# Get frost lily (not frozen)
+examine frost lily
+take frost lily
+
+# Get ice shard (requires multiple attempts or heat)
+examine ice shard
+take ice shard
+take ice shard
+take ice shard
+inventory
+
+# Navigate to Temple Sanctum
+go west
+go north
+look
+
+# Examine golems in initial guarding state
+examine guardian
+look
+
+# EXPECTED FAILURE: Try to access temple while golems are guarding
+go up
+
+# EXPECTED FAILURE: Try offering wrong items
+give frost lily to guardian
+
+# Perform ritual offering
+# Note: Testing if ritual requires specific items or specific command
+use frost lily on altar
+use ice shard on altar
+
+# Alternative: Check if ritual is performed differently
+examine altar
+put frost lily on altar
+put ice shard on altar
+
+# Examine golems after ritual (should be in passive/serving state)
+examine guardian
+look
+
+# Verify linked behavior - both golems should have transitioned
+examine stone guardian
+
+# Access temple rewards now that golems are deactivated
+go up
+look
+examine altar
+take cold resistance cloak
+take fire crystal
+inventory
+
+# Return and verify golems remain deactivated
+go down
+look
+examine guardian

@@ -72,5 +72,49 @@ class TestGoAutoLook(SimpleGameTestCase):
         self.assertNotIn("Treasure Room", result.primary)
 
 
+class TestGoTransitionContext(SimpleGameTestCase):
+    """Test that 'go' command includes transition context for narrator."""
+
+    def test_go_includes_transition_context(self):
+        """Test that 'go' result data includes transition information."""
+        action = make_action(object="north", actor_id="player")
+        result = self.behavior_manager.invoke_handler("go", self.accessor, action)
+
+        self.assertTrue(result.success)
+        self.assertIsNotNone(result.data)
+        self.assertIn("transition", result.data)
+
+        transition = result.data["transition"]
+        self.assertEqual(transition["from_location_id"], "loc_start")
+        self.assertEqual(transition["from_location_name"], "Small Room")
+        self.assertEqual(transition["direction"], "north")
+
+    def test_go_transition_includes_exit_details(self):
+        """Test that transition includes exit name and type when available."""
+        # Find the start location
+        location = None
+        for loc in self.game_state.locations:
+            if loc.id == "loc_start":
+                location = loc
+                break
+        self.assertIsNotNone(location)
+
+        # Create an ExitDescriptor with a name
+        from src.state_manager import ExitDescriptor
+        location.exits["north"] = ExitDescriptor(
+            to="loc_hallway",
+            type="passage",
+            name="archway"
+        )
+
+        action = make_action(object="north", actor_id="player")
+        result = self.behavior_manager.invoke_handler("go", self.accessor, action)
+
+        self.assertTrue(result.success)
+        transition = result.data["transition"]
+        self.assertEqual(transition["via_exit_name"], "archway")
+        self.assertEqual(transition["via_exit_type"], "passage")
+
+
 if __name__ == "__main__":
     unittest.main()

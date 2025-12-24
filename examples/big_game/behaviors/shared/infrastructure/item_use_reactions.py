@@ -65,7 +65,7 @@ def on_item_used(
     item_id = entity.id if hasattr(entity, "id") else str(entity)
     item_lower = item_id.lower()
 
-    state = accessor.state
+    state = accessor.game_state
 
     # Check target entity for reactions
     target = context.get("target")
@@ -115,7 +115,7 @@ def _check_target_reactions(
     if not target_config:
         return None
 
-    state = accessor.state
+    state = accessor.game_state
 
     # Find matching reaction
     for reaction_name, reaction_config in target_config.items():
@@ -147,7 +147,7 @@ def _process_item_use(
     context: dict[str, Any],
 ) -> EventResult | None:
     """Process item's self-use reaction (data-driven mode)."""
-    state = accessor.state
+    state = accessor.game_state
     target = context.get("target")
     target_id = target.id if target and hasattr(target, "id") else ""
 
@@ -174,7 +174,7 @@ def _process_reaction(
     accessor: Any,
 ) -> EventResult:
     """Process a matched item use reaction."""
-    state = accessor.state
+    state = accessor.game_state
 
     # Set flags
     flags = reaction_config.get("set_flags", {})

@@ -262,14 +262,14 @@ class TestPhase3EnhancedTake(unittest.TestCase):
             ],
             "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_test"}}
         }
-        self.state = load_game_state(self.game_data)
+        self.game_state = load_game_state(self.game_data)
 
         self.manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
 
-        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
 
     def test_take_from_surface_visible_item(self):
         """Test taking an item from a surface container (visible)."""
@@ -282,10 +282,10 @@ class TestPhase3EnhancedTake(unittest.TestCase):
         self.assertEqual(result.get("action"), "take")
 
         # Key should be in inventory
-        self.assertIn("item_key", self.state.actors[ActorId("player")].inventory)
+        self.assertIn("item_key", self.game_state.actors[ActorId("player")].inventory)
 
         # Key location should be "player"
-        key = self.state.get_item("item_key")
+        key = self.game_state.get_item("item_key")
         self.assertEqual(key.location, "player")
 
     def test_take_from_surface_explicit_syntax(self):
@@ -300,7 +300,7 @@ class TestPhase3EnhancedTake(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertIn("item_key", self.state.actors[ActorId("player")].inventory)
+        self.assertIn("item_key", self.game_state.actors[ActorId("player")].inventory)
 
     def test_take_from_closed_container_fails(self):
         """Test that taking from closed enclosed container fails."""
@@ -320,7 +320,7 @@ class TestPhase3EnhancedTake(unittest.TestCase):
     def test_take_from_open_enclosed_container(self):
         """Test taking from an open enclosed container succeeds."""
         # Open the chest first
-        chest = self.state.get_item("item_chest")
+        chest = self.game_state.get_item("item_chest")
         chest.container.open = True
 
         result = self.handler.handle_command({
@@ -329,12 +329,12 @@ class TestPhase3EnhancedTake(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertIn("item_ring", self.state.actors[ActorId("player")].inventory)
+        self.assertIn("item_ring", self.game_state.actors[ActorId("player")].inventory)
 
     def test_take_from_container_with_explicit_from_syntax(self):
         """Test 'take ring from chest' after opening chest."""
         # Open the chest
-        chest = self.state.get_item("item_chest")
+        chest = self.game_state.get_item("item_chest")
         chest.container.open = True
 
         result = self.handler.handle_command({
@@ -347,12 +347,12 @@ class TestPhase3EnhancedTake(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertIn("item_ring", self.state.actors[ActorId("player")].inventory)
+        self.assertIn("item_ring", self.game_state.actors[ActorId("player")].inventory)
 
     def test_take_prioritizes_room_items_over_container_items(self):
         """Test that items directly in room are found before container items."""
         # Add a key directly in the room
-        self.state.items.append(Item(
+        self.game_state.items.append(Item(
             id="item_room_key",
             name="key",
             description="A silver key",
@@ -367,8 +367,8 @@ class TestPhase3EnhancedTake(unittest.TestCase):
 
         self.assertTrue(result.get("success"))
         # Should take the room key, not the table key
-        self.assertIn("item_room_key", self.state.actors[ActorId("player")].inventory)
-        self.assertNotIn("item_key", self.state.actors[ActorId("player")].inventory)
+        self.assertIn("item_room_key", self.game_state.actors[ActorId("player")].inventory)
+        self.assertNotIn("item_key", self.game_state.actors[ActorId("player")].inventory)
 
     def test_take_from_nonexistent_container_fails(self):
         """Test that take from nonexistent container fails gracefully."""
@@ -390,20 +390,20 @@ class TestPhase5GameState(unittest.TestCase):
     def setUp(self):
         """Set up with the actual game state file."""
         fixture_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
-        self.state = load_game_state(fixture_path)
+        self.game_state = load_game_state(fixture_path)
 
         self.manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
 
-        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
 
     def test_tower_has_pedestal_item(self):
         """Test that tower contains a pedestal item."""
         # Look for pedestal in items
         pedestal = None
-        for item in self.state.items:
+        for item in self.game_state.items:
             if item.name == "pedestal":
                 pedestal = item
                 break
@@ -415,7 +415,7 @@ class TestPhase5GameState(unittest.TestCase):
     def test_pedestal_is_surface_container(self):
         """Test that pedestal is a surface container."""
         pedestal = None
-        for item in self.state.items:
+        for item in self.game_state.items:
             if item.name == "pedestal":
                 pedestal = item
                 break
@@ -427,14 +427,14 @@ class TestPhase5GameState(unittest.TestCase):
 
     def test_potion_on_pedestal(self):
         """Test that potion is located on the pedestal."""
-        potion = self.state.get_item("item_potion")
+        potion = self.game_state.get_item("item_potion")
 
         # Potion should be on pedestal, not in loc_tower directly
         self.assertEqual(potion.location, "item_pedestal")
 
     def test_take_potion_from_pedestal(self):
         """Test taking potion from pedestal in tower."""
-        self.state.actors[ActorId("player")].location = "loc_tower"
+        self.game_state.actors[ActorId("player")].location = "loc_tower"
 
         result = self.handler.handle_command({
             "type": "command",
@@ -442,12 +442,12 @@ class TestPhase5GameState(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertIn("item_potion", self.state.actors[ActorId("player")].inventory)
+        self.assertIn("item_potion", self.game_state.actors[ActorId("player")].inventory)
 
     def test_hallway_has_table_item(self):
         """Test that hallway contains a table item."""
         table = None
-        for item in self.state.items:
+        for item in self.game_state.items:
             if item.name == "table":
                 table = item
                 break
@@ -459,7 +459,7 @@ class TestPhase5GameState(unittest.TestCase):
     def test_table_is_surface_container(self):
         """Test that table is a surface container."""
         table = None
-        for item in self.state.items:
+        for item in self.game_state.items:
             if item.name == "table":
                 table = item
                 break
@@ -470,14 +470,14 @@ class TestPhase5GameState(unittest.TestCase):
 
     def test_lantern_on_table(self):
         """Test that lantern is located on the table."""
-        lantern = self.state.get_item("item_lantern")
+        lantern = self.game_state.get_item("item_lantern")
 
         # Lantern should be on table, not in loc_hallway directly
         self.assertEqual(lantern.location, "item_table")
 
     def test_take_lantern_from_table(self):
         """Test taking lantern from table - behaviors should still work."""
-        self.state.actors[ActorId("player")].location = "loc_hallway"
+        self.game_state.actors[ActorId("player")].location = "loc_hallway"
 
         result = self.handler.handle_command({
             "type": "command",
@@ -485,10 +485,10 @@ class TestPhase5GameState(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertIn("item_lantern", self.state.actors[ActorId("player")].inventory)
+        self.assertIn("item_lantern", self.game_state.actors[ActorId("player")].inventory)
 
         # Behavior should have fired - lantern should be lit
-        lantern = self.state.get_item("item_lantern")
+        lantern = self.game_state.get_item("item_lantern")
         self.assertTrue(lantern.states.get("lit", False))
 
         # Should have behavior message
@@ -496,13 +496,13 @@ class TestPhase5GameState(unittest.TestCase):
 
     def test_tower_description_mentions_pedestal(self):
         """Test that tower description or items include pedestal reference."""
-        tower = self.state.get_location("loc_tower")
+        tower = self.game_state.get_location("loc_tower")
 
         # Either the description mentions pedestal, or pedestal is in the location's items
         has_pedestal_ref = (
             "pedestal" in tower.description.lower() or
             any(item.name == "pedestal" and item.location == "loc_tower"
-                for item in self.state.items)
+                for item in self.game_state.items)
         )
         self.assertTrue(has_pedestal_ref)
 
@@ -570,9 +570,9 @@ class TestPhase6RoomDescriptions(unittest.TestCase):
             ],
             "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_test"}}
         }
-        self.state = load_game_state(self.game_data)
+        self.game_state = load_game_state(self.game_data)
 
-        self.handler = LLMProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.game_state)
 
     def test_location_query_includes_surface_items(self):
         """Test that location query includes items on surfaces."""
@@ -607,7 +607,7 @@ class TestPhase6RoomDescriptions(unittest.TestCase):
     def test_location_query_includes_open_container_contents(self):
         """Test that items in open enclosed containers are visible."""
         # Open the chest
-        chest = self.state.get_item("item_chest")
+        chest = self.game_state.get_item("item_chest")
         chest.container.open = True
 
         result = self.handler.handle_query({
@@ -763,8 +763,8 @@ class TestPhase2PutCommand(unittest.TestCase):
                 }
             }
         }
-        self.state = load_game_state(self.game_data)
-        self.handler = LLMProtocolHandler(self.state)
+        self.game_state = load_game_state(self.game_data)
+        self.handler = LLMProtocolHandler(self.game_state)
 
     def test_put_item_on_surface(self):
         """Test putting an item on a surface container."""
@@ -781,16 +781,16 @@ class TestPhase2PutCommand(unittest.TestCase):
         self.assertEqual(result.get("action"), "put")
 
         # Key should be on table
-        key = self.state.get_item("item_key")
+        key = self.game_state.get_item("item_key")
         self.assertEqual(key.location, "item_table")
 
         # Key should not be in inventory
-        self.assertNotIn("item_key", self.state.actors[ActorId("player")].inventory)
+        self.assertNotIn("item_key", self.game_state.actors[ActorId("player")].inventory)
 
     def test_put_item_in_open_container(self):
         """Test putting an item in an open enclosed container."""
         # Open the chest first
-        chest = self.state.get_item("item_chest")
+        chest = self.game_state.get_item("item_chest")
         chest.container.open = True
 
         result = self.handler.handle_command({
@@ -803,7 +803,7 @@ class TestPhase2PutCommand(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        key = self.state.get_item("item_key")
+        key = self.game_state.get_item("item_key")
         self.assertEqual(key.location, "item_chest")
 
     def test_put_item_in_closed_container_fails(self):
@@ -874,7 +874,7 @@ class TestPhase2PutCommand(unittest.TestCase):
     def test_put_on_non_container_fails(self):
         """Test that put fails when target is not a container."""
         # Add a non-container item
-        self.state.items.append(Item(
+        self.game_state.items.append(Item(
             id="item_sword",
             name="sword",
             description="A sword",
@@ -964,8 +964,8 @@ class TestPhase4PushCommand(unittest.TestCase):
             ],
             "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_test"}}
         }
-        self.state = load_game_state(self.game_data)
-        self.handler = LLMProtocolHandler(self.state)
+        self.game_state = load_game_state(self.game_data)
+        self.handler = LLMProtocolHandler(self.game_state)
 
     def test_push_pushable_item_succeeds(self):
         """Test pushing a pushable item succeeds."""
@@ -1064,24 +1064,24 @@ class TestContainerCapacity(unittest.TestCase):
             ],
             "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_test"}}
         }
-        self.state = load_game_state(self.game_data)
+        self.game_state = load_game_state(self.game_data)
 
-        self.handler = LLMProtocolHandler(self.state)
+        self.handler = LLMProtocolHandler(self.game_state)
 
     def test_count_items_in_container(self):
         """Test counting items currently in a container."""
         # Count items with location = item_pedestal
-        count = sum(1 for item in self.state.items
+        count = sum(1 for item in self.game_state.items
                    if item.location == "item_pedestal")
 
         self.assertEqual(count, 1)
 
     def test_capacity_check_for_full_container(self):
         """Test that capacity is respected when container is full."""
-        pedestal = self.state.get_item("item_pedestal")
+        pedestal = self.game_state.get_item("item_pedestal")
 
         # Count current items
-        current_count = sum(1 for item in self.state.items
+        current_count = sum(1 for item in self.game_state.items
                           if item.location == "item_pedestal")
 
         # Pedestal has capacity 1 and 1 item (potion)

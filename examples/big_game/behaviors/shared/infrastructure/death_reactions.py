@@ -83,7 +83,7 @@ def on_entity_death(
         # Handler failed to load - fall through to data-driven
 
     # Data-driven processing
-    state = accessor.state
+    state = accessor.game_state
     entity_id = entity.id if hasattr(entity, "id") else str(entity)
 
     # Set flags

@@ -1,0 +1,123 @@
+# Phase 1: Fungal Depths Complete Test
+# Tests all implemented content in the Fungal Depths region
+# Prerequisites: None (fresh game)
+
+# ============================================================
+# Part 1: Entry and Aldric Dialog
+# ============================================================
+
+# Navigate to Cavern Entrance
+go west
+
+# Check we're in the right place
+look
+
+# Talk to Aldric (has dialog_topics)
+talk to aldric
+
+# Ask about various topics
+ask aldric about infection
+ask aldric about research
+ask aldric about myconids
+
+# ============================================================
+# Part 2: Luminous Grotto - Items and Light Puzzle
+# ============================================================
+
+# Go down to Luminous Grotto
+go down
+
+# Verify items are present
+look
+
+# Examine the dead explorer
+examine dead explorer
+
+# Take the notebook (use simple name to avoid parser bug #255)
+take notebook
+
+# Check inventory
+inventory
+
+# ============================================================
+# Part 3: Light Puzzle
+# ============================================================
+
+# Take the bucket
+take bucket
+
+# Fill from pool
+fill bucket
+
+# Water the gold mushroom (+2 light)
+pour water on gold mushroom
+
+# Fill again
+fill bucket
+
+# Water the blue mushroom (+1 light)
+pour water on blue mushroom
+
+# Fill again
+fill bucket
+
+# Water the gold mushroom again (+2 light = total 6)
+pour water on gold mushroom
+
+# Verify light level increased (ceiling should be readable)
+look
+
+# ============================================================
+# Part 4: Myconid Sanctuary
+# ============================================================
+
+# Go to Myconid Sanctuary
+go east
+
+# Check the location
+look
+
+# Talk to Myconid Elder (has dialog_topics)
+talk to myconid elder
+
+# Ask about various topics
+ask elder about cure
+ask elder about resistance
+ask elder about spore mother
+ask elder about cold
+
+# Take equipment (requires trust >= 0)
+# Note: "take spore lantern" and "take breathing mask" trigger parser bug #255
+# Use simple nouns instead
+take lantern
+take mask
+
+# ============================================================
+# Part 5: Spore Heart - Spore Mother Dialog
+# ============================================================
+
+# Return to Luminous Grotto
+go west
+
+# Go to Spore Heart
+go down
+
+# Check the location
+look
+
+# Talk to Spore Mother (empathic handler)
+talk to spore mother
+
+# ============================================================
+# Part 6: Return and Give Gift to Aldric
+# ============================================================
+
+# Go back to Cavern Entrance
+go up
+go up
+
+# Give notebook to Aldric
+give notebook to aldric
+
+# Final check
+inventory

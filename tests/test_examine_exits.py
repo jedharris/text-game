@@ -19,12 +19,12 @@ class TestFindExitByName(unittest.TestCase):
 
     def setUp(self):
         """Set up test state with various exits."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         self.location_id = player.location
 
         # Add destination rooms
@@ -40,8 +40,8 @@ class TestFindExitByName(unittest.TestCase):
             description="A cellar.",
             exits={"up": ExitDescriptor(type="open", to=self.location_id)}
         )
-        self.state.locations.append(tower)
-        self.state.locations.append(cellar)
+        self.game_state.locations.append(tower)
+        self.game_state.locations.append(cellar)
 
         # Add exits from player's current location
         room = self.accessor.get_location(self.location_id)
@@ -125,8 +125,8 @@ class TestFindExitByName(unittest.TestCase):
                 name="stone passage"
             )}
         )
-        self.state.locations.append(single_exit_loc)
-        self.state.actors[ActorId("player")].location = "single_exit_room"
+        self.game_state.locations.append(single_exit_loc)
+        self.game_state.actors[ActorId("player")].location = "single_exit_room"
 
         exit_entry = make_word_entry("exit")
         result = find_exit_by_name(self.accessor, exit_entry, "player")
@@ -165,12 +165,12 @@ class TestExamineExit(unittest.TestCase):
 
     def setUp(self):
         """Set up test state with exits."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         self.location_id = player.location
 
         # Add destination rooms
@@ -180,7 +180,7 @@ class TestExamineExit(unittest.TestCase):
             description="A tower.",
             exits={"down": ExitDescriptor(type="open", to=self.location_id)}
         )
-        self.state.locations.append(tower)
+        self.game_state.locations.append(tower)
 
         # Add exits from player's current location
         room = self.accessor.get_location(self.location_id)
@@ -298,12 +298,12 @@ class TestExitExaminationPriority(unittest.TestCase):
 
     def setUp(self):
         """Set up test state with potential name conflicts."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         self.location_id = player.location
         room = self.accessor.get_location(self.location_id)
 
@@ -314,7 +314,7 @@ class TestExitExaminationPriority(unittest.TestCase):
             description="A tower.",
             exits={}
         )
-        self.state.locations.append(tower)
+        self.game_state.locations.append(tower)
 
         room.exits["up"] = ExitDescriptor(
             type="open",
@@ -344,12 +344,12 @@ class TestExamineExitWithDirectionAdjective(unittest.TestCase):
 
     def setUp(self):
         """Set up test state with multiple exits."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         self.location_id = player.location
         room = self.accessor.get_location(self.location_id)
 
@@ -366,8 +366,8 @@ class TestExamineExitWithDirectionAdjective(unittest.TestCase):
             description="A room to the east.",
             exits={"west": ExitDescriptor(type="open", to=self.location_id)}
         )
-        self.state.locations.append(north_room)
-        self.state.locations.append(east_room)
+        self.game_state.locations.append(north_room)
+        self.game_state.locations.append(east_room)
 
         # Add exits with descriptions
         room.exits["north"] = ExitDescriptor(
@@ -456,12 +456,12 @@ class TestExitSynonymMatching(unittest.TestCase):
 
     def setUp(self):
         """Set up test state with exits that have multi-word names."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         self.location_id = player.location
         room = self.accessor.get_location(self.location_id)
 
@@ -472,7 +472,7 @@ class TestExitSynonymMatching(unittest.TestCase):
             description="A tower.",
             exits={"down": ExitDescriptor(type="open", to=self.location_id)}
         )
-        self.state.locations.append(tower)
+        self.game_state.locations.append(tower)
 
         # Add exit with multi-word name "spiral staircase"
         # The vocabulary defines stairs with synonyms: ["staircase", "stairway", "steps"]
@@ -578,7 +578,7 @@ class TestExamineDirectionExitEndToEnd(unittest.TestCase):
         from pathlib import Path
         from src.parser import Parser
 
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
 
         # Load behaviors
@@ -586,10 +586,10 @@ class TestExamineDirectionExitEndToEnd(unittest.TestCase):
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
 
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Set up exits
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         self.location_id = player.location
         room = self.accessor.get_location(self.location_id)
 
@@ -600,7 +600,7 @@ class TestExamineDirectionExitEndToEnd(unittest.TestCase):
             description="A room to the north.",
             exits={"south": ExitDescriptor(type="open", to=self.location_id)}
         )
-        self.state.locations.append(north_room)
+        self.game_state.locations.append(north_room)
 
         room.exits["north"] = ExitDescriptor(
             type="open",

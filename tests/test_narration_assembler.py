@@ -122,9 +122,9 @@ class TestNarrationAssemblerViewpoint(unittest.TestCase):
 
     def setUp(self) -> None:
         """Set up test state and assembler."""
-        self.state = create_test_state_with_exits()
+        self.game_state = create_test_state_with_exits()
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
         self.assembler = NarrationAssembler(
             self.accessor, ActorId("player")
         )
@@ -195,9 +195,9 @@ class TestNarrationAssemblerScope(unittest.TestCase):
 
     def setUp(self) -> None:
         """Set up test state and assembler."""
-        self.state = create_test_state_with_exits()
+        self.game_state = create_test_state_with_exits()
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
         self.assembler = NarrationAssembler(
             self.accessor, ActorId("player")
         )
@@ -266,9 +266,9 @@ class TestNarrationAssemblerSecondaryBeats(unittest.TestCase):
 
     def setUp(self) -> None:
         """Set up test state and assembler."""
-        self.state = create_test_state_with_exits()
+        self.game_state = create_test_state_with_exits()
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
         self.assembler = NarrationAssembler(
             self.accessor, ActorId("player")
         )
@@ -342,9 +342,9 @@ class TestNarrationAssemblerEntityRefs(unittest.TestCase):
 
     def setUp(self) -> None:
         """Set up test state and assembler."""
-        self.state = create_test_state_with_exits()
+        self.game_state = create_test_state_with_exits()
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
         self.assembler = NarrationAssembler(
             self.accessor, ActorId("player")
         )
@@ -434,9 +434,9 @@ class TestNarrationAssemblerMustMention(unittest.TestCase):
 
     def setUp(self) -> None:
         """Set up test state and assembler."""
-        self.state = create_test_state_with_exits()
+        self.game_state = create_test_state_with_exits()
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
         self.assembler = NarrationAssembler(
             self.accessor, ActorId("player")
         )
@@ -498,9 +498,9 @@ class TestNarrationAssemblerPrimaryText(unittest.TestCase):
 
     def setUp(self) -> None:
         """Set up test state and assembler."""
-        self.state = create_test_state_with_exits()
+        self.game_state = create_test_state_with_exits()
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
         self.assembler = NarrationAssembler(
             self.accessor, ActorId("player")
         )
@@ -531,9 +531,9 @@ class TestNarrationAssemblerFullAssembly(unittest.TestCase):
 
     def setUp(self) -> None:
         """Set up test state and assembler."""
-        self.state = create_test_state_with_exits()
+        self.game_state = create_test_state_with_exits()
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
         self.assembler = NarrationAssembler(
             self.accessor, ActorId("player")
         )
@@ -587,6 +587,229 @@ class TestNarrationAssemblerFullAssembly(unittest.TestCase):
         self.assertEqual(plan["scope"]["scene_kind"], "action_result")
         self.assertEqual(plan["entity_refs"], {})
         self.assertNotIn("must_mention", plan)
+
+
+class TestNarrationAssemblerContextPassThrough(unittest.TestCase):
+    """Tests for context/hints/fragments pass-through from HandlerResult."""
+
+    def setUp(self) -> None:
+        """Set up test state and assembler."""
+        self.game_state = create_test_state_with_exits()
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
+        self.assembler = NarrationAssembler(
+            self.accessor, ActorId("player")
+        )
+
+    def test_context_passed_through(self) -> None:
+        """Handler context is passed through to NarrationPlan."""
+        result = HandlerResult(
+            success=True,
+            primary="You give the silvermoss to Aldric.",
+            context={
+                "npc_state": {"previous": "critical", "current": "stabilized"},
+                "urgency": {"level": "critical"}
+            }
+        )
+        plan = self.assembler.assemble(result, "give", "full", "familiar")
+
+        self.assertIn("context", plan)
+        self.assertEqual(plan["context"]["npc_state"]["current"], "stabilized")
+        self.assertEqual(plan["context"]["urgency"]["level"], "critical")
+
+    def test_hints_passed_through(self) -> None:
+        """Handler hints are passed through to NarrationPlan."""
+        result = HandlerResult(
+            success=True,
+            primary="You apply the bandages.",
+            hints=["rescue", "urgent", "trust-building"]
+        )
+        plan = self.assembler.assemble(result, "use", "full", "familiar")
+
+        self.assertIn("hints", plan)
+        self.assertEqual(len(plan["hints"]), 3)
+        self.assertIn("rescue", plan["hints"])
+        self.assertIn("urgent", plan["hints"])
+
+    def test_fragments_passed_through(self) -> None:
+        """Handler fragments are passed through to NarrationPlan."""
+        result = HandlerResult(
+            success=True,
+            primary="You unlock the door.",
+            fragments={
+                "action_core": "the lock clicks open",
+                "action_color": ["runes flicker momentarily"],
+                "traits": ["glowing runes", "heavy iron"]
+            }
+        )
+        plan = self.assembler.assemble(result, "unlock", "full", "familiar")
+
+        self.assertIn("fragments", plan)
+        self.assertEqual(plan["fragments"]["action_core"], "the lock clicks open")
+        self.assertEqual(len(plan["fragments"]["action_color"]), 1)
+        self.assertEqual(len(plan["fragments"]["traits"]), 2)
+
+    def test_reactions_passed_through(self) -> None:
+        """Handler reactions are passed through to NarrationPlan."""
+        result = HandlerResult(
+            success=True,
+            primary="You enter the market square with your wolf.",
+            reactions=[
+                {
+                    "entity": "npc_guard",
+                    "entity_name": "Town Guard",
+                    "state": "hostile",
+                    "fragments": ["hand moves to sword hilt"],
+                    "response": "confrontation"
+                },
+                {
+                    "entity": "npc_merchant",
+                    "entity_name": "Merchant",
+                    "state": "nervous",
+                    "fragments": ["backs away"],
+                    "response": "avoidance"
+                }
+            ]
+        )
+        plan = self.assembler.assemble(result, "go", "full", "new")
+
+        self.assertIn("reactions", plan)
+        self.assertEqual(len(plan["reactions"]), 2)
+        self.assertEqual(plan["reactions"][0]["state"], "hostile")
+        self.assertEqual(plan["reactions"][1]["response"], "avoidance")
+
+    def test_empty_context_not_included(self) -> None:
+        """Empty/None context fields are not included in plan."""
+        result = HandlerResult(
+            success=True,
+            primary="Done."
+        )
+        plan = self.assembler.assemble(result, "take", "brief", "familiar")
+
+        # None context should not be included
+        self.assertNotIn("context", plan)
+
+    def test_empty_hints_not_included(self) -> None:
+        """Empty hints list is not included in plan."""
+        result = HandlerResult(
+            success=True,
+            primary="Done.",
+            hints=[]  # Explicitly empty
+        )
+        plan = self.assembler.assemble(result, "take", "brief", "familiar")
+
+        # Empty hints should not be included
+        self.assertNotIn("hints", plan)
+
+    def test_all_new_fields_together(self) -> None:
+        """All new fields work together in a complete plan."""
+        result = HandlerResult(
+            success=True,
+            primary="You offer the venison to the wolf.",
+            context={
+                "npc_state": {"previous": "hostile", "current": "wary"},
+                "communication": {"type": "body_language"}
+            },
+            hints=["trust-building", "tense"],
+            fragments={
+                "action_core": "the wolf sniffs the meat",
+                "traits": ["massive", "grey-furred"]
+            },
+            reactions=[
+                {
+                    "entity": "npc_alpha_wolf",
+                    "entity_name": "Alpha Wolf",
+                    "state": "wary",
+                    "fragments": ["ears prick forward"]
+                }
+            ]
+        )
+        plan = self.assembler.assemble(result, "give", "full", "familiar")
+
+        # All fields should be present
+        self.assertIn("context", plan)
+        self.assertIn("hints", plan)
+        self.assertIn("fragments", plan)
+        self.assertIn("reactions", plan)
+
+        # Verify content
+        self.assertEqual(plan["context"]["npc_state"]["current"], "wary")
+        self.assertEqual(len(plan["hints"]), 2)
+        self.assertEqual(plan["fragments"]["action_core"], "the wolf sniffs the meat")
+        self.assertEqual(len(plan["reactions"]), 1)
+
+
+class TestNarrationAssemblerTargetState(unittest.TestCase):
+    """Tests for target_state building (existing, but verify still works)."""
+
+    def setUp(self) -> None:
+        """Set up test state and assembler."""
+        self.game_state = create_test_state_with_exits()
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
+        self.assembler = NarrationAssembler(
+            self.accessor, ActorId("player")
+        )
+
+    def test_target_state_for_door_action(self) -> None:
+        """Target state is extracted for door actions."""
+        result = HandlerResult(
+            success=True,
+            primary="You unlock the door.",
+            data={
+                "id": "door_1",
+                "name": "oak door",
+                "type": "door",
+                "open": False,
+                "locked": False
+            }
+        )
+        plan = self.assembler.assemble(result, "unlock", "full", "familiar")
+
+        self.assertIn("target_state", plan)
+        self.assertFalse(plan["target_state"]["open"])
+        self.assertFalse(plan["target_state"]["locked"])
+
+    def test_no_target_state_without_data(self) -> None:
+        """No target state when no data provided."""
+        result = HandlerResult(
+            success=True,
+            primary="Done."
+        )
+        plan = self.assembler.assemble(result, "take", "brief", "familiar")
+
+        self.assertNotIn("target_state", plan)
+
+
+class TestNarrationAssemblerDialogTopics(unittest.TestCase):
+    """Tests for dialog topics in must_mention."""
+
+    def setUp(self) -> None:
+        """Set up test state and assembler."""
+        self.game_state = create_test_state_with_exits()
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
+        self.assembler = NarrationAssembler(
+            self.accessor, ActorId("player")
+        )
+
+    def test_dialog_topics_in_must_mention(self) -> None:
+        """Dialog topics are included in must_mention."""
+        result = HandlerResult(
+            success=True,
+            primary="Scholar Aldric looks up.",
+            data={
+                "available_topics": ["infection", "research", "help"]
+            }
+        )
+        plan = self.assembler.assemble(result, "talk", "full", "familiar")
+
+        self.assertIn("must_mention", plan)
+        self.assertIn("dialog_topics", plan["must_mention"])
+        dialog_topics = plan["must_mention"]["dialog_topics"]
+        self.assertIn("You can ask about:", dialog_topics)
+        self.assertIn("infection", dialog_topics)
+        self.assertIn("research", dialog_topics)
 
 
 if __name__ == "__main__":

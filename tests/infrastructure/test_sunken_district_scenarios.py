@@ -47,7 +47,7 @@ class TestDualRescueScenarios(ScenarioTestCase):
         self.setup_player(location="loc_sunken_district_entrance")
 
         # Create Delvan (trapped merchant)
-        self.delvan = self.state.add_actor(
+        self.delvan = self.game_state.add_actor(
             "merchant_delvan",
             name="Merchant Delvan",
             properties={
@@ -62,7 +62,7 @@ class TestDualRescueScenarios(ScenarioTestCase):
         )
 
         # Create Garrett (drowning sailor)
-        self.garrett = self.state.add_actor(
+        self.garrett = self.game_state.add_actor(
             "sailor_garrett",
             name="Sailor Garrett",
             properties={
@@ -77,22 +77,22 @@ class TestDualRescueScenarios(ScenarioTestCase):
         )
 
         # Create locations
-        self.delvan_room = self.state.add_location(
+        self.delvan_room = self.game_state.add_location(
             "loc_sunken_collapsed_hall",
             name="Collapsed Hall",
         )
-        self.garrett_room = self.state.add_location(
+        self.garrett_room = self.game_state.add_location(
             "loc_sunken_rising_water",
             name="Rising Water Chamber",
         )
 
         # Add commitment configs
-        self.state.add_commitment_config(
+        self.game_state.add_commitment_config(
             "commit_delvan_rescue",
             duration=15,
             success_condition="delvan_rescued",
         )
-        self.state.add_commitment_config(
+        self.game_state.add_commitment_config(
             "commit_garrett_rescue",
             duration=8,  # Much shorter!
             success_condition="garrett_rescued",
@@ -111,13 +111,13 @@ class TestDualRescueScenarios(ScenarioTestCase):
     def test_delvan_encounter_idempotent(self) -> None:
         """Subsequent encounters don't create duplicate commitments."""
         on_delvan_encounter(self.delvan, self.accessor, {})
-        initial_turn = self.state.extra["delvan_encounter_turn"]
+        initial_turn = self.game_state.extra["delvan_encounter_turn"]
 
-        self.state.advance_turns(5)
+        self.game_state.advance_turns(5)
         result = on_delvan_encounter(self.delvan, self.accessor, {})
 
         # Should not update turn
-        self.assertEqual(self.state.extra["delvan_encounter_turn"], initial_turn)
+        self.assertEqual(self.game_state.extra["delvan_encounter_turn"], initial_turn)
 
     def test_garrett_encounter_starts_commitment(self) -> None:
         """Entering Garrett's room starts rescue commitment."""
@@ -188,17 +188,17 @@ class TestDrowningScenarios(ScenarioTestCase):
         player.properties["conditions"] = []
 
         # Create locations
-        self.dock = self.state.add_location(
+        self.dock = self.game_state.add_location(
             "loc_sunken_dock",
             name="Flooded Dock",
             properties={"water_level": "knee"},
         )
-        self.flooded = self.state.add_location(
+        self.flooded = self.game_state.add_location(
             "loc_sunken_passage",
             name="Flooded Passage",
             properties={"water_level": "flooded"},
         )
-        self.surface = self.state.add_location(
+        self.surface = self.game_state.add_location(
             "loc_sunken_platform",
             name="Raised Platform",
             properties={"water_level": "none"},
@@ -206,7 +206,7 @@ class TestDrowningScenarios(ScenarioTestCase):
 
     def test_water_entry_starts_breath_timer(self) -> None:
         """Entering flooded area marks player underwater."""
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
 
         result = on_water_entry(player, self.accessor, {"destination": self.flooded})
 
@@ -217,7 +217,7 @@ class TestDrowningScenarios(ScenarioTestCase):
 
     def test_breathing_equipment_prevents_timer(self) -> None:
         """Breathing equipment allows safe underwater travel."""
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         player.properties["equipment"] = {"breathing": "diving_mask"}
 
         result = on_water_entry(player, self.accessor, {"destination": self.flooded})
@@ -227,7 +227,7 @@ class TestDrowningScenarios(ScenarioTestCase):
 
     def test_breath_warning_at_threshold(self) -> None:
         """Warning appears when breath gets low."""
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         player.properties["underwater"] = True
 
         # Initialize breath close to warning
@@ -242,7 +242,7 @@ class TestDrowningScenarios(ScenarioTestCase):
 
     def test_breath_critical_warning(self) -> None:
         """Critical warning appears when near drowning."""
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         player.properties["underwater"] = True
 
         # Initialize breath close to critical
@@ -257,7 +257,7 @@ class TestDrowningScenarios(ScenarioTestCase):
 
     def test_drowning_damage_at_max(self) -> None:
         """Drowning causes damage when breath exceeds max."""
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         player.properties["underwater"] = True
         player.properties["health"] = 100
 
@@ -274,7 +274,7 @@ class TestDrowningScenarios(ScenarioTestCase):
 
     def test_surfacing_resets_breath(self) -> None:
         """Reaching surface resets breath counter."""
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         player.properties["underwater"] = True
         player.properties["conditions"] = [
             {"type": "held_breath", "current": 8, "max": MAX_BREATH}
@@ -301,13 +301,13 @@ class TestDualRescueImpossibleChoiceScenarios(ScenarioTestCase):
         self.setup_player(location="loc_sunken_entrance")
 
         # Both NPCs
-        self.delvan = self.state.add_actor(
+        self.delvan = self.game_state.add_actor(
             "merchant_delvan",
             properties={
                 "conditions": {"bleeding": {"severity": 60, "type": "bleeding"}}
             },
         )
-        self.garrett = self.state.add_actor(
+        self.garrett = self.game_state.add_actor(
             "sailor_garrett",
             properties={
                 "conditions": {"drowning": {"severity": 80, "type": "drowning"}}
@@ -315,16 +315,16 @@ class TestDualRescueImpossibleChoiceScenarios(ScenarioTestCase):
         )
 
         # Locations
-        self.garrett_room = self.state.add_location(
+        self.garrett_room = self.game_state.add_location(
             "loc_garrett_chamber",
             name="Rising Water Chamber",
         )
 
         # Commitment configs with different durations
-        self.state.add_commitment_config(
+        self.game_state.add_commitment_config(
             "commit_delvan_rescue", duration=15, success_condition="delvan_rescued"
         )
-        self.state.add_commitment_config(
+        self.game_state.add_commitment_config(
             "commit_garrett_rescue", duration=8, success_condition="garrett_rescued"
         )
 

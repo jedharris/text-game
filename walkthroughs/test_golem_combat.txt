@@ -1,0 +1,63 @@
+# Phase 4.2 Validation: Golem Puzzle - Combat Solution
+# Tests the combat deactivation path for stone golems (deliberately hard)
+# Run with: python tools/walkthrough.py examples/big_game --file walkthroughs/test_golem_combat.txt
+#
+# NOTE: This is an abbreviated test focusing on combat mechanics.
+# Full combat victory would require ~36 rounds and is designed to be punishing.
+# We test that: combat initiates, golems respond, combat is difficult
+
+# Navigate to Frozen Reaches
+go north
+look
+
+# Get supplies from frozen pass camp
+examine gear
+take gear
+examine supplies
+take torch from supplies
+inventory
+
+# Navigate to Temple Sanctum
+go north
+look
+
+# Examine golems in initial guarding state
+examine guardian
+examine stone guardian
+look
+
+# Initiate combat with first golem
+attack guardian
+
+# Check combat state - golem should respond
+look
+examine guardian
+
+# Check if golem is now hostile/in combat
+examine stone guardian
+
+# Try a few more attacks to verify combat continues
+attack guardian
+attack guardian
+
+# Check player and golem health
+look
+
+# Flee from combat (should be possible)
+go south
+look
+
+# Verify we escaped combat
+inventory
+
+# This abbreviated test verifies:
+# - Combat can be initiated with "attack" command
+# - Golems enter hostile state when attacked
+# - Combat persists across multiple rounds
+# - Player can flee from combat
+#
+# Full victory test would need:
+# - Sustained combat for ~36 rounds
+# - Tracking golem HP depletion
+# - Verifying linked behavior (both golems engage)
+# - Confirming temple access after victory

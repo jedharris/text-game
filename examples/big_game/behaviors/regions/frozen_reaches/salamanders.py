@@ -19,7 +19,14 @@ from src.infrastructure_utils import (
 #   - pack_behavior.pack_follows_leader_state=true for pack mirroring
 #   - gift_reactions configuration for fire gift mechanics
 vocabulary: Dict[str, Any] = {
-    "events": []
+    "events": [],
+    # Add adjectives for multi-word NPC and item names
+    "adjectives": [
+        {"word": "fire", "synonyms": []},
+        {"word": "steam", "synonyms": []},
+        {"word": "frost", "synonyms": []},
+        {"word": "ice", "synonyms": []},
+    ]
 }
 
 # Fire items salamanders accept
@@ -75,7 +82,7 @@ def on_fire_gift(
             ),
         )
 
-    state = accessor.state
+    state = accessor.game_state
 
     # Find lead salamander (all trust changes apply to lead)
     lead = state.actors.get("salamander")
@@ -131,6 +138,77 @@ def on_fire_gift(
     )
 
 
+def on_salamander_talk(
+    entity: Any,
+    accessor: Any,
+    context: dict[str, Any],
+) -> EventResult:
+    """Handle talk/ask commands for salamanders.
+
+    Salamanders communicate through gestures, flame behavior,
+    postures, and sounds - not words.
+
+    Args:
+        entity: The salamander being talked to
+        accessor: StateAccessor instance
+        context: Context dict
+
+    Returns:
+        EventResult with gesture-based communication
+    """
+    state = accessor.game_state
+
+    # Get salamander
+    salamander_id = entity.id if hasattr(entity, "id") else None
+    if not salamander_id or "salamander" not in salamander_id.lower():
+        return EventResult(allow=True, feedback=None)
+
+    salamander = state.actors.get(salamander_id)
+    if not salamander:
+        return EventResult(allow=True, feedback=None)
+
+    # Get current state
+    sm = salamander.properties.get("state_machine", {})
+    current_state = sm.get("current", sm.get("initial", "neutral"))
+
+    # Gesture responses based on state
+    gestures = {
+        "neutral": (
+            "The salamander watches you carefully, flame flickering with uncertainty. "
+            "It tilts its head, curious but cautious. When you gesture toward the fire, "
+            "it points with a tendril of flame, then looks back at you expectantly."
+        ),
+        "friendly": (
+            "The salamander's flame brightens in greeting, crackling pleasantly. "
+            "It approaches and curls near your feet, radiating comfortable warmth. "
+            "When you speak, it makes a soft rumbling sound, like contentment."
+        ),
+        "companion": (
+            "The salamander nuzzles against you affectionately, its flame dancing "
+            "with joy. It points toward warm places, guides you away from the cold, "
+            "and crackles happily when you acknowledge its gestures. You are bonded."
+        ),
+        "wild": (
+            "The salamander hisses sharply, spines raised in warning. Its flame "
+            "burns erratically, and it backs away, shaking its head vigorously. "
+            "It clearly does not trust you."
+        ),
+        "curious": (
+            "The salamander edges closer, flame dancing with interest. It points "
+            "at various objects, clearly trying to communicate. When you point at "
+            "fire, it brightens. When you point at cold things, it dims and backs away."
+        ),
+        "bonded": (
+            "The salamander stays protectively close, its warmth a constant comfort. "
+            "It responds to your words with gestures - pointing at dangers, guiding you "
+            "to warmth, crackling with pleasure when you're safe. You understand each other perfectly."
+        ),
+    }
+
+    feedback = gestures.get(current_state, gestures["neutral"])
+    return EventResult(allow=True, feedback=feedback)
+
+
 def on_salamander_state_change(
     entity: Any,
     accessor: Any,
@@ -156,7 +234,7 @@ def on_salamander_state_change(
     if not new_state:
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
     _mirror_salamander_state(state, new_state)
 
     return EventResult(allow=True, feedback=None)
@@ -165,9 +243,13 @@ def on_salamander_state_change(
 def _mirror_salamander_state(state: Any, new_state: str) -> None:
     """Update follower salamander states to match lead.
 
-    Note: Currently only one salamander exists in game state.
-    This function is a no-op until additional salamanders are added.
+    Salamanders 2 and 3 follow the lead's state changes.
     """
-    # No follower salamanders defined in current game state
-    # If salamander followers are added later, list their IDs here
-    pass
+    follower_ids = ["steam_salamander_2", "steam_salamander_3"]
+
+    for follower_id in follower_ids:
+        follower = state.actors.get(follower_id)
+        if follower:
+            sm = follower.properties.get("state_machine", {})
+            if sm:
+                transition_state(sm, new_state)

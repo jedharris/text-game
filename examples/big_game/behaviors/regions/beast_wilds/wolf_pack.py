@@ -11,6 +11,7 @@ from src.infrastructure_utils import (
     modify_trust,
     transition_state,
 )
+from src.narrator_helpers import select_state_fragments
 
 # Vocabulary: wire hooks to events
 # Note: Pack state mirroring is handled by infrastructure/pack_mirroring.py
@@ -42,7 +43,7 @@ def on_wolf_state_change(
         EventResult allowing the change
     """
     # Check if this is the alpha wolf
-    if not hasattr(entity, "id") or entity.id != "npc_alpha_wolf":
+    if not hasattr(entity, "id") or entity.id != "alpha_wolf":
         return EventResult(allow=True, feedback=None)
 
     # Get pack followers from entity properties
@@ -56,7 +57,7 @@ def on_wolf_state_change(
         return EventResult(allow=True, feedback=None)
 
     # Mirror state to all followers
-    state = accessor.state
+    state = accessor.game_state
     messages = []
     for follower_id in followers:
         follower = state.actors.get(follower_id)
@@ -95,7 +96,7 @@ def on_wolf_feed(
 
     # Check if target is a wolf
     target_id = target.id if hasattr(target, "id") else str(target)
-    if not target_id.startswith("npc_") or "wolf" not in target_id:
+    if "wolf" not in target_id.lower():
         return EventResult(allow=True, feedback=None)
 
     # Check if item is food (meat/venison)
@@ -107,8 +108,8 @@ def on_wolf_feed(
         return EventResult(allow=True, feedback=None)
 
     # Get the alpha wolf (may be target or may need to find leader)
-    state = accessor.state
-    alpha = state.actors.get("npc_alpha_wolf")
+    state = accessor.game_state
+    alpha = state.actors.get("alpha_wolf")
     if not alpha:
         return EventResult(allow=True, feedback=None)
 
@@ -136,12 +137,51 @@ def on_wolf_feed(
             new_state = "neutral"
         elif current_state == "neutral" and new_trust >= 3:
             new_state = "friendly"
+        elif current_state == "friendly" and new_trust >= 5:
+            new_state = "allied"
 
         if new_state:
             transition_state(sm, new_state)
             # Pack will mirror via on_wolf_state_change
 
+            # Select fragments for the new state
+            fragments = select_state_fragments(alpha, new_state, max_count=2)
+
+            # Check if we should give the alpha_fang_fragment (at allied state)
+            extra_feedback = ""
+            if new_state == "allied" and not state.extra.get("alpha_fang_given"):
+                state.extra["alpha_fang_given"] = True
+                # Give the fragment to the player
+                fang = state.get_item("alpha_fang_fragment")
+                if fang:
+                    fang.location = "player"
+                    player = state.actors.get("player")
+                    if player and fang.id not in player.inventory:
+                        player.inventory.append(fang.id)
+                extra_feedback = (
+                    " The alpha approaches and, with deliberate care, places something "
+                    "at your feet - a massive fang, freely given. A mark of pack bond."
+                )
+
+            return EventResult(
+                allow=True,
+                feedback=f"The wolf accepts the {item_id}. Its posture changes noticeably.{extra_feedback}",
+                context={
+                    "npc_state": {"previous": current_state, "current": new_state},
+                    "communication": {"type": "body_language"}
+                },
+                hints=["trust-building", "tense"],
+                fragments={"state": fragments},
+            )
+
+    # No state change, but still accepted food
+    current_state = get_current_state(sm) if sm else "hostile"
+    fragments = select_state_fragments(alpha, current_state, max_count=2)
+
     return EventResult(
         allow=True,
-        feedback=f"The wolf accepts the {item_id}, watching you with less hostility.",
+        feedback=f"The wolf accepts the {item_id}, watching you carefully.",
+        context={"communication": {"type": "body_language"}},
+        hints=["trust-building"],
+        fragments={"state": fragments},
     )

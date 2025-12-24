@@ -46,7 +46,7 @@ def on_gossip_propagate(
     Returns:
         EventResult with messages about delivered gossip
     """
-    state = accessor.state
+    state = accessor.game_state
     current_turn = get_current_turn(state)
 
     # Deliver all due gossip

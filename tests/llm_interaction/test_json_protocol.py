@@ -60,7 +60,7 @@ class _LLMProtocolHandlerReference:
     """
 
     def __init__(self, state: GameState):
-        self.state = state
+        self.game_state = state
 
     def handle_message(self, message: dict) -> dict:
         """Route message to appropriate handler based on type."""
@@ -141,7 +141,7 @@ class _LLMProtocolHandlerReference:
         # Find item in current location
         current_loc = self._get_current_location()
         item = None
-        for i in self.state.items:
+        for i in self.game_state.items:
             if i.name == obj_name and i.location == current_loc.id:
                 item = i
                 break
@@ -165,7 +165,7 @@ class _LLMProtocolHandlerReference:
 
         # Move item to inventory
         item.location = "player"
-        self.state.actors[ActorId("player")].inventory.append(item.id)
+        self.game_state.actors[ActorId("player")].inventory.append(item.id)
         if item.id in current_loc.items:
             current_loc.items.remove(item.id)
 
@@ -190,7 +190,7 @@ class _LLMProtocolHandlerReference:
 
         # Find item in inventory
         item = None
-        for item_id in self.state.actors[ActorId("player")].inventory:
+        for item_id in self.game_state.actors[ActorId("player")].inventory:
             i = self._get_item_by_id(item_id)
             if i and i.name == obj_name:
                 item = i
@@ -207,7 +207,7 @@ class _LLMProtocolHandlerReference:
         # Move item to current location
         current_loc = self._get_current_location()
         item.location = current_loc.id
-        self.state.actors[ActorId("player")].inventory.remove(item.id)
+        self.game_state.actors[ActorId("player")].inventory.remove(item.id)
         current_loc.items.append(item.id)
 
         return {
@@ -308,7 +308,7 @@ class _LLMProtocolHandlerReference:
 
         # Move player
         new_loc_id = exit_desc.to
-        self.state.actors[ActorId("player")].location = new_loc_id
+        self.game_state.actors[ActorId("player")].location = new_loc_id
         new_loc = self._get_location_by_id(new_loc_id)
 
         return {
@@ -507,7 +507,7 @@ class _LLMProtocolHandlerReference:
     def _cmd_inventory(self, action: dict) -> dict:
         """Handle inventory command."""
         items = []
-        for item_id in self.state.actors[ActorId("player")].inventory:
+        for item_id in self.game_state.actors[ActorId("player")].inventory:
             item = self._get_item_by_id(item_id)
             if item:
                 items.append(self._entity_to_dict(item))
@@ -535,7 +535,7 @@ class _LLMProtocolHandlerReference:
 
         if "items" in include or not include:
             items_list = []
-            for item in self.state.items:
+            for item in self.game_state.items:
                 if item.location == loc.id:
                     items_list.append(self._entity_to_dict(item))
             data["items"] = items_list
@@ -567,7 +567,7 @@ class _LLMProtocolHandlerReference:
 
         if "npcs" in include or not include:
             npcs_list = []
-            for actor_id, actor in self.state.actors.items():
+            for actor_id, actor in self.game_state.actors.items():
                 if actor_id != "player" and actor.location == loc.id:
                     npcs_list.append(self._npc_to_dict(actor))
             data["npcs"] = npcs_list
@@ -581,7 +581,7 @@ class _LLMProtocolHandlerReference:
     def _query_inventory(self, message: dict) -> dict:
         """Query player inventory."""
         items = []
-        for item_id in self.state.actors[ActorId("player")].inventory:
+        for item_id in self.game_state.actors[ActorId("player")].inventory:
             item = self._get_item_by_id(item_id)
             if item:
                 items.append(self._entity_to_dict(item))
@@ -656,7 +656,7 @@ class _LLMProtocolHandlerReference:
         elif entity_type == "item":
             loc = self._get_location_by_id(location_id) if location_id else self._get_current_location()
             if loc:
-                for item in self.state.items:
+                for item in self.game_state.items:
                     if item.location == loc.id:
                         entities.append(self._entity_to_dict(item))
 
@@ -684,10 +684,10 @@ class _LLMProtocolHandlerReference:
             "type": "query_response",
             "query_type": "metadata",
             "data": {
-                "title": self.state.metadata.title,
-                "author": self.state.metadata.author,
-                "version": self.state.metadata.version,
-                "description": self.state.metadata.description
+                "title": self.game_state.metadata.title,
+                "author": self.game_state.metadata.author,
+                "version": self.game_state.metadata.version,
+                "description": self.game_state.metadata.description
             }
         }
 
@@ -695,28 +695,28 @@ class _LLMProtocolHandlerReference:
 
     def _get_current_location(self):
         """Get current location object."""
-        for loc in self.state.locations:
-            if loc.id == self.state.actors[ActorId("player")].location:
+        for loc in self.game_state.locations:
+            if loc.id == self.game_state.actors[ActorId("player")].location:
                 return loc
         return None
 
     def _get_location_by_id(self, loc_id: str):
         """Get location by ID."""
-        for loc in self.state.locations:
+        for loc in self.game_state.locations:
             if loc.id == loc_id:
                 return loc
         return None
 
     def _get_item_by_id(self, item_id: str):
         """Get item by ID."""
-        for item in self.state.items:
+        for item in self.game_state.items:
             if item.id == item_id:
                 return item
         return None
 
     def _get_door_by_id(self, door_id: str):
         """Get door by ID. Doors are items with is_door property."""
-        for item in self.state.items:
+        for item in self.game_state.items:
             if item.id == door_id and item.is_door:
                 return item
         return None
@@ -726,11 +726,11 @@ class _LLMProtocolHandlerReference:
         from src.types import ActorId
         if npc_id == "player":
             return None
-        return self.state.actors.get(ActorId(npc_id))
+        return self.game_state.actors.get(ActorId(npc_id))
 
     def _get_lock_by_id(self, lock_id: str):
         """Get lock by ID."""
-        for lock in self.state.locks:
+        for lock in self.game_state.locks:
             if lock.id == lock_id:
                 return lock
         return None
@@ -739,7 +739,7 @@ class _LLMProtocolHandlerReference:
         """Get all doors in current location."""
         loc = self._get_current_location()
         doors = []
-        for door in self.state.doors:
+        for door in self.game_state.doors:
             if loc.id in door.locations:
                 doors.append(door)
         return doors
@@ -749,12 +749,12 @@ class _LLMProtocolHandlerReference:
         loc = self._get_current_location()
 
         # Check location
-        for item in self.state.items:
+        for item in self.game_state.items:
             if item.name == name and item.location == loc.id:
                 return item
 
         # Check inventory
-        for item_id in self.state.actors[ActorId("player")].inventory:
+        for item_id in self.game_state.actors[ActorId("player")].inventory:
             item = self._get_item_by_id(item_id)
             if item and item.name == name:
                 return item
@@ -789,7 +789,7 @@ class _LLMProtocolHandlerReference:
         if not lock:
             return False
 
-        return any(key_id in self.state.actors[ActorId("player")].inventory for key_id in lock.opens_with)
+        return any(key_id in self.game_state.actors[ActorId("player")].inventory for key_id in lock.opens_with)
 
     def _entity_to_dict(self, item) -> dict:
         """Convert item to dict with llm_context."""
@@ -858,8 +858,8 @@ class TestCommandMessages(unittest.TestCase):
     def setUp(self):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
-        self.state = load_game_state(str(fixtures_path))
-        self.handler = LLMProtocolHandler(self.state)
+        self.game_state = load_game_state(str(fixtures_path))
+        self.handler = LLMProtocolHandler(self.game_state)
 
     def test_take_item_success(self):
         """Test successful take command."""
@@ -878,7 +878,7 @@ class TestCommandMessages(unittest.TestCase):
         self.assertIn("key", get_result_message(result))
 
         # Verify state changed
-        self.assertIn("item_key", self.state.actors[ActorId("player")].inventory)
+        self.assertIn("item_key", self.game_state.actors[ActorId("player")].inventory)
 
     def test_take_item_not_found(self):
         """Test take command for non-existent item."""
@@ -898,7 +898,7 @@ class TestCommandMessages(unittest.TestCase):
     def test_take_non_portable_item(self):
         """Test take command for non-portable item."""
         # Move player to treasure room
-        self.state.actors[ActorId("player")].location = "loc_treasure"
+        self.game_state.actors[ActorId("player")].location = "loc_treasure"
 
         message = {
             "type": "command",
@@ -913,8 +913,8 @@ class TestCommandMessages(unittest.TestCase):
     def test_drop_item_success(self):
         """Test successful drop command."""
         # First take the item
-        self.state.actors[ActorId("player")].inventory.append("item_key")
-        self.state.items[1].location = "player"  # item_key
+        self.game_state.actors[ActorId("player")].inventory.append("item_key")
+        self.game_state.items[1].location = "player"  # item_key
 
         message = {
             "type": "command",
@@ -925,7 +925,7 @@ class TestCommandMessages(unittest.TestCase):
 
         self.assertTrue(result["success"])
         self.assertEqual(result["action"], "drop")
-        self.assertNotIn("item_key", self.state.actors[ActorId("player")].inventory)
+        self.assertNotIn("item_key", self.game_state.actors[ActorId("player")].inventory)
 
     def test_drop_item_not_in_inventory(self):
         """Test drop command for item not in inventory."""
@@ -952,7 +952,7 @@ class TestCommandMessages(unittest.TestCase):
 
         self.assertTrue(result["success"])
         self.assertEqual(result["action"], "go")
-        self.assertEqual(self.state.actors[ActorId("player")].location, "loc_hallway")
+        self.assertEqual(self.game_state.actors[ActorId("player")].location, "loc_hallway")
 
     def test_go_invalid_direction(self):
         """Test movement in invalid direction."""
@@ -969,7 +969,7 @@ class TestCommandMessages(unittest.TestCase):
     def test_go_through_closed_door(self):
         """Test movement through closed door."""
         # Move to hallway and try to go east through locked door
-        self.state.actors[ActorId("player")].location = "loc_hallway"
+        self.game_state.actors[ActorId("player")].location = "loc_hallway"
 
         message = {
             "type": "command",
@@ -985,7 +985,7 @@ class TestCommandMessages(unittest.TestCase):
     def test_open_door_success(self):
         """Test opening an unlocked door."""
         # Close the wooden door first (door is now an item)
-        for item in self.state.items:
+        for item in self.game_state.items:
             if item.id == "door_wooden" and item.is_door:
                 item.properties["door"]["open"] = False
                 break
@@ -1003,9 +1003,9 @@ class TestCommandMessages(unittest.TestCase):
     def test_open_locked_door_with_key(self):
         """Test opening locked door after unlocking it with key."""
         # Move to hallway
-        self.state.actors[ActorId("player")].location = "loc_hallway"
+        self.game_state.actors[ActorId("player")].location = "loc_hallway"
         # Give player the key
-        self.state.actors[ActorId("player")].inventory.append("item_key")
+        self.game_state.actors[ActorId("player")].inventory.append("item_key")
 
         # First unlock the door (use adjective + object as parser would produce)
         unlock_msg = {
@@ -1031,9 +1031,9 @@ class TestCommandMessages(unittest.TestCase):
     def test_open_locked_door_without_key(self):
         """Test opening locked door without key."""
         # Move to hallway
-        self.state.actors[ActorId("player")].location = "loc_hallway"
+        self.game_state.actors[ActorId("player")].location = "loc_hallway"
         # Close the wooden door so we can test the iron door (door is now an item)
-        for item in self.state.items:
+        for item in self.game_state.items:
             if item.id == "door_wooden" and item.is_door:
                 item.properties["door"]["open"] = False
                 break
@@ -1107,8 +1107,8 @@ class TestCommandMessages(unittest.TestCase):
     def test_unlock_door_with_key(self):
         """Test unlocking a door with key."""
         # Move to hallway and give key
-        self.state.actors[ActorId("player")].location = "loc_hallway"
-        self.state.actors[ActorId("player")].inventory.append("item_key")
+        self.game_state.actors[ActorId("player")].location = "loc_hallway"
+        self.game_state.actors[ActorId("player")].inventory.append("item_key")
 
         # Use adjective "iron" and object "door" (as parser would produce)
         message = {
@@ -1128,7 +1128,7 @@ class TestCommandMessages(unittest.TestCase):
 
     def test_unlock_door_without_key(self):
         """Test unlocking door without key."""
-        self.state.actors[ActorId("player")].location = "loc_hallway"
+        self.game_state.actors[ActorId("player")].location = "loc_hallway"
 
         # Use adjective "iron" and object "door" (as parser would produce)
         message = {
@@ -1156,7 +1156,7 @@ class TestCommandMessages(unittest.TestCase):
     def test_inventory_command(self):
         """Test inventory command."""
         # Add item to inventory
-        self.state.actors[ActorId("player")].inventory.append("item_sword")
+        self.game_state.actors[ActorId("player")].inventory.append("item_sword")
 
         message = {
             "type": "command",
@@ -1175,8 +1175,8 @@ class TestQueryMessages(unittest.TestCase):
     def setUp(self):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
-        self.state = load_game_state(str(fixtures_path))
-        self.handler = LLMProtocolHandler(self.state)
+        self.game_state = load_game_state(str(fixtures_path))
+        self.handler = LLMProtocolHandler(self.game_state)
 
     def test_query_location(self):
         """Test location query."""
@@ -1214,7 +1214,7 @@ class TestQueryMessages(unittest.TestCase):
 
     def test_query_entities_doors(self):
         """Test entities query for doors in location."""
-        self.state.actors[ActorId("player")].location = "loc_hallway"
+        self.game_state.actors[ActorId("player")].location = "loc_hallway"
 
         message = {
             "type": "query",
@@ -1308,7 +1308,7 @@ class TestQueryMessages(unittest.TestCase):
     def test_location_query_includes_exit_llm_context(self):
         """Location query includes llm_context for exits that have it."""
         # Add llm_context to an exit
-        loc = self.state.get_location("loc_hallway")
+        loc = self.game_state.get_location("loc_hallway")
         loc.exits["up"].llm_context = {
             "traits": ["spiral staircase", "worn stone steps"],
             "state_variants": {
@@ -1316,7 +1316,7 @@ class TestQueryMessages(unittest.TestCase):
             }
         }
 
-        self.state.actors[ActorId("player")].location = "loc_hallway"
+        self.game_state.actors[ActorId("player")].location = "loc_hallway"
 
         message = {
             "type": "query",
@@ -1335,10 +1335,10 @@ class TestQueryMessages(unittest.TestCase):
     def test_location_query_omits_exit_llm_context_when_missing(self):
         """Location query omits llm_context for exits without it."""
         # Ensure exit has no llm_context
-        loc = self.state.get_location("loc_start")
+        loc = self.game_state.get_location("loc_start")
         self.assertIsNone(loc.exits["north"].llm_context)
 
-        self.state.actors[ActorId("player")].location = "loc_start"
+        self.game_state.actors[ActorId("player")].location = "loc_start"
 
         message = {
             "type": "query",
@@ -1360,8 +1360,8 @@ class TestVocabularyQueryProtocol(unittest.TestCase):
     def setUp(self):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
-        self.state = load_game_state(str(fixtures_path))
-        self.handler = LLMProtocolHandler(self.state)
+        self.game_state = load_game_state(str(fixtures_path))
+        self.handler = LLMProtocolHandler(self.game_state)
 
     def test_vocabulary_query_response_structure(self):
         """Test vocabulary query returns correct response structure."""
@@ -1458,8 +1458,8 @@ class TestErrorHandling(unittest.TestCase):
     def setUp(self):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
-        self.state = load_game_state(str(fixtures_path))
-        self.handler = LLMProtocolHandler(self.state)
+        self.game_state = load_game_state(str(fixtures_path))
+        self.handler = LLMProtocolHandler(self.game_state)
 
     def test_missing_message_type(self):
         """Test message without type field."""
@@ -1523,8 +1523,8 @@ class TestResultFormat(unittest.TestCase):
     def setUp(self):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
-        self.state = load_game_state(str(fixtures_path))
-        self.handler = LLMProtocolHandler(self.state)
+        self.game_state = load_game_state(str(fixtures_path))
+        self.handler = LLMProtocolHandler(self.game_state)
 
     def test_success_result_format(self):
         """Test that success results have correct format."""
@@ -1587,8 +1587,8 @@ class TestEndToEndInteractions(unittest.TestCase):
     def setUp(self):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
-        self.state = load_game_state(str(fixtures_path))
-        self.handler = LLMProtocolHandler(self.state)
+        self.game_state = load_game_state(str(fixtures_path))
+        self.handler = LLMProtocolHandler(self.game_state)
 
     def test_take_key_unlock_door_sequence(self):
         """Test sequence: take key, go north, unlock door, open door, go east."""
@@ -1605,7 +1605,7 @@ class TestEndToEndInteractions(unittest.TestCase):
             "action": {"verb": "go", "object": "north"}
         })
         self.assertTrue(result["success"])
-        self.assertEqual(self.state.actors[ActorId("player")].location, "loc_hallway")
+        self.assertEqual(self.game_state.actors[ActorId("player")].location, "loc_hallway")
 
         # Unlock iron door
         result = self.handler.handle_message({
@@ -1627,7 +1627,7 @@ class TestEndToEndInteractions(unittest.TestCase):
             "action": {"verb": "go", "object": "east"}
         })
         self.assertTrue(result["success"])
-        self.assertEqual(self.state.actors[ActorId("player")].location, "loc_treasure")
+        self.assertEqual(self.game_state.actors[ActorId("player")].location, "loc_treasure")
 
     def test_query_then_command_sequence(self):
         """Test querying state then executing command."""
@@ -1662,8 +1662,8 @@ class TestEndToEndInteractions(unittest.TestCase):
     def test_disambiguation_with_adjective(self):
         """Test using adjective to disambiguate doors."""
         # Move to hallway (has two doors)
-        self.state.actors[ActorId("player")].location = "loc_hallway"
-        self.state.actors[ActorId("player")].inventory.append("item_key")
+        self.game_state.actors[ActorId("player")].location = "loc_hallway"
+        self.game_state.actors[ActorId("player")].inventory.append("item_key")
 
         # Query doors
         result = self.handler.handle_message({
@@ -1700,7 +1700,7 @@ class TestEndToEndInteractions(unittest.TestCase):
     def test_failed_action_then_retry(self):
         """Test failed action, then success after getting requirements."""
         # Move to hallway
-        self.state.actors[ActorId("player")].location = "loc_hallway"
+        self.game_state.actors[ActorId("player")].location = "loc_hallway"
 
         # Try to unlock iron door without key - should fail
         result = self.handler.handle_message({
@@ -1779,7 +1779,7 @@ class TestLightSourceFunctionality(unittest.TestCase):
         from src.behavior_manager import BehaviorManager
 
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
-        self.state = load_game_state(str(fixtures_path))
+        self.game_state = load_game_state(str(fixtures_path))
 
         # Create behavior manager and load core modules
         self.manager = BehaviorManager()
@@ -1787,7 +1787,7 @@ class TestLightSourceFunctionality(unittest.TestCase):
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
 
-        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
 
     def test_take_light_source_auto_lights(self):
         """Test that taking an item with provides_light sets lit state."""
@@ -1805,11 +1805,11 @@ class TestLightSourceFunctionality(unittest.TestCase):
         self.assertIn("lantern", get_result_message(result).lower())
 
         # Verify item is in inventory
-        self.assertIn("item_lantern", self.state.actors[ActorId("player")].inventory)
+        self.assertIn("item_lantern", self.game_state.actors[ActorId("player")].inventory)
 
         # Verify item is marked as lit
         lantern = None
-        for item in self.state.items:
+        for item in self.game_state.items:
             if item.id == "item_lantern":
                 lantern = item
                 break
@@ -1830,7 +1830,7 @@ class TestLightSourceFunctionality(unittest.TestCase):
 
         # Verify lit state on entity object (not in response)
         lantern = None
-        for item in self.state.items:
+        for item in self.game_state.items:
             if item.id == "item_lantern":
                 lantern = item
                 break
@@ -1840,7 +1840,7 @@ class TestLightSourceFunctionality(unittest.TestCase):
         """Test that light source entity has provides_light property."""
         # Verify the entity has provides_light property
         lantern = None
-        for item in self.state.items:
+        for item in self.game_state.items:
             if item.id == "item_lantern":
                 lantern = item
                 break
@@ -1860,7 +1860,7 @@ class TestLightSourceFunctionality(unittest.TestCase):
 
         # Find sword and verify no lit state
         sword = None
-        for item in self.state.items:
+        for item in self.game_state.items:
             if item.id == "item_sword":
                 sword = item
                 break
@@ -1890,7 +1890,7 @@ class TestLightSourceFunctionality(unittest.TestCase):
 
         # Verify the entity state is lit
         lantern = None
-        for item in self.state.items:
+        for item in self.game_state.items:
             if item.id == "item_lantern":
                 lantern = item
                 break
@@ -1899,7 +1899,7 @@ class TestLightSourceFunctionality(unittest.TestCase):
     def test_provides_light_property_loaded(self):
         """Test that provides_light property is loaded from game state."""
         lantern = None
-        for item in self.state.items:
+        for item in self.game_state.items:
             if item.id == "item_lantern":
                 lantern = item
                 break
@@ -1910,7 +1910,7 @@ class TestLightSourceFunctionality(unittest.TestCase):
     def test_normal_item_no_provides_light(self):
         """Test that normal items don't have provides_light."""
         sword = None
-        for item in self.state.items:
+        for item in self.game_state.items:
             if item.id == "item_sword":
                 sword = item
                 break
@@ -1929,7 +1929,7 @@ class TestLightSourceFunctionality(unittest.TestCase):
 
         # Verify it's lit
         lantern = None
-        for item in self.state.items:
+        for item in self.game_state.items:
             if item.id == "item_lantern":
                 lantern = item
                 break
@@ -1966,7 +1966,7 @@ class TestLightSourceFunctionality(unittest.TestCase):
         self.assertTrue(result["success"])
         # Verify entity state is unlit
         lantern = None
-        for item in self.state.items:
+        for item in self.game_state.items:
             if item.id == "item_lantern":
                 lantern = item
                 break
@@ -1996,7 +1996,7 @@ class TestLightSourceFunctionality(unittest.TestCase):
 
         # Verify lit state in entity object
         lantern = None
-        for item in self.state.items:
+        for item in self.game_state.items:
             if item.id == "item_lantern":
                 lantern = item
                 break
@@ -2021,7 +2021,7 @@ class TestLightSourceFunctionality(unittest.TestCase):
 
         # Find sword and verify no lit state was set
         sword = None
-        for item in self.state.items:
+        for item in self.game_state.items:
             if item.id == "item_sword":
                 sword = item
                 break
@@ -2035,13 +2035,13 @@ class TestTraitRandomization(unittest.TestCase):
     def setUp(self):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
-        self.state = load_game_state(str(fixtures_path))
-        self.handler = LLMProtocolHandler(self.state)
+        self.game_state = load_game_state(str(fixtures_path))
+        self.handler = LLMProtocolHandler(self.game_state)
 
     def test_traits_are_shuffled(self):
         """Verify traits list is shuffled (not always in original order)."""
         # Add llm_context with many traits to a location
-        loc = self.state.get_location("loc_start")
+        loc = self.game_state.get_location("loc_start")
         original_traits = [f"trait_{i}" for i in range(20)]
         loc.properties["llm_context"] = {"traits": original_traits.copy()}
 
@@ -2059,7 +2059,7 @@ class TestTraitRandomization(unittest.TestCase):
 
     def test_original_traits_not_mutated(self):
         """Verify original entity traits are not modified."""
-        loc = self.state.get_location("loc_start")
+        loc = self.game_state.get_location("loc_start")
         original_traits = ["trait_a", "trait_b", "trait_c", "trait_d", "trait_e"]
         loc.properties["llm_context"] = {"traits": original_traits.copy()}
         original_copy = original_traits.copy()
@@ -2073,7 +2073,7 @@ class TestTraitRandomization(unittest.TestCase):
 
     def test_state_variants_preserved(self):
         """Verify state_variants are included unchanged."""
-        loc = self.state.get_location("loc_start")
+        loc = self.game_state.get_location("loc_start")
         state_variants = {
             "first_visit": "Welcome to the room.",
             "revisit": "You're back again."
@@ -2089,7 +2089,7 @@ class TestTraitRandomization(unittest.TestCase):
 
     def test_no_llm_context_handled(self):
         """Verify entities without llm_context work correctly."""
-        loc = self.state.get_location("loc_start")
+        loc = self.game_state.get_location("loc_start")
         loc.properties.pop("llm_context", None)
 
         result = self.handler._location_to_dict(loc)
@@ -2098,7 +2098,7 @@ class TestTraitRandomization(unittest.TestCase):
 
     def test_empty_traits_handled(self):
         """Verify empty traits list is handled correctly."""
-        loc = self.state.get_location("loc_start")
+        loc = self.game_state.get_location("loc_start")
         loc.properties["llm_context"] = {"traits": []}
 
         result = self.handler._location_to_dict(loc)
@@ -2107,7 +2107,7 @@ class TestTraitRandomization(unittest.TestCase):
 
     def test_llm_context_without_traits_preserved(self):
         """Verify llm_context without traits key is preserved."""
-        loc = self.state.get_location("loc_start")
+        loc = self.game_state.get_location("loc_start")
         loc.properties["llm_context"] = {
             "state_variants": {"default": "A room."}
         }
@@ -2120,11 +2120,11 @@ class TestTraitRandomization(unittest.TestCase):
 
     def test_exit_traits_randomized(self):
         """Verify exit llm_context traits are also randomized."""
-        loc = self.state.get_location("loc_hallway")
+        loc = self.game_state.get_location("loc_hallway")
         original_traits = [f"exit_trait_{i}" for i in range(15)]
         loc.exits["up"].llm_context = {"traits": original_traits.copy()}
 
-        self.state.actors[ActorId("player")].location = "loc_hallway"
+        self.game_state.actors[ActorId("player")].location = "loc_hallway"
 
         message = {
             "type": "query",
@@ -2146,7 +2146,7 @@ class TestTraitRandomization(unittest.TestCase):
 
     def test_all_traits_present_after_shuffle(self):
         """Verify shuffling preserves all traits (no loss)."""
-        loc = self.state.get_location("loc_start")
+        loc = self.game_state.get_location("loc_start")
         original_traits = ["alpha", "beta", "gamma", "delta", "epsilon"]
         loc.properties["llm_context"] = {"traits": original_traits.copy()}
 

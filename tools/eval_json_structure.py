@@ -126,58 +126,83 @@ def print_narration_structure(result: Dict[str, Any], command: str) -> None:
             print(f"  name: {data['name']}")
 
 
-def setup_door_test_state(state) -> None:
+def setup_door_test_state(state) -> bool:
     """Programmatically set up state for door testing.
 
     Moves player to library, gives them the key, ensures door is locked.
     This bypasses the puzzle mechanics to directly test door interactions.
+
+    This scenario requires extended_game which has:
+    - loc_library (location)
+    - door_sanctum (locked door)
+    - item_sanctum_key (key to unlock door)
+
+    Returns:
+        True if setup succeeded, False if required entities are missing.
     """
     from src.types import ActorId, LocationId, ItemId
 
-    # Move player to the library
+    # Check for required entities first
     player = state.actors.get(ActorId("player"))
-    if player:
-        player.location = LocationId("loc_library")
+    if not player:
+        print("ERROR: No player actor found in game state.")
+        return False
 
-    # Give player the sanctum key
+    # Check location exists
+    library_exists = any(loc.id == "loc_library" for loc in state.locations)
+    if not library_exists:
+        print("ERROR: loc_library not found. This scenario requires extended_game.")
+        print("       Run with: python tools/eval_json_structure.py examples/extended_game --door-scenario")
+        return False
+
+    # Check for required items
     sanctum_key = None
+    sanctum_door = None
     for item in state.items:
         if item.id == "item_sanctum_key":
             sanctum_key = item
-            break
+        elif item.id == "door_sanctum":
+            sanctum_door = item
 
-    if sanctum_key:
-        # Unhide the key and put it in player inventory
-        sanctum_key.states["hidden"] = False
-        sanctum_key.location = "player"
-        if player and "item_sanctum_key" not in player.inventory:
-            player.inventory.append(ItemId("item_sanctum_key"))
+    if not sanctum_key:
+        print("ERROR: item_sanctum_key not found. This scenario requires extended_game.")
+        return False
+
+    if not sanctum_door:
+        print("ERROR: door_sanctum not found. This scenario requires extended_game.")
+        return False
+
+    # All entities exist, proceed with setup
+    player.location = LocationId("loc_library")
+
+    # Give player the sanctum key
+    sanctum_key.states["hidden"] = False
+    sanctum_key.location = "player"
+    if "item_sanctum_key" not in player.inventory:
+        player.inventory.append(ItemId("item_sanctum_key"))
 
     # Ensure the sanctum door is locked and closed
-    sanctum_door = None
-    for item in state.items:
-        if item.id == "door_sanctum":
-            sanctum_door = item
-            break
-
-    if sanctum_door:
-        sanctum_door._door_open = False
-        sanctum_door._door_locked = True
+    sanctum_door._door_open = False
+    sanctum_door._door_locked = True
 
     print("State configured: Player in library with sanctum key, door locked.")
+    return True
 
 
 def analyze_door_scenario(handler, parser) -> None:
     """Run the unlock/open door scenario and analyze the JSON.
 
     Sets up state programmatically to test the locked sanctum door.
+    Requires extended_game (has loc_library, door_sanctum, item_sanctum_key).
     """
     print("\n" + "#"*60)
     print("# SANCTUM DOOR SCENARIO ANALYSIS")
     print("#"*60)
 
     # Set up the test state directly
-    setup_door_test_state(handler.state)
+    if not setup_door_test_state(handler.state):
+        print("\nScenario setup failed. Aborting.")
+        return
 
     # The critical door interactions
     commands = [
@@ -235,7 +260,7 @@ def main():
     parser.add_argument("game_dir", type=Path, help="Path to game directory")
     parser.add_argument("--commands", "-c", nargs="*", help="Commands to run")
     parser.add_argument("--door-scenario", "-d", action="store_true",
-                       help="Run the door unlock/open scenario")
+                       help="Run the door unlock/open scenario (requires extended_game)")
     parser.add_argument("--narrator-json", action="store_true",
                        help="Output full JSON that narrator receives for door scenario")
     parser.add_argument("--json", "-j", action="store_true",

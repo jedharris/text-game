@@ -1,0 +1,297 @@
+Loading game from examples/big_game...
+Running 46 commands...
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Nexus Chamber
+The heart of the meridian convergence, a vast circular chamber where reality itself seems to bend. At the center stands the damaged waystone, its surface cracked and dim. Twilight suffuses the space from no visible source. Exits lead north to the frozen passes, south to the forest edge, east to flooded ruins, and west to dark caverns. A stairway spirals upward to an observatory.
+
+Also here: Waystone
+
+Exits: north (north), south (south), east (east), west (west), up (up)
+
+============================================================
+> go north
+------------------------------------------------------------
+[✓] You go north north to Frozen Pass.
+
+Frozen Pass
+The entrance to the Frozen Reaches, where an eternal winter has gripped the land. Cold wind howls through the pass, carrying flurries of snow. The temperature drops noticeably as you move away from the nexus. An abandoned camp sits to one side, half-buried in snow, its former occupants frozen where they fell.
+
+You see: cold weather gear, preserved supplies, partial map
+In the preserved supplies: dried meat, bandages, ancient torch
+
+Exits: south (south), north (north), east (east), west (west), northwest (northwest)
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Frozen Pass
+The entrance to the Frozen Reaches, where an eternal winter has gripped the land. Cold wind howls through the pass, carrying flurries of snow. The temperature drops noticeably as you move away from the nexus. An abandoned camp sits to one side, half-buried in snow, its former occupants frozen where they fell.
+
+You see: cold weather gear, preserved supplies, partial map
+In the preserved supplies: dried meat, bandages, ancient torch
+
+Exits: south (south), north (north), east (east), west (west), northwest (northwest)
+
+============================================================
+> go east
+------------------------------------------------------------
+[✓] You go east east to Ice Caves.
+
+Ice Caves
+Crystal blue walls of ice surround you, refracting light into dancing patterns. Your breath freezes instantly in the frigid air. The cave extends deeper into the glacier - a main chamber with ice crystals growing from the walls, a deep section where frozen pools lie still, and hints of hidden passages in the shadows. The floor makes ominous cracking sounds underfoot.
+
+You see: frost lily, ice shard, crystal lens, control crystal
+
+Exits: west (west), north (north)
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Ice Caves
+Crystal blue walls of ice surround you, refracting light into dancing patterns. Your breath freezes instantly in the frigid air. The cave extends deeper into the glacier - a main chamber with ice crystals growing from the walls, a deep section where frozen pools lie still, and hints of hidden passages in the shadows. The floor makes ominous cracking sounds underfoot.
+
+You see: frost lily, ice shard, crystal lens, control crystal
+
+Exits: west (west), north (north)
+
+============================================================
+> go west
+------------------------------------------------------------
+[✓] You go west west to Frozen Pass.
+
+Frozen Pass
+The entrance to the Frozen Reaches, where an eternal winter has gripped the land. Cold wind howls through the pass, carrying flurries of snow. The temperature drops noticeably as you move away from the nexus. An abandoned camp sits to one side, half-buried in snow, its former occupants frozen where they fell.
+
+You see: cold weather gear, preserved supplies, partial map
+In the preserved supplies: dried meat, bandages, ancient torch
+
+Exits: south (south), north (north), east (east), west (west), northwest (northwest)
+
+============================================================
+> go south
+------------------------------------------------------------
+[✓] You go south south to Nexus Chamber.
+
+Nexus Chamber
+The heart of the meridian convergence, a vast circular chamber where reality itself seems to bend. At the center stands the damaged waystone, its surface cracked and dim. Twilight suffuses the space from no visible source. Exits lead north to the frozen passes, south to the forest edge, east to flooded ruins, and west to dark caverns. A stairway spirals upward to an observatory.
+
+Also here: Waystone
+
+Exits: north (north), south (south), east (east), west (west), up (up)
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Nexus Chamber
+The heart of the meridian convergence, a vast circular chamber where reality itself seems to bend. At the center stands the damaged waystone, its surface cracked and dim. Twilight suffuses the space from no visible source. Exits lead north to the frozen passes, south to the forest edge, east to flooded ruins, and west to dark caverns. A stairway spirals upward to an observatory.
+
+Also here: Waystone
+
+Exits: north (north), south (south), east (east), west (west), up (up)
+
+============================================================
+> examine cold weather gear
+------------------------------------------------------------
+PARSE ERROR: Could not parse 'examine cold weather gear'
+[✗] ERROR: Could not parse: examine cold weather gear
+
+============================================================
+> take cold weather gear
+------------------------------------------------------------
+PARSE ERROR: Could not parse 'take cold weather gear'
+[✗] ERROR: Could not parse: take cold weather gear
+
+============================================================
+> examine preserved supplies
+------------------------------------------------------------
+[✗] You don't see any preserved here.
+
+============================================================
+> take preserved supplies
+------------------------------------------------------------
+[✗] You don't see any supplie here.
+
+============================================================
+> open preserved supplies
+------------------------------------------------------------
+[✗] You don't see any preserved here.
+
+============================================================
+> look in preserved supplies
+------------------------------------------------------------
+PARSE ERROR: Could not parse 'look in preserved supplies'
+[✗] ERROR: Could not parse: look in preserved supplies
+
+============================================================
+> go north
+------------------------------------------------------------
+[✓] You go north north to Frozen Pass.
+
+Frozen Pass
+The entrance to the Frozen Reaches, where an eternal winter has gripped the land. Cold wind howls through the pass, carrying flurries of snow. The temperature drops noticeably as you move away from the nexus. An abandoned camp sits to one side, half-buried in snow, its former occupants frozen where they fell.
+
+You see: cold weather gear, preserved supplies, partial map
+In the preserved supplies: dried meat, bandages, ancient torch
+
+Exits: south (south), north (north), east (east), west (west), northwest (northwest)
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Frozen Pass
+The entrance to the Frozen Reaches, where an eternal winter has gripped the land. Cold wind howls through the pass, carrying flurries of snow. The temperature drops noticeably as you move away from the nexus. An abandoned camp sits to one side, half-buried in snow, its former occupants frozen where they fell.
+
+You see: cold weather gear, preserved supplies, partial map
+In the preserved supplies: dried meat, bandages, ancient torch
+
+Exits: south (south), north (north), east (east), west (west), northwest (northwest)
+
+============================================================
+> examine stone pillar
+------------------------------------------------------------
+[✗] You don't see any stone here.
+
+============================================================
+> hide behind stone pillar
+------------------------------------------------------------
+PARSE ERROR: Could not parse 'hide behind stone pillar'
+[✗] ERROR: Could not parse: hide behind stone pillar
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Frozen Pass
+The entrance to the Frozen Reaches, where an eternal winter has gripped the land. Cold wind howls through the pass, carrying flurries of snow. The temperature drops noticeably as you move away from the nexus. An abandoned camp sits to one side, half-buried in snow, its former occupants frozen where they fell.
+
+You see: cold weather gear, preserved supplies, partial map
+In the preserved supplies: dried meat, bandages, ancient torch
+
+Exits: south (south), north (north), east (east), west (west), northwest (northwest)
+
+============================================================
+> examine stone golem
+------------------------------------------------------------
+[✗] You don't see any stone here.
+
+============================================================
+> go up
+------------------------------------------------------------
+[✗] You can't go up from here.
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Frozen Pass
+The entrance to the Frozen Reaches, where an eternal winter has gripped the land. Cold wind howls through the pass, carrying flurries of snow. The temperature drops noticeably as you move away from the nexus. An abandoned camp sits to one side, half-buried in snow, its former occupants frozen where they fell.
+
+You see: cold weather gear, preserved supplies, partial map
+In the preserved supplies: dried meat, bandages, ancient torch
+
+Exits: south (south), north (north), east (east), west (west), northwest (northwest)
+
+============================================================
+> examine control crystal
+------------------------------------------------------------
+[✗] You don't see any control here.
+
+============================================================
+> take control crystal
+------------------------------------------------------------
+[✗] You don't see any crystal here.
+
+============================================================
+> go down
+------------------------------------------------------------
+[✗] You can't go down from here.
+
+============================================================
+> use control crystal on stone golem
+------------------------------------------------------------
+PARSE ERROR: Could not parse 'use control crystal on stone golem'
+[✗] ERROR: Could not parse: use control crystal on stone golem
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Frozen Pass
+The entrance to the Frozen Reaches, where an eternal winter has gripped the land. Cold wind howls through the pass, carrying flurries of snow. The temperature drops noticeably as you move away from the nexus. An abandoned camp sits to one side, half-buried in snow, its former occupants frozen where they fell.
+
+You see: cold weather gear, preserved supplies, partial map
+In the preserved supplies: dried meat, bandages, ancient torch
+
+Exits: south (south), north (north), east (east), west (west), northwest (northwest)
+
+============================================================
+> go south
+------------------------------------------------------------
+[✓] You go south south to Nexus Chamber.
+
+Nexus Chamber
+The heart of the meridian convergence, a vast circular chamber where reality itself seems to bend. At the center stands the damaged waystone, its surface cracked and dim. Twilight suffuses the space from no visible source. Exits lead north to the frozen passes, south to the forest edge, east to flooded ruins, and west to dark caverns. A stairway spirals upward to an observatory.
+
+Also here: Waystone
+
+Exits: north (north), south (south), east (east), west (west), up (up)
+
+============================================================
+> go west
+------------------------------------------------------------
+[✓] You go west west to Cavern Entrance.
+
+Cavern Entrance
+The mouth of a vast cavern system leading to the Fungal Depths. Bioluminescent growths provide eerie illumination. The air is thick with spores and the musty smell of fungus. A small campfire burns near the entrance where a sick traveler has made camp.
+
+You see: Aldric's journal
+
+Also here: Scholar Aldric
+
+Exits: east (east), down (down)
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Cavern Entrance
+The mouth of a vast cavern system leading to the Fungal Depths. Bioluminescent growths provide eerie illumination. The air is thick with spores and the musty smell of fungus. A small campfire burns near the entrance where a sick traveler has made camp.
+
+You see: Aldric's journal
+
+Also here: Scholar Aldric
+
+Exits: east (east), down (down)
+
+============================================================
+> talk to salamander
+------------------------------------------------------------
+[✗] You don't see any salamander here.
+
+============================================================
+> take fire crystal
+------------------------------------------------------------
+[✗] You don't see any crystal here.
+
+============================================================
+> give fire crystal to salamander
+------------------------------------------------------------
+PARSE ERROR: Could not parse 'give fire crystal to salamander'
+[✗] ERROR: Could not parse: give fire crystal to salamander
+
+============================================================
+> talk to salamander
+------------------------------------------------------------
+[✗] You don't see any salamander here.
+
+============================================================
+> examine steam salamander 2
+------------------------------------------------------------
+[✗] You don't see any 2 here.
+
+============================================================
+> examine steam salamander 3
+------------------------------------------------------------
+[✗] You don't see any 3 here.
+
+============================================================
+Summary: 16/36 commands succeeded

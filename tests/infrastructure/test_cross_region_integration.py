@@ -38,7 +38,7 @@ class MockAccessor:
     """Mock accessor for testing."""
 
     def __init__(self) -> None:
-        self.state = MockState()
+        self.game_state = MockState()
 
 
 class TestBeastWildsIntegration(unittest.TestCase):
@@ -65,7 +65,7 @@ class TestBeastWildsIntegration(unittest.TestCase):
                 },
             },
         )
-        self.accessor.state.actors[ActorId("bee_queen")] = bee_queen
+        self.accessor.game_state.actors[ActorId("bee_queen")] = bee_queen
 
         # Create flower item
         flower = MockEntity("item_moonpetal", {})
@@ -103,8 +103,8 @@ class TestBeastWildsIntegration(unittest.TestCase):
                 },
             },
         )
-        self.accessor.state.actors[ActorId("frost_wolf_1")] = beta_wolf
-        self.accessor.state.actors[ActorId("frost_wolf_2")] = gamma_wolf
+        self.accessor.game_state.actors[ActorId("frost_wolf_1")] = beta_wolf
+        self.accessor.game_state.actors[ActorId("frost_wolf_2")] = gamma_wolf
 
         # Create alpha wolf with pack_behavior config
         alpha_wolf = MockEntity(
@@ -120,8 +120,8 @@ class TestBeastWildsIntegration(unittest.TestCase):
                 },
             },
         )
-        self.accessor.state.actors[ActorId("alpha_wolf")] = alpha_wolf
-        self.accessor.state.actors[ActorId("npc_alpha_wolf")] = alpha_wolf
+        self.accessor.game_state.actors[ActorId("alpha_wolf")] = alpha_wolf
+        self.accessor.game_state.actors[ActorId("npc_alpha_wolf")] = alpha_wolf
 
         context = {"new_state": "wary"}
 
@@ -165,8 +165,8 @@ class TestFungalDepthsIntegration(unittest.TestCase):
                 },
             },
         )
-        self.accessor.state.actors[ActorId("npc_sporeling_1")] = sporeling1
-        self.accessor.state.actors[ActorId("npc_sporeling_2")] = sporeling2
+        self.accessor.game_state.actors[ActorId("npc_sporeling_1")] = sporeling1
+        self.accessor.game_state.actors[ActorId("npc_sporeling_2")] = sporeling2
 
         # Create Spore Mother with pack_behavior
         spore_mother = MockEntity(
@@ -182,7 +182,7 @@ class TestFungalDepthsIntegration(unittest.TestCase):
                 },
             },
         )
-        self.accessor.state.actors[ActorId("npc_spore_mother")] = spore_mother
+        self.accessor.game_state.actors[ActorId("npc_spore_mother")] = spore_mother
 
         context = {"new_state": "wary"}
 
@@ -228,7 +228,7 @@ class TestSunkenDistrictIntegration(unittest.TestCase):
         self.assertTrue(result.allow)
         # Handler should return a message and set flags
         self.assertIsNotNone(result.feedback)
-        self.assertTrue(self.accessor.state.extra.get("delvan_died"))
+        self.assertTrue(self.accessor.game_state.extra.get("delvan_died"))
 
 
 class TestFrozenReachesIntegration(unittest.TestCase):
@@ -255,7 +255,7 @@ class TestFrozenReachesIntegration(unittest.TestCase):
                 },
             },
         )
-        self.accessor.state.actors[ActorId("salamander")] = salamander
+        self.accessor.game_state.actors[ActorId("salamander")] = salamander
 
         # Create fire item
         fire_item = MockEntity("item_torch", {})

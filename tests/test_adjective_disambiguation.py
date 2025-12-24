@@ -18,12 +18,12 @@ class TestFindItemWithAdjective(unittest.TestCase):
 
     def setUp(self):
         """Set up test state with multiple items of same name."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         location_id = player.location
 
         # Add two keys with different adjectives in their descriptions
@@ -41,8 +41,8 @@ class TestFindItemWithAdjective(unittest.TestCase):
             location=location_id,
             properties={"portable": True}
         )
-        self.state.items.append(iron_key)
-        self.state.items.append(brass_key)
+        self.game_state.items.append(iron_key)
+        self.game_state.items.append(brass_key)
 
     def test_find_item_with_matching_adjective(self):
         """Test finding item when adjective matches description."""
@@ -141,12 +141,12 @@ class TestFindDoorWithAdjective(unittest.TestCase):
 
     def setUp(self):
         """Set up test state with multiple doors (as door items)."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         location_id = player.location
 
         # Add two door items with different adjectives
@@ -164,14 +164,14 @@ class TestFindDoorWithAdjective(unittest.TestCase):
             location=f"exit:{location_id}:east",
             properties={"door": {"open": False, "locked": False}}
         )
-        self.state.items.append(iron_door)
-        self.state.items.append(wooden_door)
+        self.game_state.items.append(iron_door)
+        self.game_state.items.append(wooden_door)
 
     def test_find_door_with_matching_adjective(self):
         """Test finding door when adjective matches description."""
         from utilities.utils import find_door_with_adjective
 
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         door_entry = make_word_entry("door")
 
         door = find_door_with_adjective(
@@ -185,7 +185,7 @@ class TestFindDoorWithAdjective(unittest.TestCase):
         """Test finding different door with different adjective."""
         from utilities.utils import find_door_with_adjective
 
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         door_entry = make_word_entry("door")
 
         door = find_door_with_adjective(
@@ -199,7 +199,7 @@ class TestFindDoorWithAdjective(unittest.TestCase):
         """Test that no adjective returns first matching door."""
         from utilities.utils import find_door_with_adjective
 
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         door_entry = make_word_entry("door")
 
         door = find_door_with_adjective(
@@ -213,7 +213,7 @@ class TestFindDoorWithAdjective(unittest.TestCase):
         """Test that non-matching adjective returns None."""
         from utilities.utils import find_door_with_adjective
 
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         door_entry = make_word_entry("door")
 
         door = find_door_with_adjective(
@@ -226,7 +226,7 @@ class TestFindDoorWithAdjective(unittest.TestCase):
         """Test that adjective can match against door ID."""
         from utilities.utils import find_door_with_adjective
 
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         # "iron" appears in "door_iron"
         door_entry = make_word_entry("door")
 
@@ -243,17 +243,17 @@ class TestHandleTakeWithAdjective(unittest.TestCase):
 
     def setUp(self):
         """Set up test state with multiple items of same name."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
 
         # Load manipulation module
         import behaviors.core.manipulation
         self.behavior_manager.load_module(behaviors.core.manipulation)
 
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         location_id = player.location
 
         # Add two keys with different adjectives in their descriptions
@@ -271,8 +271,8 @@ class TestHandleTakeWithAdjective(unittest.TestCase):
             location=location_id,
             properties={"portable": True}
         )
-        self.state.items.append(iron_key)
-        self.state.items.append(brass_key)
+        self.game_state.items.append(iron_key)
+        self.game_state.items.append(brass_key)
 
     def test_take_with_adjective_selects_correct_item(self):
         """Test that take with adjective selects correct item."""
@@ -283,7 +283,7 @@ class TestHandleTakeWithAdjective(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Verify correct key was taken
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         self.assertIn("item_brass_key", player.inventory)
         self.assertNotIn("item_iron_key", player.inventory)
 
@@ -295,7 +295,7 @@ class TestHandleTakeWithAdjective(unittest.TestCase):
         result = handle_take(self.accessor, action)
 
         self.assertTrue(result.success)
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         # Should take first match (iron key)
         self.assertIn("item_iron_key", player.inventory)
 
@@ -305,17 +305,17 @@ class TestHandleOpenWithAdjective(unittest.TestCase):
 
     def setUp(self):
         """Set up test state with multiple door items."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
 
         # Load interaction module
         import behaviors.core.interaction
         self.behavior_manager.load_module(behaviors.core.interaction)
 
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         location_id = player.location
 
         # Add two door items with different adjectives
@@ -333,8 +333,8 @@ class TestHandleOpenWithAdjective(unittest.TestCase):
             location=f"exit:{location_id}:east",
             properties={"door": {"open": False, "locked": False}}
         )
-        self.state.items.append(iron_door)
-        self.state.items.append(wooden_door)
+        self.game_state.items.append(iron_door)
+        self.game_state.items.append(wooden_door)
 
     def test_open_with_adjective_selects_correct_door(self):
         """Test that open with adjective selects correct door."""
@@ -345,8 +345,8 @@ class TestHandleOpenWithAdjective(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Verify correct door was opened (door items use door_open property)
-        wooden_door = next(i for i in self.state.items if i.id == "door_wooden")
-        iron_door = next(i for i in self.state.items if i.id == "door_iron")
+        wooden_door = next(i for i in self.game_state.items if i.id == "door_wooden")
+        iron_door = next(i for i in self.game_state.items if i.id == "door_iron")
         self.assertTrue(wooden_door.door_open)
         self.assertFalse(iron_door.door_open)
 
@@ -366,12 +366,12 @@ class TestDoorStateAdjectives(unittest.TestCase):
 
     def setUp(self):
         """Set up test state with door items having different states."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         location_id = player.location
 
         # Create location for exits to point to
@@ -381,7 +381,7 @@ class TestDoorStateAdjectives(unittest.TestCase):
             description="Another room.",
             exits={}
         )
-        self.state.locations.append(other_location)
+        self.game_state.locations.append(other_location)
 
         # Add two door items - one locked, one unlocked
         # Using unified door item model (properties.door)
@@ -405,8 +405,8 @@ class TestDoorStateAdjectives(unittest.TestCase):
                 "door": {"open": False, "locked": False}
             }
         )
-        self.state.items.append(iron_door)
-        self.state.items.append(wooden_door)
+        self.game_state.items.append(iron_door)
+        self.game_state.items.append(wooden_door)
 
     def test_find_door_with_locked_adjective(self):
         """Test that 'locked' adjective matches door with locked=True."""

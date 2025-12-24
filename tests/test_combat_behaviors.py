@@ -62,14 +62,14 @@ class TestHandleAttack(unittest.TestCase):
     """Test handle_attack behavior handler."""
 
     def setUp(self):
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
 
         # Load combat behaviors
         import behaviors.core.combat
         self.behavior_manager.load_module(behaviors.core.combat)
 
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_attack_no_object(self):
         """Test attack without specifying target."""

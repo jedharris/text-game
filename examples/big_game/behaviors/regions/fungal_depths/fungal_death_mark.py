@@ -45,7 +45,7 @@ def on_fungal_kill(
     if not killer or (hasattr(killer, "id") and killer.id != "player"):
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
 
     # Set the death mark
     state.extra["has_killed_fungi"] = True
@@ -82,7 +82,7 @@ def on_myconid_first_meeting(
     if actor_id != "npc_myconid_elder":
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
 
     # Check for death mark
     if not state.extra.get("has_killed_fungi"):

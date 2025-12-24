@@ -47,12 +47,12 @@ class TestExamineDoor(unittest.TestCase):
 
     def setUp(self):
         """Set up test state with doors."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         location_id = player.location
 
         # Add destination rooms
@@ -68,8 +68,8 @@ class TestExamineDoor(unittest.TestCase):
             description="Yet another room.",
             exits={"west": ExitDescriptor(type="door", to=location_id, door_id="door_iron")}
         )
-        self.state.locations.append(other_room)
-        self.state.locations.append(another_room)
+        self.game_state.locations.append(other_room)
+        self.game_state.locations.append(another_room)
 
         # Add exits from player's current location
         room = self.accessor.get_location(location_id)
@@ -91,8 +91,8 @@ class TestExamineDoor(unittest.TestCase):
             location=f"exit:{location_id}:east",
             properties={"door": {"open": False, "locked": True}}
         )
-        self.state.items.append(wooden_door)
-        self.state.items.append(iron_door)
+        self.game_state.items.append(wooden_door)
+        self.game_state.items.append(iron_door)
 
     def test_examine_door_finds_door(self):
         """Test that examine door finds a door in the location."""
@@ -144,7 +144,7 @@ class TestExamineDoor(unittest.TestCase):
         from behaviors.core.perception import handle_examine
 
         # Move player to other_room which has exit with door_wooden
-        self.state.actors[ActorId("player")].location = "other_room"
+        self.game_state.actors[ActorId("player")].location = "other_room"
 
         action = make_action(object="door", actor_id="player")
         result = handle_examine(self.accessor, action)
@@ -169,7 +169,7 @@ class TestExamineDoor(unittest.TestCase):
         from src.state_manager import Item
 
         # Add an item named "door" (unusual but possible)
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         door_item = Item(
             id="item_door",
             name="door",
@@ -177,7 +177,7 @@ class TestExamineDoor(unittest.TestCase):
             location=player.location,
             properties={"portable": True}
         )
-        self.state.items.append(door_item)
+        self.game_state.items.append(door_item)
 
         action = make_action(object="door", actor_id="player")
         result = handle_examine(self.accessor, action)
@@ -196,12 +196,12 @@ class TestExamineDoorWithDirectionAdjective(unittest.TestCase):
 
     def setUp(self):
         """Set up test state with doors."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         location_id = player.location
 
         # Add destination rooms
@@ -217,8 +217,8 @@ class TestExamineDoorWithDirectionAdjective(unittest.TestCase):
             description="Yet another room.",
             exits={"west": ExitDescriptor(type="door", to=location_id, door_id="door_iron")}
         )
-        self.state.locations.append(other_room)
-        self.state.locations.append(another_room)
+        self.game_state.locations.append(other_room)
+        self.game_state.locations.append(another_room)
 
         # Add exits from player's current location
         room = self.accessor.get_location(location_id)
@@ -240,8 +240,8 @@ class TestExamineDoorWithDirectionAdjective(unittest.TestCase):
             location=f"exit:{location_id}:east",
             properties={"door": {"open": False, "locked": True}}
         )
-        self.state.items.append(wooden_door)
-        self.state.items.append(iron_door)
+        self.game_state.items.append(wooden_door)
+        self.game_state.items.append(iron_door)
 
     def test_examine_north_door(self):
         """Test 'examine north door' finds the north door."""
@@ -285,19 +285,19 @@ class TestExamineDoorIntegration(unittest.TestCase):
 
         # Load actual game state
         fixture_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
-        self.state = load_game_state(fixture_path)
+        self.game_state = load_game_state(fixture_path)
 
         self.behavior_manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
 
-        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.behavior_manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.behavior_manager)
 
     def test_examine_door_in_hallway(self):
         """Test examining door when in hallway with two doors."""
         # Move to hallway
-        self.state.actors[ActorId("player")].location = "loc_hallway"
+        self.game_state.actors[ActorId("player")].location = "loc_hallway"
 
         result = self.handler.handle_command({
             "type": "command",
@@ -310,7 +310,7 @@ class TestExamineDoorIntegration(unittest.TestCase):
 
     def test_examine_iron_door_in_hallway(self):
         """Test examining iron door specifically."""
-        self.state.actors[ActorId("player")].location = "loc_hallway"
+        self.game_state.actors[ActorId("player")].location = "loc_hallway"
 
         result = self.handler.handle_command({
             "type": "command",
@@ -322,7 +322,7 @@ class TestExamineDoorIntegration(unittest.TestCase):
 
     def test_examine_wooden_door_in_hallway(self):
         """Test examining wooden door specifically."""
-        self.state.actors[ActorId("player")].location = "loc_hallway"
+        self.game_state.actors[ActorId("player")].location = "loc_hallway"
 
         result = self.handler.handle_command({
             "type": "command",
@@ -334,7 +334,7 @@ class TestExamineDoorIntegration(unittest.TestCase):
 
     def test_examine_table_still_works(self):
         """Test that examining items still works."""
-        self.state.actors[ActorId("player")].location = "loc_hallway"
+        self.game_state.actors[ActorId("player")].location = "loc_hallway"
 
         result = self.handler.handle_command({
             "type": "command",

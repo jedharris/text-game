@@ -12,6 +12,8 @@ NPC configuration (in actor.properties):
             "sets_flags": {"knows_about_infection": true},
             "requires_flags": {},
             "requires_items": [],
+            "requires_trust": 2,  // Requires NPC trust >= 2
+            "requires_state": "friendly",  // Requires NPC in this state
             "grants_items": [],
             "one_time": false
         }
@@ -151,6 +153,14 @@ def get_available_topics(accessor, npc) -> List[str]:
             elif isinstance(requires_state, list):
                 if current_state not in requires_state:
                     continue
+
+        # Check requires_trust (NPC trust level gating)
+        requires_trust = topic.get('requires_trust')
+        if requires_trust is not None:
+            trust_state = npc.properties.get('trust_state', {})
+            current_trust = trust_state.get('current', 0)
+            if current_trust < requires_trust:
+                continue
 
         available.append(topic_name)
 

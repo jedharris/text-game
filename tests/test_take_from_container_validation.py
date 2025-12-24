@@ -17,17 +17,17 @@ class TestTakeFromContainerValidation(unittest.TestCase):
 
     def setUp(self):
         """Set up test state with containers."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
 
         # Load manipulation module
         import behaviors.core.manipulation
         self.behavior_manager.load_module(behaviors.core.manipulation)
 
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         location_id = player.location
 
         # Add a surface container (table)
@@ -88,11 +88,11 @@ class TestTakeFromContainerValidation(unittest.TestCase):
             properties={"portable": True}
         )
 
-        self.state.items.append(table)
-        self.state.items.append(key_on_table)
-        self.state.items.append(chest)
-        self.state.items.append(ring_in_chest)
-        self.state.items.append(coin_in_room)
+        self.game_state.items.append(table)
+        self.game_state.items.append(key_on_table)
+        self.game_state.items.append(chest)
+        self.game_state.items.append(ring_in_chest)
+        self.game_state.items.append(coin_in_room)
 
     def test_take_from_nonexistent_container_fails(self):
         """Test that take from nonexistent container fails."""
@@ -112,7 +112,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
         result = handle_take(self.accessor, action)
 
         self.assertTrue(result.success)
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         self.assertIn("item_key_on_table", player.inventory)
 
     def test_take_from_container_item_not_in_container_fails(self):
@@ -135,7 +135,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
         result = handle_take(self.accessor, action)
 
         self.assertTrue(result.success)
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         self.assertIn("item_coin_room", player.inventory)
 
     def test_take_from_enclosed_container_succeeds_when_open(self):
@@ -146,7 +146,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
         result = handle_take(self.accessor, action)
 
         self.assertTrue(result.success)
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         self.assertIn("item_ring_in_chest", player.inventory)
 
     def test_take_from_enclosed_container_fails_when_closed(self):
@@ -154,7 +154,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
         from behaviors.core.manipulation import handle_take
 
         # Close the chest
-        chest = self.state.get_item("item_chest")
+        chest = self.game_state.get_item("item_chest")
         chest.properties["container"]["open"] = False
 
         action = make_action(object="ring", indirect_object="chest", actor_id="player")
@@ -181,15 +181,15 @@ class TestTakeFromContainerWithAdjective(unittest.TestCase):
 
     def setUp(self):
         """Set up test state with multiple similar items in different containers."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
 
         import behaviors.core.manipulation
         self.behavior_manager.load_module(behaviors.core.manipulation)
 
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         location_id = player.location
 
         # Add two tables
@@ -232,10 +232,10 @@ class TestTakeFromContainerWithAdjective(unittest.TestCase):
             properties={"portable": True}
         )
 
-        self.state.items.append(wooden_table)
-        self.state.items.append(marble_table)
-        self.state.items.append(iron_key)
-        self.state.items.append(gold_key)
+        self.game_state.items.append(wooden_table)
+        self.game_state.items.append(marble_table)
+        self.game_state.items.append(iron_key)
+        self.game_state.items.append(gold_key)
 
     def test_take_with_container_adjective_selects_correct_container(self):
         """Test that adjective on container selects correct container."""
@@ -245,7 +245,7 @@ class TestTakeFromContainerWithAdjective(unittest.TestCase):
         result = handle_take(self.accessor, action)
 
         self.assertTrue(result.success)
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         # Should take the key from marble table (gold key)
         self.assertIn("item_gold_key", player.inventory)
         self.assertNotIn("item_iron_key", player.inventory)

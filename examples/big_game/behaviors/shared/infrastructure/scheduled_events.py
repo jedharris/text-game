@@ -39,7 +39,7 @@ def on_scheduled_event_check(
     Returns:
         EventResult with messages about fired events
     """
-    state = accessor.state
+    state = accessor.game_state
 
     # Fire all due events (reads current turn from state.extra["turn_count"])
     fired_events = fire_due_events(state)

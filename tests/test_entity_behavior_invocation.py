@@ -63,7 +63,7 @@ class TestEntityBehaviorInvocationOnTake(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.state = create_test_state_with_light_source()
+        self.game_state = create_test_state_with_light_source()
         self.manager = BehaviorManager()
 
         # Load behavior modules
@@ -71,11 +71,11 @@ class TestEntityBehaviorInvocationOnTake(unittest.TestCase):
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
 
-        self.accessor = StateAccessor(self.state, self.manager)
+        self.accessor = StateAccessor(self.game_state, self.manager)
 
     def test_take_invokes_on_take_behavior(self):
         """Test that taking an item invokes its on_take behavior."""
-        lantern = self.state.get_item("lantern")
+        lantern = self.game_state.get_item("lantern")
 
         # Verify lantern starts unlit
         self.assertFalse(lantern.states.get("lit", True))
@@ -107,7 +107,7 @@ class TestEntityBehaviorInvocationOnDrop(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures with lantern in inventory."""
-        self.state = create_test_state_with_light_source()
+        self.game_state = create_test_state_with_light_source()
         self.manager = BehaviorManager()
 
         # Load behavior modules
@@ -115,17 +115,17 @@ class TestEntityBehaviorInvocationOnDrop(unittest.TestCase):
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
 
-        self.accessor = StateAccessor(self.state, self.manager)
+        self.accessor = StateAccessor(self.game_state, self.manager)
 
         # Put lantern in player inventory and set it lit
-        lantern = self.state.get_item("lantern")
+        lantern = self.game_state.get_item("lantern")
         lantern.location = "player"
         lantern.states["lit"] = True
-        self.state.actors[ActorId("player")].inventory = ["lantern"]
+        self.game_state.actors[ActorId("player")].inventory = ["lantern"]
 
     def test_drop_invokes_on_drop_behavior(self):
         """Test that dropping an item invokes its on_drop behavior."""
-        lantern = self.state.get_item("lantern")
+        lantern = self.game_state.get_item("lantern")
 
         # Verify lantern starts lit (in inventory)
         self.assertTrue(lantern.states.get("lit", False))
@@ -157,7 +157,7 @@ class TestEntityBehaviorInvocationNPC(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures with NPC."""
-        self.state = create_test_state_with_light_source()
+        self.game_state = create_test_state_with_light_source()
         self.manager = BehaviorManager()
 
         # Load behavior modules
@@ -165,10 +165,10 @@ class TestEntityBehaviorInvocationNPC(unittest.TestCase):
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
 
-        self.accessor = StateAccessor(self.state, self.manager)
+        self.accessor = StateAccessor(self.game_state, self.manager)
 
         # Add NPC in same room
-        self.state.actors[ActorId("guard")] = Actor(
+        self.game_state.actors[ActorId("guard")] = Actor(
             id="guard",
             name="guard",
             description="A guard.",
@@ -178,7 +178,7 @@ class TestEntityBehaviorInvocationNPC(unittest.TestCase):
 
     def test_npc_take_invokes_on_take_behavior(self):
         """Test that NPC taking an item invokes its on_take behavior."""
-        lantern = self.state.get_item("lantern")
+        lantern = self.game_state.get_item("lantern")
 
         # Verify lantern starts unlit
         self.assertFalse(lantern.states.get("lit", True))

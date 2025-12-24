@@ -257,6 +257,35 @@ class TestDialogNoTopics(unittest.TestCase):
         self.assertFalse(result.success)
         self.assertIn("interested in conversation", result.primary)
 
+    def test_talk_npc_without_topics_includes_entity_context(self) -> None:
+        """Talk failure still includes NPC data for narrator context."""
+        action = {
+            "verb": "talk",
+            "indirect_object": make_word_entry("guard"),
+        }
+        result = handle_talk(self.accessor, action)
+
+        self.assertFalse(result.success)
+        # Even failures should include entity data so narrator doesn't hallucinate
+        self.assertIsNotNone(result.data)
+        self.assertEqual(result.data["id"], "guard")
+        self.assertEqual(result.data["name"], "Guard")
+
+    def test_ask_npc_without_topics_includes_entity_context(self) -> None:
+        """Ask failure still includes NPC data for narrator context."""
+        action = {
+            "verb": "ask",
+            "object": make_word_entry("guard"),
+            "indirect_object": make_word_entry("weather"),
+        }
+        result = handle_ask(self.accessor, action)
+
+        self.assertFalse(result.success)
+        # Even failures should include entity data so narrator doesn't hallucinate
+        self.assertIsNotNone(result.data)
+        self.assertEqual(result.data["id"], "guard")
+        self.assertEqual(result.data["name"], "Guard")
+
 
 class TestDialogNpcNotFound(unittest.TestCase):
     """Tests for NPC not in location."""
@@ -282,6 +311,185 @@ class TestDialogNpcNotFound(unittest.TestCase):
 
         self.assertFalse(result.success)
         self.assertIn("don't see", result.primary)
+
+
+class TestDialogSingleNpcDefault(unittest.TestCase):
+    """Tests for defaulting to single NPC in location."""
+
+    def setUp(self) -> None:
+        """Set up test fixtures."""
+        clear_dialog_handler_cache()
+        self.accessor = MockAccessor()
+
+        # Create player and single NPC with dialog topics
+        self.player = MockActor(
+            "player", "Player", "test_room", properties={"flags": {}}
+        )
+        self.npc = MockActor(
+            "scholar",
+            "The Scholar",
+            "test_room",
+            properties={
+                "dialog_topics": {
+                    "infection": {
+                        "keywords": ["infection"],
+                        "summary": "'The infection spreads.'",
+                    },
+                },
+            },
+        )
+        self.accessor.game_state.actors["player"] = self.player
+        self.accessor.game_state.actors["scholar"] = self.npc
+
+    def test_talk_without_npc_uses_single_npc(self) -> None:
+        """'talk' without NPC name targets the only NPC in location."""
+        action = {
+            "verb": "talk",
+            # No object or indirect_object - just "talk"
+        }
+        result = handle_talk(self.accessor, action)
+
+        self.assertTrue(result.success)
+        self.assertIn("Scholar", result.primary)
+
+    def test_ask_about_without_npc_uses_single_npc(self) -> None:
+        """'ask about X' without NPC name targets the only NPC in location."""
+        action = {
+            "verb": "ask",
+            "object": make_word_entry("infection"),
+            # No indirect_object - simulates "ask about infection"
+        }
+        result = handle_ask(self.accessor, action)
+
+        self.assertTrue(result.success)
+        self.assertIn("infection spreads", result.primary.lower())
+
+    def test_talk_without_npc_fails_when_multiple_npcs(self) -> None:
+        """'talk' without NPC name fails when multiple NPCs present."""
+        # Add a second NPC
+        self.accessor.game_state.actors["guard"] = MockActor(
+            "guard",
+            "Guard",
+            "test_room",
+            properties={
+                "dialog_topics": {
+                    "patrol": {"keywords": ["patrol"], "summary": "I patrol."},
+                },
+            },
+        )
+
+        action = {"verb": "talk"}
+        result = handle_talk(self.accessor, action)
+
+        self.assertFalse(result.success)
+        self.assertIn("whom", result.primary.lower())
+
+
+class TestDialogHandlerResultData(unittest.TestCase):
+    """Tests that dialog handlers include NPC entity data for narration context."""
+
+    def setUp(self) -> None:
+        """Set up test fixtures."""
+        clear_dialog_handler_cache()
+        self.accessor = MockAccessor()
+
+        # Create player and NPC with dialog topics
+        self.player = MockActor(
+            "player", "Player", "test_room", properties={"flags": {}}
+        )
+        self.npc = MockActor(
+            "scholar",
+            "The Scholar",
+            "test_room",
+            properties={
+                "dialog_topics": {
+                    "infection": {
+                        "keywords": ["infection"],
+                        "summary": "'The infection spreads.'",
+                    },
+                },
+            },
+        )
+        self.accessor.game_state.actors["player"] = self.player
+        self.accessor.game_state.actors["scholar"] = self.npc
+
+    def test_ask_includes_npc_data(self) -> None:
+        """Ask command result includes NPC entity data for narrator context."""
+        action = {
+            "verb": "ask",
+            "object": make_word_entry("scholar"),
+            "indirect_object": make_word_entry("infection"),
+        }
+        result = handle_ask(self.accessor, action)
+
+        self.assertTrue(result.success)
+        self.assertIsNotNone(result.data)
+        self.assertEqual(result.data["id"], "scholar")
+        self.assertEqual(result.data["name"], "The Scholar")
+        self.assertEqual(result.data["type"], "actor")
+
+    def test_talk_includes_npc_data(self) -> None:
+        """Talk command result includes NPC entity data for narrator context."""
+        action = {
+            "verb": "talk",
+            "indirect_object": make_word_entry("scholar"),
+        }
+        result = handle_talk(self.accessor, action)
+
+        self.assertTrue(result.success)
+        self.assertIsNotNone(result.data)
+        self.assertEqual(result.data["id"], "scholar")
+        self.assertEqual(result.data["name"], "The Scholar")
+        self.assertEqual(result.data["type"], "actor")
+
+    def test_ask_with_handler_includes_npc_data(self) -> None:
+        """Ask with escape hatch handler still includes NPC data."""
+        # Set up NPC with handler
+        self.npc.properties["dialog_topics"]["handler"] = "some.module:handler"
+        handler_result = EventResult(allow=True, feedback="Custom response")
+        mock_handler = MagicMock(return_value=handler_result)
+
+        with patch(
+            "behavior_libraries.dialog_lib.handlers._load_handler",
+            return_value=mock_handler,
+        ):
+            action = {
+                "verb": "ask",
+                "object": make_word_entry("scholar"),
+                "indirect_object": make_word_entry("anything"),
+            }
+            result = handle_ask(self.accessor, action)
+
+        self.assertTrue(result.success)
+        self.assertIsNotNone(result.data)
+        self.assertEqual(result.data["id"], "scholar")
+
+    def test_talk_includes_available_topics(self) -> None:
+        """Talk command result includes available_topics for narrator."""
+        action = {
+            "verb": "talk",
+            "indirect_object": make_word_entry("scholar"),
+        }
+        result = handle_talk(self.accessor, action)
+
+        self.assertTrue(result.success)
+        self.assertIsNotNone(result.data)
+        self.assertIn("available_topics", result.data)
+        # The topic's first keyword should be in available_topics
+        self.assertIn("infection", result.data["available_topics"])
+
+    def test_ask_includes_available_topics(self) -> None:
+        """Ask command result includes available_topics for narrator."""
+        action = {
+            "verb": "ask",
+            "object": make_word_entry("scholar"),
+            "indirect_object": make_word_entry("infection"),
+        }
+        result = handle_ask(self.accessor, action)
+
+        self.assertTrue(result.success)
+        self.assertIsNotNone(result.data)
+        self.assertIn("available_topics", result.data)
 
 
 if __name__ == "__main__":

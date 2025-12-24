@@ -1,0 +1,78 @@
+# Phase 2: Meridian Nexus Verification Test
+# Tests Echo dialog and basic Nexus functionality
+# Prerequisites: None (fresh game)
+
+# ============================================================
+# Part 1: Nexus Chamber - Starting Location
+# ============================================================
+
+# Player starts in Nexus Chamber
+look
+
+# Examine the waystone
+examine waystone
+
+# ============================================================
+# Part 2: Observatory Platform
+# ============================================================
+
+# Go up to observatory
+go up
+
+# Check the location
+look
+
+# Examine the telescope
+examine telescope
+
+# ============================================================
+# Part 3: Keeper's Quarters - Echo Dialog
+# ============================================================
+
+# Go to Keeper's Quarters
+go east
+
+# Check location
+look
+
+# The Echo should be here
+talk to echo
+
+# Ask about waystone
+ask echo about waystone
+
+# Ask for help/hints
+ask echo about help
+
+# Ask about progress
+ask echo about progress
+
+# ============================================================
+# Part 4: Crystal Garden
+# ============================================================
+
+# Go down to Crystal Garden
+go down
+
+# Check location
+look
+
+# ============================================================
+# Part 5: Return to Nexus
+# ============================================================
+
+# Go west to Nexus Chamber
+go west
+
+# Final check
+look
+
+# ============================================================
+# Note: Fragment placement cannot be tested without fragment items
+# which are rewards from completing quests in other regions:
+# - alpha_fang (Beast Wilds - wolf trust)
+# - spore_heart (Fungal Depths - heal Spore Mother)
+# - ice_shard (Frozen Reaches - ice caves)
+# - water_bloom (Sunken District - flooded areas)
+# - echo_essence (Meridian Nexus - Echo's gift)
+# ============================================================

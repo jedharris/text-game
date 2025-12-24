@@ -1,0 +1,275 @@
+Loading game from examples/big_game...
+Running 38 commands...
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Nexus Chamber
+The heart of the meridian convergence, a vast circular chamber where reality itself seems to bend. At the center stands the damaged waystone, its surface cracked and dim. Twilight suffuses the space from no visible source. Exits lead north to the frozen passes, south to the forest edge, east to flooded ruins, and west to dark caverns. A stairway spirals upward to an observatory.
+
+Also here: Waystone
+
+Exits: north (north), south (south), east (east), west (west), up (up)
+
+============================================================
+> go north
+------------------------------------------------------------
+[✓] You go north north to Frozen Pass.
+
+Frozen Pass
+The entrance to the Frozen Reaches, where an eternal winter has gripped the land. Cold wind howls through the pass, carrying flurries of snow. The temperature drops noticeably as you move away from the nexus. An abandoned camp sits to one side, half-buried in snow, its former occupants frozen where they fell.
+
+You see: cold weather gear, preserved supplies, partial map
+In the preserved supplies: dried meat, bandages, ancient torch
+
+Exits: south (south), north (north), east (east), west (west), northwest (northwest)
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Frozen Pass
+The entrance to the Frozen Reaches, where an eternal winter has gripped the land. Cold wind howls through the pass, carrying flurries of snow. The temperature drops noticeably as you move away from the nexus. An abandoned camp sits to one side, half-buried in snow, its former occupants frozen where they fell.
+
+You see: cold weather gear, preserved supplies, partial map
+In the preserved supplies: dried meat, bandages, ancient torch
+
+Exits: south (south), north (north), east (east), west (west), northwest (northwest)
+
+============================================================
+> go north
+------------------------------------------------------------
+[✓] You go north north to Temple Sanctum.
+
+Temple Sanctum
+A vast chamber lined with frost-covered stone pillars. Ancient carved faces watch from the walls, their expressions frozen in time. Two massive stone guardians stand at the far end, runes glowing dimly along their limbs. A side chamber near the entrance holds treasures, while an altar with intricate carvings dominates the center. Inscriptions cover the walls - fragments of forgotten knowledge.
+
+You see: lore tablets, mounting bracket, cold resistance cloak, fire crystal
+
+Also here: Stone Guardian, Stone Guardian
+
+Exits: south (south), up (up), north (north)
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Temple Sanctum
+A vast chamber lined with frost-covered stone pillars. Ancient carved faces watch from the walls, their expressions frozen in time. Two massive stone guardians stand at the far end, runes glowing dimly along their limbs. A side chamber near the entrance holds treasures, while an altar with intricate carvings dominates the center. Inscriptions cover the walls - fragments of forgotten knowledge.
+
+You see: lore tablets, mounting bracket, cold resistance cloak, fire crystal
+
+Also here: Stone Guardian, Stone Guardian
+
+Exits: south (south), up (up), north (north)
+
+============================================================
+> go south
+------------------------------------------------------------
+[✓] You go south south to Frozen Pass.
+
+Frozen Pass
+The entrance to the Frozen Reaches, where an eternal winter has gripped the land. Cold wind howls through the pass, carrying flurries of snow. The temperature drops noticeably as you move away from the nexus. An abandoned camp sits to one side, half-buried in snow, its former occupants frozen where they fell.
+
+You see: cold weather gear, preserved supplies, partial map
+In the preserved supplies: dried meat, bandages, ancient torch
+
+Exits: south (south), north (north), east (east), west (west), northwest (northwest)
+
+============================================================
+> go east
+------------------------------------------------------------
+[✓] You go east east to Ice Caves.
+
+Ice Caves
+Crystal blue walls of ice surround you, refracting light into dancing patterns. Your breath freezes instantly in the frigid air. The cave extends deeper into the glacier - a main chamber with ice crystals growing from the walls, a deep section where frozen pools lie still, and hints of hidden passages in the shadows. The floor makes ominous cracking sounds underfoot.
+
+You see: frost lily, ice shard, crystal lens, control crystal
+
+Exits: west (west), north (north)
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Ice Caves
+Crystal blue walls of ice surround you, refracting light into dancing patterns. Your breath freezes instantly in the frigid air. The cave extends deeper into the glacier - a main chamber with ice crystals growing from the walls, a deep section where frozen pools lie still, and hints of hidden passages in the shadows. The floor makes ominous cracking sounds underfoot.
+
+You see: frost lily, ice shard, crystal lens, control crystal
+
+Exits: west (west), north (north)
+
+============================================================
+> go west
+------------------------------------------------------------
+[✓] You go west west to Frozen Pass.
+
+Frozen Pass
+The entrance to the Frozen Reaches, where an eternal winter has gripped the land. Cold wind howls through the pass, carrying flurries of snow. The temperature drops noticeably as you move away from the nexus. An abandoned camp sits to one side, half-buried in snow, its former occupants frozen where they fell.
+
+You see: cold weather gear, preserved supplies, partial map
+In the preserved supplies: dried meat, bandages, ancient torch
+
+Exits: south (south), north (north), east (east), west (west), northwest (northwest)
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Frozen Pass
+The entrance to the Frozen Reaches, where an eternal winter has gripped the land. Cold wind howls through the pass, carrying flurries of snow. The temperature drops noticeably as you move away from the nexus. An abandoned camp sits to one side, half-buried in snow, its former occupants frozen where they fell.
+
+You see: cold weather gear, preserved supplies, partial map
+In the preserved supplies: dried meat, bandages, ancient torch
+
+Exits: south (south), north (north), east (east), west (west), northwest (northwest)
+
+============================================================
+> examine gear
+------------------------------------------------------------
+[✓] cold weather gear: Thick furs and layered clothing designed for extreme cold. Found in an abandoned camp, still usable despite years of exposure. Halves the rate of hypothermia in cold and freezing zones.
+
+============================================================
+> take gear
+------------------------------------------------------------
+[✓] You take the cold weather gear.
+
+============================================================
+> examine supplies
+------------------------------------------------------------
+[✓] preserved supplies: A pack of supplies from the abandoned camp, preserved by the intense cold. Contains dried meat, bandages, and a lit torch - still burning after all these years due to some enchantment.
+In the preserved supplies: dried meat, bandages, ancient torch
+
+============================================================
+> open supplies
+------------------------------------------------------------
+[✓] The preserved supplies is already open.
+
+============================================================
+> go north
+------------------------------------------------------------
+[✓] You go north north to Temple Sanctum.
+
+Temple Sanctum
+A vast chamber lined with frost-covered stone pillars. Ancient carved faces watch from the walls, their expressions frozen in time. Two massive stone guardians stand at the far end, runes glowing dimly along their limbs. A side chamber near the entrance holds treasures, while an altar with intricate carvings dominates the center. Inscriptions cover the walls - fragments of forgotten knowledge.
+
+You see: lore tablets, mounting bracket, cold resistance cloak, fire crystal
+
+Also here: Stone Guardian, Stone Guardian
+
+Exits: south (south), up (up), north (north)
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Temple Sanctum
+A vast chamber lined with frost-covered stone pillars. Ancient carved faces watch from the walls, their expressions frozen in time. Two massive stone guardians stand at the far end, runes glowing dimly along their limbs. A side chamber near the entrance holds treasures, while an altar with intricate carvings dominates the center. Inscriptions cover the walls - fragments of forgotten knowledge.
+
+You see: lore tablets, mounting bracket, cold resistance cloak, fire crystal
+
+Also here: Stone Guardian, Stone Guardian
+
+Exits: south (south), up (up), north (north)
+
+============================================================
+> examine pillar
+------------------------------------------------------------
+[✓] (You move closer to the stone pillar.)
+stone pillar: A massive stone pillar carved with ancient geometric patterns. Wide enough to shelter behind during combat.
+
+============================================================
+> examine guardian
+------------------------------------------------------------
+[✓] Stone Guardian: A massive construct of carved stone, ancient runes glowing along its limbs. It stands motionless but alert, watching the temple entrance with eyeless vigilance.
+
+============================================================
+> take crystal
+------------------------------------------------------------
+[✓] You take the fire crystal.
+
+============================================================
+> use crystal on guardian
+------------------------------------------------------------
+[✓] You use the fire crystal on the Stone Guardian. Nothing special happens.
+
+============================================================
+> go south
+------------------------------------------------------------
+[✓] You go south south to Frozen Pass.
+
+Frozen Pass
+The entrance to the Frozen Reaches, where an eternal winter has gripped the land. Cold wind howls through the pass, carrying flurries of snow. The temperature drops noticeably as you move away from the nexus. An abandoned camp sits to one side, half-buried in snow, its former occupants frozen where they fell.
+
+You see: preserved supplies, partial map
+In the preserved supplies: dried meat, bandages, ancient torch
+
+Exits: south (south), north (north), east (east), west (west), northwest (northwest)
+
+============================================================
+> go east
+------------------------------------------------------------
+[✓] You go east east to Ice Caves.
+
+Ice Caves
+Crystal blue walls of ice surround you, refracting light into dancing patterns. Your breath freezes instantly in the frigid air. The cave extends deeper into the glacier - a main chamber with ice crystals growing from the walls, a deep section where frozen pools lie still, and hints of hidden passages in the shadows. The floor makes ominous cracking sounds underfoot.
+
+You see: frost lily, ice shard, crystal lens, control crystal
+
+Exits: west (west), north (north)
+
+============================================================
+> go north
+------------------------------------------------------------
+[✓] You go north north to Ice Field.
+
+Ice Field
+A vast expanse of snow and ice stretching to the horizon. The wind whips across the open terrain, making progress difficult. Snow drifts hide treacherous footing.
+
+Exits: east (east), south (south), north (north), west (west)
+
+============================================================
+> go north
+------------------------------------------------------------
+[✓] You go north north to Hot Springs.
+
+Hot Springs
+Steam rises from pools of heated water, creating an oasis of warmth in the frozen landscape. Sulfurous mist clings to multicolored mineral deposits around the springs. The warmth is like an embrace after the bitter cold. Small fire-wreathed creatures bask near the hottest pools - salamanders drawn to the heat.
+
+You see: warm cloak
+
+Also here: Fire Salamander, Steam Salamander, Steam Salamander
+
+Exits: south (south)
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Hot Springs
+Steam rises from pools of heated water, creating an oasis of warmth in the frozen landscape. Sulfurous mist clings to multicolored mineral deposits around the springs. The warmth is like an embrace after the bitter cold. Small fire-wreathed creatures bask near the hottest pools - salamanders drawn to the heat.
+
+You see: warm cloak
+
+Also here: Fire Salamander, Steam Salamander, Steam Salamander
+
+Exits: south (south)
+
+============================================================
+> talk to salamander
+------------------------------------------------------------
+[✓] The salamander watches you carefully, flame flickering with uncertainty. It tilts its head, curious but cautious. When you gesture toward the fire, it points with a tendril of flame, then looks back at you expectantly.
+
+============================================================
+> examine salamander
+------------------------------------------------------------
+[✓] Fire Salamander: A creature of living flame, small but intensely hot. It seems drawn to warmth and light.
+
+============================================================
+> look
+------------------------------------------------------------
+[✓] Hot Springs
+Steam rises from pools of heated water, creating an oasis of warmth in the frozen landscape. Sulfurous mist clings to multicolored mineral deposits around the springs. The warmth is like an embrace after the bitter cold. Small fire-wreathed creatures bask near the hottest pools - salamanders drawn to the heat.
+
+You see: warm cloak
+
+Also here: Fire Salamander, Steam Salamander, Steam Salamander
+
+Exits: south (south)
+
+============================================================
+Summary: 28/28 commands succeeded

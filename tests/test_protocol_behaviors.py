@@ -92,17 +92,17 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
 
     def test_handler_accepts_behavior_manager(self):
         """Test that LLMProtocolHandler accepts behavior_manager parameter."""
         manager = BehaviorManager()
-        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.game_state, behavior_manager=manager)
         self.assertIs(handler.behavior_manager, manager)
 
     def test_handler_creates_default_behavior_manager(self):
         """Test that handler creates default behavior manager if none provided."""
-        handler = LLMProtocolHandler(self.state)
+        handler = LLMProtocolHandler(self.game_state)
         # New behavior: auto-creates BehaviorManager
         self.assertIsNotNone(handler.behavior_manager)
         self.assertIsInstance(handler.behavior_manager, BehaviorManager)
@@ -111,7 +111,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         """Test that builtin handler is used when no registered handler."""
         # Use manager with core modules loaded
         manager = create_behavior_manager_with_core_modules()
-        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.game_state, behavior_manager=manager)
 
         result = handler.handle_command({
             "type": "command",
@@ -139,9 +139,9 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
             return EventResult(allow=True, feedback="You feel the sword's power!")
 
         manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
-        self.state.items[0].behaviors = ["test_module"]
+        self.game_state.items[0].behaviors = ["test_module"]
 
-        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.game_state, behavior_manager=manager)
 
         result = handler.handle_command({
             "type": "command",
@@ -162,9 +162,9 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
             return EventResult(allow=False, feedback="The sword is cursed and refuses to be picked up!")
 
         manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
-        self.state.items[0].behaviors = ["test_module"]
+        self.game_state.items[0].behaviors = ["test_module"]
 
-        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.game_state, behavior_manager=manager)
 
         result = handler.handle_command({
             "type": "command",
@@ -185,9 +185,9 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
             return EventResult(allow=True, feedback="The magic awakens!")
 
         manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
-        self.state.items[0].behaviors = ["test_module"]
+        self.game_state.items[0].behaviors = ["test_module"]
 
-        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.game_state, behavior_manager=manager)
 
         result = handler.handle_command({
             "type": "command",
@@ -199,7 +199,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
     def test_entity_obj_removed_from_final_result(self):
         """Test that entity_obj is removed from final result."""
         manager = create_behavior_manager_with_core_modules()
-        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.game_state, behavior_manager=manager)
 
         result = handler.handle_command({
             "type": "command",
@@ -222,9 +222,9 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
             return EventResult(allow=True)
 
         manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
-        self.state.items[0].behaviors = ["test_module"]
+        self.game_state.items[0].behaviors = ["test_module"]
 
-        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.game_state, behavior_manager=manager)
 
         handler.handle_command({
             "type": "command",
@@ -247,9 +247,9 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
             return EventResult(allow=True)
 
         manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
-        self.state.items[0].behaviors = ["test_module"]
+        self.game_state.items[0].behaviors = ["test_module"]
 
-        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.game_state, behavior_manager=manager)
 
         # Try to take item that doesn't exist
         result = handler.handle_command({
@@ -271,9 +271,9 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
             return EventResult(allow=True)
 
         manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
-        self.state.items[0].behaviors = ["test_module"]
+        self.game_state.items[0].behaviors = ["test_module"]
 
-        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.game_state, behavior_manager=manager)
 
         handler.handle_command({
             "type": "command",
@@ -296,9 +296,9 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
             return EventResult(allow=True)
 
         manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
-        self.state.items[0].behaviors = ["test_module"]
+        self.game_state.items[0].behaviors = ["test_module"]
 
-        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.game_state, behavior_manager=manager)
 
         handler.handle_command({
             "type": "command",
@@ -307,7 +307,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
 
         self.assertEqual(len(accessor_received), 1)
         # Behaviors receive StateAccessor which has .game_state
-        self.assertIs(accessor_received[0].game_state, self.state)
+        self.assertIs(accessor_received[0].game_state, self.game_state)
 
     def test_behavior_can_modify_entity_state(self):
         """Test that behavior can modify entity state."""
@@ -318,16 +318,16 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
             return EventResult(allow=True, feedback="The sword glows!")
 
         manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
-        self.state.items[0].behaviors = ["test_module"]
+        self.game_state.items[0].behaviors = ["test_module"]
 
-        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.game_state, behavior_manager=manager)
 
         handler.handle_command({
             "type": "command",
             "action": {"verb": "take", "object": "sword"}
         })
 
-        self.assertTrue(self.state.items[0].states.get("enchanted"))
+        self.assertTrue(self.game_state.items[0].states.get("enchanted"))
 
     def test_multiple_behaviors_on_same_entity(self):
         """Test entity with multiple behaviors for different events."""
@@ -344,9 +344,9 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
             on_drop=on_drop
         )
 
-        self.state.items[0].behaviors = ["test_module"]
+        self.game_state.items[0].behaviors = ["test_module"]
 
-        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.game_state, behavior_manager=manager)
 
         # Take the item
         result = handler.handle_command({
@@ -364,7 +364,7 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
 
     def test_no_behavior_manager_works_without_behaviors(self):
         """Test that handler works with auto-created behavior manager."""
-        handler = LLMProtocolHandler(self.state)
+        handler = LLMProtocolHandler(self.game_state)
 
         result = handler.handle_command({
             "type": "command",
@@ -380,9 +380,9 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
         manager = create_behavior_manager_with_core_modules()
 
         # Item with empty behaviors
-        self.state.items[0].behaviors = []
+        self.game_state.items[0].behaviors = []
 
-        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.game_state, behavior_manager=manager)
 
         result = handler.handle_command({
             "type": "command",
@@ -394,9 +394,9 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
     def test_entity_with_empty_behaviors(self):
         """Test handling entity with empty behaviors dict."""
         manager = create_behavior_manager_with_core_modules()
-        self.state.items[0].behaviors = []
+        self.game_state.items[0].behaviors = []
 
-        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.game_state, behavior_manager=manager)
 
         result = handler.handle_command({
             "type": "command",
@@ -413,9 +413,9 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
             raise ValueError("Behavior error!")
 
         manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
-        self.state.items[0].behaviors = ["test_module"]
+        self.game_state.items[0].behaviors = ["test_module"]
 
-        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.game_state, behavior_manager=manager)
 
         # Command should still succeed even if behavior errors
         result = handler.handle_command({
@@ -437,9 +437,9 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
             return EventResult(allow=True)
 
         manager._modules["test_module"] = SimpleNamespace(on_take=on_take)
-        self.state.items[0].behaviors = ["test_module"]
+        self.game_state.items[0].behaviors = ["test_module"]
 
-        handler = LLMProtocolHandler(self.state, behavior_manager=manager)
+        handler = LLMProtocolHandler(self.game_state, behavior_manager=manager)
 
         handler.handle_command({
             "type": "command",
@@ -456,7 +456,7 @@ class TestProtocolBehaviorCommands(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.state = GameState(
+        self.game_state = GameState(
             metadata=Metadata(
                 title="Test Game",
                 version="1.0",
@@ -497,7 +497,7 @@ class TestProtocolBehaviorCommands(unittest.TestCase):
             }
         )
         self.manager = create_behavior_manager_with_core_modules()
-        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
 
     def test_drink_command_invokes_on_drink(self):
         """Test drink command invokes on_drink behavior."""
@@ -508,7 +508,7 @@ class TestProtocolBehaviorCommands(unittest.TestCase):
             return EventResult(allow=True, feedback="The potion heals you!")
 
         self.manager._modules["test"] = SimpleNamespace(on_drink=on_drink)
-        self.state.items[0].behaviors = ["test"]
+        self.game_state.items[0].behaviors = ["test"]
 
         # First take the potion
         self.handler.handle_command({
@@ -535,7 +535,7 @@ class TestProtocolBehaviorCommands(unittest.TestCase):
             return EventResult(allow=True, feedback="The book reveals ancient secrets!")
 
         self.manager._modules["test"] = SimpleNamespace(on_read=on_read)
-        self.state.items[1].behaviors = ["test"]
+        self.game_state.items[1].behaviors = ["test"]
 
         result = self.handler.handle_command({
             "type": "command",
@@ -554,7 +554,7 @@ class TestProtocolBehaviorCommands(unittest.TestCase):
             return EventResult(allow=True, feedback="You use the item!")
 
         self.manager._modules["test"] = SimpleNamespace(on_use=on_use)
-        self.state.items[0].behaviors = ["test"]
+        self.game_state.items[0].behaviors = ["test"]
 
         result = self.handler.handle_command({
             "type": "command",

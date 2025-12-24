@@ -163,8 +163,8 @@ class TestMultipleAdjectiveDisambiguation(unittest.TestCase):
             "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
         }
 
-        self.state = load_game_state(self.game_data)
-        self.handler = LLMProtocolHandler(self.state)
+        self.game_state = load_game_state(self.game_data)
+        self.handler = LLMProtocolHandler(self.game_state)
 
     def test_single_adjective_disambiguates(self):
         """Test that single adjective can disambiguate doors."""
@@ -176,8 +176,8 @@ class TestMultipleAdjectiveDisambiguation(unittest.TestCase):
 
         self.assertTrue(result.get("success"))
         # Verify correct door was opened (doors are migrated to items)
-        door1 = next(i for i in self.state.items if i.id == "door1")
-        door2 = next(i for i in self.state.items if i.id == "door2")
+        door1 = next(i for i in self.game_state.items if i.id == "door1")
+        door2 = next(i for i in self.game_state.items if i.id == "door2")
         self.assertTrue(door1.door_open)
         self.assertFalse(door2.door_open)
 
@@ -190,7 +190,7 @@ class TestMultipleAdjectiveDisambiguation(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        door1 = next(i for i in self.state.items if i.id == "door1")
+        door1 = next(i for i in self.game_state.items if i.id == "door1")
         self.assertTrue(door1.door_open)
 
     def test_adjective_in_description_matches(self):
@@ -202,7 +202,7 @@ class TestMultipleAdjectiveDisambiguation(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        door1 = next(i for i in self.state.items if i.id == "door1")
+        door1 = next(i for i in self.game_state.items if i.id == "door1")
         self.assertTrue(door1.door_open)
 
     def test_no_matching_adjective_handled_gracefully(self):
@@ -255,8 +255,8 @@ class TestItemDisambiguation(unittest.TestCase):
             "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
         }
 
-        self.state = load_game_state(self.game_data)
-        self.handler = LLMProtocolHandler(self.state)
+        self.game_state = load_game_state(self.game_data)
+        self.handler = LLMProtocolHandler(self.game_state)
 
     def test_adjective_selects_correct_item(self):
         """Test that adjective selects correct item from multiple."""
@@ -268,8 +268,8 @@ class TestItemDisambiguation(unittest.TestCase):
 
         self.assertTrue(result.get("success"))
         # Verify correct key was taken
-        self.assertIn("key1", self.state.actors[ActorId("player")].inventory)
-        self.assertNotIn("key2", self.state.actors[ActorId("player")].inventory)
+        self.assertIn("key1", self.game_state.actors[ActorId("player")].inventory)
+        self.assertNotIn("key2", self.game_state.actors[ActorId("player")].inventory)
 
     def test_different_adjective_selects_other_item(self):
         """Test that different adjective selects other item."""
@@ -280,8 +280,8 @@ class TestItemDisambiguation(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertIn("key2", self.state.actors[ActorId("player")].inventory)
-        self.assertNotIn("key1", self.state.actors[ActorId("player")].inventory)
+        self.assertIn("key2", self.game_state.actors[ActorId("player")].inventory)
+        self.assertNotIn("key1", self.game_state.actors[ActorId("player")].inventory)
 
     def test_size_adjective_disambiguates(self):
         """Test that size adjectives work for disambiguation."""
@@ -292,7 +292,7 @@ class TestItemDisambiguation(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertIn("key1", self.state.actors[ActorId("player")].inventory)
+        self.assertIn("key1", self.game_state.actors[ActorId("player")].inventory)
 
     def test_ambiguous_adjective_picks_first(self):
         """Test behavior when adjective matches multiple items."""
@@ -337,8 +337,8 @@ class TestGracefulErrorHandling(unittest.TestCase):
             "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
         }
 
-        self.state = load_game_state(self.game_data)
-        self.handler = LLMProtocolHandler(self.state)
+        self.game_state = load_game_state(self.game_data)
+        self.handler = LLMProtocolHandler(self.game_state)
 
     def test_nonexistent_object_with_adjective(self):
         """Test taking nonexistent object with adjective."""

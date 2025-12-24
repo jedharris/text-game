@@ -15,7 +15,19 @@ from src.infrastructure_utils import transition_state
 # Note: Death reactions are handled by infrastructure/death_reactions.py
 # Golems must have dialog_reactions, item_use_reactions, and death_reactions config
 vocabulary: Dict[str, Any] = {
-    "events": []
+    "events": [],
+    # Add adjectives for multi-word item/NPC names
+    "adjectives": [
+        {"word": "stone", "synonyms": []},
+        {"word": "control", "synonyms": []},
+        {"word": "command", "synonyms": []},  # for command_crystal
+        {"word": "crystal", "synonyms": []},
+        {"word": "mounting", "synonyms": []},
+        {"word": "cold", "synonyms": []},
+        {"word": "resistance", "synonyms": []},
+        {"word": "lore", "synonyms": []},  # for lore_tablets
+        {"word": "fire", "synonyms": []},  # for fire_crystal
+    ]
 }
 
 # The correct password (case-insensitive)
@@ -58,6 +70,16 @@ def on_golem_password(
     keyword = context.get("keyword", "").lower()
     full_text = f"{dialog_text} {keyword}"
 
+    # If no keyword provided (from "talk to guardian"), provide hint
+    if not full_text.strip():
+        return EventResult(
+            allow=True,
+            feedback=(
+                "The golem remains motionless, watching with eyeless vigilance. "
+                "Ancient inscriptions on the walls might hold the key to passage."
+            )
+        )
+
     # Check if password matches (simplified check - key phrases present)
     key_phrases = ["fire-that-gives-life", "water-that-cleanses", "united in purpose"]
     matches = sum(1 for phrase in key_phrases if phrase in full_text)
@@ -65,7 +87,7 @@ def on_golem_password(
     if matches < 2:
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
 
     # Deactivate both golems
     _deactivate_golems(state, "passive")
@@ -100,8 +122,8 @@ def on_golem_item_use(
     item_id = entity.id if hasattr(entity, "id") else str(entity)
     item_lower = item_id.lower()
 
-    # Check for control crystal first (specific item)
-    if "control_crystal" in item_lower:
+    # Check for command crystal first (specific item)
+    if "command_crystal" in item_lower or "command_orb" in item_lower:
         return _handle_control_crystal(entity, accessor, context)
 
     # Check for ritual items (fire + water combination)
@@ -122,7 +144,7 @@ def _handle_control_crystal(
     if "golem" not in target_id.lower() and "sanctum" not in target_id.lower():
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
 
     # Take full control of both golems
     _deactivate_golems(state, "serving")
@@ -150,7 +172,7 @@ def _handle_ritual(
     item_id = entity.id if hasattr(entity, "id") else str(entity)
     item_lower = item_id.lower()
 
-    state = accessor.state
+    state = accessor.game_state
 
     # Check for fire + water combination
     has_fire = any(
@@ -216,7 +238,7 @@ def on_golem_death(
     if not actor_id or "golem" not in actor_id.lower():
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
 
     # Track destruction
     destroyed = state.extra.get("golems_destroyed", 0)

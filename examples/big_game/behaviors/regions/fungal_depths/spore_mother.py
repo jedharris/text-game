@@ -22,7 +22,9 @@ from src.infrastructure_utils import (
 # Note: Turn phase events are handled by infrastructure/turn_phase_dispatcher.py
 # Spore Mother must have pack_behavior, item_use_reactions, death_reactions config
 vocabulary: Dict[str, Any] = {
-    "events": []
+    "events": [],
+    # Add "spore" as adjective so "ask about spore mother" parses correctly
+    "adjectives": [{"word": "spore", "synonyms": []}]
 }
 
 
@@ -43,7 +45,7 @@ def on_spore_mother_presence(
     Returns:
         EventResult with state change message if applicable
     """
-    state = accessor.state
+    state = accessor.game_state
 
     # Check if player is in Spore Heart
     player = state.actors.get("player")
@@ -121,7 +123,7 @@ def on_spore_mother_heal(
     if target_id != "npc_spore_mother":
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
     mother = state.actors.get("npc_spore_mother")
     if not mother:
         return EventResult(allow=True, feedback=None)
@@ -138,6 +140,15 @@ def on_spore_mother_heal(
     # Set flags
     state.extra["spore_mother_healed"] = True
     state.extra["has_spore_heart"] = True  # She gifts the waystone fragment
+
+    # Give the spore_heart_fragment to the player
+    spore_heart = state.get_item("spore_heart_fragment")
+    if spore_heart:
+        # Set item location and add to player inventory
+        spore_heart.location = "player"
+        player = state.actors.get("player")
+        if player and spore_heart.id not in player.inventory:
+            player.inventory.append(spore_heart.id)
 
     # Clear all spore levels in the region
     for loc in getattr(state, "locations", []):
@@ -192,7 +203,7 @@ def on_spore_mother_death(
     if actor_id != "npc_spore_mother":
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
 
     # Set death flags
     state.extra["spore_mother_dead"] = True
@@ -256,10 +267,94 @@ def on_spore_mother_state_change(
     if not new_state:
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
     _update_sporeling_states(state, new_state)
 
     return EventResult(allow=True, feedback=None)
+
+
+def on_spore_mother_talk(
+    entity: Any,
+    accessor: Any,
+    context: dict[str, Any],
+) -> EventResult:
+    """Handle talk/ask commands directed at Spore Mother.
+
+    The Spore Mother communicates through empathic spores, not words.
+    Her communication vocabulary (from design Section 1.5):
+    - Pain spike: sharp sensation through spore contact
+    - Waves of need: desperate grasping sensation, seeking help
+    - Gentle probing: curiosity, attention focusing on player
+    - Warmth flood: gratitude, relief, connection established
+    - Pressure surge: hostility, threat, spore burst incoming
+    - Weakening pulse: her illness, dying, needs heartmoss
+
+    Args:
+        entity: The Spore Mother actor
+        accessor: StateAccessor instance
+        context: Context with keyword (topic) if ask command
+
+    Returns:
+        EventResult with empathic communication description
+    """
+    state = accessor.game_state
+    mother = state.actors.get("npc_spore_mother")
+    if not mother:
+        return EventResult(allow=True, feedback=None)
+
+    sm = mother.properties.get("state_machine", {})
+    current_state = sm.get("current", sm.get("initial", "hostile"))
+
+    # Get keyword if this is an "ask about" command
+    keyword = context.get("keyword", "")
+
+    # Generate empathic response based on current state
+    if current_state == "hostile":
+        feedback = (
+            "The Spore Mother's massive cap turns toward you. A pressure surge "
+            "builds in your chest - hostility, warning. Through the spore haze, "
+            "you sense pain spike after pain spike, her suffering mixed with "
+            "threat. Waves of desperate need wash over you, but underneath "
+            "pulses something darker: she will defend herself. "
+            "The sporelings bristle, mirroring her aggression."
+        )
+    elif current_state == "wary":
+        feedback = (
+            "The Spore Mother regards you with cautious attention. Gentle probing "
+            "tendrils of sensation reach toward your mind - curiosity, questions. "
+            "Underneath, you feel her weakening pulse, the illness that consumes her. "
+            "Waves of need flow through the connection: she seeks something, "
+            "desperately. The sensation of dying roots, of blight spreading... "
+            "The sporelings watch, uncertain."
+        )
+    elif current_state == "allied":
+        feedback = (
+            "Warmth floods through the empathic connection as the Spore Mother "
+            "acknowledges you. Gentle probing becomes welcoming embrace. You sense "
+            "her gratitude - deep, ancient, patient. The spore-song hums with "
+            "peaceful contentment. Through her, you feel the health of the fungal "
+            "network, the slow pulse of life through miles of mycelium. "
+            "The sporelings dance lazily around her, at peace."
+        )
+    elif current_state == "dead":
+        feedback = (
+            "There is nothing here but silence and decay. The empathic connection "
+            "that once filled this chamber is gone, replaced by hollow emptiness. "
+            "The organic walls are still. The sporelings wander aimlessly."
+        )
+    elif current_state == "confused":
+        feedback = (
+            "Erratic pulses of sensation wash over you - confusion, loss, "
+            "searching. The Spore Mother's connection feels fractured, uncertain. "
+            "The sporelings twitch and wander, reflecting her disorientation."
+        )
+    else:
+        feedback = (
+            "The Spore Mother's presence fills the chamber. Through the thick "
+            "spore haze, you sense her awareness turning toward you."
+        )
+
+    return EventResult(allow=True, feedback=feedback)
 
 
 def _update_sporeling_states(state: Any, new_state: str) -> None:

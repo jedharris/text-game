@@ -47,7 +47,7 @@ class MockAccessor:
     """Mock state accessor for testing."""
 
     def __init__(self, state: MockState) -> None:
-        self.state = state
+        self.game_state = state
 
 
 # =============================================================================

@@ -8,7 +8,7 @@ reasoning in the narrator by having the engine pre-compute all narration decisio
 See docs/game_engine_narration_api_design.md for full specification.
 """
 
-from typing import TypedDict, Literal, Optional
+from typing import TypedDict, Literal, Optional, Any
 
 
 class ViewpointInfo(TypedDict, total=False):
@@ -84,8 +84,31 @@ class MustMention(TypedDict, total=False):
 
     Fields:
         exits_text: Complete exits description for location scenes
+        dialog_topics: Available dialog topics the player can ask about
     """
     exits_text: str
+    dialog_topics: str
+
+
+class ReactionRef(TypedDict, total=False):
+    """
+    Single entity reaction for multi-entity scenes.
+
+    Used when multiple entities react to the same event (e.g., player
+    enters market with wolf companion, guard/wolf/merchant all react).
+
+    Fields:
+        entity: Entity ID of the reacting entity
+        entity_name: Human-readable name
+        state: Current state after reaction (e.g., "hostile", "nervous")
+        fragments: Pre-selected fragments for this entity's reaction
+        response: Response type (e.g., "confrontation", "avoidance")
+    """
+    entity: str
+    entity_name: str
+    state: str
+    fragments: list[str]
+    response: str
 
 
 class NarrationPlan(TypedDict, total=False):
@@ -101,6 +124,10 @@ class NarrationPlan(TypedDict, total=False):
         entity_refs: Relevant entities with narration-ready data
         must_mention: Required text that must appear
         target_state: For door/container actions, the CURRENT state AFTER the action
+        context: Author-defined narrator context (passed through unchanged)
+        hints: Author-defined style hints (e.g., ["urgent", "rescue"])
+        fragments: Pre-selected fragments for narration (action_core, action_color, traits, etc.)
+        reactions: Multi-entity reactions for scenes with multiple reacting entities
     """
     action_verb: str
     primary_text: str
@@ -110,6 +137,10 @@ class NarrationPlan(TypedDict, total=False):
     entity_refs: dict[str, EntityRef]
     must_mention: MustMention
     target_state: EntityState
+    context: dict[str, Any]
+    hints: list[str]
+    fragments: dict[str, Any]
+    reactions: list[ReactionRef]
 
 
 class NarrationResult(TypedDict):

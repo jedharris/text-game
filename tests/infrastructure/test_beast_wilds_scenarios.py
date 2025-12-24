@@ -54,7 +54,7 @@ class TestSiraRescueScenarios(ScenarioTestCase):
         self.setup_player(location="loc_beast_wilds_clearing")
 
         # Create Sira with bleeding and leg injury
-        self.sira = self.state.add_actor(
+        self.sira = self.game_state.add_actor(
             "npc_hunter_sira",
             name="Hunter Sira",
             properties={
@@ -72,7 +72,7 @@ class TestSiraRescueScenarios(ScenarioTestCase):
         )
 
         # Add commitment config
-        self.state.add_commitment_config(
+        self.game_state.add_commitment_config(
             "commit_sira_rescue",
             duration=20,
             success_condition="sira_healed",
@@ -92,14 +92,14 @@ class TestSiraRescueScenarios(ScenarioTestCase):
         """Subsequent encounters don't create duplicate commitments."""
         # First encounter
         on_sira_encounter(self.sira, self.accessor, {})
-        first_turn = self.state.extra["sira_first_encounter_turn"]
+        first_turn = self.game_state.extra["sira_first_encounter_turn"]
 
         # Advance time and encounter again
-        self.state.advance_turns(5)
+        self.game_state.advance_turns(5)
         result = on_sira_encounter(self.sira, self.accessor, {})
 
         # Should not change the turn
-        self.assertEqual(self.state.extra["sira_first_encounter_turn"], first_turn)
+        self.assertEqual(self.game_state.extra["sira_first_encounter_turn"], first_turn)
 
     def test_sira_healing_bleeding_first(self) -> None:
         """Healing Sira's bleeding is tracked."""
@@ -162,7 +162,7 @@ class TestBearCubsScenarios(ScenarioTestCase):
         self.setup_player(location="loc_beast_wilds_den")
 
         # Create dire bear
-        self.bear = self.state.add_actor(
+        self.bear = self.game_state.add_actor(
             "npc_dire_bear",
             name="Dire Bear",
             properties={
@@ -177,13 +177,13 @@ class TestBearCubsScenarios(ScenarioTestCase):
         )
 
         # Create sick cubs
-        self.cub1 = self.state.add_actor(
+        self.cub1 = self.game_state.add_actor(
             "npc_bear_cub_1",
             name="Bear Cub",
             properties={"sick": True},
             location="loc_beast_wilds_den",
         )
-        self.cub2 = self.state.add_actor(
+        self.cub2 = self.game_state.add_actor(
             "npc_bear_cub_2",
             name="Bear Cub",
             properties={"sick": True},
@@ -191,14 +191,14 @@ class TestBearCubsScenarios(ScenarioTestCase):
         )
 
         # Create healing herbs item
-        self.herbs = self.state.add_item(
+        self.herbs = self.game_state.add_item(
             "item_healing_herbs",
             name="Healing Herbs",
             location="actor:player",
         )
 
         # Add commitment config
-        self.state.add_commitment_config(
+        self.game_state.add_commitment_config(
             "commit_bear_cubs",
             duration=30,
             success_condition="cubs_healed",
@@ -285,7 +285,7 @@ class TestWolfPackScenarios(ScenarioTestCase):
         self.setup_player(location="loc_beast_wilds_clearing")
 
         # Create alpha wolf
-        self.alpha = self.state.add_actor(
+        self.alpha = self.game_state.add_actor(
             "npc_alpha_wolf",
             name="Alpha Wolf",
             properties={
@@ -304,7 +304,7 @@ class TestWolfPackScenarios(ScenarioTestCase):
         )
 
         # Create pack followers
-        self.wolf1 = self.state.add_actor(
+        self.wolf1 = self.game_state.add_actor(
             "frost_wolf_1",
             name="Frost Wolf",
             properties={
@@ -316,7 +316,7 @@ class TestWolfPackScenarios(ScenarioTestCase):
             },
             location="loc_beast_wilds_clearing",
         )
-        self.wolf2 = self.state.add_actor(
+        self.wolf2 = self.game_state.add_actor(
             "frost_wolf_2",
             name="Frost Wolf",
             properties={
@@ -330,7 +330,7 @@ class TestWolfPackScenarios(ScenarioTestCase):
         )
 
         # Create meat item
-        self.meat = self.state.add_item("item_venison", name="Venison")
+        self.meat = self.game_state.add_item("item_venison", name="Venison")
 
     def test_feeding_wolf_increases_trust(self) -> None:
         """Giving meat to wolf increases trust."""
@@ -359,7 +359,7 @@ class TestWolfPackScenarios(ScenarioTestCase):
 
     def test_feeding_non_food_rejected(self) -> None:
         """Non-food items don't affect wolf."""
-        stone = self.state.add_item("item_stone", name="Stone")
+        stone = self.game_state.add_item("item_stone", name="Stone")
 
         result = on_wolf_feed(
             stone, self.accessor, {"target_actor": self.alpha, "item": stone}
@@ -402,7 +402,7 @@ class TestBeeQueenScenarios(ScenarioTestCase):
         self.setup_player(location="loc_bee_grove")
 
         # Create Bee Queen
-        self.queen = self.state.add_actor(
+        self.queen = self.game_state.add_actor(
             "bee_queen",
             name="Bee Queen",
             properties={
@@ -417,13 +417,13 @@ class TestBeeQueenScenarios(ScenarioTestCase):
         )
 
         # Create flower items
-        self.moonpetal = self.state.add_item(
+        self.moonpetal = self.game_state.add_item(
             "item_moonpetal", name="Moonpetal Flower"
         )
-        self.frost_lily = self.state.add_item(
+        self.frost_lily = self.game_state.add_item(
             "item_frost_lily", name="Frost Lily"
         )
-        self.water_bloom = self.state.add_item(
+        self.water_bloom = self.game_state.add_item(
             "item_water_bloom", name="Water Bloom"
         )
 
@@ -440,7 +440,7 @@ class TestBeeQueenScenarios(ScenarioTestCase):
         self.assertIn("2 more", result.feedback or "")
 
         # Should track flower
-        traded = self.state.extra.get("bee_queen_flowers_traded", [])
+        traded = self.game_state.extra.get("bee_queen_flowers_traded", [])
         self.assertIn("moonpetal", traded)
 
         # Should transition to trading
@@ -489,11 +489,11 @@ class TestBeeQueenScenarios(ScenarioTestCase):
         self.assertIn("ally", (result.feedback or "").lower())
         self.assert_actor_state("bee_queen", "allied")
         self.assert_flag_set("bee_queen_honey_count")
-        self.assertEqual(self.state.extra["bee_queen_honey_count"], 3)
+        self.assertEqual(self.game_state.extra["bee_queen_honey_count"], 3)
 
     def test_non_flower_rejected(self) -> None:
         """Non-flower items are rejected by queen."""
-        stone = self.state.add_item("item_stone", name="Stone")
+        stone = self.game_state.add_item("item_stone", name="Stone")
 
         result = on_flower_offer(
             stone, self.accessor, {"target_actor": self.queen, "item": stone}
@@ -503,8 +503,8 @@ class TestBeeQueenScenarios(ScenarioTestCase):
 
     def test_honey_theft_makes_hostile(self) -> None:
         """Taking honey without permission makes queen hostile."""
-        honey = self.state.add_item("item_royal_honey", name="Royal Honey")
-        beehive = self.state.add_location("loc_beehive_chamber", name="Beehive Chamber")
+        honey = self.game_state.add_item("item_royal_honey", name="Royal Honey")
+        beehive = self.game_state.add_location("loc_beehive_chamber", name="Beehive Chamber")
 
         result = on_honey_theft(
             honey, self.accessor, {"location": beehive}
@@ -522,8 +522,8 @@ class TestBeeQueenScenarios(ScenarioTestCase):
         sm = self.queen.properties["state_machine"]
         sm["current"] = "allied"
 
-        honey = self.state.add_item("item_royal_honey", name="Royal Honey")
-        beehive = self.state.add_location("loc_beehive_chamber", name="Beehive Chamber")
+        honey = self.game_state.add_item("item_royal_honey", name="Royal Honey")
+        beehive = self.game_state.add_location("loc_beehive_chamber", name="Beehive Chamber")
 
         result = on_honey_theft(
             honey, self.accessor, {"location": beehive}
@@ -543,7 +543,7 @@ class TestSpiderNestScenarios(ScenarioTestCase):
         self.setup_player(location="loc_spider_nest_entrance")
 
         # Create spider queen
-        self.queen = self.state.add_actor(
+        self.queen = self.game_state.add_actor(
             "spider_matriarch",
             name="Spider Matriarch",
             properties={
@@ -557,7 +557,7 @@ class TestSpiderNestScenarios(ScenarioTestCase):
         )
 
         # Create some spiders
-        self.spider1 = self.state.add_actor(
+        self.spider1 = self.game_state.add_actor(
             "npc_giant_spider_1",
             name="Giant Spider",
             properties={
@@ -569,7 +569,7 @@ class TestSpiderNestScenarios(ScenarioTestCase):
                 "location": "loc_spider_nest_gallery",
             },
         )
-        self.spider2 = self.state.add_actor(
+        self.spider2 = self.game_state.add_actor(
             "npc_giant_spider_2",
             name="Giant Spider",
             properties={
@@ -583,7 +583,7 @@ class TestSpiderNestScenarios(ScenarioTestCase):
         )
 
         # Location with web effects
-        self.gallery = self.state.add_location(
+        self.gallery = self.game_state.add_location(
             "loc_spider_nest_gallery",
             name="Spider Gallery",
             properties={"web_effects": True},
@@ -613,8 +613,8 @@ class TestSpiderNestScenarios(ScenarioTestCase):
         self.queen.properties["state_machine"]["current"] = "dead"
 
         # Advance time past respawn interval
-        self.state.extra["spider_last_respawn"] = 0
-        self.state.advance_turns(15)
+        self.game_state.extra["spider_last_respawn"] = 0
+        self.game_state.advance_turns(15)
 
         result = on_spider_respawn_check(None, self.accessor, {})
 
@@ -627,8 +627,8 @@ class TestSpiderNestScenarios(ScenarioTestCase):
         self.spider1.properties["state_machine"]["current"] = "dead"
 
         # Set up respawn timing
-        self.state.extra["spider_last_respawn"] = 0
-        self.state.advance_turns(15)  # Past the 10-turn interval
+        self.game_state.extra["spider_last_respawn"] = 0
+        self.game_state.advance_turns(15)  # Past the 10-turn interval
 
         result = on_spider_respawn_check(None, self.accessor, {})
 
@@ -640,8 +640,8 @@ class TestSpiderNestScenarios(ScenarioTestCase):
     def test_no_respawn_if_enough_spiders_alive(self) -> None:
         """No respawn if 2+ spiders are already alive."""
         # Both spiders alive
-        self.state.extra["spider_last_respawn"] = 0
-        self.state.advance_turns(15)
+        self.game_state.extra["spider_last_respawn"] = 0
+        self.game_state.advance_turns(15)
 
         result = on_spider_respawn_check(None, self.accessor, {})
 

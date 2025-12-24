@@ -47,7 +47,7 @@ def on_delvan_encounter(
     if actor_id != "merchant_delvan":
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
     extra = state.extra
 
     if extra.get("delvan_commitment_created"):
@@ -95,7 +95,7 @@ def on_garrett_encounter(
     if "garrett" not in (loc_id or "").lower() and "rising_water" not in (loc_id or "").lower():
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
     extra = state.extra
 
     if extra.get("garrett_commitment_created"):
@@ -140,7 +140,7 @@ def on_rescue_success(
     actor_id = entity.id if hasattr(entity, "id") else None
     condition_type = context.get("condition_type")
 
-    state = accessor.state
+    state = accessor.game_state
 
     if actor_id == "merchant_delvan" and condition_type == "bleeding":
         state.extra["delvan_rescued"] = True
@@ -184,7 +184,7 @@ def on_npc_death(
         EventResult with failure message
     """
     actor_id = entity.id if hasattr(entity, "id") else None
-    state = accessor.state
+    state = accessor.game_state
 
     if actor_id == "merchant_delvan":
         state.extra["delvan_died"] = True

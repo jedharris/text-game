@@ -29,7 +29,7 @@ class MockAccessor:
     """Mock accessor for testing."""
 
     def __init__(self) -> None:
-        self.state = MockState()
+        self.game_state = MockState()
 
 
 class TestItemUseReactionsBasic(unittest.TestCase):
@@ -160,7 +160,7 @@ class TestItemUseReactionsTargetDataDriven(unittest.TestCase):
 
         on_item_used(item, self.accessor, context)
 
-        self.assertTrue(self.accessor.state.extra.get("aldric_healed"))
+        self.assertTrue(self.accessor.game_state.extra.get("aldric_healed"))
 
     def test_trust_delta(self) -> None:
         """Item use reaction applies trust delta."""
@@ -212,7 +212,7 @@ class TestItemUseReactionsTargetDataDriven(unittest.TestCase):
 
     def test_requires_flags_met(self) -> None:
         """Reaction fires when requires_flags are met."""
-        self.accessor.state.extra["aldric_found"] = True
+        self.accessor.game_state.extra["aldric_found"] = True
 
         item = MockEntity("item_silvermoss", {})
         target = MockEntity(

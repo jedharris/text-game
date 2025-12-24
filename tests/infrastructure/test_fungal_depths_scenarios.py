@@ -50,7 +50,7 @@ class TestAldricRescueScenarios(ScenarioTestCase):
         self.setup_player(location="loc_fungal_depths_camp")
 
         # Create Aldric with fungal infection
-        self.aldric = self.state.add_actor(
+        self.aldric = self.game_state.add_actor(
             "npc_aldric",
             name="Scholar Aldric",
             properties={
@@ -72,14 +72,14 @@ class TestAldricRescueScenarios(ScenarioTestCase):
         )
 
         # Create silvermoss item
-        self.silvermoss = self.state.add_item(
+        self.silvermoss = self.game_state.add_item(
             "item_silvermoss",
             name="Silvermoss",
             location="actor:player",
         )
 
         # Add commitment config
-        self.state.add_commitment_config(
+        self.game_state.add_commitment_config(
             "commit_aldric_help",
             duration=25,
             success_condition="aldric_helped",
@@ -142,7 +142,7 @@ class TestAldricRescueScenarios(ScenarioTestCase):
         on_aldric_heal(self.silvermoss, self.accessor, {"target": self.aldric})
 
         # Second silvermoss
-        silvermoss2 = self.state.add_item("item_silvermoss_2", name="Silvermoss")
+        silvermoss2 = self.game_state.add_item("item_silvermoss_2", name="Silvermoss")
         result = on_aldric_heal(silvermoss2, self.accessor, {"target": self.aldric})
 
         self.assertTrue(result.allow)
@@ -196,7 +196,7 @@ class TestAldricRescueScenarios(ScenarioTestCase):
     def test_teaching_succeeds_with_notes(self) -> None:
         """Can learn mycology with proper conditions and gift."""
         # Set up player
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         player.properties["skills"] = {}
 
         # Fully heal and max trust
@@ -226,7 +226,7 @@ class TestSporeMotherScenarios(ScenarioTestCase):
         player.properties["location"] = "spore_heart"
 
         # Create Spore Mother with blight condition
-        self.mother = self.state.add_actor(
+        self.mother = self.game_state.add_actor(
             "npc_spore_mother",
             name="Spore Mother",
             properties={
@@ -245,7 +245,7 @@ class TestSporeMotherScenarios(ScenarioTestCase):
         )
 
         # Create sporelings
-        self.sporeling1 = self.state.add_actor(
+        self.sporeling1 = self.game_state.add_actor(
             "npc_sporeling_1",
             name="Sporeling",
             properties={
@@ -257,7 +257,7 @@ class TestSporeMotherScenarios(ScenarioTestCase):
             },
             location="spore_heart",
         )
-        self.sporeling2 = self.state.add_actor(
+        self.sporeling2 = self.game_state.add_actor(
             "npc_sporeling_2",
             name="Sporeling",
             properties={
@@ -271,7 +271,7 @@ class TestSporeMotherScenarios(ScenarioTestCase):
         )
 
         # Create Myconid Elder for trust effects
-        self.myconid = self.state.add_actor(
+        self.myconid = self.game_state.add_actor(
             "npc_myconid_elder",
             name="Myconid Elder",
             properties={
@@ -282,7 +282,7 @@ class TestSporeMotherScenarios(ScenarioTestCase):
         )
 
         # Create heartmoss item
-        self.heartmoss = self.state.add_item(
+        self.heartmoss = self.game_state.add_item(
             "item_heartmoss",
             name="Heartmoss",
             location="actor:player",
@@ -309,12 +309,12 @@ class TestSporeMotherScenarios(ScenarioTestCase):
         on_spore_mother_presence(None, self.accessor, {})
 
         # Attack!
-        self.state.extra["player_attacked_this_turn"] = True
+        self.game_state.extra["player_attacked_this_turn"] = True
         on_spore_mother_presence(None, self.accessor, {})
 
         # Should need 3 more turns now
         self.assert_actor_state("npc_spore_mother", "hostile")
-        self.assertEqual(self.state.extra.get("spore_mother_presence_turns", 0), 0)
+        self.assertEqual(self.game_state.extra.get("spore_mother_presence_turns", 0), 0)
 
     def test_healing_with_heartmoss(self) -> None:
         """Heartmoss heals Spore Mother and grants waystone fragment."""
@@ -374,7 +374,7 @@ class TestFungalDeathMarkScenarios(ScenarioTestCase):
         self.setup_player(location="loc_fungal_depths")
 
         # Create a fungal creature
-        self.fungal_creature = self.state.add_actor(
+        self.fungal_creature = self.game_state.add_actor(
             "npc_fungal_shambler",
             name="Fungal Shambler",
             properties={"fungal": True},
@@ -382,7 +382,7 @@ class TestFungalDeathMarkScenarios(ScenarioTestCase):
         )
 
         # Non-fungal creature
-        self.beast = self.state.add_actor(
+        self.beast = self.game_state.add_actor(
             "npc_beast",
             name="Beast",
             properties={"fungal": False},
@@ -390,7 +390,7 @@ class TestFungalDeathMarkScenarios(ScenarioTestCase):
         )
 
         # Create Myconid Elder
-        self.myconid = self.state.add_actor(
+        self.myconid = self.game_state.add_actor(
             "npc_myconid_elder",
             name="Myconid Elder",
             properties={
@@ -401,7 +401,7 @@ class TestFungalDeathMarkScenarios(ScenarioTestCase):
         )
 
         # Player as killer
-        self.player = self.state.actors[ActorId("player")]
+        self.player = self.game_state.actors[ActorId("player")]
 
     def test_killing_fungal_creature_sets_mark(self) -> None:
         """Killing a fungal creature sets the death mark."""
@@ -425,7 +425,7 @@ class TestFungalDeathMarkScenarios(ScenarioTestCase):
     def test_myconid_detects_death_mark(self) -> None:
         """First meeting with Myconid detects death mark."""
         # Set the death mark
-        self.state.extra["has_killed_fungi"] = True
+        self.game_state.extra["has_killed_fungi"] = True
 
         result = on_myconid_first_meeting(self.myconid, self.accessor, {})
 
@@ -455,7 +455,7 @@ class TestCombinedFungalScenarios(ScenarioTestCase):
         self.setup_player(location="loc_fungal_depths_entrance")
 
         # Create Aldric
-        self.aldric = self.state.add_actor(
+        self.aldric = self.game_state.add_actor(
             "npc_aldric",
             name="Scholar Aldric",
             properties={
@@ -470,7 +470,7 @@ class TestCombinedFungalScenarios(ScenarioTestCase):
         )
 
         # Create Spore Mother
-        self.mother = self.state.add_actor(
+        self.mother = self.game_state.add_actor(
             "npc_spore_mother",
             name="Spore Mother",
             properties={
@@ -485,7 +485,7 @@ class TestCombinedFungalScenarios(ScenarioTestCase):
         )
 
         # Create Myconid
-        self.myconid = self.state.add_actor(
+        self.myconid = self.game_state.add_actor(
             "npc_myconid_elder",
             name="Myconid Elder",
             properties={
@@ -497,7 +497,7 @@ class TestCombinedFungalScenarios(ScenarioTestCase):
 
     def test_kill_spore_mother_then_meet_myconid(self) -> None:
         """Killing Spore Mother then meeting Myconid shows cumulative effects."""
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
 
         # Kill Spore Mother - sets has_killed_fungi
         on_spore_mother_death(self.mother, self.accessor, {})
@@ -515,7 +515,7 @@ class TestCombinedFungalScenarios(ScenarioTestCase):
     def test_heal_spore_mother_then_meet_myconid(self) -> None:
         """Healing Spore Mother then meeting Myconid has no mark penalty."""
         # Create heartmoss
-        heartmoss = self.state.add_item("item_heartmoss", name="Heartmoss")
+        heartmoss = self.game_state.add_item("item_heartmoss", name="Heartmoss")
 
         # Heal Spore Mother
         on_spore_mother_heal(heartmoss, self.accessor, {"target": self.mother})

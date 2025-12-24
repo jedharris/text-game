@@ -87,7 +87,7 @@ class TestValidateActorAndLocation(BaseTestCase):
     def test_actor_without_location(self):
         """Should return INCONSISTENT STATE error when location not found"""
         # Create actor with invalid location
-        self.state.actors[ActorId("orphan")] = Actor(
+        self.game_state.actors[ActorId("orphan")] = Actor(
             id="orphan", name="Orphan", description="Lost",
             location="nowhere", inventory=[]
         )
@@ -184,7 +184,7 @@ class TestExecuteEntityAction(BaseTestCase):
 
     def test_success_basic(self):
         """Should return success with message and serialized entity"""
-        item = self.state.get_item("item_sword")
+        item = self.game_state.get_item("item_sword")
         result = execute_entity_action(
             self.accessor,
             item,
@@ -203,7 +203,7 @@ class TestExecuteEntityAction(BaseTestCase):
     def test_success_with_behavior_message(self):
         """Should include behavior message in beats"""
         # Mock accessor.update to return a message
-        item = self.state.get_item("item_sword")
+        item = self.game_state.get_item("item_sword")
         original_update = self.accessor.update
 
         def mock_update(entity, changes, verb=None, actor_id=None):
@@ -228,7 +228,7 @@ class TestExecuteEntityAction(BaseTestCase):
 
     def test_success_with_positioning_message(self):
         """Should include positioning message in beats"""
-        item = self.state.get_item("item_sword")
+        item = self.game_state.get_item("item_sword")
         result = execute_entity_action(
             self.accessor,
             item,
@@ -245,7 +245,7 @@ class TestExecuteEntityAction(BaseTestCase):
 
     def test_failure_from_behavior(self):
         """Should return failure when behavior denies action"""
-        item = self.state.get_item("item_sword")
+        item = self.game_state.get_item("item_sword")
         original_update = self.accessor.update
 
         def mock_update(entity, changes, verb=None, actor_id=None):
@@ -273,8 +273,8 @@ class TestTransferItemToActor(BaseTestCase):
 
     def test_success(self):
         """Should transfer item to actor inventory"""
-        item = self.state.get_item("item_sword")
-        actor = self.state.actors[ActorId("player")]
+        item = self.game_state.get_item("item_sword")
+        actor = self.game_state.actors[ActorId("player")]
         location = self.accessor.get_current_location("player")
 
         result, error = transfer_item_to_actor(
@@ -295,8 +295,8 @@ class TestTransferItemToActor(BaseTestCase):
 
     def test_behavior_denies(self):
         """Should return error when behavior denies"""
-        item = self.state.get_item("item_sword")
-        actor = self.state.actors[ActorId("player")]
+        item = self.game_state.get_item("item_sword")
+        actor = self.game_state.actors[ActorId("player")]
         location = self.accessor.get_current_location("player")
 
         original_update = self.accessor.update
@@ -332,8 +332,8 @@ class TestTransferItemFromActor(BaseTestCase):
     def test_success(self):
         """Should transfer item from actor inventory"""
         # Setup: put sword in inventory
-        item = self.state.get_item("item_sword")
-        actor = self.state.actors[ActorId("player")]
+        item = self.game_state.get_item("item_sword")
+        actor = self.game_state.actors[ActorId("player")]
         location = self.accessor.get_current_location("player")
         actor.inventory.append("item_sword")
         item.location = "player"
@@ -355,8 +355,8 @@ class TestTransferItemFromActor(BaseTestCase):
 
     def test_behavior_denies(self):
         """Should return error when behavior denies"""
-        item = self.state.get_item("item_sword")
-        actor = self.state.actors[ActorId("player")]
+        item = self.game_state.get_item("item_sword")
+        actor = self.game_state.actors[ActorId("player")]
         location = self.accessor.get_current_location("player")
         actor.inventory.append("item_sword")
         item.location = "player"
@@ -467,7 +467,7 @@ class TestBuildActionResult(BaseTestCase):
 
     def test_basic_message(self):
         """Should build result with just base message"""
-        item = self.state.get_item("item_sword")
+        item = self.game_state.get_item("item_sword")
         result = build_action_result(item, "You take the sword.")
 
         self.assertTrue(result.success)
@@ -478,7 +478,7 @@ class TestBuildActionResult(BaseTestCase):
 
     def test_with_beats(self):
         """Should include beats in result"""
-        item = self.state.get_item("item_sword")
+        item = self.game_state.get_item("item_sword")
         result = build_action_result(
             item,
             "You take the sword.",
@@ -491,7 +491,7 @@ class TestBuildActionResult(BaseTestCase):
 
     def test_with_multiple_beats(self):
         """Should include multiple beats from positioning and behavior"""
-        item = self.state.get_item("item_sword")
+        item = self.game_state.get_item("item_sword")
         result = build_action_result(
             item,
             "You take the sword.",

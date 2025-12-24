@@ -28,9 +28,18 @@ class EventResult:
         feedback: Optional feedback text describing behavior's response.
                   Semantic type: FeedbackText
                   Examples: "The door creaks open.", "The sword is stuck to the altar."
+        context: Author-defined narrator context (passed through to NarrationPlan).
+                 Can include npc_state, communication, relationship, etc.
+        hints: Author-defined style hints (e.g., ["urgent", "rescue"]).
+               Passed through to narrator for style guidance.
+        fragments: Pre-selected fragments for this entity's contribution to narration.
+                   Can include state fragments, action fragments, etc.
     """
     allow: bool
     feedback: Optional[str] = None
+    context: Optional[Dict[str, Any]] = None
+    hints: list[str] = field(default_factory=list)
+    fragments: Optional[Dict[str, Any]] = None
 
 
 @dataclass
@@ -69,11 +78,22 @@ class HandlerResult:
                  Examples: "You pick up the sword.", "You can't go that way."
         beats: Supplemental sentences (e.g., ["You step down from the table."])
         data: Optional extra data for narration (llm_context, etc.)
+        context: Author-defined narrator context (passed through to NarrationPlan).
+                 Can include npc_state, urgency, relationship, etc.
+        hints: Author-defined style hints (e.g., ["urgent", "rescue"]).
+               Passed through to narrator for style guidance.
+        fragments: Pre-selected fragments for narration (action_core, action_color, traits).
+        reactions: Multi-entity reactions for scenes with multiple reacting entities.
+                   Each reaction includes entity info and pre-selected fragments.
     """
     success: bool
     primary: str
     beats: list[str] = field(default_factory=list)
     data: Optional[Dict[str, Any]] = None
+    context: Optional[Dict[str, Any]] = None
+    hints: list[str] = field(default_factory=list)
+    fragments: Optional[Dict[str, Any]] = None
+    reactions: Optional[List[Dict[str, Any]]] = None
 
 
 class StateAccessor:

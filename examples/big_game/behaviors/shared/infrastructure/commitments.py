@@ -49,7 +49,7 @@ def on_commitment_check(
     Returns:
         EventResult with messages about expired commitments
     """
-    state = accessor.state
+    state = accessor.game_state
     current_turn = get_current_turn(state)
 
     # Find expired commitments

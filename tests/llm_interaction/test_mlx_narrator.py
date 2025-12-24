@@ -217,8 +217,8 @@ class TestMLXJSONExtraction(unittest.TestCase):
     def setUp(self) -> None:
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
-        self.state = load_game_state(str(fixture_path))
-        self.handler = LLMProtocolHandler(self.state)
+        self.game_state = load_game_state(str(fixture_path))
+        self.handler = LLMProtocolHandler(self.game_state)
 
     def test_extract_json_from_code_block(self) -> None:
         """Test extracting JSON from markdown code block with json tag."""
@@ -259,12 +259,12 @@ class TestMLXProcessTurn(unittest.TestCase):
     def setUp(self) -> None:
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
-        self.state = load_game_state(str(fixture_path))
-        self.handler = LLMProtocolHandler(self.state)
+        self.game_state = load_game_state(str(fixture_path))
+        self.handler = LLMProtocolHandler(self.game_state)
 
     def test_process_turn_take_item(self) -> None:
         """Test processing a take command."""
-        self.state.actors[ActorId("player")].location = LocationId("loc_start")
+        self.game_state.actors[ActorId("player")].location = LocationId("loc_start")
 
         responses = [
             '```json\n{"type": "command", "action": {"verb": "take", "object": "sword"}}\n```',
@@ -296,12 +296,12 @@ class TestMLXGetOpening(unittest.TestCase):
     def setUp(self) -> None:
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
-        self.state = load_game_state(str(fixture_path))
-        self.handler = LLMProtocolHandler(self.state)
+        self.game_state = load_game_state(str(fixture_path))
+        self.handler = LLMProtocolHandler(self.game_state)
 
     def test_get_opening_returns_narrative(self) -> None:
         """Test that get_opening returns a narrative."""
-        self.state.actors[ActorId("player")].location = LocationId("loc_start")
+        self.game_state.actors[ActorId("player")].location = LocationId("loc_start")
 
         responses = [
             "You awaken in a small stone chamber. Dim light filters through cracks in the ceiling."
@@ -315,7 +315,7 @@ class TestMLXGetOpening(unittest.TestCase):
 
     def test_get_opening_marks_start_location_visited(self) -> None:
         """Test that get_opening marks the starting location as visited."""
-        self.state.actors[ActorId("player")].location = LocationId("loc_start")
+        self.game_state.actors[ActorId("player")].location = LocationId("loc_start")
 
         responses = ["You awaken in a small room."]
         narrator = MockMLXNarrator(self.handler, responses)
@@ -331,8 +331,8 @@ class TestMLXVerbosityTracking(unittest.TestCase):
     def setUp(self) -> None:
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
-        self.state = load_game_state(str(fixture_path))
-        self.handler = LLMProtocolHandler(self.state)
+        self.game_state = load_game_state(str(fixture_path))
+        self.handler = LLMProtocolHandler(self.game_state)
 
     def test_narrator_has_visit_tracking_sets(self) -> None:
         """Test that narrator initializes with empty tracking sets."""
@@ -347,7 +347,7 @@ class TestMLXVerbosityTracking(unittest.TestCase):
 
     def test_first_room_entry_uses_full_verbosity(self) -> None:
         """Test that first entry to a room uses full verbosity."""
-        self.state.actors[ActorId("player")].location = LocationId("loc_start")
+        self.game_state.actors[ActorId("player")].location = LocationId("loc_start")
 
         responses = [
             '{"type": "command", "action": {"verb": "go", "object": "north"}}',
@@ -367,8 +367,8 @@ class TestMLXMergedVocabulary(unittest.TestCase):
     def setUp(self) -> None:
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
-        self.state = load_game_state(str(fixture_path))
-        self.handler = LLMProtocolHandler(self.state)
+        self.game_state = load_game_state(str(fixture_path))
+        self.handler = LLMProtocolHandler(self.game_state)
 
     def test_vocabulary_section_includes_behavior_verbs_when_manager_provided(self) -> None:
         """Test that vocabulary includes verbs from behavior modules."""

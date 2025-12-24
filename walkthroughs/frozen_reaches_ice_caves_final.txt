@@ -1,0 +1,78 @@
+# Phase 4.4: Frozen Reaches - Ice Caves & Telescope Repair - FINAL
+# Tests ice extraction mechanics and telescope repair puzzle
+# Prerequisites: None (fresh game)
+
+# Navigate to Frozen Reaches and get torch
+go north
+examine gear
+take gear
+take torch from supplies
+inventory
+
+# Navigate to Ice Caves
+go east
+look
+
+# Take frost lily (not frozen)
+take frost lily
+
+# Test ice extraction - ice_shard (non-fragile, multiple attempts)
+take ice shard
+take ice shard
+take ice shard
+inventory
+
+# Test ice extraction - lens (fragile, requires heat)
+examine lens
+take lens
+use torch on lens
+take lens
+inventory
+
+# Test ice extraction - orb (requires heat)
+examine orb
+use torch on orb
+take orb
+inventory
+
+# Navigate to Temple Sanctum
+go west
+go north
+look
+
+# Get mounting bracket
+take mounting bracket
+inventory
+
+# Navigate to Frozen Observatory
+go up
+look
+
+# Examine telescope before repair
+examine frozen telescope
+
+# Install all three components
+use lens on frozen telescope
+examine frozen telescope
+
+use mounting bracket on frozen telescope
+examine frozen telescope
+
+use orb on frozen telescope
+examine frozen telescope
+
+# Use the repaired telescope
+use frozen telescope
+
+# Return to Nexus and check ancient telescope
+go down
+go south
+go south
+go up
+
+examine ancient telescope
+use ancient telescope
+
+# Final inventory check
+go down
+inventory

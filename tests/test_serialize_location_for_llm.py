@@ -24,13 +24,13 @@ class TestSerializeLocationForLlmStructure(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "llm_interaction" / "fixtures" / "test_game_state.json"
-        self.state = load_game_state(str(fixture_path))
+        self.game_state = load_game_state(str(fixture_path))
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_returns_dict_with_location_key(self):
         """Test that result has location key with full entity fields."""
-        location = self.state.get_location("loc_start")
+        location = self.game_state.get_location("loc_start")
 
         result = serialize_location_for_llm(self.accessor, location, "player")
 
@@ -42,7 +42,7 @@ class TestSerializeLocationForLlmStructure(unittest.TestCase):
 
     def test_location_includes_llm_context(self):
         """Test that location includes llm_context when present."""
-        location = self.state.get_location("loc_start")
+        location = self.game_state.get_location("loc_start")
 
         result = serialize_location_for_llm(self.accessor, location, "player")
 
@@ -51,7 +51,7 @@ class TestSerializeLocationForLlmStructure(unittest.TestCase):
 
     def test_returns_items_list(self):
         """Test that result includes items list."""
-        location = self.state.get_location("loc_start")
+        location = self.game_state.get_location("loc_start")
 
         result = serialize_location_for_llm(self.accessor, location, "player")
 
@@ -61,7 +61,7 @@ class TestSerializeLocationForLlmStructure(unittest.TestCase):
 
     def test_returns_actors_list(self):
         """Test that result includes actors list."""
-        location = self.state.get_location("loc_start")
+        location = self.game_state.get_location("loc_start")
 
         result = serialize_location_for_llm(self.accessor, location, "player")
 
@@ -71,7 +71,7 @@ class TestSerializeLocationForLlmStructure(unittest.TestCase):
 
     def test_returns_doors_list(self):
         """Test that result includes doors list."""
-        location = self.state.get_location("loc_start")
+        location = self.game_state.get_location("loc_start")
 
         result = serialize_location_for_llm(self.accessor, location, "player")
 
@@ -81,7 +81,7 @@ class TestSerializeLocationForLlmStructure(unittest.TestCase):
 
     def test_returns_exits_dict(self):
         """Test that result includes exits dict."""
-        location = self.state.get_location("loc_start")
+        location = self.game_state.get_location("loc_start")
 
         result = serialize_location_for_llm(self.accessor, location, "player")
 
@@ -96,13 +96,13 @@ class TestSerializeLocationForLlmItems(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "llm_interaction" / "fixtures" / "test_game_state.json"
-        self.state = load_game_state(str(fixture_path))
+        self.game_state = load_game_state(str(fixture_path))
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_items_have_full_entity_fields(self):
         """Test that items have all standard entity fields."""
-        location = self.state.get_location("loc_start")
+        location = self.game_state.get_location("loc_start")
 
         result = serialize_location_for_llm(self.accessor, location, "player")
 
@@ -113,7 +113,7 @@ class TestSerializeLocationForLlmItems(unittest.TestCase):
 
     def test_items_include_llm_context(self):
         """Test that items include llm_context when present."""
-        location = self.state.get_location("loc_start")
+        location = self.game_state.get_location("loc_start")
 
         result = serialize_location_for_llm(self.accessor, location, "player")
 
@@ -130,13 +130,13 @@ class TestSerializeLocationForLlmActors(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "llm_interaction" / "fixtures" / "test_game_state.json"
-        self.state = load_game_state(str(fixture_path))
+        self.game_state = load_game_state(str(fixture_path))
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_actors_have_full_entity_fields(self):
         """Test that actors have all standard entity fields."""
-        location = self.state.get_location("loc_start")
+        location = self.game_state.get_location("loc_start")
 
         result = serialize_location_for_llm(self.accessor, location, "player")
 
@@ -152,14 +152,14 @@ class TestSerializeLocationForLlmDoors(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures with doors."""
         fixture_path = Path(__file__).parent / "llm_interaction" / "fixtures" / "test_game_state.json"
-        self.state = load_game_state(str(fixture_path))
+        self.game_state = load_game_state(str(fixture_path))
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_doors_include_direction(self):
         """Test that doors include direction field."""
         # Need to find a location with doors
-        for location in self.state.locations:
+        for location in self.game_state.locations:
             result = serialize_location_for_llm(self.accessor, location, "player")
             if result["doors"]:
                 for door in result["doors"]:
@@ -177,13 +177,13 @@ class TestSerializeLocationForLlmExits(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "llm_interaction" / "fixtures" / "test_game_state.json"
-        self.state = load_game_state(str(fixture_path))
+        self.game_state = load_game_state(str(fixture_path))
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_exits_keyed_by_direction(self):
         """Test that exits are keyed by direction."""
-        location = self.state.get_location("loc_start")
+        location = self.game_state.get_location("loc_start")
 
         result = serialize_location_for_llm(self.accessor, location, "player")
 
@@ -197,7 +197,7 @@ class TestSerializeLocationForLlmExits(unittest.TestCase):
     def test_exits_include_door_id_when_present(self):
         """Test that exits include door_id when there's a door."""
         # Look for an exit with a door
-        for location in self.state.locations:
+        for location in self.game_state.locations:
             result = serialize_location_for_llm(self.accessor, location, "player")
             for direction, exit_data in result["exits"].items():
                 if "door_id" in exit_data:
@@ -215,13 +215,13 @@ class TestSerializeLocationConsistentWithQueryLocation(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "llm_interaction" / "fixtures" / "test_game_state.json"
-        self.state = load_game_state(str(fixture_path))
+        self.game_state = load_game_state(str(fixture_path))
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_same_top_level_keys_as_query(self):
         """Test that result has same top-level keys as _query_location."""
-        location = self.state.get_location("loc_start")
+        location = self.game_state.get_location("loc_start")
 
         result = serialize_location_for_llm(self.accessor, location, "player")
 
@@ -236,13 +236,13 @@ class TestSerializeLocationPlayerContext(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "llm_interaction" / "fixtures" / "test_game_state.json"
-        self.state = load_game_state(str(fixture_path))
+        self.game_state = load_game_state(str(fixture_path))
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_player_context_present(self):
         """Test that player_context is always present in result."""
-        location = self.state.get_location("loc_start")
+        location = self.game_state.get_location("loc_start")
 
         result = serialize_location_for_llm(self.accessor, location, "player")
 
@@ -251,7 +251,7 @@ class TestSerializeLocationPlayerContext(unittest.TestCase):
 
     def test_player_context_default_posture(self):
         """Test that player_context has null posture by default."""
-        location = self.state.get_location("loc_start")
+        location = self.game_state.get_location("loc_start")
 
         result = serialize_location_for_llm(self.accessor, location, "player")
 
@@ -260,7 +260,7 @@ class TestSerializeLocationPlayerContext(unittest.TestCase):
 
     def test_player_context_default_focused_on(self):
         """Test that player_context has null focused_on by default."""
-        location = self.state.get_location("loc_start")
+        location = self.game_state.get_location("loc_start")
 
         result = serialize_location_for_llm(self.accessor, location, "player")
 
@@ -269,8 +269,8 @@ class TestSerializeLocationPlayerContext(unittest.TestCase):
 
     def test_player_context_with_posture(self):
         """Test that player_context reflects actor's posture property."""
-        location = self.state.get_location("loc_start")
-        player = self.state.actors.get(ActorId("player"))
+        location = self.game_state.get_location("loc_start")
+        player = self.game_state.actors.get(ActorId("player"))
         player.properties["posture"] = "on_surface"
 
         result = serialize_location_for_llm(self.accessor, location, "player")
@@ -279,8 +279,8 @@ class TestSerializeLocationPlayerContext(unittest.TestCase):
 
     def test_player_context_with_focused_on(self):
         """Test that player_context reflects actor's focused_on property."""
-        location = self.state.get_location("loc_start")
-        player = self.state.actors.get(ActorId("player"))
+        location = self.game_state.get_location("loc_start")
+        player = self.game_state.actors.get(ActorId("player"))
         player.properties["focused_on"] = "test_item"
 
         result = serialize_location_for_llm(self.accessor, location, "player")
@@ -289,12 +289,12 @@ class TestSerializeLocationPlayerContext(unittest.TestCase):
 
     def test_player_context_resolves_entity_name(self):
         """Test that player_context resolves focused_entity_name when possible."""
-        location = self.state.get_location("loc_start")
-        player = self.state.actors.get(ActorId("player"))
+        location = self.game_state.get_location("loc_start")
+        player = self.game_state.actors.get(ActorId("player"))
 
         # Find an actual item in the fixture to focus on
-        if self.state.items:
-            item = self.state.items[0]
+        if self.game_state.items:
+            item = self.game_state.items[0]
             player.properties["focused_on"] = item.id
             player.properties["posture"] = "on_surface"
 
@@ -312,13 +312,13 @@ class TestSerializeLocationSpatialRelation(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "llm_interaction" / "fixtures" / "test_game_state.json"
-        self.state = load_game_state(str(fixture_path))
+        self.game_state = load_game_state(str(fixture_path))
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_items_have_no_spatial_relation_with_null_posture(self):
         """Test that items don't have spatial_relation when posture is null."""
-        location = self.state.get_location("loc_start")
+        location = self.game_state.get_location("loc_start")
 
         result = serialize_location_for_llm(self.accessor, location, "player")
 
@@ -328,8 +328,8 @@ class TestSerializeLocationSpatialRelation(unittest.TestCase):
 
     def test_items_have_spatial_relation_with_posture(self):
         """Test that items have spatial_relation when player has posture."""
-        location = self.state.get_location("loc_start")
-        player = self.state.actors.get(ActorId("player"))
+        location = self.game_state.get_location("loc_start")
+        player = self.game_state.actors.get(ActorId("player"))
         player.properties["posture"] = "on_surface"
         player.properties["focused_on"] = "some_table"
 
@@ -342,11 +342,11 @@ class TestSerializeLocationSpatialRelation(unittest.TestCase):
 
     def test_focused_item_has_within_reach(self):
         """Test that the focused item has within_reach relation."""
-        location = self.state.get_location("loc_start")
-        player = self.state.actors.get(ActorId("player"))
+        location = self.game_state.get_location("loc_start")
+        player = self.game_state.actors.get(ActorId("player"))
 
         # Find an item in the fixture to focus on
-        items_in_location = [i for i in self.state.items if i.location == location.id]
+        items_in_location = [i for i in self.game_state.items if i.location == location.id]
         if items_in_location:
             target_item = items_in_location[0]
             player.properties["posture"] = "on_surface"

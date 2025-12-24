@@ -17,13 +17,13 @@ class TestMetaCommandHandlers(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures with minimal game state."""
-        self.state = GameState(
+        self.game_state = GameState(
             metadata=Metadata(title="Test"),
             locations=[Location(id="room1", name="Room", description="A room")],
             actors={"player": Actor(id="player", name="Player", description="Test player", location="room1", inventory=[])}
         )
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_handle_quit_returns_signal(self):
         """Test that handle_quit returns proper signal format."""
@@ -235,13 +235,13 @@ class TestMetaSignalFormat(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.state = GameState(
+        self.game_state = GameState(
             metadata=Metadata(title="Test"),
             locations=[Location(id="room1", name="Room", description="A room")],
             actors={"player": Actor(id="player", name="Player", description="Test player", location="room1", inventory=[])}
         )
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_all_signals_have_signal_field(self):
         """Test that all handlers return data with 'signal' field."""

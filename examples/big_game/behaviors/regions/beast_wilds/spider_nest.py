@@ -40,7 +40,7 @@ def on_spider_respawn_check(
     Returns:
         EventResult with respawn message if applicable
     """
-    state = accessor.state
+    state = accessor.game_state
     extra = state.extra
 
     # Check if queen is alive
@@ -75,13 +75,13 @@ def on_spider_respawn_check(
     # Respawn spiders
     respawned = 0
     for i in range(1, 10):  # Support up to spider_9
-        spider_id = f"npc_giant_spider_{i}"
+        spider_id = f"giant_spider_{i}"
         spider = state.actors.get(spider_id)
         if spider:
             spider_sm = spider.properties.get("state_machine", {})
             if spider_sm.get("current") == "dead":
                 spider_sm["current"] = "hostile"
-                spider.properties["location"] = "loc_spider_nest_gallery"
+                spider.properties["location"] = "spider_thicket"
                 respawned += 1
                 if living_spiders + respawned >= 2:
                     break
@@ -120,7 +120,7 @@ def on_web_movement(
     if "spider_nest" not in dest_id.lower():
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
 
     # Check for web effects - find location by id in list
     dest_loc = None
@@ -163,7 +163,7 @@ def on_spider_queen_death(
     if actor_id != "spider_matriarch":
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
     state.extra["spider_queen_dead"] = True
 
     return EventResult(

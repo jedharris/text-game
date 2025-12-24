@@ -207,6 +207,17 @@ def handle_examine(accessor, action):
         if result.detail:
             message_parts.append(result.detail)
 
+        # Check for examine_reactions handler in item properties
+        examine_reactions = item.properties.get("examine_reactions", {})
+        handler_path = examine_reactions.get("handler")
+        if handler_path:
+            handler = accessor.behavior_manager.load_behavior(handler_path)
+            if handler:
+                context = {"target": item}
+                reaction_result = handler(item, accessor, context)
+                if reaction_result.feedback:
+                    message_parts.append(reaction_result.feedback)
+
         # Use unified serializer for llm_context with trait randomization
         data = serialize_for_handler_result(item, accessor, actor_id)
 
@@ -241,6 +252,17 @@ def handle_examine(accessor, action):
         result = accessor.update(part, {}, verb="examine", actor_id=actor_id)
         if result.detail:
             message_parts.append(result.detail)
+
+        # Check for examine_reactions handler in part properties
+        examine_reactions = part.properties.get("examine_reactions", {})
+        handler_path = examine_reactions.get("handler")
+        if handler_path:
+            handler = accessor.behavior_manager.load_behavior(handler_path)
+            if handler:
+                context = {"target": part}
+                reaction_result = handler(part, accessor, context)
+                if reaction_result.feedback:
+                    message_parts.append(reaction_result.feedback)
 
         # Use unified serializer for llm_context
         data = serialize_for_handler_result(part, accessor, actor_id)

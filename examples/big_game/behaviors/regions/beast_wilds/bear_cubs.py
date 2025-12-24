@@ -24,6 +24,62 @@ vocabulary: Dict[str, Any] = {
     "events": []
 }
 
+
+def on_bear_encounter(
+    entity: Any,
+    accessor: Any,
+    context: dict[str, Any],
+) -> EventResult:
+    """Handle first encounter with the dire bear.
+
+    The bear is extremely hostile, protecting her sick cubs.
+    This provides the initial hook for the healing commitment.
+
+    Args:
+        entity: The dire bear actor
+        accessor: StateAccessor instance
+        context: Context dict
+
+    Returns:
+        EventResult with encounter description
+    """
+    actor_id = entity.id if hasattr(entity, "id") else None
+    if actor_id != "dire_bear":
+        return EventResult(allow=True, feedback=None)
+
+    state = accessor.game_state
+    extra = state.extra
+
+    # Check if already encountered
+    if extra.get("bear_encountered"):
+        return EventResult(allow=True, feedback=None)
+
+    extra["bear_encountered"] = True
+
+    # Get bear's current state
+    bear = state.actors.get("dire_bear")
+    if not bear:
+        return EventResult(allow=True, feedback=None)
+
+    sm = bear.properties.get("state_machine", {})
+    current_state = sm.get("current", sm.get("initial", "hostile"))
+
+    if current_state == "hostile":
+        return EventResult(
+            allow=True,
+            feedback=(
+                "A massive shape emerges from the darkness of the den - a dire bear, "
+                "larger than any natural creature. She rears up with a thunderous roar, "
+                "her eyes blazing with protective fury. Behind her, you glimpse two small "
+                "forms huddled together, their breathing shallow and labored. The cubs are sick. "
+                "The bear positions herself between you and her young, claws extended. "
+                "She looks ready to attack, but there's desperation in her eyes alongside the rage."
+            ),
+        )
+
+    return EventResult(allow=True, feedback=None)
+
+
 # Keywords that trigger the commitment
 COMMITMENT_KEYWORDS = [
     "heal",
@@ -56,7 +112,7 @@ def on_bear_commitment(
     """
     # Check if this is the dire bear
     actor_id = entity.id if hasattr(entity, "id") else None
-    if actor_id != "npc_dire_bear":
+    if actor_id != "dire_bear":
         return EventResult(allow=True, feedback=None)
 
     # Check if keyword matches commitment triggers
@@ -64,7 +120,7 @@ def on_bear_commitment(
     if not any(trigger in keyword for trigger in COMMITMENT_KEYWORDS):
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
     extra = state.extra
 
     # Check if commitment already exists
@@ -87,7 +143,7 @@ def on_bear_commitment(
     extra["bear_cubs_commitment_turn"] = get_current_turn(state)
 
     # Bear calms slightly and gives hint
-    bear = state.actors.get("npc_dire_bear")
+    bear = state.actors.get("dire_bear")
     if bear:
         # Reduce immediate hostility
         sm = bear.properties.get("state_machine")
@@ -133,17 +189,17 @@ def on_cubs_healed(
     target_id = target.id if target and hasattr(target, "id") else str(target) if target else ""
 
     # Accept targeting cubs directly or the bear
-    valid_targets = ["npc_bear_cub_1", "npc_bear_cub_2", "npc_dire_bear"]
+    valid_targets = ["bear_cub_1", "bear_cub_2", "dire_bear"]
     if target_id not in valid_targets:
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
 
     # Mark cubs as healed
     state.extra["cubs_healed"] = True
 
     # Transition bear to grateful state
-    bear = state.actors.get("npc_dire_bear")
+    bear = state.actors.get("dire_bear")
     if bear:
         sm = bear.properties.get("state_machine")
         if sm:
@@ -161,7 +217,7 @@ def on_cubs_healed(
         bear.properties["trust_state"] = trust_state
 
     # Mark cubs as recovering
-    for cub_id in ["npc_bear_cub_1", "npc_bear_cub_2"]:
+    for cub_id in ["bear_cub_1", "bear_cub_2"]:
         cub = state.actors.get(cub_id)
         if cub:
             cub.properties["recovering"] = True
@@ -198,10 +254,10 @@ def on_cubs_died(
     if commitment_id != "commit_bear_cubs":
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
 
     # Transition bear to vengeful state
-    bear = state.actors.get("npc_dire_bear")
+    bear = state.actors.get("dire_bear")
     if bear:
         sm = bear.properties.get("state_machine")
         if sm:
@@ -214,7 +270,7 @@ def on_cubs_died(
         bear.properties["hunts_player"] = True
 
     # Mark cubs as dead
-    for cub_id in ["npc_bear_cub_1", "npc_bear_cub_2"]:
+    for cub_id in ["bear_cub_1", "bear_cub_2"]:
         cub = state.actors.get(cub_id)
         if cub:
             cub.properties["dead"] = True

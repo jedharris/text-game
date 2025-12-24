@@ -13,7 +13,7 @@ class TestOnEnterEvent(unittest.TestCase):
 
     def setUp(self):
         """Set up test game state."""
-        self.state = GameState(
+        self.game_state = GameState(
             metadata=Metadata(title="Test"),
             locations=[
                 Location(
@@ -82,7 +82,7 @@ class TestOnEnterEvent(unittest.TestCase):
         # Register the behavior module
         self.behavior_manager._modules["windy_room"] = windy_room_module
 
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_go_invokes_on_enter_with_behavior(self):
         """Test that 'go north' invokes on_enter when destination has behavior."""
@@ -126,7 +126,7 @@ class TestOnEnterEvent(unittest.TestCase):
 
         # Move to room1, then climb ladder to room3
         # First, set up a climbable exit from room1 to room2 (with behavior)
-        self.state.locations[0].exits["north"] = ExitDescriptor(
+        self.game_state.locations[0].exits["north"] = ExitDescriptor(
             type="open",
             to="room2",
             name="stairs",

@@ -89,7 +89,7 @@ def on_leader_state_change(
         return EventResult(allow=True, feedback=None)
 
     # Mirror state to all followers
-    state = accessor.state
+    state = accessor.game_state
     for follower_id in followers:
         follower = state.actors.get(follower_id)
         if follower and "state_machine" in follower.properties:

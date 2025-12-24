@@ -18,7 +18,7 @@ class TestGoThroughPreposition(unittest.TestCase):
 
     def setUp(self):
         """Set up test game state with named exits and parser."""
-        self.state = GameState(
+        self.game_state = GameState(
             metadata=Metadata(title="Test"),
             locations=[
                 Location(
@@ -71,7 +71,7 @@ class TestGoThroughPreposition(unittest.TestCase):
         self.behavior_manager = BehaviorManager()
         import behaviors.core.exits
         self.behavior_manager.load_module(behaviors.core.exits)
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Create parser with merged vocabulary (base + behavior modules)
         base_vocab_path = Path(__file__).parent.parent / "src" / "vocabulary.json"

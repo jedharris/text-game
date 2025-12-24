@@ -50,7 +50,7 @@ class TestCommandRouting(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
 
         # Load behavior modules
@@ -66,7 +66,7 @@ class TestCommandRouting(unittest.TestCase):
         self.behavior_manager.load_module(behaviors.core.interaction)
         self.behavior_manager.load_module(behaviors.core.locks)
 
-        self.handler = LLMProtocolHandler(self.state, self.behavior_manager)
+        self.handler = LLMProtocolHandler(self.game_state, self.behavior_manager)
 
     def test_take_routes_to_behavior_handler(self):
         """Test that 'take' command uses behavior handler."""
@@ -80,14 +80,14 @@ class TestCommandRouting(unittest.TestCase):
         self.assertEqual(result["type"], "result")
         self.assertTrue(result["success"], f"take failed: {result}")
         # Verify state changed (item in inventory)
-        self.assertIn("item_sword", self.state.actors[ActorId("player")].inventory)
+        self.assertIn("item_sword", self.game_state.actors[ActorId("player")].inventory)
 
     def test_drop_routes_to_behavior_handler(self):
         """Test that 'drop' command uses behavior handler."""
         # Put item in inventory first
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         player.inventory.append("item_sword")
-        sword = self.state.get_item("item_sword")
+        sword = self.game_state.get_item("item_sword")
         sword.location = "player"
 
         message = {

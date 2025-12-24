@@ -33,7 +33,7 @@ class TestBehaviorMessageDisplay(unittest.TestCase):
         """Set up test fixtures with lantern that has on_take/on_drop behaviors."""
         # Load game state with lantern
         fixture_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
-        self.state = load_game_state(fixture_path)
+        self.game_state = load_game_state(fixture_path)
 
         # Create behavior manager and load modules
         self.manager = BehaviorManager()
@@ -42,10 +42,10 @@ class TestBehaviorMessageDisplay(unittest.TestCase):
         self.manager.load_modules(modules)
 
         # Create handler with behavior manager
-        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
 
         # Move player to hallway where lantern is
-        self.state.actors[ActorId("player")].location = "loc_hallway"
+        self.game_state.actors[ActorId("player")].location = "loc_hallway"
 
     def test_take_command_includes_behavior_message(self):
         """Test that take command includes behavior message from on_take."""
@@ -104,15 +104,15 @@ class TestMessageKeyConsistency(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
-        self.state = load_game_state(fixture_path)
+        self.game_state = load_game_state(fixture_path)
 
         self.manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
 
-        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
-        self.state.actors[ActorId("player")].location = "loc_hallway"
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
+        self.game_state.actors[ActorId("player")].location = "loc_hallway"
 
     def test_take_result_uses_message_key(self):
         """Test that take command result uses 'message' key, not 'behavior_message'."""
@@ -213,14 +213,14 @@ class TestFormatFunctions(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
-        self.state = load_game_state(fixture_path)
+        self.game_state = load_game_state(fixture_path)
 
         self.manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
 
-        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
 
     def test_format_command_result_success(self):
         """Test formatting successful command result."""
@@ -276,15 +276,15 @@ class TestExamineLLMContext(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures with fancy game state that has llm_context."""
         fixture_path = Path(__file__).parent.parent / "examples" / "fancy_game" / "game_state.json"
-        self.state = load_game_state(fixture_path)
+        self.game_state = load_game_state(fixture_path)
 
         self.manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
 
-        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
-        self.state.actors[ActorId("player")].location = "loc_hallway"
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
+        self.game_state.actors[ActorId("player")].location = "loc_hallway"
 
     def test_examine_item_includes_llm_context(self):
         """Test that examining an item includes llm_context in response."""

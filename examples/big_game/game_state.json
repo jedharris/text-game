@@ -14,7 +14,11 @@
   },
   "extra": {
     "flags": {},
-    "echo_trust": {"current": 0, "floor": -6, "ceiling": 6},
+    "echo_trust": {
+      "current": 0,
+      "floor": -6,
+      "ceiling": 6
+    },
     "active_commitments": [],
     "commitment_configs": {},
     "gossip_queue": [],
@@ -29,11 +33,26 @@
       "name": "Nexus Chamber",
       "description": "The heart of the meridian convergence, a vast circular chamber where reality itself seems to bend. At the center stands the damaged waystone, its surface cracked and dim. Twilight suffuses the space from no visible source. Exits lead north to the frozen passes, south to the forest edge, east to flooded ruins, and west to dark caverns. A stairway spirals upward to an observatory.",
       "exits": {
-        "north": {"type": "open", "to": "frozen_pass"},
-        "south": {"type": "open", "to": "forest_edge"},
-        "east": {"type": "open", "to": "flooded_plaza"},
-        "west": {"type": "open", "to": "cavern_entrance"},
-        "up": {"type": "open", "to": "observatory_platform"}
+        "north": {
+          "type": "open",
+          "to": "frozen_pass"
+        },
+        "south": {
+          "type": "open",
+          "to": "forest_edge"
+        },
+        "east": {
+          "type": "open",
+          "to": "flooded_plaza"
+        },
+        "west": {
+          "type": "open",
+          "to": "cavern_entrance"
+        },
+        "up": {
+          "type": "open",
+          "to": "observatory_platform"
+        }
       },
       "properties": {
         "safe_zone": true,
@@ -48,8 +67,14 @@
       "name": "Observatory Platform",
       "description": "An elevated stone platform high above the nexus chamber, offering a panoramic view of the fractured landscape below. An ancient telescope stands at the platform's edge, its brass fittings tarnished but intact. Through breaks in the perpetual twilight clouds, glimpses of all five devastated regions are visible.",
       "exits": {
-        "down": {"type": "open", "to": "nexus_chamber"},
-        "east": {"type": "open", "to": "keepers_quarters"}
+        "down": {
+          "type": "open",
+          "to": "nexus_chamber"
+        },
+        "east": {
+          "type": "open",
+          "to": "keepers_quarters"
+        }
       },
       "properties": {
         "safe_zone": true,
@@ -63,8 +88,14 @@
       "name": "Keeper's Quarters",
       "description": "A cozy chamber frozen in time. Dust hangs motionless in the air, food on the table appears fresh despite unknown years passing. Personal effects lie about as if the occupant stepped away moments ago. A spectral presence lingers here, stronger than elsewhere in the nexus.",
       "exits": {
-        "west": {"type": "open", "to": "observatory_platform"},
-        "down": {"type": "open", "to": "crystal_garden"}
+        "west": {
+          "type": "open",
+          "to": "observatory_platform"
+        },
+        "down": {
+          "type": "open",
+          "to": "crystal_garden"
+        }
       },
       "properties": {
         "safe_zone": true,
@@ -78,8 +109,14 @@
       "name": "Crystal Garden",
       "description": "A serene grotto where crystalline formations grow from the walls and floor. Five pedestals hold shattered crystals, each corresponding to one of the devastated regions. When whole, these crystals resonated with the health of their regions. Now they are dim and broken, waiting to be restored.",
       "exits": {
-        "up": {"type": "open", "to": "keepers_quarters"},
-        "west": {"type": "open", "to": "nexus_chamber"}
+        "up": {
+          "type": "open",
+          "to": "keepers_quarters"
+        },
+        "west": {
+          "type": "open",
+          "to": "nexus_chamber"
+        }
       },
       "properties": {
         "safe_zone": true,
@@ -87,20 +124,90 @@
         "region": "meridian_nexus"
       }
     },
-
     {
       "id": "frozen_pass",
       "name": "Frozen Pass",
-      "description": "The entrance to the Frozen Reaches, where an eternal winter has gripped the land. Cold wind howls through the pass, carrying flurries of snow. The temperature drops noticeably as you move away from the nexus.",
+      "description": "The entrance to the Frozen Reaches, where an eternal winter has gripped the land. Cold wind howls through the pass, carrying flurries of snow. The temperature drops noticeably as you move away from the nexus. An abandoned camp sits to one side, half-buried in snow, its former occupants frozen where they fell.",
       "exits": {
-        "south": {"type": "open", "to": "nexus_chamber"},
-        "north": {"type": "open", "to": "glacier_approach"},
-        "east": {"type": "open", "to": "ice_field"}
+        "south": {
+          "type": "open",
+          "to": "nexus_chamber"
+        },
+        "north": {
+          "type": "open",
+          "to": "temple_sanctum"
+        },
+        "east": {
+          "type": "open",
+          "to": "ice_caves"
+        },
+        "west": {
+          "type": "open",
+          "to": "ice_field"
+        },
+        "northwest": {
+          "type": "open",
+          "to": "glacier_approach"
+        }
       },
       "properties": {
         "temperature_zone": "cold",
-        "hypothermia_rate": 2,
-        "region": "frozen_reaches"
+        "hypothermia_rate": 5,
+        "region": "frozen_reaches",
+        "lighting": "bright",
+        "danger_level": "low"
+      }
+    },
+    {
+      "id": "temple_sanctum",
+      "name": "Temple Sanctum",
+      "description": "A vast chamber lined with frost-covered stone pillars. Ancient carved faces watch from the walls, their expressions frozen in time. Two massive stone guardians stand at the far end, runes glowing dimly along their limbs. A side chamber near the entrance holds treasures, while an altar with intricate carvings dominates the center. Inscriptions cover the walls - fragments of forgotten knowledge.",
+      "exits": {
+        "south": {
+          "type": "open",
+          "to": "frozen_pass"
+        },
+        "up": {
+          "type": "open",
+          "to": "frozen_observatory"
+        },
+        "north": {
+          "type": "open",
+          "to": "glacier_approach"
+        }
+      },
+      "properties": {
+        "temperature_zone": "cold",
+        "hypothermia_rate": 2.5,
+        "region": "frozen_reaches",
+        "lighting": "dim",
+        "danger_level": "high_conditional"
+      }
+    },
+    {
+      "id": "ice_caves",
+      "name": "Ice Caves",
+      "description": "Crystal blue walls of ice surround you, refracting light into dancing patterns. Your breath freezes instantly in the frigid air. The cave extends deeper into the glacier - a main chamber with ice crystals growing from the walls, a deep section where frozen pools lie still, and hints of hidden passages in the shadows. The floor makes ominous cracking sounds underfoot.",
+      "exits": {
+        "west": {
+          "type": "open",
+          "to": "frozen_pass"
+        },
+        "north": {
+          "type": "open",
+          "to": "ice_field"
+        }
+      },
+      "properties": {
+        "temperature_zone": "freezing",
+        "hypothermia_rate": 10,
+        "region": "frozen_reaches",
+        "lighting": "variable",
+        "danger_level": "medium",
+        "hazards": [
+          "thin_ice",
+          "hidden_passages"
+        ]
       }
     },
     {
@@ -108,8 +215,18 @@
       "name": "Glacier Approach",
       "description": "A treacherous path winding between massive ice formations. The glacier looms ahead, its surface scarred by deep crevasses. The cold here is intense, threatening hypothermia to the unprepared.",
       "exits": {
-        "south": {"type": "open", "to": "frozen_pass"},
-        "north": {"type": "open", "to": "glacier_surface"}
+        "south": {
+          "type": "open",
+          "to": "temple_sanctum"
+        },
+        "southeast": {
+          "type": "open",
+          "to": "frozen_pass"
+        },
+        "north": {
+          "type": "open",
+          "to": "glacier_surface"
+        }
       },
       "properties": {
         "temperature_zone": "freezing",
@@ -122,9 +239,22 @@
       "name": "Ice Field",
       "description": "A vast expanse of snow and ice stretching to the horizon. The wind whips across the open terrain, making progress difficult. Snow drifts hide treacherous footing.",
       "exits": {
-        "west": {"type": "open", "to": "frozen_pass"},
-        "north": {"type": "open", "to": "hot_springs"},
-        "east": {"type": "open", "to": "snow_forest"}
+        "east": {
+          "type": "open",
+          "to": "frozen_pass"
+        },
+        "south": {
+          "type": "open",
+          "to": "ice_caves"
+        },
+        "north": {
+          "type": "open",
+          "to": "hot_springs"
+        },
+        "west": {
+          "type": "open",
+          "to": "snow_forest"
+        }
       },
       "properties": {
         "temperature_zone": "freezing",
@@ -136,12 +266,17 @@
     {
       "id": "hot_springs",
       "name": "Hot Springs",
-      "description": "Steam rises from pools of heated water, creating an oasis of warmth in the frozen landscape. The springs are a natural refuge from the cold, and signs of animal activity suggest others have discovered this haven.",
+      "description": "Steam rises from pools of heated water, creating an oasis of warmth in the frozen landscape. Sulfurous mist clings to multicolored mineral deposits around the springs. The warmth is like an embrace after the bitter cold. Small fire-wreathed creatures bask near the hottest pools - salamanders drawn to the heat.",
       "exits": {
-        "south": {"type": "open", "to": "ice_field"}
+        "south": {
+          "type": "open",
+          "to": "ice_field"
+        }
       },
       "properties": {
         "temperature_zone": "warm",
+        "hypothermia_effect": "instant_cure",
+        "healing_zone": true,
         "safe_zone": true,
         "region": "frozen_reaches"
       }
@@ -151,8 +286,14 @@
       "name": "Snow Forest",
       "description": "Skeletal trees rise from deep snowdrifts, their branches heavy with ice. The forest provides some shelter from the wind but visibility is poor among the close-packed trunks.",
       "exits": {
-        "west": {"type": "open", "to": "ice_field"},
-        "north": {"type": "open", "to": "wolf_den"}
+        "west": {
+          "type": "open",
+          "to": "ice_field"
+        },
+        "north": {
+          "type": "open",
+          "to": "wolf_den"
+        }
       },
       "properties": {
         "temperature_zone": "cold",
@@ -165,7 +306,10 @@
       "name": "Wolf Den",
       "description": "A sheltered cave in a rocky outcropping, clearly used as a den by the local wolf pack. Bones and scraps litter the entrance. The pack's scent marks the territory.",
       "exits": {
-        "south": {"type": "open", "to": "snow_forest"}
+        "south": {
+          "type": "open",
+          "to": "snow_forest"
+        }
       },
       "properties": {
         "temperature_zone": "cold",
@@ -178,8 +322,14 @@
       "name": "Glacier Surface",
       "description": "The surface of the ancient glacier, a landscape of blue ice and white snow. Crevasses yawn open without warning. The cold here is brutal, sapping strength with every breath.",
       "exits": {
-        "south": {"type": "open", "to": "glacier_approach"},
-        "north": {"type": "open", "to": "frozen_observatory"}
+        "south": {
+          "type": "open",
+          "to": "glacier_approach"
+        },
+        "north": {
+          "type": "open",
+          "to": "frozen_observatory"
+        }
       },
       "properties": {
         "temperature_zone": "extreme_cold",
@@ -192,25 +342,42 @@
     {
       "id": "frozen_observatory",
       "name": "Frozen Observatory",
-      "description": "An ancient structure encased in ice, its purpose clearly astronomical. A great telescope, twin to the one in the Nexus, points skyward through a cracked dome. Lore tablets line the walls, their inscriptions preserved by the cold.",
+      "description": "An ancient structure encased in ice, its purpose clearly astronomical. A great telescope, twin to the one in the Nexus, points skyward through a cracked dome. The wind here is relentless, trying to tear you from the platform. The cold is extreme - exposure will kill quickly without protection.",
       "exits": {
-        "south": {"type": "open", "to": "glacier_surface"}
+        "down": {
+          "type": "open",
+          "to": "temple_sanctum"
+        },
+        "north": {
+          "type": "open",
+          "to": "glacier_surface"
+        }
       },
       "properties": {
-        "temperature_zone": "freezing",
-        "hypothermia_rate": 5,
-        "region": "frozen_reaches"
+        "temperature_zone": "extreme_cold",
+        "hypothermia_rate": 20,
+        "region": "frozen_reaches",
+        "lighting": "bright",
+        "danger_level": "environmental"
       }
     },
-
     {
       "id": "forest_edge",
       "name": "Forest Edge",
       "description": "The boundary where the nexus gives way to wild woodland. The Beast Wilds stretch beyond, a tangled mass of overgrown forest where nature has run rampant since the catastrophe. Animal sounds echo from the darkness beneath the canopy.",
       "exits": {
-        "north": {"type": "open", "to": "nexus_chamber"},
-        "south": {"type": "open", "to": "tangled_path"},
-        "east": {"type": "open", "to": "southern_trail"}
+        "north": {
+          "type": "open",
+          "to": "nexus_chamber"
+        },
+        "south": {
+          "type": "open",
+          "to": "tangled_path"
+        },
+        "east": {
+          "type": "open",
+          "to": "southern_trail"
+        }
       },
       "properties": {
         "region": "beast_wilds"
@@ -219,11 +386,28 @@
     {
       "id": "tangled_path",
       "name": "Tangled Path",
-      "description": "A narrow trail winding through dense undergrowth. Vines and roots make progress difficult. The sounds of the wild are louder here - rustling, growling, the snap of branches.",
+      "description": "A narrow trail winding through dense undergrowth. Vines and roots make progress difficult. The sounds of the wild are louder here - rustling, growling, the snap of branches. Paths branch in several directions.",
       "exits": {
-        "north": {"type": "open", "to": "forest_edge"},
-        "south": {"type": "open", "to": "ancient_grove"},
-        "west": {"type": "open", "to": "spider_thicket"}
+        "north": {
+          "type": "open",
+          "to": "forest_edge"
+        },
+        "south": {
+          "type": "open",
+          "to": "predators_den"
+        },
+        "east": {
+          "type": "open",
+          "to": "wolf_clearing"
+        },
+        "west": {
+          "type": "open",
+          "to": "spider_thicket"
+        },
+        "southwest": {
+          "type": "open",
+          "to": "ancient_grove"
+        }
       },
       "properties": {
         "difficult_terrain": true,
@@ -235,8 +419,14 @@
       "name": "Ancient Grove",
       "description": "A clearing dominated by massive ancient trees, their trunks wider than houses. The air is thick with the hum of bees from somewhere nearby. This place feels sacred, untouched by the catastrophe.",
       "exits": {
-        "north": {"type": "open", "to": "tangled_path"},
-        "east": {"type": "open", "to": "bee_queen_clearing"}
+        "northeast": {
+          "type": "open",
+          "to": "tangled_path"
+        },
+        "east": {
+          "type": "open",
+          "to": "bee_queen_clearing"
+        }
       },
       "properties": {
         "region": "beast_wilds"
@@ -247,7 +437,10 @@
       "name": "Bee Queen's Clearing",
       "description": "A sun-dappled clearing dominated by an enormous hive in the branches of a great oak. Bees swarm around the hive in organized patterns, and at the center of their activity, something larger moves.",
       "exits": {
-        "west": {"type": "open", "to": "ancient_grove"}
+        "west": {
+          "type": "open",
+          "to": "ancient_grove"
+        }
       },
       "properties": {
         "region": "beast_wilds"
@@ -258,8 +451,14 @@
       "name": "Spider Thicket",
       "description": "Webs span between trees, creating a maze of silk. The spiders here have grown large since the catastrophe. They watch from the shadows, their many eyes glittering.",
       "exits": {
-        "east": {"type": "open", "to": "tangled_path"},
-        "west": {"type": "open", "to": "spider_matriarch_lair"}
+        "east": {
+          "type": "open",
+          "to": "tangled_path"
+        },
+        "west": {
+          "type": "open",
+          "to": "spider_matriarch_lair"
+        }
       },
       "properties": {
         "difficult_terrain": true,
@@ -272,7 +471,10 @@
       "name": "Spider Matriarch's Lair",
       "description": "A cavern hung with ancient webs, thick as curtains. In the center, surrounded by her brood, sits the Spider Matriarch - a creature of terrifying size and alien intelligence.",
       "exits": {
-        "east": {"type": "open", "to": "spider_thicket"}
+        "east": {
+          "type": "open",
+          "to": "spider_thicket"
+        }
       },
       "properties": {
         "region": "beast_wilds"
@@ -281,11 +483,24 @@
     {
       "id": "southern_trail",
       "name": "Southern Trail",
-      "description": "A worn path leading south toward signs of civilization. The forest thins here, and the sounds of human activity occasionally drift on the wind.",
+      "description": "A worn path leading south toward signs of civilization. The forest thins here, and the sounds of human activity occasionally drift on the wind. A dark cave mouth is visible to the north.",
       "exits": {
-        "west": {"type": "open", "to": "forest_edge"},
-        "south": {"type": "open", "to": "town_gate"},
-        "east": {"type": "open", "to": "hunters_camp"}
+        "west": {
+          "type": "open",
+          "to": "forest_edge"
+        },
+        "north": {
+          "type": "open",
+          "to": "predators_den"
+        },
+        "south": {
+          "type": "open",
+          "to": "town_gate"
+        },
+        "east": {
+          "type": "open",
+          "to": "hunters_camp"
+        }
       },
       "properties": {
         "region": "beast_wilds"
@@ -296,22 +511,72 @@
       "name": "Hunter's Camp",
       "description": "A small clearing with signs of recent habitation - a fire pit, crude shelter, scattered belongings. Someone has been living here, hunting the beasts of the wilds.",
       "exits": {
-        "west": {"type": "open", "to": "southern_trail"}
+        "west": {
+          "type": "open",
+          "to": "southern_trail"
+        }
       },
       "properties": {
         "region": "beast_wilds"
       }
     },
-
+    {
+      "id": "wolf_clearing",
+      "name": "Wolf Clearing",
+      "description": "A rocky clearing surrounded by dense forest. Claw marks score the trees at the perimeter - territorial warnings. In the center, a shallow depression serves as a gathering place for the pack. Yellow eyes watch from the shadows.",
+      "exits": {
+        "west": {
+          "type": "open",
+          "to": "tangled_path"
+        }
+      },
+      "properties": {
+        "region": "beast_wilds",
+        "wolf_territory": true,
+        "territorial_warning": true
+      }
+    },
+    {
+      "id": "predators_den",
+      "name": "Predator's Den",
+      "description": "A dark cave mouth opens in a rocky hillside. Deep growling echoes from within, a warning that brooks no argument. Near the back of the cave, small shapes huddle together - bear cubs, clearly unwell.",
+      "exits": {
+        "north": {
+          "type": "open",
+          "to": "tangled_path"
+        },
+        "south": {
+          "type": "open",
+          "to": "southern_trail"
+        }
+      },
+      "properties": {
+        "region": "beast_wilds",
+        "danger_level": "extreme",
+        "lighting": "dim"
+      }
+    },
     {
       "id": "flooded_plaza",
       "name": "Flooded Plaza",
       "description": "Once a grand plaza of the Sunken District, now partially submerged. Water laps at crumbling columns and the remnants of ancient fountains. The flooding gets deeper further east.",
       "exits": {
-        "west": {"type": "open", "to": "nexus_chamber"},
-        "east": {"type": "open", "to": "flooded_chambers"},
-        "northwest": {"type": "open", "to": "survivor_camp"},
-        "south": {"type": "open", "to": "merchant_quarter"}
+        "west": {
+          "type": "open",
+          "to": "nexus_chamber"
+        },
+        "east": {
+          "type": "open",
+          "to": "flooded_chambers"
+        },
+        "northwest": {
+          "type": "open",
+          "to": "survivor_camp"
+        },
+        "south": {
+          "type": "open",
+          "to": "merchant_quarter"
+        }
       },
       "properties": {
         "water_level": "ankle_to_waist",
@@ -325,7 +590,10 @@
       "name": "Survivor Camp",
       "description": "An elevated area of dry ground where the survivors have made camp. A crude map scratched on flat stone shows safe paths through the flooded streets. The smell of smoke and damp clothes fills the air.",
       "exits": {
-        "southeast": {"type": "open", "to": "flooded_plaza"}
+        "southeast": {
+          "type": "open",
+          "to": "flooded_plaza"
+        }
       },
       "properties": {
         "water_level": "dry",
@@ -340,8 +608,14 @@
       "name": "Flooded Chambers",
       "description": "The old guildhall, now flooded to chest height. Pillars rise from the murky water like drowning fingers. Shadows move between the columns - fish, grown predatory since the disaster.",
       "exits": {
-        "west": {"type": "open", "to": "flooded_plaza"},
-        "east": {"type": "open", "to": "tidal_passage"}
+        "west": {
+          "type": "open",
+          "to": "flooded_plaza"
+        },
+        "east": {
+          "type": "open",
+          "to": "tidal_passage"
+        }
       },
       "properties": {
         "water_level": "chest",
@@ -355,8 +629,14 @@
       "name": "Tidal Passage",
       "description": "A fully submerged tunnel, once a street, now a twenty-foot underwater passage. Murky water obscures the distance, and the current tugs at anything that enters. Light is visible at the far end.",
       "exits": {
-        "west": {"type": "open", "to": "flooded_chambers"},
-        "east": {"type": "open", "to": "sea_caves"}
+        "west": {
+          "type": "open",
+          "to": "flooded_chambers"
+        },
+        "east": {
+          "type": "open",
+          "to": "sea_caves"
+        }
       },
       "properties": {
         "water_level": "submerged",
@@ -371,7 +651,10 @@
       "name": "Sea Caves",
       "description": "Natural caves where the flooded streets meet the sea. Rock shelves rise above the water, creating islands of safety. Daylight filters through cracks in the ceiling, casting shifting light patterns.",
       "exits": {
-        "west": {"type": "open", "to": "tidal_passage"}
+        "west": {
+          "type": "open",
+          "to": "tidal_passage"
+        }
       },
       "properties": {
         "water_level": "mixed",
@@ -385,8 +668,14 @@
       "name": "Merchant Quarter",
       "description": "Deep water covers what was once the commercial heart of the district. Dark windows stare from water-stained buildings. A faint rhythmic tapping echoes from somewhere to the south.",
       "exits": {
-        "north": {"type": "open", "to": "flooded_plaza"},
-        "south": {"type": "open", "to": "merchant_warehouse"}
+        "north": {
+          "type": "open",
+          "to": "flooded_plaza"
+        },
+        "south": {
+          "type": "open",
+          "to": "merchant_warehouse"
+        }
       },
       "properties": {
         "water_level": "over_head",
@@ -401,7 +690,10 @@
       "name": "Merchant Warehouse",
       "description": "A multi-level building with a flooded ground floor and dry upper stories. The merchant's sign is still visible above the waterline. Tapping comes from a second-floor window.",
       "exits": {
-        "north": {"type": "open", "to": "merchant_quarter"}
+        "north": {
+          "type": "open",
+          "to": "merchant_quarter"
+        }
       },
       "properties": {
         "multi_level": true,
@@ -413,7 +705,10 @@
       "name": "Deep Archive",
       "description": "A sealed chamber deep beneath the flooded streets, kept dry by ancient magic. Glowworms cover the ceiling, casting soft light on shelves of preserved books. A spectral figure drifts between the stacks.",
       "exits": {
-        "up": {"type": "open", "to": "flooded_plaza"}
+        "up": {
+          "type": "open",
+          "to": "flooded_plaza"
+        }
       },
       "properties": {
         "water_level": "dry",
@@ -424,14 +719,19 @@
         "region": "sunken_district"
       }
     },
-
     {
       "id": "cavern_entrance",
       "name": "Cavern Entrance",
       "description": "The mouth of a vast cavern system leading to the Fungal Depths. Bioluminescent growths provide eerie illumination. The air is thick with spores and the musty smell of fungus. A small campfire burns near the entrance where a sick traveler has made camp.",
       "exits": {
-        "east": {"type": "open", "to": "nexus_chamber"},
-        "down": {"type": "open", "to": "luminous_grotto"}
+        "east": {
+          "type": "open",
+          "to": "nexus_chamber"
+        },
+        "down": {
+          "type": "open",
+          "to": "luminous_grotto"
+        }
       },
       "properties": {
         "spore_level": "none",
@@ -445,9 +745,18 @@
       "name": "Luminous Grotto",
       "description": "A cavern lit by soft multicolored bioluminescence from mushrooms of every hue. A crystal-clear pool reflects impossible colors. The ceiling is too dark to read, but something is carved up there.",
       "exits": {
-        "up": {"type": "open", "to": "cavern_entrance"},
-        "down": {"type": "open", "to": "spore_heart"},
-        "east": {"type": "open", "to": "myconid_sanctuary"}
+        "up": {
+          "type": "open",
+          "to": "cavern_entrance"
+        },
+        "down": {
+          "type": "open",
+          "to": "spore_heart"
+        },
+        "east": {
+          "type": "open",
+          "to": "myconid_sanctuary"
+        }
       },
       "properties": {
         "spore_level": "medium",
@@ -463,8 +772,14 @@
       "name": "Spore Heart",
       "description": "The beating heart of the fungal network. Organic walls pulse like breathing flesh. Golden spore haze hangs thick in the air. At the center of the chamber, something massive waits - part plant, part something else entirely.",
       "exits": {
-        "up": {"type": "open", "to": "luminous_grotto"},
-        "down": {"type": "open", "to": "deep_root_caverns"}
+        "up": {
+          "type": "open",
+          "to": "luminous_grotto"
+        },
+        "down": {
+          "type": "open",
+          "to": "deep_root_caverns"
+        }
       },
       "properties": {
         "spore_level": "high",
@@ -479,7 +794,10 @@
       "name": "Myconid Sanctuary",
       "description": "A cavern of geometric precision, where mushroom-folk have built their community. Orderly rings of Myconids stand in silent communion, communicating through colored spore puffs. The air here is clean - they filter the spores.",
       "exits": {
-        "west": {"type": "open", "to": "luminous_grotto"}
+        "west": {
+          "type": "open",
+          "to": "luminous_grotto"
+        }
       },
       "properties": {
         "spore_level": "none",
@@ -494,7 +812,10 @@
       "name": "Deep Root Caverns",
       "description": "Absolute darkness swallows all light. The air here is toxic - unbreathable without protection. Massive roots, thick as trees, descend from impossibly far above. Ancient bones suggest others have tried this path before.",
       "exits": {
-        "up": {"type": "open", "to": "spore_heart"}
+        "up": {
+          "type": "open",
+          "to": "spore_heart"
+        }
       },
       "properties": {
         "spore_level": "none",
@@ -506,14 +827,19 @@
         "region": "fungal_depths"
       }
     },
-
     {
       "id": "town_gate",
       "name": "Town Gate",
       "description": "The entrance to the Civilized Remnants, a settlement of survivors who have rebuilt some semblance of civilization. Guards in patched armor examine everyone who enters, checking for infection and dangerous companions.",
       "exits": {
-        "north": {"type": "open", "to": "southern_trail"},
-        "south": {"type": "open", "to": "market_square"}
+        "north": {
+          "type": "open",
+          "to": "southern_trail"
+        },
+        "south": {
+          "type": "open",
+          "to": "market_square"
+        }
       },
       "properties": {
         "checkpoint": true,
@@ -527,10 +853,22 @@
       "name": "Market Square",
       "description": "The bustling heart of the settlement, where merchants hawk their wares around a dry fountain. The smell of cooking food and forge smoke fills the air. Militia patrol the corners, keeping watch.",
       "exits": {
-        "north": {"type": "open", "to": "town_gate"},
-        "east": {"type": "open", "to": "healers_sanctuary"},
-        "west": {"type": "open", "to": "council_hall"},
-        "south": {"type": "open", "to": "broken_statue_hall"}
+        "north": {
+          "type": "open",
+          "to": "town_gate"
+        },
+        "east": {
+          "type": "open",
+          "to": "healers_sanctuary"
+        },
+        "west": {
+          "type": "open",
+          "to": "council_hall"
+        },
+        "south": {
+          "type": "open",
+          "to": "broken_statue_hall"
+        }
       },
       "properties": {
         "commercial": true,
@@ -543,8 +881,14 @@
       "name": "Healer's Sanctuary",
       "description": "A quiet building filled with the scent of dried herbs. Bundles hang from every rafter, and the sound of mortar and pestle provides a steady rhythm. This is where the town's healer practices her art.",
       "exits": {
-        "west": {"type": "open", "to": "market_square"},
-        "back": {"type": "open", "to": "healers_garden"}
+        "west": {
+          "type": "open",
+          "to": "market_square"
+        },
+        "back": {
+          "type": "open",
+          "to": "healers_garden"
+        }
       },
       "properties": {
         "healing_available": true,
@@ -557,7 +901,10 @@
       "name": "Healer's Garden",
       "description": "An orderly garden of medicinal plants, both curative and deadly. Warning markers indicate the most dangerous beds. The healer carefully controls access to protect the unwary.",
       "exits": {
-        "front": {"type": "open", "to": "healers_sanctuary"}
+        "front": {
+          "type": "open",
+          "to": "healers_sanctuary"
+        }
       },
       "properties": {
         "skill_gated": true,
@@ -570,7 +917,10 @@
       "name": "Council Hall",
       "description": "Where the town's three councilors debate the impossible decisions of survival. The air is thick with tension and exhaustion. These are people trying to do right with no good options.",
       "exits": {
-        "east": {"type": "open", "to": "market_square"}
+        "east": {
+          "type": "open",
+          "to": "market_square"
+        }
       },
       "properties": {
         "political": true,
@@ -583,7 +933,10 @@
       "name": "Broken Statue Hall",
       "description": "A hall dominated by a shattered stone construct - an ancient guardian, broken but not destroyed. Its runes flicker weakly. An inscription speaks of protection and purpose. Tools and fragments lie nearby.",
       "exits": {
-        "north": {"type": "open", "to": "market_square"}
+        "north": {
+          "type": "open",
+          "to": "market_square"
+        }
       },
       "properties": {
         "lighting": "dim",
@@ -595,8 +948,14 @@
       "name": "Undercity Entrance",
       "description": "A concealed trapdoor beneath the dry fountain leads to worn stone steps descending into darkness. The smell of secrets rises from below.",
       "exits": {
-        "up": {"type": "open", "to": "market_square"},
-        "down": {"type": "open", "to": "undercity"}
+        "up": {
+          "type": "open",
+          "to": "market_square"
+        },
+        "down": {
+          "type": "open",
+          "to": "undercity"
+        }
       },
       "properties": {
         "hidden": true,
@@ -609,7 +968,10 @@
       "name": "The Undercity",
       "description": "A network of cellars and tunnels beneath the town, home to those who operate outside the law. Dim lanterns cast long shadows. Here, anything can be bought or sold - for a price.",
       "exits": {
-        "up": {"type": "open", "to": "undercity_entrance"}
+        "up": {
+          "type": "open",
+          "to": "undercity_entrance"
+        }
       },
       "properties": {
         "illegal": true,
@@ -638,7 +1000,10 @@
       "properties": {
         "portable": true,
         "readable": true,
-        "flags_on_read": ["has_temple_password_partial", "knows_keeper_backstory"]
+        "flags_on_read": [
+          "has_temple_password_partial",
+          "knows_keeper_backstory"
+        ]
       }
     },
     {
@@ -723,7 +1088,6 @@
         "restored": false
       }
     },
-
     {
       "id": "frozen_telescope",
       "name": "frozen telescope",
@@ -733,8 +1097,21 @@
         "portable": false,
         "usable": true,
         "syncs_with": "ancient_telescope",
-        "requires_repair": true
-      }
+        "requires_repair": true,
+        "item_use_reactions": {
+          "telescope_component": {
+            "accepted_items": [
+              "crystal_lens",
+              "mounting_bracket",
+              "command_crystal"
+            ],
+            "handler": "behaviors.regions.frozen_reaches.telescope_repair:on_use_component_on_telescope"
+          }
+        }
+      },
+      "behaviors": [
+        "behaviors.regions.frozen_reaches.telescope_repair"
+      ]
     },
     {
       "id": "ice_crystal",
@@ -750,12 +1127,18 @@
     {
       "id": "lore_tablets",
       "name": "lore tablets",
-      "description": "Ancient tablets preserved by the cold, their inscriptions detailing rituals and ceremonies of the old world.",
-      "location": "frozen_observatory",
+      "description": "Ancient stone tablets lining the temple walls, their inscriptions preserved by the cold. They detail the guardian golems and their deactivation protocols.",
+      "location": "temple_sanctum",
       "properties": {
         "portable": false,
         "readable": true,
-        "flags_on_read": ["knows_guardian_ritual"]
+        "text": "The tablets describe the Stone Guardians in an ancient script:\n\n'These constructs were forged to protect the temple's treasures. Four paths exist to pass them safely:\n\n1. THE PASSWORD: Speak the words of unity: Fire-that-gives-life and water-that-cleanses, united in purpose.\n\n2. THE CONTROL CRYSTAL: A command crystal lies hidden in the ice caves to the east. With it, full control is granted.\n\n3. THE RITUAL: Offer fire and water together in the ancient manner. Steam shall carry your intent.\n\n4. DESTRUCTION: Force may prevail, but at great cost. The guardians cannot be replaced.'\n\nThe tablets also note: The guardians are linked - what affects one affects both.",
+        "flags_on_read": [
+          "knows_golem_password",
+          "knows_control_crystal_location",
+          "knows_guardian_ritual",
+          "knows_guardian_solutions"
+        ]
       }
     },
     {
@@ -769,7 +1152,250 @@
         "cold_protection": 5
       }
     },
-
+    {
+      "id": "cold_weather_gear",
+      "name": "cold weather gear",
+      "description": "Thick furs and layered clothing designed for extreme cold. Found in an abandoned camp, still usable despite years of exposure. Halves the rate of hypothermia in cold and freezing zones.",
+      "location": "frozen_pass",
+      "properties": {
+        "portable": true,
+        "wearable": true,
+        "cold_protection": "half_hypothermia_rate",
+        "synonyms": [
+          "gear",
+          "furs",
+          "clothing"
+        ]
+      }
+    },
+    {
+      "id": "preserved_supplies",
+      "name": "preserved supplies",
+      "description": "A pack of supplies from the abandoned camp, preserved by the intense cold. Contains dried meat, bandages, and a lit torch - still burning after all these years due to some enchantment.",
+      "location": "frozen_pass",
+      "properties": {
+        "portable": true,
+        "container": {
+          "open": true,
+          "capacity": 10
+        },
+        "synonyms": [
+          "supplies",
+          "pack"
+        ]
+      }
+    },
+    {
+      "id": "partial_map",
+      "name": "partial map",
+      "description": "A weathered map showing the Frozen Reaches region. Annotations warn of thin ice, mark the hot springs refuge, and mention 'fire creatures that respond to warmth.' The temple is marked with a warning: 'Guardians - do not engage without password or preparation.'",
+      "location": "frozen_pass",
+      "properties": {
+        "portable": true,
+        "readable": true,
+        "flags_on_read": [
+          "knows_frozen_reaches_layout",
+          "knows_salamander_hint",
+          "knows_golem_warning"
+        ],
+        "synonyms": [
+          "map"
+        ]
+      }
+    },
+    {
+      "id": "frost_lily",
+      "name": "frost lily",
+      "description": "A delicate flower that grows only in the deepest cold, its petals crystalline and shimmering. The Bee Queen would value this rare bloom.",
+      "location": "ice_caves",
+      "properties": {
+        "portable": true,
+        "export_item": true,
+        "export_to": "beast_wilds",
+        "trade_value": "bee_queen",
+        "synonyms": [
+          "lily",
+          "flower"
+        ]
+      }
+    },
+    {
+      "id": "ice_shard",
+      "name": "ice shard",
+      "description": "A shard of pure elemental ice, pulsing with magical energy. This is a waystone fragment - one of five needed to restore the Meridian Waystone.",
+      "location": "ice_caves",
+      "properties": {
+        "portable": true,
+        "waystone_fragment": true,
+        "quest_item": true,
+        "frozen_in_ice": true,
+        "requires_heat_to_extract": true,
+        "synonyms": [
+          "shard",
+          "fragment"
+        ],
+        "item_use_reactions": {
+          "heat_melt": {
+            "accepted_items": [
+              "ancient_torch",
+              "fire_crystal",
+              "salamander_heated_stone"
+            ],
+            "handler": "behaviors.regions.frozen_reaches.ice_extraction:on_use"
+          }
+        }
+      },
+      "behaviors": [
+        "behaviors.regions.frozen_reaches.ice_extraction"
+      ]
+    },
+    {
+      "id": "crystal_lens",
+      "name": "lens",
+      "description": "A perfectly ground lens, frozen in the ice cave wall. Required to repair the ancient telescope. Fragile - must be extracted carefully with heat or it will shatter.",
+      "location": "ice_caves",
+      "properties": {
+        "portable": true,
+        "fragile": true,
+        "frozen_in_ice": true,
+        "requires_heat_to_extract": true,
+        "telescope_component": true,
+        "synonyms": [
+          "prism"
+        ],
+        "item_use_reactions": {
+          "heat_melt": {
+            "accepted_items": [
+              "ancient_torch",
+              "fire_crystal",
+              "salamander_heated_stone"
+            ],
+            "handler": "behaviors.regions.frozen_reaches.ice_extraction:on_use"
+          }
+        }
+      },
+      "behaviors": [
+        "behaviors.regions.frozen_reaches.ice_extraction"
+      ]
+    },
+    {
+      "id": "command_crystal",
+      "name": "command orb",
+      "description": "An ancient command orb, hidden in a side passage of the ice caves. This orb grants full control over the temple guardians - the best solution to the golem puzzle.",
+      "location": "ice_caves",
+      "properties": {
+        "portable": true,
+        "frozen_in_ice": true,
+        "requires_heat_to_extract": true,
+        "golem_control": true,
+        "hidden": true,
+        "synonyms": [
+          "crystal"
+        ],
+        "item_use_reactions": {
+          "heat_melt": {
+            "accepted_items": [
+              "ancient_torch",
+              "fire_crystal",
+              "salamander_heated_stone"
+            ],
+            "handler": "behaviors.regions.frozen_reaches.ice_extraction:on_use"
+          }
+        }
+      },
+      "behaviors": [
+        "behaviors.regions.frozen_reaches.ice_extraction"
+      ]
+    },
+    {
+      "id": "mounting_bracket",
+      "name": "mounting bracket",
+      "description": "A precision brass bracket designed to hold a lens assembly. Required to repair the ancient telescope.",
+      "location": "temple_sanctum",
+      "properties": {
+        "portable": true,
+        "telescope_component": true,
+        "synonyms": [
+          "bracket"
+        ]
+      }
+    },
+    {
+      "id": "cold_resistance_cloak",
+      "name": "cold resistance cloak",
+      "description": "An enchanted cloak radiating a subtle warmth. Provides full immunity to cold zones and 50% reduction in freezing and extreme cold zones.",
+      "location": "temple_sanctum",
+      "properties": {
+        "portable": true,
+        "wearable": true,
+        "cold_immunity": "full_cold_half_freezing",
+        "major_reward": true,
+        "synonyms": [
+          "warmcloak",
+          "frostcloak"
+        ]
+      }
+    },
+    {
+      "id": "fire_crystal",
+      "name": "flame gem",
+      "description": "A crystal pulsing with inner flame, never cooling. Fire salamanders would find this irresistible.",
+      "location": "temple_sanctum",
+      "properties": {
+        "portable": true,
+        "fire_aspected": true,
+        "salamander_gift": true,
+        "never_consumed": false,
+        "synonyms": [
+          "gem",
+          "flamegem"
+        ]
+      },
+      "behaviors": [
+        "behaviors.regions.frozen_reaches.ice_extraction"
+      ]
+    },
+    {
+      "id": "frozen_dried_meat",
+      "name": "dried meat",
+      "description": "Preserved meat from the frozen camp supplies.",
+      "location": "preserved_supplies",
+      "properties": {
+        "portable": true,
+        "consumable": true,
+        "food": true
+      }
+    },
+    {
+      "id": "frozen_bandages",
+      "name": "bandages",
+      "description": "Clean bandages from the frozen camp supplies.",
+      "location": "preserved_supplies",
+      "properties": {
+        "portable": true,
+        "healing": true,
+        "consumable": true
+      }
+    },
+    {
+      "id": "ancient_torch",
+      "name": "ancient torch",
+      "description": "A torch that has been burning for years, sustained by some lingering enchantment. It provides both light and heat - useful for extracting items frozen in ice.",
+      "location": "preserved_supplies",
+      "properties": {
+        "portable": true,
+        "fire_aspected": true,
+        "heat_source": true,
+        "salamander_gift": true,
+        "light_source": true,
+        "synonyms": [
+          "torch"
+        ]
+      },
+      "behaviors": [
+        "behaviors.regions.frozen_reaches.ice_extraction"
+      ]
+    },
     {
       "id": "spider_silk",
       "name": "spider silk",
@@ -802,7 +1428,91 @@
         "crafted": true
       }
     },
-
+    {
+      "id": "venison",
+      "name": "venison",
+      "description": "Fresh deer meat, still bloody. The wolves would find this irresistible.",
+      "location": "forest_edge",
+      "properties": {
+        "portable": true,
+        "food_item": true,
+        "wolf_food": true,
+        "synonyms": [
+          "meat",
+          "deer meat"
+        ]
+      }
+    },
+    {
+      "id": "tracking_equipment",
+      "name": "tracking equipment",
+      "description": "Well-worn but functional tools for following trails - a hand lens, marking flags, and a leather pouch of tracking powder.",
+      "location": "forest_edge",
+      "properties": {
+        "portable": true,
+        "tool": true,
+        "requires_skill": "tracking",
+        "synonyms": [
+          "tracking tools",
+          "tracker tools",
+          "equipment"
+        ]
+      }
+    },
+    {
+      "id": "hunters_journal",
+      "name": "hunter's journal",
+      "description": "A weathered journal filled with observations about the Beast Wilds. Notes on wolf behavior, bear territories, and bee trade routes.",
+      "location": "forest_edge",
+      "properties": {
+        "portable": true,
+        "readable": true,
+        "read_content": "The journal describes wolf pack behavior: 'They respond to food offerings - venison calms even the most aggressive alpha. Three offerings usually earns trust.' Another entry: 'The dire bear guards sick cubs in a den south of here. She's desperate - healing herbs from the town might save them.' A final note: 'The Bee Queen trades flowers for honey. She accepts moonpetals, frost lilies, and water blooms.'",
+        "flags_on_read": [
+          "knows_wolf_hint",
+          "knows_bear_hint",
+          "knows_bee_hint"
+        ],
+        "synonyms": [
+          "journal",
+          "hunter journal"
+        ]
+      }
+    },
+    {
+      "id": "alpha_fang_fragment",
+      "name": "alpha fang fragment",
+      "description": "A massive wolf fang, freely given as a mark of pack bond. It pulses with primal energy, warm with the alpha's trust.",
+      "location": null,
+      "properties": {
+        "portable": true,
+        "waystone_fragment": true,
+        "quest_item": true,
+        "synonyms": [
+          "alpha fang",
+          "fang fragment",
+          "wolf fang",
+          "fang"
+        ]
+      }
+    },
+    {
+      "id": "royal_honey",
+      "name": "royal honey",
+      "description": "A golden comb of the Bee Queen's finest honey. Its scent alone is intoxicating. Consuming it grants full healing and cures most conditions.",
+      "location": null,
+      "properties": {
+        "portable": true,
+        "curative": true,
+        "full_heal": true,
+        "removes_conditions": true,
+        "synonyms": [
+          "honey",
+          "queen honey",
+          "queens honey"
+        ]
+      }
+    },
     {
       "id": "air_bladder",
       "name": "air bladder",
@@ -859,7 +1569,6 @@
         "export_to": "beast_wilds"
       }
     },
-
     {
       "id": "silvermoss",
       "name": "silvermoss",
@@ -882,6 +1591,22 @@
       }
     },
     {
+      "id": "spore_heart_fragment",
+      "name": "spore heart fragment",
+      "description": "A crystallized fragment of the Spore Mother's essence, warm with gratitude. It pulses with soft bioluminescence, a gift for healing rather than destroying.",
+      "location": null,
+      "properties": {
+        "portable": true,
+        "waystone_fragment": true,
+        "quest_item": true,
+        "synonyms": [
+          "spore heart",
+          "fragment",
+          "spore fragment"
+        ]
+      }
+    },
+    {
       "id": "aldric_journal",
       "name": "Aldric's journal",
       "description": "A scholar's journal filled with notes about the fungal depths, including hints about the mushroom puzzle.",
@@ -889,7 +1614,9 @@
       "properties": {
         "portable": true,
         "readable": true,
-        "flags_on_read": ["knows_mushroom_hint"]
+        "flags_on_read": [
+          "knows_mushroom_hint"
+        ]
       }
     },
     {
@@ -927,7 +1654,96 @@
         "water_capacity": 3
       }
     },
-
+    {
+      "id": "mushroom_blue",
+      "name": "blue mushroom",
+      "description": "A large mushroom with a deep blue cap. It pulses with a steady, rhythmic glow.",
+      "location": "luminous_grotto",
+      "properties": {
+        "portable": false,
+        "fixed": true,
+        "fungal": true,
+        "pulse_pattern": "steady",
+        "item_use_reactions": {
+          "handler": "behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
+        }
+      }
+    },
+    {
+      "id": "mushroom_gold",
+      "name": "gold mushroom",
+      "description": "A striking mushroom with a golden cap. Its glow flickers in an irregular pattern.",
+      "location": "luminous_grotto",
+      "properties": {
+        "portable": false,
+        "fixed": true,
+        "fungal": true,
+        "pulse_pattern": "irregular",
+        "item_use_reactions": {
+          "handler": "behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
+        }
+      }
+    },
+    {
+      "id": "mushroom_violet",
+      "name": "violet mushroom",
+      "description": "A vivid violet mushroom. Its rapid, frantic pulsing seems somehow unsettling.",
+      "location": "luminous_grotto",
+      "properties": {
+        "portable": false,
+        "fixed": true,
+        "fungal": true,
+        "pulse_pattern": "rapid",
+        "item_use_reactions": {
+          "handler": "behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
+        }
+      }
+    },
+    {
+      "id": "mushroom_black",
+      "name": "black mushroom",
+      "description": "A dark mushroom that seems to absorb light rather than emit it. It does not pulse at all.",
+      "location": "luminous_grotto",
+      "properties": {
+        "portable": false,
+        "fixed": true,
+        "fungal": true,
+        "pulse_pattern": "none",
+        "item_use_reactions": {
+          "handler": "behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
+        }
+      }
+    },
+    {
+      "id": "dead_explorer",
+      "name": "dead explorer",
+      "description": "A dead explorer lies slumped against the far wall. Their clothing is covered in fungal growth, but they still clutch a worn notebook in their stiffened fingers.",
+      "location": "luminous_grotto",
+      "properties": {
+        "portable": false,
+        "fixed": true
+      }
+    },
+    {
+      "id": "research_notes",
+      "name": "worn notebook",
+      "description": "A worn notebook filled with detailed notes on fungal biology and cave exploration. The handwriting is meticulous, documenting observations about mushroom behavior and safe paths through spore-heavy areas. A scholar would find these valuable.",
+      "location": "luminous_grotto",
+      "properties": {
+        "portable": true,
+        "readable": true,
+        "synonyms": [
+          "research notes",
+          "notes",
+          "notebook",
+          "explorer notes"
+        ],
+        "read_content": "The notes detail fungal symbiosis and the relationship between the Spore Mother and her environment. Key insight: 'The mushrooms respond to water - their glow reveals hidden patterns. Blue pulses steady, gold irregular, violet rapid and dangerous, black absorbs all.'",
+        "gift_value": {
+          "npc_aldric": 1
+        }
+      }
+    },
     {
       "id": "healing_herbs",
       "name": "healing herbs",
@@ -996,6 +1812,69 @@
       }
     }
   ],
+  "parts": [
+    {
+      "id": "grotto_ceiling",
+      "name": "ceiling",
+      "part_of": "luminous_grotto",
+      "properties": {
+        "description": "The high ceiling of the grotto, shrouded in darkness. Something appears to be carved up there.",
+        "examine_reactions": {
+          "handler": "behaviors.regions.fungal_depths.light_puzzle:on_examine_ceiling"
+        }
+      }
+    },
+    {
+      "id": "temple_pillar_1",
+      "name": "stone pillar",
+      "part_of": "temple_sanctum",
+      "properties": {
+        "description": "A massive stone pillar carved with ancient geometric patterns. Wide enough to shelter behind during combat.",
+        "interaction_distance": "near",
+        "provides_cover": true,
+        "cover_effectiveness": 0.8
+      }
+    },
+    {
+      "id": "temple_pillar_2",
+      "name": "stone pillar",
+      "part_of": "temple_sanctum",
+      "properties": {
+        "description": "A massive stone pillar carved with ancient geometric patterns. Wide enough to shelter behind during combat.",
+        "interaction_distance": "near",
+        "provides_cover": true,
+        "cover_effectiveness": 0.8
+      }
+    },
+    {
+      "id": "temple_altar",
+      "name": "altar",
+      "part_of": "temple_sanctum",
+      "properties": {
+        "description": "An ancient stone altar at the center of the sanctum, covered in intricate carvings. A precision brass bracket rests upon it.",
+        "interaction_distance": "near"
+      }
+    },
+    {
+      "id": "temple_alcove",
+      "name": "alcove",
+      "part_of": "temple_sanctum",
+      "properties": {
+        "description": "A recessed alcove in the temple wall, protected by a shimmer of ancient magic. An enchanted cloak hangs within, radiating subtle warmth.",
+        "interaction_distance": "near"
+      }
+    },
+    {
+      "id": "temple_side_chamber",
+      "name": "side chamber",
+      "part_of": "temple_sanctum",
+      "properties": {
+        "description": "A small chamber near the entrance, accessible without venturing deep into the temple. A fire crystal pulses with inner flame on a pedestal.",
+        "interaction_distance": "near",
+        "near_entrance": true
+      }
+    }
+  ],
   "actors": {
     "player": {
       "id": "player",
@@ -1013,17 +1892,27 @@
       "inventory": [],
       "properties": {
         "state_machine": {
-          "states": ["dormant", "manifesting", "communicating", "fading", "permanent"],
+          "states": [
+            "dormant",
+            "manifesting",
+            "communicating",
+            "fading",
+            "permanent"
+          ],
           "initial": "dormant"
         },
-        "trust_state": {"current": 0, "floor": -6, "ceiling": 6},
+        "trust_state": {
+          "current": 0,
+          "floor": -6,
+          "ceiling": 6
+        },
         "appearance_cooldown": 0,
         "is_spectral": true,
         "dialog_topics": {
-          "handler": "examples.big_game.behaviors.regions.meridian_nexus.echo:on_echo_dialog"
+          "handler": "behaviors.regions.meridian_nexus.echo:on_echo_dialog"
         },
         "gossip_reactions": {
-          "handler": "examples.big_game.behaviors.regions.meridian_nexus.echo:on_echo_gossip"
+          "handler": "behaviors.regions.meridian_nexus.echo:on_echo_gossip"
         }
       }
     },
@@ -1035,67 +1924,229 @@
       "inventory": [],
       "properties": {
         "state_machine": {
-          "states": ["damaged", "partial", "repaired"],
+          "states": [
+            "damaged",
+            "partial",
+            "repaired"
+          ],
           "initial": "damaged"
         },
         "is_object": true,
         "commitment_target": true,
-        "fragments_placed": 0
+        "fragments_placed": 0,
+        "item_use_reactions": {
+          "fragment_placement": {
+            "accepted_items": [
+              "alpha_fang_fragment",
+              "spore_heart_fragment",
+              "ice_shard_fragment",
+              "water_bloom_fragment",
+              "echo_essence_fragment"
+            ],
+            "handler": "behaviors.regions.meridian_nexus.waystone:on_fragment_place"
+          }
+        }
       }
     },
-
     "alpha_wolf": {
       "id": "alpha_wolf",
       "name": "Alpha Wolf",
-      "description": "A massive grey wolf with intelligent eyes, scarred from many battles. It leads the pack that hunts these frozen wastes.",
-      "location": "wolf_den",
+      "description": "A massive grey wolf with intelligent eyes, scarred from many battles. It leads the pack that hunts these wild woods.",
+      "location": "wolf_clearing",
       "inventory": [],
       "properties": {
         "state_machine": {
-          "states": ["hostile", "wary", "neutral", "friendly", "allied"],
+          "states": [
+            "hostile",
+            "wary",
+            "neutral",
+            "friendly",
+            "allied"
+          ],
           "initial": "hostile"
         },
         "pack_id": "frost_wolves",
         "pack_role": "alpha",
-        "trust_state": {"current": -2, "floor": -5, "ceiling": 5},
+        "trust_state": {
+          "current": -2,
+          "floor": -5,
+          "ceiling": 5
+        },
         "pack_behavior": {
           "pack_follows_leader_state": true,
-          "followers": ["frost_wolf_1", "frost_wolf_2"],
-          "handler": "examples.big_game.behaviors.regions.beast_wilds.wolf_pack:on_wolf_state_change"
+          "followers": [
+            "frost_wolf_1",
+            "frost_wolf_2"
+          ],
+          "handler": "behaviors.regions.beast_wilds.wolf_pack:on_wolf_state_change"
         },
         "gift_reactions": {
-          "handler": "examples.big_game.behaviors.regions.beast_wilds.wolf_pack:on_wolf_feed"
+          "handler": "behaviors.regions.beast_wilds.wolf_pack:on_wolf_feed"
+        },
+        "llm_context": {
+          "traits": [
+            "massive grey form",
+            "intelligent amber eyes",
+            "battle-scarred muzzle",
+            "thick winter coat",
+            "powerful shoulders",
+            "commanding presence"
+          ],
+          "state_fragments": {
+            "hostile": [
+              "hackles raised high",
+              "lips curled back revealing fangs",
+              "circling with predatory focus",
+              "growling deep in chest",
+              "eyes locked on threat",
+              "pack flanking in formation"
+            ],
+            "wary": [
+              "ears swiveling alertly",
+              "muscles coiled to spring",
+              "watching with calculating gaze",
+              "testing the air cautiously",
+              "pack holding position",
+              "stance ready but waiting"
+            ],
+            "neutral": [
+              "posture relaxed but aware",
+              "curious tilt of head",
+              "sniffing without aggression",
+              "pack at ease nearby",
+              "tail held level",
+              "observing with interest"
+            ],
+            "friendly": [
+              "tail swaying slowly",
+              "approaching with soft steps",
+              "accepting presence calmly",
+              "pack dispersing peacefully",
+              "soft chuff of greeting",
+              "ears pricked forward"
+            ],
+            "allied": [
+              "moving alongside naturally",
+              "protective stance near player",
+              "responding to gestures",
+              "pack integrated around player",
+              "loyal gaze following movements",
+              "shoulder brushing in passing"
+            ]
+          }
         }
       }
     },
     "frost_wolf_1": {
       "id": "frost_wolf_1",
-      "name": "Frost Wolf",
-      "description": "A lean wolf with white-streaked fur, part of the alpha's pack.",
-      "location": "wolf_den",
+      "name": "Grey Wolf",
+      "description": "A lean wolf with grey fur, part of the alpha's pack.",
+      "location": "wolf_clearing",
       "inventory": [],
       "properties": {
         "state_machine": {
-          "states": ["hostile", "wary", "neutral", "friendly", "allied"],
+          "states": [
+            "hostile",
+            "wary",
+            "neutral",
+            "friendly",
+            "allied"
+          ],
           "initial": "hostile"
         },
         "pack_id": "frost_wolves",
-        "pack_role": "follower"
+        "pack_role": "follower",
+        "llm_context": {
+          "traits": [
+            "lean and agile",
+            "white-streaked fur",
+            "watchful stance",
+            "moves with pack"
+          ],
+          "state_fragments": {
+            "hostile": [
+              "mirroring alpha's aggression",
+              "flanking position",
+              "bared fangs"
+            ],
+            "wary": [
+              "alert beside alpha",
+              "ready to follow",
+              "tense muscles"
+            ],
+            "neutral": [
+              "relaxed near pack",
+              "occasional glance at alpha",
+              "calm breathing"
+            ],
+            "friendly": [
+              "tail low and wagging",
+              "following alpha's lead",
+              "soft eyes"
+            ],
+            "allied": [
+              "padding alongside",
+              "protective of pack",
+              "responsive to group"
+            ]
+          }
+        }
       }
     },
     "frost_wolf_2": {
       "id": "frost_wolf_2",
-      "name": "Frost Wolf",
-      "description": "A muscular wolf with a thick winter coat, loyal to the alpha.",
-      "location": "wolf_den",
+      "name": "Grey Wolf",
+      "description": "A muscular wolf with a thick grey coat, loyal to the alpha.",
+      "location": "wolf_clearing",
       "inventory": [],
       "properties": {
         "state_machine": {
-          "states": ["hostile", "wary", "neutral", "friendly", "allied"],
+          "states": [
+            "hostile",
+            "wary",
+            "neutral",
+            "friendly",
+            "allied"
+          ],
           "initial": "hostile"
         },
         "pack_id": "frost_wolves",
-        "pack_role": "follower"
+        "pack_role": "follower",
+        "llm_context": {
+          "traits": [
+            "muscular build",
+            "thick winter coat",
+            "loyal demeanor",
+            "steady presence"
+          ],
+          "state_fragments": {
+            "hostile": [
+              "snarling in unison",
+              "circling with pack",
+              "hackles matching alpha"
+            ],
+            "wary": [
+              "watching intently",
+              "positioned near alpha",
+              "ready to react"
+            ],
+            "neutral": [
+              "resting near pack",
+              "calm but aware",
+              "ears occasionally twitching"
+            ],
+            "friendly": [
+              "approaching cautiously",
+              "accepting of presence",
+              "relaxed posture"
+            ],
+            "allied": [
+              "staying close",
+              "guarding flanks",
+              "comfortable with group"
+            ]
+          }
+        }
       }
     },
     "salamander": {
@@ -1106,18 +2157,249 @@
       "inventory": [],
       "properties": {
         "state_machine": {
-          "states": ["neutral", "friendly", "companion", "wild", "curious", "bonded"],
+          "states": [
+            "neutral",
+            "friendly",
+            "companion",
+            "wild",
+            "curious",
+            "bonded"
+          ],
           "initial": "neutral"
+        },
+        "llm_context": {
+          "neutral": "The salamander watches cautiously, flame flickering with uncertainty. It keeps its distance but doesn't flee.",
+          "friendly": "The salamander's flame burns steady and warm. It approaches willingly, crackling softly in greeting.",
+          "companion": "The salamander stays close, its flame bright and content. It follows your movements with obvious trust.",
+          "wild": "The salamander's flame burns erratically, spines raised defensively. It hisses warnings if approached.",
+          "curious": "The salamander tilts its head, flame dancing with interest. It edges closer, clearly intrigued.",
+          "bonded": "The salamander curls near you protectively, its flame a comforting warmth. You are its chosen companion."
         },
         "fire_creature": true,
         "heat_aura": true,
-        "trust_state": {"current": 0, "floor": 0, "ceiling": 5},
+        "trust_state": {
+          "current": 0,
+          "floor": 0,
+          "ceiling": 5
+        },
+        "pack_behavior": {
+          "is_pack_leader": true,
+          "pack_follows_leader_state": true
+        },
         "gift_reactions": {
-          "handler": "examples.big_game.behaviors.regions.frozen_reaches.salamanders:on_fire_gift"
+          "handler": "behaviors.regions.frozen_reaches.salamanders:on_fire_gift"
+        },
+        "dialog_topics": {
+          "handler": "behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
         }
       }
     },
-
+    "steam_salamander_2": {
+      "id": "steam_salamander_2",
+      "name": "Steam Salamander",
+      "description": "A smaller salamander wreathed in steam and flame. It watches the lead salamander closely, mirroring its behavior.",
+      "location": "hot_springs",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": [
+            "neutral",
+            "friendly",
+            "companion",
+            "wild",
+            "curious",
+            "bonded"
+          ],
+          "initial": "neutral"
+        },
+        "llm_context": {
+          "neutral": "The smaller salamander watches cautiously, staying close to the lead. Its flame flickers in time with its leader's.",
+          "friendly": "The salamander moves in sync with the lead, crackling softly. It seems comfortable in your presence.",
+          "companion": "The salamander follows the lead's example, staying nearby with steady flame. Part of the pack.",
+          "wild": "The salamander mirrors the lead's defensive posture, flame erratic and wary.",
+          "curious": "The salamander tilts its head like the lead, clearly following its example.",
+          "bonded": "The salamander is bonded through the pack, protective and trusting."
+        },
+        "fire_creature": true,
+        "heat_aura": true,
+        "pack_behavior": {
+          "pack_leader": "salamander",
+          "pack_follows_leader_state": true
+        },
+        "dialog_topics": {
+          "handler": "behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
+        }
+      }
+    },
+    "steam_salamander_3": {
+      "id": "steam_salamander_3",
+      "name": "Steam Salamander",
+      "description": "A young salamander of flickering flame and mist. It looks to the lead salamander for guidance in all things.",
+      "location": "hot_springs",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": [
+            "neutral",
+            "friendly",
+            "companion",
+            "wild",
+            "curious",
+            "bonded"
+          ],
+          "initial": "neutral"
+        },
+        "llm_context": {
+          "neutral": "The young salamander stays behind the lead, uncertain but curious.",
+          "friendly": "The salamander approaches with the lead, flame warm and welcoming.",
+          "companion": "The salamander stays close to the pack, trusting and loyal.",
+          "wild": "The salamander backs away with the lead, defensive and frightened.",
+          "curious": "The salamander edges forward with the lead, interested but cautious.",
+          "bonded": "The salamander is fully bonded to the pack, protective despite its youth."
+        },
+        "fire_creature": true,
+        "heat_aura": true,
+        "pack_behavior": {
+          "pack_leader": "salamander",
+          "pack_follows_leader_state": true
+        },
+        "dialog_topics": {
+          "handler": "behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
+        }
+      }
+    },
+    "stone_golem_1": {
+      "id": "stone_golem_1",
+      "name": "Stone Guardian",
+      "description": "A massive construct of carved stone, ancient runes glowing along its limbs. It stands motionless but alert, watching the temple entrance with eyeless vigilance.",
+      "location": "temple_sanctum",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": [
+            "guarding",
+            "hostile",
+            "passive",
+            "serving",
+            "destroyed"
+          ],
+          "initial": "guarding"
+        },
+        "llm_context": {
+          "guarding": "The golem stands perfectly still, runes glowing faintly red. Its attention is focused on the temple's treasures.",
+          "hostile": "The golem moves with grinding purpose, runes blazing crimson. It will crush any who threaten the sanctum.",
+          "passive": "The golem has stepped aside, runes shifting to a calm blue. It will not attack but offers no service.",
+          "serving": "The golem kneels, runes glowing brilliant white. It awaits commands from whoever holds the control crystal.",
+          "destroyed": "The golem lies in rubble, its runes dark and lifeless."
+        },
+        "stats": {
+          "health": 150,
+          "max_health": 150,
+          "damage": "25-35",
+          "armor": 10,
+          "speed": "slow"
+        },
+        "immunities": [
+          "poison",
+          "disease",
+          "bleeding",
+          "drowning",
+          "cold",
+          "fire"
+        ],
+        "territorial": true,
+        "threshold_pause": true,
+        "linked_to": "stone_golem_2",
+        "dialog_topics": {
+          "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_password"
+        },
+        "item_use_reactions": {
+          "command_crystal": {
+            "accepted_items": [
+              "command_crystal"
+            ],
+            "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_item_use"
+          },
+          "ritual": {
+            "accepted_items": [
+              "fire_crystal",
+              "ancient_torch",
+              "spring_water"
+            ],
+            "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_item_use"
+          }
+        },
+        "death_reactions": {
+          "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_death"
+        }
+      }
+    },
+    "stone_golem_2": {
+      "id": "stone_golem_2",
+      "name": "Stone Guardian",
+      "description": "A twin to the first guardian, carved from the same ancient stone. Runes glow along its surface in perfect synchronization with its companion.",
+      "location": "temple_sanctum",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": [
+            "guarding",
+            "hostile",
+            "passive",
+            "serving",
+            "destroyed"
+          ],
+          "initial": "guarding"
+        },
+        "llm_context": {
+          "guarding": "The golem stands perfectly still, runes glowing faintly red. Its attention mirrors its twin's vigilance.",
+          "hostile": "The golem advances in lockstep with its companion, runes blazing. Together they are an unstoppable force.",
+          "passive": "The golem has stepped aside beside its twin, runes calm blue. Passage is granted but no aid offered.",
+          "serving": "The golem kneels in perfect synchronization with its companion, awaiting commands.",
+          "destroyed": "The golem lies shattered, its connection to its twin severed forever."
+        },
+        "stats": {
+          "health": 150,
+          "max_health": 150,
+          "damage": "25-35",
+          "armor": 10,
+          "speed": "slow"
+        },
+        "immunities": [
+          "poison",
+          "disease",
+          "bleeding",
+          "drowning",
+          "cold",
+          "fire"
+        ],
+        "territorial": true,
+        "threshold_pause": true,
+        "linked_to": "stone_golem_1",
+        "dialog_topics": {
+          "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_password"
+        },
+        "item_use_reactions": {
+          "command_crystal": {
+            "accepted_items": [
+              "command_crystal"
+            ],
+            "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_item_use"
+          },
+          "ritual": {
+            "accepted_items": [
+              "fire_crystal",
+              "ancient_torch",
+              "spring_water"
+            ],
+            "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_item_use"
+          }
+        },
+        "death_reactions": {
+          "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_death"
+        }
+      }
+    },
     "hunter_sira": {
       "id": "hunter_sira",
       "name": "Hunter Sira",
@@ -1126,29 +2408,132 @@
       "inventory": [],
       "properties": {
         "state_machine": {
-          "states": ["injured", "stabilized", "mobile", "dead"],
+          "states": [
+            "injured",
+            "stabilized",
+            "mobile",
+            "dead"
+          ],
           "initial": "injured"
         },
         "conditions": {
-          "bleeding": {"severity": 60},
-          "broken_leg": {"severity": 100}
+          "bleeding": {
+            "severity": 60
+          },
+          "broken_leg": {
+            "severity": 100
+          }
         },
         "commitment_target": true,
         "death_timer": 15,
         "hope_bonus": 5,
         "connected_to": "healer_elara",
         "encounter_reactions": {
-          "handler": "examples.big_game.behaviors.regions.beast_wilds.sira_rescue:on_sira_encounter"
+          "handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_encounter"
         },
         "death_reactions": {
-          "handler": "examples.big_game.behaviors.regions.beast_wilds.sira_rescue:on_sira_death",
-          "set_flags": {"sira_dead": true},
+          "handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_death",
+          "set_flags": {
+            "sira_dead": true
+          },
           "message": "Hunter Sira's struggle has ended."
         },
         "item_use_reactions": {
           "healing": {
-            "accepted_items": ["bandages", "healing_herbs"],
-            "handler": "examples.big_game.behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
+            "accepted_items": [
+              "bandages",
+              "healing_herbs"
+            ],
+            "handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
+          }
+        },
+        "dialog_topics": {
+          "injury": {
+            "keywords": [
+              "injury",
+              "hurt",
+              "wound",
+              "happened"
+            ],
+            "trust_delta": 1,
+            "summary": "'Beast attack,' she manages through gritted teeth. 'Pack of wolves... or what used to be wolves. Something's wrong with them.'"
+          },
+          "tracking": {
+            "keywords": [
+              "tracking",
+              "hunt",
+              "teach",
+              "skills"
+            ],
+            "requires_state": [
+              "stabilized",
+              "mobile"
+            ],
+            "summary": "'I could teach you to read the forest... if I survive this. Help me, and I'll share what I know.'"
+          },
+          "beasts": {
+            "keywords": [
+              "beasts",
+              "wolves",
+              "spiders",
+              "creatures",
+              "dangers"
+            ],
+            "summary": "'The beasts here aren't natural anymore. Something corrupts them. The wolves especially... they hunt in packs, coordinated. Dangerous.'"
+          },
+          "elara": {
+            "keywords": [
+              "elara",
+              "healer",
+              "help",
+              "medicine"
+            ],
+            "unlocks_after": "injury",
+            "sets_flags": {
+              "knows_elara_connection": true
+            },
+            "summary": "'Elara... she's in the town. We grew up together. She could help me - if you could get word to her...'"
+          }
+        },
+        "llm_context": {
+          "traits": [
+            "weathered features",
+            "lean muscle beneath torn clothing",
+            "forest-stained hands",
+            "sharp watchful eyes",
+            "calloused archer's fingers",
+            "determined set of jaw"
+          ],
+          "state_fragments": {
+            "injured": [
+              "pale and sweating",
+              "blood-soaked bandages",
+              "labored breathing",
+              "gripping wound tightly",
+              "fighting to stay conscious",
+              "voice weak but urgent"
+            ],
+            "stabilized": [
+              "color returning to cheeks",
+              "breathing more steadily",
+              "sitting upright with effort",
+              "grateful but still weak",
+              "assessing own damage",
+              "cautious movements"
+            ],
+            "mobile": [
+              "testing injured leg carefully",
+              "regaining strength visibly",
+              "eyes sharp and alert again",
+              "planning next move",
+              "stretching carefully",
+              "hunter's focus returning"
+            ],
+            "dead": [
+              "still and peaceful",
+              "struggle finally ended",
+              "hands relaxed at last"
+            ]
           }
         }
       }
@@ -1161,14 +2546,132 @@
       "inventory": [],
       "properties": {
         "state_machine": {
-          "states": ["hostile", "wary", "neutral", "allied", "dead"],
+          "states": [
+            "hostile",
+            "wary",
+            "neutral",
+            "allied",
+            "dead"
+          ],
           "initial": "hostile"
         },
         "pack_id": "spider_brood",
         "pack_role": "alpha",
         "death_reactions": {
-          "handler": "examples.big_game.behaviors.regions.beast_wilds.spider_nest:on_spider_queen_death",
-          "set_flags": {"spider_queen_dead": true}
+          "handler": "behaviors.regions.beast_wilds.spider_nest:on_spider_queen_death",
+          "set_flags": {
+            "spider_queen_dead": true
+          }
+        },
+        "pack_behavior": {
+          "pack_follows_leader_state": true,
+          "followers": [
+            "giant_spider_1",
+            "giant_spider_2"
+          ]
+        },
+        "llm_context": {
+          "traits": [
+            "terrible size dwarfing humans",
+            "many gleaming eyes",
+            "alien intelligence",
+            "legs like sharpened spears",
+            "mandibles dripping venom",
+            "web silk trailing from spinnerets"
+          ],
+          "state_fragments": {
+            "hostile": [
+              "legs raised for strike",
+              "mandibles clicking threat",
+              "eyes fixed on prey",
+              "venom glistening",
+              "web trembling with intent"
+            ],
+            "dead": [
+              "legs curled beneath body",
+              "eyes dim and empty",
+              "mandibles still at last",
+              "web beginning to decay"
+            ]
+          }
+        }
+      }
+    },
+    "giant_spider_1": {
+      "id": "giant_spider_1",
+      "name": "Giant Spider",
+      "description": "A spider the size of a large dog, its legs clicking across the webbing. Part of the matriarch's brood.",
+      "location": "spider_thicket",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": [
+            "hostile",
+            "dead"
+          ],
+          "initial": "hostile"
+        },
+        "pack_id": "spider_brood",
+        "pack_role": "follower",
+        "llm_context": {
+          "traits": [
+            "dog-sized body",
+            "clicking legs",
+            "multiple gleaming eyes",
+            "fangs ready to strike"
+          ],
+          "state_fragments": {
+            "hostile": [
+              "legs spread for attack",
+              "fangs extended",
+              "hissing sound",
+              "circling prey"
+            ],
+            "dead": [
+              "legs curled inward",
+              "body still",
+              "venom pooling beneath"
+            ]
+          }
+        }
+      }
+    },
+    "giant_spider_2": {
+      "id": "giant_spider_2",
+      "name": "Giant Spider",
+      "description": "Another of the matriarch's brood, slightly larger and more aggressive than its sibling.",
+      "location": "spider_thicket",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": [
+            "hostile",
+            "dead"
+          ],
+          "initial": "hostile"
+        },
+        "pack_id": "spider_brood",
+        "pack_role": "follower",
+        "llm_context": {
+          "traits": [
+            "larger than its sibling",
+            "more aggressive stance",
+            "thick hairy legs",
+            "venom-dripping fangs"
+          ],
+          "state_fragments": {
+            "hostile": [
+              "leading the attack",
+              "fangs bared",
+              "legs striking rapidly",
+              "hissing loudly"
+            ],
+            "dead": [
+              "collapsed in web",
+              "legs still twitching",
+              "threat ended"
+            ]
+          }
         }
       }
     },
@@ -1180,20 +2683,324 @@
       "inventory": [],
       "properties": {
         "state_machine": {
-          "states": ["defensive", "neutral", "trading", "allied", "hostile"],
+          "states": [
+            "defensive",
+            "neutral",
+            "trading",
+            "allied",
+            "hostile"
+          ],
           "initial": "defensive"
         },
-        "trust_state": {"current": 0, "floor": -3, "ceiling": 5},
-        "trades_for": ["moonpetal", "water_bloom", "frost_lily"],
+        "trust_state": {
+          "current": 0,
+          "floor": -3,
+          "ceiling": 5
+        },
+        "trades_for": [
+          "moonpetal",
+          "water_bloom",
+          "frost_lily"
+        ],
         "gift_reactions": {
-          "handler": "examples.big_game.behaviors.regions.beast_wilds.bee_queen:on_flower_offer"
+          "handler": "behaviors.regions.beast_wilds.bee_queen:on_flower_offer"
         },
         "take_reactions": {
-          "handler": "examples.big_game.behaviors.regions.beast_wilds.bee_queen:on_honey_theft"
+          "handler": "behaviors.regions.beast_wilds.bee_queen:on_honey_theft"
+        },
+        "dialog_topics": {
+          "handler": "behaviors.regions.beast_wilds.bee_queen:on_bee_queen_talk"
+        },
+        "llm_context": {
+          "traits": [
+            "larger than a human",
+            "golden-furred body",
+            "crowned with sensitive antennae",
+            "compound eyes that see everything",
+            "wings that hum with meaning",
+            "ancient patience in every movement"
+          ],
+          "state_fragments": {
+            "defensive": [
+              "wings folded but ready",
+              "antennae still and watchful",
+              "swarm hovering protectively close",
+              "compound eyes tracking movements",
+              "waiting for offering or threat"
+            ],
+            "neutral": [
+              "antennae twitching with mild interest",
+              "wings giving occasional slow fan",
+              "swarm relaxed but present",
+              "hovering near honey cache",
+              "open to trade"
+            ],
+            "trading": [
+              "antennae quivering with pleased recognition",
+              "wings fanning contentedly",
+              "moving between visitor and honey",
+              "dance of fair exchange",
+              "trust building"
+            ],
+            "allied": [
+              "approaching with warm greeting buzz",
+              "antennae reaching toward friend",
+              "swarm parting as escort",
+              "wings in lazy contentment",
+              "honey freely offered"
+            ],
+            "hostile": [
+              "wings blur with furious buzzing",
+              "antennae in rapid aggressive patterns",
+              "swarm thickening into living wall",
+              "compound eyes tracking with hatred",
+              "no trade only threat"
+            ]
+          }
         }
       }
     },
-
+    "dire_bear": {
+      "id": "dire_bear",
+      "name": "Dire Bear",
+      "description": "A massive bear, larger than any natural creature. Her eyes hold both fierce protectiveness and desperate anguish as she guards her sick cubs.",
+      "location": "predators_den",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": [
+            "hostile",
+            "wary",
+            "grateful",
+            "allied",
+            "vengeful",
+            "dead"
+          ],
+          "initial": "hostile"
+        },
+        "trust_state": {
+          "current": -2,
+          "floor": -5,
+          "ceiling": 5
+        },
+        "pack_behavior": {
+          "pack_id": "bear_family",
+          "pack_role": "alpha",
+          "pack_follows_alpha_state": true,
+          "followers": [
+            "bear_cub_1",
+            "bear_cub_2"
+          ]
+        },
+        "commitment_target": true,
+        "hunts_player": false,
+        "encounter_reactions": {
+          "handler": "behaviors.regions.beast_wilds.bear_cubs:on_bear_encounter"
+        },
+        "gift_reactions": {
+          "healing_herbs": {
+            "accepted_items": [
+              "healing_herbs"
+            ],
+            "handler": "behaviors.regions.beast_wilds.bear_cubs:on_cubs_healed"
+          }
+        },
+        "llm_context": {
+          "traits": [
+            "massive frame towering over player",
+            "thick dark fur matted with worry",
+            "powerful claws capable of terrible damage",
+            "eyes that shift between rage and desperation",
+            "protective stance over cubs",
+            "deep rumbling growl in chest"
+          ],
+          "state_fragments": {
+            "hostile": [
+              "reared up to full terrifying height",
+              "roaring warning that shakes the cave",
+              "claws extended and slashing air",
+              "positioning between player and cubs",
+              "every muscle tensed for attack",
+              "eyes blazing with protective fury"
+            ],
+            "wary": [
+              "lowered to all fours but tense",
+              "watching player's every movement",
+              "occasional warning growl",
+              "glancing between player and sick cubs",
+              "huffing with uncertainty",
+              "claws retracted but ready"
+            ],
+            "grateful": [
+              "posture relaxing visibly",
+              "soft grunts of acknowledgment",
+              "allowing closer approach",
+              "nudging cubs toward player",
+              "eyes softened with relief",
+              "rumbling low sounds of acceptance"
+            ],
+            "allied": [
+              "calm and trusting presence",
+              "greeting player with low rumble",
+              "cubs playing nearby without fear",
+              "offering den as safe rest",
+              "protective of player as family",
+              "peaceful guardian presence"
+            ],
+            "vengeful": [
+              "grief transformed to fury",
+              "tracking player relentlessly",
+              "no warning before attack",
+              "consumed by loss and rage",
+              "will not stop until satisfied",
+              "eyes empty of everything but vengeance"
+            ]
+          }
+        }
+      }
+    },
+    "bear_cub_1": {
+      "id": "bear_cub_1",
+      "name": "Bear Cub",
+      "description": "A small bear cub, barely more than a yearling. Its breathing is labored and its fur has lost its luster to sickness.",
+      "location": "predators_den",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": [
+            "sick",
+            "recovering",
+            "healthy",
+            "dead"
+          ],
+          "initial": "sick"
+        },
+        "pack_behavior": {
+          "pack_id": "bear_family",
+          "pack_role": "follower"
+        },
+        "conditions": {
+          "wasting_sickness": {
+            "severity": 70
+          }
+        },
+        "sick": true,
+        "recovering": false,
+        "item_use_reactions": {
+          "healing": {
+            "accepted_items": [
+              "healing_herbs"
+            ],
+            "handler": "behaviors.regions.beast_wilds.bear_cubs:on_cubs_healed"
+          }
+        },
+        "llm_context": {
+          "traits": [
+            "small furry form",
+            "eyes too large for weakened face",
+            "soft whimpering sounds",
+            "seeking mother's warmth"
+          ],
+          "state_fragments": {
+            "sick": [
+              "breathing shallow and labored",
+              "fur dull and patchy",
+              "too weak to stand",
+              "eyes unfocused and glassy",
+              "whimpering softly",
+              "huddled against sibling for warmth"
+            ],
+            "recovering": [
+              "breathing easier now",
+              "eyes clearer and more alert",
+              "attempting to stand",
+              "showing interest in surroundings",
+              "fur beginning to regain sheen",
+              "small hopeful sounds"
+            ],
+            "healthy": [
+              "romping and playing",
+              "eyes bright and curious",
+              "fur thick and glossy",
+              "boundless energy",
+              "approaching player with curiosity",
+              "happy grunts and yips"
+            ]
+          }
+        }
+      }
+    },
+    "bear_cub_2": {
+      "id": "bear_cub_2",
+      "name": "Bear Cub",
+      "description": "A small bear cub, slightly larger than its sibling. It too suffers from the wasting sickness, though it tries to comfort the other.",
+      "location": "predators_den",
+      "inventory": [],
+      "properties": {
+        "state_machine": {
+          "states": [
+            "sick",
+            "recovering",
+            "healthy",
+            "dead"
+          ],
+          "initial": "sick"
+        },
+        "pack_behavior": {
+          "pack_id": "bear_family",
+          "pack_role": "follower"
+        },
+        "conditions": {
+          "wasting_sickness": {
+            "severity": 65
+          }
+        },
+        "sick": true,
+        "recovering": false,
+        "item_use_reactions": {
+          "healing": {
+            "accepted_items": [
+              "healing_herbs"
+            ],
+            "handler": "behaviors.regions.beast_wilds.bear_cubs:on_cubs_healed"
+          }
+        },
+        "llm_context": {
+          "traits": [
+            "slightly larger cub",
+            "protective of sibling",
+            "trying to stay strong",
+            "watching mother anxiously"
+          ],
+          "state_fragments": {
+            "sick": [
+              "breathing labored but steadier than sibling",
+              "pressing close to comfort smaller cub",
+              "eyes clouded with illness",
+              "occasionally licking sibling's face",
+              "too weak to play",
+              "soft worried sounds"
+            ],
+            "recovering": [
+              "standing on shaky legs",
+              "helping sibling up",
+              "eyes brightening with hope",
+              "nuzzling mother gratefully",
+              "strength returning",
+              "protective of healing sibling"
+            ],
+            "healthy": [
+              "wrestling with sibling playfully",
+              "exploring den with curiosity",
+              "approaching player boldly",
+              "thick healthy coat",
+              "boundless cub energy",
+              "happy growling play sounds"
+            ]
+          }
+        }
+      }
+    },
     "camp_leader_mira": {
       "id": "camp_leader_mira",
       "name": "Camp Leader Mira",
@@ -1202,10 +3009,19 @@
       "inventory": [],
       "properties": {
         "state_machine": {
-          "states": ["neutral", "friendly", "allied", "disappointed"],
+          "states": [
+            "neutral",
+            "friendly",
+            "allied",
+            "disappointed"
+          ],
           "initial": "neutral"
         },
-        "trust": {"current": 0, "floor": -3, "ceiling": 5}
+        "trust": {
+          "current": 0,
+          "floor": -3,
+          "ceiling": 5
+        }
       }
     },
     "old_swimmer_jek": {
@@ -1227,24 +3043,35 @@
       "inventory": [],
       "properties": {
         "state_machine": {
-          "states": ["drowning", "stabilized", "rescued", "dead"],
+          "states": [
+            "drowning",
+            "stabilized",
+            "rescued",
+            "dead"
+          ],
           "initial": "drowning"
         },
         "conditions": {
-          "drowning": {"severity": 50},
-          "exhaustion": {"severity": 80}
+          "drowning": {
+            "severity": 50
+          },
+          "exhaustion": {
+            "severity": 80
+          }
         },
         "commitment_target": true,
         "trigger_type": "on_room_entry",
         "base_timer": 5,
         "hope_extends": false,
         "death_reactions": {
-          "handler": "examples.big_game.behaviors.regions.sunken_district.dual_rescue:on_npc_death",
-          "set_flags": {"garrett_died": true}
+          "handler": "behaviors.regions.sunken_district.dual_rescue:on_npc_death",
+          "set_flags": {
+            "garrett_died": true
+          }
         },
         "condition_reactions": {
           "drowning_stopped": {
-            "handler": "examples.big_game.behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
+            "handler": "behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
           }
         }
       }
@@ -1257,12 +3084,21 @@
       "inventory": [],
       "properties": {
         "state_machine": {
-          "states": ["trapped", "freed", "mobile", "dead"],
+          "states": [
+            "trapped",
+            "freed",
+            "mobile",
+            "dead"
+          ],
           "initial": "trapped"
         },
         "conditions": {
-          "bleeding": {"severity": 70},
-          "broken_leg": {"severity": 100}
+          "bleeding": {
+            "severity": 70
+          },
+          "broken_leg": {
+            "severity": 100
+          }
         },
         "commitment_target": true,
         "trigger_type": "on_first_encounter",
@@ -1270,15 +3106,17 @@
         "hope_extends": true,
         "hope_bonus": 3,
         "encounter_reactions": {
-          "handler": "examples.big_game.behaviors.regions.sunken_district.dual_rescue:on_delvan_encounter"
+          "handler": "behaviors.regions.sunken_district.dual_rescue:on_delvan_encounter"
         },
         "death_reactions": {
-          "handler": "examples.big_game.behaviors.regions.sunken_district.dual_rescue:on_npc_death",
-          "set_flags": {"delvan_died": true}
+          "handler": "behaviors.regions.sunken_district.dual_rescue:on_npc_death",
+          "set_flags": {
+            "delvan_died": true
+          }
         },
         "condition_reactions": {
           "bleeding_stopped": {
-            "handler": "examples.big_game.behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
+            "handler": "behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
           }
         }
       }
@@ -1291,11 +3129,19 @@
       "inventory": [],
       "properties": {
         "state_machine": {
-          "states": ["guardian", "helpful", "allied"],
+          "states": [
+            "guardian",
+            "helpful",
+            "allied"
+          ],
           "initial": "guardian"
         },
         "is_spectral": true,
-        "trust": {"current": 0, "floor": -2, "ceiling": 5}
+        "trust": {
+          "current": 0,
+          "floor": -2,
+          "ceiling": 5
+        }
       }
     },
     "predatory_fish": {
@@ -1309,7 +3155,6 @@
         "not_combat_encounter": true
       }
     },
-
     "npc_aldric": {
       "id": "npc_aldric",
       "name": "Scholar Aldric",
@@ -1317,16 +3162,62 @@
       "location": "cavern_entrance",
       "inventory": [],
       "properties": {
+        "llm_context": {
+          "traits": [
+            "frail frame",
+            "pale skin",
+            "dark-circled eyes",
+            "fungal patches on neck"
+          ],
+          "state_fragments": {
+            "critical": [
+              "labored breathing",
+              "trembling hands",
+              "skin ashen",
+              "barely conscious"
+            ],
+            "stabilized": [
+              "breathing easier",
+              "color returning",
+              "sitting upright",
+              "weak but alert"
+            ],
+            "recovering": [
+              "moving carefully",
+              "grateful expression",
+              "studying notes",
+              "stronger each day"
+            ],
+            "dead": [
+              "still form",
+              "peaceful expression",
+              "spore-flowers blooming"
+            ]
+          }
+        },
         "state_machine": {
-          "states": ["critical", "stabilized", "recovering", "dead"],
+          "states": [
+            "critical",
+            "stabilized",
+            "recovering",
+            "dead"
+          ],
           "initial": "critical"
         },
         "health": 40,
         "max_health": 100,
         "mobility": "immobile",
-        "trust_state": {"current": 0, "floor": -3, "ceiling": 5},
+        "trust_state": {
+          "current": 0,
+          "floor": -3,
+          "ceiling": 5
+        },
         "conditions": {
-          "fungal_infection": {"severity": 80, "damage_per_turn": 2, "progression_rate": 2}
+          "fungal_infection": {
+            "severity": 80,
+            "damage_per_turn": 2,
+            "progression_rate": 2
+          }
         },
         "commitment_target": true,
         "trigger_type": "on_commitment",
@@ -1335,39 +3226,76 @@
         "hope_bonus": 10,
         "dialog_topics": {
           "infection": {
-            "keywords": ["infection", "sick", "illness", "help"],
+            "keywords": [
+              "infection",
+              "sick",
+              "illness",
+              "help"
+            ],
             "summary": "Aldric winces. 'The spores got into my blood weeks ago. I've been rationing the last of my silvermoss, but it only slows the progression. More grows in the Luminous Grotto below, but I can barely stand. And the air down there would finish me in minutes.'",
-            "sets_flags": {"knows_aldric_needs_silvermoss": true},
+            "sets_flags": {
+              "knows_aldric_needs_silvermoss": true
+            },
             "trust_delta": 1
           },
           "research": {
-            "keywords": ["research", "study", "mycology", "knowledge"],
+            "keywords": [
+              "research",
+              "study",
+              "mycology",
+              "knowledge"
+            ],
             "summary": "His eyes light up despite his illness. 'I've spent years studying these fungi. The spores aren't just a disease - they're communication. The Spore Mother sends them to find hosts, yes, but also to connect. If I survive this, I can teach you what I know.'",
             "trust_delta": 1
           },
           "spore_mother": {
-            "keywords": ["spore mother", "source", "creature", "monster"],
-            "requires_flags": {"knows_aldric_needs_silvermoss": true},
+            "keywords": [
+              "spore mother",
+              "source",
+              "creature",
+              "monster"
+            ],
+            "requires_flags": {
+              "knows_aldric_needs_silvermoss": true
+            },
             "summary": "'She's not evil, you know. She's dying too - the same blight that's killing me originated from her. She spreads spores in desperation. There's a rare moss in the Deep Root Caverns - heartmoss - that might heal her. But the air down there...'",
-            "sets_flags": {"knows_about_heartmoss": true},
+            "sets_flags": {
+              "knows_about_heartmoss": true
+            },
             "trust_delta": 1,
             "one_time": true
           },
           "help_commitment": {
-            "keywords": ["promise", "save", "cure", "commitment", "help you"],
-            "requires_state": ["critical"],
-            "handler": "examples.big_game.behaviors.regions.fungal_depths.aldric_rescue:on_aldric_commitment"
+            "keywords": [
+              "promise",
+              "save",
+              "cure",
+              "commitment",
+              "help you"
+            ],
+            "requires_state": [
+              "critical"
+            ],
+            "handler": "behaviors.regions.fungal_depths.aldric_rescue:on_aldric_commitment"
           },
           "teaching": {
-            "keywords": ["teach", "learn"],
-            "requires_state": ["stabilized", "recovering"],
-            "handler": "examples.big_game.behaviors.regions.fungal_depths.aldric_rescue:on_aldric_teach"
+            "keywords": [
+              "teach",
+              "learn"
+            ],
+            "requires_state": [
+              "stabilized",
+              "recovering"
+            ],
+            "handler": "behaviors.regions.fungal_depths.aldric_rescue:on_aldric_teach"
           }
         },
         "item_use_reactions": {
           "healing": {
-            "accepted_items": ["silvermoss"],
-            "handler": "examples.big_game.behaviors.regions.fungal_depths.aldric_rescue:on_aldric_heal"
+            "accepted_items": [
+              "silvermoss"
+            ],
+            "handler": "behaviors.regions.fungal_depths.aldric_rescue:on_aldric_heal"
           }
         }
       }
@@ -1379,8 +3307,59 @@
       "location": "spore_heart",
       "inventory": [],
       "properties": {
+        "llm_context": {
+          "traits": [
+            "massive cap",
+            "sickly bioluminescence",
+            "pulsing weakly",
+            "fungal tendrils"
+          ],
+          "state_fragments": {
+            "hostile": [
+              "tendrils writhing aggressively",
+              "spores thick in air",
+              "cap flaring red"
+            ],
+            "wary": [
+              "tendrils held still",
+              "watching cautiously",
+              "bioluminescence dimmed"
+            ],
+            "allied": [
+              "tendrils relaxed",
+              "warm golden glow",
+              "spore-song humming"
+            ],
+            "dead": [
+              "cap collapsed",
+              "bioluminescence faded",
+              "spores drifting aimlessly"
+            ],
+            "confused": [
+              "erratic pulsing",
+              "tendrils twitching",
+              "scattered spores"
+            ]
+          },
+          "pack_fragments": {
+            "hostile": [
+              "sporelings swarm protectively",
+              "fungal chorus of warning"
+            ],
+            "allied": [
+              "sporelings dance peacefully",
+              "harmonious spore-song fills the air"
+            ]
+          }
+        },
         "state_machine": {
-          "states": ["hostile", "wary", "allied", "dead", "confused"],
+          "states": [
+            "hostile",
+            "wary",
+            "allied",
+            "dead",
+            "confused"
+          ],
           "initial": "hostile"
         },
         "health": 200,
@@ -1390,22 +3369,37 @@
         "pack_role": "alpha",
         "regeneration": 10,
         "conditions": {
-          "fungal_blight": {"severity": 70, "progression_rate": 1}
+          "fungal_blight": {
+            "severity": 70,
+            "progression_rate": 1
+          }
         },
         "pack_behavior": {
           "pack_follows_leader_state": true,
-          "followers": ["npc_sporeling_1", "npc_sporeling_2", "npc_sporeling_3"],
-          "handler": "examples.big_game.behaviors.regions.fungal_depths.spore_mother:on_spore_mother_state_change"
+          "followers": [
+            "npc_sporeling_1",
+            "npc_sporeling_2",
+            "npc_sporeling_3"
+          ],
+          "handler": "behaviors.regions.fungal_depths.spore_mother:on_spore_mother_state_change"
         },
         "item_use_reactions": {
           "healing": {
-            "accepted_items": ["heartmoss"],
-            "handler": "examples.big_game.behaviors.regions.fungal_depths.spore_mother:on_spore_mother_heal"
+            "accepted_items": [
+              "heartmoss"
+            ],
+            "handler": "behaviors.regions.fungal_depths.spore_mother:on_spore_mother_heal"
           }
         },
         "death_reactions": {
-          "handler": "examples.big_game.behaviors.regions.fungal_depths.spore_mother:on_spore_mother_death",
-          "set_flags": {"spore_mother_dead": true, "has_killed_fungi": true}
+          "handler": "behaviors.regions.fungal_depths.spore_mother:on_spore_mother_death",
+          "set_flags": {
+            "spore_mother_dead": true,
+            "has_killed_fungi": true
+          }
+        },
+        "dialog_topics": {
+          "handler": "behaviors.regions.fungal_depths.spore_mother:on_spore_mother_talk"
         }
       }
     },
@@ -1417,7 +3411,12 @@
       "inventory": [],
       "properties": {
         "state_machine": {
-          "states": ["hostile", "wary", "allied", "confused"],
+          "states": [
+            "hostile",
+            "wary",
+            "allied",
+            "confused"
+          ],
           "initial": "hostile"
         },
         "health": 30,
@@ -1435,7 +3434,12 @@
       "inventory": [],
       "properties": {
         "state_machine": {
-          "states": ["hostile", "wary", "allied", "confused"],
+          "states": [
+            "hostile",
+            "wary",
+            "allied",
+            "confused"
+          ],
           "initial": "hostile"
         },
         "health": 30,
@@ -1453,7 +3457,12 @@
       "inventory": [],
       "properties": {
         "state_machine": {
-          "states": ["hostile", "wary", "allied", "confused"],
+          "states": [
+            "hostile",
+            "wary",
+            "allied",
+            "confused"
+          ],
           "initial": "hostile"
         },
         "health": 20,
@@ -1471,19 +3480,122 @@
       "inventory": [],
       "properties": {
         "state_machine": {
-          "states": ["neutral", "trusting", "distrusting"],
+          "states": [
+            "neutral",
+            "trusting",
+            "distrusting"
+          ],
           "initial": "neutral"
         },
-        "trust_state": {"current": 0, "floor": -5, "ceiling": 5},
-        "services": ["cure_infection", "teach_spore_resistance"],
-        "accepts_payment": ["ice_crystal", "rare_mineral", "gold"],
+        "trust_state": {
+          "current": 0,
+          "floor": -5,
+          "ceiling": 5
+        },
+        "services": [
+          "cure_infection",
+          "teach_spore_resistance"
+        ],
+        "accepts_payment": [
+          "ice_crystal",
+          "rare_mineral",
+          "gold"
+        ],
         "fungal": true,
         "encounter_reactions": {
-          "handler": "examples.big_game.behaviors.regions.fungal_depths.fungal_death_mark:on_myconid_first_meeting"
+          "handler": "behaviors.regions.fungal_depths.fungal_death_mark:on_myconid_first_meeting"
+        },
+        "dialog_topics": {
+          "greeting": {
+            "keywords": [
+              "hello",
+              "greetings",
+              "speak",
+              "talk"
+            ],
+            "summary": "A cloud of blue spores drifts from the Elder's cap. Somehow, you understand: 'Soft-flesh comes to the Still Place. Why?'"
+          },
+          "cure": {
+            "keywords": [
+              "cure",
+              "infection",
+              "heal",
+              "sickness",
+              "fungal"
+            ],
+            "trust_delta": 1,
+            "summary": "Green spores pulse gently. 'The rot-within can be cleansed. But the cleansing costs. Ice-crystal from the frozen places, or metal-that-gleams. An exchange.'"
+          },
+          "resistance": {
+            "keywords": [
+              "resistance",
+              "spores",
+              "protect",
+              "immunity"
+            ],
+            "requires_trust": 2,
+            "summary": "Purple spores swirl thoughtfully. 'To walk among spores without harm... this can be taught. But teaching requires trust. Trust requires time.'"
+          },
+          "spore_mother": {
+            "keywords": [
+              "spore mother",
+              "mother",
+              "heart",
+              "great one"
+            ],
+            "sets_flags": {
+              "knows_spore_mother_sick": true
+            },
+            "summary": "The spores turn a deep, sorrowful amber. 'The Mother suffers. The corruption spreads from her wound. If she falls... we all fall.'"
+          },
+          "cold": {
+            "keywords": [
+              "cold",
+              "ice",
+              "crystal",
+              "frozen"
+            ],
+            "summary": "Silver spores glitter. 'Ice-crystal cools the cure-making. Without cold, the cleansing burns too fierce. Bring ice from the frozen heights.'"
+          }
+        },
+        "llm_context": {
+          "traits": [
+            "towering mushroom form",
+            "bioluminescent spots pulsing",
+            "ancient weathered cap",
+            "swaying gently in stillness",
+            "mycelium tendrils trailing",
+            "deep patient presence"
+          ],
+          "state_fragments": {
+            "neutral": [
+              "spores drifting lazily",
+              "gentle blue luminescence",
+              "tendrils relaxed on stone",
+              "cap tilted in consideration",
+              "peaceful emanation",
+              "unhurried ancient patience"
+            ],
+            "trusting": [
+              "warm golden glow pulsing",
+              "spores carrying rich meaning",
+              "tendrils reaching gently",
+              "cap inclined welcomingly",
+              "deep wisdom flowing freely",
+              "ancient kindness visible"
+            ],
+            "distrusting": [
+              "spores dimming to grey",
+              "cap tilted away",
+              "tendrils withdrawn tightly",
+              "slow wary movements",
+              "watchful guarded stillness",
+              "luminescence flickering coldly"
+            ]
+          }
         }
       }
     },
-
     "gate_guard": {
       "id": "gate_guard",
       "name": "Gate Guard",
@@ -1492,7 +3604,11 @@
       "inventory": [],
       "properties": {
         "state_machine": {
-          "states": ["suspicious", "neutral", "friendly"],
+          "states": [
+            "suspicious",
+            "neutral",
+            "friendly"
+          ],
           "initial": "suspicious"
         }
       }
@@ -1504,8 +3620,16 @@
       "location": "market_square",
       "inventory": [],
       "properties": {
-        "trust": {"current": 0, "floor": -3, "ceiling": 5},
-        "services": ["sell_healing_items", "buy_plants", "teach_basic_herbalism"]
+        "trust": {
+          "current": 0,
+          "floor": -3,
+          "ceiling": 5
+        },
+        "services": [
+          "sell_healing_items",
+          "buy_plants",
+          "teach_basic_herbalism"
+        ]
       }
     },
     "weaponsmith_toran": {
@@ -1515,7 +3639,11 @@
       "location": "market_square",
       "inventory": [],
       "properties": {
-        "services": ["sell_weapons", "sell_armor", "repair_weapons"]
+        "services": [
+          "sell_weapons",
+          "sell_armor",
+          "repair_weapons"
+        ]
       }
     },
     "curiosity_dealer_vex": {
@@ -1525,8 +3653,113 @@
       "location": "market_square",
       "inventory": [],
       "properties": {
-        "trust": {"current": 0, "floor": -3, "ceiling": 5},
-        "services": ["trade_rare_items", "reveal_undercity"]
+        "state_machine": {
+          "states": [
+            "guarded",
+            "interested",
+            "trusting"
+          ],
+          "initial": "guarded"
+        },
+        "trust": {
+          "current": 0,
+          "floor": -3,
+          "ceiling": 5
+        },
+        "services": [
+          "trade_rare_items",
+          "reveal_undercity"
+        ],
+        "dialog_topics": {
+          "wares": {
+            "keywords": [
+              "wares",
+              "buy",
+              "sell",
+              "trade",
+              "items",
+              "goods"
+            ],
+            "summary": "'Looking for something... unusual?' Vex's eyes glitter. 'I deal in curiosities. Things the other merchants won't touch. Show me what you have, and perhaps we can arrange something.'"
+          },
+          "crystals": {
+            "keywords": [
+              "crystals",
+              "ice",
+              "spider",
+              "silk",
+              "rare"
+            ],
+            "trust_delta": 1,
+            "summary": "'Ah, rare materials.' They lean forward slightly. 'Ice crystals, spider silk, fungal extracts... I pay well for such things. Very well indeed.'"
+          },
+          "private": {
+            "keywords": [
+              "private",
+              "secret",
+              "quietly",
+              "discrete"
+            ],
+            "requires_trust": 2,
+            "sets_flags": {
+              "vex_hinted_at_secrets": true
+            },
+            "summary": "'Some transactions require... privacy.' Vex glances around carefully. 'Perhaps we could discuss certain matters more quietly. If you've proven yourself reliable.'"
+          },
+          "undercity": {
+            "keywords": [
+              "undercity",
+              "below",
+              "hidden",
+              "underground",
+              "beneath"
+            ],
+            "requires_trust": 2,
+            "requires_flags": {
+              "vex_hinted_at_secrets": true
+            },
+            "sets_flags": {
+              "knows_undercity_entrance": true
+            },
+            "summary": "Vex's smile widens. 'So you've heard whispers. Yes, there are places beneath the market... for those who know where to look.' They gesture subtly toward a shadowed corner. 'The trapdoor behind the broken crates. Tell them Vex sent you.'"
+          }
+        },
+        "llm_context": {
+          "traits": [
+            "darting calculating eyes",
+            "nimble restless fingers",
+            "knowing half-smile",
+            "layered mismatched clothing",
+            "jingling hidden pockets",
+            "hushed conspiratorial voice"
+          ],
+          "state_fragments": {
+            "guarded": [
+              "assessing glance sweeping over",
+              "hand near hidden pocket",
+              "polite professional distance",
+              "carefully measured words",
+              "watching exits casually",
+              "neutral merchant's mask"
+            ],
+            "interested": [
+              "leaning forward slightly",
+              "eyes brightening with interest",
+              "conspiratorial lowered tone",
+              "calculating gaze appraising",
+              "slight genuine smile forming",
+              "testing waters carefully"
+            ],
+            "trusting": [
+              "relaxed open posture",
+              "genuine crooked grin",
+              "speaking freely now",
+              "sharing secrets willingly",
+              "nodding with understanding",
+              "partnership clearly implied"
+            ]
+          }
+        }
       }
     },
     "healer_elara": {
@@ -1536,9 +3769,106 @@
       "location": "healers_sanctuary",
       "inventory": [],
       "properties": {
-        "trust": {"current": 0, "floor": -5, "ceiling": 5},
-        "services": ["heal_wounds", "cure_poison", "cure_disease", "teach_advanced_herbalism"],
-        "connected_to": "hunter_sira"
+        "state_machine": {
+          "states": [
+            "neutral",
+            "concerned",
+            "helping"
+          ],
+          "initial": "neutral"
+        },
+        "trust": {
+          "current": 0,
+          "floor": -5,
+          "ceiling": 5
+        },
+        "services": [
+          "heal_wounds",
+          "cure_poison",
+          "cure_disease",
+          "teach_advanced_herbalism"
+        ],
+        "connected_to": "hunter_sira",
+        "dialog_topics": {
+          "healing": {
+            "keywords": [
+              "healing",
+              "heal",
+              "cure",
+              "help",
+              "wounds"
+            ],
+            "summary": "'Are you injured? Let me see.' She gestures to her workbench. 'I can treat most wounds and ailments, for a small donation to keep the sanctuary running.'"
+          },
+          "garden": {
+            "keywords": [
+              "garden",
+              "herbs",
+              "plants",
+              "greenhouse"
+            ],
+            "requires_skill": "herbalism",
+            "summary": "'My garden is where I grow the rarer herbs. It's... not open to everyone. Some plants are dangerous in untrained hands.'"
+          },
+          "herbalism": {
+            "keywords": [
+              "herbalism",
+              "teach",
+              "training",
+              "learn"
+            ],
+            "requires_trust": 3,
+            "summary": "'Teaching takes time and trust. Show me you're reliable, and perhaps we can discuss it.'"
+          },
+          "sira": {
+            "keywords": [
+              "sira",
+              "hunter",
+              "friend",
+              "beast wilds"
+            ],
+            "sets_flags": {
+              "elara_knows_sira_hurt": true
+            },
+            "summary": "'Sira?' Her eyes widen with sudden concern. 'She's like a sister to me. If she's hurt... tell me where she is. I'll gather supplies immediately.'"
+          }
+        },
+        "llm_context": {
+          "traits": [
+            "gentle practiced hands",
+            "herb-stained apron",
+            "knowing tired eyes",
+            "patient demeanor",
+            "silver-streaked hair",
+            "calm measured voice"
+          ],
+          "state_fragments": {
+            "neutral": [
+              "arranging dried herbs",
+              "quiet focused attention",
+              "measured unhurried movements",
+              "assessing gaze",
+              "peaceful steady presence",
+              "hands folded calmly"
+            ],
+            "concerned": [
+              "brow furrowed deeply",
+              "asking urgent questions",
+              "gathering supplies quickly",
+              "focused professional intensity",
+              "quick efficient movements",
+              "voice tight with worry"
+            ],
+            "helping": [
+              "steady hands working",
+              "soothing words flowing",
+              "careful precise application",
+              "watchful monitoring",
+              "gentle efficient touch",
+              "reassuring calm presence"
+            ]
+          }
+        }
       }
     },
     "councilor_hurst": {
@@ -1549,7 +3879,11 @@
       "inventory": [],
       "properties": {
         "philosophy": "pragmatist",
-        "trust": {"current": 0, "floor": -3, "ceiling": 5}
+        "trust": {
+          "current": 0,
+          "floor": -3,
+          "ceiling": 5
+        }
       }
     },
     "councilor_asha": {
@@ -1560,7 +3894,11 @@
       "inventory": [],
       "properties": {
         "philosophy": "idealist",
-        "trust": {"current": 0, "floor": -3, "ceiling": 5},
+        "trust": {
+          "current": 0,
+          "floor": -3,
+          "ceiling": 5
+        },
         "can_perform_unbranding": true
       }
     },
@@ -1572,7 +3910,11 @@
       "inventory": [],
       "properties": {
         "philosophy": "commerce",
-        "trust": {"current": 0, "floor": -3, "ceiling": 5},
+        "trust": {
+          "current": 0,
+          "floor": -3,
+          "ceiling": 5
+        },
         "has_undercity_connections": true
       }
     },
@@ -1584,11 +3926,20 @@
       "inventory": [],
       "properties": {
         "state_machine": {
-          "states": ["non_functional", "partially_awakened", "functional", "active"],
+          "states": [
+            "non_functional",
+            "partially_awakened",
+            "functional",
+            "active"
+          ],
           "initial": "non_functional"
         },
         "is_construct": true,
-        "repair_requirements": ["stone_chisel", "animator_crystal", "ritual_knowledge"]
+        "repair_requirements": [
+          "stone_chisel",
+          "animator_crystal",
+          "ritual_knowledge"
+        ]
       }
     },
     "the_fence": {
@@ -1598,7 +3949,10 @@
       "location": "undercity",
       "inventory": [],
       "properties": {
-        "services": ["buy_stolen", "sell_contraband"]
+        "services": [
+          "buy_stolen",
+          "sell_contraband"
+        ]
       }
     },
     "whisper": {
@@ -1608,7 +3962,10 @@
       "location": "undercity",
       "inventory": [],
       "properties": {
-        "services": ["sell_npc_secrets", "sell_location_secrets"]
+        "services": [
+          "sell_npc_secrets",
+          "sell_location_secrets"
+        ]
       }
     },
     "shadow": {
@@ -1618,8 +3975,10 @@
       "location": "undercity",
       "inventory": [],
       "properties": {
-        "services": ["assassination_contracts"],
-        "discovery_chance": 0.20,
+        "services": [
+          "assassination_contracts"
+        ],
+        "discovery_chance": 0.2,
         "delay_turns": 3
       }
     }

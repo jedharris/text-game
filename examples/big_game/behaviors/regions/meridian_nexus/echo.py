@@ -41,7 +41,7 @@ def on_echo_gossip(
         return EventResult(allow=True, feedback=None)
 
     gossip_content = context.get("content", "").lower()
-    state = accessor.state
+    state = accessor.game_state
 
     # Track Echo's trust changes
     echo = state.actors.get("the_echo") or state.actors.get("echo")
@@ -143,7 +143,7 @@ def on_echo_dialog(
         return EventResult(allow=True, feedback=None)
 
     keyword = context.get("keyword", "").lower()
-    state = accessor.state
+    state = accessor.game_state
     extra = state.extra
 
     # Guidance about waystone

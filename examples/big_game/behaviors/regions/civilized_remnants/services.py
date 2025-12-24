@@ -81,7 +81,7 @@ def on_gossip_received(
     if not actor_id:
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
     npc = state.actors.get(actor_id)
     if not npc:
         return EventResult(allow=True, feedback=None)
@@ -145,7 +145,7 @@ def on_confession(
     if not any(k in keyword for k in confession_keywords):
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
 
     # Check for Sira confession to Elara
     if "elara" in (actor_id or "").lower():
@@ -178,7 +178,7 @@ def on_confession(
 
 def _handle_elara_healing(entity: Any, accessor: Any) -> EventResult:
     """Handle Elara's healing service."""
-    state = accessor.state
+    state = accessor.game_state
     elara = entity
 
     trust_state = elara.properties.get("trust_state", {"current": 0})
@@ -227,7 +227,7 @@ def _handle_elara_healing(entity: Any, accessor: Any) -> EventResult:
 
 def _handle_marcus_shop(entity: Any, accessor: Any) -> EventResult:
     """Handle Marcus's shop service."""
-    state = accessor.state
+    state = accessor.game_state
     marcus = entity
 
     trust_state = marcus.properties.get("trust_state", {"current": 0})

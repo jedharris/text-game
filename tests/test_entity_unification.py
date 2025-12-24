@@ -150,7 +150,7 @@ class TestStateAccessorDoorMethods(unittest.TestCase):
         # Build state manually to avoid validation issues
         from src.state_manager import GameState, Metadata, Actor
 
-        self.state = GameState(
+        self.game_state = GameState(
             metadata=Metadata(title="Test"),
             locations=[
                 Location(
@@ -192,7 +192,7 @@ class TestStateAccessorDoorMethods(unittest.TestCase):
             )}
         )
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_get_door_item_returns_door(self):
         """get_door_item returns door item."""
@@ -220,7 +220,7 @@ class TestStateAccessorDoorMethods(unittest.TestCase):
     def test_get_door_for_exit_returns_none_for_open_exit(self):
         """get_door_for_exit returns None for exit without door."""
         # Add open exit
-        self.state.locations[0].exits["south"] = ExitDescriptor(
+        self.game_state.locations[0].exits["south"] = ExitDescriptor(
             type="open", to="loc_south"
         )
         result = self.accessor.get_door_for_exit("loc_room", "south")
@@ -244,7 +244,7 @@ class TestDoorVisibility(unittest.TestCase):
         """Create test state with door connecting two rooms."""
         from src.state_manager import GameState, Metadata, Actor
 
-        self.state = GameState(
+        self.game_state = GameState(
             metadata=Metadata(title="Test"),
             locations=[
                 Location(
@@ -285,7 +285,7 @@ class TestDoorVisibility(unittest.TestCase):
             )}
         )
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_door_visible_from_first_room(self):
         """Door is visible from room1 (has exit referencing it)."""
@@ -314,7 +314,7 @@ class TestDoorVisibility(unittest.TestCase):
     def test_decorative_door_visible_only_in_its_location(self):
         """Door without exit reference visible only in its location."""
         # Add decorative door directly in room1
-        self.state.items.append(Item(
+        self.game_state.items.append(Item(
             id="door_decorative",
             name="door",
             description="An ornate door on the wall.",
@@ -342,7 +342,7 @@ class TestFindAccessibleItemWithDoors(unittest.TestCase):
         """Create state with doors and regular items."""
         from src.state_manager import GameState, Metadata, Actor
 
-        self.state = GameState(
+        self.game_state = GameState(
             metadata=Metadata(title="Test"),
             locations=[
                 Location(
@@ -386,7 +386,7 @@ class TestFindAccessibleItemWithDoors(unittest.TestCase):
             )}
         )
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_find_door_by_name(self):
         """find_accessible_item finds door by name 'door'."""
@@ -452,7 +452,7 @@ class TestHiddenDoors(unittest.TestCase):
         """Create state with hidden and visible doors."""
         from src.state_manager import GameState, Metadata, Actor
 
-        self.state = GameState(
+        self.game_state = GameState(
             metadata=Metadata(title="Test"),
             locations=[
                 Location(
@@ -489,7 +489,7 @@ class TestHiddenDoors(unittest.TestCase):
             )}
         )
         self.behavior_manager = BehaviorManager()
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_hidden_door_not_in_location_contents(self):
         """Hidden door excluded from gather_location_contents."""
@@ -531,7 +531,7 @@ class TestOpenCloseDoorItems(unittest.TestCase):
         """Create state with door item."""
         from src.state_manager import GameState, Metadata, Actor
 
-        self.state = GameState(
+        self.game_state = GameState(
             metadata=Metadata(title="Test"),
             locations=[
                 Location(
@@ -568,7 +568,7 @@ class TestOpenCloseDoorItems(unittest.TestCase):
         self.behavior_manager = BehaviorManager()
         import behaviors.core.interaction
         self.behavior_manager.load_module(behaviors.core.interaction)
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_open_door_item(self):
         """open command works on door items."""
@@ -629,7 +629,7 @@ class TestLockUnlockDoorItems(unittest.TestCase):
         """Create state with lockable door."""
         from src.state_manager import GameState, Metadata, Actor, Lock
 
-        self.state = GameState(
+        self.game_state = GameState(
             metadata=Metadata(title="Test"),
             locations=[
                 Location(
@@ -671,7 +671,7 @@ class TestLockUnlockDoorItems(unittest.TestCase):
         self.behavior_manager = BehaviorManager()
         import behaviors.core.locks
         self.behavior_manager.load_module(behaviors.core.locks)
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_unlock_door_with_key(self):
         """unlock command works with key in inventory."""
@@ -734,7 +734,7 @@ class TestMovementThroughDoorItems(unittest.TestCase):
         """Create state with door between rooms."""
         from src.state_manager import GameState, Metadata, Actor
 
-        self.state = GameState(
+        self.game_state = GameState(
             metadata=Metadata(title="Test"),
             locations=[
                 Location(
@@ -771,7 +771,7 @@ class TestMovementThroughDoorItems(unittest.TestCase):
         self.behavior_manager = BehaviorManager()
         import behaviors.core.exits
         self.behavior_manager.load_module(behaviors.core.exits)
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_cannot_go_through_closed_door(self):
         """Movement blocked by closed door."""

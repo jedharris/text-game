@@ -50,7 +50,7 @@ def on_spore_zone_turn(
     Returns:
         EventResult with infection message if applicable
     """
-    state = accessor.state
+    state = accessor.game_state
 
     # Get player location
     player = state.actors.get("player")
@@ -154,7 +154,7 @@ def on_enter_spore_zone(
     if spore_level == "none":
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
     player = state.actors.get("player")
 
     # Check equipment

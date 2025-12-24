@@ -18,7 +18,7 @@ class TestCrystalBallRevealHiddenItem(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures with crystal ball and hidden key."""
-        self.state = GameState(
+        self.game_state = GameState(
             metadata=Metadata(title="Crystal Ball Test"),
             locations=[
                 Location(
@@ -60,7 +60,7 @@ class TestCrystalBallRevealHiddenItem(unittest.TestCase):
         # Load the crystal ball behavior module
         import examples.extended_game.behaviors.crystal_ball
         self.behavior_manager.load_module(examples.extended_game.behaviors.crystal_ball)
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_hidden_key_not_visible_before_reveal(self):
         """Hidden key is not visible before peering into crystal ball."""
@@ -151,7 +151,7 @@ class TestCrystalBallInContainers(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures with various containers."""
-        self.state = GameState(
+        self.game_state = GameState(
             metadata=Metadata(title="Crystal Ball Container Test"),
             locations=[
                 Location(
@@ -227,7 +227,7 @@ class TestCrystalBallInContainers(unittest.TestCase):
         self.behavior_manager = BehaviorManager()
         import examples.extended_game.behaviors.crystal_ball
         self.behavior_manager.load_module(examples.extended_game.behaviors.crystal_ball)
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_key_appears_on_surface_when_crystal_ball_on_surface(self):
         """When crystal ball is on a surface, key appears on same surface with 'on' preposition."""
@@ -279,7 +279,7 @@ class TestCrystalBallMissingKey(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures without the sanctum key."""
-        self.state = GameState(
+        self.game_state = GameState(
             metadata=Metadata(title="Crystal Ball Test - No Key"),
             locations=[
                 Location(
@@ -314,7 +314,7 @@ class TestCrystalBallMissingKey(unittest.TestCase):
         self.behavior_manager = BehaviorManager()
         import examples.extended_game.behaviors.crystal_ball
         self.behavior_manager.load_module(examples.extended_game.behaviors.crystal_ball)
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_peer_without_key_shows_nothing_revealed(self):
         """Peering when key doesn't exist shows nothing revealed message."""

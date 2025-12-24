@@ -288,8 +288,8 @@ class BaseTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        self.state = create_test_state()
-        self.accessor = StateAccessor(self.state, None)
+        self.game_state = create_test_state()
+        self.accessor = StateAccessor(self.game_state, None)
 
 
 class BehaviorTestCase(unittest.TestCase):
@@ -305,7 +305,7 @@ class BehaviorTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
 
         # Load all behaviors from behaviors directory
@@ -314,7 +314,7 @@ class BehaviorTestCase(unittest.TestCase):
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
 
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
 
 class SimpleGameTestCase(unittest.TestCase):
@@ -331,9 +331,9 @@ class SimpleGameTestCase(unittest.TestCase):
 
     def setUp(self):
         project_root = Path(__file__).parent.parent
-        self.state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
+        self.game_state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
         self.behavior_manager = BehaviorManager()
         behaviors_dir = project_root / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)

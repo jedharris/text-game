@@ -95,7 +95,7 @@ class TestHardcodedLightSourceRemoval(unittest.TestCase):
             "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
         }
 
-        self.state = load_game_state(self.game_data)
+        self.game_state = load_game_state(self.game_data)
 
         # Create behavior manager and load core modules
         self.manager = BehaviorManager()
@@ -104,11 +104,11 @@ class TestHardcodedLightSourceRemoval(unittest.TestCase):
         self.manager.load_modules(modules)
 
         # Create handler with behavior manager
-        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
 
     def test_plain_lantern_not_auto_lit_on_take(self):
         """Test that plain lantern (no behavior) is NOT auto-lit on take."""
-        plain_lantern = self.state.get_item("plain_lantern")
+        plain_lantern = self.game_state.get_item("plain_lantern")
 
         # Verify it starts unlit
         self.assertFalse(plain_lantern.states.get("lit", True))
@@ -125,7 +125,7 @@ class TestHardcodedLightSourceRemoval(unittest.TestCase):
 
     def test_magic_lantern_auto_lit_on_take(self):
         """Test that magic lantern (with behavior) IS auto-lit on take."""
-        magic_lantern = self.state.get_item("magic_lantern")
+        magic_lantern = self.game_state.get_item("magic_lantern")
 
         # Verify it starts unlit
         self.assertFalse(magic_lantern.states.get("lit", True))
@@ -142,7 +142,7 @@ class TestHardcodedLightSourceRemoval(unittest.TestCase):
 
     def test_plain_lantern_not_extinguished_on_drop(self):
         """Test that plain lantern (no behavior) is NOT extinguished on drop."""
-        plain_lantern = self.state.get_item("plain_lantern")
+        plain_lantern = self.game_state.get_item("plain_lantern")
 
         # Take the plain lantern and manually set it to lit
         self.handler.handle_command({
@@ -163,7 +163,7 @@ class TestHardcodedLightSourceRemoval(unittest.TestCase):
 
     def test_magic_lantern_extinguished_on_drop(self):
         """Test that magic lantern (with behavior) IS extinguished on drop."""
-        magic_lantern = self.state.get_item("magic_lantern")
+        magic_lantern = self.game_state.get_item("magic_lantern")
 
         # Take the magic lantern (will be lit by behavior)
         self.handler.handle_command({
@@ -261,7 +261,7 @@ class TestHardcodedChestRemoval(unittest.TestCase):
             "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "room1"}}
         }
 
-        self.state = load_game_state(self.game_data)
+        self.game_state = load_game_state(self.game_data)
 
         # Create behavior manager and load core modules
         self.manager = BehaviorManager()
@@ -270,7 +270,7 @@ class TestHardcodedChestRemoval(unittest.TestCase):
         self.manager.load_modules(modules)
 
         # Create handler with behavior manager
-        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
 
     def test_plain_chest_openable_no_win(self):
         """Test that plain chest is openable but doesn't set win flag."""
@@ -282,7 +282,7 @@ class TestHardcodedChestRemoval(unittest.TestCase):
         # Should succeed (it's a container)
         self.assertTrue(result.get("success"))
         # Should NOT set win flag (no behavior)
-        self.assertFalse(self.state.actors[ActorId("player")].flags.get("won", False))
+        self.assertFalse(self.game_state.actors[ActorId("player")].flags.get("won", False))
 
     def test_treasure_chest_sets_win_flag(self):
         """Test that treasure chest with behavior sets win flag."""
@@ -293,7 +293,7 @@ class TestHardcodedChestRemoval(unittest.TestCase):
 
         self.assertTrue(result.get("success"))
         # Should set win flag (behavior attached)
-        self.assertTrue(self.state.actors[ActorId("player")].flags.get("won", False))
+        self.assertTrue(self.game_state.actors[ActorId("player")].flags.get("won", False))
         # Should have behavior message
         self.assertIn("narration", result)
 
@@ -375,7 +375,7 @@ class TestBehaviorDrivenApproach(unittest.TestCase):
             }
         }
 
-        self.state = load_game_state(self.game_data)
+        self.game_state = load_game_state(self.game_data)
 
         # Create behavior manager and load core modules
         self.manager = BehaviorManager()
@@ -384,11 +384,11 @@ class TestBehaviorDrivenApproach(unittest.TestCase):
         self.manager.load_modules(modules)
 
         # Create handler with behavior manager
-        self.handler = LLMProtocolHandler(self.state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
 
     def test_potion_with_behavior_heals(self):
         """Test that potion with behavior heals player."""
-        initial_health = self.state.actors[ActorId("player")].stats["health"]
+        initial_health = self.game_state.actors[ActorId("player")].stats["health"]
 
         # Take and drink
         self.handler.handle_command({
@@ -401,11 +401,11 @@ class TestBehaviorDrivenApproach(unittest.TestCase):
         })
 
         # Should have healed
-        self.assertGreater(self.state.actors[ActorId("player")].stats["health"], initial_health)
+        self.assertGreater(self.game_state.actors[ActorId("player")].stats["health"], initial_health)
 
     def test_water_without_behavior_no_heal(self):
         """Test that water without behavior doesn't heal."""
-        initial_health = self.state.actors[ActorId("player")].stats["health"]
+        initial_health = self.game_state.actors[ActorId("player")].stats["health"]
 
         # Take and drink
         self.handler.handle_command({
@@ -419,7 +419,7 @@ class TestBehaviorDrivenApproach(unittest.TestCase):
 
         # Should succeed but no healing
         self.assertTrue(result.get("success"))
-        self.assertEqual(self.state.actors[ActorId("player")].stats["health"], initial_health)
+        self.assertEqual(self.game_state.actors[ActorId("player")].stats["health"], initial_health)
         # Handler provides message (entity behavior may add to it)
         self.assertIn("narration", result)
         self.assertIn("drink", get_result_message(result).lower())

@@ -181,6 +181,10 @@ class Parser:
         Returns:
             True if entry's word_type includes target_type
         """
+        # QUOTED_LITERAL acts as a NOUN in pattern matching
+        if entry.word_type == WordType.QUOTED_LITERAL and target_type == WordType.NOUN:
+            return True
+
         if isinstance(entry.word_type, set):
             return target_type in entry.word_type
         else:
@@ -201,6 +205,34 @@ class Parser:
             return False
         return all(self._matches_type(e, p) for e, p in zip(entries, pattern))
 
+    def _extract_quoted_strings(self, text: str) -> tuple[str, List[str]]:
+        """
+        Extract quoted strings from text and replace with placeholders.
+
+        Supports both single quotes ('...') and double quotes ("...").
+
+        Args:
+            text: Input text that may contain quoted strings
+
+        Returns:
+            Tuple of (modified_text_with_placeholders, list_of_extracted_strings)
+        """
+        import re
+        quoted_strings: List[str] = []
+
+        # Pattern matches either "..." or '...' (non-greedy, handles escaped quotes)
+        pattern = r'"([^"\\]*(?:\\.[^"\\]*)*)"|\'([^\'\\]*(?:\\.[^\'\\]*)*)\''
+
+        def replace_quote(match: re.Match) -> str:
+            # Extract content from either double or single quote group
+            content = match.group(1) if match.group(1) is not None else match.group(2)
+            idx = len(quoted_strings)
+            quoted_strings.append(content)
+            return f'__QUOTED_{idx}__'
+
+        modified_text = re.sub(pattern, replace_quote, text)
+        return modified_text, quoted_strings
+
     def parse_command(self, command: str) -> Optional[ParsedCommand]:
         """
         Parse a raw input string into a structured ParsedCommand.
@@ -219,12 +251,31 @@ class Parser:
         if not normalized:
             return None
 
+        # Extract quoted strings before tokenization
+        normalized, quoted_strings = self._extract_quoted_strings(normalized)
+
         tokens = normalized.lower().split()
         if not tokens:
             return None
 
         entries: List[WordEntry] = []
         for i, token in enumerate(tokens):
+            # Check if token is a quoted string placeholder
+            if token.startswith('__quoted_') and token.endswith('__'):
+                # Extract index from __quoted_N__
+                try:
+                    idx = int(token[9:-2])
+                    if 0 <= idx < len(quoted_strings):
+                        # Create WordEntry for quoted literal
+                        entry = WordEntry(
+                            word=quoted_strings[idx],
+                            word_type=WordType.QUOTED_LITERAL
+                        )
+                        entries.append(entry)
+                        continue
+                except (ValueError, IndexError):
+                    pass  # Fall through to normal lookup
+
             entry = self._lookup_word(token)
             if entry is None:
                 # Unknown word - determine type based on context
@@ -375,6 +426,27 @@ class Parser:
                     direct_object=entries[1],
                     preposition=entries[2],
                     indirect_adjective=entries[3],
+                    indirect_object=entries[4]
+                )
+
+            # VERB + NOUN + PREPOSITION + NOUN + NOUN
+            # Handle pattern like "pour water on gold mushroom" where vocabulary
+            # extracts color words as nouns from item names. First NOUN after PREP
+            # acts as adjective to second NOUN.
+            if self._types_match(entries, [WordType.VERB, WordType.NOUN, WordType.PREPOSITION,
+                                           WordType.NOUN, WordType.NOUN]):
+                # Convert first NOUN after prep to adjective role
+                adj_entry = WordEntry(
+                    word=entries[3].word,
+                    word_type=WordType.ADJECTIVE,
+                    synonyms=entries[3].synonyms,
+                    value=entries[3].value
+                )
+                return ParsedCommand(
+                    verb=entries[0],
+                    direct_object=entries[1],
+                    preposition=entries[2],
+                    indirect_adjective=adj_entry,
                     indirect_object=entries[4]
                 )
 

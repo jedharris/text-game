@@ -46,7 +46,7 @@ class TestGossipPropagationScenarios(ScenarioTestCase):
         self.setup_player(location="loc_beast_wilds")
 
         # Create Sira in Beast Wilds
-        self.sira = self.state.add_actor(
+        self.sira = self.game_state.add_actor(
             "npc_hunter_sira",
             name="Hunter Sira",
             properties={
@@ -60,7 +60,7 @@ class TestGossipPropagationScenarios(ScenarioTestCase):
         )
 
         # Create Elara in Civilized Remnants
-        self.elara = self.state.add_actor(
+        self.elara = self.game_state.add_actor(
             "npc_healer_elara",
             name="Healer Elara",
             properties={
@@ -70,7 +70,7 @@ class TestGossipPropagationScenarios(ScenarioTestCase):
         )
 
         # Create Echo in Meridian Nexus
-        self.echo = self.state.add_actor(
+        self.echo = self.game_state.add_actor(
             "the_echo",
             name="The Echo",
             properties={
@@ -80,7 +80,7 @@ class TestGossipPropagationScenarios(ScenarioTestCase):
         )
 
         # Create Delvan in Sunken District
-        self.delvan = self.state.add_actor(
+        self.delvan = self.game_state.add_actor(
             "merchant_delvan",
             name="Merchant Delvan",
             properties={
@@ -104,7 +104,7 @@ class TestGossipPropagationScenarios(ScenarioTestCase):
         self.assert_gossip_pending("Sira")
 
         # Verify gossip targets
-        gossip_queue = self.state.extra.get("gossip_queue", [])
+        gossip_queue = self.game_state.extra.get("gossip_queue", [])
         sira_gossip = None
         for g in gossip_queue:
             if "Sira" in g.get("content", ""):
@@ -137,7 +137,7 @@ class TestDeathMarkCrossRegionScenarios(ScenarioTestCase):
         self.setup_player(location="loc_fungal_depths")
 
         # Create fungal creatures
-        self.shambler = self.state.add_actor(
+        self.shambler = self.game_state.add_actor(
             "npc_fungal_shambler",
             name="Fungal Shambler",
             properties={"fungal": True},
@@ -145,7 +145,7 @@ class TestDeathMarkCrossRegionScenarios(ScenarioTestCase):
         )
 
         # Create Spore Mother
-        self.spore_mother = self.state.add_actor(
+        self.spore_mother = self.game_state.add_actor(
             "npc_spore_mother",
             name="Spore Mother",
             properties={
@@ -160,7 +160,7 @@ class TestDeathMarkCrossRegionScenarios(ScenarioTestCase):
         )
 
         # Create Myconid Elder
-        self.myconid = self.state.add_actor(
+        self.myconid = self.game_state.add_actor(
             "npc_myconid_elder",
             name="Myconid Elder",
             properties={
@@ -171,7 +171,7 @@ class TestDeathMarkCrossRegionScenarios(ScenarioTestCase):
         )
 
         # Create Echo
-        self.echo = self.state.add_actor(
+        self.echo = self.game_state.add_actor(
             "the_echo",
             name="The Echo",
             properties={
@@ -182,7 +182,7 @@ class TestDeathMarkCrossRegionScenarios(ScenarioTestCase):
 
     def test_kill_minor_fungus_then_meet_myconid(self) -> None:
         """Killing minor fungal creatures affects Myconid first meeting."""
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
 
         # Kill a fungal creature
         on_fungal_kill(self.shambler, self.accessor, {"killer": player})
@@ -208,7 +208,7 @@ class TestDeathMarkCrossRegionScenarios(ScenarioTestCase):
         # Gossip should target Echo
         self.assert_gossip_pending("killed")
 
-        gossip_queue = self.state.extra.get("gossip_queue", [])
+        gossip_queue = self.game_state.extra.get("gossip_queue", [])
         spore_gossip = None
         for g in gossip_queue:
             if "killed" in g.get("content", ""):
@@ -229,7 +229,7 @@ class TestEchoCrossRegionCommentaryScenarios(ScenarioTestCase):
         self.setup_player(location="loc_meridian_nexus")
 
         # Create Echo
-        self.echo = self.state.add_actor(
+        self.echo = self.game_state.add_actor(
             "the_echo",
             name="The Echo",
             properties={
@@ -239,12 +239,12 @@ class TestEchoCrossRegionCommentaryScenarios(ScenarioTestCase):
         )
 
         # Create relevant NPCs for context
-        self.state.add_actor(
+        self.game_state.add_actor(
             "npc_hunter_sira",
             name="Hunter Sira",
             location="loc_beast_wilds",
         )
-        self.state.add_actor(
+        self.game_state.add_actor(
             "npc_aldric",
             name="Scholar Aldric",
             location="loc_fungal_depths",
@@ -327,9 +327,9 @@ class TestEchoCrossRegionCommentaryScenarios(ScenarioTestCase):
     def test_echo_tracks_progress(self) -> None:
         """Echo can report on player progress."""
         # Set up some progress flags
-        self.state.extra["sira_healed"] = True
-        self.state.extra["aldric_died"] = True
-        self.state.extra["waystone_fragments"] = ["fragment_1", "fragment_2"]
+        self.game_state.extra["sira_healed"] = True
+        self.game_state.extra["aldric_died"] = True
+        self.game_state.extra["waystone_fragments"] = ["fragment_1", "fragment_2"]
 
         result = on_echo_dialog(
             self.echo,
@@ -352,7 +352,7 @@ class TestBeeQueenCrossRegionCollectionScenarios(ScenarioTestCase):
         self.setup_player(location="loc_bee_grove")
 
         # Create Bee Queen
-        self.bee_queen = self.state.add_actor(
+        self.bee_queen = self.game_state.add_actor(
             "bee_queen",
             name="Bee Queen",
             properties={
@@ -367,17 +367,17 @@ class TestBeeQueenCrossRegionCollectionScenarios(ScenarioTestCase):
         )
 
         # Create flowers from different regions
-        self.moonpetal = self.state.add_item(
+        self.moonpetal = self.game_state.add_item(
             "item_moonpetal",
             name="Moonpetal Flower",
             properties={"source_region": "civilized_remnants"},
         )
-        self.frost_lily = self.state.add_item(
+        self.frost_lily = self.game_state.add_item(
             "item_frost_lily",
             name="Frost Lily",
             properties={"source_region": "frozen_reaches"},
         )
-        self.water_bloom = self.state.add_item(
+        self.water_bloom = self.game_state.add_item(
             "item_water_bloom",
             name="Water Bloom",
             properties={"source_region": "sunken_district"},
@@ -413,7 +413,7 @@ class TestBeeQueenCrossRegionCollectionScenarios(ScenarioTestCase):
         self.assert_actor_state("bee_queen", "allied")
 
         # Should have received 3 honey
-        self.assertEqual(self.state.extra.get("bee_queen_honey_count"), 3)
+        self.assertEqual(self.game_state.extra.get("bee_queen_honey_count"), 3)
 
     def test_flowers_must_be_unique_types(self) -> None:
         """Same flower type cannot be traded twice."""
@@ -425,7 +425,7 @@ class TestBeeQueenCrossRegionCollectionScenarios(ScenarioTestCase):
         )
 
         # Try to trade another moonpetal
-        moonpetal2 = self.state.add_item("item_moonpetal_2", name="Moonpetal Flower")
+        moonpetal2 = self.game_state.add_item("item_moonpetal_2", name="Moonpetal Flower")
         result = on_flower_offer(
             moonpetal2,
             self.accessor,
@@ -435,7 +435,7 @@ class TestBeeQueenCrossRegionCollectionScenarios(ScenarioTestCase):
         self.assertIn("already received", (result.feedback or "").lower())
 
         # Should only have 1 honey
-        self.assertEqual(self.state.extra.get("bee_queen_honey_count"), 1)
+        self.assertEqual(self.game_state.extra.get("bee_queen_honey_count"), 1)
 
 
 class TestMultiRegionConsequenceChainScenarios(ScenarioTestCase):
@@ -447,7 +447,7 @@ class TestMultiRegionConsequenceChainScenarios(ScenarioTestCase):
         self.setup_player(location="loc_fungal_depths")
 
         # Spore Mother (Fungal Depths)
-        self.spore_mother = self.state.add_actor(
+        self.spore_mother = self.game_state.add_actor(
             "npc_spore_mother",
             name="Spore Mother",
             properties={
@@ -457,7 +457,7 @@ class TestMultiRegionConsequenceChainScenarios(ScenarioTestCase):
         )
 
         # Myconid Elder (Fungal Depths)
-        self.myconid = self.state.add_actor(
+        self.myconid = self.game_state.add_actor(
             "npc_myconid_elder",
             name="Myconid Elder",
             properties={
@@ -467,7 +467,7 @@ class TestMultiRegionConsequenceChainScenarios(ScenarioTestCase):
         )
 
         # Echo (Meridian Nexus)
-        self.echo = self.state.add_actor(
+        self.echo = self.game_state.add_actor(
             "the_echo",
             name="The Echo",
             properties={

@@ -38,7 +38,7 @@ class TestSalamanderScenarios(ScenarioTestCase):
         self.setup_player(location="loc_frozen_caves")
 
         # Create lead salamander
-        self.salamander = self.state.add_actor(
+        self.salamander = self.game_state.add_actor(
             "salamander",
             name="Fire Salamander",
             properties={
@@ -53,8 +53,8 @@ class TestSalamanderScenarios(ScenarioTestCase):
         )
 
         # Create fire items
-        self.torch = self.state.add_item("item_torch", name="Torch")
-        self.fire_crystal = self.state.add_item("item_fire_crystal", name="Fire Crystal")
+        self.torch = self.game_state.add_item("item_torch", name="Torch")
+        self.fire_crystal = self.game_state.add_item("item_fire_crystal", name="Fire Crystal")
 
     def test_fire_gift_increases_trust(self) -> None:
         """Giving fire items increases salamander trust."""
@@ -84,7 +84,7 @@ class TestSalamanderScenarios(ScenarioTestCase):
 
     def test_non_fire_gift_rejected(self) -> None:
         """Non-fire items are rejected by salamander."""
-        stone = self.state.add_item("item_stone", name="Stone")
+        stone = self.game_state.add_item("item_stone", name="Stone")
 
         result = on_fire_gift(
             stone, self.accessor, {"target_actor": self.salamander, "item": stone}
@@ -121,27 +121,27 @@ class TestHypothermiaScenarios(ScenarioTestCase):
         player.properties["conditions"] = []
 
         # Create locations with different temperatures
-        self.warm = self.state.add_location(
+        self.warm = self.game_state.add_location(
             "loc_frozen_entrance",
             name="Frozen Reaches Entrance",
             properties={"temperature": "warm"},
         )
-        self.cold = self.state.add_location(
+        self.cold = self.game_state.add_location(
             "loc_frozen_path",
             name="Frozen Path",
             properties={"temperature": "cold"},
         )
-        self.freezing = self.state.add_location(
+        self.freezing = self.game_state.add_location(
             "loc_frozen_depths",
             name="Frozen Depths",
             properties={"temperature": "freezing"},
         )
-        self.extreme = self.state.add_location(
+        self.extreme = self.game_state.add_location(
             "loc_frozen_observatory",
             name="Ruined Observatory",
             properties={"temperature": "extreme"},
         )
-        self.hot_springs = self.state.add_location(
+        self.hot_springs = self.game_state.add_location(
             "loc_hot_springs",
             name="Hot Springs",
             properties={"temperature": "warm"},
@@ -149,7 +149,7 @@ class TestHypothermiaScenarios(ScenarioTestCase):
 
     def test_warm_zone_no_hypothermia(self) -> None:
         """Warm zones don't cause hypothermia."""
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         player.properties["location"] = "loc_frozen_entrance"
 
         result = on_cold_zone_turn(None, self.accessor, {})
@@ -159,7 +159,7 @@ class TestHypothermiaScenarios(ScenarioTestCase):
 
     def test_cold_zone_causes_hypothermia(self) -> None:
         """Cold zones cause gradual hypothermia."""
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         player.properties["location"] = "loc_frozen_path"
 
         # Run multiple turns to accumulate hypothermia
@@ -180,7 +180,7 @@ class TestHypothermiaScenarios(ScenarioTestCase):
 
     def test_cold_gear_reduces_hypothermia(self) -> None:
         """Cold weather gear reduces hypothermia rate."""
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         player.properties["location"] = "loc_frozen_depths"
         player.properties["equipment"] = {"body": "cold_weather_gear"}
 
@@ -203,7 +203,7 @@ class TestHypothermiaScenarios(ScenarioTestCase):
 
     def test_cloak_grants_cold_immunity(self) -> None:
         """Cold resistance cloak grants immunity in cold zones."""
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         player.properties["location"] = "loc_frozen_path"
         player.properties["equipment"] = {"cloak": "cold_resistance_cloak"}
 
@@ -223,7 +223,7 @@ class TestHypothermiaScenarios(ScenarioTestCase):
 
     def test_salamander_companion_grants_immunity(self) -> None:
         """Salamander companion grants full hypothermia immunity."""
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         player.properties["location"] = "loc_frozen_observatory"  # Extreme cold
         player.properties["companions"] = [{"id": "salamander", "state": "following"}]
 
@@ -234,7 +234,7 @@ class TestHypothermiaScenarios(ScenarioTestCase):
 
     def test_hypothermia_severity_warnings(self) -> None:
         """Different severity levels show different warnings."""
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         player.properties["location"] = "loc_frozen_observatory"  # 20 per turn
 
         # First turn - severity 20
@@ -259,7 +259,7 @@ class TestHotSpringsScenarios(ScenarioTestCase):
         player = self.setup_player(location="loc_frozen_path")
         player.properties["conditions"] = []
 
-        self.hot_springs = self.state.add_location(
+        self.hot_springs = self.game_state.add_location(
             "loc_hot_springs",
             name="Hot Springs",
             properties={"temperature": "warm"},
@@ -267,7 +267,7 @@ class TestHotSpringsScenarios(ScenarioTestCase):
 
     def test_hot_springs_cures_hypothermia(self) -> None:
         """Hot springs instantly cure hypothermia."""
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
 
         # Give player hypothermia
         player.properties["conditions"] = [
@@ -294,7 +294,7 @@ class TestHotSpringsScenarios(ScenarioTestCase):
 
     def test_hot_springs_without_hypothermia(self) -> None:
         """Hot springs still give warmth message without hypothermia."""
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
 
         result = on_enter_hot_springs(
             player, self.accessor, {"destination": self.hot_springs}
@@ -314,7 +314,7 @@ class TestCombinedFrozenScenarios(ScenarioTestCase):
         player.properties["conditions"] = []
 
         # Create salamander
-        self.salamander = self.state.add_actor(
+        self.salamander = self.game_state.add_actor(
             "salamander",
             name="Fire Salamander",
             properties={
@@ -328,7 +328,7 @@ class TestCombinedFrozenScenarios(ScenarioTestCase):
         )
 
         # Create extreme cold location
-        self.state.add_location(
+        self.game_state.add_location(
             "loc_frozen_observatory",
             name="Observatory",
             properties={"temperature": "extreme"},
@@ -336,8 +336,8 @@ class TestCombinedFrozenScenarios(ScenarioTestCase):
 
     def test_befriend_salamander_then_survive_extreme(self) -> None:
         """Befriending salamander allows survival in extreme cold."""
-        player = self.state.actors[ActorId("player")]
-        torch = self.state.add_item("item_torch", name="Torch")
+        player = self.game_state.actors[ActorId("player")]
+        torch = self.game_state.add_item("item_torch", name="Torch")
 
         # Befriend salamander (3 gifts for high trust)
         for _ in range(3):

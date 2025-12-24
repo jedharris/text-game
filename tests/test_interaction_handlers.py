@@ -84,13 +84,13 @@ class TestHandleUse(unittest.TestCase):
     """Test handle_use behavior handler."""
 
     def setUp(self):
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
 
         import behaviors.core.interaction
         self.behavior_manager.load_module(behaviors.core.interaction)
 
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_use_no_object(self):
         """Test use without specifying object."""
@@ -127,13 +127,13 @@ class TestHandleRead(unittest.TestCase):
     """Test handle_read behavior handler."""
 
     def setUp(self):
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
 
         import behaviors.core.interaction
         self.behavior_manager.load_module(behaviors.core.interaction)
 
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_read_no_object(self):
         """Test read without specifying object."""
@@ -180,13 +180,13 @@ class TestHandleClimb(unittest.TestCase):
     """Test handle_climb behavior handler."""
 
     def setUp(self):
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
 
         import behaviors.core.interaction
         self.behavior_manager.load_module(behaviors.core.interaction)
 
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_climb_no_object(self):
         """Test climb without specifying object."""
@@ -233,13 +233,13 @@ class TestHandlePull(unittest.TestCase):
     """Test handle_pull behavior handler."""
 
     def setUp(self):
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
 
         import behaviors.core.interaction
         self.behavior_manager.load_module(behaviors.core.interaction)
 
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_pull_no_object(self):
         """Test pull without specifying object."""
@@ -276,13 +276,13 @@ class TestHandlePush(unittest.TestCase):
     """Test handle_push behavior handler."""
 
     def setUp(self):
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
 
         import behaviors.core.interaction
         self.behavior_manager.load_module(behaviors.core.interaction)
 
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_push_no_object(self):
         """Test push without specifying object."""
@@ -320,13 +320,13 @@ class TestPushWithAdjective(unittest.TestCase):
 
     def setUp(self):
         """Set up test state with multiple doors."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
 
         import behaviors.core.interaction
         self.behavior_manager.load_module(behaviors.core.interaction)
 
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Add two door items with different adjectives
         iron_door = Item(
@@ -343,8 +343,8 @@ class TestPushWithAdjective(unittest.TestCase):
             location="loc1",
             properties={"door": {"open": False, "locked": False}}
         )
-        self.state.items.append(iron_door)
-        self.state.items.append(wooden_door)
+        self.game_state.items.append(iron_door)
+        self.game_state.items.append(wooden_door)
 
     def test_push_with_adjective_selects_correct_door(self):
         """Test that push with adjective selects correct door."""
@@ -388,13 +388,13 @@ class TestPullWithAdjective(unittest.TestCase):
 
     def setUp(self):
         """Set up test state with multiple levers."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
 
         import behaviors.core.interaction
         self.behavior_manager.load_module(behaviors.core.interaction)
 
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Add two lever items with different adjectives
         # Note: use unique adjectives that don't match the fixture's "rusty lever"
@@ -412,8 +412,8 @@ class TestPullWithAdjective(unittest.TestCase):
             location="loc1",
             properties={"pullable": True}
         )
-        self.state.items.append(copper_lever)
-        self.state.items.append(brass_lever)
+        self.game_state.items.append(copper_lever)
+        self.game_state.items.append(brass_lever)
 
     def test_pull_with_adjective_selects_correct_lever(self):
         """Test that pull with adjective selects correct lever."""
@@ -445,13 +445,13 @@ class TestReadWithAdjective(unittest.TestCase):
 
     def setUp(self):
         """Set up test state with multiple readable items."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
 
         import behaviors.core.interaction
         self.behavior_manager.load_module(behaviors.core.interaction)
 
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Add two book items with different adjectives
         ancient_book = Item(
@@ -468,8 +468,8 @@ class TestReadWithAdjective(unittest.TestCase):
             location="loc1",
             properties={"portable": True, "readable": True, "text": "Dear diary..."}
         )
-        self.state.items.append(ancient_book)
-        self.state.items.append(leather_book)
+        self.game_state.items.append(ancient_book)
+        self.game_state.items.append(leather_book)
 
     def test_read_with_adjective_selects_correct_item(self):
         """Test that read with adjective selects correct item."""
@@ -505,16 +505,16 @@ class TestClimbWithAdjective(unittest.TestCase):
 
     def setUp(self):
         """Set up test state with multiple climbable items."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
 
         import behaviors.core.interaction
         self.behavior_manager.load_module(behaviors.core.interaction)
 
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Remove the original ladder from create_test_state()
-        self.state.items = [item for item in self.state.items if item.id != "item_ladder"]
+        self.game_state.items = [item for item in self.game_state.items if item.id != "item_ladder"]
 
         # Add two ladder items with different adjectives
         rope_ladder = Item(
@@ -531,8 +531,8 @@ class TestClimbWithAdjective(unittest.TestCase):
             location="loc1",
             properties={"climbable": True}
         )
-        self.state.items.append(rope_ladder)
-        self.state.items.append(metal_ladder)
+        self.game_state.items.append(rope_ladder)
+        self.game_state.items.append(metal_ladder)
 
     def test_climb_with_adjective_selects_correct_item(self):
         """Test that climb with adjective selects correct item."""
@@ -564,13 +564,13 @@ class TestUseWithAdjective(unittest.TestCase):
 
     def setUp(self):
         """Set up test state with multiple similar items."""
-        self.state = create_test_state()
+        self.game_state = create_test_state()
         self.behavior_manager = BehaviorManager()
 
         import behaviors.core.interaction
         self.behavior_manager.load_module(behaviors.core.interaction)
 
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Add two key items with different adjectives
         gold_key = Item(
@@ -587,8 +587,8 @@ class TestUseWithAdjective(unittest.TestCase):
             location="loc1",
             properties={"portable": True, "usable": True}
         )
-        self.state.items.append(gold_key)
-        self.state.items.append(silver_key)
+        self.game_state.items.append(gold_key)
+        self.game_state.items.append(silver_key)
 
     def test_use_with_adjective_selects_correct_item(self):
         """Test that use with adjective selects correct item."""
@@ -622,7 +622,7 @@ class TestClimbExit(unittest.TestCase):
         """Set up test state with an exit that has a name."""
         from src.state_manager import ExitDescriptor
 
-        self.state = GameState(
+        self.game_state = GameState(
             metadata=Metadata(title="Test"),
             locations=[
                 Location(
@@ -671,7 +671,7 @@ class TestClimbExit(unittest.TestCase):
         self.behavior_manager.load_module(behaviors.core.interaction)
         self.behavior_manager.load_module(behaviors.core.exits)
 
-        self.accessor = StateAccessor(self.state, self.behavior_manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_climb_stairs_moves_to_destination(self):
         """Test climbing 'stairs' moves player to destination via exit named 'spiral staircase'.

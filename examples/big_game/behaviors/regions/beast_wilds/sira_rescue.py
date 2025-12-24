@@ -49,7 +49,7 @@ def on_sira_encounter(
     if actor_id != "npc_hunter_sira":
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
     extra = state.extra
 
     # Check if commitment already exists
@@ -99,7 +99,7 @@ def on_sira_death(
     if actor_id != "npc_hunter_sira":
         return EventResult(allow=True, feedback=None)
 
-    state = accessor.state
+    state = accessor.game_state
 
     # Check if player was involved (commitment existed)
     if state.extra.get("sira_commitment_created"):
@@ -146,7 +146,7 @@ def on_sira_healed(
         return EventResult(allow=True, feedback=None)
 
     condition_type = context.get("condition_type")
-    state = accessor.state
+    state = accessor.game_state
 
     if condition_type == "bleeding":
         state.extra["sira_bleeding_stopped"] = True

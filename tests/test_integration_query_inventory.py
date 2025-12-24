@@ -51,11 +51,11 @@ class TestInventoryCommandRefactoring(BaseTestCase):
         super().setUp()
         self.behavior_manager = BehaviorManager()
         self.behavior_manager.load_module("behaviors.core.perception")
-        self.handler = LLMProtocolHandler(self.state, self.behavior_manager)
+        self.handler = LLMProtocolHandler(self.game_state, self.behavior_manager)
 
     def test_inventory_command_player_default(self):
         """Test inventory command defaults to player."""
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         player.inventory.append("item_sword")
 
         message = {
@@ -78,15 +78,15 @@ class TestInventoryCommandRefactoring(BaseTestCase):
         npc = Actor(id="npc_guard", name="guard", description="A guard",
                    location="location_room", inventory=["item_key"],
                    properties={}, behaviors=[])
-        self.state.actors[ActorId("npc_guard")] = npc
+        self.game_state.actors[ActorId("npc_guard")] = npc
 
         # Add the key item
         key = Item(id="item_key", name="key", description="A key",
                   location="npc_guard", properties={"portable": True}, behaviors=[])
-        self.state.items.append(key)
+        self.game_state.items.append(key)
 
         # Also put sword in player inventory
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         player.inventory.append("item_sword")
 
         message = {
@@ -102,7 +102,7 @@ class TestInventoryCommandRefactoring(BaseTestCase):
 
     def test_inventory_command_explicit_player(self):
         """Test inventory command with explicit player actor_id."""
-        player = self.state.actors[ActorId("player")]
+        player = self.game_state.actors[ActorId("player")]
         player.inventory.append("item_sword")
 
         message = {

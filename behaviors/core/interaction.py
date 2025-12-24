@@ -305,23 +305,27 @@ def _handle_generic_interaction(accessor, action, required_property: Optional[st
             primary="INCONSISTENT STATE: verb not provided in action"
         )
 
+    # Convert WordEntry to string if necessary
+    from src.word_entry import WordEntry
+    verb_str = verb.word if isinstance(verb, WordEntry) else str(verb)
+
     actor_id = cast(ActorId, action.get("actor_id") or ActorId("player"))
 
     # Property validation if required
     if required_property and not item.properties.get(required_property, False):
         return HandlerResult(
             success=False,
-            primary=f"You can't {verb} the {item.name}."
+            primary=f"You can't {verb_str} the {item.name}."
         )
 
     # Invoke entity behaviors
-    result = accessor.update(item, {}, verb=verb, actor_id=actor_id)
+    result = accessor.update(item, {}, verb=verb_str, actor_id=actor_id)
 
     # Build base message
     if base_message_builder:
-        base_message = base_message_builder(item, verb)
+        base_message = base_message_builder(item, verb_str)
     else:
-        base_message = f"You {verb} the {item.name}."
+        base_message = f"You {verb_str} the {item.name}."
 
     data = serialize_for_handler_result(item, accessor, actor_id)
     if result.detail:
@@ -337,17 +341,127 @@ def handle_use(accessor, action):
     Allows an actor to use an item in a generic way.
     Entity behaviors (on_use) can provide specific functionality.
 
+    If an indirect_object is specified (e.g., "use X on Y"), checks
+    the target's item_use_reactions to see if it accepts this item.
+
     Args:
         accessor: StateAccessor instance
         action: Action dict with keys:
             - actor_id: ID of actor performing action (default: "player")
             - object: Name of item to use (required)
             - adjective: Optional adjective for disambiguation
+            - indirect_object: Optional target to use item on
 
     Returns:
         HandlerResult with success flag and message
     """
+    # Check if there's an indirect object (target)
+    target_name = action.get("indirect_object")
+    if target_name:
+        return _handle_use_on_target(accessor, action)
+
+    # No target - use generic interaction
     return _handle_generic_interaction(accessor, action)
+
+
+def _handle_use_on_target(accessor, action) -> HandlerResult:
+    """Handle 'use X on Y' - check target's item_use_reactions.
+
+    Args:
+        accessor: StateAccessor instance
+        action: Action dict with object, indirect_object, etc.
+
+    Returns:
+        HandlerResult with success flag and message
+    """
+    from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import load_handler
+
+    # Find the item being used
+    item, error = find_action_target(accessor, action)
+    if error:
+        return error
+    assert item is not None
+
+    actor_id = cast(ActorId, action.get("actor_id") or ActorId("player"))
+    target_name = action.get("indirect_object")
+
+    # Convert WordEntry to string if necessary
+    from src.word_entry import WordEntry
+    if isinstance(target_name, WordEntry):
+        target_word = target_name.word
+    else:
+        target_word = str(target_name) if target_name else ""
+
+    # Get adjective for matching multi-word names like "spore mother"
+    indirect_adj = action.get("indirect_adjective")
+    if isinstance(indirect_adj, WordEntry):
+        indirect_adj_word = indirect_adj.word
+    else:
+        indirect_adj_word = str(indirect_adj) if indirect_adj else ""
+
+    # Build full display name for error messages
+    display_name = f"{indirect_adj_word} {target_word}".strip() if indirect_adj_word else target_word
+
+    # Find the target - could be item or actor
+    target = find_accessible_item(accessor, target_name, actor_id, action.get("indirect_adjective"))
+    if not target:
+        # Try finding as actor
+        from utilities.utils import find_actor_by_name
+        target = find_actor_by_name(accessor, target_name, actor_id)
+
+    if not target:
+        return HandlerResult(
+            success=False,
+            primary=f"You don't see any {display_name} here."
+        )
+
+    # Check if target has item_use_reactions
+    if hasattr(target, "properties"):
+        item_reactions = target.properties.get("item_use_reactions", {})
+        item_id = item.id if hasattr(item, "id") else str(item)
+        item_lower = item_id.lower()
+
+        # Check for direct handler
+        handler_path = item_reactions.get("handler")
+        if handler_path:
+            handler = load_handler(handler_path)
+            if handler:
+                context = {"target": target}
+                result = handler(item, accessor, context)
+                if result.feedback:
+                    return HandlerResult(
+                        success=result.allow,
+                        primary=result.feedback
+                    )
+
+        # Check nested reactions (e.g., healing: {accepted_items: [...], handler: ...})
+        for reaction_name, reaction_config in item_reactions.items():
+            if reaction_name in ("handler", "_metadata"):
+                continue
+            if not isinstance(reaction_config, dict):
+                continue
+
+            accepted_items = reaction_config.get("accepted_items", [])
+            if any(accepted.lower() in item_lower for accepted in accepted_items):
+                # Found matching reaction
+                handler_path = reaction_config.get("handler")
+                if handler_path:
+                    handler = load_handler(handler_path)
+                    if handler:
+                        context = {"target": target}
+                        result = handler(item, accessor, context)
+                        if result.feedback:
+                            return HandlerResult(
+                                success=result.allow,
+                                primary=result.feedback
+                            )
+
+    # No special reaction - generic message
+    target_name_str = target.name if hasattr(target, "name") else target_word
+    return HandlerResult(
+        success=True,
+        primary=f"You use the {item.name} on the {target_name_str}. Nothing special happens."
+    )
 
 
 def handle_read(accessor, action):

@@ -131,7 +131,7 @@ def _process_gift_reaction(
     accessor: Any,
 ) -> EventResult:
     """Process a matched gift reaction using data-driven config."""
-    state = accessor.state
+    state = accessor.game_state
 
     # Apply trust changes if configured
     trust_delta = reaction_config.get("trust_delta", 0)
