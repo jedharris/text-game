@@ -103,35 +103,19 @@ def main(game_dir: str | None = None,
         return 1
 
     # Initialize game engine
-    try:
-        engine = GameEngine(Path(game_dir))
-    except (FileNotFoundError, ValueError) as e:
-        print(f"Error: {e}")
-        return 1
+    # Missing/invalid game files indicate authoring errors and should fail loudly
+    engine = GameEngine(Path(game_dir))
 
     # Create narrator using MLX
+    # Missing narrator protocol or files indicate authoring errors and should fail loudly
     print(f"Loading MLX model: {model}")
     print("(This may take a moment on first run as the model downloads...)")
-    try:
-        narrator = engine.create_mlx_narrator(
-            model=model,
-            show_traits=show_traits,
-            temperature=temperature,
-            max_tokens=max_tokens
-        )
-    except ImportError as e:
-        print(f"Error: {e}")
-        print("\nMLX-LM requires:")
-        print("  - macOS 13.5+")
-        print("  - Apple Silicon (M1/M2/M3/M4)")
-        print("  - pip install mlx-lm")
-        return 1
-    except FileNotFoundError as e:
-        print(f"Error: {e}")
-        return 1
-    except Exception as e:
-        print(f"Error loading model: {e}")
-        return 1
+    narrator = engine.create_mlx_narrator(
+        model=model,
+        show_traits=show_traits,
+        temperature=temperature,
+        max_tokens=max_tokens
+    )
 
     # Show title and opening
     print(f"\n{engine.game_state.metadata.title}")
@@ -139,12 +123,9 @@ def main(game_dir: str | None = None,
     print(f"[Using MLX model: {model}]")
     print()
 
-    try:
-        opening = narrator.get_opening()
-        print(opening)
-    except Exception as e:
-        print(f"[Error getting opening: {e}]")
-        return 1
+    # Errors in opening narration indicate authoring/coding bugs and should fail loudly
+    opening = narrator.get_opening()
+    print(opening)
 
     # Game loop
     print("\n(Type 'quit' to exit)")
@@ -160,14 +141,13 @@ def main(game_dir: str | None = None,
                 print("\nThanks for playing!")
                 break
 
+            # Errors processing turns indicate bugs in behaviors/handlers and should fail loudly
             response = narrator.process_turn(player_input)
             print(f"\n{response}")
 
         except KeyboardInterrupt:
             print("\n\nGoodbye!")
             break
-        except Exception as e:
-            print(f"\n[Error: {e}]")
 
     return 0
 

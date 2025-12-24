@@ -112,11 +112,8 @@ def main(game_dir: Optional[str] = None):
         return 1
 
     # Initialize game engine
-    try:
-        engine = GameEngine(Path(game_dir))
-    except (FileNotFoundError, ValueError) as e:
-        print(f"Error: {e}")
-        return 1
+    # Missing/invalid game files indicate authoring errors and should fail loudly
+    engine = GameEngine(Path(game_dir))
 
     # Use the game directory for save/load dialogs
     save_load_dir = str(engine.game_dir)

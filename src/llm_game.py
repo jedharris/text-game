@@ -51,30 +51,21 @@ def main(game_dir: Optional[str] = None, debug: bool = False, show_traits: bool 
         return 1
 
     # Initialize game engine
-    try:
-        engine = GameEngine(Path(game_dir))
-    except (FileNotFoundError, ValueError) as e:
-        print(f"Error: {e}")
-        return 1
+    # Missing/invalid game files indicate authoring errors and should fail loudly
+    engine = GameEngine(Path(game_dir))
 
     # Create narrator with game-specific prompt
-    try:
-        narrator = engine.create_narrator(api_key, show_traits=show_traits)
-    except (ImportError, FileNotFoundError) as e:
-        print(f"Error: {e}")
-        return 1
+    # Missing narrator protocol or files indicate authoring errors and should fail loudly
+    narrator = engine.create_narrator(api_key, show_traits=show_traits)
 
     # Show title and opening
     print(f"\n{engine.game_state.metadata.title}")
     print("=" * len(engine.game_state.metadata.title))
     print()
 
-    try:
-        opening = narrator.get_opening()
-        print(opening)
-    except Exception as e:
-        print(f"[Error getting opening: {e}]")
-        return 1
+    # Errors in opening narration indicate authoring/coding bugs and should fail loudly
+    opening = narrator.get_opening()
+    print(opening)
 
     # Game loop
     print("\n(Type 'quit' to exit)")
@@ -90,14 +81,13 @@ def main(game_dir: Optional[str] = None, debug: bool = False, show_traits: bool 
                 print("\nThanks for playing!")
                 break
 
+            # Errors processing turns indicate bugs in behaviors/handlers and should fail loudly
             response = narrator.process_turn(player_input)
             print(f"\n{response}")
 
         except KeyboardInterrupt:
             print("\n\nGoodbye!")
             break
-        except Exception as e:
-            print(f"\n[Error: {e}]")
 
     return 0
 
