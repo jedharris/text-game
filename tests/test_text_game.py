@@ -355,10 +355,12 @@ class TestGameDirArgument(unittest.TestCase):
         self.assertEqual(result, 1)
 
     def test_main_with_nonexistent_game_dir(self):
-        """Test that main() returns error for nonexistent directory."""
+        """Test that main() raises FileNotFoundError for nonexistent directory (authoring error)."""
         from src.text_game import main
-        result = main(game_dir="/nonexistent/path")
-        self.assertEqual(result, 1)
+        # Missing game directory should raise FileNotFoundError (authoring error)
+        with self.assertRaises(FileNotFoundError) as ctx:
+            main(game_dir="/nonexistent/path")
+        self.assertIn("Game directory not found", str(ctx.exception))
 
     def test_main_with_custom_game_dir(self):
         """Test that main() accepts custom game directory path."""
@@ -382,12 +384,23 @@ class TestLLMGameDirArgument(unittest.TestCase):
         self.assertEqual(result, 1)
 
     def test_main_with_nonexistent_game_dir(self):
-        """Test that llm_game main() returns error for nonexistent directory."""
+        """Test that llm_game main() raises FileNotFoundError for nonexistent directory (authoring error)."""
         from src.llm_game import main
-        # This will also fail due to missing API key, but directory check comes first
-        result = main(game_dir="/nonexistent/path")
-        # Returns 1 for either missing API key or missing directory
-        self.assertEqual(result, 1)
+        import os
+        # Set dummy API key so we reach the GameEngine initialization
+        old_key = os.environ.get("ANTHROPIC_API_KEY")
+        os.environ["ANTHROPIC_API_KEY"] = "sk-ant-test-key"
+        try:
+            # Missing game directory should raise FileNotFoundError (authoring error)
+            with self.assertRaises(FileNotFoundError) as ctx:
+                main(game_dir="/nonexistent/path")
+            self.assertIn("Game directory not found", str(ctx.exception))
+        finally:
+            # Restore original API key state
+            if old_key is None:
+                os.environ.pop("ANTHROPIC_API_KEY", None)
+            else:
+                os.environ["ANTHROPIC_API_KEY"] = old_key
 
     def test_main_accepts_game_dir_parameter(self):
         """Test that llm_game main() accepts game_dir parameter."""

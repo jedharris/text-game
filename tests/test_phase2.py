@@ -185,15 +185,16 @@ class TestSetPathErrors(unittest.TestCase):
         self.assertIn("list", error.lower())
 
     def test_remove_missing_value(self):
-        """Test error when removing value not in list."""
+        """Test that removing value not in list raises ValueError (state bug)."""
         state = create_test_state()
         accessor = StateAccessor(state, None)
 
         actor = state.actors.get(ActorId("player"))
-        error = accessor._set_path(actor, "-inventory", "not_in_list")
 
-        self.assertIsNotNone(error)
-        self.assertIn("not in list", error.lower())
+        # ValueError should propagate - indicates state bug (item not actually in list)
+        with self.assertRaises(ValueError) as ctx:
+            accessor._set_path(actor, "-inventory", "not_in_list")
+        self.assertIn("not in list", str(ctx.exception))
 
     def test_nested_field_not_found(self):
         """Test that nested paths create intermediate dicts in properties."""

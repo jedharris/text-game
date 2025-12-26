@@ -405,8 +405,8 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
 
         self.assertTrue(result.get("success"))
 
-    def test_behavior_error_does_not_break_command(self):
-        """Test that behavior error doesn't break command execution."""
+    def test_behavior_error_propagates(self):
+        """Test that behavior errors propagate (fail-fast for coding bugs)."""
         manager = create_behavior_manager_with_core_modules()
 
         def on_take(entity, accessor, context):
@@ -417,14 +417,13 @@ class TestProtocolBehaviorIntegration(unittest.TestCase):
 
         handler = LLMProtocolHandler(self.game_state, behavior_manager=manager)
 
-        # Command should still succeed even if behavior errors
-        result = handler.handle_command({
-            "type": "command",
-            "action": {"verb": "take", "object": "sword"}
-        })
-
-        # The command succeeded (behavior errors are caught)
-        self.assertTrue(result.get("success"))
+        # Behavior errors should propagate - they indicate coding bugs
+        with self.assertRaises(ValueError) as ctx:
+            handler.handle_command({
+                "type": "command",
+                "action": {"verb": "take", "object": "sword"}
+            })
+        self.assertIn("Behavior error!", str(ctx.exception))
 
     def test_context_contains_action_info(self):
         """Test that context contains action information."""

@@ -88,13 +88,15 @@ class TestBehaviorManagerLoadModule(unittest.TestCase):
 
         self.assertTrue(any(v["word"] == "squeeze" for v in merged["verbs"]))
 
-    def test_load_module_handles_import_error(self):
-        """Test that load_module handles missing modules gracefully."""
+    def test_load_module_propagates_import_error(self):
+        """Test that load_module propagates ImportError (authoring error)."""
         manager = BehaviorManager()
 
         with patch('importlib.import_module', side_effect=ImportError("Module not found")):
-            # Should not raise
-            manager.load_module("nonexistent.module")
+            # ImportError should propagate - indicates missing behavior module (authoring error)
+            with self.assertRaises(ImportError) as ctx:
+                manager.load_module("nonexistent.module")
+            self.assertIn("Module not found", str(ctx.exception))
 
     def test_load_modules_multiple(self):
         """Test loading multiple modules at once."""
@@ -155,32 +157,35 @@ class TestBehaviorManagerLoadBehavior(unittest.TestCase):
         self.assertEqual(mock_import.call_count, 1)
 
     def test_load_behavior_invalid_path(self):
-        """Test loading behavior with invalid path format."""
+        """Test loading behavior with invalid path format (authoring error)."""
         manager = BehaviorManager()
 
-        result = manager.load_behavior("invalid_path_no_colon")
-
-        self.assertIsNone(result)
+        # Invalid path format (missing colon) should raise ValueError from split()
+        with self.assertRaises(ValueError) as ctx:
+            manager.load_behavior("invalid_path_no_colon")
+        self.assertIn("not enough values to unpack", str(ctx.exception))
 
     def test_load_behavior_missing_module(self):
-        """Test loading behavior from nonexistent module."""
+        """Test loading behavior from nonexistent module (authoring error)."""
         manager = BehaviorManager()
 
         with patch('importlib.import_module', side_effect=ImportError("Not found")):
-            result = manager.load_behavior("missing.module:on_squeeze")
-
-        self.assertIsNone(result)
+            # ImportError should propagate - indicates missing behavior module (authoring error)
+            with self.assertRaises(ImportError) as ctx:
+                manager.load_behavior("missing.module:on_squeeze")
+            self.assertIn("Not found", str(ctx.exception))
 
     def test_load_behavior_missing_function(self):
-        """Test loading nonexistent function from module."""
+        """Test loading nonexistent function from module (authoring error)."""
         manager = BehaviorManager()
 
         mock_module = MagicMock(spec=[])  # Empty spec means no attributes
 
         with patch('importlib.import_module', return_value=mock_module):
-            result = manager.load_behavior("test.module:nonexistent")
-
-        self.assertIsNone(result)
+            # AttributeError should propagate - indicates missing function (authoring error)
+            with self.assertRaises(AttributeError) as ctx:
+                manager.load_behavior("test.module:nonexistent")
+            self.assertIn("nonexistent", str(ctx.exception))
 
     def test_clear_cache(self):
         """Test that clear_cache empties the behavior cache."""
@@ -276,8 +281,8 @@ class TestBehaviorManagerInvokeBehavior(unittest.TestCase):
 
         self.assertIsNone(result)
 
-    def test_invoke_behavior_handles_exception(self):
-        """Test that behavior exceptions are handled gracefully."""
+    def test_invoke_behavior_propagates_exception(self):
+        """Test that behavior exceptions propagate (fail-fast for coding errors)."""
         manager = BehaviorManager()
 
         entity = Mock()
@@ -293,9 +298,10 @@ class TestBehaviorManagerInvokeBehavior(unittest.TestCase):
         with patch('importlib.import_module', return_value=mock_module):
             manager.load_module("test.module")
 
-        result = manager.invoke_behavior(entity, "on_squeeze", state, context)
-
-        self.assertIsNone(result)
+        # Behavior errors should propagate - they indicate coding bugs
+        with self.assertRaises(Exception) as ctx:
+            manager.invoke_behavior(entity, "on_squeeze", state, context)
+        self.assertIn("Behavior error", str(ctx.exception))
 
     def test_invoke_behavior_non_event_result(self):
         """Test invoking behavior that doesn't return EventResult."""

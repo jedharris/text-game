@@ -32,8 +32,15 @@
 - Inventory: Set location AND append to inventory list
 
 ### Error Handling
-- Fail loudly for developer errors (missing modules, invalid paths, authoring mistakes)
-- No defensive try/except that masks bugs
+- **Fail loudly** for developer/authoring errors (missing modules, invalid paths, authoring mistakes)
+- **No defensive try/except** that masks bugs - exceptions should propagate
+- Examples of errors that MUST propagate:
+  - Missing behavior modules → ImportError
+  - Missing behavior functions → AttributeError
+  - Invalid behavior paths → ValueError
+  - Missing actors/items when they should exist → KeyError
+  - Removing non-existent item from list → ValueError
+- Only catch exceptions developers cannot prevent (external I/O, user input at boundaries)
 - Validate at load time, not runtime
 
 ## Return Types
