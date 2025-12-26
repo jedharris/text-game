@@ -154,6 +154,11 @@ class StateAccessor:
 
         Returns:
             Actor or None if not found
+
+        Note:
+            This returns Optional to allow handler utilities like
+            validate_actor_and_location() to provide graceful error messages.
+            For fail-fast access in tests/internal code, use state.get_actor() instead.
         """
         return self.game_state.actors.get(actor_id)
 

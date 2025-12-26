@@ -57,17 +57,20 @@ class TestGameEngineInitialization(unittest.TestCase):
             self.assertIn("game_state.json not found", str(ctx.exception))
 
     def test_init_with_invalid_game_state_json(self):
-        """Test initialization with invalid JSON raises ValueError."""
+        """Test initialization with invalid JSON raises JSONDecodeError."""
+        import json
         with tempfile.TemporaryDirectory() as tmpdir:
             tmppath = Path(tmpdir)
             # Write invalid JSON
             (tmppath / "game_state.json").write_text("{ invalid json }")
             (tmppath / "behaviors").mkdir()
 
-            with self.assertRaises(ValueError) as ctx:
+            # Per exception handling policy: fail loudly, don't wrap in ValueError
+            with self.assertRaises(json.JSONDecodeError) as ctx:
                 GameEngine(tmppath)
 
-            self.assertIn("Invalid game_state.json", str(ctx.exception))
+            # Verify it's a JSON parsing error
+            self.assertIn("Expecting property name", str(ctx.exception))
 
     def test_init_with_missing_behaviors_directory(self):
         """Test initialization with missing behaviors/ raises FileNotFoundError."""

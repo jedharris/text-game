@@ -179,11 +179,19 @@ vocabulary: Dict[str, Any] = {
 ## Common Utilities
 
 ```python
-# State access
-player = state.get_actor(ActorId("player"))  # Fail-fast if missing
-npc = state.actors.get("npc_guard")  # Returns None if missing (when optional)
-item = state.get_item(ItemId("sword"))
-location = state.get_location(LocationId("cave"))
+# State access - Two patterns:
+# 1. Direct state access (fail-fast for tests/internal code)
+player = state.get_actor(ActorId("player"))  # Raises KeyError if missing
+item = state.get_item(ItemId("sword"))  # Raises KeyError if missing
+location = state.get_location(LocationId("cave"))  # Raises KeyError if missing
+
+# 2. Accessor (graceful for handler utilities)
+actor = accessor.get_actor(actor_id)  # Returns Optional[Actor]
+if not actor:
+    return HandlerResult(success=False, primary="Actor not found")
+
+# 3. Optional actors (when None is expected)
+npc = state.actors.get("npc_guard")  # Returns None if missing
 
 # State machines
 sm = actor.properties.get("state_machine", {})
