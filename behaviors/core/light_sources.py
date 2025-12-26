@@ -9,7 +9,7 @@ from typing import Any, Dict
 from src.behavior_manager import EventResult
 
 
-def on_take(entity: Any, state: Any, context: Dict) -> EventResult:
+def on_take(entity: Any, accessor: Any, context: Dict) -> EventResult:
     """
     Auto-light when taken (magical runes activate on touch).
 
@@ -29,7 +29,7 @@ def on_take(entity: Any, state: Any, context: Dict) -> EventResult:
     )
 
 
-def on_drop(entity: Any, state: Any, context: Dict) -> EventResult:
+def on_drop(entity: Any, accessor: Any, context: Dict) -> EventResult:
     """
     Extinguish when dropped (magical runes deactivate).
 
@@ -49,6 +49,6 @@ def on_drop(entity: Any, state: Any, context: Dict) -> EventResult:
     )
 
 
-def on_put(entity: Any, state: Any, context: Dict) -> EventResult:
+def on_put(entity: Any, accessor: Any, context: Dict) -> EventResult:
     """Extinguish when put down - delegates to on_drop."""
-    return on_drop(entity, state, context)
+    return on_drop(entity, accessor, context)

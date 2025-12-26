@@ -3,12 +3,11 @@
 Vocabulary, handlers and entity behaviors for consumable items like potions and food.
 """
 
-from typing import Any, Dict, Optional, cast
+from typing import Any, Dict, Optional
 
 from src.action_types import ActionDict
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
-from src.types import ActorId
 from utilities.utils import find_item_in_inventory
 from utilities.handler_utils import get_display_name, validate_actor_and_location
 
@@ -71,7 +70,7 @@ def _handle_consume(accessor, action, property_name: str, verb: str) -> HandlerR
 
     object_name = action.get("object")
 
-    item = find_item_in_inventory(accessor, object_name, cast(ActorId, actor_id))
+    item = find_item_in_inventory(accessor, object_name, actor_id)
     if not item:
         return HandlerResult(
             success=False,
@@ -136,7 +135,7 @@ def handle_eat(accessor, action):
     return _handle_consume(accessor, action, "edible", "eat")
 
 
-def on_drink(entity: Any, state: Any, context: Dict) -> Optional[EventResult]:
+def on_drink(entity: Any, accessor: Any, context: Dict) -> Optional[EventResult]:
     """
     Handle drink event for drinkable items.
 
@@ -155,7 +154,7 @@ def on_drink(entity: Any, state: Any, context: Dict) -> Optional[EventResult]:
     if not entity.properties.get("drinkable", False):
         return None
 
-    player = state.actors.get("player")
+    player = accessor.actors.get("player")
     if not player:
         return EventResult(allow=True, feedback="No player found.")
 
@@ -180,7 +179,7 @@ def on_drink(entity: Any, state: Any, context: Dict) -> Optional[EventResult]:
     )
 
 
-def on_eat(entity: Any, state: Any, context: Dict) -> Optional[EventResult]:
+def on_eat(entity: Any, accessor: Any, context: Dict) -> Optional[EventResult]:
     """
     Handle eat event for food items.
 
@@ -199,7 +198,7 @@ def on_eat(entity: Any, state: Any, context: Dict) -> Optional[EventResult]:
     if not entity.properties.get("edible", False):
         return None
 
-    player = state.actors.get("player")
+    player = accessor.actors.get("player")
     if not player:
         return EventResult(allow=True, feedback="No player found.")
 

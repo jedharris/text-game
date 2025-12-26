@@ -27,6 +27,7 @@ vocabulary = {
         },
         {
             "word": "cover",
+            "handler": "handle_take_cover",
             "event": "on_cover",
             "synonyms": ["take cover", "hide behind"],
             "indirect_object_required": True,

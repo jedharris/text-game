@@ -71,7 +71,7 @@ vocabulary = {
 }
 
 
-def on_open(entity: Any, state: Any, context: Dict) -> Optional[EventResult]:
+def on_open(entity: Any, accessor: Any, context: Dict) -> Optional[EventResult]:
     """
     Handle open event for treasure chest - win condition.
 
@@ -90,7 +90,7 @@ def on_open(entity: Any, state: Any, context: Dict) -> Optional[EventResult]:
     if entity.id != "treasure_chest":
         return None
 
-    player = state.actors.get("player")
+    player = accessor.actors.get("player")
     if player:
         player.flags["won"] = True
 

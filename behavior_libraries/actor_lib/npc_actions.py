@@ -74,7 +74,7 @@ def npc_take_action(entity, accessor, context):
     return None
 
 
-def fire_npc_actions(entity, accessor, context):
+def on_npc_action(entity, accessor, context):
     """
     Turn phase handler for NPC actions.
 

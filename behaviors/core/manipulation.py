@@ -8,7 +8,6 @@ from src.word_entry import WordEntry
 from utilities.utils import (
     find_accessible_item,
     find_item_in_inventory,
-    find_container_with_adjective,
     find_item_in_container,
     name_matches,
 )
@@ -18,7 +17,7 @@ from utilities.handler_utils import (
     validate_actor_and_location,
     transfer_item_to_actor,
     transfer_item_from_actor,
-    validate_container_accessible,
+    find_and_validate_container,
     build_action_result,
 )
 
@@ -134,27 +133,11 @@ def handle_take(accessor, action):
     # If container specified, validate it and search only within it
     container = None
     if container_name:
-        container = find_container_with_adjective(
-            accessor, container_name, container_adjective, location.id
+        container, error = find_and_validate_container(
+            accessor, container_name, container_adjective, location.id, "take from"
         )
-
-        if not container:
-            # Check if item exists but isn't a container
-            for item in accessor.get_items_in_location(location.id):
-                if name_matches(container_name, item.name):
-                    return HandlerResult(
-                        success=False,
-                        primary=f"The {item.name} is not a container."
-                    )
-            return HandlerResult(
-                success=False,
-                primary=f"You don't see any {get_display_name(container_name)} here."
-            )
-
-        # Check if container is accessible
-        container_error = validate_container_accessible(container, "take from")
-        if container_error:
-            return container_error
+        if error:
+            return error
 
         # Find item in this specific container
         container_info = container.properties.get("container", {})
@@ -203,17 +186,10 @@ def handle_take(accessor, action):
     if error:
         return error
 
-    # Build beats from positioning and behavior messages
-    beats = []
-    if move_msg:
-        beats.append(move_msg)
-    if result.detail:
-        beats.append(result.detail)
-
     return build_action_result(
         item,
         f"You take the {item.name}.",
-        beats=beats if beats else None,
+        beats=[move_msg, result.detail],
         accessor=accessor,
         actor_id=actor_id
     )
@@ -358,17 +334,11 @@ def handle_give(accessor, action):
         recipient, "on_receive_item", accessor, receive_context
     )
 
-    # Build beats from behavior messages (ensure strings, not Mocks from tests)
-    beats = []
-    if result.detail and isinstance(result.detail, str):
-        beats.append(result.detail)
-    if receive_result and hasattr(receive_result, 'feedback') and isinstance(receive_result.feedback, str):
-        beats.append(receive_result.feedback)
-
+    # Build beats from behavior messages
     return build_action_result(
         item,
         base_message,
-        beats=beats if beats else None,
+        beats=[result.detail, receive_result.feedback if receive_result else None],
         accessor=accessor,
         actor_id=actor_id
     )
@@ -405,6 +375,7 @@ def handle_put(accessor, action):
     container_name = action.get("indirect_object")
     if not isinstance(container_name, WordEntry):
         return HandlerResult(success=False, primary="I didn't catch where to put it.")
+    container_adjective = action.get("indirect_adjective")
 
     # Find item in actor's inventory
     item = find_item_in_inventory(accessor, object_name, actor_id)
@@ -414,31 +385,14 @@ def handle_put(accessor, action):
             primary=f"You don't have the {get_display_name(object_name)}."
         )
 
-    # Search for container
-    container = None
-    for i in accessor.game_state.items:
-        if name_matches(container_name, i.name) and i.location == location.id:
-            container = i
-            break
+    # Find and validate container
+    container, error = find_and_validate_container(
+        accessor, container_name, container_adjective, location.id, "put in"
+    )
+    if error:
+        return error
 
-    if not container:
-        return HandlerResult(
-            success=False,
-            primary=f"You don't see any {get_display_name(container_name)} here."
-        )
-
-    # Check if target is a container
     container_props = container.properties.get("container")
-    if not container_props:
-        return HandlerResult(
-            success=False,
-            primary=f"You can't put things in the {container.name}."
-        )
-
-    # Check if container is accessible
-    container_error = validate_container_accessible(container, "put in")
-    if container_error:
-        return container_error
 
     # Check capacity
     is_surface = container_props.get("is_surface", False)

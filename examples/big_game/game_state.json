@@ -9,7 +9,9 @@
       "turn_phase_scheduled",
       "turn_phase_commitment",
       "turn_phase_gossip",
-      "turn_phase_spread"
+      "turn_phase_spread",
+      "npc_action",
+      "death_check"
     ]
   },
   "extra": {
@@ -1356,6 +1358,43 @@
       ]
     },
     {
+      "id": "stone_pillar_1",
+      "name": "stone pillar",
+      "description": "A massive frost-covered pillar, carved with ancient runes. Solid enough to hide behind.",
+      "location": "temple_sanctum",
+      "properties": {
+        "portable": false,
+        "provides_cover": true,
+        "cover_value": 50,
+        "part_type": "structural"
+      }
+    },
+    {
+      "id": "stone_pillar_2",
+      "name": "stone pillar",
+      "description": "A massive frost-covered pillar, carved with ancient runes. Solid enough to hide behind.",
+      "location": "temple_sanctum",
+      "properties": {
+        "portable": false,
+        "provides_cover": true,
+        "cover_value": 50,
+        "part_type": "structural"
+      }
+    },
+    {
+      "id": "rusty_sword",
+      "name": "rusty sword",
+      "description": "An old blade, pitted with rust but still serviceable. The edge is dull but could still cut with enough force.",
+      "location": "temple_sanctum",
+      "properties": {
+        "portable": true,
+        "weapon": {
+          "damage": 15,
+          "type": "melee"
+        }
+      }
+    },
+    {
       "id": "frozen_dried_meat",
       "name": "dried meat",
       "description": "Preserved meat from the frozen camp supplies.",
@@ -1882,7 +1921,18 @@
       "description": "A traveler drawn to the fractured meridian by forces unknown.",
       "location": "nexus_chamber",
       "inventory": [],
-      "properties": {}
+      "properties": {
+        "health": 100,
+        "max_health": 100,
+        "armor": 0,
+        "attacks": [
+          {
+            "name": "sword slash",
+            "damage": 15,
+            "type": "melee"
+          }
+        ]
+      }
     },
     "the_echo": {
       "id": "the_echo",
@@ -2274,6 +2324,7 @@
       "description": "A massive construct of carved stone, ancient runes glowing along its limbs. It stands motionless but alert, watching the temple entrance with eyeless vigilance.",
       "location": "temple_sanctum",
       "inventory": [],
+      "behaviors": ["behaviors.regions.frozen_reaches.golem_puzzle"],
       "properties": {
         "state_machine": {
           "states": [
@@ -2292,11 +2343,22 @@
           "serving": "The golem kneels, runes glowing brilliant white. It awaits commands from whoever holds the control crystal.",
           "destroyed": "The golem lies in rubble, its runes dark and lifeless."
         },
+        "health": 150,
+        "max_health": 150,
+        "armor": 10,
+        "attacks": [
+          {
+            "name": "stone fist",
+            "damage": 30,
+            "type": "melee"
+          },
+          {
+            "name": "sweeping strike",
+            "damage": 25,
+            "type": "melee"
+          }
+        ],
         "stats": {
-          "health": 150,
-          "max_health": 150,
-          "damage": "25-35",
-          "armor": 10,
           "speed": "slow"
         },
         "immunities": [
@@ -2340,6 +2402,7 @@
       "description": "A twin to the first guardian, carved from the same ancient stone. Runes glow along its surface in perfect synchronization with its companion.",
       "location": "temple_sanctum",
       "inventory": [],
+      "behaviors": ["behaviors.regions.frozen_reaches.golem_puzzle"],
       "properties": {
         "state_machine": {
           "states": [
@@ -2358,11 +2421,22 @@
           "serving": "The golem kneels in perfect synchronization with its companion, awaiting commands.",
           "destroyed": "The golem lies shattered, its connection to its twin severed forever."
         },
+        "health": 150,
+        "max_health": 150,
+        "armor": 10,
+        "attacks": [
+          {
+            "name": "stone fist",
+            "damage": 30,
+            "type": "melee"
+          },
+          {
+            "name": "sweeping strike",
+            "damage": 25,
+            "type": "melee"
+          }
+        ],
         "stats": {
-          "health": 150,
-          "max_health": 150,
-          "damage": "25-35",
-          "armor": 10,
           "speed": "slow"
         },
         "immunities": [

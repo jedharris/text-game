@@ -9,7 +9,7 @@ Functions in this module should be generic and reusable across different behavio
 IMPORTANT: All utility functions that operate on entities should accept an actor_id
 parameter and use it correctly. Never hardcode "player" - use the actor_id variable.
 """
-from typing import Optional, List, Tuple, Dict, Any, Union, TYPE_CHECKING, cast
+from typing import Optional, List, Tuple, Dict, Any, Union, TYPE_CHECKING, cast, Callable
 
 from src.state_accessor import EventResult
 from src.types import ActorId, LocationId, LockId, HookName
@@ -708,6 +708,81 @@ def _get_door_state(door: "Item") -> Tuple[bool, bool, Optional[str]]:
     return (door.door_open, door.door_locked, door.door_lock_id)
 
 
+# Type for door selection strategy
+DoorStrategy = Callable[["Item", "StateAccessor", ActorId], bool]
+
+
+def _unlockable_with_key(door: "Item", accessor: "StateAccessor", actor_id: ActorId) -> bool:
+    """Door is locked and actor has key."""
+    _, is_locked, _ = _get_door_state(door)
+    return is_locked and actor_has_key_for_door(accessor, actor_id, door)
+
+
+def _locked(door: "Item", accessor: "StateAccessor", actor_id: ActorId) -> bool:
+    """Door is locked."""
+    _, is_locked, _ = _get_door_state(door)
+    return is_locked
+
+
+def _closed_unlocked(door: "Item", accessor: "StateAccessor", actor_id: ActorId) -> bool:
+    """Door is closed and unlocked (immediately actionable for opening)."""
+    is_open, is_locked, _ = _get_door_state(door)
+    return not is_open and not is_locked
+
+
+def _closed(door: "Item", accessor: "StateAccessor", actor_id: ActorId) -> bool:
+    """Door is closed (any lock state)."""
+    is_open, _, _ = _get_door_state(door)
+    return not is_open
+
+
+def _open(door: "Item", accessor: "StateAccessor", actor_id: ActorId) -> bool:
+    """Door is open."""
+    is_open, _, _ = _get_door_state(door)
+    return is_open
+
+
+def _lockable_with_key(door: "Item", accessor: "StateAccessor", actor_id: ActorId) -> bool:
+    """Door is closed, unlocked, and actor has key."""
+    is_open, is_locked, _ = _get_door_state(door)
+    return not is_open and not is_locked and actor_has_key_for_door(accessor, actor_id, door)
+
+
+def _lockable(door: "Item", accessor: "StateAccessor", actor_id: ActorId) -> bool:
+    """Door is closed, unlocked, and has a lock."""
+    is_open, is_locked, lock_id = _get_door_state(door)
+    return not is_open and not is_locked and lock_id is not None
+
+
+def _locked_or_closed(door: "Item", accessor: "StateAccessor", actor_id: ActorId) -> bool:
+    """Door is locked or closed (default preference)."""
+    is_open, is_locked, _ = _get_door_state(door)
+    return is_locked or not is_open
+
+
+# Map verbs to ordered list of strategies (primary → fallback)
+DOOR_SELECTION_STRATEGIES: Dict[str, List[DoorStrategy]] = {
+    "unlock": [_unlockable_with_key, _locked],
+    "open": [_closed_unlocked, _closed],
+    "close": [_open],
+    "lock": [_lockable_with_key, _lockable],
+}
+
+
+def _apply_door_strategies(
+    matching_doors: List["Item"],
+    strategies: List[DoorStrategy],
+    accessor: "StateAccessor",
+    actor_id: ActorId
+) -> Optional["Item"]:
+    """Apply ordered list of selection strategies to find best door."""
+    for strategy in strategies:
+        for door in matching_doors:
+            if strategy(door, accessor, actor_id):
+                return door
+    return None
+
+
 def find_door_with_adjective(
     accessor: "StateAccessor",
     name: WordEntry,
@@ -792,53 +867,19 @@ def find_door_with_adjective(
         return matching_doors[0]
 
     # Multiple doors - apply smart selection based on verb
-    if verb == "unlock":
-        # Prefer locked doors that actor has key for
-        for door in matching_doors:
-            _, is_locked, _ = _get_door_state(door)
-            if is_locked and actor_has_key_for_door(accessor, actor_id, door):
-                return door
-        # Fall back to any locked door
-        for door in matching_doors:
-            _, is_locked, _ = _get_door_state(door)
-            if is_locked:
-                return door
-
-    elif verb == "open":
-        # Prefer closed unlocked doors (immediately actionable)
-        for door in matching_doors:
-            is_open, is_locked, _ = _get_door_state(door)
-            if not is_open and not is_locked:
-                return door
-        # Fall back to closed locked doors
-        for door in matching_doors:
-            is_open, _, _ = _get_door_state(door)
-            if not is_open:
-                return door
-
-    elif verb == "close":
-        # Prefer open doors
-        for door in matching_doors:
-            is_open, _, _ = _get_door_state(door)
-            if is_open:
-                return door
-
-    elif verb == "lock":
-        # Prefer closed unlocked doors that actor has key for
-        for door in matching_doors:
-            is_open, is_locked, lock_id = _get_door_state(door)
-            if not is_open and not is_locked and actor_has_key_for_door(accessor, actor_id, door):
-                return door
-        # Fall back to any closed unlocked door with a lock
-        for door in matching_doors:
-            is_open, is_locked, lock_id = _get_door_state(door)
-            if not is_open and not is_locked and lock_id:
-                return door
+    if verb and verb in DOOR_SELECTION_STRATEGIES:
+        selected = _apply_door_strategies(
+            matching_doors,
+            DOOR_SELECTION_STRATEGIES[verb],
+            accessor,
+            actor_id
+        )
+        if selected:
+            return selected
 
     # Default: prefer locked/closed doors over open ones
     for door in matching_doors:
-        is_open, is_locked, _ = _get_door_state(door)
-        if is_locked or not is_open:
+        if _locked_or_closed(door, accessor, actor_id):
             return door
 
     return matching_doors[0]

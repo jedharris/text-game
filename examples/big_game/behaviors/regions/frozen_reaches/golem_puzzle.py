@@ -7,7 +7,7 @@ with password, control crystal, ritual, and combat options.
 from typing import Any, Dict
 
 from src.behavior_manager import EventResult
-from src.infrastructure_utils import transition_state
+from src.infrastructure_utils import transition_state, get_current_state
 
 # Vocabulary: wire hooks to events
 # Note: Dialog reactions (password) are handled by infrastructure/dialog_reactions.py
@@ -15,7 +15,12 @@ from src.infrastructure_utils import transition_state
 # Note: Death reactions are handled by infrastructure/death_reactions.py
 # Golems must have dialog_reactions, item_use_reactions, and death_reactions config
 vocabulary: Dict[str, Any] = {
-    "events": [],
+    "events": [
+        {
+            "event": "on_damage",
+            "description": "Called when a golem takes damage - transitions both to hostile"
+        }
+    ],
     # Add adjectives for multi-word item/NPC names
     "adjectives": [
         {"word": "stone", "synonyms": []},
@@ -282,3 +287,76 @@ def _deactivate_golems(state: Any, new_state: str) -> None:
             sm = golem.properties.get("state_machine", {})
             if sm:
                 transition_state(sm, new_state)
+
+
+def on_damage(
+    entity: Any,
+    accessor: Any,
+    context: dict[str, Any],
+) -> EventResult:
+    """Handle golem taking damage - transitions both golems to hostile.
+
+    When a golem is attacked, both golems transition to "hostile" state
+    due to their linked behavior. This makes combat engage both golems
+    simultaneously.
+
+    Args:
+        entity: The golem that was damaged
+        accessor: StateAccessor instance
+        context: Context with damage and attacker_id
+
+    Returns:
+        EventResult with hostile transition message
+    """
+    state = accessor.game_state
+
+    # Check if this is a golem
+    golem_id = entity.id if hasattr(entity, "id") else None
+    if not golem_id or "golem" not in golem_id.lower():
+        return EventResult(allow=True, feedback=None)
+
+    # Get the golem's state machine
+    sm = entity.properties.get("state_machine")
+    if not sm:
+        return EventResult(allow=True, feedback=None)
+
+    # If already hostile, no need to transition
+    current_state = get_current_state(sm)
+    if current_state == "hostile":
+        return EventResult(allow=True, feedback=None)
+
+    # Get game state from accessor
+    state = accessor.game_state
+
+    # Transition this golem to hostile
+    transition_state(sm, "hostile")
+
+    # Set AI disposition to hostile for combat system
+    if "ai" not in entity.properties:
+        entity.properties["ai"] = {}
+    entity.properties["ai"]["disposition"] = "hostile"
+
+    # Find and transition linked golem
+    linked_id = entity.properties.get("linked_to")
+    if linked_id:
+        linked = state.get_actor(linked_id)
+        linked_sm = linked.properties.get("state_machine")
+        if linked_sm:
+            linked_state = get_current_state(linked_sm)
+            if linked_state != "hostile":
+                transition_state(linked_sm, "hostile")
+                # Set linked golem's AI disposition
+                if "ai" not in linked.properties:
+                    linked.properties["ai"] = {}
+                linked.properties["ai"]["disposition"] = "hostile"
+
+    # Set flag that combat has begun
+    state.extra["golem_combat_initiated"] = True
+
+    return EventResult(
+        allow=True,
+        feedback=(
+            f"The {entity.name}'s runes flare bright crimson! "
+            "Both guardians move forward with grinding purpose, ready to crush any threat."
+        ),
+    )

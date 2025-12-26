@@ -30,11 +30,20 @@ from src.game_engine import GameEngine
 
 def extract_result_message(result: Dict[str, Any]) -> str:
     """Extract human-readable message from result."""
+    parts = []
+
     if "narration" in result:
         narration = result["narration"]
-        parts = [narration.get("primary_text", "")]
+        if narration.get("primary_text"):
+            parts.append(narration.get("primary_text"))
         if "secondary_beats" in narration:
             parts.extend(narration["secondary_beats"])
+
+    # Add turn phase messages (NPC actions, death checks, etc.)
+    if "turn_phase_messages" in result:
+        parts.extend(result["turn_phase_messages"])
+
+    if parts:
         return "\n".join(p for p in parts if p)
 
     if "error" in result:

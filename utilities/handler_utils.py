@@ -10,7 +10,10 @@ from src.types import ActorId
 from src.state_accessor import HandlerResult, StateAccessor, UpdateResult
 from src.state_manager import Entity, Item, Actor, Lock
 from src.word_entry import WordEntry
-from utilities.utils import find_accessible_item, find_door_with_adjective
+from utilities.utils import (
+    find_accessible_item, find_door_with_adjective, find_container_with_adjective,
+    name_matches
+)
 from utilities.entity_serializer import serialize_for_handler_result
 from utilities.positioning import build_message_with_positioning
 
@@ -430,6 +433,59 @@ def validate_container_accessible(
     return None
 
 
+def find_and_validate_container(
+    accessor: StateAccessor,
+    container_name: WordEntry,
+    container_adjective: Optional[str],
+    location_id: str,
+    verb_phrase: str
+) -> Tuple[Optional[Item], Optional[HandlerResult]]:
+    """
+    Find and validate a container in a location.
+
+    Args:
+        accessor: StateAccessor instance
+        container_name: Name of container to find
+        container_adjective: Optional adjective to filter by
+        location_id: Location to search in
+        verb_phrase: Phrase like "take from" or "put in" for error messages
+
+    Returns:
+        (container, None) on success
+        (None, error_result) on failure
+
+    Handles:
+    - Container not found
+    - Item exists but is not a container
+    - Container accessibility validation
+    """
+    # Find container using standard helper
+    container = find_container_with_adjective(
+        accessor, container_name, container_adjective, location_id
+    )
+
+    if not container:
+        # Check if item exists but isn't a container
+        from src.types import LocationId
+        for item in accessor.get_items_in_location(LocationId(location_id)):
+            if name_matches(container_name, item.name):
+                return None, HandlerResult(
+                    success=False,
+                    primary=f"The {item.name} is not a container."
+                )
+        return None, HandlerResult(
+            success=False,
+            primary=f"You don't see any {get_display_name(container_name)} here."
+        )
+
+    # Validate container is accessible
+    container_error = validate_container_accessible(container, verb_phrase)
+    if container_error:
+        return None, container_error
+
+    return container, None
+
+
 def check_actor_has_key(
     actor: Actor,
     lock: Lock,
@@ -478,7 +534,7 @@ def build_action_result(
     Args:
         item: The item to serialize for llm_context
         primary: The core action statement (e.g., "You pick up the sword.")
-        beats: Optional list of supplemental sentences
+        beats: Optional list of supplemental sentences. None/empty values are filtered out.
                (e.g., ["You step down from the table.", "It's cold to the touch."])
         data: Optional extra data. If not provided, serializes the item.
         accessor: Optional StateAccessor for player context (perspective variants)
@@ -487,10 +543,13 @@ def build_action_result(
     Returns:
         HandlerResult with primary, beats, and serialized data
     """
+    # Filter out None and empty string values from beats
+    filtered_beats = [b for b in (beats or []) if b] if beats else []
+
     return HandlerResult(
         success=True,
         primary=primary,
-        beats=beats or [],
+        beats=filtered_beats,
         data=data if data is not None else serialize_for_handler_result(item, accessor, actor_id)
     )
 

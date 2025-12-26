@@ -363,6 +363,86 @@ class ConvertActorsSubscriptToMethod(cst.CSTTransformer):
         return original_node
 
 
+class RenameEventHandlerParameter(cst.CSTTransformer):
+    """
+    Rename 'state' parameter to 'accessor' in event handler functions.
+
+    Only transforms functions matching pattern:
+        def on_<event>(entity: Any, state: Any, context: Dict) -> ...
+
+    Transforms both:
+    1. Function parameter name in signature
+    2. All uses of that parameter in the function body
+    """
+
+    def __init__(self):
+        self.changes = 0
+        self._current_func_renames = {}  # Track parameter renames per function
+        self._in_function = None  # Track current function name
+
+    def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:
+        """Check if this is an event handler function that needs parameter rename."""
+        # Only process functions starting with on_
+        if not node.name.value.startswith("on_"):
+            return True
+
+        # Check parameters: should have (entity, state, context) pattern
+        params = node.params.params
+        if len(params) < 3:
+            return True
+
+        # Check if second parameter is named 'state'
+        if params[1].name.value == "state":
+            self._in_function = node.name.value
+            self._current_func_renames["state"] = "accessor"
+
+        return True
+
+    def leave_FunctionDef(self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef) -> cst.FunctionDef:
+        """Rename 'state' parameter to 'accessor' in function signature."""
+        if original_node.name.value != self._in_function:
+            return updated_node
+
+        # Reset state after leaving function
+        self._in_function = None
+
+        # Check if this function needs parameter rename
+        if "state" not in self._current_func_renames:
+            return updated_node
+
+        # Rename the parameter in signature
+        params = updated_node.params.params
+        new_params = []
+
+        for param in params:
+            if param.name.value == "state":
+                self.changes += 1
+                new_params.append(param.with_changes(name=cst.Name("accessor")))
+            else:
+                new_params.append(param)
+
+        new_node = updated_node.with_changes(
+            params=updated_node.params.with_changes(params=new_params)
+        )
+
+        # Clear renames for this function
+        self._current_func_renames = {}
+
+        return new_node
+
+    def leave_Name(self, original_node: cst.Name, updated_node: cst.Name) -> cst.Name:
+        """Rename uses of 'state' to 'accessor' within event handler functions."""
+        # Only rename if we're in a function that had state parameter renamed
+        if not self._in_function or "state" not in self._current_func_renames:
+            return updated_node
+
+        # Rename 'state' to 'accessor'
+        if updated_node.value == "state":
+            return updated_node.with_changes(value="accessor")
+
+        return updated_node
+
+
 # =============================================================================
 # COMPOSITE TRANSFORMER - Combine multiple transformers
 # =============================================================================
@@ -457,8 +537,8 @@ def create_transformer() -> cst.CSTTransformer:
     Edit this function for your specific refactoring needs.
     """
 
-    # Current: Convert state.actors[...] to state.get_actor(...)
-    return ConvertActorsSubscriptToMethod()
+    # Current: Rename 'state' parameter to 'accessor' in event handlers
+    return RenameEventHandlerParameter()
 
 
 def main():

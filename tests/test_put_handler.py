@@ -180,7 +180,7 @@ class TestHandlePut(unittest.TestCase):
         result = handle_put(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("can't put", result.primary.lower())
+        self.assertIn("not a container", result.primary.lower())
 
 
 class TestPutVocabulary(unittest.TestCase):

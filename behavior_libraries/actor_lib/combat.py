@@ -194,9 +194,12 @@ def execute_attack(accessor, attacker, target, attack: Dict) -> AttackResult:
             "attacker_id": attacker.id,
             "attack_type": attack.get("type")
         }
-        accessor.behavior_manager.invoke_behavior(
+        damage_result = accessor.behavior_manager.invoke_behavior(
             target, "on_damage", accessor, damage_context
         )
+        # Append on_damage feedback to narration
+        if damage_result and damage_result.feedback:
+            messages.append(damage_result.feedback)
 
     return AttackResult(
         success=True,

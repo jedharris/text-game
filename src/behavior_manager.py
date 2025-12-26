@@ -717,20 +717,42 @@ class BehaviorManager:
         If no behavior responds to event_name and a fallback is registered,
         tries the fallback event (recursively, supporting fallback chains).
 
+        For global events (entity=None), invokes all modules that register the event.
+
         Args:
-            entity: Entity object with 'behaviors' field (list of modules)
-            event_name: Event name (e.g., "on_take")
+            entity: Entity object with 'behaviors' field, or None for global events
+            event_name: Event name (e.g., "on_take", "on_npc_action")
             accessor: StateAccessor instance
             context: Event context dict with actor_id, changes, verb
 
         Returns:
             EventResult with combined allow/message, or None if no behaviors
         """
+        # For global events (turn phases, etc.), invoke all modules that register this event
         if entity is None:
-            return None
+            event_info = self._event_registry.get(event_name)
+            if not event_info or not event_info.registered_by:
+                return None
+
+            results = []
+            for module_name in event_info.registered_by:
+                module = self._modules.get(module_name)
+                if module and hasattr(module, event_name):
+                    handler = getattr(module, event_name)
+                    event_result = handler(None, accessor, context)
+                    if isinstance(event_result, EventResult):
+                        results.append(event_result)
+
+            if not results:
+                return None
+
+            # Combine results
+            combined_allow = all(r.allow for r in results)
+            combined_feedback = "; ".join(r.feedback for r in results if r.feedback)
+            return EventResult(allow=combined_allow, feedback=combined_feedback if combined_feedback else None)
 
         # Try primary event
-        result = self._invoke_behavior_internal(entity, event_name, accessor, context)
+        result: Optional[EventResult] = self._invoke_behavior_internal(entity, event_name, accessor, context)
 
         # If no result and fallback exists, try fallback (recursive for chains)
         if result is None:
