@@ -35,12 +35,22 @@ class EventResult:
                Passed through to narrator for style guidance.
         fragments: Pre-selected fragments for this entity's contribution to narration.
                    Can include state fragments, action fragments, etc.
+        _no_handler: Internal flag indicating no handler found (sentinel value)
+        _ignored: Internal flag indicating event should be ignored (sentinel value)
     """
     allow: bool
     feedback: Optional[str] = None
     context: Optional[Dict[str, Any]] = None
     hints: list[str] = field(default_factory=list)
     fragments: Optional[Dict[str, Any]] = None
+    # Internal flags for sentinel values
+    _no_handler: bool = False
+    _ignored: bool = False
+
+
+# Sentinel values for event handling
+NO_HANDLER = EventResult(allow=True, feedback=None, _no_handler=True)
+IGNORE_EVENT = EventResult(allow=True, feedback=None, _ignored=True)
 
 
 @dataclass

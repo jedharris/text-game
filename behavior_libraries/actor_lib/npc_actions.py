@@ -22,6 +22,7 @@ from typing import List, Optional
 
 from behavior_libraries.actor_lib.combat import get_attacks, select_attack, execute_attack
 from behavior_libraries.actor_lib.packs import sync_follower_disposition
+from src.state_accessor import IGNORE_EVENT
 
 PLAYER_ID = ActorId("player")
 
@@ -41,29 +42,29 @@ def npc_take_action(entity, accessor, context):
         context: Context dict (unused)
 
     Returns:
-        EventResult with attack message, or None if no action taken
+        EventResult with attack message, or IGNORE_EVENT if no action taken
     """
     from src.state_accessor import EventResult
 
     if not entity:
-        return None
+        return IGNORE_EVENT
 
     ai = entity.properties.get("ai", {})
     disposition = ai.get("disposition", "neutral")
 
     # Early out: not hostile, nothing to do
     if disposition != "hostile":
-        return None
+        return IGNORE_EVENT
 
     # Check if player is in same location
     player = accessor.get_actor(PLAYER_ID)
     if not player or entity.location != player.location:
-        return None
+        return IGNORE_EVENT
 
     # Check for attacks
     attacks = get_attacks(entity)
     if not attacks:
-        return None
+        return IGNORE_EVENT
 
     # Select and execute attack
     attack = select_attack(entity, player, {})
@@ -71,7 +72,7 @@ def npc_take_action(entity, accessor, context):
         result = execute_attack(accessor, entity, player, attack)
         return EventResult(allow=True, feedback=result.narration)
 
-    return None
+    return IGNORE_EVENT
 
 
 def on_npc_action(entity, accessor, context):

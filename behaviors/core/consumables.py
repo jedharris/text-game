@@ -3,11 +3,11 @@
 Vocabulary, handlers and entity behaviors for consumable items like potions and food.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from src.action_types import ActionDict
 from src.behavior_manager import EventResult
-from src.state_accessor import HandlerResult
+from src.state_accessor import HandlerResult, IGNORE_EVENT
 from utilities.utils import find_item_in_inventory
 from utilities.handler_utils import get_display_name, validate_actor_and_location
 
@@ -135,24 +135,24 @@ def handle_eat(accessor, action):
     return _handle_consume(accessor, action, "edible", "eat")
 
 
-def on_drink(entity: Any, accessor: Any, context: Dict) -> Optional[EventResult]:
+def on_drink(entity: Any, accessor: Any, context: Dict) -> EventResult:
     """
     Handle drink event for drinkable items.
 
     Heals the player and removes the item from inventory.
-    Returns None for non-drinkable entities.
+    Returns IGNORE_EVENT for non-drinkable entities.
 
     Args:
         entity: The entity being drunk
-        state: GameState object
+        accessor: StateAccessor instance
         context: Context dict with location, verb
 
     Returns:
-        EventResult if entity is drinkable, None otherwise
+        EventResult if entity is drinkable, IGNORE_EVENT otherwise
     """
     # Check if entity is drinkable
     if not entity.properties.get("drinkable", False):
-        return None
+        return IGNORE_EVENT
 
     player = accessor.actors.get("player")
     if not player:
@@ -179,24 +179,24 @@ def on_drink(entity: Any, accessor: Any, context: Dict) -> Optional[EventResult]
     )
 
 
-def on_eat(entity: Any, accessor: Any, context: Dict) -> Optional[EventResult]:
+def on_eat(entity: Any, accessor: Any, context: Dict) -> EventResult:
     """
     Handle eat event for food items.
 
     Removes the food from inventory and provides a satisfying message.
-    Returns None for non-food entities.
+    Returns IGNORE_EVENT for non-food entities.
 
     Args:
         entity: The entity being eaten
-        state: GameState object
+        accessor: StateAccessor instance
         context: Context dict with location, verb
 
     Returns:
-        EventResult if entity is edible, None otherwise
+        EventResult if entity is edible, IGNORE_EVENT otherwise
     """
     # Check if entity is edible
     if not entity.properties.get("edible", False):
-        return None
+        return IGNORE_EVENT
 
     player = accessor.actors.get("player")
     if not player:

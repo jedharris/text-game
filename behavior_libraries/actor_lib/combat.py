@@ -31,6 +31,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 from behavior_libraries.actor_lib.conditions import has_condition, apply_condition
+from src.state_accessor import IGNORE_EVENT
 
 
 @dataclass
@@ -219,13 +220,13 @@ def on_death_check(entity, accessor, context) -> Optional[Any]:
         context: Context dict (unused)
 
     Returns:
-        EventResult with death message, or None if actor is alive
+        EventResult with death message, or IGNORE_EVENT if actor is alive
     """
     from src.state_accessor import EventResult
 
     health = entity.properties.get("health")
     if health is None:
-        return None  # Actor doesn't have health tracking
+        return IGNORE_EVENT  # Actor doesn't have health tracking
 
     if health <= 0:
         # Invoke on_death behavior - author implements death handling
@@ -233,12 +234,12 @@ def on_death_check(entity, accessor, context) -> Optional[Any]:
             result = accessor.behavior_manager.invoke_behavior(
                 entity, "on_death", accessor, {}
             )
-            if result and result.feedback:
+            if result.feedback:
                 return result
 
         return EventResult(allow=True, feedback=f"{entity.name} has died")
 
-    return None
+    return IGNORE_EVENT
 
 
 def on_death_check_all(entity, accessor, context):

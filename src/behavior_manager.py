@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 
 # Import EventResult from state_accessor to avoid duplication
-from src.state_accessor import EventResult, HandlerResult
+from src.state_accessor import EventResult, HandlerResult, NO_HANDLER, IGNORE_EVENT
 from src.types import EventName, HookName
 from src.action_types import ActionDict, HandlerCallable
 
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 class EventCallable(Protocol):
     """Signature for entity behavior callbacks."""
 
-    def __call__(self, entity: "Entity", accessor: "StateAccessor", context: Dict[str, Any]) -> Optional[EventResult]:
+    def __call__(self, entity: "Entity", accessor: "StateAccessor", context: Dict[str, Any]) -> EventResult:
         ...
 
 
@@ -706,7 +706,7 @@ class BehaviorManager:
         event_name: EventName,
         accessor: "StateAccessor",
         context: Dict[str, Any]
-    ) -> Optional[EventResult]:
+    ) -> EventResult:
         """
         Invoke entity behaviors for an event, with fallback support.
 
@@ -726,13 +726,16 @@ class BehaviorManager:
             context: Event context dict with actor_id, changes, verb
 
         Returns:
-            EventResult with combined allow/message, or None if no behaviors
+            EventResult with combined allow/message, or NO_HANDLER if no behaviors
+
+        Raises:
+            ValueError: If entity-specific event has no handler (fail-fast for authoring errors)
         """
         # For global events (turn phases, etc.), invoke all modules that register this event
         if entity is None:
             event_info = self._event_registry.get(event_name)
             if not event_info or not event_info.registered_by:
-                return None
+                return NO_HANDLER
 
             results = []
             for module_name in event_info.registered_by:
@@ -744,7 +747,7 @@ class BehaviorManager:
                         results.append(event_result)
 
             if not results:
-                return None
+                return NO_HANDLER
 
             # Combine results
             combined_allow = all(r.allow for r in results)
@@ -752,13 +755,24 @@ class BehaviorManager:
             return EventResult(allow=combined_allow, feedback=combined_feedback if combined_feedback else None)
 
         # Try primary event
-        result: Optional[EventResult] = self._invoke_behavior_internal(entity, event_name, accessor, context)
+        result: EventResult = self._invoke_behavior_internal(entity, event_name, accessor, context)
 
-        # If no result and fallback exists, try fallback (recursive for chains)
-        if result is None:
+        # If no handler and fallback exists, try fallback (recursive for chains)
+        if result._no_handler:
             fallback = self.get_fallback_event(event_name)
             if fallback:
                 result = self.invoke_behavior(entity, fallback, accessor, context)
+
+        # Fail-fast: Entity-specific event with no handler = authoring error
+        # (This catches cases where fallback chain also failed)
+        if result._no_handler and entity is not None:
+            entity_id = getattr(entity, 'id', '<unknown>')
+            entity_behaviors = getattr(entity, 'behaviors', [])
+            raise ValueError(
+                f"Event '{event_name}' triggered on entity '{entity_id}' but no handler found.\n"
+                f"Entity behaviors: {entity_behaviors}\n"
+                f"If this entity should ignore this event, add a handler that returns IGNORE_EVENT."
+            )
 
         return result
 
@@ -768,7 +782,7 @@ class BehaviorManager:
         event_name: EventName,
         accessor: "StateAccessor",
         context: Dict[str, Any]
-    ) -> Optional[EventResult]:
+    ) -> EventResult:
         """
         Internal implementation of behavior invocation (no fallback handling).
 
@@ -779,13 +793,13 @@ class BehaviorManager:
             context: Event context dict with actor_id, changes, verb
 
         Returns:
-            EventResult with combined allow/message, or None if no behaviors
+            EventResult with combined allow/message, or NO_HANDLER sentinel if no behaviors
         """
         if entity is None or not hasattr(entity, 'behaviors') or not entity.behaviors:
-            return None
+            return NO_HANDLER
 
         if not isinstance(entity.behaviors, list):
-            return None
+            return NO_HANDLER
 
         results = []
 
@@ -806,14 +820,14 @@ class BehaviorManager:
 
             # Call handler with entity, accessor, context
             # Errors here indicate bugs in behavior code and should fail loudly during development
-            result = handler(entity, accessor, context)
+            event_result = handler(entity, accessor, context)
 
-            if isinstance(result, EventResult):
-                results.append(result)
+            if isinstance(event_result, EventResult):
+                results.append(event_result)
 
-        # If no behaviors were invoked, return None
+        # If no behaviors were invoked, return NO_HANDLER sentinel
         if not results:
-            return None
+            return NO_HANDLER
 
         # Combine results: AND logic for allow, concatenate feedback
         combined_allow = all(r.allow for r in results)

@@ -4,9 +4,10 @@ Vocabulary and entity behaviors for containers like treasure chests
 that trigger special effects when opened.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from src.behavior_manager import EventResult
+from src.state_accessor import IGNORE_EVENT
 
 
 # Vocabulary extension - adds open and close verbs
@@ -71,24 +72,24 @@ vocabulary = {
 }
 
 
-def on_open(entity: Any, accessor: Any, context: Dict) -> Optional[EventResult]:
+def on_open(entity: Any, accessor: Any, context: Dict) -> EventResult:
     """
     Handle open event for treasure chest - win condition.
 
     Sets the 'won' flag in player flags to trigger game end.
-    Returns None if entity is not a treasure chest, allowing other handlers.
+    Returns IGNORE_EVENT if entity is not a treasure chest, allowing other handlers.
 
     Args:
         entity: The entity being opened
-        state: GameState object
+        accessor: StateAccessor instance
         context: Context dict with location, verb
 
     Returns:
-        EventResult if entity is treasure chest, None otherwise
+        EventResult if entity is treasure chest, IGNORE_EVENT otherwise
     """
     # Only handle treasure chest
     if entity.id != "treasure_chest":
-        return None
+        return IGNORE_EVENT
 
     player = accessor.actors.get("player")
     if player:

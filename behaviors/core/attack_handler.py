@@ -62,7 +62,7 @@ def handle_attack(accessor, action):
             {"target_id": target_actor.id}
         )
 
-        if result and hasattr(result, 'feedback') and result.feedback:
+        if result.feedback:
             return HandlerResult(success=result.allow, primary=result.feedback)
 
         # Fallback if no feedback

@@ -31,6 +31,8 @@ Usage:
 
 from typing import Dict, List, Optional
 
+from src.state_accessor import IGNORE_EVENT
+
 # Default breath values
 DEFAULT_MAX_BREATH = 60
 BREATH_DECREASE_PER_TURN = 10
@@ -101,7 +103,7 @@ def _has_breathing_item(actor, accessor=None) -> bool:
     return False
 
 
-def check_breath(actor, part, accessor=None) -> Optional[str]:
+def check_breath(actor, part, accessor=None):
     """
     Check and update breath for an actor in a part.
 
@@ -122,11 +124,11 @@ def check_breath(actor, part, accessor=None) -> Optional[str]:
         Message describing what happened, or None if nothing notable
     """
     if not actor or not part:
-        return None
+        return IGNORE_EVENT
 
     # Constructs don't need to breathe
     if not needs_breath(actor):
-        return None
+        return IGNORE_EVENT
 
     # Initialize breath if not present
     if "breath" not in actor.properties:
@@ -141,13 +143,13 @@ def check_breath(actor, part, accessor=None) -> Optional[str]:
         old_breath = actor.properties["breath"]
         max_breath = actor.properties["max_breath"]
         actor.properties["breath"] = max_breath
-        return None  # No message for normal breathing
+        return IGNORE_EVENT  # No message for normal breathing
 
     # Non-breathable area - check for breathing items
     if _has_breathing_item(actor, accessor):
         # Check if part allows breathing items
         if part.properties.get("breathing_item_works", True):
-            return None  # Breathing item protects
+            return IGNORE_EVENT  # Breathing item protects
 
     # Decrease breath
     actor.properties["breath"] -= BREATH_DECREASE_PER_TURN
@@ -161,7 +163,7 @@ def check_breath(actor, part, accessor=None) -> Optional[str]:
     return f"{actor.name}'s breath is running low ({actor.properties['breath']} remaining)."
 
 
-def check_spores(actor, part) -> Optional[str]:
+def check_spores(actor, part):
     """
     Check spore exposure for an actor in a part.
 
@@ -181,18 +183,18 @@ def check_spores(actor, part) -> Optional[str]:
         Message describing what happened, or None if no effect
     """
     if not actor or not part:
-        return None
+        return IGNORE_EVENT
 
     # Constructs are immune
     body = actor.properties.get("body", {})
     if body.get("form") == "construct":
-        return None
+        return IGNORE_EVENT
 
     spore_level = part.properties.get("spore_level", "none")
     severity = SPORE_LEVEL_SEVERITY.get(spore_level, 0)
 
     if severity == 0:
-        return None
+        return IGNORE_EVENT
 
     # Apply or increase fungal_infection
     if "conditions" not in actor.properties:
@@ -214,7 +216,7 @@ def check_spores(actor, part) -> Optional[str]:
         return f"{actor.name} is exposed to spores and contracts a fungal infection (severity {severity})."
 
 
-def check_temperature(actor, part) -> Optional[str]:
+def check_temperature(actor, part):
     """
     Check temperature effects for an actor in a part.
 
@@ -233,21 +235,21 @@ def check_temperature(actor, part) -> Optional[str]:
         Message describing what happened, or None if no effect
     """
     if not actor or not part:
-        return None
+        return IGNORE_EVENT
 
     # Constructs are immune
     body = actor.properties.get("body", {})
     if body.get("form") == "construct":
-        return None
+        return IGNORE_EVENT
 
     temperature = part.properties.get("temperature")
 
     if not temperature or temperature == "normal":
-        return None
+        return IGNORE_EVENT
 
     condition_name = TEMPERATURE_CONDITIONS.get(temperature)
     if not condition_name:
-        return None
+        return IGNORE_EVENT
 
     severity = TEMPERATURE_SEVERITY.get(temperature, 20)
 
@@ -366,11 +368,11 @@ def on_enter_part(entity, accessor, context):
             - to_part_id: str - new part ID
 
     Returns:
-        EventResult if the behavior wants to add a message, None otherwise
+        EventResult if the behavior wants to add a message, IGNORE_EVENT otherwise
     """
     # Base implementation does nothing - game behaviors can override
     # by registering their own on_enter_part handlers on actors or parts
-    return None
+    return IGNORE_EVENT
 
 
 # Vocabulary extension - registers environmental events

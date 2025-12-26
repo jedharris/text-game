@@ -37,6 +37,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
 from behavior_libraries.actor_lib.conditions import remove_condition
+from src.state_accessor import IGNORE_EVENT
 
 
 # Trust level required for 50% discount
@@ -264,16 +265,16 @@ def on_receive_for_service(entity, accessor, context) -> Optional[Any]:
     giver_id = context.get("giver_id")
 
     if not item_id or not giver_id:
-        return None
+        return IGNORE_EVENT
 
     item = accessor.get_item(item_id)
     giver = accessor.get_actor(giver_id)
     if not item or not giver:
-        return None
+        return IGNORE_EVENT
 
     services = get_available_services(entity)
     if not services:
-        return None
+        return IGNORE_EVENT
 
     # Check if item matches any service payment
     item_type = item.properties.get("type", item.name)

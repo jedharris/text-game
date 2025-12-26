@@ -25,6 +25,7 @@ from dataclasses import dataclass
 from typing import Any, List, Optional
 
 from behavior_libraries.actor_lib.conditions import treat_condition
+from src.state_accessor import IGNORE_EVENT
 
 
 @dataclass
@@ -170,29 +171,29 @@ def on_receive_treatment(entity, accessor, context) -> Optional[Any]:
 
     item_id = context.get("item_id")
     if not item_id:
-        return None
+        return IGNORE_EVENT
 
     item = accessor.get_item(item_id)
     if not item:
-        return None
+        return IGNORE_EVENT
 
     treatable = get_treatable_conditions(item)
     if not treatable:
-        return None
+        return IGNORE_EVENT
 
     # Check if entity has any matching conditions
     conditions = entity.properties.get("conditions", {})
     matching = [c for c in treatable if c in conditions]
 
     if not matching:
-        return None
+        return IGNORE_EVENT
 
     # Apply treatment
     result = apply_treatment(accessor, item, entity)
     if result.success:
         return EventResult(allow=True, feedback=result.effect)
 
-    return None
+    return IGNORE_EVENT
 
 
 def on_use_treatment(entity, accessor, context) -> Optional[Any]:
@@ -218,20 +219,20 @@ def on_use_treatment(entity, accessor, context) -> Optional[Any]:
     target_id = context.get("target_id")
 
     if not item_id or not target_id:
-        return None
+        return IGNORE_EVENT
 
     item = accessor.get_item(item_id)
     if not item:
-        return None
+        return IGNORE_EVENT
 
     # Check if item can treat anything
     treatable = get_treatable_conditions(item)
     if not treatable:
-        return None
+        return IGNORE_EVENT
 
     target = accessor.get_actor(target_id)
     if not target:
-        return None
+        return IGNORE_EVENT
 
     # Apply treatment
     result = apply_treatment(accessor, item, target)
