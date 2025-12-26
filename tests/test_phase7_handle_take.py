@@ -106,7 +106,7 @@ class TestPhase7HandleTake(unittest.TestCase):
         self.assertNotIn("item_sword", state.get_actor(ActorId("player")).inventory)
 
     def test_handle_take_with_missing_actor(self):
-        """Test that missing actor is handled gracefully."""
+        """Test that missing actor raises KeyError (authoring error)."""
         state = create_test_state()
         behavior_manager = BehaviorManager()
         import behaviors.core.manipulation
@@ -116,11 +116,11 @@ class TestPhase7HandleTake(unittest.TestCase):
         handle_take = behavior_manager.get_handler("take")
 
         action = make_action(object="sword", actor_id="nonexistent_npc")
-        result = handle_take(accessor, action)
 
-        # Should return HandlerResult with error, not crash
-        self.assertFalse(result.success)
-        self.assertIsInstance(result, HandlerResult)
+        # Missing actor is an authoring error - should fail loudly
+        with self.assertRaises(KeyError) as ctx:
+            handle_take(accessor, action)
+        self.assertIn("Actor not found", str(ctx.exception))
 
     def test_handle_take_vocabulary_registered(self):
         """Test that vocabulary is properly registered."""

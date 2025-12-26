@@ -108,7 +108,7 @@ class TestMakeCompanion(unittest.TestCase):
         self.assertTrue(state.get_actor(ActorId('wolf')).properties.get('is_companion'))
 
     def test_make_companion_nonexistent_actor(self):
-        """make_companion with nonexistent actor does nothing."""
+        """make_companion with nonexistent actor raises KeyError (authoring error)."""
         from behavior_libraries.companion_lib.following import make_companion
 
         state = GameState(metadata=Metadata(title="Test"))
@@ -117,8 +117,9 @@ class TestMakeCompanion(unittest.TestCase):
         ))
 
         accessor = StateAccessor(state, Mock())
-        # Should not raise
-        make_companion(accessor, 'nonexistent')
+        with self.assertRaises(KeyError) as ctx:
+            make_companion(accessor, 'nonexistent')
+        self.assertIn("Actor not found", str(ctx.exception))
 
 
 class TestDismissCompanion(unittest.TestCase):

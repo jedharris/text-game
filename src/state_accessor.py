@@ -145,7 +145,7 @@ class StateAccessor:
                 return item
         return None
 
-    def get_actor(self, actor_id: ActorId) -> Optional[Actor]:
+    def get_actor(self, actor_id: ActorId) -> Actor:
         """
         Get actor by ID.
 
@@ -153,14 +153,14 @@ class StateAccessor:
             actor_id: The actor ID to look up ("player" or NPC id)
 
         Returns:
-            Actor or None if not found
+            Actor (raises KeyError if not found)
 
-        Note:
-            This returns Optional to allow handler utilities like
-            validate_actor_and_location() to provide graceful error messages.
-            For fail-fast access in tests/internal code, use state.get_actor() instead.
+        Raises:
+            KeyError: If actor not found - this is an authoring error.
+                     Missing actors should be caught during development, not
+                     masked with "INCONSISTENT STATE" messages.
         """
-        return self.game_state.actors.get(actor_id)
+        return self.game_state.get_actor(actor_id)
 
     def get_location(self, location_id: LocationId) -> Optional[Location]:
         """
@@ -297,10 +297,13 @@ class StateAccessor:
         if result:
             return result
 
-        # Check actors
-        result = self.get_actor(cast(ActorId, entity_id))
-        if result:
-            return result
+        # Check actors (catches KeyError since get_actor now fails fast)
+        try:
+            result = self.get_actor(cast(ActorId, entity_id))
+            if result:
+                return result
+        except KeyError:
+            pass  # Not an actor, try other types
 
         # Check locks
         result = self.get_lock(cast(LockId, entity_id))

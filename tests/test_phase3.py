@@ -103,12 +103,13 @@ class TestStateAccessorUnifiedModel(unittest.TestCase):
         self.assertEqual(retrieved.id, "npc_guard")
 
     def test_get_actor_not_found(self):
-        """Test that get_actor returns None for non-existent actor."""
+        """Test that get_actor raises KeyError for non-existent actor (authoring error)."""
         state = create_test_state()
         accessor = StateAccessor(state, None)
 
-        actor = accessor.get_actor(ActorId("nonexistent"))
-        self.assertIsNone(actor)
+        with self.assertRaises(KeyError) as ctx:
+            accessor.get_actor(ActorId("nonexistent"))
+        self.assertIn("Actor not found", str(ctx.exception))
 
     def test_get_actors_in_location_includes_player(self):
         """Test that get_actors_in_location includes player when in location."""

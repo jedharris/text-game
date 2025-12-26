@@ -71,18 +71,14 @@ class TestValidateActorAndLocation(BaseTestCase):
         self.assertEqual(actor.id, "player")
 
     def test_nonexistent_actor(self):
-        """Should return INCONSISTENT STATE error for missing actor"""
+        """Should raise KeyError for missing actor (authoring error)"""
         action = {"actor_id": "ghost", "verb": "take", "object": "sword"}
-        actor_id, actor, location, error = validate_actor_and_location(
-            self.accessor, action, require_object=True
-        )
 
-        self.assertIsNone(actor_id)
-        self.assertIsNone(actor)
-        self.assertIsNone(location)
-        self.assertIsNotNone(error)
-        self.assertIn("INCONSISTENT STATE", error.primary)
-        self.assertIn("Actor ghost not found", error.primary)
+        with self.assertRaises(KeyError) as ctx:
+            validate_actor_and_location(
+                self.accessor, action, require_object=True
+            )
+        self.assertIn("Actor not found", str(ctx.exception))
 
     def test_actor_without_location(self):
         """Should return INCONSISTENT STATE error when location not found"""
