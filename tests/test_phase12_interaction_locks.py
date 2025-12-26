@@ -302,7 +302,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             properties={"portable": True}
         )
         state.items.append(key)
-        player = state.actors[ActorId("player")]
+        player = state.get_actor(ActorId("player"))
         player.inventory.append("item_key")
 
         from behaviors.core.locks import handle_unlock
@@ -463,7 +463,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             properties={"portable": True}
         )
         state.items.append(key)
-        player = state.actors[ActorId("player")]
+        player = state.get_actor(ActorId("player"))
         player.inventory.append("item_key")
 
         from behaviors.core.locks import handle_lock
@@ -518,7 +518,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             properties={"portable": True}
         )
         state.items.append(key)
-        player = state.actors[ActorId("player")]
+        player = state.get_actor(ActorId("player"))
         player.inventory.append("item_key")
 
         from behaviors.core.locks import handle_lock
@@ -702,7 +702,7 @@ class TestWordEntryHandling(unittest.TestCase):
                    location="player", properties={"portable": True})
         state.items.append(key)
         # Add key to player's inventory
-        state.actors[ActorId("player")].inventory.append("item_key")
+        state.get_actor(ActorId("player")).inventory.append("item_key")
 
         door_entry = WordEntry(
             word="door",
@@ -753,7 +753,7 @@ class TestWordEntryHandling(unittest.TestCase):
                    location="player", properties={"portable": True})
         state.items.append(key)
         # Add key to player's inventory
-        state.actors[ActorId("player")].inventory.append("item_key")
+        state.get_actor(ActorId("player")).inventory.append("item_key")
 
         door_entry = WordEntry(
             word="door",

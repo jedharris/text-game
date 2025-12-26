@@ -70,7 +70,7 @@ class TestUC1Infection(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
 
     def test_spore_exposure_low_level(self):
         """Low spore exposure applies low severity infection."""
@@ -152,7 +152,7 @@ class TestUC1Resistance(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
         # Player has 30% disease resistance per game_state.json
 
     def test_resistance_reduces_severity(self):
@@ -215,8 +215,8 @@ class TestUC1Cure(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
-        self.scholar = self.engine.game_state.actors[ActorId('npc_scholar')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
+        self.scholar = self.engine.game_state.get_actor(ActorId('npc_scholar'))
 
     def test_scholar_starts_infected(self):
         """Scholar starts with fungal_infection condition."""
@@ -292,8 +292,8 @@ class TestUC1Contagion(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
-        self.scholar = self.engine.game_state.actors[ActorId('npc_scholar')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
+        self.scholar = self.engine.game_state.get_actor(ActorId('npc_scholar'))
 
     def test_contagion_requires_focus(self):
         """Contagion only spreads when focused on infected actor."""
@@ -368,8 +368,8 @@ class TestUC1Progression(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
-        self.scholar = self.engine.game_state.actors[ActorId('npc_scholar')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
+        self.scholar = self.engine.game_state.get_actor(ActorId('npc_scholar'))
 
     def test_condition_tick_applies_damage(self):
         """Condition tick applies damage_per_turn to health."""

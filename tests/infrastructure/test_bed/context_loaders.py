@@ -94,7 +94,7 @@ class CustomContextLoader(ContextLoader):
         for actor_id_str, trust in self.trust_values.items():
             actor_id = ActorId(actor_id_str)
             if actor_id in state.actors:
-                actor = state.actors[actor_id]
+                actor = state.get_actor(actor_id)
                 if "trust" not in actor.properties:
                     actor.properties["trust"] = {}
                 actor.properties["trust"]["current"] = trust
@@ -115,8 +115,8 @@ class CustomContextLoader(ContextLoader):
                         holder_id = ActorId(location[6:])
                         item.location = None  # type: ignore[assignment]
                         if holder_id in state.actors:
-                            if item_id not in state.actors[holder_id].inventory:
-                                state.actors[holder_id].inventory.append(item_id)
+                            if item_id not in state.get_actor(holder_id).inventory:
+                                state.get_actor(holder_id).inventory.append(item_id)
                     else:
                         # Move to location
                         item.location = LocationId(location)

@@ -24,7 +24,7 @@ class TestFindExitByName(unittest.TestCase):
         self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         self.location_id = player.location
 
         # Add destination rooms
@@ -170,7 +170,7 @@ class TestExamineExit(unittest.TestCase):
         self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         self.location_id = player.location
 
         # Add destination rooms
@@ -303,7 +303,7 @@ class TestExitExaminationPriority(unittest.TestCase):
         self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         self.location_id = player.location
         room = self.accessor.get_location(self.location_id)
 
@@ -349,7 +349,7 @@ class TestExamineExitWithDirectionAdjective(unittest.TestCase):
         self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         self.location_id = player.location
         room = self.accessor.get_location(self.location_id)
 
@@ -461,7 +461,7 @@ class TestExitSynonymMatching(unittest.TestCase):
         self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         self.location_id = player.location
         room = self.accessor.get_location(self.location_id)
 
@@ -589,7 +589,7 @@ class TestExamineDirectionExitEndToEnd(unittest.TestCase):
         self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Set up exits
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         self.location_id = player.location
         room = self.accessor.get_location(self.location_id)
 

@@ -34,7 +34,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
         accessor = StateAccessor(state, behavior_manager)
 
         # Put sword in player's inventory
-        player = state.actors[ActorId("player")]
+        player = state.get_actor(ActorId("player"))
         sword = state.get_item("item_sword")
         sword.location = "player"
         player.inventory.append("item_sword")
@@ -106,7 +106,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
         accessor = StateAccessor(state, behavior_manager)
 
         # Put sword in player's inventory
-        player = state.actors[ActorId("player")]
+        player = state.get_actor(ActorId("player"))
         sword = state.get_item("item_sword")
         sword.location = "player"
         player.inventory.append("item_sword")
@@ -165,7 +165,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
         accessor = StateAccessor(state, behavior_manager)
 
         # Put sword in player's inventory
-        player = state.actors[ActorId("player")]
+        player = state.get_actor(ActorId("player"))
         sword = state.get_item("item_sword")
         sword.location = "player"
         player.inventory.append("item_sword")
@@ -203,7 +203,7 @@ class TestPhase10ManipulationHandlers(unittest.TestCase):
         result = handle_give(accessor, action)
 
         self.assertTrue(result.success, f"NPC give failed: {result.primary}")
-        player = state.actors[ActorId("player")]
+        player = state.get_actor(ActorId("player"))
         self.assertNotIn("item_sword", guard.inventory, "Item should be removed from NPC")
         self.assertIn("item_sword", player.inventory, "Item should be in player inventory")
         self.assertEqual(sword.location, "player")

@@ -23,7 +23,7 @@ class TestFindItemWithAdjective(unittest.TestCase):
         self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         location_id = player.location
 
         # Add two keys with different adjectives in their descriptions
@@ -146,7 +146,7 @@ class TestFindDoorWithAdjective(unittest.TestCase):
         self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         location_id = player.location
 
         # Add two door items with different adjectives
@@ -171,7 +171,7 @@ class TestFindDoorWithAdjective(unittest.TestCase):
         """Test finding door when adjective matches description."""
         from utilities.utils import find_door_with_adjective
 
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         door_entry = make_word_entry("door")
 
         door = find_door_with_adjective(
@@ -185,7 +185,7 @@ class TestFindDoorWithAdjective(unittest.TestCase):
         """Test finding different door with different adjective."""
         from utilities.utils import find_door_with_adjective
 
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         door_entry = make_word_entry("door")
 
         door = find_door_with_adjective(
@@ -199,7 +199,7 @@ class TestFindDoorWithAdjective(unittest.TestCase):
         """Test that no adjective returns first matching door."""
         from utilities.utils import find_door_with_adjective
 
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         door_entry = make_word_entry("door")
 
         door = find_door_with_adjective(
@@ -213,7 +213,7 @@ class TestFindDoorWithAdjective(unittest.TestCase):
         """Test that non-matching adjective returns None."""
         from utilities.utils import find_door_with_adjective
 
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         door_entry = make_word_entry("door")
 
         door = find_door_with_adjective(
@@ -226,7 +226,7 @@ class TestFindDoorWithAdjective(unittest.TestCase):
         """Test that adjective can match against door ID."""
         from utilities.utils import find_door_with_adjective
 
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         # "iron" appears in "door_iron"
         door_entry = make_word_entry("door")
 
@@ -253,7 +253,7 @@ class TestHandleTakeWithAdjective(unittest.TestCase):
         self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         location_id = player.location
 
         # Add two keys with different adjectives in their descriptions
@@ -283,7 +283,7 @@ class TestHandleTakeWithAdjective(unittest.TestCase):
 
         self.assertTrue(result.success)
         # Verify correct key was taken
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         self.assertIn("item_brass_key", player.inventory)
         self.assertNotIn("item_iron_key", player.inventory)
 
@@ -295,7 +295,7 @@ class TestHandleTakeWithAdjective(unittest.TestCase):
         result = handle_take(self.accessor, action)
 
         self.assertTrue(result.success)
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         # Should take first match (iron key)
         self.assertIn("item_iron_key", player.inventory)
 
@@ -315,7 +315,7 @@ class TestHandleOpenWithAdjective(unittest.TestCase):
         self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         location_id = player.location
 
         # Add two door items with different adjectives
@@ -371,7 +371,7 @@ class TestDoorStateAdjectives(unittest.TestCase):
         self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         location_id = player.location
 
         # Create location for exits to point to

@@ -68,7 +68,7 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         accessor = StateAccessor(state, BehaviorManager())
 
         # Put sword in player's inventory
-        player = state.actors[ActorId("player")]
+        player = state.get_actor(ActorId("player"))
         sword = state.get_item("item_sword")
         sword.location = "player"
         player.inventory.append("item_sword")
@@ -126,7 +126,7 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         state = create_test_state()
         accessor = StateAccessor(state, BehaviorManager())
 
-        player = state.actors[ActorId("player")]
+        player = state.get_actor(ActorId("player"))
         player.inventory.append("item_sword")
 
         sword_entry = make_word_entry("sword")
@@ -214,7 +214,7 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
                   location="player")
         state.items.append(key)
 
-        player = state.actors[ActorId("player")]
+        player = state.get_actor(ActorId("player"))
         player.inventory.append("item_key")
 
         # Player has key

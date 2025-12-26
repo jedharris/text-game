@@ -148,7 +148,7 @@ class TestHandlePut(unittest.TestCase):
         key = self.game_state.get_item("item_key")
         self.assertEqual(key.location, "item_box")
         # Key should be removed from inventory
-        self.assertNotIn("item_key", self.game_state.actors[ActorId("player")].inventory)
+        self.assertNotIn("item_key", self.game_state.get_actor(ActorId("player")).inventory)
 
     def test_put_on_surface(self):
         """Test putting item on surface container."""

@@ -72,7 +72,7 @@ class TestTradingBehavior(unittest.TestCase):
         state.items.append(reward)
 
         # Add trade_good to player inventory
-        state.actors[ActorId("player")].inventory.append("item_trade_good")
+        state.get_actor(ActorId("player")).inventory.append("item_trade_good")
 
         return state
 
@@ -105,8 +105,8 @@ class TestTradingBehavior(unittest.TestCase):
         behavior_manager.load_module(behavior_libraries.actor_lib.trading)
         accessor = StateAccessor(state, behavior_manager)
 
-        player = state.actors[ActorId("player")]
-        trader = state.actors[ActorId("npc_trader")]
+        player = state.get_actor(ActorId("player"))
+        trader = state.get_actor(ActorId("npc_trader"))
 
         # Before trade
         self.assertIn("item_trade_good", player.inventory)
@@ -135,7 +135,7 @@ class TestTradingBehavior(unittest.TestCase):
         behavior_manager.load_module(behavior_libraries.actor_lib.trading)
         accessor = StateAccessor(state, behavior_manager)
 
-        player = state.actors[ActorId("player")]
+        player = state.get_actor(ActorId("player"))
 
         # Give the sword (not a trade item) to the trader
         sword = state.get_item("item_sword")
@@ -162,7 +162,7 @@ class TestTradingBehavior(unittest.TestCase):
         accessor = StateAccessor(state, behavior_manager)
 
         # Remove reward from trader inventory
-        trader = state.actors[ActorId("npc_trader")]
+        trader = state.get_actor(ActorId("npc_trader"))
         trader.inventory.remove("item_reward")
 
         from behaviors.core.manipulation import handle_give
@@ -195,7 +195,7 @@ class TestTradingBehavior(unittest.TestCase):
         state.actors[ActorId("npc_guard")] = guard
 
         # Give sword to guard
-        player = state.actors[ActorId("player")]
+        player = state.get_actor(ActorId("player"))
         sword = state.get_item("item_sword")
         sword.location = "player"
         player.inventory.append("item_sword")
@@ -273,7 +273,7 @@ class TestOnReceiveItemBehavior(unittest.TestCase):
         self.assertEqual("Trade complete!", result.feedback)
 
         # Check reward transferred
-        player = state.actors[ActorId("player")]
+        player = state.get_actor(ActorId("player"))
         self.assertIn("item_reward", player.inventory)
 
     def test_on_receive_item_no_trade_generic_accept(self):

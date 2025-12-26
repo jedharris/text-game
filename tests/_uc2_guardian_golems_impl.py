@@ -58,8 +58,8 @@ class TestUC2GolemSetup(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.stone_golem = self.engine.game_state.actors[ActorId('npc_guardian_golem_1')]
-        self.iron_golem = self.engine.game_state.actors[ActorId('npc_guardian_golem_2')]
+        self.stone_golem = self.engine.game_state.get_actor(ActorId('npc_guardian_golem_1'))
+        self.iron_golem = self.engine.game_state.get_actor(ActorId('npc_guardian_golem_2'))
 
     def test_golems_exist(self):
         """Both guardian golems are loaded."""
@@ -115,7 +115,7 @@ class TestUC2WeaponDamage(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
         self.sword = None
         for item in self.engine.game_state.items:
             if item.id == 'item_rusty_sword':
@@ -154,8 +154,8 @@ class TestUC2CoverMechanics(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
-        self.stone_golem = self.engine.game_state.actors[ActorId('npc_guardian_golem_1')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
+        self.stone_golem = self.engine.game_state.get_actor(ActorId('npc_guardian_golem_1'))
         self.pillar = None
         for item in self.engine.game_state.items:
             if item.id == 'item_stone_pillar':
@@ -228,8 +228,8 @@ class TestUC2Resistances(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.stone_golem = self.engine.game_state.actors[ActorId('npc_guardian_golem_1')]
-        self.iron_golem = self.engine.game_state.actors[ActorId('npc_guardian_golem_2')]
+        self.stone_golem = self.engine.game_state.get_actor(ActorId('npc_guardian_golem_1'))
+        self.iron_golem = self.engine.game_state.get_actor(ActorId('npc_guardian_golem_2'))
 
     def test_stone_golem_physical_resistance(self):
         """Stone golem has 30% physical resistance."""
@@ -272,8 +272,8 @@ class TestUC2Weaknesses(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.stone_golem = self.engine.game_state.actors[ActorId('npc_guardian_golem_1')]
-        self.iron_golem = self.engine.game_state.actors[ActorId('npc_guardian_golem_2')]
+        self.stone_golem = self.engine.game_state.get_actor(ActorId('npc_guardian_golem_1'))
+        self.iron_golem = self.engine.game_state.get_actor(ActorId('npc_guardian_golem_2'))
 
     def test_stone_golem_lightning_weakness(self):
         """Stone golem has 50% lightning weakness."""
@@ -316,8 +316,8 @@ class TestUC2Counterattack(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
-        self.stone_golem = self.engine.game_state.actors[ActorId('npc_guardian_golem_1')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
+        self.stone_golem = self.engine.game_state.get_actor(ActorId('npc_guardian_golem_1'))
         # Move player to temple sanctum
         self.player.location = 'loc_temple_sanctum'
 

@@ -27,7 +27,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
         self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         location_id = player.location
 
         # Add a surface container (table)
@@ -112,7 +112,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
         result = handle_take(self.accessor, action)
 
         self.assertTrue(result.success)
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         self.assertIn("item_key_on_table", player.inventory)
 
     def test_take_from_container_item_not_in_container_fails(self):
@@ -135,7 +135,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
         result = handle_take(self.accessor, action)
 
         self.assertTrue(result.success)
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         self.assertIn("item_coin_room", player.inventory)
 
     def test_take_from_enclosed_container_succeeds_when_open(self):
@@ -146,7 +146,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
         result = handle_take(self.accessor, action)
 
         self.assertTrue(result.success)
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         self.assertIn("item_ring_in_chest", player.inventory)
 
     def test_take_from_enclosed_container_fails_when_closed(self):
@@ -189,7 +189,7 @@ class TestTakeFromContainerWithAdjective(unittest.TestCase):
 
         self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         location_id = player.location
 
         # Add two tables
@@ -245,7 +245,7 @@ class TestTakeFromContainerWithAdjective(unittest.TestCase):
         result = handle_take(self.accessor, action)
 
         self.assertTrue(result.success)
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         # Should take the key from marble table (gold key)
         self.assertIn("item_gold_key", player.inventory)
         self.assertNotIn("item_iron_key", player.inventory)

@@ -574,7 +574,7 @@ class TestObservabilityIntegration(unittest.TestCase):
         """Actor becomes visible after states.hidden=False."""
         from utilities.utils import gather_location_contents
 
-        ghost = self.game_state.actors[ActorId("ghost")]
+        ghost = self.game_state.get_actor(ActorId("ghost"))
         ghost.states["hidden"] = False
 
         contents = gather_location_contents(self.accessor, "room1", "player")
@@ -597,7 +597,7 @@ class TestObservabilityIntegration(unittest.TestCase):
         from utilities.utils import get_visible_actors_in_location
 
         # Set explicit hidden=False
-        merchant = self.game_state.actors[ActorId("merchant")]
+        merchant = self.game_state.get_actor(ActorId("merchant"))
         merchant.states["hidden"] = False
 
         actors = get_visible_actors_in_location(self.accessor, "room1", "player")
@@ -732,7 +732,7 @@ class TestHiddenExitsIntegration(unittest.TestCase):
         )
 
         self.assertTrue(result.success)
-        self.assertEqual(self.game_state.actors[ActorId("player")].location, "room2")
+        self.assertEqual(self.game_state.get_actor(ActorId("player")).location, "room2")
 
     def test_revealed_exit_becomes_usable(self):
         """Exit becomes usable after states.hidden=False."""
@@ -748,7 +748,7 @@ class TestHiddenExitsIntegration(unittest.TestCase):
         )
 
         self.assertTrue(result.success)
-        self.assertEqual(self.game_state.actors[ActorId("player")].location, "secret_room")
+        self.assertEqual(self.game_state.get_actor(ActorId("player")).location, "secret_room")
 
     def test_exit_without_hidden_state_is_visible(self):
         """Exit without states.hidden is visible by default."""

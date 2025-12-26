@@ -105,7 +105,7 @@ class TestMakeCompanion(unittest.TestCase):
         accessor = StateAccessor(state, Mock())
         make_companion(accessor, 'wolf')
 
-        self.assertTrue(state.actors[ActorId('wolf')].properties.get('is_companion'))
+        self.assertTrue(state.get_actor(ActorId('wolf')).properties.get('is_companion'))
 
     def test_make_companion_nonexistent_actor(self):
         """make_companion with nonexistent actor does nothing."""
@@ -141,7 +141,7 @@ class TestDismissCompanion(unittest.TestCase):
         accessor = StateAccessor(state, Mock())
         dismiss_companion(accessor, 'wolf')
 
-        self.assertFalse(state.actors[ActorId('wolf')].properties.get('is_companion', False))
+        self.assertFalse(state.get_actor(ActorId('wolf')).properties.get('is_companion', False))
 
 
 class TestCheckCanFollow(unittest.TestCase):
@@ -162,7 +162,7 @@ class TestCheckCanFollow(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        can_follow, message = check_can_follow(accessor, state.actors[ActorId('wolf')], 'town')
+        can_follow, message = check_can_follow(accessor, state.get_actor(ActorId('wolf')), 'town')
 
         self.assertTrue(can_follow)
         self.assertEqual(message, '')
@@ -186,7 +186,7 @@ class TestCheckCanFollow(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        can_follow, message = check_can_follow(accessor, state.actors[ActorId('wolf')], 'town')
+        can_follow, message = check_can_follow(accessor, state.get_actor(ActorId('wolf')), 'town')
 
         self.assertFalse(can_follow)
         self.assertEqual(message, "The wolf refuses to enter the town.")
@@ -210,7 +210,7 @@ class TestCheckCanFollow(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        can_follow, message = check_can_follow(accessor, state.actors[ActorId('wolf')], 'lake')
+        can_follow, message = check_can_follow(accessor, state.get_actor(ActorId('wolf')), 'lake')
 
         self.assertFalse(can_follow)
         self.assertIn('wolf', message.lower())
@@ -233,7 +233,7 @@ class TestCheckCanFollow(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        can_follow, message = check_can_follow(accessor, state.actors[ActorId('wolf')], 'town')
+        can_follow, message = check_can_follow(accessor, state.get_actor(ActorId('wolf')), 'town')
 
         self.assertFalse(can_follow)
         self.assertIn('Wolf', message)
@@ -282,7 +282,7 @@ class TestOnPlayerMoveCompanionsFollow(unittest.TestCase):
         )
 
         # Wolf should have moved
-        self.assertEqual(state.actors[ActorId('wolf')].location, 'meadow')
+        self.assertEqual(state.get_actor(ActorId('wolf')).location, 'meadow')
         # Result should include follow message
         self.assertIsInstance(result, EventResult)
         self.assertIn('wolf', result.feedback.lower())
@@ -326,7 +326,7 @@ class TestOnPlayerMoveCompanionsFollow(unittest.TestCase):
         )
 
         # Wolf should NOT have moved
-        self.assertEqual(state.actors[ActorId('wolf')].location, 'forest')
+        self.assertEqual(state.get_actor(ActorId('wolf')).location, 'forest')
         # Result should include cannot follow message
         self.assertIn('refuses', result.feedback.lower())
 
@@ -370,8 +370,8 @@ class TestOnPlayerMoveCompanionsFollow(unittest.TestCase):
         )
 
         # Both should have moved
-        self.assertEqual(state.actors[ActorId('wolf')].location, 'meadow')
-        self.assertEqual(state.actors[ActorId('dog')].location, 'meadow')
+        self.assertEqual(state.get_actor(ActorId('wolf')).location, 'meadow')
+        self.assertEqual(state.get_actor(ActorId('dog')).location, 'meadow')
 
     def test_no_companions_no_message(self):
         """When no companions, result allows but has no message."""

@@ -52,7 +52,7 @@ class TestExamineDoor(unittest.TestCase):
         self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         location_id = player.location
 
         # Add destination rooms
@@ -169,7 +169,7 @@ class TestExamineDoor(unittest.TestCase):
         from src.state_manager import Item
 
         # Add an item named "door" (unusual but possible)
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         door_item = Item(
             id="item_door",
             name="door",
@@ -201,7 +201,7 @@ class TestExamineDoorWithDirectionAdjective(unittest.TestCase):
         self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Get player's location
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         location_id = player.location
 
         # Add destination rooms

@@ -44,7 +44,7 @@ class TestPhase7HandleTake(unittest.TestCase):
         # Verify state changes
         sword = state.get_item("item_sword")
         self.assertEqual(sword.location, "player")
-        self.assertIn("item_sword", state.actors[ActorId("player")].inventory)
+        self.assertIn("item_sword", state.get_actor(ActorId("player")).inventory)
 
     def test_handle_take_not_portable(self):
         """Test that non-portable items can't be taken."""
@@ -103,7 +103,7 @@ class TestPhase7HandleTake(unittest.TestCase):
         self.assertEqual(sword.location, "npc_guard",
                         f"Sword location should be npc_guard, got {sword.location}")
         self.assertIn("item_sword", npc.inventory)
-        self.assertNotIn("item_sword", state.actors[ActorId("player")].inventory)
+        self.assertNotIn("item_sword", state.get_actor(ActorId("player")).inventory)
 
     def test_handle_take_with_missing_actor(self):
         """Test that missing actor is handled gracefully."""
@@ -145,7 +145,7 @@ class TestPhase7HandleTake(unittest.TestCase):
         accessor = StateAccessor(state, behavior_manager)
 
         # Put sword in player's inventory
-        player = state.actors[ActorId("player")]
+        player = state.get_actor(ActorId("player"))
         sword = state.get_item("item_sword")
         sword.location = "player"
         player.inventory.append("item_sword")

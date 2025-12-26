@@ -25,7 +25,7 @@ class TestConsumableProperties(unittest.TestCase):
         # Sword is not edible (no edible property)
         sword = state.get_item("item_sword")
         sword.location = "player"
-        state.actors[ActorId("player")].inventory.append("item_sword")
+        state.get_actor(ActorId("player")).inventory.append("item_sword")
 
         action = make_action(object="sword", actor_id="player")
         result = handle_eat(accessor, action)
@@ -48,7 +48,7 @@ class TestConsumableProperties(unittest.TestCase):
             properties={"edible": True}
         )
         state.items.append(apple)
-        state.actors[ActorId("player")].inventory.append("item_apple")
+        state.get_actor(ActorId("player")).inventory.append("item_apple")
 
         action = make_action(object="apple", actor_id="player")
         result = handle_eat(accessor, action)
@@ -64,7 +64,7 @@ class TestConsumableProperties(unittest.TestCase):
         # Sword is not drinkable
         sword = state.get_item("item_sword")
         sword.location = "player"
-        state.actors[ActorId("player")].inventory.append("item_sword")
+        state.get_actor(ActorId("player")).inventory.append("item_sword")
 
         action = make_action(object="sword", actor_id="player")
         result = handle_drink(accessor, action)
@@ -87,7 +87,7 @@ class TestConsumableProperties(unittest.TestCase):
             properties={"drinkable": True}
         )
         state.items.append(potion)
-        state.actors[ActorId("player")].inventory.append("item_potion")
+        state.get_actor(ActorId("player")).inventory.append("item_potion")
 
         action = make_action(object="potion", actor_id="player")
         result = handle_drink(accessor, action)
@@ -109,7 +109,7 @@ class TestConsumableProperties(unittest.TestCase):
             properties={"edible": False}
         )
         state.items.append(rock)
-        state.actors[ActorId("player")].inventory.append("item_rock")
+        state.get_actor(ActorId("player")).inventory.append("item_rock")
 
         action = make_action(object="rock", actor_id="player")
         result = handle_eat(accessor, action)
@@ -132,7 +132,7 @@ class TestConsumableProperties(unittest.TestCase):
             properties={"drinkable": False}
         )
         state.items.append(oil)
-        state.actors[ActorId("player")].inventory.append("item_oil")
+        state.get_actor(ActorId("player")).inventory.append("item_oil")
 
         action = make_action(object="oil", actor_id="player")
         result = handle_drink(accessor, action)

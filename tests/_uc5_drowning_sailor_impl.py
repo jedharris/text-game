@@ -64,8 +64,8 @@ class TestUC5Breath(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
-        self.sailor = self.engine.game_state.actors[ActorId('npc_sailor')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
+        self.sailor = self.engine.game_state.get_actor(ActorId('npc_sailor'))
 
     def test_sailor_starts_with_low_breath(self):
         """Sailor starts with low breath (20 of 60)."""
@@ -121,7 +121,7 @@ class TestUC5Drowning(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
 
     def test_drowning_damage(self):
         """Actor takes drowning damage when breath reaches 0."""
@@ -172,7 +172,7 @@ class TestUC5BreathingItem(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
         self.air_bladder = None
         for item in self.engine.game_state.items:
             if item.id == 'item_air_bladder':
@@ -230,7 +230,7 @@ class TestUC5Rescue(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.sailor = self.engine.game_state.actors[ActorId('npc_sailor')]
+        self.sailor = self.engine.game_state.get_actor(ActorId('npc_sailor'))
 
     def test_rescue_moves_to_surface(self):
         """Rescue moves actor to specified location."""
@@ -294,7 +294,7 @@ class TestUC5ConstructImmune(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.golem = self.engine.game_state.actors[ActorId('npc_diving_golem')]
+        self.golem = self.engine.game_state.get_actor(ActorId('npc_diving_golem'))
 
     def test_golem_is_construct(self):
         """Diving golem has construct body form."""

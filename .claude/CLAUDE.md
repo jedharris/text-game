@@ -10,9 +10,11 @@
 - NEVER build vocabulary into the code, instead ALWAYS use the merged vocabulary and WordEntry.
 - NEVER add local heuristics for word matching or special vocabulary
 - Vocabulary handling rules apply to testing as well as normal code
-- When writing or modifying handlers and utility functions, consult:
+- **Primary reference**: `docs/quick_reference.md` - condensed guide for all coding patterns, utilities, and workflows
+- For detailed information, consult:
   - `docs/authoring_guide.md` for utility routines, handler patterns, and common pitfalls
   - `docs/debugging_guide.md` for vocabulary, parsing, and error diagnosis
+  - `user_docs/architectural_conventions.md` for type system and core architecture
 - Use existing utility functions from `utilities/handler_utils.py` and `utilities/utils.py` rather than writing custom code
 
 ## Handler design

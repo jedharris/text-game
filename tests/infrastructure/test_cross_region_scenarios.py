@@ -182,7 +182,7 @@ class TestDeathMarkCrossRegionScenarios(ScenarioTestCase):
 
     def test_kill_minor_fungus_then_meet_myconid(self) -> None:
         """Killing minor fungal creatures affects Myconid first meeting."""
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
 
         # Kill a fungal creature
         on_fungal_kill(self.shambler, self.accessor, {"killer": player})

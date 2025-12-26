@@ -45,7 +45,7 @@ class TestUnifiedActorModel(unittest.TestCase):
         state = create_test_state()
 
         self.assertIn('player', state.actors)
-        player = state.actors[ActorId('player')]
+        player = state.get_actor(ActorId('player'))
         self.assertIsInstance(player, Actor)
         self.assertEqual(player.location, "location_room")
 
@@ -66,7 +66,7 @@ class TestUnifiedActorModel(unittest.TestCase):
         state.actors[ActorId("npc_guard")] = npc
 
         self.assertIn("npc_guard", state.actors)
-        self.assertEqual(state.actors[ActorId("npc_guard")].id, "npc_guard")
+        self.assertEqual(state.get_actor(ActorId("npc_guard")).id, "npc_guard")
 
 
 class TestStateAccessorUnifiedModel(unittest.TestCase):
@@ -254,10 +254,10 @@ class TestSerializationUnifiedModel(unittest.TestCase):
             self.assertIn('npc_guard', loaded_state.actors)
 
             # Verify player data
-            self.assertEqual(loaded_state.actors[ActorId('player')].location, "location_room")
+            self.assertEqual(loaded_state.get_actor(ActorId('player')).location, "location_room")
 
             # Verify NPC data
-            self.assertEqual(loaded_state.actors[ActorId('npc_guard')].id, "npc_guard")
+            self.assertEqual(loaded_state.get_actor(ActorId('npc_guard')).id, "npc_guard")
 
         finally:
             if os.path.exists(temp_path):

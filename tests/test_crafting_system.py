@@ -235,8 +235,8 @@ class TestExecuteCraft(unittest.TestCase):
         result = execute_craft(accessor, recipe, ['herb', 'water'])
 
         self.assertTrue(result.success)
-        self.assertNotIn('herb', state.actors[ActorId('player')].inventory)
-        self.assertNotIn('water', state.actors[ActorId('player')].inventory)
+        self.assertNotIn('herb', state.get_actor(ActorId('player')).inventory)
+        self.assertNotIn('water', state.get_actor(ActorId('player')).inventory)
 
     def test_execute_craft_creates_result_item(self):
         """Crafting creates the result item in inventory."""
@@ -270,7 +270,7 @@ class TestExecuteCraft(unittest.TestCase):
 
         execute_craft(accessor, recipe, ['herb', 'water'])
 
-        self.assertIn('healing_potion', state.actors[ActorId('player')].inventory)
+        self.assertIn('healing_potion', state.get_actor(ActorId('player')).inventory)
 
     def test_execute_craft_returns_success_message(self):
         """Crafting returns the recipe success message."""
@@ -334,8 +334,8 @@ class TestExecuteCraft(unittest.TestCase):
         execute_craft(accessor, recipe, ['lens', 'frame'])
 
         # Ingredients should still be in inventory (not consumed)
-        self.assertIn('lens', state.actors[ActorId('player')].inventory)
-        self.assertIn('frame', state.actors[ActorId('player')].inventory)
+        self.assertIn('lens', state.get_actor(ActorId('player')).inventory)
+        self.assertIn('frame', state.get_actor(ActorId('player')).inventory)
 
 
 class TestHandleCombine(unittest.TestCase):

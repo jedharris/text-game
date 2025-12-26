@@ -83,7 +83,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
 
     def test_drink_potion_heals(self):
         """Test that drinking health potion increases health."""
-        initial_health = self.game_state.actors[ActorId("player")].stats.get("health", 100)
+        initial_health = self.game_state.get_actor(ActorId("player")).stats.get("health", 100)
 
         # Take and drink the potion
         self.handler.handle_command({
@@ -96,7 +96,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
         })
 
         # Health should have increased
-        new_health = self.game_state.actors[ActorId("player")].stats.get("health", 100)
+        new_health = self.game_state.get_actor(ActorId("player")).stats.get("health", 100)
         self.assertGreater(new_health, initial_health)
 
     def test_drink_potion_removes_from_inventory(self):
@@ -108,7 +108,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
         })
 
         # Verify it's in inventory
-        self.assertIn("health_potion", self.game_state.actors[ActorId("player")].inventory)
+        self.assertIn("health_potion", self.game_state.get_actor(ActorId("player")).inventory)
 
         # Drink the potion
         self.handler.handle_command({
@@ -117,7 +117,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
         })
 
         # Should be removed from inventory
-        self.assertNotIn("health_potion", self.game_state.actors[ActorId("player")].inventory)
+        self.assertNotIn("health_potion", self.game_state.get_actor(ActorId("player")).inventory)
 
     def test_drink_potion_has_message(self):
         """Test that drinking potion returns a behavior message."""
@@ -186,7 +186,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
         })
 
         # Verify it's in inventory
-        self.assertIn("bread", self.game_state.actors[ActorId("player")].inventory)
+        self.assertIn("bread", self.game_state.get_actor(ActorId("player")).inventory)
 
         # Eat the bread
         self.handler.handle_command({
@@ -195,7 +195,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
         })
 
         # Should be removed from inventory
-        self.assertNotIn("bread", self.game_state.actors[ActorId("player")].inventory)
+        self.assertNotIn("bread", self.game_state.get_actor(ActorId("player")).inventory)
 
     def test_eat_food_has_message(self):
         """Test that eating food returns a behavior message."""
@@ -441,7 +441,7 @@ class TestContainersBehaviors(unittest.TestCase):
         })
 
         # Win flag should be set
-        self.assertTrue(self.game_state.actors[ActorId("player")].flags.get("won", False))
+        self.assertTrue(self.game_state.get_actor(ActorId("player")).flags.get("won", False))
 
     def test_open_chest_has_message(self):
         """Test that opening chest returns a behavior message."""

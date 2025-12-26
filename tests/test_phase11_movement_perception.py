@@ -55,7 +55,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
         self.assertTrue(result.success)
 
         # Verify player moved
-        player = state.actors[ActorId("player")]
+        player = state.get_actor(ActorId("player"))
         self.assertEqual(player.location, "location_hall")
 
     def test_handle_go_invalid_exit(self):
@@ -114,7 +114,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
 
         # Verify NPC moved (not player)
         self.assertEqual(guard.location, "location_hall")
-        player = state.actors[ActorId("player")]
+        player = state.get_actor(ActorId("player"))
         self.assertEqual(player.location, "location_room", "Player should not have moved")
 
     # ========== PERCEPTION TESTS ==========
@@ -213,7 +213,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
         behavior_manager = BehaviorManager()
 
         # Give player an item
-        player = state.actors[ActorId("player")]
+        player = state.get_actor(ActorId("player"))
         sword = state.get_item("item_sword")
         sword.location = "player"
         player.inventory.append("item_sword")
@@ -235,7 +235,7 @@ class TestPhase11MovementPerception(unittest.TestCase):
         behavior_manager = BehaviorManager()
 
         # Give player an item
-        player = state.actors[ActorId("player")]
+        player = state.get_actor(ActorId("player"))
         sword = state.get_item("item_sword")
         sword.location = "player"
         player.inventory.append("item_sword")

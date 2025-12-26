@@ -57,9 +57,9 @@ class TestUC3PackSync(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.alpha = self.engine.game_state.actors[ActorId('npc_alpha_wolf')]
-        self.wolf1 = self.engine.game_state.actors[ActorId('npc_wolf_1')]
-        self.wolf2 = self.engine.game_state.actors[ActorId('npc_wolf_2')]
+        self.alpha = self.engine.game_state.get_actor(ActorId('npc_alpha_wolf'))
+        self.wolf1 = self.engine.game_state.get_actor(ActorId('npc_wolf_1'))
+        self.wolf2 = self.engine.game_state.get_actor(ActorId('npc_wolf_2'))
 
     def test_pack_members_exist(self):
         """All pack members are loaded."""
@@ -127,9 +127,9 @@ class TestUC3Feeding(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
-        self.alpha = self.engine.game_state.actors[ActorId('npc_alpha_wolf')]
-        self.wolf1 = self.engine.game_state.actors[ActorId('npc_wolf_1')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
+        self.alpha = self.engine.game_state.get_actor(ActorId('npc_alpha_wolf'))
+        self.wolf1 = self.engine.game_state.get_actor(ActorId('npc_wolf_1'))
         self.venison = None
         for item in self.engine.game_state.items:
             if item.id == 'item_venison':
@@ -189,9 +189,9 @@ class TestUC3MoraleFlee(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
-        self.alpha = self.engine.game_state.actors[ActorId('npc_alpha_wolf')]
-        self.wolf1 = self.engine.game_state.actors[ActorId('npc_wolf_1')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
+        self.alpha = self.engine.game_state.get_actor(ActorId('npc_alpha_wolf'))
+        self.wolf1 = self.engine.game_state.get_actor(ActorId('npc_wolf_1'))
         # Move player to clearing
         self.player.location = 'loc_forest_clearing'
 
@@ -259,7 +259,7 @@ class TestUC3Relationship(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.alpha = self.engine.game_state.actors[ActorId('npc_alpha_wolf')]
+        self.alpha = self.engine.game_state.get_actor(ActorId('npc_alpha_wolf'))
 
     def test_no_initial_relationship(self):
         """Wolf starts with no relationship to player."""
@@ -299,7 +299,7 @@ class TestUC3Domestication(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.alpha = self.engine.game_state.actors[ActorId('npc_alpha_wolf')]
+        self.alpha = self.engine.game_state.get_actor(ActorId('npc_alpha_wolf'))
 
     def test_domestication_threshold(self):
         """Gratitude >= 3 triggers domestication threshold."""

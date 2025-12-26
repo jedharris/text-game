@@ -196,7 +196,7 @@ class TestAldricRescueScenarios(ScenarioTestCase):
     def test_teaching_succeeds_with_notes(self) -> None:
         """Can learn mycology with proper conditions and gift."""
         # Set up player
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         player.properties["skills"] = {}
 
         # Fully heal and max trust
@@ -401,7 +401,7 @@ class TestFungalDeathMarkScenarios(ScenarioTestCase):
         )
 
         # Player as killer
-        self.player = self.game_state.actors[ActorId("player")]
+        self.player = self.game_state.get_actor(ActorId("player"))
 
     def test_killing_fungal_creature_sets_mark(self) -> None:
         """Killing a fungal creature sets the death mark."""
@@ -497,7 +497,7 @@ class TestCombinedFungalScenarios(ScenarioTestCase):
 
     def test_kill_spore_mother_then_meet_myconid(self) -> None:
         """Killing Spore Mother then meeting Myconid shows cumulative effects."""
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
 
         # Kill Spore Mother - sets has_killed_fungi
         on_spore_mother_death(self.mother, self.accessor, {})

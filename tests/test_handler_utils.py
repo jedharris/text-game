@@ -274,7 +274,7 @@ class TestTransferItemToActor(BaseTestCase):
     def test_success(self):
         """Should transfer item to actor inventory"""
         item = self.game_state.get_item("item_sword")
-        actor = self.game_state.actors[ActorId("player")]
+        actor = self.game_state.get_actor(ActorId("player"))
         location = self.accessor.get_current_location("player")
 
         result, error = transfer_item_to_actor(
@@ -296,7 +296,7 @@ class TestTransferItemToActor(BaseTestCase):
     def test_behavior_denies(self):
         """Should return error when behavior denies"""
         item = self.game_state.get_item("item_sword")
-        actor = self.game_state.actors[ActorId("player")]
+        actor = self.game_state.get_actor(ActorId("player"))
         location = self.accessor.get_current_location("player")
 
         original_update = self.accessor.update
@@ -333,7 +333,7 @@ class TestTransferItemFromActor(BaseTestCase):
         """Should transfer item from actor inventory"""
         # Setup: put sword in inventory
         item = self.game_state.get_item("item_sword")
-        actor = self.game_state.actors[ActorId("player")]
+        actor = self.game_state.get_actor(ActorId("player"))
         location = self.accessor.get_current_location("player")
         actor.inventory.append("item_sword")
         item.location = "player"
@@ -356,7 +356,7 @@ class TestTransferItemFromActor(BaseTestCase):
     def test_behavior_denies(self):
         """Should return error when behavior denies"""
         item = self.game_state.get_item("item_sword")
-        actor = self.game_state.actors[ActorId("player")]
+        actor = self.game_state.get_actor(ActorId("player"))
         location = self.accessor.get_current_location("player")
         actor.inventory.append("item_sword")
         item.location = "player"

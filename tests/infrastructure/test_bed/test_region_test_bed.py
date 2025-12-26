@@ -172,7 +172,7 @@ class TestCustomContextLoader(unittest.TestCase):
 
         state = loader.load()
 
-        player = state.actors[ActorId("player")]
+        player = state.get_actor(ActorId("player"))
         self.assertEqual(player.properties["trust"]["current"], 5)
 
     def test_modify_actor_location(self) -> None:
@@ -191,7 +191,7 @@ class TestCustomContextLoader(unittest.TestCase):
         loader = CustomContextLoader(base, actor_locations={"player": loc_id})
 
         state = loader.load()
-        self.assertEqual(state.actors[ActorId("player")].location, loc_id)
+        self.assertEqual(state.get_actor(ActorId("player")).location, loc_id)
 
     def test_description_includes_mods(self) -> None:
         """Description includes modification summary."""
@@ -301,7 +301,7 @@ class TestRegionTestBed(unittest.TestCase):
         bed.load_context()
 
         # Get player's actual location
-        player_loc = bed.state.actors[ActorId("player")].location
+        player_loc = bed.state.get_actor(ActorId("player")).location
 
         # Should pass
         bed.assert_location("player", player_loc)

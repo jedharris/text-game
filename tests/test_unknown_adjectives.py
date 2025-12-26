@@ -268,8 +268,8 @@ class TestItemDisambiguation(unittest.TestCase):
 
         self.assertTrue(result.get("success"))
         # Verify correct key was taken
-        self.assertIn("key1", self.game_state.actors[ActorId("player")].inventory)
-        self.assertNotIn("key2", self.game_state.actors[ActorId("player")].inventory)
+        self.assertIn("key1", self.game_state.get_actor(ActorId("player")).inventory)
+        self.assertNotIn("key2", self.game_state.get_actor(ActorId("player")).inventory)
 
     def test_different_adjective_selects_other_item(self):
         """Test that different adjective selects other item."""
@@ -280,8 +280,8 @@ class TestItemDisambiguation(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertIn("key2", self.game_state.actors[ActorId("player")].inventory)
-        self.assertNotIn("key1", self.game_state.actors[ActorId("player")].inventory)
+        self.assertIn("key2", self.game_state.get_actor(ActorId("player")).inventory)
+        self.assertNotIn("key1", self.game_state.get_actor(ActorId("player")).inventory)
 
     def test_size_adjective_disambiguates(self):
         """Test that size adjectives work for disambiguation."""
@@ -292,7 +292,7 @@ class TestItemDisambiguation(unittest.TestCase):
         })
 
         self.assertTrue(result.get("success"))
-        self.assertIn("key1", self.game_state.actors[ActorId("player")].inventory)
+        self.assertIn("key1", self.game_state.get_actor(ActorId("player")).inventory)
 
     def test_ambiguous_adjective_picks_first(self):
         """Test behavior when adjective matches multiple items."""

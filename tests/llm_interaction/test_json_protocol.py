@@ -165,7 +165,7 @@ class _LLMProtocolHandlerReference:
 
         # Move item to inventory
         item.location = "player"
-        self.game_state.actors[ActorId("player")].inventory.append(item.id)
+        self.game_state.get_actor(ActorId("player")).inventory.append(item.id)
         if item.id in current_loc.items:
             current_loc.items.remove(item.id)
 
@@ -190,7 +190,7 @@ class _LLMProtocolHandlerReference:
 
         # Find item in inventory
         item = None
-        for item_id in self.game_state.actors[ActorId("player")].inventory:
+        for item_id in self.game_state.get_actor(ActorId("player")).inventory:
             i = self._get_item_by_id(item_id)
             if i and i.name == obj_name:
                 item = i
@@ -207,7 +207,7 @@ class _LLMProtocolHandlerReference:
         # Move item to current location
         current_loc = self._get_current_location()
         item.location = current_loc.id
-        self.game_state.actors[ActorId("player")].inventory.remove(item.id)
+        self.game_state.get_actor(ActorId("player")).inventory.remove(item.id)
         current_loc.items.append(item.id)
 
         return {
@@ -507,7 +507,7 @@ class _LLMProtocolHandlerReference:
     def _cmd_inventory(self, action: dict) -> dict:
         """Handle inventory command."""
         items = []
-        for item_id in self.game_state.actors[ActorId("player")].inventory:
+        for item_id in self.game_state.get_actor(ActorId("player")).inventory:
             item = self._get_item_by_id(item_id)
             if item:
                 items.append(self._entity_to_dict(item))
@@ -581,7 +581,7 @@ class _LLMProtocolHandlerReference:
     def _query_inventory(self, message: dict) -> dict:
         """Query player inventory."""
         items = []
-        for item_id in self.game_state.actors[ActorId("player")].inventory:
+        for item_id in self.game_state.get_actor(ActorId("player")).inventory:
             item = self._get_item_by_id(item_id)
             if item:
                 items.append(self._entity_to_dict(item))
@@ -696,7 +696,7 @@ class _LLMProtocolHandlerReference:
     def _get_current_location(self):
         """Get current location object."""
         for loc in self.game_state.locations:
-            if loc.id == self.game_state.actors[ActorId("player")].location:
+            if loc.id == self.game_state.get_actor(ActorId("player")).location:
                 return loc
         return None
 
@@ -754,7 +754,7 @@ class _LLMProtocolHandlerReference:
                 return item
 
         # Check inventory
-        for item_id in self.game_state.actors[ActorId("player")].inventory:
+        for item_id in self.game_state.get_actor(ActorId("player")).inventory:
             item = self._get_item_by_id(item_id)
             if item and item.name == name:
                 return item
@@ -789,7 +789,7 @@ class _LLMProtocolHandlerReference:
         if not lock:
             return False
 
-        return any(key_id in self.game_state.actors[ActorId("player")].inventory for key_id in lock.opens_with)
+        return any(key_id in self.game_state.get_actor(ActorId("player")).inventory for key_id in lock.opens_with)
 
     def _entity_to_dict(self, item) -> dict:
         """Convert item to dict with llm_context."""
@@ -878,7 +878,7 @@ class TestCommandMessages(unittest.TestCase):
         self.assertIn("key", get_result_message(result))
 
         # Verify state changed
-        self.assertIn("item_key", self.game_state.actors[ActorId("player")].inventory)
+        self.assertIn("item_key", self.game_state.get_actor(ActorId("player")).inventory)
 
     def test_take_item_not_found(self):
         """Test take command for non-existent item."""
@@ -913,7 +913,7 @@ class TestCommandMessages(unittest.TestCase):
     def test_drop_item_success(self):
         """Test successful drop command."""
         # First take the item
-        self.game_state.actors[ActorId("player")].inventory.append("item_key")
+        self.game_state.get_actor(ActorId("player")).inventory.append("item_key")
         self.game_state.items[1].location = "player"  # item_key
 
         message = {
@@ -925,7 +925,7 @@ class TestCommandMessages(unittest.TestCase):
 
         self.assertTrue(result["success"])
         self.assertEqual(result["action"], "drop")
-        self.assertNotIn("item_key", self.game_state.actors[ActorId("player")].inventory)
+        self.assertNotIn("item_key", self.game_state.get_actor(ActorId("player")).inventory)
 
     def test_drop_item_not_in_inventory(self):
         """Test drop command for item not in inventory."""
@@ -952,7 +952,7 @@ class TestCommandMessages(unittest.TestCase):
 
         self.assertTrue(result["success"])
         self.assertEqual(result["action"], "go")
-        self.assertEqual(self.game_state.actors[ActorId("player")].location, "loc_hallway")
+        self.assertEqual(self.game_state.get_actor(ActorId("player")).location, "loc_hallway")
 
     def test_go_invalid_direction(self):
         """Test movement in invalid direction."""
@@ -1005,7 +1005,7 @@ class TestCommandMessages(unittest.TestCase):
         # Move to hallway
         self.game_state.actors[ActorId("player")].location = "loc_hallway"
         # Give player the key
-        self.game_state.actors[ActorId("player")].inventory.append("item_key")
+        self.game_state.get_actor(ActorId("player")).inventory.append("item_key")
 
         # First unlock the door (use adjective + object as parser would produce)
         unlock_msg = {
@@ -1108,7 +1108,7 @@ class TestCommandMessages(unittest.TestCase):
         """Test unlocking a door with key."""
         # Move to hallway and give key
         self.game_state.actors[ActorId("player")].location = "loc_hallway"
-        self.game_state.actors[ActorId("player")].inventory.append("item_key")
+        self.game_state.get_actor(ActorId("player")).inventory.append("item_key")
 
         # Use adjective "iron" and object "door" (as parser would produce)
         message = {
@@ -1156,7 +1156,7 @@ class TestCommandMessages(unittest.TestCase):
     def test_inventory_command(self):
         """Test inventory command."""
         # Add item to inventory
-        self.game_state.actors[ActorId("player")].inventory.append("item_sword")
+        self.game_state.get_actor(ActorId("player")).inventory.append("item_sword")
 
         message = {
             "type": "command",
@@ -1605,7 +1605,7 @@ class TestEndToEndInteractions(unittest.TestCase):
             "action": {"verb": "go", "object": "north"}
         })
         self.assertTrue(result["success"])
-        self.assertEqual(self.game_state.actors[ActorId("player")].location, "loc_hallway")
+        self.assertEqual(self.game_state.get_actor(ActorId("player")).location, "loc_hallway")
 
         # Unlock iron door
         result = self.handler.handle_message({
@@ -1627,7 +1627,7 @@ class TestEndToEndInteractions(unittest.TestCase):
             "action": {"verb": "go", "object": "east"}
         })
         self.assertTrue(result["success"])
-        self.assertEqual(self.game_state.actors[ActorId("player")].location, "loc_treasure")
+        self.assertEqual(self.game_state.get_actor(ActorId("player")).location, "loc_treasure")
 
     def test_query_then_command_sequence(self):
         """Test querying state then executing command."""
@@ -1663,7 +1663,7 @@ class TestEndToEndInteractions(unittest.TestCase):
         """Test using adjective to disambiguate doors."""
         # Move to hallway (has two doors)
         self.game_state.actors[ActorId("player")].location = "loc_hallway"
-        self.game_state.actors[ActorId("player")].inventory.append("item_key")
+        self.game_state.get_actor(ActorId("player")).inventory.append("item_key")
 
         # Query doors
         result = self.handler.handle_message({
@@ -1805,7 +1805,7 @@ class TestLightSourceFunctionality(unittest.TestCase):
         self.assertIn("lantern", get_result_message(result).lower())
 
         # Verify item is in inventory
-        self.assertIn("item_lantern", self.game_state.actors[ActorId("player")].inventory)
+        self.assertIn("item_lantern", self.game_state.get_actor(ActorId("player")).inventory)
 
         # Verify item is marked as lit
         lantern = None

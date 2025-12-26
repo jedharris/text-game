@@ -55,7 +55,7 @@ class TestInventoryCommandRefactoring(BaseTestCase):
 
     def test_inventory_command_player_default(self):
         """Test inventory command defaults to player."""
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         player.inventory.append("item_sword")
 
         message = {
@@ -86,7 +86,7 @@ class TestInventoryCommandRefactoring(BaseTestCase):
         self.game_state.items.append(key)
 
         # Also put sword in player inventory
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         player.inventory.append("item_sword")
 
         message = {
@@ -102,7 +102,7 @@ class TestInventoryCommandRefactoring(BaseTestCase):
 
     def test_inventory_command_explicit_player(self):
         """Test inventory command with explicit player actor_id."""
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         player.inventory.append("item_sword")
 
         message = {

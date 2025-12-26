@@ -29,10 +29,10 @@ class TestPatrolStep(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        message = patrol_step(accessor, state.actors[ActorId('guard')])
+        message = patrol_step(accessor, state.get_actor(ActorId('guard')))
 
-        self.assertEqual(state.actors[ActorId('guard')].location, 'meadow')
-        self.assertEqual(state.actors[ActorId('guard')].properties['patrol_index'], 1)
+        self.assertEqual(state.get_actor(ActorId('guard')).location, 'meadow')
+        self.assertEqual(state.get_actor(ActorId('guard')).properties['patrol_index'], 1)
 
     def test_patrol_step_wraps_around(self):
         """Patrol wraps to start when reaching end of route."""
@@ -51,10 +51,10 @@ class TestPatrolStep(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        patrol_step(accessor, state.actors[ActorId('guard')])
+        patrol_step(accessor, state.get_actor(ActorId('guard')))
 
-        self.assertEqual(state.actors[ActorId('guard')].location, 'forest')
-        self.assertEqual(state.actors[ActorId('guard')].properties['patrol_index'], 0)
+        self.assertEqual(state.get_actor(ActorId('guard')).location, 'forest')
+        self.assertEqual(state.get_actor(ActorId('guard')).properties['patrol_index'], 0)
 
     def test_patrol_step_no_route_returns_none(self):
         """Returns None if no patrol route set."""
@@ -69,10 +69,10 @@ class TestPatrolStep(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        message = patrol_step(accessor, state.actors[ActorId('npc')])
+        message = patrol_step(accessor, state.get_actor(ActorId('npc')))
 
         self.assertIsNone(message)
-        self.assertEqual(state.actors[ActorId('npc')].location, 'forest')
+        self.assertEqual(state.get_actor(ActorId('npc')).location, 'forest')
 
 
 class TestWanderStep(unittest.TestCase):
@@ -99,13 +99,13 @@ class TestWanderStep(unittest.TestCase):
         # Run multiple times to ensure it moves
         moved = False
         for _ in range(10):
-            wander_step(accessor, state.actors[ActorId('hunter')])
-            if state.actors[ActorId('hunter')].location != 'forest':
+            wander_step(accessor, state.get_actor(ActorId('hunter')))
+            if state.get_actor(ActorId('hunter')).location != 'forest':
                 moved = True
                 break
 
         # Should have moved eventually (chance is 1.0)
-        self.assertTrue(moved or state.actors[ActorId('hunter')].location in ['forest', 'meadow', 'river'])
+        self.assertTrue(moved or state.get_actor(ActorId('hunter')).location in ['forest', 'meadow', 'river'])
 
     def test_wander_step_stays_when_chance_fails(self):
         """NPC stays in place when wander chance fails."""
@@ -124,9 +124,9 @@ class TestWanderStep(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        wander_step(accessor, state.actors[ActorId('hunter')])
+        wander_step(accessor, state.get_actor(ActorId('hunter')))
 
-        self.assertEqual(state.actors[ActorId('hunter')].location, 'forest')
+        self.assertEqual(state.get_actor(ActorId('hunter')).location, 'forest')
 
     def test_wander_step_no_area_returns_none(self):
         """Returns None if no wander area set."""
@@ -141,7 +141,7 @@ class TestWanderStep(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        message = wander_step(accessor, state.actors[ActorId('npc')])
+        message = wander_step(accessor, state.get_actor(ActorId('npc')))
 
         self.assertIsNone(message)
 
@@ -165,10 +165,10 @@ class TestSetPatrolRoute(unittest.TestCase):
         set_patrol_route(accessor, 'guard', ['forest', 'meadow', 'river'])
 
         self.assertEqual(
-            state.actors[ActorId('guard')].properties['patrol_route'],
+            state.get_actor(ActorId('guard')).properties['patrol_route'],
             ['forest', 'meadow', 'river']
         )
-        self.assertEqual(state.actors[ActorId('guard')].properties['patrol_index'], 0)
+        self.assertEqual(state.get_actor(ActorId('guard')).properties['patrol_index'], 0)
 
 
 class TestSetWanderArea(unittest.TestCase):
@@ -190,7 +190,7 @@ class TestSetWanderArea(unittest.TestCase):
         set_wander_area(accessor, 'hunter', ['forest', 'meadow', 'river'])
 
         self.assertEqual(
-            state.actors[ActorId('hunter')].properties['wander_area'],
+            state.get_actor(ActorId('hunter')).properties['wander_area'],
             ['forest', 'meadow', 'river']
         )
 
@@ -223,10 +223,10 @@ class TestOnNpcMovement(unittest.TestCase):
         accessor = StateAccessor(state, Mock())
         context = {'turn': 3}
 
-        on_npc_movement(state.actors[ActorId('guard')], accessor, context)
+        on_npc_movement(state.get_actor(ActorId('guard')), accessor, context)
 
         # Should move on turn 3 (divisible by 3)
-        self.assertEqual(state.actors[ActorId('guard')].location, 'meadow')
+        self.assertEqual(state.get_actor(ActorId('guard')).location, 'meadow')
 
     def test_on_npc_movement_skips_when_not_frequency(self):
         """NPC does not move when turn count doesn't match frequency."""
@@ -253,10 +253,10 @@ class TestOnNpcMovement(unittest.TestCase):
         accessor = StateAccessor(state, Mock())
         context = {'turn': 4}
 
-        on_npc_movement(state.actors[ActorId('guard')], accessor, context)
+        on_npc_movement(state.get_actor(ActorId('guard')), accessor, context)
 
         # Should NOT move on turn 4 (not divisible by 3)
-        self.assertEqual(state.actors[ActorId('guard')].location, 'forest')
+        self.assertEqual(state.get_actor(ActorId('guard')).location, 'forest')
 
 
 if __name__ == '__main__':

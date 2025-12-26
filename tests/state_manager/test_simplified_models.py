@@ -1171,11 +1171,11 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
 
         # Test with default (player)
         state.set_actor_location("loc_2")
-        self.assertEqual(state.actors[ActorId("player")].location, "loc_2")
+        self.assertEqual(state.get_actor(ActorId("player")).location, "loc_2")
 
         # Test with explicit actor
         state.set_actor_location("loc_2", actor_id="npc_guard")
-        self.assertEqual(state.actors[ActorId("npc_guard")].location, "loc_2")
+        self.assertEqual(state.get_actor(ActorId("npc_guard")).location, "loc_2")
 
     def test_set_actor_flag_and_get_actor_flag(self):
         """set_actor_flag and get_actor_flag work with any actor's properties."""

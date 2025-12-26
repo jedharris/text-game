@@ -56,9 +56,9 @@ class TestUC7SpiderPack(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.queen = self.engine.game_state.actors[ActorId('npc_spider_queen')]
-        self.worker1 = self.engine.game_state.actors[ActorId('npc_spider_worker_1')]
-        self.worker2 = self.engine.game_state.actors[ActorId('npc_spider_worker_2')]
+        self.queen = self.engine.game_state.get_actor(ActorId('npc_spider_queen'))
+        self.worker1 = self.engine.game_state.get_actor(ActorId('npc_spider_worker_1'))
+        self.worker2 = self.engine.game_state.get_actor(ActorId('npc_spider_worker_2'))
 
     def test_spiders_exist(self):
         """All spider pack members exist."""
@@ -95,7 +95,7 @@ class TestUC7SpiderPack(unittest.TestCase):
         self.assertTrue(is_spider_pack_member(self.worker1))
 
         # Player is not a spider
-        player = self.engine.game_state.actors[ActorId('player')]
+        player = self.engine.game_state.get_actor(ActorId('player'))
         self.assertFalse(is_spider_pack_member(player))
 
 
@@ -105,8 +105,8 @@ class TestUC7VenomAttack(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
-        self.queen = self.engine.game_state.actors[ActorId('npc_spider_queen')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
+        self.queen = self.engine.game_state.get_actor(ActorId('npc_spider_queen'))
         # Move player to gallery
         self.player.location = 'loc_spider_gallery'
 
@@ -158,7 +158,7 @@ class TestUC7WebBurning(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
         self.torch = None
         for item in self.engine.game_state.items:
             if item.id == 'item_torch':
@@ -232,10 +232,10 @@ class TestUC7AlertPropagation(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
-        self.queen = self.engine.game_state.actors[ActorId('npc_spider_queen')]
-        self.worker1 = self.engine.game_state.actors[ActorId('npc_spider_worker_1')]
-        self.worker2 = self.engine.game_state.actors[ActorId('npc_spider_worker_2')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
+        self.queen = self.engine.game_state.get_actor(ActorId('npc_spider_queen'))
+        self.worker1 = self.engine.game_state.get_actor(ActorId('npc_spider_worker_1'))
+        self.worker2 = self.engine.game_state.get_actor(ActorId('npc_spider_worker_2'))
 
     def test_spiders_not_alerted_initially(self):
         """Spiders start not alerted."""

@@ -264,16 +264,16 @@ class UpdateTypeAnnotation(cst.CSTTransformer):
 
 class WrapInOptional(cst.CSTTransformer):
     """Wrap specific type annotations in Optional[]."""
-    
+
     def __init__(self, type_name: str):
         self.type_name = type_name
         self.changes = 0
-    
+
     def leave_Annotation(self, original_node: cst.Annotation, updated_node: cst.Annotation) -> cst.Annotation:
         # Skip if already Optional
         if m.matches(updated_node.annotation, m.Subscript(value=m.Name("Optional"))):
             return updated_node
-        
+
         if m.matches(updated_node.annotation, m.Name(self.type_name)):
             self.changes += 1
             return updated_node.with_changes(
@@ -285,6 +285,82 @@ class WrapInOptional(cst.CSTTransformer):
                 )
             )
         return updated_node
+
+
+class ConvertActorsSubscriptToMethod(cst.CSTTransformer):
+    """
+    Convert state.actors[ActorId(...)] to state.get_actor(ActorId(...)).
+    Also handles self.game_state.actors[...] and similar patterns.
+
+    IMPORTANT: Only converts reads, not assignments.
+    """
+
+    def __init__(self):
+        self.changes = 0
+        self._in_assignment_target = False
+
+    def visit_AssignTarget(self, node: cst.AssignTarget) -> bool:
+        """Track when we're in an assignment target (LHS of =)."""
+        self._in_assignment_target = True
+        return True
+
+    def leave_AssignTarget(
+        self, original_node: cst.AssignTarget, updated_node: cst.AssignTarget
+    ) -> cst.AssignTarget:
+        """Exit assignment target context."""
+        self._in_assignment_target = False
+        return updated_node
+
+    def leave_Subscript(
+        self, original_node: cst.Subscript, updated_node: cst.Subscript
+    ) -> Union[cst.Subscript, cst.Call]:
+        """
+        Match pattern: <expr>.actors[<index>]
+        Transform to: <expr>.get_actor(<index>)
+
+        Skip if we're in an assignment target (LHS of =).
+        """
+        # Don't transform assignments
+        if self._in_assignment_target:
+            return updated_node
+
+        # Check if this is an .actors subscript
+        if not m.matches(
+            updated_node.value,
+            m.Attribute(attr=m.Name("actors"))
+        ):
+            return updated_node
+
+        # Extract the object that .actors is called on (e.g., "state", "self.game_state")
+        actors_attr = updated_node.value
+        if not isinstance(actors_attr, cst.Attribute):
+            return updated_node
+
+        state_obj = actors_attr.value
+
+        # Extract the index (the argument inside the brackets)
+        if not updated_node.slice:
+            return updated_node
+
+        # Handle both Index and direct value cases (LibCST version differences)
+        if isinstance(updated_node.slice[0].slice, cst.Index):
+            index_value = updated_node.slice[0].slice.value
+        else:
+            index_value = updated_node.slice[0].slice
+
+        # Transform to method call: state.get_actor(index)
+        self.changes += 1
+        return cst.Call(
+            func=cst.Attribute(
+                value=state_obj,
+                attr=cst.Name("get_actor")
+            ),
+            args=[cst.Arg(value=index_value)]
+        )
+
+    def leave_Annotation(self, original_node: cst.Annotation, updated_node: cst.Annotation) -> cst.Annotation:
+        """Don't transform Dict[ActorId, Actor] type annotations."""
+        return original_node
 
 
 # =============================================================================
@@ -381,23 +457,8 @@ def create_transformer() -> cst.CSTTransformer:
     Edit this function for your specific refactoring needs.
     """
 
-    # Example: Single transformer
-    # return RenameFunction("old_func", "new_func")
-
-    # Example: Composite transformer (multiple changes at once)
-    return CompositeTransformer([
-        # Uncomment and customize the transformers you need:
-
-        # RenameFunction("old_name", "new_name"),
-        # RenameKeywordArg("some_func", "old_arg", "new_arg"),
-        # ChangeMethodCall("old_method", "new_method"),
-        # UpdateTypeAnnotation("OldType", "NewType"),
-        # ReplaceAssertEqual(),
-        # RenameImportModule("old.module.path", "new.module.path"),
-
-        # Default: no-op placeholder (remove this when adding real transformers)
-        RenameFunction("__placeholder_do_not_use__", "__placeholder__"),
-    ])
+    # Current: Convert state.actors[...] to state.get_actor(...)
+    return ConvertActorsSubscriptToMethod()
 
 
 def main():

@@ -56,8 +56,8 @@ class TestUC6Treatment(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
-        self.merchant = self.engine.game_state.actors[ActorId('npc_merchant')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
+        self.merchant = self.engine.game_state.get_actor(ActorId('npc_merchant'))
         self.bandages = None
         for item in self.engine.game_state.items:
             if item.id == 'item_bandages':
@@ -118,8 +118,8 @@ class TestUC6Trading(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
-        self.merchant = self.engine.game_state.actors[ActorId('npc_merchant')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
+        self.merchant = self.engine.game_state.get_actor(ActorId('npc_merchant'))
         # Move player to forest road
         self.player.location = 'loc_forest_road'
 
@@ -154,8 +154,8 @@ class TestUC6Escort(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
-        self.merchant = self.engine.game_state.actors[ActorId('npc_merchant')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
+        self.merchant = self.engine.game_state.get_actor(ActorId('npc_merchant'))
         # Move player to forest road
         self.player.location = 'loc_forest_road'
 
@@ -223,8 +223,8 @@ class TestUC6Reward(unittest.TestCase):
     def setUp(self):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
-        self.merchant = self.engine.game_state.actors[ActorId('npc_merchant')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
+        self.merchant = self.engine.game_state.get_actor(ActorId('npc_merchant'))
         self.reward = None
         for item in self.engine.game_state.items:
             if item.id == 'item_merchant_pouch':

@@ -95,6 +95,13 @@ class ScenarioState:
         self.items: list[MockItem] = []
         self.locations: list[MockLocation] = []
 
+    def get_actor(self, actor_id: str) -> MockEntity:
+        """Get actor by ID."""
+        actor = self.actors.get(actor_id)
+        if actor:
+            return actor
+        raise KeyError(f"Actor not found: {actor_id}")
+
     def add_actor(
         self,
         actor_id: str,

@@ -98,7 +98,7 @@ class TestMagicStaircaseVisibility(unittest.TestCase):
     def setUp(self):
         """Set up spatial_game engine."""
         self.engine = GameEngine(SPATIAL_GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
 
     def _execute(self, verb, obj=None):
         """Execute a command and return the response."""
@@ -166,7 +166,7 @@ class TestMagicStarPuzzle(unittest.TestCase):
     def setUp(self):
         """Set up spatial_game engine."""
         self.engine = GameEngine(SPATIAL_GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
         # Start in garden where the tree and bench are
         self.player.location = 'loc_garden'
 
@@ -272,7 +272,7 @@ class TestExitDescriptions(unittest.TestCase):
     def setUp(self):
         """Set up spatial_game engine."""
         self.engine = GameEngine(SPATIAL_GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
 
     def _look(self):
         """Execute look and return formatted output."""
@@ -318,7 +318,7 @@ class TestFullPuzzleSolution(unittest.TestCase):
     def setUp(self):
         """Set up spatial_game engine."""
         self.engine = GameEngine(SPATIAL_GAME_DIR)
-        self.player = self.engine.game_state.actors[ActorId('player')]
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
         # Start in garden (the default start location)
         self.player.location = 'loc_garden'
 

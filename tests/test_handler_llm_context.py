@@ -175,7 +175,7 @@ class TestManipulationHandlersLlmContext(unittest.TestCase):
         # First take the sword so we can drop it
         sword = self.accessor.get_item("item_sword")
         sword.location = "player"
-        self.game_state.actors[ActorId("player")].inventory.append("item_sword")
+        self.game_state.get_actor(ActorId("player")).inventory.append("item_sword")
 
         action = make_action(object="sword", actor_id="player")
         result = handle_drop(self.accessor, action)

@@ -38,7 +38,7 @@ class TestGetAvailableTopics(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        topics = get_available_topics(accessor, state.actors[ActorId('scholar')])
+        topics = get_available_topics(accessor, state.get_actor(ActorId('scholar')))
 
         self.assertIn('infection', topics)
 
@@ -68,7 +68,7 @@ class TestGetAvailableTopics(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        topics = get_available_topics(accessor, state.actors[ActorId('scholar')])
+        topics = get_available_topics(accessor, state.get_actor(ActorId('scholar')))
 
         self.assertNotIn('cure', topics)
 
@@ -98,7 +98,7 @@ class TestGetAvailableTopics(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        topics = get_available_topics(accessor, state.actors[ActorId('scholar')])
+        topics = get_available_topics(accessor, state.get_actor(ActorId('scholar')))
 
         self.assertIn('cure', topics)
 
@@ -131,7 +131,7 @@ class TestGetTopicHints(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        hints = get_topic_hints(accessor, state.actors[ActorId('scholar')])
+        hints = get_topic_hints(accessor, state.get_actor(ActorId('scholar')))
 
         self.assertIn('infection', hints)
 
@@ -166,7 +166,7 @@ class TestHandleAskAbout(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        result = handle_ask_about(accessor, state.actors[ActorId('scholar')], 'sick')
+        result = handle_ask_about(accessor, state.get_actor(ActorId('scholar')), 'sick')
 
         self.assertTrue(result.success)
         self.assertIn('infection', result.response.lower())
@@ -198,9 +198,9 @@ class TestHandleAskAbout(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        handle_ask_about(accessor, state.actors[ActorId('scholar')], 'infection')
+        handle_ask_about(accessor, state.get_actor(ActorId('scholar')), 'infection')
 
-        self.assertTrue(state.actors[ActorId('player')].properties['flags'].get('knows_about_infection'))
+        self.assertTrue(state.get_actor(ActorId('player')).properties['flags'].get('knows_about_infection'))
 
     def test_handle_ask_about_unlocks_topics(self):
         """Unlocks new topics when discussed."""
@@ -236,9 +236,9 @@ class TestHandleAskAbout(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        handle_ask_about(accessor, state.actors[ActorId('scholar')], 'infection')
+        handle_ask_about(accessor, state.get_actor(ActorId('scholar')), 'infection')
 
-        unlocked = state.actors[ActorId('scholar')].properties.get('unlocked_topics', [])
+        unlocked = state.get_actor(ActorId('scholar')).properties.get('unlocked_topics', [])
         self.assertIn('cure', unlocked)
 
     def test_handle_ask_about_unknown_topic(self):
@@ -262,7 +262,7 @@ class TestHandleAskAbout(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        result = handle_ask_about(accessor, state.actors[ActorId('scholar')], 'dragons')
+        result = handle_ask_about(accessor, state.get_actor(ActorId('scholar')), 'dragons')
 
         self.assertTrue(result.success)  # Still succeeds, just with default message
         self.assertIn("don't know", result.response.lower())
@@ -296,7 +296,7 @@ class TestHandleTalkTo(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        result = handle_talk_to(accessor, state.actors[ActorId('scholar')])
+        result = handle_talk_to(accessor, state.get_actor(ActorId('scholar')))
 
         self.assertTrue(result.success)
         self.assertIn('infection', result.response.lower())
@@ -343,7 +343,7 @@ class TestRequiresState(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        return state, accessor, state.actors[ActorId('scholar')]
+        return state, accessor, state.get_actor(ActorId('scholar'))
 
     def test_requires_state_single_value_matches(self):
         """Topic with requires_state='cured' available when NPC in 'cured' state."""
@@ -419,7 +419,7 @@ class TestRequiresState(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        topics = get_available_topics(accessor, state.actors[ActorId('scholar')])
+        topics = get_available_topics(accessor, state.get_actor(ActorId('scholar')))
         self.assertIn('greeting', topics)
 
     def test_requires_state_no_state_machine(self):
@@ -476,7 +476,7 @@ class TestRequiresTrust(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        return state, accessor, state.actors[ActorId('npc')]
+        return state, accessor, state.get_actor(ActorId('npc'))
 
     def test_requires_trust_met(self):
         """Topic available when trust requirement is met."""
@@ -563,7 +563,7 @@ class TestTrustDelta(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        return state, accessor, state.actors[ActorId('scholar')]
+        return state, accessor, state.get_actor(ActorId('scholar'))
 
     def test_trust_delta_positive(self):
         """Topic with trust_delta=2 increases NPC trust by 2."""
@@ -644,7 +644,7 @@ class TestTrustDelta(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        npc = state.actors[ActorId('scholar')]
+        npc = state.get_actor(ActorId('scholar'))
 
         handle_ask_about(accessor, npc, 'infection')
 
@@ -689,7 +689,7 @@ class TestPerTopicHandler(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        npc = state.actors[ActorId('scholar')]
+        npc = state.get_actor(ActorId('scholar'))
 
         # Mock the handler loading
         mock_handler = MagicMock(return_value=EventResult(allow=True, feedback="Handler response"))
@@ -727,7 +727,7 @@ class TestPerTopicHandler(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        npc = state.actors[ActorId('scholar')]
+        npc = state.get_actor(ActorId('scholar'))
 
         # Mock handler returns None feedback - should fall through to summary
         mock_handler = MagicMock(return_value=EventResult(allow=True, feedback=None))
@@ -764,7 +764,7 @@ class TestPerTopicHandler(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        npc = state.actors[ActorId('scholar')]
+        npc = state.get_actor(ActorId('scholar'))
 
         mock_handler = MagicMock(return_value=EventResult(allow=True, feedback="Response"))
         with patch('behavior_libraries.dialog_lib.topics._load_topic_handler', return_value=mock_handler):
@@ -802,7 +802,7 @@ class TestPerTopicHandler(unittest.TestCase):
         )
 
         accessor = StateAccessor(state, Mock())
-        npc = state.actors[ActorId('scholar')]
+        npc = state.get_actor(ActorId('scholar'))
 
         result = handle_ask_about(accessor, npc, 'infection')
 

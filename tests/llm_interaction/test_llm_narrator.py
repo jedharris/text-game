@@ -393,13 +393,13 @@ class TestIntegration(unittest.TestCase):
         result2 = narrator.process_turn("pick up sword")
         self.assertEqual(narrator.call_count, 4)
         # Verify sword is now in inventory
-        self.assertIn("item_sword", self.game_state.actors[ActorId("player")].inventory)
+        self.assertIn("item_sword", self.game_state.get_actor(ActorId("player")).inventory)
 
         # Turn 3: Go north
         result3 = narrator.process_turn("go north")
         self.assertEqual(narrator.call_count, 6)
         # Verify player moved
-        self.assertEqual(self.game_state.actors[ActorId("player")].location, "loc_hallway")
+        self.assertEqual(self.game_state.get_actor(ActorId("player")).location, "loc_hallway")
 
     def test_unlock_and_open_door(self):
         """Test unlocking and opening a door."""

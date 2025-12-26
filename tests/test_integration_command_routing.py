@@ -80,12 +80,12 @@ class TestCommandRouting(unittest.TestCase):
         self.assertEqual(result["type"], "result")
         self.assertTrue(result["success"], f"take failed: {result}")
         # Verify state changed (item in inventory)
-        self.assertIn("item_sword", self.game_state.actors[ActorId("player")].inventory)
+        self.assertIn("item_sword", self.game_state.get_actor(ActorId("player")).inventory)
 
     def test_drop_routes_to_behavior_handler(self):
         """Test that 'drop' command uses behavior handler."""
         # Put item in inventory first
-        player = self.game_state.actors[ActorId("player")]
+        player = self.game_state.get_actor(ActorId("player"))
         player.inventory.append("item_sword")
         sword = self.game_state.get_item("item_sword")
         sword.location = "player"

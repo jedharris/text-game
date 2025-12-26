@@ -282,7 +282,7 @@ class TestHardcodedChestRemoval(unittest.TestCase):
         # Should succeed (it's a container)
         self.assertTrue(result.get("success"))
         # Should NOT set win flag (no behavior)
-        self.assertFalse(self.game_state.actors[ActorId("player")].flags.get("won", False))
+        self.assertFalse(self.game_state.get_actor(ActorId("player")).flags.get("won", False))
 
     def test_treasure_chest_sets_win_flag(self):
         """Test that treasure chest with behavior sets win flag."""
@@ -293,7 +293,7 @@ class TestHardcodedChestRemoval(unittest.TestCase):
 
         self.assertTrue(result.get("success"))
         # Should set win flag (behavior attached)
-        self.assertTrue(self.game_state.actors[ActorId("player")].flags.get("won", False))
+        self.assertTrue(self.game_state.get_actor(ActorId("player")).flags.get("won", False))
         # Should have behavior message
         self.assertIn("narration", result)
 
@@ -388,7 +388,7 @@ class TestBehaviorDrivenApproach(unittest.TestCase):
 
     def test_potion_with_behavior_heals(self):
         """Test that potion with behavior heals player."""
-        initial_health = self.game_state.actors[ActorId("player")].stats["health"]
+        initial_health = self.game_state.get_actor(ActorId("player")).stats["health"]
 
         # Take and drink
         self.handler.handle_command({
@@ -401,11 +401,11 @@ class TestBehaviorDrivenApproach(unittest.TestCase):
         })
 
         # Should have healed
-        self.assertGreater(self.game_state.actors[ActorId("player")].stats["health"], initial_health)
+        self.assertGreater(self.game_state.get_actor(ActorId("player")).stats["health"], initial_health)
 
     def test_water_without_behavior_no_heal(self):
         """Test that water without behavior doesn't heal."""
-        initial_health = self.game_state.actors[ActorId("player")].stats["health"]
+        initial_health = self.game_state.get_actor(ActorId("player")).stats["health"]
 
         # Take and drink
         self.handler.handle_command({
@@ -419,7 +419,7 @@ class TestBehaviorDrivenApproach(unittest.TestCase):
 
         # Should succeed but no healing
         self.assertTrue(result.get("success"))
-        self.assertEqual(self.game_state.actors[ActorId("player")].stats["health"], initial_health)
+        self.assertEqual(self.game_state.get_actor(ActorId("player")).stats["health"], initial_health)
         # Handler provides message (entity behavior may add to it)
         self.assertIn("narration", result)
         self.assertIn("drink", get_result_message(result).lower())
