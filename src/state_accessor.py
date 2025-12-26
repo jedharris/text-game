@@ -297,13 +297,10 @@ class StateAccessor:
         if result:
             return result
 
-        # Check actors (catches KeyError since get_actor now fails fast)
-        try:
-            result = self.get_actor(cast(ActorId, entity_id))
-            if result:
-                return result
-        except KeyError:
-            pass  # Not an actor, try other types
+        # Check actors (use .get() since None is valid when searching all types)
+        result = self.game_state.actors.get(cast(ActorId, entity_id))
+        if result:
+            return result
 
         # Check locks
         result = self.get_lock(cast(LockId, entity_id))
