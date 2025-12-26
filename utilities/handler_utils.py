@@ -493,3 +493,102 @@ def build_action_result(
         beats=beats or [],
         data=data if data is not None else serialize_for_handler_result(item, accessor, actor_id)
     )
+
+
+def _handle_door_or_container_state_change(
+    accessor: StateAccessor,
+    item: Union[Item, Any],
+    actor_id: ActorId,
+    target_state: bool,
+    verb: str,
+    move_msg: Optional[str] = None
+) -> HandlerResult:
+    """
+    Handle opening/closing doors and containers with unified logic.
+
+    Args:
+        accessor: StateAccessor instance
+        item: Door or container item to change state
+        actor_id: ID of actor performing action
+        target_state: True for open, False for closed
+        verb: Action verb ("open" or "close")
+        move_msg: Optional movement message from positioning
+
+    Returns:
+        HandlerResult with success flag, message, and data
+    """
+    # Build state verb ("open" or "closed")
+    state_verb = "open" if target_state else "closed"
+    opposite_state_verb = "closed" if target_state else "open"
+
+    # Check if it's a door item
+    if hasattr(item, 'is_door') and item.is_door:
+        beats = [move_msg] if move_msg else []
+
+        # Check if already in target state
+        if item.door_open == target_state:
+            data = serialize_for_handler_result(item, accessor, actor_id)
+            return HandlerResult(
+                success=True,
+                primary=f"The {item.name} is already {state_verb}.",
+                beats=beats,
+                data=data
+            )
+
+        # Check if locked (only applies to opening)
+        if target_state and item.door_locked:
+            return HandlerResult(
+                success=False,
+                primary=f"The {item.name} is locked."
+            )
+
+        # Update door state
+        item.door_open = target_state
+        data = serialize_for_handler_result(item, accessor, actor_id)
+        return HandlerResult(
+            success=True,
+            primary=f"You {verb} the {item.name}.",
+            beats=beats,
+            data=data
+        )
+
+    # Handle container
+    # Check if already in target state
+    if item.container and item.container.open == target_state:
+        data = serialize_for_handler_result(item, accessor, actor_id)
+        beats = [move_msg] if move_msg else []
+        return HandlerResult(
+            success=True,
+            primary=f"The {item.name} is already {state_verb}.",
+            beats=beats,
+            data=data
+        )
+
+    # Use accessor.update() to invoke behaviors for both open and close
+    result = accessor.update(
+        item,
+        {"container.open": target_state},
+        verb=verb,
+        actor_id=actor_id
+    )
+
+    if not result.success:
+        return HandlerResult(
+            success=False,
+            primary=result.detail or f"You can't {verb} the {item.name}."
+        )
+
+    # Build beats with move_msg and detail
+    beats = []
+    if move_msg:
+        beats.append(move_msg)
+    if result.detail:
+        beats.append(result.detail)
+
+    data = serialize_for_handler_result(item, accessor, actor_id)
+    return HandlerResult(
+        success=True,
+        primary=f"You {verb} the {item.name}.",
+        beats=beats,
+        data=data
+    )

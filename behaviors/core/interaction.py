@@ -10,7 +10,11 @@ from src.state_accessor import HandlerResult
 from src.state_manager import Item, Actor
 from src.types import ActorId
 from utilities.utils import find_accessible_item
-from utilities.handler_utils import find_action_target, find_openable_target
+from utilities.handler_utils import (
+    find_action_target,
+    find_openable_target,
+    _handle_door_or_container_state_change
+)
 from utilities.entity_serializer import serialize_for_handler_result
 from utilities.positioning import try_implicit_positioning
 
@@ -127,82 +131,25 @@ def handle_open(accessor, action):
     if error:
         return error
 
-    # Apply implicit positioning
-    moved, move_msg = try_implicit_positioning(accessor, actor_id, item)
+    # Check if it's a valid openable item
+    is_door = hasattr(item, 'is_door') and item.is_door
+    is_container = item.container is not None
 
-    # Check if it's a door item
-    if hasattr(item, 'is_door') and item.is_door:
-        beats = [move_msg] if move_msg else []
-        if item.door_open:
-            data = serialize_for_handler_result(item, accessor, actor_id)
-            return HandlerResult(
-                success=True,
-                primary=f"The {item.name} is already open.",
-                beats=beats,
-                data=data
-            )
-        if item.door_locked:
-            return HandlerResult(
-                success=False,
-                primary=f"The {item.name} is locked."
-            )
-        # Update state, then serialize to capture new state
-        item.door_open = True
-        data = serialize_for_handler_result(item, accessor, actor_id)
-        return HandlerResult(
-            success=True,
-            primary=f"You open the {item.name}.",
-            beats=beats,
-            data=data
-        )
-
-    # Check if it's a container
-    if not item.container:
+    if not is_door and not is_container:
         return HandlerResult(
             success=False,
             primary=f"You can't open the {item.name}."
         )
 
-    # Check if already open
-    if item.container.open:
-        data = serialize_for_handler_result(item, accessor, actor_id)
-        beats = [move_msg] if move_msg else []
-        return HandlerResult(
-            success=True,
-            primary=f"The {item.name} is already open.",
-            beats=beats,
-            data=data
-        )
+    # Apply implicit positioning
+    moved, move_msg = try_implicit_positioning(accessor, actor_id, item)
 
-    # Open the container using accessor.update() to invoke behaviors
-    result = accessor.update(
-        item,
-        {"container.open": True},
+    # Use unified state change logic
+    return _handle_door_or_container_state_change(
+        accessor, item, actor_id,
+        target_state=True,
         verb="open",
-        actor_id=actor_id
-    )
-
-    if not result.success:
-        return HandlerResult(
-            success=False,
-            primary=result.detail or f"You can't open the {item.name}."
-        )
-
-    # Build primary and beats
-    primary = f"You open the {item.name}."
-    beats = []
-    if move_msg:
-        beats.append(move_msg)
-    if result.detail:
-        beats.append(result.detail)
-
-    data = serialize_for_handler_result(item, accessor, actor_id)
-
-    return HandlerResult(
-        success=True,
-        primary=primary,
-        beats=beats,
-        data=data
+        move_msg=move_msg
     )
 
 
@@ -226,56 +173,25 @@ def handle_close(accessor, action):
     if error:
         return error
 
-    # Apply implicit positioning
-    moved, move_msg = try_implicit_positioning(accessor, actor_id, item)
+    # Check if it's a valid closeable item
+    is_door = hasattr(item, 'is_door') and item.is_door
+    is_container = item.container is not None
 
-    # Check if it's a door item
-    if hasattr(item, 'is_door') and item.is_door:
-        beats = [move_msg] if move_msg else []
-        if not item.door_open:
-            data = serialize_for_handler_result(item, accessor, actor_id)
-            return HandlerResult(
-                success=True,
-                primary=f"The {item.name} is already closed.",
-                beats=beats,
-                data=data
-            )
-        # Update state, then serialize to capture new state
-        item.door_open = False
-        data = serialize_for_handler_result(item, accessor, actor_id)
-        return HandlerResult(
-            success=True,
-            primary=f"You close the {item.name}.",
-            beats=beats,
-            data=data
-        )
-
-    # Check if it's a container
-    if not item.container:
+    if not is_door and not is_container:
         return HandlerResult(
             success=False,
             primary=f"You can't close the {item.name}."
         )
 
-    # Check if already closed
-    data = serialize_for_handler_result(item, accessor, actor_id)
-    beats = [move_msg] if move_msg else []
-    if not item.container.open:
-        return HandlerResult(
-            success=True,
-            primary=f"The {item.name} is already closed.",
-            beats=beats,
-            data=data
-        )
+    # Apply implicit positioning
+    moved, move_msg = try_implicit_positioning(accessor, actor_id, item)
 
-    # Close the container
-    item.container.open = False
-
-    return HandlerResult(
-        success=True,
-        primary=f"You close the {item.name}.",
-        beats=beats,
-        data=data
+    # Use unified state change logic
+    return _handle_door_or_container_state_change(
+        accessor, item, actor_id,
+        target_state=False,
+        verb="close",
+        move_msg=move_msg
     )
 
 
