@@ -19,10 +19,10 @@
 ### State Access
 - ✅ `accessor.game_state` (correct)
 - ❌ `accessor.state` (doesn't exist)
-- ✅ `state.get_item(id)` (items is a list)
-- ❌ `state.items.get(id)` (wrong)
-- ✅ `state.get_actor(id)` (fail-fast with clear error)
-- ⚠️ `state.actors.get(id)` (only when None is valid - optional actors)
+- ✅ `state.get_item(id)` (fail-fast - raises KeyError)
+- ❌ `state.items.get(id)` (wrong - items is a list)
+- ✅ `state.get_actor(id)` and `accessor.get_actor(id)` (both fail-fast - raise KeyError)
+- ⚠️ `state.actors.get(id)` (only when None is valid/expected - optional NPCs)
 - ❌ `state.actors[id]` (no clear error message)
 
 ### Handler Protocol
@@ -179,19 +179,14 @@ vocabulary: Dict[str, Any] = {
 ## Common Utilities
 
 ```python
-# State access - Two patterns:
-# 1. Direct state access (fail-fast for tests/internal code)
+# State access - Fail-fast pattern (catches authoring errors immediately)
 player = state.get_actor(ActorId("player"))  # Raises KeyError if missing
+actor = accessor.get_actor(actor_id)  # Raises KeyError if missing (same behavior)
 item = state.get_item(ItemId("sword"))  # Raises KeyError if missing
 location = state.get_location(LocationId("cave"))  # Raises KeyError if missing
 
-# 2. Accessor (graceful for handler utilities)
-actor = accessor.get_actor(actor_id)  # Returns Optional[Actor]
-if not actor:
-    return HandlerResult(success=False, primary="Actor not found")
-
-# 3. Optional actors (when None is expected)
-npc = state.actors.get("npc_guard")  # Returns None if missing
+# Optional actors (only when None is a valid/expected response)
+npc = state.actors.get("npc_guard")  # Returns Optional[Actor] - use for optional NPCs
 
 # State machines
 sm = actor.properties.get("state_machine", {})
