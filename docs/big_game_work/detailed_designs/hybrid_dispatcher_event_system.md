@@ -793,87 +793,132 @@ def npc_take_action(entity, accessor, context) -> EventResult:  # Changed from O
 
 ## 4. Implementation Strategy
 
-### 4.1 Phase 1: Add Sentinels (Backwards Compatible)
+**Design Principle**: No backwards compatibility layers or technical debt. Make atomic changes with clear fail-fast behavior.
 
-**Goal**: Add sentinels without breaking existing code.
+### 4.1 Phase 1: Add Sentinels and Enforce EventResult (Atomic)
 
-1. Add `_no_handler` and `_ignored` flags to EventResult
-2. Define NO_HANDLER and IGNORE_EVENT sentinels
-3. Update behavior_manager to return sentinels but still ACCEPT None from old handlers
-4. Add compatibility layer that converts None → NO_HANDLER
+**Goal**: Add sentinels, update all handlers to return EventResult, enforce fail-fast.
 
-**Compatibility layer**:
-```python
-def _normalize_result(result: Optional[EventResult]) -> EventResult:
-    """Convert None to NO_HANDLER for backwards compatibility."""
-    if result is None:
-        return NO_HANDLER
-    return result
-```
+**Step 1a: Add EventResult sentinels**
+1. Add `_no_handler` and `_ignored` flags to EventResult in `src/state_accessor.py`
+2. Define NO_HANDLER and IGNORE_EVENT sentinel instances
+3. Export sentinels from state_accessor module
 
-**Testing**: All existing tests should pass.
+**Step 1b: Update behavior_manager (fail-fast enforcement)**
+1. Update `_invoke_behavior_internal()` return type: `Optional[EventResult]` → `EventResult`
+2. Replace all `return None` with `return NO_HANDLER`
+3. Update `invoke_behavior()` to fail-fast when NO_HANDLER returned for entity-specific events
+4. Update `_invoke_global_event()` return type and None handling
 
-### 4.2 Phase 2: Update Combat Library
+**Step 1c: Update all existing event handlers atomically**
 
-**Goal**: Add hybrid dispatcher to combat.py.
+Files to update (all at once):
+- `behaviors/core/consumables.py` - on_drink, on_eat: `return None` → `return IGNORE_EVENT`
+- `behaviors/core/containers.py` - on_open: `return None` → `return IGNORE_EVENT`
+- `behaviors/core/light_sources.py` - on_take, on_drop, on_put: `return None` → `return IGNORE_EVENT`
+- `behavior_libraries/actor_lib/combat.py` - Update return types, replace None returns
+- `behavior_libraries/actor_lib/npc_actions.py` - Update return types, replace None returns
+- `behavior_libraries/actor_lib/conditions.py` - Update return types, replace None returns
+- Any other event handlers found via: `grep -r "def on_.*return None" behavior_libraries/ behaviors/`
 
-1. Add load_handler import
-2. Add on_damage and on_death handlers with escape hatch support
-3. Update on_attack to add escape hatch support
-4. Update on_death_check to return EventResult instead of Optional
-5. Update vocabulary registration
+**Step 1d: Update call sites**
+1. `examples/big_game/behaviors/shared/lib/core/attack_handler.py` - Remove `if result and hasattr(result, 'feedback')`
+2. `behavior_libraries/actor_lib/npc_actions.py` - Change `if not result` to `if result._ignored`
+3. Any other defensive None checks
 
 **Testing**:
-- Simple combat entity (no custom handler) - should work
-- Test with chair (no health) - should auto-ignore
-- Test with missing attacks property - should raise ValueError
+- All tests must pass
+- No backwards compatibility - handlers returning None will trigger fail-fast errors
+- This forces immediate discovery of any missed handlers
 
-### 4.3 Phase 3: Migrate Golem Combat
+**Rollback plan**: Single atomic commit - can be reverted completely if issues found.
 
-**Goal**: Convert golem_puzzle to use handler escape hatch.
+### 4.2 Phase 2: Add Hybrid Dispatcher to Combat Library
 
-1. Update game_state.json: add `damage_handler` property
-2. Rename `on_damage` → `on_golem_damaged` in golem_puzzle.py
-3. Remove on_damage from vocabulary
-4. Remove entity type checking boilerplate
-5. Remove health/armor checking boilerplate
+**Goal**: Add hybrid dispatcher pattern with handler escape hatch support.
 
-**Testing**: Run golem walkthrough, verify:
-- Player can attack golems
-- Golems take damage (armor reduction works)
-- Golems become hostile (both)
-- Golems counter-attack
-- Player dies when health <= 0
+**Step 2a: Add infrastructure**
+1. Import `load_handler` from `examples/big_game/behaviors/shared/infrastructure/dispatcher_utils`
+2. Update combat.py module docstring to document hybrid dispatcher pattern
 
-### 4.4 Phase 4: Update Call Sites
+**Step 2b: Add on_damage handler**
+1. Create new `on_damage()` event handler with:
+   - Handler escape hatch check via `damage_handler` property
+   - Auto-ignore for entities without `health` property
+   - Default damage application (damage - armor)
+   - Health validation (must be int/float)
+2. Register `on_damage` event in vocabulary
 
-**Goal**: Remove defensive None checks.
+**Step 2c: Add on_death handler**
+1. Create new `on_death()` event handler with:
+   - Handler escape hatch via `death_handler` property
+   - Default actor removal from game state
+   - Death announcement message
+2. Register `on_death` event in vocabulary
 
-1. attack_handler.py: Remove `if result and hasattr(result, 'feedback')`
-2. npc_actions.py: Update to check `_ignored` flag
-3. Any other None checks for EventResult
+**Step 2d: Update on_attack**
+1. Add handler escape hatch check via `attack_handler` property
+2. Keep existing attack logic as default implementation
+3. Update return type documentation
 
-**Testing**: All existing tests should still pass.
+**Step 2e: Update on_death_check**
+1. Ensure returns EventResult, not Optional
+2. Update to call new `on_death` handler via invoke_behavior
 
-### 4.5 Phase 5: Enforce EventResult Returns
+**Testing**:
+- Simple combat entity (no custom handler) - default damage/death works
+- Entity with health=0 triggers death
+- Non-combat entity (chair) - auto-ignores on_damage
+- Entity with custom handler - escape hatch called
 
-**Goal**: Make invoke_behavior fail-fast.
+### 4.3 Phase 3: Migrate Golem to Handler Escape Hatch
 
-1. Remove compatibility layer
-2. Add fail-fast logic for entity-specific events
-3. Update all remaining handlers to return IGNORE_EVENT instead of None
+**Goal**: Convert golem_puzzle.py to use handler escape hatch pattern.
 
-**Testing**: Should get clear errors for any missing handlers.
+**Step 3a: Update game_state.json**
+1. Add `"damage_handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_damaged"` to both golem properties
 
-### 4.6 Phase 6: Type Annotation Sweep
+**Step 3b: Update golem_puzzle.py**
+1. Rename `on_damage` → `on_golem_damaged` (function name)
+2. Remove `on_damage` from vocabulary (not a registered event anymore)
+3. Remove entity type checking (handler only called for golems now)
+4. Remove health/armor checking (combat library handles default)
+5. Keep game-specific logic: state transitions, linked golems, flags
 
-**Goal**: Update type annotations throughout codebase.
+**Step 3c: Clean up**
+1. Remove unnecessary boilerplate
+2. Update docstrings to reflect custom handler role
+3. Verify function signature matches: `(entity, accessor, context) -> EventResult`
 
-1. Change `Optional[EventResult]` → `EventResult`
-2. Run mypy on changed files
-3. Fix any type errors
+**Testing**: Run golem walkthrough `walkthroughs/test_combat_golem.txt`:
+- Player attacks golem → damage applied → custom handler triggers → both hostile
+- Turn advances → both golems counter-attack
+- Player takes damage
+- Player death at health <= 0
 
-**Testing**: `mypy src/ behavior_libraries/ examples/big_game/` should pass.
+### 4.4 Phase 4: Type Annotation Sweep
+
+**Goal**: Update type annotations throughout codebase to reflect EventResult always returned.
+
+**Step 4a: Update function signatures**
+1. `src/behavior_manager.py` - All invoke methods return `EventResult` not `Optional[EventResult]`
+2. All event handlers: `def on_<event>(...) -> EventResult:` (remove `Optional`)
+3. Helper functions in combat.py, npc_actions.py
+
+**Step 4b: Run mypy validation**
+```bash
+mypy src/ behavior_libraries/ behaviors/core/ examples/big_game/behaviors/
+```
+
+**Step 4c: Fix any type errors**
+- Remove unnecessary `Optional` wrapping
+- Remove `if result is None` checks (now impossible)
+- Update variable type hints
+
+**Testing**:
+- `mypy` passes with no errors
+- All unit tests pass
+- All walkthroughs pass
 
 ## 5. Error Messages
 
@@ -1061,7 +1106,7 @@ def on_golem_damaged(entity, accessor, context) -> EventResult:
 
 ### 9.1 Risk: Breaking Existing Code
 
-**Mitigation**: Phased implementation with compatibility layer in Phase 1.
+**Mitigation**: Atomic Phase 1 implementation with comprehensive testing. Single commit can be reverted if issues found. No compatibility layer means immediate discovery of all issues.
 
 ### 9.2 Risk: Handler Path Typos
 
@@ -1091,31 +1136,30 @@ def on_golem_damaged(entity, accessor, context) -> EventResult:
 
 ## 10. Success Criteria
 
-✅ **Phase 1**: No test failures after adding sentinels
-✅ **Phase 2**: Simple combat entity works with JSON only
-✅ **Phase 3**: Golem walkthrough passes after migration
-✅ **Phase 4**: All defensive None checks removed
-✅ **Phase 5**: Missing handlers fail fast with clear errors
-✅ **Phase 6**: Mypy passes on updated files
+✅ **Phase 1**: All event handlers return EventResult, fail-fast works, all tests pass
+✅ **Phase 2**: Combat library has hybrid dispatcher, simple entities work with JSON only
+✅ **Phase 3**: Golem walkthrough passes using handler escape hatch
+✅ **Phase 4**: Mypy passes on all updated files
 
 **Final validation**:
-- Run all existing walkthroughs
-- Create new simple combat NPC - should work with JSON only
-- Attack chair - should auto-ignore
-- Remove attacks from combat entity - should get clear error
+- Run all existing walkthroughs - should pass unchanged
+- Create new simple combat NPC - should work with JSON only (no custom code)
+- Attack chair - should auto-ignore (no health property)
+- Remove attacks from combat entity - should get clear error message
+- All tests pass with no backwards compatibility code
 
 ## 11. Parameter Naming Standardization
 
-### 11.1 Current Inconsistency
+### 11.1 Status: COMPLETE ✅
 
-**Analysis**: Event handlers have inconsistent parameter naming across the codebase.
+**Completed**: Parameter standardization finished in commit 72bccf7 (Phase 0 preparation work).
 
-**Files using `state` parameter** (OLD pattern):
+All core event handlers now use consistent `accessor` parameter naming. Files updated:
 - `behaviors/core/consumables.py` (on_drink, on_eat)
 - `behaviors/core/containers.py` (on_open)
 - `behaviors/core/light_sources.py` (on_take, on_drop, on_put)
 
-**Files using `accessor` parameter** (CORRECT pattern):
+These now match the pattern used in:
 - `behavior_libraries/actor_lib/combat.py`
 - `behavior_libraries/actor_lib/conditions.py`
 - `behavior_libraries/actor_lib/environment.py`
@@ -1238,39 +1282,28 @@ def on_eat(entity: Any, accessor: Any, context: Dict[str, Any]) -> EventResult:
     return EventResult(allow=True, feedback="You eat the food.")
 ```
 
-### 11.4 Implementation Plan
+### 11.2 Implementation Details
 
-**Add to Phase 6 (Type Annotation Sweep)**:
+**Tool Used**: LibCST automated refactoring via `tools/refactor_using_LibCST`
 
-**Step 6a: Core Behaviors Parameter Rename** (BEFORE type annotations)
-1. Update `behaviors/core/consumables.py`: Rename `state` → `accessor`, update returns
-2. Update `behaviors/core/containers.py`: Rename `state` → `accessor`, update returns
-3. Update `behaviors/core/light_sources.py`: Rename `state` → `accessor`, update returns
-4. Run tests: `python -m pytest tests/` - should pass
-5. Run sample walkthrough - should pass
+**Transformer**: `RenameEventHandlerParameter` - matches pattern `def on_<event>(entity, state, context)` and renames both the parameter and all uses in function body.
 
-**Step 6b: Type Annotation Updates** (AFTER parameter rename)
-1. Change return types `Optional[EventResult]` → `EventResult`
-2. Add Dict type annotations where missing
-3. Update docstrings
-4. Run mypy
+**Changes Made**:
+- Parameter rename: `state` → `accessor` in function signatures
+- All references to `state` in function bodies updated to `accessor`
+- Removed redundant type cast in consumables.py (mypy fix)
+- Removed unused import of `cast` and `ActorId`
 
 **Verification**:
 ```bash
-# Check for remaining 'state' parameters
+# Check for remaining 'state' parameters in event handlers
 grep -r "def on_.*entity.*state.*context" behaviors/ behavior_libraries/
-
-# Should return zero results after standardization
+# Returns zero results ✅
 ```
 
-### 11.5 Estimation
+### 11.3 Remaining Work
 
-**Additional work**: ~3 files, ~140 lines total
-- Mechanical changes (rename, update types)
-- Low risk (well-defined pattern)
-- High value (eliminates confusion, technical debt)
-
-**Testing impact**: Existing tests should pass unchanged (StateAccessor supports both patterns during transition)
+Parameter naming is standardized. The return type updates (`Optional[EventResult]` → `EventResult`) and None-to-sentinel conversions will be handled in Phase 1 of the hybrid dispatcher implementation.
 
 ## 12. Open Questions
 
