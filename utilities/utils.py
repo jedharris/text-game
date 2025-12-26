@@ -59,9 +59,7 @@ def find_actor_by_name(
     Returns:
         Actor if found, None otherwise
     """
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return None
+    actor = accessor.get_actor(actor_id)  # Raises KeyError if not found
 
     # Handle self-reference using name_matches
     # Parser returns canonical WordEntry with synonyms, so name_matches("self", "self") works
@@ -300,9 +298,7 @@ def find_accessible_item(
     Returns:
         Item if found, None otherwise
     """
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return None
+    actor = accessor.get_actor(actor_id)  # Raises KeyError if not found
 
     # Get current location
     location = accessor.get_current_location(actor_id)
@@ -412,9 +408,7 @@ def find_item_in_inventory(accessor: "StateAccessor", name: WordEntry, actor_id:
     Returns:
         Item if found in inventory, None otherwise
     """
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return None
+    actor = accessor.get_actor(actor_id)  # Raises KeyError if not found
 
     for item_id in actor.inventory:
         item = accessor.get_item(item_id)
@@ -482,9 +476,7 @@ def actor_has_key_for_door(accessor: "StateAccessor", actor_id: ActorId, door: "
         return False
 
     # Check if actor has any of these keys
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return False
+    actor = accessor.get_actor(actor_id)  # Raises KeyError if not found
 
     for key_id in key_ids:
         if key_id in actor.inventory:
@@ -1007,28 +999,27 @@ def describe_location(accessor: "StateAccessor", location: "Location", actor_id:
     message_parts = []
 
     # Add posture-aware prefix for elevated positions
-    actor = accessor.get_actor(actor_id)
-    if actor:
-        posture = actor.properties.get("posture")
-        focused_on = actor.properties.get("focused_on")
+    actor = accessor.get_actor(actor_id)  # Raises KeyError if not found
+    posture = actor.properties.get("posture")
+    focused_on = actor.properties.get("focused_on")
 
-        if posture == "climbing" and focused_on:
-            # Get the focused entity name
-            focused_entity = accessor.get_item(focused_on)
-            if focused_entity:
-                message_parts.append(f"[From the {focused_entity.name}]")
-        elif posture == "on_surface" and focused_on:
-            focused_entity = accessor.get_item(focused_on)
-            if focused_entity:
-                message_parts.append(f"[Standing on the {focused_entity.name}]")
-        elif posture == "cover" and focused_on:
-            focused_entity = accessor.get_item(focused_on)
-            if focused_entity:
-                message_parts.append(f"[Behind the {focused_entity.name}]")
-        elif posture == "concealed" and focused_on:
-            focused_entity = accessor.get_item(focused_on)
-            if focused_entity:
-                message_parts.append(f"[Hidden in the {focused_entity.name}]")
+    if posture == "climbing" and focused_on:
+        # Get the focused entity name
+        focused_entity = accessor.get_item(focused_on)
+        if focused_entity:
+            message_parts.append(f"[From the {focused_entity.name}]")
+    elif posture == "on_surface" and focused_on:
+        focused_entity = accessor.get_item(focused_on)
+        if focused_entity:
+            message_parts.append(f"[Standing on the {focused_entity.name}]")
+    elif posture == "cover" and focused_on:
+        focused_entity = accessor.get_item(focused_on)
+        if focused_entity:
+            message_parts.append(f"[Behind the {focused_entity.name}]")
+    elif posture == "concealed" and focused_on:
+        focused_entity = accessor.get_item(focused_on)
+        if focused_entity:
+            message_parts.append(f"[Hidden in the {focused_entity.name}]")
 
     message_parts.append(f"{location.name}\n{location.description}")
 

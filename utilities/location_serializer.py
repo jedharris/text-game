@@ -27,10 +27,7 @@ def _build_player_context(accessor, actor_id: ActorId) -> Dict[str, Any]:
     Returns:
         Dict with posture, focused_on, and optionally focused_entity_name
     """
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return {"posture": None, "focused_on": None}
-
+    actor = accessor.get_actor(actor_id)  # Raises KeyError if not found
     properties = actor.properties if hasattr(actor, 'properties') else {}
     posture = properties.get("posture")
     focused_on = properties.get("focused_on")

@@ -35,9 +35,7 @@ def try_implicit_positioning(accessor, actor_id: ActorId, target_entity) -> Tupl
         return (False, None)
 
     # Get actor
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return (False, None)
+    actor = accessor.get_actor(actor_id)  # Raises KeyError if not found
 
     # Check if already focused on this entity or its container
     current_focus = actor.properties.get("focused_on")

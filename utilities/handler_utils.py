@@ -84,12 +84,7 @@ def validate_actor_and_location(
             )
 
     # Validate actor exists
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return None, None, None, HandlerResult(
-            success=False,
-            primary=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
+    actor = accessor.get_actor(actor_id)  # Raises KeyError if not found
 
     # Validate location exists
     location = accessor.get_current_location(actor_id)
@@ -170,12 +165,7 @@ def find_action_target(
             primary=f"What do you want to {verb}?"
         )
 
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return None, HandlerResult(
-            success=False,
-            primary=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
+    actor = accessor.get_actor(actor_id)  # Raises KeyError if not found
 
     item = find_accessible_item(accessor, object_name, actor_id, adjective)
     if not item:
@@ -224,12 +214,7 @@ def find_openable_target(
             primary=f"What do you want to {verb}?"
         )
 
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return None, actor_id, HandlerResult(
-            success=False,
-            primary=f"INCONSISTENT STATE: Actor {actor_id} not found"
-        )
+    actor = accessor.get_actor(actor_id)  # Raises KeyError if not found
 
     # Get current location for door searches
     location = accessor.get_current_location(actor_id)

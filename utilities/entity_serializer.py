@@ -293,10 +293,7 @@ def _build_player_context(accessor: "StateAccessor", actor_id: "ActorId") -> Dic
     Returns:
         Dict with posture and focused_on keys
     """
-    actor = accessor.get_actor(actor_id)
-    if not actor:
-        return {"posture": None, "focused_on": None}
-
+    actor = accessor.get_actor(actor_id)  # Raises KeyError if not found
     return {
         "posture": actor.properties.get("posture"),
         "focused_on": actor.properties.get("focused_on")
