@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from src.state_manager import Actor, Part, Location, GameState, Metadata, Item
 from src.state_accessor import StateAccessor
+from src.state_accessor import IGNORE_EVENT
 
 
 class TestGetAttacks(unittest.TestCase):
@@ -446,7 +447,7 @@ class TestOnDeathCheck(unittest.TestCase):
 
         result = on_death_check(self.actor, mock_accessor, {})
 
-        self.assertIsNone(result)
+        self.assertEqual(result, IGNORE_EVENT)
         mock_accessor.behavior_manager.invoke_behavior.assert_not_called()
 
     def test_death_check_skips_no_health(self):
@@ -466,7 +467,7 @@ class TestOnDeathCheck(unittest.TestCase):
 
         result = on_death_check(actor, mock_accessor, {})
 
-        self.assertIsNone(result)
+        self.assertEqual(result, IGNORE_EVENT)
 
     def test_death_check_uses_on_death_behavior_message(self):
         """Death check uses message from on_death behavior if provided."""

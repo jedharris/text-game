@@ -5,6 +5,7 @@ from unittest.mock import Mock, MagicMock
 
 from src.state_manager import Actor, Part, Location, GameState, Metadata
 from src.state_accessor import StateAccessor
+from src.state_accessor import IGNORE_EVENT
 
 
 class TestNeedsBreath(unittest.TestCase):
@@ -88,7 +89,7 @@ class TestCheckBreath(unittest.TestCase):
         result = check_breath(self.actor, self.breathable_part)
 
         self.assertEqual(self.actor.properties["breath"], 60)
-        self.assertIsNone(result)  # No message when just restoring
+        self.assertEqual(result, IGNORE_EVENT)  # No message when just restoring
 
     def test_check_breath_underwater_decreases(self):
         """Breath decreases by 10 in non-breathable area."""
@@ -140,7 +141,7 @@ class TestCheckBreath(unittest.TestCase):
 
         result = check_breath(construct, self.underwater_part)
 
-        self.assertIsNone(result)
+        self.assertEqual(result, IGNORE_EVENT)
 
     def test_check_breath_with_breathing_item(self):
         """Actor with breathing item doesn't lose breath."""
@@ -159,7 +160,7 @@ class TestCheckBreath(unittest.TestCase):
 
         # Breath should not decrease
         self.assertEqual(self.actor.properties["breath"], 60)
-        self.assertIsNone(result)
+        self.assertEqual(result, IGNORE_EVENT)
 
     def test_check_breath_breathing_item_blocked(self):
         """Breathing item doesn't work if part blocks it."""
@@ -232,7 +233,7 @@ class TestCheckSpores(unittest.TestCase):
 
         result = check_spores(self.actor, part)
 
-        self.assertIsNone(result)
+        self.assertEqual(result, IGNORE_EVENT)
         self.assertNotIn("conditions", self.actor.properties)
 
     def test_check_spores_low(self):
@@ -336,7 +337,7 @@ class TestCheckSpores(unittest.TestCase):
 
         result = check_spores(construct, part)
 
-        self.assertIsNone(result)
+        self.assertEqual(result, IGNORE_EVENT)
         self.assertNotIn("conditions", construct.properties)
 
     def test_check_spores_no_level_property(self):
@@ -352,7 +353,7 @@ class TestCheckSpores(unittest.TestCase):
 
         result = check_spores(self.actor, part)
 
-        self.assertIsNone(result)
+        self.assertEqual(result, IGNORE_EVENT)
 
 
 class TestCheckTemperature(unittest.TestCase):
@@ -382,7 +383,7 @@ class TestCheckTemperature(unittest.TestCase):
 
         result = check_temperature(self.actor, part)
 
-        self.assertIsNone(result)
+        self.assertEqual(result, IGNORE_EVENT)
 
     def test_check_temperature_freezing(self):
         """Freezing temperature applies hypothermia."""
@@ -438,7 +439,7 @@ class TestCheckTemperature(unittest.TestCase):
 
         result = check_temperature(construct, part)
 
-        self.assertIsNone(result)
+        self.assertEqual(result, IGNORE_EVENT)
 
     def test_check_temperature_no_property(self):
         """Part without temperature property has no effect."""
@@ -453,7 +454,7 @@ class TestCheckTemperature(unittest.TestCase):
 
         result = check_temperature(self.actor, part)
 
-        self.assertIsNone(result)
+        self.assertEqual(result, IGNORE_EVENT)
 
 
 class TestApplyEnvironmentalEffects(unittest.TestCase):

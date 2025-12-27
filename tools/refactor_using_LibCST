@@ -443,6 +443,113 @@ class RenameEventHandlerParameter(cst.CSTTransformer):
         return updated_node
 
 
+class ReplaceAssertIsNoneWithIgnoreEvent(cst.CSTTransformer):
+    """
+    Replace self.assertIsNone(result) with self.assertEqual(result, IGNORE_EVENT) in tests.
+    Also adds import for IGNORE_EVENT if not present.
+    """
+
+    def __init__(self):
+        self.changes = 0
+        self.needs_import = False
+
+    def leave_Call(self, original_node: cst.Call, updated_node: cst.Call) -> cst.Call:
+        """Replace self.assertIsNone(result) calls."""
+        # Match pattern: self.assertIsNone(result)
+        if m.matches(
+            updated_node,
+            m.Call(
+                func=m.Attribute(
+                    value=m.Name("self"),
+                    attr=m.Name("assertIsNone")
+                ),
+                args=[m.Arg(value=m.Name("result"))]
+            )
+        ):
+            self.changes += 1
+            self.needs_import = True
+            # Replace with self.assertEqual(result, IGNORE_EVENT)
+            return updated_node.with_changes(
+                func=cst.Attribute(
+                    value=cst.Name("self"),
+                    attr=cst.Name("assertEqual")
+                ),
+                args=[
+                    cst.Arg(value=cst.Name("result")),
+                    cst.Arg(value=cst.Name("IGNORE_EVENT"))
+                ]
+            )
+
+        # Also match: self.assertEqual(result, None)
+        if m.matches(
+            updated_node,
+            m.Call(
+                func=m.Attribute(
+                    value=m.Name("self"),
+                    attr=m.Name("assertEqual")
+                ),
+                args=[m.Arg(value=m.Name("result")), m.Arg(value=m.Name("None"))]
+            )
+        ):
+            self.changes += 1
+            self.needs_import = True
+            # Replace None with IGNORE_EVENT
+            return updated_node.with_changes(
+                args=[
+                    cst.Arg(value=cst.Name("result")),
+                    cst.Arg(value=cst.Name("IGNORE_EVENT"))
+                ]
+            )
+
+        return updated_node
+
+    def leave_Module(self, original_node: cst.Module, updated_node: cst.Module) -> cst.Module:
+        """Add IGNORE_EVENT import if changes were made."""
+        if not self.needs_import or not self.changes:
+            return updated_node
+
+        # Check if import already exists
+        for statement in updated_node.body:
+            if m.matches(
+                statement,
+                m.SimpleStatementLine(
+                    body=[m.ImportFrom(module=m.Attribute(value=m.Name("src"), attr=m.Name("state_accessor")))]
+                )
+            ):
+                # Import already exists, check if IGNORE_EVENT is in it
+                import_node = statement.body[0]
+                if isinstance(import_node, cst.ImportFrom):
+                    if any(isinstance(n, cst.ImportAlias) and n.name.value == "IGNORE_EVENT"
+                           for n in (import_node.names if not isinstance(import_node.names, cst.ImportStar) else [])):
+                        return updated_node  # Already has the import
+
+        # Add new import at the top (after existing imports)
+        new_import = cst.SimpleStatementLine(
+            body=[
+                cst.ImportFrom(
+                    module=cst.Attribute(
+                        value=cst.Name("src"),
+                        attr=cst.Name("state_accessor")
+                    ),
+                    names=[cst.ImportAlias(name=cst.Name("IGNORE_EVENT"))]
+                )
+            ]
+        )
+
+        # Find position to insert (after last import)
+        insert_pos = 0
+        for i, statement in enumerate(updated_node.body):
+            if isinstance(statement, (cst.SimpleStatementLine, cst.SimpleStatementSuite)):
+                if any(isinstance(s, (cst.Import, cst.ImportFrom)) for s in
+                       (statement.body if hasattr(statement, 'body') else [statement])):
+                    insert_pos = i + 1
+
+        new_body = list(updated_node.body)
+        new_body.insert(insert_pos, new_import)
+
+        return updated_node.with_changes(body=new_body)
+
+
 # =============================================================================
 # COMPOSITE TRANSFORMER - Combine multiple transformers
 # =============================================================================
@@ -537,8 +644,8 @@ def create_transformer() -> cst.CSTTransformer:
     Edit this function for your specific refactoring needs.
     """
 
-    # Current: Rename 'state' parameter to 'accessor' in event handlers
-    return RenameEventHandlerParameter()
+    # Current: Replace assertIsNone(result) with assertEqual(result, IGNORE_EVENT) in tests
+    return ReplaceAssertIsNoneWithIgnoreEvent()
 
 
 def main():

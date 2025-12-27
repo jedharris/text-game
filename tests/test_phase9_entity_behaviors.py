@@ -17,6 +17,7 @@ from src.state_accessor import StateAccessor, EventResult, UpdateResult
 from src.behavior_manager import BehaviorManager
 from src.state_manager import Item
 from tests.conftest import create_test_state
+from src.state_accessor import IGNORE_EVENT
 
 
 class TestPhase9EntityBehaviors(unittest.TestCase):
@@ -234,7 +235,7 @@ class TestPhase9EntityBehaviors(unittest.TestCase):
         context = {"actor_id": "player", "changes": {}, "verb": "take"}
         result = behavior_manager.invoke_behavior(item, "on_take", accessor, context)
 
-        self.assertIsNone(result)
+        self.assertEqual(result, IGNORE_EVENT)
 
     def test_invoke_behavior_no_matching_event(self):
         """Test that invoke_behavior returns None when no behaviors define the event."""
@@ -267,7 +268,7 @@ class TestPhase9EntityBehaviors(unittest.TestCase):
         context = {"actor_id": "player", "changes": {}, "verb": "take"}
         result = behavior_manager.invoke_behavior(item, "on_take", accessor, context)
 
-        self.assertIsNone(result)
+        self.assertEqual(result, IGNORE_EVENT)
 
     def test_update_without_verb_skips_behavior(self):
         """Test that update() without a verb doesn't invoke behaviors."""

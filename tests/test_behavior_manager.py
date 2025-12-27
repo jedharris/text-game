@@ -244,12 +244,14 @@ class TestBehaviorManagerInvokeBehavior(unittest.TestCase):
         manager = BehaviorManager()
 
         entity = Mock(spec=[])  # No behaviors attribute
+        entity.id = "test_entity"
         state = Mock()
         context: dict[str, Any] = {}
 
         result = manager.invoke_behavior(entity, "on_squeeze", state, context)
 
-        self.assertIsNone(result)
+        # Should return IGNORE_EVENT (all events are optional)
+        self.assertEqual(result, IGNORE_EVENT)
 
     def test_invoke_behavior_empty_behaviors(self):
         """Test invoking behavior on entity with empty behaviors dict."""
@@ -328,7 +330,9 @@ class TestBehaviorManagerInvokeBehavior(unittest.TestCase):
 
         result = manager.invoke_behavior(entity, "on_squeeze", state, context)
 
-        self.assertIsNone(result)
+        # Handler returned non-EventResult, so no valid results found
+        # Should return IGNORE_EVENT (all events are optional)
+        self.assertEqual(result, IGNORE_EVENT)
 
 
 class TestBehaviorManagerVocabulary(unittest.TestCase):

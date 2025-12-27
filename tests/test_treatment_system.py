@@ -5,6 +5,7 @@ from unittest.mock import Mock
 
 from src.state_manager import Actor, Item, Location, GameState, Metadata
 from src.state_accessor import StateAccessor
+from src.state_accessor import IGNORE_EVENT
 
 
 class TestGetTreatableConditions(unittest.TestCase):
@@ -454,7 +455,7 @@ class TestOnReceiveTreatment(unittest.TestCase):
         result = on_receive_treatment(actor, accessor, context)
 
         # No treatment applied
-        self.assertIsNone(result)
+        self.assertEqual(result, IGNORE_EVENT)
 
     def test_on_receive_non_curative_item(self):
         """No auto-treatment for non-curative items."""
@@ -495,7 +496,7 @@ class TestOnReceiveTreatment(unittest.TestCase):
 
         result = on_receive_treatment(actor, accessor, context)
 
-        self.assertIsNone(result)
+        self.assertEqual(result, IGNORE_EVENT)
 
 
 class TestTreatmentVocabulary(unittest.TestCase):

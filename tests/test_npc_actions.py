@@ -5,6 +5,7 @@ from unittest.mock import Mock, MagicMock
 
 from src.state_manager import Actor, Location, GameState, Metadata
 from src.state_accessor import StateAccessor
+from src.state_accessor import IGNORE_EVENT
 
 
 class TestNPCTakeAction(unittest.TestCase):
@@ -113,7 +114,7 @@ class TestNPCTakeAction(unittest.TestCase):
         result = npc_take_action(self.neutral_npc, accessor, context)
 
         # Should do nothing
-        self.assertIsNone(result)
+        self.assertEqual(result, IGNORE_EVENT)
 
         # Player health unchanged
         self.assertEqual(self.player.properties["health"], 100)
@@ -143,7 +144,7 @@ class TestNPCTakeAction(unittest.TestCase):
         result = npc_take_action(self.hostile_npc, accessor, context)
 
         # Should do nothing - not in same location
-        self.assertIsNone(result)
+        self.assertEqual(result, IGNORE_EVENT)
 
     def test_npc_action_no_attacks(self):
         """Hostile NPC without attacks does nothing."""
@@ -177,7 +178,7 @@ class TestNPCTakeAction(unittest.TestCase):
 
         result = npc_take_action(unarmed_hostile, accessor, {})
 
-        self.assertIsNone(result)
+        self.assertEqual(result, IGNORE_EVENT)
 
     def test_npc_action_no_ai_property(self):
         """NPC without ai property is treated as neutral."""
@@ -208,7 +209,7 @@ class TestNPCTakeAction(unittest.TestCase):
 
         result = npc_take_action(no_ai_npc, accessor, {})
 
-        self.assertIsNone(result)
+        self.assertEqual(result, IGNORE_EVENT)
 
 
 class TestFireNPCActions(unittest.TestCase):

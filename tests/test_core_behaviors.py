@@ -554,7 +554,9 @@ class TestBehaviorFunctionSignatures(unittest.TestCase):
         result = on_drink(entity, state, context)
 
         # Should return None to allow other handlers to process
-        self.assertIsNone(result)
+        # Should return IGNORE_EVENT (events are optional)
+        from src.state_accessor import IGNORE_EVENT
+        self.assertEqual(result, IGNORE_EVENT)
 
     def test_on_eat_returns_event_result_for_edible(self):
         """Test that on_eat returns EventResult for edible items."""
@@ -595,7 +597,9 @@ class TestBehaviorFunctionSignatures(unittest.TestCase):
         result = on_eat(entity, state, context)
 
         # Should return None to allow other handlers to process
-        self.assertIsNone(result)
+        # Should return IGNORE_EVENT (events are optional)
+        from src.state_accessor import IGNORE_EVENT
+        self.assertEqual(result, IGNORE_EVENT)
 
     def test_on_take_light_source_returns_event_result(self):
         """Test that on_take returns EventResult."""
@@ -670,7 +674,9 @@ class TestBehaviorFunctionSignatures(unittest.TestCase):
         result = on_open(entity, state, context)
 
         # Should return None to allow other handlers to process
-        self.assertIsNone(result)
+        # Should return IGNORE_EVENT (events are optional)
+        from src.state_accessor import IGNORE_EVENT
+        self.assertEqual(result, IGNORE_EVENT)
 
 
 if __name__ == '__main__':
