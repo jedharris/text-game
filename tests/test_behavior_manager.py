@@ -16,6 +16,7 @@ from src.behavior_manager import (
     EventResult,
     get_behavior_manager
 )
+from src.state_accessor import IGNORE_EVENT
 
 
 class TestEventResult(unittest.TestCase):
@@ -256,12 +257,14 @@ class TestBehaviorManagerInvokeBehavior(unittest.TestCase):
 
         entity = Mock()
         entity.behaviors = []
+        entity.id = "test_entity"
         state = Mock()
         context: dict[str, Any] = {}
 
         result = manager.invoke_behavior(entity, "on_squeeze", state, context)
 
-        self.assertIsNone(result)
+        # Should return IGNORE_EVENT (all events are optional)
+        self.assertEqual(result, IGNORE_EVENT)
 
     def test_invoke_behavior_event_not_registered(self):
         """Test invoking unregistered event on entity."""
@@ -269,6 +272,7 @@ class TestBehaviorManagerInvokeBehavior(unittest.TestCase):
 
         entity = Mock()
         entity.behaviors = ["test.module"]
+        entity.id = "test_entity"
         state = Mock()
         context: dict[str, Any] = {}
 
@@ -279,7 +283,8 @@ class TestBehaviorManagerInvokeBehavior(unittest.TestCase):
 
         result = manager.invoke_behavior(entity, "on_squeeze", state, context)
 
-        self.assertIsNone(result)
+        # Should return IGNORE_EVENT (all events are optional)
+        self.assertEqual(result, IGNORE_EVENT)
 
     def test_invoke_behavior_propagates_exception(self):
         """Test that behavior exceptions propagate (fail-fast for coding errors)."""

@@ -310,16 +310,17 @@ class TestUC5ConstructImmune(unittest.TestCase):
     def test_construct_unaffected_by_water(self):
         """Constructs don't lose breath underwater."""
         from behavior_libraries.actor_lib.environment import check_breath
+        from src.state_accessor import IGNORE_EVENT
 
         shallow = _get_part(self.engine, 'part_underwater_shallow')
         accessor = _create_accessor(self.engine)
 
         # Golem should not have breath tracking at all
-        # check_breath should return None for constructs
+        # check_breath should return IGNORE_EVENT for constructs
 
         msg = check_breath(self.golem, shallow, accessor)
 
-        self.assertIsNone(msg)
+        self.assertEqual(msg, IGNORE_EVENT)
 
     def test_construct_immune_to_drowning(self):
         """Constructs cannot drown even with 0 breath."""

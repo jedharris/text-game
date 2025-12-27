@@ -6,6 +6,7 @@ Handles extracting items frozen in ice using heat sources or risky chipping.
 from typing import Any, Dict
 
 from src.behavior_manager import EventResult
+from src.state_accessor import IGNORE_EVENT
 from utilities.utils import find_accessible_item
 
 # Vocabulary: wire on_take event to frozen items
@@ -20,6 +21,11 @@ vocabulary: Dict[str, Any] = {
             "event": "on_use",
             "handler": "on_use",
             "description": "Handle using heat sources on frozen items"
+        },
+        {
+            "event": "on_observe",
+            "handler": "on_observe",
+            "description": "Handle observe event (uses standard description)"
         }
     ],
     # Add extraction verbs
@@ -234,3 +240,23 @@ def _check_for_heat_source(actor: Any, state: Any) -> bool:
             return True
 
     return False
+
+
+def on_observe(
+    entity: Any,
+    accessor: Any,
+    context: dict[str, Any],
+) -> EventResult:
+    """Handle observe event for ice extraction items.
+
+    Uses standard description.
+
+    Args:
+        entity: The item
+        accessor: StateAccessor instance
+        context: Context dict
+
+    Returns:
+        IGNORE_EVENT to use standard description
+    """
+    return IGNORE_EVENT

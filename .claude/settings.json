@@ -1,10 +1,7 @@
 {
-    "includeCoAuthoredBy": true,
-    "allowedTools": [
-      "mcp__claude-context"
-    ]
-    "permissions": {
+     "permissions": {
       "allow": [
+        "mcp__claude-context",
         "gh:*",
         "Bash(gh:*)"
       ],

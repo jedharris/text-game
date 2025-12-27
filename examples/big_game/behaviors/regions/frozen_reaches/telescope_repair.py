@@ -9,6 +9,7 @@ Handles repairing the frozen telescope with three components:
 from typing import Any, Dict
 
 from src.behavior_manager import EventResult
+from src.state_accessor import IGNORE_EVENT
 
 # Vocabulary: wire repair-related verbs
 vocabulary: Dict[str, Any] = {
@@ -22,6 +23,11 @@ vocabulary: Dict[str, Any] = {
             "event": "on_examine",
             "handler": "on_examine",
             "description": "Handle examining the telescope"
+        },
+        {
+            "event": "on_observe",
+            "handler": "on_observe",
+            "description": "Handle observe event (uses standard description)"
         }
     ],
     "verbs": [
@@ -173,6 +179,27 @@ def on_use(
     feedback = _generate_telescope_view(state)
 
     return EventResult(allow=True, feedback=feedback)
+
+
+def on_observe(
+    entity: Any,
+    accessor: Any,
+    context: dict[str, Any],
+) -> EventResult:
+    """Handle observe event for telescope.
+
+    The telescope doesn't need special observe behavior - it uses
+    its standard description.
+
+    Args:
+        entity: The telescope
+        accessor: StateAccessor instance
+        context: Context dict
+
+    Returns:
+        IGNORE_EVENT to use standard description
+    """
+    return IGNORE_EVENT
 
 
 def on_examine(

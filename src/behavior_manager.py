@@ -3,8 +3,11 @@
 from typing import Optional, Dict, Any, List, Callable, TYPE_CHECKING, Tuple, Protocol
 from dataclasses import dataclass, field
 import importlib
+import logging
 import os
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 # Import EventResult from state_accessor to avoid duplication
 from src.state_accessor import EventResult, HandlerResult, NO_HANDLER, IGNORE_EVENT
@@ -763,16 +766,18 @@ class BehaviorManager:
             if fallback:
                 result = self.invoke_behavior(entity, fallback, accessor, context)
 
-        # Fail-fast: Entity-specific event with no handler = authoring error
-        # (This catches cases where fallback chain also failed)
+        # All events are optional - no fail-fast
+        # If entity has no handler (even after fallback chain), silently ignore
         if result._no_handler and entity is not None:
             entity_id = getattr(entity, 'id', '<unknown>')
             entity_behaviors = getattr(entity, 'behaviors', [])
-            raise ValueError(
-                f"Event '{event_name}' triggered on entity '{entity_id}' but no handler found.\n"
-                f"Entity behaviors: {entity_behaviors}\n"
-                f"If this entity should ignore this event, add a handler that returns IGNORE_EVENT."
+            # Log for debugging (can be enabled via logging config)
+            logger.debug(
+                f"Event '{event_name}' triggered on entity '{entity_id}' "
+                f"but no handler found. Entity behaviors: {entity_behaviors}. "
+                f"Silently ignoring."
             )
+            return IGNORE_EVENT
 
         return result
 

@@ -31,6 +31,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 from behavior_libraries.actor_lib.conditions import has_condition, apply_condition
+from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import load_handler
 from src.state_accessor import IGNORE_EVENT
 
 
@@ -170,10 +171,6 @@ def execute_attack(accessor, attacker, target, attack: Dict) -> AttackResult:
     # Calculate damage
     damage = calculate_damage(attack, attacker, target, context)
 
-    # Apply damage
-    health = target.properties.get("health", 100)
-    target.properties["health"] = health - damage
-
     attack_name = attack.get("name", "attack")
     messages = [f"{attacker.name} hits {target.name} with {attack_name} for {damage} damage"]
     conditions_applied = []
@@ -188,25 +185,131 @@ def execute_attack(accessor, attacker, target, attack: Dict) -> AttackResult:
             conditions_applied.append(condition_name)
             messages.append(f"{target.name} is affected by {condition_name}")
 
-    # Fire on_damage behavior on target
-    if accessor and accessor.behavior_manager:
-        damage_context = {
-            "damage": damage,
-            "attacker_id": attacker.id,
-            "attack_type": attack.get("type")
-        }
-        damage_result = accessor.behavior_manager.invoke_behavior(
-            target, "on_damage", accessor, damage_context
-        )
-        # Append on_damage feedback to narration
-        if damage_result and damage_result.feedback:
-            messages.append(damage_result.feedback)
+    # Fire on_damage handler - this applies the damage via the hybrid dispatcher
+    # Call directly instead of through behavior_manager (it's an infrastructure handler)
+    damage_context = {
+        "damage": damage,
+        "attacker_id": attacker.id,
+        "attack_type": attack.get("type")
+    }
+    damage_result = on_damage(target, accessor, damage_context)
+    # Append on_damage feedback to narration
+    if damage_result.feedback:
+        messages.append(damage_result.feedback)
 
     return AttackResult(
         success=True,
         damage=damage,
         conditions_applied=conditions_applied,
         narration="; ".join(messages)
+    )
+
+
+def on_damage(entity, accessor, context):
+    """
+    Handle damage event with hybrid dispatcher pattern.
+
+    Default implementation:
+    - Ignores entities without health property
+    - Applies damage = context["damage"] - entity armor
+    - Updates health (but doesn't handle death)
+    - Returns IGNORE_EVENT (no message)
+
+    Escape hatch:
+    - If entity.properties["damage_handler"] is set, delegate to that handler
+    - Handler format: "module.path:function_name"
+    - Custom handler receives (entity, accessor, context) and returns EventResult
+
+    Args:
+        entity: The entity taking damage
+        accessor: StateAccessor for state queries
+        context: Context dict with:
+            - damage: int - raw damage before armor
+            - attacker_id: str - ID of attacker (optional)
+            - attack_type: str - type of attack (optional)
+
+    Returns:
+        EventResult with optional feedback message
+    """
+    from src.state_accessor import EventResult
+
+    # Check for handler escape hatch
+    damage_handler_path = entity.properties.get("damage_handler")
+    if damage_handler_path:
+        handler = load_handler(damage_handler_path)
+        if handler:
+            return handler(entity, accessor, context)
+
+    # Auto-ignore entities without health
+    if "health" not in entity.properties:
+        return IGNORE_EVENT
+
+    # Default damage processing
+    raw_damage = context.get("damage", 0)
+    armor = entity.properties.get("armor", 0)
+    final_damage = max(0, raw_damage - armor)
+
+    # Apply damage
+    current_health = entity.properties.get("health", 0)
+    entity.properties["health"] = current_health - final_damage
+
+    # Validate health didn't go negative beyond threshold
+    if entity.properties["health"] < -100:
+        entity.properties["health"] = -100
+
+    # Return IGNORE_EVENT - no message by default
+    return IGNORE_EVENT
+
+
+def on_death(entity, accessor, context):
+    """
+    Handle death event with hybrid dispatcher pattern.
+
+    Default implementation:
+    - Removes actor from game state
+    - Drops all inventory items at death location
+    - Returns generic death message
+
+    Escape hatch:
+    - If entity.properties["death_handler"] is set, delegate to that handler
+    - Handler format: "module.path:function_name"
+    - Custom handler receives (entity, accessor, context) and returns EventResult
+
+    Args:
+        entity: The dying entity
+        accessor: StateAccessor for state mutations
+        context: Context dict (currently unused)
+
+    Returns:
+        EventResult with death message
+    """
+    from src.state_accessor import EventResult
+
+    # Check for handler escape hatch
+    death_handler_path = entity.properties.get("death_handler")
+    if death_handler_path:
+        handler = load_handler(death_handler_path)
+        if handler:
+            return handler(entity, accessor, context)
+
+    # Default death processing
+    death_location = entity.location
+
+    # Drop all inventory items
+    if hasattr(entity, 'inventory') and entity.inventory:
+        for item_id in list(entity.inventory):
+            item = accessor.get_item(item_id)
+            if item:
+                item.location = death_location
+        entity.inventory.clear()
+
+    # Remove actor from game
+    if entity.id in accessor.game_state.actors:
+        del accessor.game_state.actors[entity.id]
+
+    return EventResult(
+        allow=True,
+        feedback=f"{entity.name} has been slain!"
     )
 
 
@@ -229,15 +332,9 @@ def on_death_check(entity, accessor, context) -> Optional[Any]:
         return IGNORE_EVENT  # Actor doesn't have health tracking
 
     if health <= 0:
-        # Invoke on_death behavior - author implements death handling
-        if accessor and accessor.behavior_manager:
-            result = accessor.behavior_manager.invoke_behavior(
-                entity, "on_death", accessor, {}
-            )
-            if result.feedback:
-                return result
-
-        return EventResult(allow=True, feedback=f"{entity.name} has died")
+        # Call on_death handler directly (it's an infrastructure handler)
+        result = on_death(entity, accessor, {})
+        return result
 
     return IGNORE_EVENT
 
@@ -261,7 +358,8 @@ def on_death_check_all(entity, accessor, context):
 
     all_messages = []
 
-    for actor_id, actor in accessor.game_state.actors.items():
+    # Iterate over list copy to avoid RuntimeError if actor dies and is removed
+    for actor_id, actor in list(accessor.game_state.actors.items()):
         result = on_death_check(actor, accessor, context)
         if result and result.feedback:
             all_messages.append(result.feedback)
@@ -273,10 +371,17 @@ def on_death_check_all(entity, accessor, context):
 
 def on_attack(entity, accessor, context) -> Optional[Any]:
     """
-    Handle player attack command.
+    Handle player attack command with hybrid dispatcher pattern.
 
-    Called for "attack X" commands. The attacking actor must have attacks
-    defined in their properties, and the target must be in the same location.
+    Default implementation:
+    - Validates target exists and is in same location
+    - Selects and executes appropriate attack from attacker's attacks
+    - Returns attack result narration
+
+    Escape hatch:
+    - If entity.properties["attack_handler"] is set, delegate to that handler
+    - Handler format: "module.path:function_name"
+    - Custom handler receives (entity, accessor, context) and returns EventResult
 
     Args:
         entity: The attacking Actor (typically player)
@@ -289,6 +394,14 @@ def on_attack(entity, accessor, context) -> Optional[Any]:
     """
     from src.state_accessor import EventResult
 
+    # Check for handler escape hatch
+    attack_handler_path = entity.properties.get("attack_handler")
+    if attack_handler_path:
+        handler = load_handler(attack_handler_path)
+        if handler:
+            return handler(entity, accessor, context)
+
+    # Default attack processing
     target_id = context.get("target_id")
     if not target_id:
         return EventResult(allow=False, feedback="Attack what?")

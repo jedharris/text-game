@@ -7,6 +7,7 @@ guidance functionality.
 from typing import Any, Dict
 
 from src.behavior_manager import EventResult
+from src.state_accessor import IGNORE_EVENT
 from src.infrastructure_utils import modify_trust
 
 # Vocabulary: wire hooks to events
@@ -14,7 +15,13 @@ from src.infrastructure_utils import modify_trust
 # Note: Gossip reactions are handled by infrastructure/gossip_reactions.py
 # Echo must have appropriate reaction configurations
 vocabulary: Dict[str, Any] = {
-    "events": []
+    "events": [
+        {
+            "event": "npc_take_action",
+            "handler": "npc_take_action",
+            "description": "Echo doesn't take combat actions"
+        }
+    ]
 }
 
 
@@ -199,3 +206,23 @@ def on_echo_dialog(
         )
 
     return EventResult(allow=True, feedback=None)
+
+
+def npc_take_action(
+    entity: Any,
+    accessor: Any,
+    context: dict[str, Any],
+) -> EventResult:
+    """Echo doesn't take combat actions.
+
+    The Echo is a non-combat NPC that only provides guidance.
+
+    Args:
+        entity: Echo
+        accessor: StateAccessor instance
+        context: Context dict
+
+    Returns:
+        IGNORE_EVENT
+    """
+    return IGNORE_EVENT

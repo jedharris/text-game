@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "The Fractured Meridian",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "A world shattered by magical catastrophe. Restore the waystone to heal the land.",
     "start_location": "nexus_chamber",
     "author": "Big Game Project",
@@ -1932,7 +1932,11 @@
             "type": "melee"
           }
         ]
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "the_echo": {
       "id": "the_echo",
@@ -1940,6 +1944,11 @@
       "description": "A spectral figure, translucent and flickering. The remnant of the last Keeper's child, bound to the meridian by love and duty.",
       "location": "keepers_quarters",
       "inventory": [],
+      "behaviors": [
+        "behaviors.regions.meridian_nexus.echo",
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ],
       "properties": {
         "state_machine": {
           "states": [
@@ -2085,7 +2094,11 @@
             ]
           }
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "frost_wolf_1": {
       "id": "frost_wolf_1",
@@ -2141,7 +2154,11 @@
             ]
           }
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "frost_wolf_2": {
       "id": "frost_wolf_2",
@@ -2197,7 +2214,11 @@
             ]
           }
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "salamander": {
       "id": "salamander",
@@ -2242,7 +2263,11 @@
         "dialog_topics": {
           "handler": "behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "steam_salamander_2": {
       "id": "steam_salamander_2",
@@ -2279,7 +2304,11 @@
         "dialog_topics": {
           "handler": "behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "steam_salamander_3": {
       "id": "steam_salamander_3",
@@ -2316,7 +2345,11 @@
         "dialog_topics": {
           "handler": "behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "stone_golem_1": {
       "id": "stone_golem_1",
@@ -2324,7 +2357,12 @@
       "description": "A massive construct of carved stone, ancient runes glowing along its limbs. It stands motionless but alert, watching the temple entrance with eyeless vigilance.",
       "location": "temple_sanctum",
       "inventory": [],
-      "behaviors": ["behaviors.regions.frozen_reaches.golem_puzzle"],
+      "behaviors": [
+        "behaviors.regions.frozen_reaches.golem_puzzle",
+        "behaviors.actor_lib.combat",
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ],
       "properties": {
         "state_machine": {
           "states": [
@@ -2402,7 +2440,12 @@
       "description": "A twin to the first guardian, carved from the same ancient stone. Runes glow along its surface in perfect synchronization with its companion.",
       "location": "temple_sanctum",
       "inventory": [],
-      "behaviors": ["behaviors.regions.frozen_reaches.golem_puzzle"],
+      "behaviors": [
+        "behaviors.regions.frozen_reaches.golem_puzzle",
+        "behaviors.actor_lib.combat",
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ],
       "properties": {
         "state_machine": {
           "states": [
@@ -2610,7 +2653,11 @@
             ]
           }
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "spider_matriarch": {
       "id": "spider_matriarch",
@@ -2669,7 +2716,11 @@
             ]
           }
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "giant_spider_1": {
       "id": "giant_spider_1",
@@ -2708,7 +2759,11 @@
             ]
           }
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "giant_spider_2": {
       "id": "giant_spider_2",
@@ -2747,7 +2802,11 @@
             ]
           }
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "bee_queen": {
       "id": "bee_queen",
@@ -2832,7 +2891,11 @@
             ]
           }
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "dire_bear": {
       "id": "dire_bear",
@@ -2931,7 +2994,11 @@
             ]
           }
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "bear_cub_1": {
       "id": "bear_cub_1",
@@ -3002,7 +3069,11 @@
             ]
           }
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "bear_cub_2": {
       "id": "bear_cub_2",
@@ -3073,7 +3144,11 @@
             ]
           }
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "camp_leader_mira": {
       "id": "camp_leader_mira",
@@ -3096,7 +3171,11 @@
           "floor": -3,
           "ceiling": 5
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "old_swimmer_jek": {
       "id": "old_swimmer_jek",
@@ -3107,7 +3186,11 @@
       "properties": {
         "teaches": "basic_swimming",
         "teaching_cost": 5
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "sailor_garrett": {
       "id": "sailor_garrett",
@@ -3148,7 +3231,11 @@
             "handler": "behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
           }
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "merchant_delvan": {
       "id": "merchant_delvan",
@@ -3193,7 +3280,11 @@
             "handler": "behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
           }
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "the_archivist": {
       "id": "the_archivist",
@@ -3216,7 +3307,11 @@
           "floor": -2,
           "ceiling": 5
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "predatory_fish": {
       "id": "predatory_fish",
@@ -3227,7 +3322,11 @@
       "properties": {
         "hazard_type": "environmental",
         "not_combat_encounter": true
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "npc_aldric": {
       "id": "npc_aldric",
@@ -3372,7 +3471,11 @@
             "handler": "behaviors.regions.fungal_depths.aldric_rescue:on_aldric_heal"
           }
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "npc_spore_mother": {
       "id": "npc_spore_mother",
@@ -3475,7 +3578,11 @@
         "dialog_topics": {
           "handler": "behaviors.regions.fungal_depths.spore_mother:on_spore_mother_talk"
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "npc_sporeling_1": {
       "id": "npc_sporeling_1",
@@ -3498,7 +3605,11 @@
         "fungal": true,
         "pack_id": "sporeling_pack",
         "pack_role": "follower"
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "npc_sporeling_2": {
       "id": "npc_sporeling_2",
@@ -3521,7 +3632,11 @@
         "fungal": true,
         "pack_id": "sporeling_pack",
         "pack_role": "follower"
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "npc_sporeling_3": {
       "id": "npc_sporeling_3",
@@ -3544,7 +3659,11 @@
         "fungal": true,
         "pack_id": "sporeling_pack",
         "pack_role": "follower"
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "npc_myconid_elder": {
       "id": "npc_myconid_elder",
@@ -3668,7 +3787,11 @@
             ]
           }
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "gate_guard": {
       "id": "gate_guard",
@@ -3685,7 +3808,11 @@
           ],
           "initial": "suspicious"
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "herbalist_maren": {
       "id": "herbalist_maren",
@@ -3704,7 +3831,11 @@
           "buy_plants",
           "teach_basic_herbalism"
         ]
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "weaponsmith_toran": {
       "id": "weaponsmith_toran",
@@ -3718,7 +3849,11 @@
           "sell_armor",
           "repair_weapons"
         ]
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "curiosity_dealer_vex": {
       "id": "curiosity_dealer_vex",
@@ -3834,7 +3969,11 @@
             ]
           }
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "healer_elara": {
       "id": "healer_elara",
@@ -3943,7 +4082,11 @@
             ]
           }
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "councilor_hurst": {
       "id": "councilor_hurst",
@@ -3958,7 +4101,11 @@
           "floor": -3,
           "ceiling": 5
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "councilor_asha": {
       "id": "councilor_asha",
@@ -3974,7 +4121,11 @@
           "ceiling": 5
         },
         "can_perform_unbranding": true
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "councilor_varn": {
       "id": "councilor_varn",
@@ -3990,7 +4141,11 @@
           "ceiling": 5
         },
         "has_undercity_connections": true
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "damaged_guardian": {
       "id": "damaged_guardian",
@@ -4014,7 +4169,11 @@
           "animator_crystal",
           "ritual_knowledge"
         ]
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "the_fence": {
       "id": "the_fence",
@@ -4027,7 +4186,11 @@
           "buy_stolen",
           "sell_contraband"
         ]
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "whisper": {
       "id": "whisper",
@@ -4040,7 +4203,11 @@
           "sell_npc_secrets",
           "sell_location_secrets"
         ]
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     },
     "shadow": {
       "id": "shadow",
@@ -4054,7 +4221,11 @@
         ],
         "discovery_chance": 0.2,
         "delay_turns": 3
-      }
+      },
+      "behaviors": [
+        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions"
+      ]
     }
   },
   "locks": []

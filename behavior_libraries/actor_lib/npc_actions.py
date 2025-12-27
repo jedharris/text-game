@@ -113,6 +113,10 @@ def on_npc_action(entity, accessor, context):
 
     # Fire action for each NPC
     for npc in all_npcs:
+        # Skip actors that are actually objects (waystone_spirit, etc.)
+        if npc.properties.get("is_object", False):
+            continue
+
         # Sync follower disposition to alpha before acting
         # (alphas already processed first due to sorting)
         sync_follower_disposition(accessor, npc)
@@ -146,6 +150,7 @@ vocabulary = {
         },
         {
             "event": "npc_take_action",
+            "handler": "npc_take_action",
             "description": "Called for each individual NPC during their turn. "
                           "Default implementation attacks player if hostile."
         }

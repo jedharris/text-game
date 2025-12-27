@@ -108,6 +108,68 @@ from src.infrastructure_utils import (
 )
 ```
 
+## Behavior Module Architecture
+
+### Behavior Tiers (Priority Order)
+**Tier 1 (Game-specific)**: Game's `behaviors/` directory - Custom content for specific game
+- Example: `examples/big_game/behaviors/regions/frozen_reaches/golem_puzzle.py`
+- **Highest priority** - checked first, can override all other tiers
+
+**Tier 2 (Game Infrastructure)**: Game's `behaviors/shared/infrastructure/` - Reusable patterns for that game
+- Example: `examples/big_game/behaviors/shared/infrastructure/gift_reactions.py`
+
+**Tier 3 (Behavior Libraries)**: `behavior_libraries/` - Cross-game shared libraries
+- Example: `behavior_libraries/actor_lib/combat.py`
+
+**Tier 4 (Core)**: `behaviors/core/` - Universal behaviors (containers, consumables, light sources, exits)
+- **Lowest priority** - checked last, provides base functionality
+
+### Including Shared Libraries
+Games include Tier 3 and Tier 4 via **symlinks** in their `behaviors/` directory:
+- Core: `examples/big_game/behaviors/core/` → symlinks to `behaviors/core/*.py`
+- Libraries: `examples/big_game/behaviors/actor_lib/` → symlinks to `behavior_libraries/actor_lib/*.py`
+- `discover_modules()` finds all Python files in game's `behaviors/` including symlinks
+
+### Module Naming
+- Module names are **relative to game's behaviors/ package**
+- Symlinked file: `behaviors/actor_lib/combat.py` → module name: `"behaviors.actor_lib.combat"`
+- Game file: `behaviors/regions/cave.py` → module name: `"behaviors.regions.cave"`
+- Entity behaviors list: `["behaviors.actor_lib.combat", "behaviors.regions.cave"]`
+
+### Dispatch Rules
+- **ALL handlers use invoke_behavior()** - no special cases
+- ❌ Never call handler functions directly: `on_damage(entity, accessor, ctx)`
+- ✅ Always use dispatch: `accessor.behavior_manager.invoke_behavior(entity, "on_damage", accessor, ctx)`
+- "Infrastructure behavior" = shared library code, NOT "bypass dispatch"
+
+### Behavior Override Pattern
+Entities can override library behavior two ways:
+
+**1. Entity-specific behavior module** (earliest in behaviors list):
+```python
+# game_state.json
+{
+  "id": "stone_golem",
+  "behaviors": [
+    "behaviors.regions.frozen_reaches.golem_puzzle",  # Checked first
+    "behaviors.actor_lib.combat"  # Checked second (fallback)
+  ]
+}
+```
+
+**2. Handler escape hatch** (in entity properties):
+```python
+# game_state.json
+{
+  "id": "stone_golem",
+  "behaviors": ["behaviors.actor_lib.combat"],
+  "properties": {
+    "damage_handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_damaged"
+  }
+}
+```
+Both patterns work through dispatch - never call handlers directly.
+
 ## Vocabulary Structure
 
 ```python
@@ -228,6 +290,22 @@ python tools/walkthrough.py examples/big_game --file walkthroughs/test.txt
 # Refactor
 python tools/refactor_using_LibCST --dry-run src/
 ```
+
+### Debug Event Dispatch
+
+Enable debug logging to trace event dispatch and find missing handlers:
+
+```python
+import logging
+logging.basicConfig(level=logging.DEBUG, format='%(name)s [%(levelname)s] %(message)s')
+logging.getLogger('src.behavior_manager').setLevel(logging.DEBUG)
+```
+
+Common debug messages:
+- "no handler found. Silently ignoring" - Event triggered but entity has no handler
+- Check entity behaviors list in message
+- Verify module paths are correct
+- Confirm handler function names match event names
 
 ## Checklist for New Handlers
 
