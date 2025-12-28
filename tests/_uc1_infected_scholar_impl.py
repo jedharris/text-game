@@ -372,17 +372,20 @@ class TestUC1Progression(unittest.TestCase):
         self.scholar = self.engine.game_state.get_actor(ActorId('npc_scholar'))
 
     def test_condition_tick_applies_damage(self):
-        """Condition tick applies damage_per_turn to health."""
+        """Condition tick applies damage_per_turn to health (net with regeneration)."""
         from behavior_libraries.actor_lib.conditions import tick_conditions
 
         initial_health = self.scholar.properties['health']
         damage_per_turn = self.scholar.properties['conditions']['fungal_infection']['damage_per_turn']
+        default_regen = 5  # Living actors get default 5 HP/turn
 
         tick_conditions(self.scholar)
 
+        # Net effect: damage - regen
+        expected_health = initial_health - damage_per_turn + default_regen
         self.assertEqual(
             self.scholar.properties['health'],
-            initial_health - damage_per_turn
+            expected_health
         )
 
     def test_condition_tick_increases_severity(self):
@@ -405,15 +408,19 @@ class TestUC1Progression(unittest.TestCase):
 
         initial_health = self.scholar.properties['health']
         damage_per_turn = self.scholar.properties['conditions']['fungal_infection']['damage_per_turn']
+        default_regen = 5  # Living actors get default 5 HP/turn
 
         # Three ticks
         tick_conditions(self.scholar)
         tick_conditions(self.scholar)
         tick_conditions(self.scholar)
 
+        # Net effect per tick: -2 damage + 5 regen = +3
+        # After 3 ticks: +9 total
+        expected_health = initial_health - (damage_per_turn * 3) + (default_regen * 3)
         self.assertEqual(
             self.scholar.properties['health'],
-            initial_health - (damage_per_turn * 3)
+            expected_health
         )
 
 

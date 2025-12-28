@@ -84,7 +84,7 @@ class TestThermalShock(unittest.TestCase):
                     }
                 ]
             },
-            behaviors=[]
+            behaviors=["behaviors.regions.frozen_reaches.thermal_shock"]
         )
 
         self.game_state = GameState(
@@ -109,11 +109,12 @@ class TestThermalShock(unittest.TestCase):
         self.behavior_manager = BehaviorManager()
         project_root = Path(__file__).parent.parent
 
-        # Add big_game behaviors directory to sys.path
+        # Add big_game directory to sys.path (not behaviors subdirectory)
+        # This allows importing "behaviors.regions.frozen_reaches.thermal_shock"
         import sys
-        big_game_behaviors = project_root / "examples" / "big_game" / "behaviors"
-        if str(big_game_behaviors) not in sys.path:
-            sys.path.insert(0, str(big_game_behaviors))
+        big_game_dir = project_root / "examples" / "big_game"
+        if str(big_game_dir) not in sys.path:
+            sys.path.insert(0, str(big_game_dir))
 
         # Load thermal_shock module
         self.behavior_manager.load_module("behaviors.regions.frozen_reaches.thermal_shock", tier=4)
@@ -211,7 +212,7 @@ class TestThermalShock(unittest.TestCase):
         self.assertEqual(result.damage, 30)
         self.assertEqual(self.golem.properties["temperature_state"], "hot")
         self.assertEqual(self.golem.properties["temperature_counter"], 3)
-        self.assertIn("THERMAL SHOCK", result.message)
+        self.assertIn("THERMAL SHOCK", result.narration)
 
     def test_cold_attack_vs_hot_thermal_shock(self):
         """Cold attack vs hot golem deals thermal shock damage (40 base - 10 armor = 30)."""
@@ -231,7 +232,7 @@ class TestThermalShock(unittest.TestCase):
         self.assertEqual(result.damage, 30)
         self.assertEqual(self.golem.properties["temperature_state"], "cold")
         self.assertEqual(self.golem.properties["temperature_counter"], 3)
-        self.assertIn("THERMAL SHOCK", result.message)
+        self.assertIn("THERMAL SHOCK", result.narration)
 
     def test_alternating_attacks_optimal_strategy(self):
         """Alternating fire and cold attacks is the optimal strategy."""

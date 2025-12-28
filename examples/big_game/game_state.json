@@ -3517,7 +3517,8 @@
             ],
             "handler": "behaviors.regions.fungal_depths.aldric_rescue:on_aldric_heal"
           }
-        }
+        },
+        "regeneration": 5
       },
       "behaviors": [
         "behaviors.shared.lib.actor_lib.npc_actions",
