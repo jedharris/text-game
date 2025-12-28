@@ -20,8 +20,8 @@ from src.types import ActorId
 
 from typing import List, Optional
 
-from behavior_libraries.actor_lib.combat import get_attacks, select_attack, execute_attack
-from behavior_libraries.actor_lib.packs import sync_follower_disposition
+from .combat import get_attacks, select_attack, execute_attack
+from .packs import sync_follower_disposition
 from src.state_accessor import IGNORE_EVENT
 
 PLAYER_ID = ActorId("player")
@@ -60,6 +60,27 @@ def npc_take_action(entity, accessor, context):
     player = accessor.get_actor(PLAYER_ID)
     if not player or entity.location != player.location:
         return IGNORE_EVENT
+
+    # Threshold pause: Linked NPCs alternate attacks
+    if entity.properties.get("threshold_pause"):
+        linked_to_id = entity.properties.get("linked_to")
+        if linked_to_id:
+            # Use turn count to determine which NPC attacks
+            # Alternate based on entity ID to ensure consistent ordering
+            current_turn = accessor.game_state.turn_count
+            # Create a stable sort order based on IDs
+            this_id = entity.id
+            other_id = linked_to_id
+
+            # The NPC with lexicographically smaller ID attacks on even turns
+            if this_id < other_id:
+                # This NPC attacks on even turns
+                if current_turn % 2 != 0:
+                    return IGNORE_EVENT
+            else:
+                # This NPC attacks on odd turns
+                if current_turn % 2 == 0:
+                    return IGNORE_EVENT
 
     # Check for attacks
     attacks = get_attacks(entity)

@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "The Fractured Meridian",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "A world shattered by magical catastrophe. Restore the waystone to heal the land.",
     "start_location": "nexus_chamber",
     "author": "Big Game Project",
@@ -1116,15 +1116,29 @@
       ]
     },
     {
-      "id": "ice_crystal",
-      "name": "ice crystal",
-      "description": "A crystal of pure magical cold, never melting. The Myconids prize these highly.",
-      "location": "glacier_surface",
+      "id": "ice_wand",
+      "name": "ice wand",
+      "description": "A wand of pure magical cold, its crystalline tip never melting. The directed cold it channels can freeze enemies solid. Currently frozen deep within the ice cave wall.",
+      "location": "ice_caves",
       "properties": {
         "portable": true,
-        "export_item": true,
-        "export_to": "fungal_depths"
-      }
+        "cold_aspected": true,
+        "frozen_in_ice": true,
+        "synonyms": [
+          "ice",
+          "icewand"
+        ],
+        "attacks": [
+          {
+            "name": "ice blast",
+            "damage": 20,
+            "type": "cold"
+          }
+        ]
+      },
+      "behaviors": [
+        "behaviors.regions.frozen_reaches.ice_extraction"
+      ]
     },
     {
       "id": "lore_tablets",
@@ -1240,7 +1254,7 @@
           "heat_melt": {
             "accepted_items": [
               "ancient_torch",
-              "fire_crystal",
+              "fire_wand",
               "salamander_heated_stone"
             ],
             "handler": "behaviors.regions.frozen_reaches.ice_extraction:on_use"
@@ -1269,7 +1283,7 @@
           "heat_melt": {
             "accepted_items": [
               "ancient_torch",
-              "fire_crystal",
+              "fire_wand",
               "salamander_heated_stone"
             ],
             "handler": "behaviors.regions.frozen_reaches.ice_extraction:on_use"
@@ -1298,7 +1312,7 @@
           "heat_melt": {
             "accepted_items": [
               "ancient_torch",
-              "fire_crystal",
+              "fire_wand",
               "salamander_heated_stone"
             ],
             "handler": "behaviors.regions.frozen_reaches.ice_extraction:on_use"
@@ -1339,18 +1353,23 @@
       }
     },
     {
-      "id": "fire_crystal",
-      "name": "flame gem",
-      "description": "A crystal pulsing with inner flame, never cooling. Fire salamanders would find this irresistible.",
+      "id": "fire_wand",
+      "name": "fire wand",
+      "description": "A wand pulsing with inner flame, never cooling. The directed fire it channels can blast enemies with searing heat.",
       "location": "temple_sanctum",
       "properties": {
         "portable": true,
         "fire_aspected": true,
-        "salamander_gift": true,
-        "never_consumed": false,
         "synonyms": [
-          "gem",
-          "flamegem"
+          "fire",
+          "firewand"
+        ],
+        "attacks": [
+          {
+            "name": "fire blast",
+            "damage": 20,
+            "type": "fire"
+          }
         ]
       },
       "behaviors": [
@@ -1365,7 +1384,7 @@
       "properties": {
         "portable": false,
         "provides_cover": true,
-        "cover_value": 50,
+        "cover_value": 80,
         "part_type": "structural"
       }
     },
@@ -1377,7 +1396,7 @@
       "properties": {
         "portable": false,
         "provides_cover": true,
-        "cover_value": 50,
+        "cover_value": 80,
         "part_type": "structural"
       }
     },
@@ -1934,7 +1953,7 @@
         ]
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.combat",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -1946,7 +1965,7 @@
       "inventory": [],
       "behaviors": [
         "behaviors.regions.meridian_nexus.echo",
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ],
       "properties": {
@@ -2096,7 +2115,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -2156,7 +2175,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -2216,7 +2235,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -2265,7 +2284,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -2306,7 +2325,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -2347,7 +2366,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -2359,8 +2378,9 @@
       "inventory": [],
       "behaviors": [
         "behaviors.regions.frozen_reaches.golem_puzzle",
-        "behaviors.actor_lib.combat",
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.regions.frozen_reaches.thermal_shock",
+        "behaviors.shared.lib.actor_lib.combat",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ],
       "properties": {
@@ -2407,6 +2427,9 @@
           "cold",
           "fire"
         ],
+        "regeneration": 1,
+        "temperature_state": "neutral",
+        "temperature_counter": 0,
         "territorial": true,
         "threshold_pause": true,
         "linked_to": "stone_golem_2",
@@ -2422,7 +2445,7 @@
           },
           "ritual": {
             "accepted_items": [
-              "fire_crystal",
+              "fire_wand",
               "ancient_torch",
               "spring_water"
             ],
@@ -2431,6 +2454,16 @@
         },
         "death_reactions": {
           "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_death"
+        },
+        "blocked_directions_by_state": {
+          "guarding": [
+            "up"
+          ],
+          "hostile": [
+            "north",
+            "up",
+            "south"
+          ]
         }
       }
     },
@@ -2442,8 +2475,9 @@
       "inventory": [],
       "behaviors": [
         "behaviors.regions.frozen_reaches.golem_puzzle",
-        "behaviors.actor_lib.combat",
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.regions.frozen_reaches.thermal_shock",
+        "behaviors.shared.lib.actor_lib.combat",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ],
       "properties": {
@@ -2490,6 +2524,9 @@
           "cold",
           "fire"
         ],
+        "regeneration": 1,
+        "temperature_state": "neutral",
+        "temperature_counter": 0,
         "territorial": true,
         "threshold_pause": true,
         "linked_to": "stone_golem_1",
@@ -2505,7 +2542,7 @@
           },
           "ritual": {
             "accepted_items": [
-              "fire_crystal",
+              "fire_wand",
               "ancient_torch",
               "spring_water"
             ],
@@ -2514,6 +2551,16 @@
         },
         "death_reactions": {
           "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_death"
+        },
+        "blocked_directions_by_state": {
+          "guarding": [
+            "up"
+          ],
+          "hostile": [
+            "north",
+            "up",
+            "south"
+          ]
         }
       }
     },
@@ -2655,7 +2702,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -2718,7 +2765,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -2761,7 +2808,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -2804,7 +2851,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -2893,7 +2940,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -2996,7 +3043,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -3071,7 +3118,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -3146,7 +3193,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -3173,7 +3220,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -3188,7 +3235,7 @@
         "teaching_cost": 5
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -3233,7 +3280,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -3282,7 +3329,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -3309,7 +3356,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -3324,7 +3371,7 @@
         "not_combat_encounter": true
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -3388,7 +3435,7 @@
         "conditions": {
           "fungal_infection": {
             "severity": 80,
-            "damage_per_turn": 2,
+            "damage_per_turn": 7,
             "progression_rate": 2
           }
         },
@@ -3473,7 +3520,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -3580,7 +3627,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -3607,7 +3654,7 @@
         "pack_role": "follower"
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -3634,7 +3681,7 @@
         "pack_role": "follower"
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -3661,7 +3708,7 @@
         "pack_role": "follower"
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -3690,7 +3737,7 @@
           "teach_spore_resistance"
         ],
         "accepts_payment": [
-          "ice_crystal",
+          "ice_wand",
           "rare_mineral",
           "gold"
         ],
@@ -3789,7 +3836,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -3810,7 +3857,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -3833,7 +3880,7 @@
         ]
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -3851,7 +3898,7 @@
         ]
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -3971,7 +4018,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -4084,7 +4131,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -4103,7 +4150,7 @@
         }
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -4123,7 +4170,7 @@
         "can_perform_unbranding": true
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -4143,7 +4190,7 @@
         "has_undercity_connections": true
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -4171,7 +4218,7 @@
         ]
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -4188,7 +4235,7 @@
         ]
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -4205,7 +4252,7 @@
         ]
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     },
@@ -4223,7 +4270,7 @@
         "delay_turns": 3
       },
       "behaviors": [
-        "behaviors.actor_lib.npc_actions",
+        "behaviors.shared.lib.actor_lib.npc_actions",
         "behaviors.shared.lib.actor_lib.npc_actions"
       ]
     }

@@ -39,9 +39,21 @@ PartId = NewType('PartId', str)
 ExitId = NewType('ExitId', str)
 """Synthesized ID for exits (e.g., 'exit:loc_room1:north')."""
 
+CommitmentId = NewType('CommitmentId', str)
+"""ID for Commitment entities (e.g., 'commit_sira_rescue')."""
+
+ScheduledEventId = NewType('ScheduledEventId', str)
+"""ID for ScheduledEvent entities (e.g., 'evt_cold_spread_milestone_75')."""
+
+GossipId = NewType('GossipId', str)
+"""ID for Gossip entities (e.g., 'gossip_sira_rescue')."""
+
+SpreadId = NewType('SpreadId', str)
+"""ID for Spread entities (e.g., 'frozen_reaches_cold')."""
+
 
 # Type alias for any entity ID
-EntityId = LocationId | ActorId | ItemId | LockId | PartId | ExitId
+EntityId = LocationId | ActorId | ItemId | LockId | PartId | ExitId | CommitmentId | ScheduledEventId | GossipId | SpreadId
 """Union type for any entity ID."""
 
 

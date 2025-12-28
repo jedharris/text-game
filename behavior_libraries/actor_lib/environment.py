@@ -298,17 +298,17 @@ def apply_environmental_effects(actor, part, accessor=None) -> List[str]:
 
     # Check breath
     breath_msg = check_breath(actor, part, accessor)
-    if breath_msg:
+    if breath_msg and not getattr(breath_msg, '_ignored', False):
         messages.append(breath_msg)
 
     # Check spores
     spore_msg = check_spores(actor, part)
-    if spore_msg:
+    if spore_msg and not getattr(spore_msg, '_ignored', False):
         messages.append(spore_msg)
 
     # Check temperature
     temp_msg = check_temperature(actor, part)
-    if temp_msg:
+    if temp_msg and not getattr(temp_msg, '_ignored', False):
         messages.append(temp_msg)
 
     return messages

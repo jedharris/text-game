@@ -4,12 +4,12 @@ Allows combining items to create new items, with support for
 location and skill requirements.
 """
 
-from behavior_libraries.crafting_lib.recipes import (
+from .recipes import (
     find_recipe,
     check_requirements,
     execute_craft,
 )
-from behavior_libraries.crafting_lib.handlers import (
+from .handlers import (
     handle_combine,
     handle_craft,
 )

@@ -7,7 +7,7 @@ from src.types import ActorId
 import unittest
 from src.state_manager import GameState, Metadata, Location, Item, Actor, Part
 from src.state_accessor import StateAccessor
-from behaviors.core.spatial import handle_take_cover
+from behaviors.core.spatial import handle_cover
 from tests.conftest import make_action
 
 
@@ -80,8 +80,8 @@ class TestTakeCover(unittest.TestCase):
         """Test taking cover behind item with provides_cover."""
         player = self.accessor.get_actor(ActorId("player"))
 
-        action = make_action(verb="cover", indirect_object="pillar")
-        result = handle_take_cover(self.accessor, action)
+        action = make_action(verb="cover", object="pillar")
+        result = handle_cover(self.accessor, action)
 
         self.assertTrue(result.success)
         self.assertIn("take cover", result.primary.lower())
@@ -92,8 +92,8 @@ class TestTakeCover(unittest.TestCase):
         """Test taking cover behind part with provides_cover."""
         player = self.accessor.get_actor(ActorId("player"))
 
-        action = make_action(verb="cover", indirect_object="wall")
-        result = handle_take_cover(self.accessor, action)
+        action = make_action(verb="cover", object="wall")
+        result = handle_cover(self.accessor, action)
 
         self.assertTrue(result.success)
         self.assertIn("take cover", result.primary.lower())
@@ -102,16 +102,16 @@ class TestTakeCover(unittest.TestCase):
 
     def test_take_cover_behind_non_cover_object_fails(self):
         """Test taking cover behind object without provides_cover fails."""
-        action = make_action(verb="cover", indirect_object="chair")
-        result = handle_take_cover(self.accessor, action)
+        action = make_action(verb="cover", object="chair")
+        result = handle_cover(self.accessor, action)
 
         self.assertFalse(result.success)
         self.assertIn("doesn't provide cover", result.primary.lower())
 
     def test_take_cover_behind_nonexistent_object_fails(self):
         """Test taking cover behind non-existent object fails."""
-        action = make_action(verb="cover", indirect_object="boulder")
-        result = handle_take_cover(self.accessor, action)
+        action = make_action(verb="cover", object="boulder")
+        result = handle_cover(self.accessor, action)
 
         self.assertFalse(result.success)
         self.assertIn("don't see", result.primary.lower())
@@ -119,7 +119,7 @@ class TestTakeCover(unittest.TestCase):
     def test_take_cover_without_object_fails(self):
         """Test take cover without specifying object fails."""
         action = make_action(verb="cover")
-        result = handle_take_cover(self.accessor, action)
+        result = handle_cover(self.accessor, action)
 
         self.assertFalse(result.success)
         self.assertIn("behind what", result.primary.lower())
@@ -129,8 +129,8 @@ class TestTakeCover(unittest.TestCase):
         player = self.accessor.get_actor(ActorId("player"))
         player.properties["posture"] = "climbing"
 
-        action = make_action(verb="cover", indirect_object="pillar")
-        result = handle_take_cover(self.accessor, action)
+        action = make_action(verb="cover", object="pillar")
+        result = handle_cover(self.accessor, action)
 
         self.assertTrue(result.success)
         # Posture should be replaced
@@ -138,8 +138,8 @@ class TestTakeCover(unittest.TestCase):
 
     def test_take_cover_includes_cover_in_data(self):
         """Test take cover includes cover entity in result data."""
-        action = make_action(verb="cover", indirect_object="pillar")
-        result = handle_take_cover(self.accessor, action)
+        action = make_action(verb="cover", object="pillar")
+        result = handle_cover(self.accessor, action)
 
         self.assertTrue(result.success)
         self.assertIsNotNone(result.data)
@@ -152,8 +152,8 @@ class TestTakeCover(unittest.TestCase):
         player.properties["focused_on"] = "item_pillar"
         player.properties["posture"] = "cover"
 
-        action = make_action(verb="cover", indirect_object="pillar")
-        result = handle_take_cover(self.accessor, action)
+        action = make_action(verb="cover", object="pillar")
+        result = handle_cover(self.accessor, action)
 
         self.assertTrue(result.success)
         # Should still succeed (confirming cover position)

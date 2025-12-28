@@ -183,6 +183,8 @@ def tick_conditions(actor) -> List[str]:
     - Decrease duration (remove if <= 0)
     - Increase severity by progression_rate
 
+    Also applies health regeneration if actor has regeneration property.
+
     Args:
         actor: The Actor object
 
@@ -193,12 +195,10 @@ def tick_conditions(actor) -> List[str]:
         return []
 
     conditions = actor.properties.get("conditions", {})
-    if not conditions:
-        return []
-
     messages = []
     conditions_to_remove = []
 
+    # Process condition effects
     for condition_name, condition_data in conditions.items():
         # Apply damage
         damage = condition_data.get("damage_per_turn", 0)
@@ -226,6 +226,22 @@ def tick_conditions(actor) -> List[str]:
     # Remove expired conditions
     for condition_name in conditions_to_remove:
         del conditions[condition_name]
+
+    # Apply health regeneration (default 5 HP/turn for living actors)
+    # Constructs/undead (immune to poison+disease) don't regenerate unless explicit
+    immunities = actor.properties.get("immunities", [])
+    is_construct = "poison" in immunities and "disease" in immunities
+    default_regen = 0 if is_construct else 5
+
+    regeneration = actor.properties.get("regeneration", default_regen)
+    if regeneration > 0:
+        health = actor.properties.get("health")
+        max_health = actor.properties.get("max_health")
+
+        if health is not None and max_health is not None and health < max_health:
+            new_health = min(max_health, health + regeneration)
+            actor.properties["health"] = new_health
+            messages.append(f"{actor.name} regenerates {regeneration} health.")
 
     return messages
 

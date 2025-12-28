@@ -20,10 +20,10 @@ from src.word_entry import WordEntry
 from src.types import ActorId
 from utilities.utils import name_matches
 from utilities.handler_utils import get_display_name
-from behavior_libraries.crafting_lib.recipes import (
+from .recipes import (
     find_recipe, check_requirements, execute_craft
 )
-from behavior_libraries.crafting_lib.storage import get_recipe_catalog
+from .storage import get_recipe_catalog
 
 
 # Vocabulary extension

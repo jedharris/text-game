@@ -834,10 +834,21 @@ class BehaviorManager:
         if not results:
             return NO_HANDLER
 
-        # Combine results: AND logic for allow, concatenate feedback
-        combined_allow = all(r.allow for r in results)
-        messages = [r.feedback for r in results if r.feedback]
-        combined_message = "\n".join(messages) if messages else None
+        # Filter out ignored events - they don't participate in combination logic
+        # but we collect their feedback for propagation
+        non_ignored_results = [r for r in results if not r._ignored]
+        ignored_feedback = [r.feedback for r in results if r._ignored and r.feedback]
+
+        # If all handlers ignored the event, return IGNORE_EVENT with combined feedback
+        if not non_ignored_results:
+            combined_feedback = "\n".join(ignored_feedback) if ignored_feedback else None
+            return EventResult(allow=True, feedback=combined_feedback, _ignored=True)
+
+        # Combine non-ignored results: AND logic for allow, concatenate feedback
+        combined_allow = all(r.allow for r in non_ignored_results)
+        # Include feedback from both non-ignored and ignored results
+        all_feedback = [r.feedback for r in non_ignored_results if r.feedback] + ignored_feedback
+        combined_message = "\n".join(all_feedback) if all_feedback else None
 
         return EventResult(allow=combined_allow, feedback=combined_message)
 

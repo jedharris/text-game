@@ -36,7 +36,7 @@ Usage:
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
-from behavior_libraries.actor_lib.conditions import remove_condition
+from .conditions import remove_condition
 from src.state_accessor import IGNORE_EVENT
 
 

@@ -27,18 +27,15 @@ vocabulary = {
         },
         {
             "word": "cover",
-            "handler": "handle_take_cover",
-            "event": "on_cover",
             "synonyms": ["take cover", "hide behind"],
             "indirect_object_required": True,
             "llm_context": {
                 "traits": ["tactical positioning", "concealment", "combat"],
-                "usage": ["take cover behind <object>", "hide behind <object>"]
+                "usage": ["cover behind <object>"]
             }
         },
         {
             "word": "hide",
-            "event": "on_hide",
             "synonyms": ["conceal"],
             "indirect_object_required": True,
             "llm_context": {
@@ -239,9 +236,9 @@ def handle_approach(accessor, action):
     return _handle_positioning(accessor, action, object_field="object", verb_phrase="move to")
 
 
-def handle_take_cover(accessor, action):
+def handle_cover(accessor, action):
     """
-    Handle take cover command for tactical positioning.
+    Handle cover command for tactical positioning.
 
     Takes cover behind an object or part that provides cover.
     Sets actor's posture to "cover" and focuses on the cover entity.
@@ -250,13 +247,13 @@ def handle_take_cover(accessor, action):
         accessor: StateAccessor instance
         action: Action dict with keys:
             - actor_id: ID of actor performing action (default: "player")
-            - indirect_object: Name of cover entity (required)
+            - object: Name of cover entity (required)
 
     Returns:
         HandlerResult with success flag and message
     """
-    # Check for missing indirect_object with custom message
-    if not action.get("indirect_object"):
+    # Check for missing object with custom message
+    if not action.get("object"):
         return HandlerResult(
             success=False,
             primary="Take cover behind what?"
@@ -264,14 +261,14 @@ def handle_take_cover(accessor, action):
 
     return _handle_positioning(
         accessor, action,
-        object_field="indirect_object",
+        object_field="object",
         required_property="provides_cover",
         posture="cover",
         verb_phrase="take cover behind"
     )
 
 
-def handle_hide_in(accessor, action):
+def handle_hide(accessor, action):
     """
     Handle hide command for concealment.
 
@@ -282,13 +279,13 @@ def handle_hide_in(accessor, action):
         accessor: StateAccessor instance
         action: Action dict with keys:
             - actor_id: ID of actor performing action (default: "player")
-            - indirect_object: Name of hiding spot (required)
+            - object: Name of hiding spot (required)
 
     Returns:
         HandlerResult with success flag and message
     """
-    # Check for missing indirect_object with custom message
-    if not action.get("indirect_object"):
+    # Check for missing object with custom message
+    if not action.get("object"):
         return HandlerResult(
             success=False,
             primary="Hide in what?"
@@ -296,7 +293,7 @@ def handle_hide_in(accessor, action):
 
     return _handle_positioning(
         accessor, action,
-        object_field="indirect_object",
+        object_field="object",
         required_property="allows_concealment",
         posture="concealed",
         verb_phrase="hide in"

@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 from pathlib import Path
 
-from src.types import LocationId, ActorId, ItemId, LockId, PartId, ExitId
+from src.types import LocationId, ActorId, ItemId, LockId, PartId, ExitId, CommitmentId, ScheduledEventId, GossipId, SpreadId
 
 
 # Exceptions
@@ -440,8 +440,136 @@ class Actor:
         self.properties["llm_context"] = value
 
 
+@dataclass
+class Commitment:
+    """Player promise to an NPC with deadline tracking."""
+    id: CommitmentId
+    name: str
+    description: str
+    properties: Dict[str, Any] = field(default_factory=dict)
+    behaviors: List[str] = field(default_factory=list)
+
+    @property
+    def states(self) -> Dict[str, Any]:
+        """Access states dict within properties."""
+        if "states" not in self.properties:
+            self.properties["states"] = {}
+        return cast(Dict[str, Any], self.properties["states"])
+
+    @states.setter
+    def states(self, value: Dict[str, Any]) -> None:
+        """Set states dict within properties."""
+        self.properties["states"] = value
+
+    @property
+    def llm_context(self) -> Optional[Dict[str, Any]]:
+        """Access llm_context from properties."""
+        return cast(Optional[Dict[str, Any]], self.properties.get("llm_context"))
+
+    @llm_context.setter
+    def llm_context(self, value: Optional[Dict[str, Any]]) -> None:
+        """Set llm_context in properties."""
+        self.properties["llm_context"] = value
+
+
+@dataclass
+class ScheduledEvent:
+    """Timed event that fires when trigger turn is reached."""
+    id: ScheduledEventId
+    name: str
+    description: str
+    properties: Dict[str, Any] = field(default_factory=dict)
+    behaviors: List[str] = field(default_factory=list)
+
+    @property
+    def states(self) -> Dict[str, Any]:
+        """Access states dict within properties."""
+        if "states" not in self.properties:
+            self.properties["states"] = {}
+        return cast(Dict[str, Any], self.properties["states"])
+
+    @states.setter
+    def states(self, value: Dict[str, Any]) -> None:
+        """Set states dict within properties."""
+        self.properties["states"] = value
+
+    @property
+    def llm_context(self) -> Optional[Dict[str, Any]]:
+        """Access llm_context from properties."""
+        return cast(Optional[Dict[str, Any]], self.properties.get("llm_context"))
+
+    @llm_context.setter
+    def llm_context(self, value: Optional[Dict[str, Any]]) -> None:
+        """Set llm_context in properties."""
+        self.properties["llm_context"] = value
+
+
+@dataclass
+class Gossip:
+    """Information propagating between NPCs over time."""
+    id: GossipId
+    name: str
+    description: str
+    properties: Dict[str, Any] = field(default_factory=dict)
+    behaviors: List[str] = field(default_factory=list)
+
+    @property
+    def states(self) -> Dict[str, Any]:
+        """Access states dict within properties."""
+        if "states" not in self.properties:
+            self.properties["states"] = {}
+        return cast(Dict[str, Any], self.properties["states"])
+
+    @states.setter
+    def states(self, value: Dict[str, Any]) -> None:
+        """Set states dict within properties."""
+        self.properties["states"] = value
+
+    @property
+    def llm_context(self) -> Optional[Dict[str, Any]]:
+        """Access llm_context from properties."""
+        return cast(Optional[Dict[str, Any]], self.properties.get("llm_context"))
+
+    @llm_context.setter
+    def llm_context(self, value: Optional[Dict[str, Any]]) -> None:
+        """Set llm_context in properties."""
+        self.properties["llm_context"] = value
+
+
+@dataclass
+class Spread:
+    """Environmental effect spreading across locations over time."""
+    id: SpreadId
+    name: str
+    description: str
+    properties: Dict[str, Any] = field(default_factory=dict)
+    behaviors: List[str] = field(default_factory=list)
+
+    @property
+    def states(self) -> Dict[str, Any]:
+        """Access states dict within properties."""
+        if "states" not in self.properties:
+            self.properties["states"] = {}
+        return cast(Dict[str, Any], self.properties["states"])
+
+    @states.setter
+    def states(self, value: Dict[str, Any]) -> None:
+        """Set states dict within properties."""
+        self.properties["states"] = value
+
+    @property
+    def llm_context(self) -> Optional[Dict[str, Any]]:
+        """Access llm_context from properties."""
+        return cast(Optional[Dict[str, Any]], self.properties.get("llm_context"))
+
+    @llm_context.setter
+    def llm_context(self, value: Optional[Dict[str, Any]]) -> None:
+        """Set llm_context in properties."""
+        self.properties["llm_context"] = value
+
+
 # Entity type alias - union of all game entities
-Entity = Location | Item | Lock | Part | Actor | ExitDescriptor
+Entity = Location | Item | Lock | Part | Actor | ExitDescriptor | Commitment | ScheduledEvent | Gossip | Spread
 """Union type for any game entity.
 
 Entities share a common structure:
@@ -464,6 +592,10 @@ class GameState:
     locks: List[Lock] = field(default_factory=list)
     actors: Dict[ActorId, Actor] = field(default_factory=dict)
     parts: List[Part] = field(default_factory=list)
+    commitments: List[Commitment] = field(default_factory=list)
+    scheduled_events: List[ScheduledEvent] = field(default_factory=list)
+    gossip: List[Gossip] = field(default_factory=list)
+    spreads: List[Spread] = field(default_factory=list)
     extra: Dict[str, Any] = field(default_factory=dict)
     turn_count: int = 0
 
@@ -494,6 +626,34 @@ class GameState:
             if lock.id == lock_id:
                 return lock
         raise KeyError(f"Lock not found: {lock_id}")
+
+    def get_commitment(self, commitment_id: CommitmentId) -> Commitment:
+        """Get commitment by ID."""
+        for commitment in self.commitments:
+            if commitment.id == commitment_id:
+                return commitment
+        raise KeyError(f"Commitment not found: {commitment_id}")
+
+    def get_scheduled_event(self, event_id: ScheduledEventId) -> ScheduledEvent:
+        """Get scheduled event by ID."""
+        for event in self.scheduled_events:
+            if event.id == event_id:
+                return event
+        raise KeyError(f"Scheduled event not found: {event_id}")
+
+    def get_gossip(self, gossip_id: GossipId) -> Gossip:
+        """Get gossip by ID."""
+        for gossip_item in self.gossip:
+            if gossip_item.id == gossip_id:
+                return gossip_item
+        raise KeyError(f"Gossip not found: {gossip_id}")
+
+    def get_spread(self, spread_id: SpreadId) -> Spread:
+        """Get spread by ID."""
+        for spread in self.spreads:
+            if spread.id == spread_id:
+                return spread
+        raise KeyError(f"Spread not found: {spread_id}")
 
     def move_item(self, item_id: ItemId, to_actor: Optional[ActorId] = None,
                   to_location: Optional[LocationId] = None, to_container: Optional[ItemId] = None) -> None:
@@ -747,6 +907,62 @@ def _parse_actor(raw: Dict[str, Any], actor_id: Optional[str] = None) -> Actor:
     )
 
 
+def _parse_commitment(raw: Dict[str, Any]) -> Commitment:
+    """Parse commitment from JSON dict."""
+    core_fields = {'id', 'name', 'description', 'properties', 'behaviors'}
+
+    commitment_id = raw['id']
+    return Commitment(
+        id=CommitmentId(commitment_id),
+        name=raw.get('name', commitment_id),  # Default to id if no name
+        description=raw.get('description', ''),
+        properties=_parse_properties(raw, core_fields),
+        behaviors=_parse_behaviors(raw.get('behaviors', []), f"commitment:{commitment_id}")
+    )
+
+
+def _parse_scheduled_event(raw: Dict[str, Any]) -> ScheduledEvent:
+    """Parse scheduled event from JSON dict."""
+    core_fields = {'id', 'name', 'description', 'properties', 'behaviors'}
+
+    event_id = raw['id']
+    return ScheduledEvent(
+        id=ScheduledEventId(event_id),
+        name=raw.get('name', event_id),  # Default to id if no name
+        description=raw.get('description', ''),
+        properties=_parse_properties(raw, core_fields),
+        behaviors=_parse_behaviors(raw.get('behaviors', []), f"scheduled_event:{event_id}")
+    )
+
+
+def _parse_gossip(raw: Dict[str, Any]) -> Gossip:
+    """Parse gossip from JSON dict."""
+    core_fields = {'id', 'name', 'description', 'properties', 'behaviors'}
+
+    gossip_id = raw['id']
+    return Gossip(
+        id=GossipId(gossip_id),
+        name=raw.get('name', gossip_id),  # Default to id if no name
+        description=raw.get('description', ''),
+        properties=_parse_properties(raw, core_fields),
+        behaviors=_parse_behaviors(raw.get('behaviors', []), f"gossip:{gossip_id}")
+    )
+
+
+def _parse_spread(raw: Dict[str, Any]) -> Spread:
+    """Parse spread from JSON dict."""
+    core_fields = {'id', 'name', 'description', 'properties', 'behaviors'}
+
+    spread_id = raw['id']
+    return Spread(
+        id=SpreadId(spread_id),
+        name=raw.get('name', spread_id),  # Default to id if no name
+        description=raw.get('description', ''),
+        properties=_parse_properties(raw, core_fields),
+        behaviors=_parse_behaviors(raw.get('behaviors', []), f"spread:{spread_id}")
+    )
+
+
 def _parse_metadata(raw: Dict[str, Any]) -> Metadata:
     """Parse metadata from JSON dict."""
     return Metadata(
@@ -813,6 +1029,12 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
     if ActorId('player') not in actors:
         raise ValueError("actors dict must contain 'player' entry")
 
+    # Parse virtual entities
+    commitments = [_parse_commitment(c) for c in data.get('commitments', [])]
+    scheduled_events = [_parse_scheduled_event(e) for e in data.get('scheduled_events', [])]
+    gossip = [_parse_gossip(g) for g in data.get('gossip', [])]
+    spreads = [_parse_spread(s) for s in data.get('spreads', [])]
+
     state = GameState(
         metadata=metadata,
         locations=locations,
@@ -820,6 +1042,10 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
         locks=locks,
         actors=actors,
         parts=parts,
+        commitments=commitments,
+        scheduled_events=scheduled_events,
+        gossip=gossip,
+        spreads=spreads,
         turn_count=data.get('turn_count', 0),
         extra=data.get('extra', {})
     )
@@ -901,6 +1127,26 @@ def _serialize_actor(actor: Actor) -> Dict[str, Any]:
     return _serialize_entity(actor, required_fields=['id', 'name', 'description', 'location', 'inventory'])
 
 
+def _serialize_commitment(commitment: Commitment) -> Dict[str, Any]:
+    """Serialize commitment to dict."""
+    return _serialize_entity(commitment, required_fields=['id', 'name', 'description'])
+
+
+def _serialize_scheduled_event(event: ScheduledEvent) -> Dict[str, Any]:
+    """Serialize scheduled event to dict."""
+    return _serialize_entity(event, required_fields=['id', 'name', 'description'])
+
+
+def _serialize_gossip(gossip: Gossip) -> Dict[str, Any]:
+    """Serialize gossip to dict."""
+    return _serialize_entity(gossip, required_fields=['id', 'name', 'description'])
+
+
+def _serialize_spread(spread: Spread) -> Dict[str, Any]:
+    """Serialize spread to dict."""
+    return _serialize_entity(spread, required_fields=['id', 'name', 'description'])
+
+
 def _serialize_metadata(metadata: Metadata) -> Dict[str, Any]:
     """Serialize metadata to dict."""
     result = {
@@ -930,6 +1176,16 @@ def game_state_to_dict(state: GameState) -> Dict[str, Any]:
         'locks': [_serialize_lock(lock) for lock in state.locks],
         'actors': {actor_id: _serialize_actor(actor) for actor_id, actor in state.actors.items()}
     }
+
+    # Include virtual entities if present
+    if state.commitments:
+        result['commitments'] = [_serialize_commitment(c) for c in state.commitments]
+    if state.scheduled_events:
+        result['scheduled_events'] = [_serialize_scheduled_event(e) for e in state.scheduled_events]
+    if state.gossip:
+        result['gossip'] = [_serialize_gossip(g) for g in state.gossip]
+    if state.spreads:
+        result['spreads'] = [_serialize_spread(s) for s in state.spreads]
 
     # Only include turn_count if non-zero (for cleaner save files)
     if state.turn_count > 0:

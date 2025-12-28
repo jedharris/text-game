@@ -1,0 +1,22 @@
+# Test Walkthrough Tool Features
+# This demonstrates annotations and error categorization
+
+# Normal commands that should succeed
+go north
+go north
+look
+
+# Taking an item
+take fire wand
+
+# This command is expected to fail (guardians block exit)
+go south  # EXPECT_FAIL
+
+# Try to go east (no such exit - also expected to fail)
+go east  # EXPECT_FAIL
+
+# Try to use non-existent item
+use ice wand on fire wand  # EXPECT_FAIL
+
+# Valid command
+inventory

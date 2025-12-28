@@ -25,7 +25,7 @@ from src.types import ActorId
 from utilities.utils import name_matches
 from utilities.handler_utils import get_display_name
 from utilities.entity_serializer import serialize_for_handler_result
-from behavior_libraries.dialog_lib.topics import (
+from .topics import (
     get_topic_hints,
     handle_ask_about,
     handle_talk_to,

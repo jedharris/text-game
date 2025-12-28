@@ -56,10 +56,34 @@ def handle_attack(accessor, action):
         # Call combat system's on_attack handler
         from behaviors.shared.lib.actor_lib import combat
 
+        # Build context with target_id
+        context = {"target_id": target_actor.id}
+
+        # Check if a specific weapon was specified ("attack X with Y")
+        if "indirect_object" in action:
+            weapon_name = action["indirect_object"]
+            weapon_adjective = action.get("indirect_adjective")
+            # Try to find the weapon in inventory
+            weapon_item = find_accessible_item(accessor, weapon_name, actor_id, weapon_adjective)
+            if weapon_item:
+                # Verify it's in inventory
+                if weapon_item.location == actor_id:
+                    context["weapon_id"] = weapon_item.id
+                else:
+                    return HandlerResult(
+                        success=False,
+                        primary=f"You need to be holding the {weapon_item.name} to attack with it."
+                    )
+            else:
+                return HandlerResult(
+                    success=False,
+                    primary=f"You don't have a {get_display_name(weapon_name)}."
+                )
+
         result = combat.on_attack(
             attacker,
             accessor,
-            {"target_id": target_actor.id}
+            context
         )
 
         if result.feedback:

@@ -199,7 +199,7 @@ def apply_venom_from_attack(accessor, attacker, target, attack) -> Optional[str]
     Returns:
         Message if venom applied, None otherwise
     """
-    from behavior_libraries.actor_lib.conditions import apply_condition, has_condition
+    from behaviors.actor_lib.conditions import apply_condition, has_condition
 
     applies_condition = attack.get("applies_condition")
     if not applies_condition:

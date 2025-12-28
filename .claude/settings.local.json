@@ -1,19 +1,15 @@
 {
   "includeCoAuthoredBy": true,
   "permissions": {
-    "allow": [
-      "Bash(cat:*)",
-      "Bash(gh:*)",
-      "Bash(python -m unittest:*)",
-      "Bash(grep:*)",
-      "Bash(python test_stand_vocab.py:*)",
-      "Bash(python:*)",
-      "mcp__claude-context:*",
-      "Bash(wc:*)",
-      "Bash(python3:*)",
-      "Bash(mypy:*)",
-      "Bash(xargs mypy:*)",
-      "Bash(while read f)",
-      "Bash(python -m mypy:*)",
-      "Bash(python3 -m unittest:*)"
- 
+  "allow": [
+    "Bash",
+    "mcp__claude-context",
+    "Gh :*",
+    "Bash(gh :*)"
+  ],
+  "deny": [],
+  "ask": []
+  },
+  "model": "opusplan",
+  "enableAllProjectMcpServers": true
+}

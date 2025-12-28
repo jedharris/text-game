@@ -3,12 +3,12 @@
 Allows NPCs to move between locations on their own schedule.
 """
 
-from behavior_libraries.npc_movement_lib.patrol import (
+from .patrol import (
     patrol_step,
     set_patrol_route,
     on_npc_movement,
 )
-from behavior_libraries.npc_movement_lib.wander import (
+from .wander import (
     wander_step,
     set_wander_area,
 )

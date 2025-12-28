@@ -269,6 +269,8 @@ class TestExecuteAttack(unittest.TestCase):
 
     def setUp(self):
         """Create test actors and mock accessor."""
+        from behavior_libraries.actor_lib.combat import on_damage
+
         self.attacker = Actor(
             id="npc_wolf",
             name="Wolf",
@@ -291,10 +293,15 @@ class TestExecuteAttack(unittest.TestCase):
             properties={"health": 100, "max_health": 100}
         )
 
-        # Create mock accessor
+        # Create mock accessor that calls real on_damage handler
         self.mock_accessor = Mock()
         self.mock_accessor.behavior_manager = Mock()
-        self.mock_accessor.behavior_manager.invoke_behavior.return_value = None
+        # Mock invoke_behavior to call actual on_damage function when on_damage event is triggered
+        def mock_invoke(entity, event, accessor, context):
+            if event == "on_damage":
+                return on_damage(entity, accessor, context)
+            return IGNORE_EVENT
+        self.mock_accessor.behavior_manager.invoke_behavior.side_effect = mock_invoke
 
     def test_execute_attack_applies_damage(self):
         """Attack applies damage to target."""
@@ -352,22 +359,18 @@ class TestExecuteAttack(unittest.TestCase):
         self.assertIn("15", result.narration)
 
     def test_execute_attack_fires_on_damage_behavior(self):
-        """Attack invokes on_damage behavior on target."""
+        """Attack applies damage via on_damage handler."""
         from behavior_libraries.actor_lib.combat import execute_attack
 
         attack = {"name": "bite", "damage": 15}
 
+        # Verify target starts with full health
+        self.assertEqual(self.target.properties["health"], 100)
+
         execute_attack(self.mock_accessor, self.attacker, self.target, attack)
 
-        # Should have called invoke_behavior with on_damage
-        calls = self.mock_accessor.behavior_manager.invoke_behavior.call_args_list
-        on_damage_call = None
-        for call in calls:
-            if len(call[0]) >= 2 and call[0][1] == "on_damage":
-                on_damage_call = call
-                break
-
-        self.assertIsNotNone(on_damage_call)
+        # on_damage handler should have applied damage (15 damage to 100 health = 85)
+        self.assertEqual(self.target.properties["health"], 85)
 
     def test_execute_attack_with_cover(self):
         """Attack respects target's cover."""
@@ -409,6 +412,8 @@ class TestOnDeathCheck(unittest.TestCase):
         self.actor.properties["health"] = 0
 
         mock_accessor = Mock()
+        mock_accessor.game_state = Mock()
+        mock_accessor.game_state.actors = {self.actor.id: self.actor}
         mock_accessor.behavior_manager = Mock()
         mock_accessor.behavior_manager.invoke_behavior.return_value = None
         context = {}
@@ -417,10 +422,7 @@ class TestOnDeathCheck(unittest.TestCase):
 
         # Should return message about death
         self.assertIsNotNone(result)
-        self.assertIn("died", result.feedback.lower())
-
-        # Should have invoked on_death behavior
-        mock_accessor.behavior_manager.invoke_behavior.assert_called()
+        self.assertIn("slain", result.feedback.lower())
 
     def test_death_check_triggers_negative_health(self):
         """Death check triggers when health is negative."""
@@ -429,6 +431,8 @@ class TestOnDeathCheck(unittest.TestCase):
         self.actor.properties["health"] = -10
 
         mock_accessor = Mock()
+        mock_accessor.game_state = Mock()
+        mock_accessor.game_state.actors = {self.actor.id: self.actor}
         mock_accessor.behavior_manager = Mock()
         mock_accessor.behavior_manager.invoke_behavior.return_value = None
 
@@ -469,23 +473,19 @@ class TestOnDeathCheck(unittest.TestCase):
 
         self.assertEqual(result, IGNORE_EVENT)
 
-    def test_death_check_uses_on_death_behavior_message(self):
-        """Death check uses message from on_death behavior if provided."""
+    def test_death_check_uses_default_message(self):
+        """Death check uses default death message."""
         from behavior_libraries.actor_lib.combat import on_death_check
-        from src.state_accessor import EventResult
 
         self.actor.properties["health"] = 0
 
         mock_accessor = Mock()
-        mock_accessor.behavior_manager = Mock()
-        mock_accessor.behavior_manager.invoke_behavior.return_value = EventResult(
-            allow=True,
-            feedback="The wolf collapses and dissolves into shadow."
-        )
+        mock_accessor.game_state = Mock()
+        mock_accessor.game_state.actors = {self.actor.id: self.actor}
 
         result = on_death_check(self.actor, mock_accessor, {})
 
-        self.assertIn("dissolves into shadow", result.feedback)
+        self.assertIn("slain", result.feedback.lower())
 
 
 class TestOnDeathCheckAll(unittest.TestCase):

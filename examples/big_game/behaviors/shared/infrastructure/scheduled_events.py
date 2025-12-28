@@ -7,55 +7,67 @@ Events can set flags, transition states, or queue gossip.
 from typing import Any
 
 from src.behavior_manager import EventResult
-from src.infrastructure_utils import fire_due_events
+from src.state_manager import ScheduledEvent
 
 # Vocabulary: wire hook to event
 vocabulary = {
     "events": [
         {
-            "event": "on_scheduled_event_check",
+            "event": "on_turn_scheduled",
             "hook": "turn_phase_scheduled",
-            "description": "Check and fire scheduled events each turn",
+            "description": "Check and fire scheduled event if trigger turn reached (per-entity)",
         }
     ]
 }
 
 
-def on_scheduled_event_check(
-    entity: Any,
+def on_turn_scheduled(
+    entity: ScheduledEvent,
     accessor: Any,
     context: dict[str, Any],
 ) -> EventResult:
-    """Check and fire scheduled events that have reached their trigger turn.
+    """Check if this scheduled event should fire (per-entity handler).
 
-    This is called once per turn as part of the turn phase sequence.
-    The entity parameter is None since this is a game-wide check.
+    Called once per event per turn as part of the turn phase sequence.
+    When an event fires, it can:
+    - Set flags
+    - Transition states
+    - Queue gossip
+    - Trigger other game effects
 
     Args:
-        entity: None (game-wide handler)
+        entity: The ScheduledEvent entity being checked
         accessor: StateAccessor instance
         context: Context dict with current_turn
 
     Returns:
-        EventResult with messages about fired events
+        EventResult with message if event fired, None otherwise
     """
-    state = accessor.game_state
+    current_turn = context.get("current_turn", 0)
 
-    # Fire all due events (reads current turn from state.extra["turn_count"])
-    fired_events = fire_due_events(state)
-
-    if not fired_events:
+    # Check if trigger turn has been reached
+    trigger_turn = entity.properties.get("trigger_turn")
+    if not trigger_turn or current_turn < trigger_turn:
         return EventResult(allow=True, feedback=None)
 
-    # Build message about fired events
-    messages = []
-    for event in fired_events:
-        event_type = event.get("event_type", "unknown")
-        # The actual effect is handled by fire_due_events
-        # Here we just report what happened for narration
-        messages.append(f"[Event: {event_type}]")
+    # Event is due to fire
+    event_type = entity.properties.get("event_type", "unknown")
+    event_data = entity.properties.get("data", {})
 
-    return EventResult(
-        allow=True,
-        feedback="\n".join(messages) if messages else None,
-    )
+    # TODO: Actually process the event based on event_type
+    # For now, just report that it would fire
+    # In full implementation, this would:
+    # - Set flags based on event_type
+    # - Create gossip if event_type indicates gossip
+    # - Update state based on event_data
+    # - Handle repeating events by updating trigger_turn
+
+    message = f"[Event fired: {event_type}]"
+
+    # Handle repeating events
+    if entity.properties.get("repeating", False):
+        interval = entity.properties.get("interval", 1)
+        entity.properties["trigger_turn"] = trigger_turn + interval
+        message += f" (next at turn {trigger_turn + interval})"
+
+    return EventResult(allow=True, feedback=message)

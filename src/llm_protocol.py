@@ -15,7 +15,7 @@ from typing import Any, Dict, List, Literal, Optional, Set, Union, TYPE_CHECKING
 from src.action_types import ActionDict, CommandMessage, ResultMessage
 from src.narration_assembler import NarrationAssembler
 from src.narration_types import NarrationResult, NarrationPlan
-from .types import ActorId, HookName, ItemId, LocationId
+from .types import ActorId, EventName, HookName, ItemId, LocationId
 
 if TYPE_CHECKING:
     from src.state_manager import Location, Item, Actor
@@ -419,6 +419,10 @@ class LLMProtocolHandler:
         Each phase may have an event registered via vocabulary that handles
         the phase logic.
 
+        Virtual entity turn phases (commitments, scheduled_events, gossip, spreads)
+        use per-entity dispatch, iterating collections and invoking each entity's
+        behavior handler.
+
         Args:
             accessor: StateAccessor for state queries
             action: The action dict from the command
@@ -439,18 +443,75 @@ class LLMProtocolHandler:
                 context: Dict[str, Any] = {
                     "hook": hook_name,
                     "actor_id": actor_id,
+                    "current_turn": self.state.turn_count,
                 }
 
-                # Invoke behaviors registered for this event
-                # Note: For turn phases, we don't have a specific entity target,
-                # so we pass None and let the behavior handle iteration
-                result = self.behavior_manager.invoke_behavior(
-                    None, event_name, accessor, context
-                )
+                # Virtual entity turn phases use per-entity dispatch
+                if hook_name == hooks.TURN_PHASE_COMMITMENT:
+                    phase_messages = self._fire_commitment_phase(accessor, event_name, context)
+                    messages.extend(phase_messages)
+                elif hook_name == hooks.TURN_PHASE_SCHEDULED:
+                    phase_messages = self._fire_scheduled_event_phase(accessor, event_name, context)
+                    messages.extend(phase_messages)
+                elif hook_name == hooks.TURN_PHASE_GOSSIP:
+                    phase_messages = self._fire_gossip_phase(accessor, event_name, context)
+                    messages.extend(phase_messages)
+                elif hook_name == hooks.TURN_PHASE_SPREAD:
+                    phase_messages = self._fire_spread_phase(accessor, event_name, context)
+                    messages.extend(phase_messages)
+                else:
+                    # Standard turn phases: invoke with None entity (centralized handling)
+                    result = self.behavior_manager.invoke_behavior(
+                        None, event_name, accessor, context
+                    )
 
-                if result and result.feedback:
-                    messages.append(result.feedback)
+                    if result and result.feedback:
+                        messages.append(result.feedback)
 
+        return messages
+
+    def _fire_commitment_phase(self, accessor: "StateAccessor", event_name: EventName, context: Dict[str, Any]) -> List[str]:
+        """Fire commitment turn phase by dispatching to each commitment."""
+        messages = []
+        for commitment in self.state.commitments:
+            result = self.behavior_manager.invoke_behavior(
+                commitment, event_name, accessor, context
+            )
+            if result and result.feedback:
+                messages.append(result.feedback)
+        return messages
+
+    def _fire_scheduled_event_phase(self, accessor: "StateAccessor", event_name: EventName, context: Dict[str, Any]) -> List[str]:
+        """Fire scheduled event turn phase by dispatching to each event."""
+        messages = []
+        for event in self.state.scheduled_events:
+            result = self.behavior_manager.invoke_behavior(
+                event, event_name, accessor, context
+            )
+            if result and result.feedback:
+                messages.append(result.feedback)
+        return messages
+
+    def _fire_gossip_phase(self, accessor: "StateAccessor", event_name: EventName, context: Dict[str, Any]) -> List[str]:
+        """Fire gossip turn phase by dispatching to each gossip entry."""
+        messages = []
+        for gossip in self.state.gossip:
+            result = self.behavior_manager.invoke_behavior(
+                gossip, event_name, accessor, context
+            )
+            if result and result.feedback:
+                messages.append(result.feedback)
+        return messages
+
+    def _fire_spread_phase(self, accessor: "StateAccessor", event_name: EventName, context: Dict[str, Any]) -> List[str]:
+        """Fire spread turn phase by dispatching to each spread."""
+        messages = []
+        for spread in self.state.spreads:
+            result = self.behavior_manager.invoke_behavior(
+                spread, event_name, accessor, context
+            )
+            if result and result.feedback:
+                messages.append(result.feedback)
         return messages
 
     def handle_query(self, message: Dict) -> Dict:

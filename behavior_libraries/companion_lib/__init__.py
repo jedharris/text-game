@@ -4,7 +4,7 @@ Allows domesticated creatures and befriended NPCs to follow the player
 between locations, with support for location/terrain restrictions.
 """
 
-from behavior_libraries.companion_lib.following import (
+from .following import (
     get_companions,
     make_companion,
     dismiss_companion,

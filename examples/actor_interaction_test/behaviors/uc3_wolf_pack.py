@@ -56,8 +56,8 @@ def apply_feeding(accessor, item, actor) -> Optional[str]:
     Returns:
         Message describing what happened, or None if no feeding effect
     """
-    from behavior_libraries.actor_lib.packs import sync_pack_disposition, is_alpha
-    from behavior_libraries.actor_lib.relationships import modify_relationship
+    from behaviors.actor_lib.packs import sync_pack_disposition, is_alpha
+    from behaviors.actor_lib.relationships import modify_relationship
 
     satisfiable = get_satisfiable_needs(item, actor)
     if not satisfiable:
@@ -116,7 +116,7 @@ def directed_flee(accessor, actor) -> Optional[str]:
     Returns:
         Message describing what happened
     """
-    from behavior_libraries.actor_lib.morale import check_flee_condition
+    from behaviors.actor_lib.morale import check_flee_condition
 
     if not check_flee_condition(accessor, actor):
         return None
@@ -129,7 +129,7 @@ def directed_flee(accessor, actor) -> Optional[str]:
         return f"{actor.name} flees to safety!"
 
     # Fall back to library's random flee
-    from behavior_libraries.actor_lib.morale import attempt_flee
+    from behaviors.actor_lib.morale import attempt_flee
     result = attempt_flee(accessor, actor, force_success=True)
     return result.narration
 
@@ -148,7 +148,7 @@ def update_morale_on_damage(accessor, actor, damage: int) -> Optional[str]:
     Returns:
         Message if fled, None otherwise
     """
-    from behavior_libraries.actor_lib.morale import check_flee_condition
+    from behaviors.actor_lib.morale import check_flee_condition
 
     if check_flee_condition(accessor, actor):
         return directed_flee(accessor, actor)
@@ -169,7 +169,7 @@ def check_domestication(actor, target_id: str = "player") -> bool:
     Returns:
         True if domesticated, False otherwise
     """
-    from behavior_libraries.actor_lib.relationships import check_threshold
+    from behaviors.actor_lib.relationships import check_threshold
 
     return check_threshold(actor, target_id, "gratitude", 3)
 

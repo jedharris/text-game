@@ -217,7 +217,7 @@ def perform_guard_attack(accessor, guard, target) -> str:
     Returns:
         Message describing the attack
     """
-    from behavior_libraries.actor_lib.combat import get_attacks, execute_attack
+    from behaviors.actor_lib.combat import get_attacks, execute_attack
 
     attacks = get_attacks(guard)
     if not attacks:

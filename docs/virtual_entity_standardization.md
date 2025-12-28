@@ -162,6 +162,12 @@ Current TypedDict fields → new entity properties:
 
 Turn phase handlers dispatch to each virtual entity instead of iterating centrally:
 
+**Event names**: Use shorter, clearer names:
+- Commitments: `on_turn_commitment`
+- Scheduled events: `on_turn_scheduled`
+- Gossip: `on_turn_gossip`
+- Spreads: `on_turn_spread`
+
 ```python
 # src/turn_phases.py (or wherever turn phases are invoked)
 def execute_turn_phase_commitment(accessor):
@@ -172,7 +178,7 @@ def execute_turn_phase_commitment(accessor):
     for commitment in state.commitments:
         result = accessor.behavior_manager.invoke_behavior(
             commitment,
-            "on_turn_phase_check",
+            "on_turn_commitment",
             accessor,
             {"current_turn": state.turn_count}
         )
@@ -185,7 +191,7 @@ def execute_turn_phase_commitment(accessor):
 **Behavior handler** (in commitment's behavior module):
 ```python
 # examples/big_game/behaviors/shared/infrastructure/commitments.py
-def on_turn_phase_check(entity, accessor, context):
+def on_turn_commitment(entity, accessor, context):
     """Check if this commitment has expired (per-entity handler)."""
     current_turn = context["current_turn"]
     deadline = entity.properties.get("deadline_turn")
@@ -253,26 +259,26 @@ For each turn phase handler:
 
 **Commitment phase**:
 1. Change turn_phases.py to iterate state.commitments and dispatch to each
-2. Update commitments.py behavior to handle per-entity checks
-3. Add vocabulary event registration ("on_turn_phase_check" → handler)
+2. Update commitments.py behavior to handle per-entity checks with `on_turn_commitment` handler
+3. Add vocabulary event registration ("on_turn_commitment" → handler)
 4. Remove centralized get_expired_commitments() iteration
 5. Write tests for per-commitment dispatch
 
 **Scheduled event phase**:
 1. Change turn_phases.py to iterate state.scheduled_events and dispatch
-2. Update scheduled_events.py behavior for per-event firing
+2. Update scheduled_events.py behavior for per-event firing with `on_turn_scheduled` handler
 3. Remove centralized fire_due_events() iteration
 4. Write tests for per-event dispatch
 
 **Gossip phase**:
 1. Change turn_phases.py to iterate state.gossip and dispatch
-2. Update gossip.py behavior for per-gossip delivery
+2. Update gossip.py behavior for per-gossip delivery with `on_turn_gossip` handler
 3. Remove centralized deliver_due_gossip() iteration
 4. Write tests for per-gossip dispatch
 
 **Spread phase**:
 1. Change turn_phases.py to iterate state.spreads and dispatch
-2. Update spreads.py behavior for per-spread milestone checks
+2. Update spreads.py behavior for per-spread milestone checks with `on_turn_spread` handler
 3. Remove centralized get_due_milestones() iteration
 4. Write tests for per-spread dispatch
 

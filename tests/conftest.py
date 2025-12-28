@@ -216,6 +216,7 @@ def make_word_entry(word: str, word_type: WordType = WordType.NOUN, synonyms: Op
 
 
 def make_action(verb: Optional[str] = None, object: Optional[str] = None, adjective: Optional[str] = None,
+                direct_object: Optional[str] = None, direct_adjective: Optional[str] = None,
                 indirect_object: Optional[str] = None, indirect_adjective: Optional[str] = None,
                 preposition: Optional[str] = None, direction: Optional[str] = None,
                 actor_id: str = "player", **kwargs: Any) -> Dict[str, Any]:
@@ -230,6 +231,8 @@ def make_action(verb: Optional[str] = None, object: Optional[str] = None, adject
         verb: Verb string (optional)
         object: Object string (converted to WordEntry)
         adjective: Adjective string (converted to WordEntry)
+        direct_object: Direct object string (converted to WordEntry)
+        direct_adjective: Direct adjective string (converted to WordEntry)
         indirect_object: Indirect object string (converted to WordEntry)
         indirect_adjective: Indirect adjective string (converted to WordEntry)
         preposition: Preposition string (converted to WordEntry)
@@ -256,8 +259,12 @@ def make_action(verb: Optional[str] = None, object: Optional[str] = None, adject
     # Convert word fields to WordEntry
     if object is not None:
         action["object"] = make_word_entry(object)
+    if direct_object is not None:
+        action["direct_object"] = make_word_entry(direct_object)
     if adjective is not None:
         action["adjective"] = adjective  # Adjectives stay as strings for description matching
+    if direct_adjective is not None:
+        action["direct_adjective"] = direct_adjective  # Also stays as string
     if indirect_object is not None:
         action["indirect_object"] = make_word_entry(indirect_object)
     if indirect_adjective is not None:

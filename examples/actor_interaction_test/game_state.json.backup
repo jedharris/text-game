@@ -1,0 +1,1031 @@
+{
+  "metadata": {
+    "title": "Actor Interaction Test Game",
+    "version": "0.04",
+    "description": "Test game for actor interaction integration tests (UC1-UC8).",
+    "start_location": "loc_central_hub",
+    "author": "Actor Interaction Tests",
+    "schema_version": "v_0.03"
+  },
+  "locations": [
+    {
+      "id": "loc_central_hub",
+      "name": "Central Hub",
+      "description": "A circular chamber with passages leading in all directions. This is the heart of the test dungeon, connecting to all the different test scenarios.",
+      "exits": {
+        "north": {
+          "type": "open",
+          "to": "loc_library",
+          "name": "archway",
+          "description": "An archway leads north to a dusty library."
+        },
+        "west": {
+          "type": "open",
+          "to": "loc_forest_clearing",
+          "name": "trail",
+          "description": "A forest trail leads west into the woods."
+        },
+        "east": {
+          "type": "open",
+          "to": "loc_dock",
+          "name": "path",
+          "description": "A worn path leads east toward the sound of water."
+        },
+        "south": {
+          "type": "open",
+          "to": "loc_temple_entrance",
+          "name": "stone steps",
+          "description": "Stone steps lead south to an ancient temple."
+        },
+        "northeast": {
+          "type": "open",
+          "to": "loc_garden",
+          "name": "garden gate",
+          "description": "A wooden gate leads northeast to a walled garden."
+        }
+      },
+      "items": [],
+      "tags": []
+    },
+    {
+      "id": "loc_library",
+      "name": "Ancient Library",
+      "description": "A dusty library filled with crumbling scrolls and moldy tomes. A scholar sits at a desk, looking unwell. Stairs descend to a basement.",
+      "exits": {
+        "south": {
+          "type": "open",
+          "to": "loc_central_hub",
+          "name": "archway",
+          "description": "An archway leads back south to the central hub."
+        },
+        "down": {
+          "type": "open",
+          "to": "loc_basement",
+          "name": "stairs",
+          "description": "Stone stairs descend into a dark basement."
+        }
+      },
+      "items": [
+        "item_silvermoss"
+      ],
+      "tags": []
+    },
+    {
+      "id": "loc_basement",
+      "name": "Spore-Filled Basement",
+      "description": "A damp basement filled with floating spores. The air is thick with fungal particles. Different areas have varying spore concentrations.",
+      "exits": {
+        "up": {
+          "type": "open",
+          "to": "loc_library",
+          "name": "stairs",
+          "description": "Stone stairs lead back up to the library."
+        }
+      },
+      "items": [],
+      "tags": [],
+      "parts": [
+        "part_basement_entrance",
+        "part_basement_center"
+      ]
+    },
+    {
+      "id": "loc_forest_clearing",
+      "name": "Forest Clearing",
+      "description": "A moonlit clearing in the forest. A pack of wolves has made this their territory. To the north, a rocky outcrop marks the entrance to their den.",
+      "exits": {
+        "east": {
+          "type": "open",
+          "to": "loc_central_hub",
+          "name": "trail",
+          "description": "A trail leads east back to the central hub."
+        },
+        "north": {
+          "type": "open",
+          "to": "loc_wolf_den",
+          "name": "rocky path",
+          "description": "A rocky path leads north to a dark den entrance."
+        },
+        "south": {
+          "type": "open",
+          "to": "loc_forest_road",
+          "name": "road",
+          "description": "A dirt road leads south through the forest."
+        }
+      },
+      "items": [
+        "item_venison"
+      ],
+      "tags": []
+    },
+    {
+      "id": "loc_wolf_den",
+      "name": "Wolf Den",
+      "description": "A shallow cave that serves as the wolf pack's den. Bones are scattered about and the smell is overwhelming.",
+      "exits": {
+        "south": {
+          "type": "open",
+          "to": "loc_forest_clearing",
+          "name": "rocky path",
+          "description": "The rocky path leads south back to the clearing."
+        }
+      },
+      "items": [],
+      "tags": []
+    },
+    {
+      "id": "loc_dock",
+      "name": "Old Dock",
+      "description": "A weathered wooden dock extends over murky water. A rope ladder descends into the depths. An air bladder hangs from a post.",
+      "exits": {
+        "west": {
+          "type": "open",
+          "to": "loc_central_hub",
+          "name": "path",
+          "description": "A path leads west back to the central hub."
+        },
+        "down": {
+          "type": "open",
+          "to": "loc_underwater_cave",
+          "name": "rope ladder",
+          "description": "A rope ladder descends into the water below."
+        }
+      },
+      "items": [
+        "item_air_bladder"
+      ],
+      "tags": []
+    },
+    {
+      "id": "loc_underwater_cave",
+      "name": "Underwater Cave",
+      "description": "A flooded cave chamber. Shafts of light filter down from above. A sailor struggles to stay afloat.",
+      "exits": {
+        "up": {
+          "type": "open",
+          "to": "loc_dock",
+          "name": "rope ladder",
+          "description": "A rope ladder leads up to the dock."
+        }
+      },
+      "items": [],
+      "tags": [],
+      "parts": [
+        "part_underwater_shallow",
+        "part_underwater_deep"
+      ]
+    },
+    {
+      "id": "loc_temple_entrance",
+      "name": "Temple Entrance",
+      "description": "The entrance to an ancient temple. Stone columns frame a passage leading deeper inside. A rusty sword lies abandoned on the ground.",
+      "exits": {
+        "north": {
+          "type": "open",
+          "to": "loc_central_hub",
+          "name": "stone steps",
+          "description": "Stone steps lead north back to the central hub."
+        },
+        "south": {
+          "type": "open",
+          "to": "loc_temple_sanctum",
+          "name": "passage",
+          "description": "A dark passage leads south into the temple sanctum."
+        }
+      },
+      "items": [
+        "item_rusty_sword"
+      ],
+      "tags": []
+    },
+    {
+      "id": "loc_temple_sanctum",
+      "name": "Temple Sanctum",
+      "description": "The inner sanctum of the temple. Stone golems stand guard at the center, their eyes glowing faintly. Alcoves line the walls.",
+      "exits": {
+        "north": {
+          "type": "open",
+          "to": "loc_temple_entrance",
+          "name": "passage",
+          "description": "A passage leads north back to the entrance."
+        }
+      },
+      "items": [
+        "item_stone_pillar"
+      ],
+      "tags": [],
+      "parts": [
+        "part_sanctum_center",
+        "part_sanctum_alcove"
+      ]
+    },
+    {
+      "id": "loc_garden",
+      "name": "Walled Garden",
+      "description": "A peaceful walled garden filled with medicinal plants. Various herbs grow in neat beds, some clearly marked with warning signs. A small hut stands at the far end.",
+      "exits": {
+        "southwest": {
+          "type": "open",
+          "to": "loc_central_hub",
+          "name": "garden gate",
+          "description": "A wooden gate leads southwest back to the central hub."
+        },
+        "north": {
+          "type": "open",
+          "to": "loc_healer_hut",
+          "name": "door",
+          "description": "A wooden door leads into the healer's hut."
+        }
+      },
+      "items": [
+        "item_nightshade",
+        "item_healing_herb"
+      ],
+      "tags": []
+    },
+    {
+      "id": "loc_healer_hut",
+      "name": "Healer's Hut",
+      "description": "A cozy hut filled with dried herbs, bottles of tinctures, and the smell of healing salves. A wise healer tends to their work here.",
+      "exits": {
+        "south": {
+          "type": "open",
+          "to": "loc_garden",
+          "name": "door",
+          "description": "A wooden door leads back out to the garden."
+        }
+      },
+      "items": [],
+      "tags": []
+    },
+    {
+      "id": "loc_forest_road",
+      "name": "Forest Road",
+      "description": "A rutted dirt road winds through the dense forest. An overturned cart lies to the side, with an injured merchant slumped against it.",
+      "exits": {
+        "north": {
+          "type": "open",
+          "to": "loc_forest_clearing",
+          "name": "road",
+          "description": "The road leads north back to the forest clearing."
+        },
+        "south": {
+          "type": "open",
+          "to": "loc_town_gate",
+          "name": "road",
+          "description": "The road continues south toward the town."
+        }
+      },
+      "items": [
+        "item_bandages"
+      ],
+      "tags": []
+    },
+    {
+      "id": "loc_town_gate",
+      "name": "Town Gate",
+      "description": "A sturdy wooden gate marks the entrance to the town. Guards stand watch, eyeing travelers with suspicion.",
+      "exits": {
+        "north": {
+          "type": "open",
+          "to": "loc_forest_road",
+          "name": "road",
+          "description": "The forest road leads north."
+        },
+        "east": {
+          "type": "open",
+          "to": "loc_spider_gallery",
+          "name": "tunnel",
+          "description": "A dark tunnel leads east into an abandoned mine."
+        }
+      },
+      "items": [
+        "item_torch"
+      ],
+      "tags": []
+    },
+    {
+      "id": "loc_spider_gallery",
+      "name": "Spider Gallery",
+      "description": "A large underground chamber covered in thick spider webs. The silken strands glisten ominously. Multiple alcoves branch off from the main area.",
+      "exits": {
+        "west": {
+          "type": "open",
+          "to": "loc_town_gate",
+          "name": "tunnel",
+          "description": "A tunnel leads west back toward the town."
+        },
+        "down": {
+          "type": "open",
+          "to": "loc_main_hall",
+          "name": "stairs",
+          "description": "A crumbling stairway descends deeper underground."
+        }
+      },
+      "items": [],
+      "tags": [],
+      "parts": [
+        "part_gallery_entrance",
+        "part_gallery_nest"
+      ]
+    },
+    {
+      "id": "loc_main_hall",
+      "name": "Main Hall",
+      "description": "A grand hall with cracked marble floors and faded tapestries. A damaged stone statue stands vigil near the far wall, frozen mid-gesture.",
+      "exits": {
+        "up": {
+          "type": "open",
+          "to": "loc_spider_gallery",
+          "name": "stairs",
+          "description": "Stone stairs lead back up to the spider gallery."
+        }
+      },
+      "items": [
+        "item_stone_chisel"
+      ],
+      "tags": []
+    }
+  ],
+  "parts": [
+    {
+      "id": "part_basement_entrance",
+      "name": "Basement Entrance",
+      "part_of": "loc_basement",
+      "properties": {
+        "description": "The entrance area of the basement. The air has a faint musty smell but the spore concentration is low here.",
+        "spore_level": "low",
+        "breathable": true
+      }
+    },
+    {
+      "id": "part_basement_center",
+      "name": "Basement Center",
+      "part_of": "loc_basement",
+      "properties": {
+        "description": "The center of the basement where spores are thickest. Visibility is reduced and breathing is difficult.",
+        "spore_level": "high",
+        "breathable": true
+      }
+    },
+    {
+      "id": "part_underwater_shallow",
+      "name": "Shallow Water",
+      "part_of": "loc_underwater_cave",
+      "properties": {
+        "description": "The shallow end of the underwater cave where light still reaches.",
+        "breathable": false,
+        "breathing_item_works": true
+      }
+    },
+    {
+      "id": "part_underwater_deep",
+      "name": "Deep Water",
+      "part_of": "loc_underwater_cave",
+      "properties": {
+        "description": "The deep end of the cave. Crushing pressure makes breathing equipment less effective.",
+        "breathable": false,
+        "breathing_item_works": false
+      }
+    },
+    {
+      "id": "part_sanctum_center",
+      "name": "Sanctum Center",
+      "part_of": "loc_temple_sanctum",
+      "properties": {
+        "description": "The open center of the sanctum where the golems stand guard. No cover here.",
+        "cover_value": 0
+      }
+    },
+    {
+      "id": "part_sanctum_alcove",
+      "name": "Temple Alcove",
+      "part_of": "loc_temple_sanctum",
+      "properties": {
+        "description": "A recessed alcove in the temple wall. The stone pillars provide good cover.",
+        "cover_value": 50
+      }
+    },
+    {
+      "id": "part_gallery_entrance",
+      "name": "Gallery Entrance",
+      "part_of": "loc_spider_gallery",
+      "properties": {
+        "description": "The entrance area of the gallery. Webs are thin here, mostly decorative strands.",
+        "web_density": 20
+      }
+    },
+    {
+      "id": "part_gallery_nest",
+      "name": "Spider Nest",
+      "part_of": "loc_spider_gallery",
+      "properties": {
+        "description": "The heart of the spider nest. Thick webs cover everything, and egg sacs hang from the ceiling.",
+        "web_density": 80,
+        "web_bonus_attacks": 10
+      }
+    }
+  ],
+  "items": [
+    {
+      "id": "item_silvermoss",
+      "name": "silvermoss",
+      "description": "A clump of silvery moss with antifungal properties. It glows faintly with a soft blue light.",
+      "location": "loc_library",
+      "properties": {
+        "type": "plant",
+        "portable": true,
+        "cures": [
+          "fungal_infection"
+        ],
+        "cure_amount": 100,
+        "consumable": true
+      }
+    },
+    {
+      "id": "item_venison",
+      "name": "venison",
+      "description": "A haunch of fresh deer meat. It looks appetizing to any carnivore.",
+      "location": "loc_forest_clearing",
+      "properties": {
+        "type": "food",
+        "portable": true,
+        "satisfies": [
+          "hunger"
+        ],
+        "consumable": true
+      }
+    },
+    {
+      "id": "item_air_bladder",
+      "name": "air bladder",
+      "description": "An inflated pig's bladder that can provide air underwater. It won't last forever.",
+      "location": "loc_dock",
+      "properties": {
+        "type": "equipment",
+        "portable": true,
+        "provides_breathing": true
+      }
+    },
+    {
+      "id": "item_rusty_sword",
+      "name": "rusty sword",
+      "description": "An old iron sword covered in rust. Still sharp enough to be dangerous.",
+      "location": "loc_temple_entrance",
+      "properties": {
+        "type": "weapon",
+        "portable": true,
+        "damage": 15,
+        "weapon_type": "melee"
+      }
+    },
+    {
+      "id": "item_stone_pillar",
+      "name": "stone pillar",
+      "description": "A thick stone pillar that could provide cover from attacks.",
+      "location": "loc_temple_sanctum",
+      "properties": {
+        "type": "cover",
+        "portable": false,
+        "cover_value": 50
+      }
+    },
+    {
+      "id": "item_nightshade",
+      "name": "nightshade",
+      "description": "A dark purple flower with a sinister beauty. Warning signs are posted near it.",
+      "location": "loc_garden",
+      "properties": {
+        "type": "plant",
+        "portable": true,
+        "toxic_to_touch": true,
+        "description_with_herbalism": "A deadly nightshade plant. Its toxic oils can cause severe poisoning on contact. Best handled with gloves.",
+        "applies_condition": {
+          "name": "contact_poison",
+          "severity": 50,
+          "damage_per_turn": 5,
+          "duration": 5
+        }
+      }
+    },
+    {
+      "id": "item_healing_herb",
+      "name": "healing herb",
+      "description": "A leafy green plant with a pleasant smell.",
+      "location": "loc_garden",
+      "properties": {
+        "type": "plant",
+        "portable": true,
+        "description_with_herbalism": "Calendula, an excellent wound healer. Apply as a poultice for best effect.",
+        "cures": [
+          "contact_poison",
+          "bleeding"
+        ],
+        "cure_amount": 50,
+        "consumable": true
+      }
+    },
+    {
+      "id": "item_gold_coins",
+      "name": "gold coins",
+      "description": "A small pouch of gold coins clinking together.",
+      "location": "loc_central_hub",
+      "properties": {
+        "type": "gold",
+        "portable": true,
+        "amount": 10
+      }
+    },
+    {
+      "id": "item_bandages",
+      "name": "bandages",
+      "description": "Clean cloth bandages, useful for stopping bleeding.",
+      "location": "loc_forest_road",
+      "properties": {
+        "type": "medical",
+        "portable": true,
+        "treats": [
+          "bleeding"
+        ],
+        "treatment_amount": 100,
+        "consumable": true
+      }
+    },
+    {
+      "id": "item_merchant_pouch",
+      "name": "merchant's pouch",
+      "description": "A leather pouch containing the merchant's grateful reward.",
+      "location": "npc_merchant",
+      "properties": {
+        "type": "reward",
+        "portable": true,
+        "contains_gold": 20
+      }
+    },
+    {
+      "id": "item_torch",
+      "name": "torch",
+      "description": "A wooden torch wrapped in oil-soaked cloth. It burns with a bright flame.",
+      "location": "loc_town_gate",
+      "properties": {
+        "type": "tool",
+        "portable": true,
+        "fire_source": true,
+        "burns_webs": true,
+        "web_burn_amount": 30
+      }
+    },
+    {
+      "id": "item_stone_chisel",
+      "name": "stone chisel",
+      "description": "A mason's chisel designed for working with stone. Perfect for repairing stone constructs.",
+      "location": "loc_main_hall",
+      "properties": {
+        "type": "tool",
+        "portable": true,
+        "repairs": [
+          "construct"
+        ],
+        "repair_amount": 30
+      }
+    }
+  ],
+  "locks": [],
+  "actors": {
+    "player": {
+      "id": "player",
+      "name": "Adventurer",
+      "description": "A hardy adventurer testing the actor interaction systems.",
+      "location": "loc_central_hub",
+      "inventory": [],
+      "behaviors": [
+        "behavior_libraries.actor_lib.combat"
+      ],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 100,
+        "max_health": 100,
+        "resistances": {
+          "disease": 30
+        }
+      }
+    },
+    "npc_scholar": {
+      "id": "npc_scholar",
+      "name": "Scholar Aldric",
+      "description": "A frail scholar with pale skin and dark circles under his eyes. He coughs occasionally and seems weakened by illness.",
+      "location": "loc_library",
+      "inventory": [],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 60,
+        "max_health": 100,
+        "disposition": "friendly",
+        "conditions": {
+          "fungal_infection": {
+            "severity": 80,
+            "contagious_range": "touch",
+            "damage_per_turn": 2,
+            "progression_rate": 3
+          }
+        }
+      },
+      "behaviors": [
+        "behavior_libraries.actor_lib.combat"
+      ]
+    },
+    "npc_alpha_wolf": {
+      "id": "npc_alpha_wolf",
+      "name": "Alpha Wolf",
+      "description": "A large grey wolf with piercing yellow eyes. It stands protectively in front of the pack, teeth bared.",
+      "location": "loc_forest_clearing",
+      "inventory": [],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 80,
+        "max_health": 80,
+        "disposition": "hostile",
+        "pack_id": "wolf_pack",
+        "pack_role": "alpha",
+        "needs": [
+          "hunger"
+        ],
+        "flee_threshold": 20,
+        "flee_destination": "loc_wolf_den"
+      },
+      "behaviors": [
+        "behavior_libraries.actor_lib.combat"
+      ]
+    },
+    "npc_wolf_1": {
+      "id": "npc_wolf_1",
+      "name": "Grey Wolf",
+      "description": "A lean grey wolf that watches you warily, following the alpha's lead.",
+      "location": "loc_forest_clearing",
+      "inventory": [],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 50,
+        "max_health": 50,
+        "disposition": "hostile",
+        "pack_id": "wolf_pack",
+        "pack_role": "follower",
+        "needs": [
+          "hunger"
+        ],
+        "flee_threshold": 30
+      },
+      "behaviors": [
+        "behavior_libraries.actor_lib.combat"
+      ]
+    },
+    "npc_wolf_2": {
+      "id": "npc_wolf_2",
+      "name": "Brown Wolf",
+      "description": "A smaller brown wolf that stays close to the pack, ears flattened.",
+      "location": "loc_forest_clearing",
+      "inventory": [],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 40,
+        "max_health": 40,
+        "disposition": "hostile",
+        "pack_id": "wolf_pack",
+        "pack_role": "follower",
+        "needs": [
+          "hunger"
+        ],
+        "flee_threshold": 35
+      },
+      "behaviors": [
+        "behavior_libraries.actor_lib.combat"
+      ]
+    },
+    "npc_sailor": {
+      "id": "npc_sailor",
+      "name": "Drowning Sailor",
+      "description": "A sailor struggling to stay afloat. His face is turning blue from lack of air.",
+      "location": "loc_underwater_cave",
+      "inventory": [],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 70,
+        "max_health": 100,
+        "disposition": "friendly",
+        "breath": 20,
+        "max_breath": 60
+      },
+      "behaviors": [
+        "behavior_libraries.actor_lib.combat"
+      ]
+    },
+    "npc_diving_golem": {
+      "id": "npc_diving_golem",
+      "name": "Diving Golem",
+      "description": "A stone construct designed for underwater salvage. It has no need to breathe.",
+      "location": "loc_underwater_cave",
+      "inventory": [],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 150,
+        "max_health": 150,
+        "disposition": "neutral",
+        "body": {
+          "form": "construct"
+        }
+      },
+      "behaviors": [
+        "behavior_libraries.actor_lib.combat"
+      ]
+    },
+    "npc_guardian_golem_1": {
+      "id": "npc_guardian_golem_1",
+      "name": "Stone Guardian",
+      "description": "A massive stone golem with glowing runes carved into its chest. It guards the temple sanctum with unwavering vigilance.",
+      "location": "loc_temple_sanctum",
+      "inventory": [],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 200,
+        "max_health": 200,
+        "disposition": "hostile",
+        "body": {
+          "form": "construct"
+        },
+        "attacks": [
+          {
+            "name": "stone_fist",
+            "damage": 25,
+            "accuracy": 70
+          },
+          {
+            "name": "ground_slam",
+            "damage": 15,
+            "accuracy": 90,
+            "area": true
+          }
+        ],
+        "resistances": {
+          "physical": 30,
+          "fire": 50
+        },
+        "weaknesses": {
+          "lightning": 50
+        }
+      },
+      "behaviors": [
+        "behavior_libraries.actor_lib.combat"
+      ]
+    },
+    "npc_guardian_golem_2": {
+      "id": "npc_guardian_golem_2",
+      "name": "Iron Guardian",
+      "description": "A slightly smaller golem made of dark iron. It moves faster than its stone counterpart.",
+      "location": "loc_temple_sanctum",
+      "inventory": [],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 150,
+        "max_health": 150,
+        "disposition": "hostile",
+        "body": {
+          "form": "construct"
+        },
+        "attacks": [
+          {
+            "name": "iron_claw",
+            "damage": 20,
+            "accuracy": 80
+          }
+        ],
+        "resistances": {
+          "physical": 20
+        },
+        "weaknesses": {
+          "lightning": 30,
+          "rust": 100
+        }
+      },
+      "behaviors": [
+        "behavior_libraries.actor_lib.combat"
+      ]
+    },
+    "npc_healer": {
+      "id": "npc_healer",
+      "name": "Wise Healer Mira",
+      "description": "An elderly woman with kind eyes and hands stained from years of working with herbs. She offers her healing services to those who can pay.",
+      "location": "loc_healer_hut",
+      "inventory": [],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 60,
+        "max_health": 60,
+        "disposition": "friendly",
+        "services": {
+          "cure": {
+            "accepts": [
+              "gold"
+            ],
+            "amount_required": 5,
+            "cure_amount": 100
+          },
+          "teach_herbalism": {
+            "accepts": [
+              "gold"
+            ],
+            "amount_required": 8,
+            "grants": "herbalism"
+          },
+          "heal": {
+            "accepts": [
+              "gold"
+            ],
+            "amount_required": 3,
+            "restore_amount": 50
+          }
+        }
+      },
+      "behaviors": [
+        "behavior_libraries.actor_lib.combat"
+      ]
+    },
+    "npc_merchant": {
+      "id": "npc_merchant",
+      "name": "Injured Merchant",
+      "description": "A portly man in traveling clothes, bleeding from a wound on his arm. He looks grateful for any help.",
+      "location": "loc_forest_road",
+      "inventory": [
+        "item_merchant_pouch"
+      ],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 50,
+        "max_health": 100,
+        "disposition": "friendly",
+        "conditions": {
+          "bleeding": {
+            "severity": 60,
+            "damage_per_turn": 3
+          }
+        },
+        "escort_destination": "loc_town_gate",
+        "following": null,
+        "services": {
+          "trade": {
+            "accepts": [
+              "gold"
+            ],
+            "amount_required": 1,
+            "trades_for": "common_goods"
+          }
+        }
+      },
+      "behaviors": [
+        "behavior_libraries.actor_lib.combat"
+      ]
+    },
+    "npc_spider_queen": {
+      "id": "npc_spider_queen",
+      "name": "Spider Queen",
+      "description": "A massive spider with glistening fangs dripping venom. She sits at the center of her web domain.",
+      "location": "loc_spider_gallery",
+      "inventory": [],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 120,
+        "max_health": 120,
+        "disposition": "hostile",
+        "pack_id": "spider_swarm",
+        "pack_role": "alpha",
+        "alerted": false,
+        "attacks": [
+          {
+            "name": "venomous_bite",
+            "damage": 15,
+            "accuracy": 75,
+            "applies_condition": {
+              "name": "spider_venom",
+              "severity": 40,
+              "damage_per_turn": 3,
+              "duration": 5
+            }
+          }
+        ]
+      },
+      "behaviors": [
+        "behavior_libraries.actor_lib.combat"
+      ]
+    },
+    "npc_spider_worker_1": {
+      "id": "npc_spider_worker_1",
+      "name": "Giant Spider",
+      "description": "A large hairy spider with multiple gleaming eyes. It skitters along the walls.",
+      "location": "loc_spider_gallery",
+      "inventory": [],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 40,
+        "max_health": 40,
+        "disposition": "hostile",
+        "pack_id": "spider_swarm",
+        "pack_role": "follower",
+        "alerted": false,
+        "attacks": [
+          {
+            "name": "bite",
+            "damage": 8,
+            "accuracy": 80
+          }
+        ]
+      },
+      "behaviors": [
+        "behavior_libraries.actor_lib.combat"
+      ]
+    },
+    "npc_spider_worker_2": {
+      "id": "npc_spider_worker_2",
+      "name": "Web Spinner",
+      "description": "A pale spider constantly spinning silk. Its webs are particularly sticky.",
+      "location": "loc_spider_gallery",
+      "inventory": [],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 30,
+        "max_health": 30,
+        "disposition": "hostile",
+        "pack_id": "spider_swarm",
+        "pack_role": "follower",
+        "alerted": false,
+        "attacks": [
+          {
+            "name": "web_spray",
+            "damage": 5,
+            "accuracy": 90,
+            "effect": "slow"
+          }
+        ]
+      },
+      "behaviors": [
+        "behavior_libraries.actor_lib.combat"
+      ]
+    },
+    "npc_broken_statue": {
+      "id": "npc_broken_statue",
+      "name": "Broken Statue",
+      "description": "A once-majestic stone statue of a warrior. Cracks run through its torso and one arm is missing. Despite the damage, there's a sense of dormant power.",
+      "location": "loc_main_hall",
+      "inventory": [],
+      "flags": {},
+      "stats": {},
+      "states": {},
+      "properties": {
+        "health": 40,
+        "max_health": 100,
+        "disposition": "neutral",
+        "functional": false,
+        "body": {
+          "form": "construct"
+        },
+        "guarding": "loc_main_hall",
+        "attacks": [
+          {
+            "name": "stone_fist",
+            "damage": 20,
+            "accuracy": 70
+          }
+        ]
+      },
+      "behaviors": [
+        "behavior_libraries.actor_lib.combat"
+      ]
+    }
+  }
+}

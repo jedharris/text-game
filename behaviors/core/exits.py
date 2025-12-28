@@ -229,7 +229,23 @@ def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_descriptor, 
 
                 # Territorial NPCs block exits when in guarding or hostile states
                 if npc_state in ("guarding", "hostile"):
-                    blocking_npcs.append(npc)
+                    # Check for state-dependent blocking first
+                    blocked_by_state = npc.properties.get("blocked_directions_by_state")
+                    if blocked_by_state is not None:
+                        # Use state-specific blocked directions
+                        blocked_directions = blocked_by_state.get(npc_state, [])
+                        if direction in blocked_directions:
+                            blocking_npcs.append(npc)
+                    else:
+                        # Fallback to simple blocked_directions (backwards compatible)
+                        blocked_directions = npc.properties.get("blocked_directions")
+                        if blocked_directions is not None:
+                            # NPC only blocks specific directions
+                            if direction in blocked_directions:
+                                blocking_npcs.append(npc)
+                        else:
+                            # No specific directions - block all exits (default behavior)
+                            blocking_npcs.append(npc)
 
         if blocking_npcs:
             # Build blocking message

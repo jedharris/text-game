@@ -44,7 +44,7 @@ def apply_toxic_effect(item, actor) -> Optional[str]:
     Returns:
         Message describing the effect, or None if item not toxic
     """
-    from behavior_libraries.actor_lib.conditions import apply_condition
+    from behaviors.actor_lib.conditions import apply_condition
 
     if not check_toxic_touch(item, actor):
         return None
@@ -208,7 +208,7 @@ def get_service_with_discount(npc, service_name: str, customer) -> dict:
     Returns:
         Dict with service info and effective cost
     """
-    from behavior_libraries.actor_lib.services import get_available_services, get_service_cost
+    from behaviors.actor_lib.services import get_available_services, get_service_cost
 
     services = get_available_services(npc)
     service = services.get(service_name, {})

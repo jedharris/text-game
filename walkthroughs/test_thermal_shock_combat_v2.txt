@@ -1,0 +1,77 @@
+# Thermal Shock Combat Walkthrough (v2)
+#
+# Tests the temperature-based damage system and state-dependent guardian blocking.
+#
+# Expected flow:
+# 1. Get fire wand from temple (guardians block only "up" in guarding state)
+# 2. Navigate to ice caves and get ice wand
+# 3. Return to temple and enter combat with golems
+# 4. Defeat both golems using thermal shock alternating attacks
+# 5. Access observatory (guardians no longer blocking)
+
+# Navigate to temple sanctum (from nexus_chamber)
+go north
+go north
+look
+
+# Take fire wand - guardians should allow this (non-hostile)
+take fire wand
+
+# Test that guardians block "up" but allow "south" in guarding state
+go south
+
+# Navigate to ice caves to get ice wand
+go east
+look
+
+# Use fire wand to melt ice wand (optional flavor interaction)
+use fire wand on ice wand
+take ice wand
+inventory
+
+# Return to temple sanctum with both wands
+go west
+go north
+look
+
+# Take cover behind stone pillar before combat
+cover behind pillar
+
+# Attack golem to initiate combat (both golems become hostile)
+attack guardian
+
+# Thermal shock sequence - defeat first guardian
+# Fire vs neutral = 10 damage, golem becomes HOT
+attack guardian with fire wand
+
+# Ice vs hot = THERMAL SHOCK! 30 damage, golem becomes COLD
+attack guardian with ice wand
+
+# Continue alternating for thermal shock
+attack guardian with fire wand
+attack guardian with ice wand
+attack guardian with fire wand
+attack guardian with ice wand
+
+# First golem destroyed (150 HP / 30 damage per thermal shock = 5-6 hits)
+# Second golem now becomes target
+
+# Attack second golem (starts at neutral temperature)
+# Fire vs neutral = 10 damage (no thermal shock on first hit)
+attack guardian with fire wand
+
+# Now alternate for thermal shock (30 damage each)
+# Need 140 more damage (150 - 10) = minimum 5 thermal shock hits
+attack guardian with ice wand
+attack guardian with fire wand
+attack guardian with ice wand
+attack guardian with fire wand
+attack guardian with ice wand
+
+# Second golem destroyed (10 + 30*5 = 160 damage > 150 HP)
+# Both golems should be destroyed
+look
+
+# Verify path is clear - can now access observatory
+go up
+look

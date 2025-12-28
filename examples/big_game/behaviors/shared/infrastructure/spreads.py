@@ -7,94 +7,99 @@ Applies location property changes when milestones are reached.
 from typing import Any
 
 from src.behavior_manager import EventResult
-from src.infrastructure_types import TurnNumber
-from src.infrastructure_utils import (
-    check_spread_halt_flag,
-    get_current_turn,
-    get_due_milestones,
-    get_environmental_spreads,
-    mark_milestone_reached,
-)
+from src.state_manager import Spread
+from src.infrastructure_utils import get_bool_flag
 
 # Vocabulary: wire hook to event
 vocabulary = {
     "events": [
         {
-            "event": "on_spread_check",
+            "event": "on_turn_spread",
             "hook": "turn_phase_spread",
-            "description": "Check environmental spread milestones each turn",
+            "description": "Check spread milestone if reached (per-entity)",
         }
     ]
 }
 
 
-def on_spread_check(
-    entity: Any,
+def on_turn_spread(
+    entity: Spread,
     accessor: Any,
     context: dict[str, Any],
 ) -> EventResult:
-    """Check environmental spread milestones and apply effects.
+    """Check if this spread has reached a milestone (per-entity handler).
 
-    This is called once per turn as part of the turn phase sequence.
+    Called once per spread per turn as part of the turn phase sequence.
     For each active spread:
     - Check if halt flag is set (spread stops)
     - Find milestones that have been reached
     - Apply milestone effects to locations
 
     Args:
-        entity: None (game-wide handler)
+        entity: The Spread entity being checked
         accessor: StateAccessor instance
         context: Context dict with current_turn
 
     Returns:
-        EventResult with messages about spread changes
+        EventResult with message about spread changes if milestone reached
     """
     state = accessor.game_state
-    current_turn = get_current_turn(state)
-    spreads = get_environmental_spreads(state)
+    current_turn = context.get("current_turn", 0)
+
+    # Check if spread is active
+    if not entity.properties.get("active", False):
+        return EventResult(allow=True, feedback=None)
+
+    # Check if halt flag is set
+    halt_flag = entity.properties.get("halt_flag")
+    if halt_flag:
+        flags = state.extra.get("flags", {})
+        if get_bool_flag(flags, halt_flag):
+            return EventResult(allow=True, feedback=None)
+
+    # Get milestones and check which ones are due
+    milestones = entity.properties.get("milestones", [])
+    reached_milestones = entity.properties.get("reached_milestones", [])
 
     messages = []
 
-    for spread_id, spread in spreads.items():
-        # Check if spread is halted
-        if check_spread_halt_flag(state, spread_id):
+    for milestone in milestones:
+        milestone_turn = milestone.get("turn")
+        if not milestone_turn or current_turn < milestone_turn:
             continue
 
-        # Check if spread is active
-        if not spread.get("active", False):
+        # Skip if already reached
+        if milestone_turn in reached_milestones:
             continue
 
-        # Get milestones that are now due
-        due_milestones = get_due_milestones(state, spread_id, current_turn)
+        # Milestone is now due - apply effects
+        effects = milestone.get("effects", [])
 
-        for milestone in due_milestones:
-            turn = milestone.get("turn")
-            effects = milestone.get("effects", [])
+        for effect in effects:
+            location_patterns = effect.get("locations", [])
+            prop_name = effect.get("property_name")
+            prop_value = effect.get("property_value")
 
-            # Apply effects to locations
-            for effect in effects:
-                location_patterns = effect.get("locations", [])
-                prop_name = effect.get("property_name")
-                prop_value = effect.get("property_value")
+            if not prop_name:
+                continue
 
-                # Apply to matching locations
-                for loc in state.locations:
-                    if _location_matches_patterns(loc.id, location_patterns):
-                        loc.properties[prop_name] = prop_value
+            # Apply to matching locations
+            for loc in state.locations:
+                if _location_matches_patterns(loc.id, location_patterns):
+                    loc.properties[prop_name] = prop_value
 
-            # Mark milestone as reached
-            mark_milestone_reached(state, spread_id, TurnNumber(turn))
+        # Mark milestone as reached
+        if "reached_milestones" not in entity.properties:
+            entity.properties["reached_milestones"] = []
+        entity.properties["reached_milestones"].append(milestone_turn)
 
-            # Add message for narration
-            messages.append(f"Environmental change: {spread_id} milestone {turn}")
+        # Add message for narration
+        messages.append(f"Environmental change: {entity.name} milestone {milestone_turn}")
 
     if not messages:
         return EventResult(allow=True, feedback=None)
 
-    return EventResult(
-        allow=True,
-        feedback="\n".join(messages),
-    )
+    return EventResult(allow=True, feedback="\n".join(messages))
 
 
 def _location_matches_patterns(location_id: str, patterns: list[str]) -> bool:

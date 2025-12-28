@@ -31,7 +31,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
 from src.state_manager import Item
-from behavior_libraries.crafting_lib.storage import (
+from .storage import (
     get_item_templates,
     get_recipe_catalog,
 )

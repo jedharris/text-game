@@ -176,7 +176,7 @@ def golem_select_attack(golem, target) -> Optional[Dict]:
     Returns:
         Selected attack dict, or None
     """
-    from behavior_libraries.actor_lib.combat import get_attacks
+    from behaviors.actor_lib.combat import get_attacks
 
     attacks = get_attacks(golem)
     if not attacks:
@@ -205,7 +205,7 @@ def golem_counterattack(accessor, golem, attacker) -> Optional[str]:
     Returns:
         Message describing counterattack, or None
     """
-    from behavior_libraries.actor_lib.combat import execute_attack
+    from behaviors.actor_lib.combat import execute_attack
 
     # Only counterattack if not dead
     if golem.properties.get("health", 0) <= 0:

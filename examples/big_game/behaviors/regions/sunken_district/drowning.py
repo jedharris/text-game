@@ -54,22 +54,15 @@ def on_underwater_turn(
     if "breathing" in str(equipment) or "gill" in str(equipment).lower():
         return EventResult(allow=True, feedback=None)
 
-    # Get/create breath condition
-    conditions = player.properties.get("conditions", [])
-    breath = None
-    for cond in conditions:
-        if cond.get("type") == "held_breath":
-            breath = cond
-            break
+    # Get/create breath state (separate from conditions dict)
+    breath = player.properties.get("breath_state")
 
     if not breath:
         breath = {
-            "type": "held_breath",
             "current": 0,
             "max": MAX_BREATH,
         }
-        conditions.append(breath)
-        player.properties["conditions"] = conditions
+        player.properties["breath_state"] = breath
 
     # Increment breath counter
     current = breath.get("current", 0) + 1
@@ -188,12 +181,10 @@ def on_surface(
 
     player.properties["underwater"] = False
 
-    # Reset breath
-    conditions = player.properties.get("conditions", [])
-    for cond in conditions:
-        if cond.get("type") == "held_breath":
-            cond["current"] = 0
-            break
+    # Reset breath state
+    breath = player.properties.get("breath_state")
+    if breath:
+        breath["current"] = 0
 
     return EventResult(
         allow=True,

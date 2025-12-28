@@ -79,7 +79,7 @@ def rescue_to_surface(accessor, actor, surface_location: str) -> str:
     Returns:
         Message describing the rescue
     """
-    from behavior_libraries.actor_lib.environment import needs_breath
+    from behaviors.actor_lib.environment import needs_breath
 
     if not actor:
         return "No one to rescue."
@@ -141,7 +141,7 @@ def on_enter_water(entity, accessor, context) -> Optional[Any]:
         EventResult with warning if breath is low, None otherwise
     """
     from src.state_accessor import EventResult
-    from behavior_libraries.actor_lib.environment import needs_breath
+    from behaviors.actor_lib.environment import needs_breath
 
     if not needs_breath(entity):
         return None

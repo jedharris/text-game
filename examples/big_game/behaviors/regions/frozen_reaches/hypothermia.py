@@ -4,14 +4,15 @@ Implements cold damage based on temperature zones
 and mitigation via gear, salamanders, or hot springs.
 """
 
-from typing import Any, Dict, cast
+from typing import Any, Dict
 
-from src.behavior_manager import EventResult
-from src.infrastructure_types import ConditionInstance
-from src.infrastructure_utils import (
-    get_current_turn,
-    modify_condition_severity,
+from behavior_libraries.actor_lib.conditions import (
+    apply_condition,
+    get_condition,
+    MAX_SEVERITY,
 )
+from src.behavior_manager import EventResult
+from src.infrastructure_utils import get_current_turn
 
 # Vocabulary: wire hooks to events
 # Note: Turn phase events are handled by infrastructure/turn_phase_dispatcher.py
@@ -114,25 +115,21 @@ def on_cold_zone_turn(
     if base_rate == 0:
         return EventResult(allow=True, feedback=None)
 
-    # Apply hypothermia
-    conditions = player.properties.get("conditions", [])
-    hypothermia = None
-    for cond in conditions:
-        if cond.get("type") == "hypothermia":
-            hypothermia = cond
-            break
+    # Apply hypothermia using conditions library
+    hypothermia = get_condition(player, "hypothermia")
 
     if not hypothermia:
-        hypothermia = {
-            "type": "hypothermia",
+        apply_condition(player, "hypothermia", {
             "severity": 0,
             "acquired_turn": get_current_turn(state),
-        }
-        conditions.append(hypothermia)
-        player.properties["conditions"] = conditions
+        })
+        hypothermia = get_condition(player, "hypothermia")
+        assert hypothermia is not None  # Just created, must exist
 
     # Increase severity
-    new_severity = modify_condition_severity(cast(ConditionInstance, hypothermia), base_rate)
+    old_severity = hypothermia.get("severity", 0)
+    new_severity = min(MAX_SEVERITY, old_severity + base_rate)
+    hypothermia["severity"] = new_severity
 
     # Generate message based on severity
     if new_severity >= 80:
@@ -180,13 +177,8 @@ def on_enter_hot_springs(
     if not player:
         return EventResult(allow=True, feedback=None)
 
-    # Check for hypothermia
-    conditions = player.properties.get("conditions", [])
-    hypothermia = None
-    for cond in conditions:
-        if cond.get("type") == "hypothermia":
-            hypothermia = cond
-            break
+    # Check for hypothermia using conditions library
+    hypothermia = get_condition(player, "hypothermia")
 
     if not hypothermia or hypothermia.get("severity", 0) == 0:
         return EventResult(

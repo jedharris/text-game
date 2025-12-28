@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "Actor Interaction Test Game",
-    "version": "0.04",
+    "version": "0.1.2",
     "description": "Test game for actor interaction integration tests (UC1-UC8).",
     "start_location": "loc_central_hub",
     "author": "Actor Interaction Tests",
@@ -599,7 +599,7 @@
       "location": "loc_central_hub",
       "inventory": [],
       "behaviors": [
-        "behavior_libraries.actor_lib.combat"
+        "behaviors.actor_lib.combat"
       ],
       "flags": {},
       "stats": {},
@@ -635,7 +635,7 @@
         }
       },
       "behaviors": [
-        "behavior_libraries.actor_lib.combat"
+        "behaviors.actor_lib.combat"
       ]
     },
     "npc_alpha_wolf": {
@@ -660,7 +660,7 @@
         "flee_destination": "loc_wolf_den"
       },
       "behaviors": [
-        "behavior_libraries.actor_lib.combat"
+        "behaviors.actor_lib.combat"
       ]
     },
     "npc_wolf_1": {
@@ -684,7 +684,7 @@
         "flee_threshold": 30
       },
       "behaviors": [
-        "behavior_libraries.actor_lib.combat"
+        "behaviors.actor_lib.combat"
       ]
     },
     "npc_wolf_2": {
@@ -708,7 +708,7 @@
         "flee_threshold": 35
       },
       "behaviors": [
-        "behavior_libraries.actor_lib.combat"
+        "behaviors.actor_lib.combat"
       ]
     },
     "npc_sailor": {
@@ -728,7 +728,7 @@
         "max_breath": 60
       },
       "behaviors": [
-        "behavior_libraries.actor_lib.combat"
+        "behaviors.actor_lib.combat"
       ]
     },
     "npc_diving_golem": {
@@ -749,7 +749,7 @@
         }
       },
       "behaviors": [
-        "behavior_libraries.actor_lib.combat"
+        "behaviors.actor_lib.combat"
       ]
     },
     "npc_guardian_golem_1": {
@@ -790,7 +790,7 @@
         }
       },
       "behaviors": [
-        "behavior_libraries.actor_lib.combat"
+        "behaviors.actor_lib.combat"
       ]
     },
     "npc_guardian_golem_2": {
@@ -825,7 +825,7 @@
         }
       },
       "behaviors": [
-        "behavior_libraries.actor_lib.combat"
+        "behaviors.actor_lib.combat"
       ]
     },
     "npc_healer": {
@@ -866,7 +866,7 @@
         }
       },
       "behaviors": [
-        "behavior_libraries.actor_lib.combat"
+        "behaviors.actor_lib.combat"
       ]
     },
     "npc_merchant": {
@@ -903,7 +903,7 @@
         }
       },
       "behaviors": [
-        "behavior_libraries.actor_lib.combat"
+        "behaviors.actor_lib.combat"
       ]
     },
     "npc_spider_queen": {
@@ -937,7 +937,7 @@
         ]
       },
       "behaviors": [
-        "behavior_libraries.actor_lib.combat"
+        "behaviors.actor_lib.combat"
       ]
     },
     "npc_spider_worker_1": {
@@ -965,7 +965,7 @@
         ]
       },
       "behaviors": [
-        "behavior_libraries.actor_lib.combat"
+        "behaviors.actor_lib.combat"
       ]
     },
     "npc_spider_worker_2": {
@@ -994,7 +994,7 @@
         ]
       },
       "behaviors": [
-        "behavior_libraries.actor_lib.combat"
+        "behaviors.actor_lib.combat"
       ]
     },
     "npc_broken_statue": {
@@ -1024,7 +1024,7 @@
         ]
       },
       "behaviors": [
-        "behavior_libraries.actor_lib.combat"
+        "behaviors.actor_lib.combat"
       ]
     }
   }

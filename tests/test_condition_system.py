@@ -112,7 +112,7 @@ class TestTickConditions(unittest.TestCase):
         )
 
     def test_tick_conditions_damage(self):
-        """Damage per turn is applied to health."""
+        """Damage per turn is applied to health, but regeneration also applies."""
         from behavior_libraries.actor_lib.conditions import tick_conditions
 
         self.actor.properties["conditions"]["poison"] = {
@@ -122,8 +122,11 @@ class TestTickConditions(unittest.TestCase):
 
         messages = tick_conditions(self.actor)
 
-        self.assertEqual(self.actor.properties["health"], 95)
+        # Net effect: -5 (poison) + 5 (default regen) = 0
+        self.assertEqual(self.actor.properties["health"], 100)
         self.assertTrue(len(messages) > 0)
+        self.assertTrue(any("damage" in m for m in messages))
+        self.assertTrue(any("regenerates" in m for m in messages))
 
     def test_tick_conditions_duration_decrements(self):
         """Duration decrements each tick."""
@@ -177,7 +180,7 @@ class TestTickConditions(unittest.TestCase):
         self.assertEqual(messages, [])
 
     def test_tick_conditions_multiple(self):
-        """Multiple conditions all tick."""
+        """Multiple conditions all tick, regeneration also applies."""
         from behavior_libraries.actor_lib.conditions import tick_conditions
 
         self.actor.properties["conditions"] = {
@@ -187,8 +190,8 @@ class TestTickConditions(unittest.TestCase):
 
         tick_conditions(self.actor)
 
-        # 100 - 2 - 3 = 95
-        self.assertEqual(self.actor.properties["health"], 95)
+        # Net effect: -2 (poison) -3 (bleeding) +5 (default regen) = 0
+        self.assertEqual(self.actor.properties["health"], 100)
 
 
 class TestTreatCondition(unittest.TestCase):
@@ -491,3 +494,110 @@ class TestOnConditionTickHandler(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class TestHealthRegeneration(unittest.TestCase):
+    """Test health regeneration feature in conditions.py."""
+
+    def test_regeneration_heals_damage(self):
+        """Actor with regeneration heals each turn."""
+        from behavior_libraries.actor_lib.conditions import tick_conditions
+        from src.state_manager import Actor
+
+        actor = Actor(
+            id="test_actor",
+            name="Test Actor",
+            description="Test",
+            location="test_loc",
+            inventory=[],
+            properties={"health": 50, "max_health": 100, "regeneration": 5}
+        )
+
+        messages = tick_conditions(actor)
+
+        self.assertEqual(actor.properties["health"], 55)
+        self.assertIn("regenerates 5 health", " ".join(messages))
+
+    def test_regeneration_caps_at_max_health(self):
+        """Regeneration doesn't exceed max_health."""
+        from behavior_libraries.actor_lib.conditions import tick_conditions
+        from src.state_manager import Actor
+
+        actor = Actor(
+            id="test_actor",
+            name="Test Actor",
+            description="Test",
+            location="test_loc",
+            inventory=[],
+            properties={"health": 98, "max_health": 100, "regeneration": 5}
+        )
+
+        messages = tick_conditions(actor)
+
+        self.assertEqual(actor.properties["health"], 100)
+        self.assertIn("regenerates", " ".join(messages))
+
+    def test_no_regeneration_when_full(self):
+        """No regeneration occurs when at full health."""
+        from behavior_libraries.actor_lib.conditions import tick_conditions
+        from src.state_manager import Actor
+
+        actor = Actor(
+            id="test_actor",
+            name="Test Actor",
+            description="Test",
+            location="test_loc",
+            inventory=[],
+            properties={"health": 100, "max_health": 100, "regeneration": 5}
+        )
+
+        messages = tick_conditions(actor)
+
+        self.assertEqual(actor.properties["health"], 100)
+        self.assertNotIn("regenerates", " ".join(messages))
+
+    def test_regeneration_without_max_health(self):
+        """Actor without max_health doesn't regenerate."""
+        from behavior_libraries.actor_lib.conditions import tick_conditions
+        from src.state_manager import Actor
+
+        actor = Actor(
+            id="test_actor",
+            name="Test Actor",
+            description="Test",
+            location="test_loc",
+            inventory=[],
+            properties={"health": 50, "regeneration": 5}  # No max_health
+        )
+
+        messages = tick_conditions(actor)
+
+        self.assertEqual(actor.properties["health"], 50)  # No change
+        self.assertNotIn("regenerates", " ".join(messages))
+
+    def test_regeneration_combined_with_damage(self):
+        """Regeneration and condition damage both apply."""
+        from behavior_libraries.actor_lib.conditions import apply_condition, tick_conditions
+        from src.state_manager import Actor
+
+        actor = Actor(
+            id="test_actor",
+            name="Test Actor",
+            description="Test",
+            location="test_loc",
+            inventory=[],
+            properties={"health": 100, "max_health": 150, "regeneration": 10}
+        )
+
+        # Apply damaging condition
+        apply_condition(actor, "poison", {
+            "severity": 50,
+            "damage_per_turn": 8
+        })
+
+        messages = tick_conditions(actor)
+
+        # Net change: -8 (poison) + 10 (regen) = +2
+        self.assertEqual(actor.properties["health"], 102)
+        self.assertTrue(any("poison" in m for m in messages))
+        self.assertTrue(any("regenerates" in m for m in messages))

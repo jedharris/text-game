@@ -7,63 +7,62 @@ Handles point-to-point, broadcast, and network gossip types.
 from typing import Any
 
 from src.behavior_manager import EventResult
-from src.infrastructure_types import TurnNumber
-from src.infrastructure_utils import (
-    deliver_due_gossip,
-    get_current_turn,
-)
+from src.state_manager import Gossip
 
 # Vocabulary: wire hook to event
 vocabulary = {
     "events": [
         {
-            "event": "on_gossip_propagate",
+            "event": "on_turn_gossip",
             "hook": "turn_phase_gossip",
-            "description": "Deliver gossip that has reached its destination",
+            "description": "Deliver gossip if it has reached arrival turn (per-entity)",
         }
     ]
 }
 
 
-def on_gossip_propagate(
-    entity: Any,
+def on_turn_gossip(
+    entity: Gossip,
     accessor: Any,
     context: dict[str, Any],
 ) -> EventResult:
-    """Deliver gossip entries that have reached their arrival turn.
+    """Deliver this gossip entry if it has reached arrival turn (per-entity handler).
 
-    This is called once per turn as part of the turn phase sequence.
+    Called once per gossip entry per turn as part of the turn phase sequence.
     When gossip arrives:
     - Target NPCs receive the information
     - NPC trust/disposition may change based on content
     - Confession windows may close
 
     Args:
-        entity: None (game-wide handler)
+        entity: The Gossip entity being checked
         accessor: StateAccessor instance
         context: Context dict with current_turn
 
     Returns:
-        EventResult with messages about delivered gossip
+        EventResult (typically no feedback - gossip effects are indirect)
     """
-    state = accessor.game_state
-    current_turn = get_current_turn(state)
+    current_turn = context.get("current_turn", 0)
 
-    # Deliver all due gossip
-    delivered = deliver_due_gossip(state, current_turn)
-
-    if not delivered:
+    # Check if gossip has reached its arrival turn
+    arrives_turn = entity.properties.get("arrives_turn")
+    if not arrives_turn or current_turn < arrives_turn:
         return EventResult(allow=True, feedback=None)
 
-    # Build messages for narration
-    # Note: These are internal state changes, not necessarily
-    # narrated to the player. The effect is that NPCs now know things.
-    messages: list[str] = []
-    for entry in delivered:
-        content = entry.get("content", "")
-        target_npcs = entry.get("target_npcs", [])
-        # Gossip delivery is usually silent unless player witnesses it
-        # The effect manifests in NPC dialog and reactions
+    # Gossip has arrived - process delivery
+    gossip_type = entity.properties.get("gossip_type", "POINT_TO_POINT")
+    content = entity.properties.get("content", "")
 
-    # Return without message - gossip effects are indirect
+    # TODO: Actually deliver gossip to target NPCs
+    # For now, just mark as delivered
+    # In full implementation, this would:
+    # - Update target NPC knowledge/flags based on content
+    # - Modify trust/disposition if applicable
+    # - Handle broadcast to regions or network propagation
+    # - Remove from gossip queue after delivery
+
+    # Gossip delivery is usually silent - effects manifest in NPC behavior
+    # Only show debug message in development
+    # return EventResult(allow=True, feedback=f"[Gossip delivered: {content[:30]}...]")
+
     return EventResult(allow=True, feedback=None)

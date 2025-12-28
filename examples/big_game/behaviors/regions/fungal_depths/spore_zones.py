@@ -3,14 +3,15 @@
 Implements infection progression based on location spore levels.
 """
 
-from typing import Any, Dict, cast
+from typing import Any, Dict
 
-from src.behavior_manager import EventResult
-from src.infrastructure_types import ConditionInstance
-from src.infrastructure_utils import (
-    get_current_turn,
-    modify_condition_severity,
+from behavior_libraries.actor_lib.conditions import (
+    apply_condition,
+    get_condition,
+    MAX_SEVERITY,
 )
+from src.behavior_manager import EventResult
+from src.infrastructure_utils import get_current_turn
 
 # Vocabulary: wire hooks to events
 # Note: Turn phase events are handled by infrastructure/turn_phase_dispatcher.py
@@ -92,27 +93,22 @@ def on_spore_zone_turn(
     if player.properties.get("skills", {}).get("spore_resistance"):
         base_rate = base_rate // 2
 
-    # Apply infection
-    conditions = player.properties.get("conditions", [])
-    infection = None
-    for cond in conditions:
-        if cond.get("type") == "fungal_infection":
-            infection = cond
-            break
+    # Apply infection using conditions library
+    infection = get_condition(player, "fungal_infection")
 
     if not infection:
         # Create new infection
-        infection = {
-            "type": "fungal_infection",
+        apply_condition(player, "fungal_infection", {
             "severity": 0,
             "acquired_turn": get_current_turn(state),
-        }
-        conditions.append(infection)
-        player.properties["conditions"] = conditions
+        })
+        infection = get_condition(player, "fungal_infection")
+        assert infection is not None  # Just created, must exist
 
     # Increase severity
     old_severity = infection.get("severity", 0)
-    new_severity = modify_condition_severity(cast(ConditionInstance, infection), base_rate)
+    new_severity = min(MAX_SEVERITY, old_severity + base_rate)
+    infection["severity"] = new_severity
 
     # Generate appropriate message
     if new_severity >= 80:

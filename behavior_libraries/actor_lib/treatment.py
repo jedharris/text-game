@@ -24,7 +24,7 @@ Usage:
 from dataclasses import dataclass
 from typing import Any, List, Optional
 
-from behavior_libraries.actor_lib.conditions import treat_condition
+from .conditions import treat_condition
 from src.state_accessor import IGNORE_EVENT
 
 

@@ -304,7 +304,7 @@ ln -s ../../../behavior_libraries/timing_lib timing_lib
 
 Then use library functions in your behavior modules:
 ```python
-from behavior_libraries.timing_lib import schedule_event
+from behaviors.timing_lib import schedule_event
 ```
 
 ### Available Libraries
@@ -323,7 +323,7 @@ The system has two layers:
 
 **API:**
 ```python
-from behavior_libraries.timing_lib import (
+from behaviors.timing_lib import (
     schedule_event, cancel_event, get_scheduled_events
 )
 
@@ -420,7 +420,7 @@ def on_scheduled_event(entity, accessor, context):
 
 **API:**
 ```python
-from behavior_libraries.darkness_lib import (
+from behaviors.darkness_lib import (
     check_visibility, get_light_sources, get_darkness_description
 )
 
@@ -469,7 +469,7 @@ sources = get_light_sources(accessor, "loc_cave")
 
 **API:**
 ```python
-from behavior_libraries.companion_lib import (
+from behaviors.companion_lib import (
     get_companions, make_companion, dismiss_companion, check_can_follow
 )
 
@@ -505,7 +505,7 @@ can_follow, message = check_can_follow(accessor, companion, "loc_volcano")
 
 **API:**
 ```python
-from behavior_libraries.npc_movement_lib import (
+from behaviors.npc_movement_lib import (
     patrol_step, set_patrol_route
 )
 
@@ -550,7 +550,7 @@ state.extra['item_templates'] = {
 
 **API:**
 ```python
-from behavior_libraries.crafting_lib.recipes import (
+from behaviors.crafting_lib.recipes import (
     find_recipe, check_requirements, execute_craft
 )
 
@@ -598,7 +598,7 @@ if result.success:
 
 **API:**
 ```python
-from behavior_libraries.dialog_lib.topics import (
+from behaviors.dialog_lib.topics import (
     get_available_topics, get_topic_hints,
     handle_ask_about, handle_talk_to
 )
@@ -635,7 +635,7 @@ print(result.message)  # "You could ask about: infection, garden"
 
 **Sequence tracking:**
 ```python
-from behavior_libraries.puzzle_lib import sequence_tracker
+from behaviors.puzzle_lib import sequence_tracker
 
 def on_turn(entity, accessor, context):
     """Track turning the dial."""
@@ -654,7 +654,7 @@ def on_turn(entity, accessor, context):
 
 **Threshold checking:**
 ```python
-from behavior_libraries.puzzle_lib import threshold_checker
+from behaviors.puzzle_lib import threshold_checker
 
 def on_put(entity, accessor, context):
     """Check weight on scale."""
@@ -687,7 +687,7 @@ def on_put(entity, accessor, context):
 
 **API:**
 ```python
-from behavior_libraries.offering_lib import (
+from behaviors.offering_lib import (
     offering_handler, blessing_manager, alignment_tracker
 )
 

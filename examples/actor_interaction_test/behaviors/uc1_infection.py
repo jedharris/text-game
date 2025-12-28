@@ -86,7 +86,7 @@ def apply_condition_with_resistance(actor, condition_name: str, condition_data: 
     Returns:
         Message describing what happened
     """
-    from behavior_libraries.actor_lib.conditions import apply_condition
+    from behaviors.actor_lib.conditions import apply_condition
 
     # Get resistance
     resistance = get_actor_resistance(actor, condition_name)
@@ -124,7 +124,7 @@ def check_contagion(source_actor, target_actor, accessor) -> Optional[str]:
     Returns:
         Message if contagion spread, None otherwise
     """
-    from behavior_libraries.actor_lib.conditions import get_condition, has_condition
+    from behaviors.actor_lib.conditions import get_condition, has_condition
 
     if not source_actor or not target_actor:
         return None

@@ -1,14 +1,16 @@
 {
-     "permissions": {
-      "allow": [
-        "mcp__claude-context",
-        "gh:*",
-        "Bash(gh:*)"
-      ],
-      "deny": [],
-      "ask": []
-    },
-    "model": "opusplan",
-    "enableAllProjectMcpServers": true
-  }
+  "includeCoAuthoredBy": true,
+  "permissions": {
+  "allow": [
+    "Bash",
+    "mcp__claude-context",
+    "Gh :*",
+    "Bash(gh :*)"
+    ],
+  "deny": [],
+  "ask": []
+  },
+  "model": "opusplan",
+  "enableAllProjectMcpServers": true
+}
   

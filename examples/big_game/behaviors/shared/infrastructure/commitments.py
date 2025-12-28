@@ -10,69 +10,64 @@ from typing import Any
 
 from src.behavior_manager import EventResult
 from src.infrastructure_types import CommitmentState
-from src.infrastructure_utils import (
-    get_current_turn,
-    get_expired_commitments,
-    transition_commitment_state,
-)
+from src.state_manager import Commitment
 
 # Vocabulary: wire hook to event
 vocabulary = {
     "events": [
         {
-            "event": "on_commitment_check",
+            "event": "on_turn_commitment",
             "hook": "turn_phase_commitment",
-            "description": "Check commitment deadlines each turn",
+            "description": "Check commitment deadline each turn (per-entity)",
         }
     ]
 }
 
 
-def on_commitment_check(
-    entity: Any,
+def on_turn_commitment(
+    entity: Commitment,
     accessor: Any,
     context: dict[str, Any],
 ) -> EventResult:
-    """Check commitment deadlines and handle expirations.
+    """Check if this commitment has expired (per-entity handler).
 
-    This is called once per turn as part of the turn phase sequence.
+    Called once per commitment per turn as part of the turn phase sequence.
     When a commitment expires:
     - Commitment transitions to ABANDONED state
     - Target NPC may die (if dying and not stabilized)
     - Echo trust decreases
 
     Args:
-        entity: None (game-wide handler)
+        entity: The Commitment entity being checked
         accessor: StateAccessor instance
         context: Context dict with current_turn
 
     Returns:
-        EventResult with messages about expired commitments
+        EventResult with message if commitment expired, None otherwise
     """
-    state = accessor.game_state
-    current_turn = get_current_turn(state)
+    current_turn = context.get("current_turn", 0)
 
-    # Find expired commitments
-    expired = get_expired_commitments(state, current_turn)
-
-    if not expired:
+    # Check if this commitment has a deadline
+    deadline = entity.properties.get("deadline_turn")
+    if not deadline:
         return EventResult(allow=True, feedback=None)
 
-    messages = []
-    for commitment in expired:
-        # Transition to abandoned
-        transition_commitment_state(commitment, CommitmentState.ABANDONED)
+    # Check if deadline has passed
+    if current_turn < deadline:
+        return EventResult(allow=True, feedback=None)
 
-        commitment_id = commitment.get("id", "unknown")
-        config_id = commitment.get("config_id", commitment_id)
+    # Check if commitment is still active
+    state = entity.properties.get("state")
+    if state != CommitmentState.ACTIVE:
+        return EventResult(allow=True, feedback=None)
 
-        # Build message for narration
-        messages.append(f"Your commitment to {config_id} has expired.")
+    # Deadline passed - transition to abandoned
+    entity.properties["state"] = CommitmentState.ABANDONED
 
-        # TODO: Handle NPC death if applicable
-        # TODO: Apply Echo trust penalty
+    # Build message for narration
+    message = f"Your commitment to {entity.name} has expired."
 
-    return EventResult(
-        allow=True,
-        feedback="\n".join(messages) if messages else None,
-    )
+    # TODO: Handle NPC death if applicable
+    # TODO: Apply Echo trust penalty
+
+    return EventResult(allow=True, feedback=message)

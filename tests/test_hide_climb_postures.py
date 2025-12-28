@@ -7,7 +7,7 @@ from src.types import ActorId
 import unittest
 from src.state_manager import GameState, Metadata, Location, Item, Actor
 from src.state_accessor import StateAccessor
-from behaviors.core.spatial import handle_hide_in, handle_climb
+from behaviors.core.spatial import handle_hide, handle_climb
 from tests.conftest import make_action
 
 
@@ -69,8 +69,8 @@ class TestHideCommand(unittest.TestCase):
         """Test hiding in object with allows_concealment."""
         player = self.accessor.get_actor(ActorId("player"))
 
-        action = make_action(verb="hide", indirect_object="wardrobe")
-        result = handle_hide_in(self.accessor, action)
+        action = make_action(verb="hide", object="wardrobe")
+        result = handle_hide(self.accessor, action)
 
         self.assertTrue(result.success)
         self.assertIn("hide", result.primary.lower())
@@ -79,16 +79,16 @@ class TestHideCommand(unittest.TestCase):
 
     def test_hide_in_non_concealable_fails(self):
         """Test hiding in object without allows_concealment fails."""
-        action = make_action(verb="hide", indirect_object="table")
-        result = handle_hide_in(self.accessor, action)
+        action = make_action(verb="hide", object="table")
+        result = handle_hide(self.accessor, action)
 
         self.assertFalse(result.success)
         self.assertIn("can't hide", result.primary.lower())
 
     def test_hide_in_nonexistent_fails(self):
         """Test hiding in non-existent object fails."""
-        action = make_action(verb="hide", indirect_object="closet")
-        result = handle_hide_in(self.accessor, action)
+        action = make_action(verb="hide", object="closet")
+        result = handle_hide(self.accessor, action)
 
         self.assertFalse(result.success)
         self.assertIn("don't see", result.primary.lower())
@@ -96,7 +96,7 @@ class TestHideCommand(unittest.TestCase):
     def test_hide_without_object_fails(self):
         """Test hide without specifying object fails."""
         action = make_action(verb="hide")
-        result = handle_hide_in(self.accessor, action)
+        result = handle_hide(self.accessor, action)
 
         self.assertFalse(result.success)
         self.assertIn("hide in what", result.primary.lower())
@@ -106,16 +106,16 @@ class TestHideCommand(unittest.TestCase):
         player = self.accessor.get_actor(ActorId("player"))
         player.properties["posture"] = "cover"
 
-        action = make_action(verb="hide", indirect_object="wardrobe")
-        result = handle_hide_in(self.accessor, action)
+        action = make_action(verb="hide", object="wardrobe")
+        result = handle_hide(self.accessor, action)
 
         self.assertTrue(result.success)
         self.assertEqual(player.properties.get("posture"), "concealed")
 
     def test_hide_includes_hiding_spot_in_data(self):
         """Test hide includes hiding spot in result data."""
-        action = make_action(verb="hide", indirect_object="wardrobe")
-        result = handle_hide_in(self.accessor, action)
+        action = make_action(verb="hide", object="wardrobe")
+        result = handle_hide(self.accessor, action)
 
         self.assertTrue(result.success)
         self.assertIsNotNone(result.data)

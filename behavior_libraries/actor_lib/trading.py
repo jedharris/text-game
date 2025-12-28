@@ -70,7 +70,8 @@ def on_receive_item(entity: Any, accessor: Any, context: Dict) -> EventResult:
     # Check for service payment (delegate to existing services.py)
     from behavior_libraries.actor_lib.services import on_receive_for_service
     service_result = on_receive_for_service(entity, accessor, context)
-    if service_result:
+    # Only return service result if it's not IGNORE_EVENT
+    if service_result and not getattr(service_result, '_ignored', False):
         return service_result
 
     # No trade or service - generic acceptance

@@ -27,12 +27,31 @@ Usage:
     )
 """
 
+import importlib
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Callable
 
-from behavior_libraries.actor_lib.conditions import has_condition, apply_condition
-from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import load_handler
+from .conditions import has_condition, apply_condition
 from src.state_accessor import IGNORE_EVENT
+
+
+def _load_handler(handler_path: str) -> Callable[..., Any] | None:
+    """Load a handler function from module:function path.
+
+    Args:
+        handler_path: Path like "behaviors.my_module:my_function"
+
+    Returns:
+        The handler function, or None if loading fails
+    """
+    try:
+        if ":" not in handler_path:
+            return None
+        module_path, func_name = handler_path.rsplit(":", 1)
+        module = importlib.import_module(module_path)
+        return getattr(module, func_name)
+    except (ValueError, ImportError, AttributeError):
+        return None
 
 
 @dataclass
@@ -64,7 +83,7 @@ def get_attacks(actor) -> List[Dict]:
     return actor.properties.get("attacks", [])
 
 
-def select_attack(attacker, target, context: Dict) -> Optional[Dict]:
+def select_attack(attacker, target, context: Dict, attacks: Optional[List[Dict]] = None) -> Optional[Dict]:
     """
     Select an appropriate attack based on situation.
 
@@ -77,11 +96,13 @@ def select_attack(attacker, target, context: Dict) -> Optional[Dict]:
         attacker: The attacking Actor
         target: The target Actor
         context: Additional context (unused currently)
+        attacks: Optional list of attacks to select from (if not provided, uses attacker's attacks)
 
     Returns:
         Selected attack dict, or None if no attacks available
     """
-    attacks = get_attacks(attacker)
+    if attacks is None:
+        attacks = get_attacks(attacker)
     if not attacks:
         return None
 
@@ -168,8 +189,44 @@ def execute_attack(accessor, attacker, target, attack: Dict) -> AttackResult:
             if cover_obj:
                 context["cover_value"] = cover_obj.properties.get("cover_value", 0)
 
-    # Calculate damage
-    damage = calculate_damage(attack, attacker, target, context)
+    # Get base damage (before armor/cover)
+    base_damage = attack.get("damage", 0)
+
+    # Fire on_damage handler BEFORE armor/cover to allow damage modifiers (e.g., thermal shock)
+    damage_context = {
+        "damage": base_damage,
+        "attacker_id": attacker.id,
+        "attack_type": attack.get("type"),
+        "armor": target.properties.get("armor", 0),
+        "cover_value": context.get("cover_value", 0)
+    }
+    damage_result = accessor.behavior_manager.invoke_behavior(
+        target, "on_damage", accessor, damage_context
+    )
+
+    # Get potentially modified damage from context
+    modified_damage = damage_context.get("damage", base_damage)
+
+    # Now apply armor and cover to the (possibly modified) damage
+    armor = target.properties.get("armor", 0)
+    damage = max(0, modified_damage - armor)
+
+    # Apply cover reduction if target is in cover
+    if target.properties.get("posture") == "cover":
+        cover_value = context.get("cover_value", 0)
+        if cover_value > 0:
+            damage = int(damage * (1 - cover_value / 100))
+
+    damage = max(0, damage)
+
+    # Apply the final damage to target's health
+    if "health" in target.properties:
+        current_health = target.properties.get("health", 0)
+        target.properties["health"] = current_health - damage
+
+        # Validate health didn't go negative beyond threshold
+        if target.properties["health"] < -100:
+            target.properties["health"] = -100
 
     attack_name = attack.get("name", "attack")
     messages = [f"{attacker.name} hits {target.name} with {attack_name} for {damage} damage"]
@@ -185,16 +242,8 @@ def execute_attack(accessor, attacker, target, attack: Dict) -> AttackResult:
             conditions_applied.append(condition_name)
             messages.append(f"{target.name} is affected by {condition_name}")
 
-    # Fire on_damage handler - this applies the damage via the hybrid dispatcher
-    # Call directly instead of through behavior_manager (it's an infrastructure handler)
-    damage_context = {
-        "damage": damage,
-        "attacker_id": attacker.id,
-        "attack_type": attack.get("type")
-    }
-    damage_result = on_damage(target, accessor, damage_context)
     # Append on_damage feedback to narration
-    if damage_result.feedback:
+    if damage_result and damage_result.feedback:
         messages.append(damage_result.feedback)
 
     return AttackResult(
@@ -209,10 +258,13 @@ def on_damage(entity, accessor, context):
     """
     Handle damage event with hybrid dispatcher pattern.
 
+    This handler is called BEFORE armor/cover are applied to allow
+    damage modifiers (like thermal shock) to run first.
+
     Default implementation:
     - Ignores entities without health property
-    - Applies damage = context["damage"] - entity armor
-    - Updates health (but doesn't handle death)
+    - Allows damage modifiers to update context["damage"]
+    - Does NOT apply damage to health (execute_attack does that after armor/cover)
     - Returns IGNORE_EVENT (no message)
 
     Escape hatch:
@@ -224,9 +276,11 @@ def on_damage(entity, accessor, context):
         entity: The entity taking damage
         accessor: StateAccessor for state queries
         context: Context dict with:
-            - damage: int - raw damage before armor
+            - damage: int - base damage before armor/cover/modifiers
             - attacker_id: str - ID of attacker (optional)
             - attack_type: str - type of attack (optional)
+            - armor: int - target's armor value (for reference)
+            - cover_value: int - cover percentage (for reference)
 
     Returns:
         EventResult with optional feedback message
@@ -236,7 +290,7 @@ def on_damage(entity, accessor, context):
     # Check for handler escape hatch
     damage_handler_path = entity.properties.get("damage_handler")
     if damage_handler_path:
-        handler = load_handler(damage_handler_path)
+        handler = _load_handler(damage_handler_path)
         if handler:
             return handler(entity, accessor, context)
 
@@ -244,18 +298,9 @@ def on_damage(entity, accessor, context):
     if "health" not in entity.properties:
         return IGNORE_EVENT
 
-    # Default damage processing
-    raw_damage = context.get("damage", 0)
-    armor = entity.properties.get("armor", 0)
-    final_damage = max(0, raw_damage - armor)
-
-    # Apply damage
-    current_health = entity.properties.get("health", 0)
-    entity.properties["health"] = current_health - final_damage
-
-    # Validate health didn't go negative beyond threshold
-    if entity.properties["health"] < -100:
-        entity.properties["health"] = -100
+    # Default implementation does nothing - just allows thermal shock
+    # and other damage modifiers to run. Actual damage application happens
+    # in execute_attack after armor/cover are applied.
 
     # Return IGNORE_EVENT - no message by default
     return IGNORE_EVENT
@@ -288,7 +333,7 @@ def on_death(entity, accessor, context):
     # Check for handler escape hatch
     death_handler_path = entity.properties.get("death_handler")
     if death_handler_path:
-        handler = load_handler(death_handler_path)
+        handler = _load_handler(death_handler_path)
         if handler:
             return handler(entity, accessor, context)
 
@@ -397,7 +442,7 @@ def on_attack(entity, accessor, context) -> Optional[Any]:
     # Check for handler escape hatch
     attack_handler_path = entity.properties.get("attack_handler")
     if attack_handler_path:
-        handler = load_handler(attack_handler_path)
+        handler = _load_handler(attack_handler_path)
         if handler:
             return handler(entity, accessor, context)
 
@@ -414,13 +459,30 @@ def on_attack(entity, accessor, context) -> Optional[Any]:
     if entity.location != target.location:
         return EventResult(allow=False, feedback=f"{target.name} is not here.")
 
-    # Get attacker's attacks
-    attacks = get_attacks(entity)
+    # Check if a specific weapon was specified (from "attack X with Y")
+    weapon_id = context.get("weapon_id")
+    if weapon_id:
+        # Try to find weapon in inventory
+        weapon = accessor.get_item(weapon_id)
+        if not weapon:
+            return EventResult(allow=False, feedback=f"You don't have that weapon.")
+
+        if weapon.location != entity.id:
+            return EventResult(allow=False, feedback=f"You need to be holding the {weapon.name} to attack with it.")
+
+        # Get attacks from the weapon
+        attacks = weapon.properties.get("attacks", [])
+        if not attacks:
+            return EventResult(allow=False, feedback=f"The {weapon.name} can't be used as a weapon.")
+    else:
+        # Get attacker's attacks (from actor properties)
+        attacks = get_attacks(entity)
+
     if not attacks:
         return EventResult(allow=False, feedback="You don't have any attacks.")
 
     # Select and execute attack
-    attack = select_attack(entity, target, {})
+    attack = select_attack(entity, target, {}, attacks=attacks)
     if not attack:
         return EventResult(allow=False, feedback="No suitable attack available.")
 

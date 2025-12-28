@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "The Wizard's Tower",
-    "version": "0.04",
+    "version": "0.1.2",
     "description": "A custom game demonstrating engine extensibility.",
     "start_location": "loc_garden",
     "author": "Extended Game Example",
@@ -51,7 +51,12 @@
               "hidden": true
             },
             "llm_context": {
-              "traits": ["worn grey stone", "spiral design", "narrow passage", "ancient construction"],
+              "traits": [
+                "worn grey stone",
+                "spiral design",
+                "narrow passage",
+                "ancient construction"
+              ],
               "perspective_variants": {
                 "default": "A spiral staircase of worn grey stone winds upward into the tower's heights.",
                 "climbing": "The worn stone steps continue spiraling above and below you, the passage narrow but sure."
@@ -107,7 +112,12 @@
           "description": "The spiral staircase winds downward to the entrance hall below.",
           "properties": {
             "llm_context": {
-              "traits": ["worn grey stone", "spiral design", "narrow passage", "descending"],
+              "traits": [
+                "worn grey stone",
+                "spiral design",
+                "narrow passage",
+                "descending"
+              ],
               "perspective_variants": {
                 "default": "The spiral staircase winds downward to the entrance hall below.",
                 "climbing": "The worn stone steps spiral away both above and below you."
@@ -176,7 +186,12 @@
           "is_surface": true
         },
         "llm_context": {
-          "traits": ["weathered stone", "moss-covered", "sturdy construction", "cool to the touch"],
+          "traits": [
+            "weathered stone",
+            "moss-covered",
+            "sturdy construction",
+            "cool to the touch"
+          ],
           "perspective_variants": {
             "default": "A weathered stone bench sits among the weeds, its surface covered in soft moss. It looks sturdy enough to stand on.",
             "on_surface:item_garden_bench": "You stand atop the mossy bench, gaining a better view of the overgrown garden."
@@ -197,7 +212,12 @@
           "is_surface": true
         },
         "llm_context": {
-          "traits": ["ancient oak", "thick gnarled branches", "rough bark", "leafy canopy"],
+          "traits": [
+            "ancient oak",
+            "thick gnarled branches",
+            "rough bark",
+            "leafy canopy"
+          ],
           "perspective_variants": {
             "default": "An old oak tree rises from the overgrown garden, its thick branches spreading wide overhead. You might be able to climb it if you had something to stand on.",
             "on_surface:item_garden_bench": "From atop the bench, the tree's lower branches seem almost within reach.",
@@ -219,7 +239,12 @@
         "portable": true,
         "magical": true,
         "llm_context": {
-          "traits": ["crystalline facets", "inner glow", "warm radiance", "fits in palm"],
+          "traits": [
+            "crystalline facets",
+            "inner glow",
+            "warm radiance",
+            "fits in palm"
+          ],
           "perspective_variants": {
             "default": "High in the branches, a crystalline star glows with soft inner light.",
             "on_surface:item_garden_bench": "From the bench, you can see the star's glow more clearly among the branches above.",
