@@ -9,9 +9,6 @@ from src.behavior_manager import EventResult
 from src.infrastructure_utils import get_current_turn
 
 # Vocabulary: wire hooks to events
-# Note: Turn phase events are handled by infrastructure/turn_phase_dispatcher.py
-# Note: Movement events are handled by infrastructure/movement_reactions.py
-# Locations must have turn_phase_effects and movement_effects configuration
 vocabulary: Dict[str, Any] = {
     "events": []
 }
