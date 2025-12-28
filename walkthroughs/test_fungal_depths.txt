@@ -36,8 +36,24 @@ examine dead explorer
 # Take the notebook (use simple name to avoid parser bug #255)
 take notebook
 
+# Take silvermoss to heal Aldric
+take silvermoss
+
 # Check inventory
 inventory
+
+# ============================================================
+# Part 2b: Heal Aldric with Silvermoss
+# ============================================================
+
+# Return to heal Aldric early (prevents death from infection)
+go up
+
+# Give silvermoss to stabilize him
+give silvermoss to aldric
+
+# Return to grotto to continue exploration
+go down
 
 # ============================================================
 # Part 3: Light Puzzle

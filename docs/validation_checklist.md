@@ -66,7 +66,7 @@ This document tracks validation status for the virtual entity standardization wo
 - ✅ `test_thermal_shock_combat_v2.txt` (74 lines) - Full combat sequence
 - ✅ `frozen_reaches_ice_caves_final.txt` - Ice extraction and telescope
 - ✅ `test_beast_wilds.txt` (47 commands) - Beast Wilds exploration, all NPCs
-- ✅ `test_fungal_depths.txt` (36 commands) - Fungal Depths complete (Aldric health adjusted for infection progression)
+- ✅ `test_fungal_depths.txt` (40 commands) - Fungal Depths complete with early silvermoss healing
 - ✅ `test_meridian_nexus.txt` (15 commands) - Nexus chamber and observatory
 
 ### 4. Test Isolation (Subprocess Pattern)
@@ -126,7 +126,7 @@ This document tracks validation status for the virtual entity standardization wo
 
 5. **Existing Walkthroughs**
    - ✅ `test_beast_wilds.txt` verified working (47/47 commands)
-   - ✅ `test_fungal_depths.txt` verified working (36/36 commands, after Aldric health adjustment)
+   - ✅ `test_fungal_depths.txt` verified working (40/40 commands, with silvermoss healing fix)
    - ✅ `test_meridian_nexus.txt` verified working (15/15 commands)
 
 ### Low Priority
@@ -141,10 +141,10 @@ This document tracks validation status for the virtual entity standardization wo
 
 1. **Run Existing Walkthroughs** ✅ COMPLETED
    - ✅ `test_beast_wilds.txt` - 47/47 commands succeeded
-   - ✅ `test_fungal_depths.txt` - 36/36 commands succeeded (Aldric health increased to 80)
+   - ✅ `test_fungal_depths.txt` - 40/40 commands succeeded (early silvermoss healing)
    - ✅ `test_meridian_nexus.txt` - 15/15 commands succeeded
 
-   **Fix Applied**: Increased Aldric's starting health from 40 to 80 HP to account for infection progression during 36-turn walkthrough (net -2 HP/turn × 36 turns = 72 HP lost)
+   **Fix Applied**: Fixed silvermoss to actually reduce infection damage (from 7 to 2 damage/turn). Updated walkthrough to get silvermoss early and heal Aldric, demonstrating the intended rescue mechanic. Added on_receive_item handler so "give silvermoss to aldric" triggers healing.
 
 2. **Create Hypothermia Walkthrough** (1 hour)
    - Enter cold zone without gear

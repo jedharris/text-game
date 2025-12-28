@@ -17,11 +17,54 @@ from src.narrator_helpers import select_state_fragments
 
 # Vocabulary: wire hooks to events
 # Note: Dialog reactions are handled by infrastructure/dialog_reactions.py
-# Note: Item use reactions are handled by infrastructure/item_use_reactions.py
-# Aldric must have dialog_reactions and item_use_reactions configuration
 vocabulary: Dict[str, Any] = {
-    "events": []
+    "events": [
+        {
+            "event": "on_receive_item",
+            "hook": "receive_item",
+            "description": "Handle items given to Aldric (silvermoss healing)"
+        }
+    ]
 }
+
+def on_receive_item(
+    entity: Any,
+    accessor: Any,
+    context: dict[str, Any],
+) -> EventResult:
+    """Handle items received by Aldric.
+
+    Routes silvermoss to the healing handler.
+
+    Args:
+        entity: The actor receiving the item (Aldric)
+        accessor: StateAccessor instance
+        context: Context with item, item_id, giver_id
+
+    Returns:
+        EventResult with reception handling
+    """
+    # Only handle if this is Aldric
+    actor_id = entity.id if hasattr(entity, "id") else None
+    if actor_id != "npc_aldric":
+        return EventResult(allow=True, feedback=None)
+
+    # Get the item from context
+    item = context.get("item")
+    if not item:
+        return EventResult(allow=True, feedback=None)
+
+    item_id = item.id if hasattr(item, "id") else str(item)
+
+    # If it's silvermoss, handle healing
+    if "silvermoss" in item_id.lower():
+        # Create context with Aldric as target for the heal handler
+        heal_context = {"target": entity}
+        return on_aldric_heal(item, accessor, heal_context)
+
+    # Other items - generic reception
+    return EventResult(allow=True, feedback=None)
+
 
 def on_aldric_commitment(
     entity: Any,
@@ -129,13 +172,14 @@ def on_aldric_heal(
         transition_state(sm, "stabilized")
         state.extra["aldric_stabilized"] = True
 
-        # Reduce infection severity
+        # Reduce infection severity and damage
         conditions = aldric.properties.get("conditions", {})
         infection = conditions.get("fungal_infection", {})
         if infection:
             old_severity = infection.get("severity", 80)
             infection["severity"] = max(0, old_severity - 40)
             infection["progression_rate"] = 0  # Stops progression
+            infection["damage_per_turn"] = 2  # Reduced from 7, now net +3 HP/turn with regen
 
         # Select fragments for the new state
         fragments = select_state_fragments(aldric, "stabilized", max_count=2)

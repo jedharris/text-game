@@ -3424,7 +3424,7 @@
           ],
           "initial": "critical"
         },
-        "health": 80,
+        "health": 40,
         "max_health": 100,
         "mobility": "immobile",
         "trust_state": {
@@ -3522,7 +3522,7 @@
       },
       "behaviors": [
         "behaviors.shared.lib.actor_lib.npc_actions",
-        "behaviors.shared.lib.actor_lib.npc_actions"
+        "behaviors.regions.fungal_depths.aldric_rescue"
       ]
     },
     "npc_spore_mother": {
