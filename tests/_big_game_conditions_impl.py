@@ -63,9 +63,9 @@ class TestBigGameConditionIntegration(unittest.TestCase):
         )
 
     def test_condition_tick_hook_registered(self):
-        """Verify condition_tick hook is registered."""
-        hook_event = self.engine.behavior_manager._hook_to_event.get('condition_tick')
-        self.assertIsNotNone(hook_event, "condition_tick hook should be registered")
+        """Verify turn_condition_tick hook is registered."""
+        hook_event = self.engine.behavior_manager._hook_to_event.get('turn_condition_tick')
+        self.assertIsNotNone(hook_event, "turn_condition_tick hook should be registered")
         event_name, tier = hook_event
         self.assertEqual(event_name, 'on_condition_tick')
 

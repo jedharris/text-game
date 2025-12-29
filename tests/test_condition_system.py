@@ -489,7 +489,7 @@ class TestOnConditionTickHandler(unittest.TestCase):
                 break
 
         self.assertIsNotNone(tick_event)
-        self.assertEqual(tick_event["hook"], "condition_tick")
+        self.assertEqual(tick_event["hook"], "turn_condition_tick")
 
 
 if __name__ == '__main__':

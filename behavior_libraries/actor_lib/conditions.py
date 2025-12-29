@@ -321,10 +321,18 @@ def get_condition_severity(actor, condition_name: str) -> int:
 
 # Vocabulary extension - registers the condition tick event
 vocabulary = {
+    "hook_definitions": [
+        {
+            "hook_id": "turn_condition_tick",
+            "invocation": "turn_phase",
+            "after": ["turn_environmental_effect"],
+            "description": "Progress all conditions on actors"
+        }
+    ],
     "events": [
         {
             "event": "on_condition_tick",
-            "hook": "condition_tick",
+            "hook": "turn_condition_tick",
             "description": "Called each turn to progress all conditions on actors. "
                           "Applies damage, decrements duration, increases severity."
         }
