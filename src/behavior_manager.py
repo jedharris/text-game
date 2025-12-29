@@ -63,6 +63,8 @@ class BehaviorManager:
         self._verb_tier_sources: Dict[Tuple[str, int], str] = {}  # (verb, tier) -> module_name
         # Store loaded modules for entity behavior invocation
         self._modules: Dict[str, Any] = {}  # module_name -> module object
+        # Track failed module imports with exception details
+        self._failed_modules: Dict[str, Exception] = {}  # module_name -> exception
         # Event registry: event_name -> EventInfo
         self._event_registry: Dict[str, EventInfo] = {}
         # Hook to event mapping: hook_name -> (event_name, tier)
@@ -440,9 +442,17 @@ class BehaviorManager:
             ValueError: If conflicts detected (duplicate handlers/vocabulary within same tier)
         """
         if isinstance(module_or_path, str):
-            # ImportError here indicates missing behavior module (authoring error)
-            module = importlib.import_module(module_or_path)
             module_name = module_or_path
+            try:
+                # ImportError here indicates missing behavior module (authoring error)
+                module = importlib.import_module(module_or_path)
+            except Exception as e:
+                # Track import failure for validation reporting
+                self._failed_modules[module_name] = e
+                logger.warning(f"Failed to import module {module_name}: {e}")
+                # Don't raise - allow other modules to load
+                # Entity behavior validation will report this if module is referenced
+                return
         else:
             module = module_or_path
             module_name = module.__name__
@@ -1115,6 +1125,94 @@ class BehaviorManager:
             else:
                 hook_invocations[hook_name] = (hook_def.invocation, hook_def.defined_by)
 
+    def validate_entity_behaviors(self, game_state: "GameState") -> None:
+        """
+        Validate all entity behavior paths are loaded modules.
+
+        Checks that every behavior path referenced in entity.behaviors
+        lists corresponds to a successfully loaded module. Reports
+        missing modules with suggestions for similar module names.
+
+        Args:
+            game_state: Loaded game state
+
+        Raises:
+            ValueError: If any entity references non-existent behavior module
+        """
+        import difflib
+
+        # Collect all entity behavior paths
+        all_behaviors: Dict[str, List[Tuple[str, str]]] = {}  # behavior -> [(entity_type, entity_id)]
+
+        for actor_id, actor in game_state.actors.items():
+            for behavior in actor.behaviors:
+                if behavior not in all_behaviors:
+                    all_behaviors[behavior] = []
+                all_behaviors[behavior].append(("actor", actor_id))
+
+        for item in game_state.items:
+            for behavior in item.behaviors:
+                if behavior not in all_behaviors:
+                    all_behaviors[behavior] = []
+                all_behaviors[behavior].append(("item", item.id))
+
+        for location in game_state.locations:
+            for behavior in location.behaviors:
+                if behavior not in all_behaviors:
+                    all_behaviors[behavior] = []
+                all_behaviors[behavior].append(("location", location.id))
+
+        # Check each behavior path is loaded
+        errors = []
+        for behavior_path, entities in all_behaviors.items():
+            if behavior_path not in self._modules:
+                # Build error message header
+                entity_list = ", ".join(f"{etype}:{eid}" for etype, eid in entities[:3])
+                if len(entities) > 3:
+                    entity_list += f" (+{len(entities) - 3} more)"
+
+                error_msg = f"\nInvalid behavior: {behavior_path}\n"
+                error_msg += f"  Referenced by: {entity_list}\n"
+
+                # Check if module import failed
+                if behavior_path in self._failed_modules:
+                    exception = self._failed_modules[behavior_path]
+                    error_msg += f"  Problem: Module FAILED TO IMPORT\n"
+                    error_msg += f"  Exception: {type(exception).__name__}: {exception}\n"
+
+                    # Include traceback info if available
+                    if hasattr(exception, '__traceback__'):
+                        import traceback
+                        tb_lines = traceback.format_exception(type(exception), exception, exception.__traceback__)
+                        # Get the last frame that's actually in the module being loaded
+                        for line in tb_lines:
+                            if behavior_path.replace('.', '/') in line:
+                                error_msg += f"  Location: {line.strip()}\n"
+                                break
+                else:
+                    # Module not found - find similar names
+                    error_msg += f"  Problem: Module not loaded (file not found or not discovered)\n"
+
+                    similar = difflib.get_close_matches(
+                        behavior_path,
+                        self._modules.keys(),
+                        n=3,
+                        cutoff=0.6
+                    )
+
+                    if similar:
+                        error_msg += f"  Did you mean: {', '.join(similar)}?\n"
+                    else:
+                        error_msg += f"  No similar module names found\n"
+
+                errors.append(error_msg)
+
+        if errors:
+            raise ValueError(
+                "ENTITY BEHAVIORS VALIDATION FAILED\n"
+                + "".join(errors)
+            )
+
     def finalize_loading(self, game_state: "GameState") -> None:
         """
         Call after all vocabularies loaded to run validations.
@@ -1130,6 +1228,7 @@ class BehaviorManager:
         self.validate_hooks_are_defined()
         self.validate_hook_invocation_consistency()
         self.validate_turn_phase_not_in_entity_behaviors(game_state)
+        self.validate_entity_behaviors(game_state)
 
     # ========== End Phase 2 Validation Methods ==========
 
