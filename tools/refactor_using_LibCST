@@ -638,14 +638,54 @@ def find_python_files(paths: list[str]) -> list[Path]:
 # MAIN - Configure your refactoring here
 # =============================================================================
 
+class RenameKeywordArgInConstructors(cst.CSTTransformer):
+    """
+    Rename keyword argument in specific constructor calls.
+
+    For Phase 3: Rename properties= to _properties= in entity constructors.
+    """
+
+    def __init__(self, constructor_names: Sequence[str], old_arg: str, new_arg: str):
+        self.constructor_names = set(constructor_names)
+        self.old_arg = old_arg
+        self.new_arg = new_arg
+        self.changes = 0
+        self._in_target_call = False
+
+    def visit_Call(self, node: cst.Call) -> bool:
+        # Check if calling one of our target constructors
+        if isinstance(node.func, cst.Name) and node.func.value in self.constructor_names:
+            self._in_target_call = True
+        return True
+
+    def leave_Call(self, original_node: cst.Call, updated_node: cst.Call) -> cst.Call:
+        self._in_target_call = False
+        return updated_node
+
+    def leave_Arg(self, original_node: cst.Arg, updated_node: cst.Arg) -> cst.Arg:
+        if (self._in_target_call and
+            updated_node.keyword and
+            updated_node.keyword.value == self.old_arg):
+            self.changes += 1
+            return updated_node.with_changes(
+                keyword=cst.Name(self.new_arg)
+            )
+        return updated_node
+
+
 def create_transformer() -> cst.CSTTransformer:
     """
     Configure which transformations to apply.
     Edit this function for your specific refactoring needs.
     """
 
-    # Current: Replace assertIsNone(result) with assertEqual(result, IGNORE_EVENT) in tests
-    return ReplaceAssertIsNoneWithIgnoreEvent()
+    # Phase 3: Rename properties= to _properties= in entity constructors
+    entity_constructors = [
+        'Actor', 'Item', 'Location', 'Part',
+        'Lock', 'ExitDescriptor',
+        'Commitment', 'ScheduledEvent', 'Gossip', 'Spread'
+    ]
+    return RenameKeywordArgInConstructors(entity_constructors, 'properties', '_properties')
 
 
 def main():
