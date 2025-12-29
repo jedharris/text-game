@@ -149,7 +149,8 @@
         "hypothermia_rate": 5,
         "region": "frozen_reaches",
         "lighting": "bright",
-        "danger_level": "low"
+        "danger_level": "low",
+        "temperature": "cold"
       }
     },
     {
@@ -175,7 +176,8 @@
         "hypothermia_rate": 2.5,
         "region": "frozen_reaches",
         "lighting": "dim",
-        "danger_level": "high_conditional"
+        "danger_level": "high_conditional",
+        "temperature": "cold"
       }
     },
     {
@@ -201,7 +203,8 @@
         "hazards": [
           "thin_ice",
           "hidden_passages"
-        ]
+        ],
+        "temperature": "freezing"
       }
     },
     {
@@ -272,7 +275,8 @@
         "hypothermia_effect": "instant_cure",
         "healing_zone": true,
         "safe_zone": true,
-        "region": "frozen_reaches"
+        "region": "frozen_reaches",
+        "temperature": "warm"
       }
     },
     {
@@ -352,7 +356,8 @@
         "hypothermia_rate": 20,
         "region": "frozen_reaches",
         "lighting": "bright",
-        "danger_level": "environmental"
+        "danger_level": "environmental",
+        "temperature": "extreme"
       }
     },
     {

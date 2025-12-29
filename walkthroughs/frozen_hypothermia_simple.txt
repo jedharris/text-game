@@ -1,0 +1,28 @@
+# Simple test of hypothermia basics
+
+# Start with no hypothermia
+ASSERT actors.player.properties.health == 100
+
+# Go to frozen_pass (cold zone)
+go north
+
+# Should have hypothermia severity 5
+ASSERT actors.player.properties.conditions.hypothermia.severity == 5
+
+# Spend another turn
+look
+
+# Should have severity 10
+ASSERT actors.player.properties.conditions.hypothermia.severity == 10
+
+# Go to ice_field (check its temperature)
+go west
+
+# Spend a turn
+look
+
+# Go to hot_springs (north from ice_field)
+go north
+
+# Hypothermia should be cured
+ASSERT actors.player.properties.conditions.hypothermia.severity == 0

@@ -16,7 +16,21 @@ from src.infrastructure_utils import get_current_turn
 
 # Vocabulary: wire hooks to events
 vocabulary: Dict[str, Any] = {
-    "events": [],
+    "hook_definitions": [
+        {
+            "hook_id": "turn_hypothermia",
+            "invocation": "turn_phase",
+            "before": ["turn_condition_tick"],
+            "description": "Apply hypothermia based on location temperature"
+        }
+    ],
+    "events": [
+        {
+            "event": "on_cold_zone_turn",
+            "hook": "turn_hypothermia",
+            "description": "Check player location and apply hypothermia (and cure at hot springs)"
+        }
+    ],
     # Add adjectives for multi-word item names
     "adjectives": [
         {"word": "cold", "synonyms": []},
@@ -82,6 +96,21 @@ def on_cold_zone_turn(
 
     temp_zone = location.properties.get("temperature", "normal")
     base_rate = COLD_RATES.get(temp_zone, 0)
+
+    # Hot springs provides instant cure
+    if temp_zone == "warm" and "hot_springs" in str(player_loc).lower():
+        hypothermia = get_condition(player, "hypothermia")
+        if hypothermia and hypothermia.get("severity", 0) > 0:
+            hypothermia["severity"] = 0
+            return EventResult(
+                allow=True,
+                feedback=(
+                    "The warmth of the hot springs washes over you like an embrace. "
+                    "The cold drains from your body, your limbs tingling as feeling returns. "
+                    "You are fully restored."
+                ),
+            )
+        return EventResult(allow=True, feedback=None)
 
     if base_rate == 0:
         return EventResult(allow=True, feedback=None)
