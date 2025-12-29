@@ -17,19 +17,68 @@ vocabulary = {
             "invocation": "turn_phase",
             "after": [],
             "description": "Process scheduled events that have reached their trigger turn"
+        },
+        {
+            "hook_id": "entity_scheduled_event_trigger",
+            "invocation": "entity",
+            "description": "Check if a scheduled event should trigger"
         }
     ],
     "events": [
         {
-            "event": "on_turn_scheduled",
+            "event": "on_turn_scheduled_events",
             "hook": "turn_scheduled_events",
-            "description": "Check and fire scheduled event if trigger turn reached (per-entity)",
+            "description": "Turn phase dispatcher: iterate all scheduled events",
+        },
+        {
+            "event": "on_scheduled_event_trigger",
+            "hook": "entity_scheduled_event_trigger",
+            "description": "Check if this scheduled event should trigger (per-entity)",
         }
     ]
 }
 
 
-def on_turn_scheduled(
+def on_turn_scheduled_events(
+    entity: None,
+    accessor: Any,
+    context: dict[str, Any],
+) -> EventResult:
+    """Turn phase dispatcher: iterate all scheduled events.
+
+    Called once per turn as part of the turn phase sequence.
+    Iterates over all scheduled events and checks each one.
+
+    Args:
+        entity: None (turn phase pattern)
+        accessor: StateAccessor instance
+        context: Context dict with current_turn
+
+    Returns:
+        EventResult with combined messages from all triggered events
+    """
+    from src.types import EventName
+
+    state = accessor.game_state
+    messages = []
+
+    for event in state.scheduled_events:
+        result = accessor.behavior_manager.invoke_behavior(
+            event,
+            EventName("on_scheduled_event_trigger"),
+            accessor,
+            context
+        )
+        if result and result.feedback:
+            messages.append(result.feedback)
+
+    return EventResult(
+        allow=True,
+        feedback="\n".join(messages) if messages else None
+    )
+
+
+def on_scheduled_event_trigger(
     entity: ScheduledEvent,
     accessor: Any,
     context: dict[str, Any],

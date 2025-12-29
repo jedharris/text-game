@@ -1083,7 +1083,7 @@ class BehaviorManager:
                         f"  Turn phases should not be attached to entities"
                     )
 
-        for location in game_state.locations.values():  # type: ignore[attr-defined]  # Pre-existing: locations is list not dict
+        for location in game_state.locations:
             for behavior in location.behaviors:
                 if behavior in turn_phase_modules:
                     raise ValueError(

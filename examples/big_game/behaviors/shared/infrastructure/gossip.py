@@ -17,19 +17,68 @@ vocabulary = {
             "invocation": "turn_phase",
             "after": ["turn_commitments"],
             "description": "Spread gossip messages to eligible NPCs"
+        },
+        {
+            "hook_id": "entity_gossip_delivery",
+            "invocation": "entity",
+            "description": "Deliver a gossip entry if it has arrived"
         }
     ],
     "events": [
         {
-            "event": "on_turn_gossip",
+            "event": "on_turn_gossip_spread",
             "hook": "turn_gossip_spread",
+            "description": "Turn phase dispatcher: iterate all gossip entries",
+        },
+        {
+            "event": "on_gossip_delivery",
+            "hook": "entity_gossip_delivery",
             "description": "Deliver gossip if it has reached arrival turn (per-entity)",
         }
     ]
 }
 
 
-def on_turn_gossip(
+def on_turn_gossip_spread(
+    entity: None,
+    accessor: Any,
+    context: dict[str, Any],
+) -> EventResult:
+    """Turn phase dispatcher: iterate all gossip entries.
+
+    Called once per turn as part of the turn phase sequence.
+    Iterates over all gossip entries and delivers those that have arrived.
+
+    Args:
+        entity: None (turn phase pattern)
+        accessor: StateAccessor instance
+        context: Context dict with current_turn
+
+    Returns:
+        EventResult with combined messages from all delivered gossip (usually None)
+    """
+    from src.types import EventName
+
+    state = accessor.game_state
+    messages = []
+
+    for gossip in state.gossip:
+        result = accessor.behavior_manager.invoke_behavior(
+            gossip,
+            EventName("on_gossip_delivery"),
+            accessor,
+            context
+        )
+        if result and result.feedback:
+            messages.append(result.feedback)
+
+    return EventResult(
+        allow=True,
+        feedback="\n".join(messages) if messages else None
+    )
+
+
+def on_gossip_delivery(
     entity: Gossip,
     accessor: Any,
     context: dict[str, Any],

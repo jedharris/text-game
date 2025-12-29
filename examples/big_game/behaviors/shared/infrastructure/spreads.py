@@ -19,19 +19,68 @@ vocabulary = {
             "after": ["turn_gossip_spread"],
             "before": ["turn_npc_action"],
             "description": "Spread environmental conditions to adjacent regions"
+        },
+        {
+            "hook_id": "entity_spread_milestone_check",
+            "invocation": "entity",
+            "description": "Check if a spread has reached a milestone"
         }
     ],
     "events": [
         {
-            "event": "on_turn_spread",
+            "event": "on_turn_condition_spread",
             "hook": "turn_condition_spread",
+            "description": "Turn phase dispatcher: iterate all spreads",
+        },
+        {
+            "event": "on_spread_milestone_check",
+            "hook": "entity_spread_milestone_check",
             "description": "Check spread milestone if reached (per-entity)",
         }
     ]
 }
 
 
-def on_turn_spread(
+def on_turn_condition_spread(
+    entity: None,
+    accessor: Any,
+    context: dict[str, Any],
+) -> EventResult:
+    """Turn phase dispatcher: iterate all spreads.
+
+    Called once per turn as part of the turn phase sequence.
+    Iterates over all environmental spreads and checks for milestones.
+
+    Args:
+        entity: None (turn phase pattern)
+        accessor: StateAccessor instance
+        context: Context dict with current_turn
+
+    Returns:
+        EventResult with combined messages from all spread milestones
+    """
+    from src.types import EventName
+
+    state = accessor.game_state
+    messages = []
+
+    for spread in state.spreads:
+        result = accessor.behavior_manager.invoke_behavior(
+            spread,
+            EventName("on_spread_milestone_check"),
+            accessor,
+            context
+        )
+        if result and result.feedback:
+            messages.append(result.feedback)
+
+    return EventResult(
+        allow=True,
+        feedback="\n".join(messages) if messages else None
+    )
+
+
+def on_spread_milestone_check(
     entity: Spread,
     accessor: Any,
     context: dict[str, Any],

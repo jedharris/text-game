@@ -77,6 +77,10 @@ class GameEngine:
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
 
+        # Validate all loaded modules and game state
+        # Catches authoring errors early (hook typos, invalid behaviors, etc.)
+        self.behavior_manager.finalize_loading(self.game_state)
+
         # Initialize turn executor with hook definitions
         from src import turn_executor
         turn_executor.initialize(self.behavior_manager._hook_definitions)
