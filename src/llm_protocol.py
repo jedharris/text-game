@@ -23,7 +23,6 @@ if TYPE_CHECKING:
 from .state_manager import GameState
 from .behavior_manager import BehaviorManager
 from .word_entry import WordEntry, WordType
-from . import hooks
 
 
 class LLMProtocolHandler:

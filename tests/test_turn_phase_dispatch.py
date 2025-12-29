@@ -17,7 +17,6 @@ from src.state_manager import (
 from src.types import CommitmentId, ScheduledEventId, GossipId, SpreadId, LocationId
 from src.behavior_manager import EventResult
 from src.state_accessor import StateAccessor
-from src import hooks
 
 
 class TestCommitmentTurnPhase(unittest.TestCase):
@@ -81,7 +80,7 @@ class TestCommitmentTurnPhase(unittest.TestCase):
 
         commitment = self.game_state.commitments[0]
         accessor = StateAccessor(self.game_state, None)
-        context = {"current_turn": 10, "hook": hooks.TURN_PHASE_COMMITMENT}
+        context = {"current_turn": 10, "hook": "turn_commitment"}
 
         result = on_turn_commitment(commitment, accessor, context)
 
@@ -99,7 +98,7 @@ class TestCommitmentTurnPhase(unittest.TestCase):
 
         commitment = self.game_state.commitments[0]
         accessor = StateAccessor(self.game_state, None)
-        context = {"current_turn": 20, "hook": hooks.TURN_PHASE_COMMITMENT}
+        context = {"current_turn": 20, "hook": "turn_commitment"}
 
         result = on_turn_commitment(commitment, accessor, context)
 
@@ -118,7 +117,7 @@ class TestCommitmentTurnPhase(unittest.TestCase):
 
         commitment = self.game_state.commitments[1]
         accessor = StateAccessor(self.game_state, None)
-        context = {"current_turn": 100, "hook": hooks.TURN_PHASE_COMMITMENT}
+        context = {"current_turn": 100, "hook": "turn_commitment"}
 
         result = on_turn_commitment(commitment, accessor, context)
 
@@ -191,7 +190,7 @@ class TestScheduledEventTurnPhase(unittest.TestCase):
 
         event = self.game_state.scheduled_events[0]
         accessor = StateAccessor(self.game_state, None)
-        context = {"current_turn": 5, "hook": hooks.TURN_PHASE_SCHEDULED}
+        context = {"current_turn": 5, "hook": "turn_scheduled_events"}
 
         result = on_turn_scheduled(event, accessor, context)
 
@@ -207,7 +206,7 @@ class TestScheduledEventTurnPhase(unittest.TestCase):
 
         event = self.game_state.scheduled_events[0]
         accessor = StateAccessor(self.game_state, None)
-        context = {"current_turn": 10, "hook": hooks.TURN_PHASE_SCHEDULED}
+        context = {"current_turn": 10, "hook": "turn_scheduled_events"}
 
         result = on_turn_scheduled(event, accessor, context)
 
@@ -224,7 +223,7 @@ class TestScheduledEventTurnPhase(unittest.TestCase):
 
         event = self.game_state.scheduled_events[1]
         accessor = StateAccessor(self.game_state, None)
-        context = {"current_turn": 15, "hook": hooks.TURN_PHASE_SCHEDULED}
+        context = {"current_turn": 15, "hook": "turn_scheduled_events"}
 
         result = on_turn_scheduled(event, accessor, context)
 
@@ -287,7 +286,7 @@ class TestGossipTurnPhase(unittest.TestCase):
 
         gossip = self.game_state.gossip[0]
         accessor = StateAccessor(self.game_state, None)
-        context = {"current_turn": 10, "hook": hooks.TURN_PHASE_GOSSIP}
+        context = {"current_turn": 10, "hook": "turn_gossip_spread"}
 
         result = on_turn_gossip(gossip, accessor, context)
 
@@ -303,7 +302,7 @@ class TestGossipTurnPhase(unittest.TestCase):
 
         gossip = self.game_state.gossip[0]
         accessor = StateAccessor(self.game_state, None)
-        context = {"current_turn": 17, "hook": hooks.TURN_PHASE_GOSSIP}
+        context = {"current_turn": 17, "hook": "turn_gossip_spread"}
 
         result = on_turn_gossip(gossip, accessor, context)
 
@@ -384,7 +383,7 @@ class TestSpreadTurnPhase(unittest.TestCase):
 
         spread = self.game_state.spreads[0]
         accessor = StateAccessor(self.game_state, None)
-        context = {"current_turn": 10, "hook": hooks.TURN_PHASE_SPREAD}
+        context = {"current_turn": 10, "hook": "turn_condition_spread"}
 
         result = on_turn_spread(spread, accessor, context)
 
@@ -400,7 +399,7 @@ class TestSpreadTurnPhase(unittest.TestCase):
 
         spread = self.game_state.spreads[0]
         accessor = StateAccessor(self.game_state, None)
-        context = {"current_turn": 25, "hook": hooks.TURN_PHASE_SPREAD}
+        context = {"current_turn": 25, "hook": "turn_condition_spread"}
 
         result = on_turn_spread(spread, accessor, context)
 
@@ -424,7 +423,7 @@ class TestSpreadTurnPhase(unittest.TestCase):
         spread = self.game_state.spreads[0]
         spread.properties["reached_milestones"] = [25]
         accessor = StateAccessor(self.game_state, None)
-        context = {"current_turn": 30, "hook": hooks.TURN_PHASE_SPREAD}
+        context = {"current_turn": 30, "hook": "turn_condition_spread"}
 
         result = on_turn_spread(spread, accessor, context)
 
