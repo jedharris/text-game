@@ -14,7 +14,7 @@ Usage:
     get_actor(location_id)  # Error: expected ActorId, got LocationId
 """
 
-from typing import NewType
+from typing import NewType, Union
 
 
 # Entity ID types
@@ -50,6 +50,18 @@ GossipId = NewType('GossipId', str)
 
 SpreadId = NewType('SpreadId', str)
 """ID for Spread entities (e.g., 'frozen_reaches_cold')."""
+
+# Hook ID types (Phase 2.5: Hook System Redesign)
+# These identify hooks in the behavior system, distinguished by invocation pattern.
+
+TurnHookId = NewType('TurnHookId', str)
+"""ID for turn phase hooks (global, runs once per turn). Prefix: 'turn_*'."""
+
+EntityHookId = NewType('EntityHookId', str)
+"""ID for entity-specific hooks (runs per-entity). Prefix: 'entity_*'."""
+
+HookId = Union[TurnHookId, EntityHookId]
+"""Union type for any hook ID."""
 
 
 # Type alias for any entity ID

@@ -13,7 +13,7 @@ import unittest
 from unittest.mock import MagicMock
 from src.behavior_manager import BehaviorManager, HookDefinition, EventInfo
 from src.state_manager import GameState, Actor, Item, Location, Metadata
-from src.types import ActorId, ItemId, LocationId
+from src.types import ActorId, ItemId, LocationId, TurnHookId, EntityHookId
 
 
 class TestHookPrefixValidation(unittest.TestCase):
@@ -26,7 +26,7 @@ class TestHookPrefixValidation(unittest.TestCase):
         """Turn phase hooks with turn_ prefix are valid"""
         self.manager._hook_definitions = {
             "turn_npc_action": HookDefinition(
-                hook="turn_npc_action",
+                hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
                 description="NPC actions",
@@ -40,7 +40,7 @@ class TestHookPrefixValidation(unittest.TestCase):
         """Turn phase hooks without turn_ prefix are invalid"""
         self.manager._hook_definitions = {
             "npc_action": HookDefinition(
-                hook="npc_action",
+                hook_id=TurnHookId("npc_action"),
                 invocation="turn_phase",
                 after=[],
                 description="NPC actions",
@@ -56,7 +56,7 @@ class TestHookPrefixValidation(unittest.TestCase):
         """Entity hooks with entity_ prefix are valid"""
         self.manager._hook_definitions = {
             "entity_entered_location": HookDefinition(
-                hook="entity_entered_location",
+                hook_id=EntityHookId("entity_entered_location"),
                 invocation="entity",
                 after=[],
                 description="Entity entered",
@@ -70,7 +70,7 @@ class TestHookPrefixValidation(unittest.TestCase):
         """Entity hooks without entity_ prefix are invalid"""
         self.manager._hook_definitions = {
             "location_entered": HookDefinition(
-                hook="location_entered",
+                hook_id=TurnHookId("location_entered"),
                 invocation="entity",
                 after=[],
                 description="Entity entered",
@@ -86,7 +86,7 @@ class TestHookPrefixValidation(unittest.TestCase):
         """Unknown invocation types are invalid"""
         self.manager._hook_definitions = {
             "global_event": HookDefinition(
-                hook="global_event",
+                hook_id=TurnHookId("global_event"),
                 invocation="global",  # Invalid type
                 after=[],
                 description="Global event",
@@ -102,14 +102,14 @@ class TestHookPrefixValidation(unittest.TestCase):
         """First invalid hook is caught even with valid hooks present"""
         self.manager._hook_definitions = {
             "turn_npc_action": HookDefinition(
-                hook="turn_npc_action",
+                hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
                 description="Valid",
                 defined_by="module1"
             ),
             "bad_hook": HookDefinition(
-                hook="bad_hook",
+                hook_id=TurnHookId("bad_hook"),
                 invocation="turn_phase",
                 after=[],
                 description="Invalid - no prefix",
@@ -131,16 +131,16 @@ class TestTurnPhaseDependencyValidation(unittest.TestCase):
         """Turn phase with valid dependencies passes"""
         self.manager._hook_definitions = {
             "turn_npc_action": HookDefinition(
-                hook="turn_npc_action",
+                hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
                 description="Base",
                 defined_by="module1"
             ),
             "turn_environmental_effect": HookDefinition(
-                hook="turn_environmental_effect",
+                hook_id=TurnHookId("turn_environmental_effect"),
                 invocation="turn_phase",
-                after=["turn_npc_action"],
+                after=[TurnHookId("turn_npc_action")],
                 description="Depends on npc_action",
                 defined_by="module2"
             )
@@ -152,9 +152,9 @@ class TestTurnPhaseDependencyValidation(unittest.TestCase):
         """Turn phase depending on undefined hook fails"""
         self.manager._hook_definitions = {
             "turn_environmental_effect": HookDefinition(
-                hook="turn_environmental_effect",
+                hook_id=TurnHookId("turn_environmental_effect"),
                 invocation="turn_phase",
-                after=["turn_npc_action"],  # Not defined
+                after=[TurnHookId("turn_npc_action")],  # Not defined
                 description="Depends on undefined",
                 defined_by="module1"
             )
@@ -168,16 +168,16 @@ class TestTurnPhaseDependencyValidation(unittest.TestCase):
         """Turn phase cannot depend on entity hook"""
         self.manager._hook_definitions = {
             "entity_entered_location": HookDefinition(
-                hook="entity_entered_location",
+                hook_id=EntityHookId("entity_entered_location"),
                 invocation="entity",
                 after=[],
                 description="Entity hook",
                 defined_by="module1"
             ),
             "turn_environmental_effect": HookDefinition(
-                hook="turn_environmental_effect",
+                hook_id=TurnHookId("turn_environmental_effect"),
                 invocation="turn_phase",
-                after=["entity_entered_location"],  # Wrong type
+                after=[TurnHookId("entity_entered_location")],  # Wrong type
                 description="Depends on entity hook",
                 defined_by="module2"
             )
@@ -191,9 +191,9 @@ class TestTurnPhaseDependencyValidation(unittest.TestCase):
         """Entity hooks with 'after' field are ignored (not validated)"""
         self.manager._hook_definitions = {
             "entity_entered_location": HookDefinition(
-                hook="entity_entered_location",
+                hook_id=EntityHookId("entity_entered_location"),
                 invocation="entity",
-                after=["some_undefined_hook"],  # Should be ignored
+                after=[TurnHookId("some_undefined_hook")],  # Should be ignored
                 description="Entity hook",
                 defined_by="module1"
             )
@@ -205,23 +205,23 @@ class TestTurnPhaseDependencyValidation(unittest.TestCase):
         """Turn phase with multiple valid dependencies passes"""
         self.manager._hook_definitions = {
             "turn_a": HookDefinition(
-                hook="turn_a",
+                hook_id=TurnHookId("turn_a"),
                 invocation="turn_phase",
                 after=[],
                 description="First",
                 defined_by="module1"
             ),
             "turn_b": HookDefinition(
-                hook="turn_b",
+                hook_id=TurnHookId("turn_b"),
                 invocation="turn_phase",
                 after=[],
                 description="Second",
                 defined_by="module2"
             ),
             "turn_c": HookDefinition(
-                hook="turn_c",
+                hook_id=TurnHookId("turn_c"),
                 invocation="turn_phase",
-                after=["turn_a", "turn_b"],
+                after=[TurnHookId("turn_a"), TurnHookId("turn_b")],
                 description="Depends on both",
                 defined_by="module3"
             )
@@ -240,7 +240,7 @@ class TestHooksAreDefinedValidation(unittest.TestCase):
         """Event referencing defined hook passes"""
         self.manager._hook_definitions = {
             "turn_npc_action": HookDefinition(
-                hook="turn_npc_action",
+                hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
                 description="NPC actions",
@@ -291,14 +291,14 @@ class TestHooksAreDefinedValidation(unittest.TestCase):
         """Error message shows available hooks for debugging"""
         self.manager._hook_definitions = {
             "turn_npc_action": HookDefinition(
-                hook="turn_npc_action",
+                hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
                 description="Available",
                 defined_by="module1"
             ),
             "entity_entered_location": HookDefinition(
-                hook="entity_entered_location",
+                hook_id=EntityHookId("entity_entered_location"),
                 invocation="entity",
                 after=[],
                 description="Also available",
@@ -344,7 +344,7 @@ class TestTurnPhaseNotInEntityBehaviors(unittest.TestCase):
         """Entity with entity hook behavior is valid"""
         self.manager._hook_definitions = {
             "entity_entered_location": HookDefinition(
-                hook="entity_entered_location",
+                hook_id=EntityHookId("entity_entered_location"),
                 invocation="entity",
                 after=[],
                 description="Entity hook",
@@ -367,7 +367,7 @@ class TestTurnPhaseNotInEntityBehaviors(unittest.TestCase):
         """Actor with turn phase behavior is invalid"""
         self.manager._hook_definitions = {
             "turn_npc_action": HookDefinition(
-                hook="turn_npc_action",
+                hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
                 description="Turn phase",
@@ -393,7 +393,7 @@ class TestTurnPhaseNotInEntityBehaviors(unittest.TestCase):
         """Item with turn phase behavior is invalid"""
         self.manager._hook_definitions = {
             "turn_environmental_effect": HookDefinition(
-                hook="turn_environmental_effect",
+                hook_id=TurnHookId("turn_environmental_effect"),
                 invocation="turn_phase",
                 after=[],
                 description="Turn phase",
@@ -418,7 +418,7 @@ class TestTurnPhaseNotInEntityBehaviors(unittest.TestCase):
         """Location with turn phase behavior is invalid"""
         self.manager._hook_definitions = {
             "turn_condition_tick": HookDefinition(
-                hook="turn_condition_tick",
+                hook_id=TurnHookId("turn_condition_tick"),
                 invocation="turn_phase",
                 after=[],
                 description="Turn phase",
@@ -442,7 +442,7 @@ class TestTurnPhaseNotInEntityBehaviors(unittest.TestCase):
         """Empty game state is valid"""
         self.manager._hook_definitions = {
             "turn_npc_action": HookDefinition(
-                hook="turn_npc_action",
+                hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
                 description="Turn phase",
@@ -456,14 +456,14 @@ class TestTurnPhaseNotInEntityBehaviors(unittest.TestCase):
         """Entity with mix of entity and turn phase behaviors fails"""
         self.manager._hook_definitions = {
             "entity_entered_location": HookDefinition(
-                hook="entity_entered_location",
+                hook_id=EntityHookId("entity_entered_location"),
                 invocation="entity",
                 after=[],
                 description="Entity hook",
                 defined_by="behaviors.core.exits"
             ),
             "turn_npc_action": HookDefinition(
-                hook="turn_npc_action",
+                hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
                 description="Turn phase",
@@ -497,7 +497,7 @@ class TestHookInvocationConsistency(unittest.TestCase):
         """Hook defined once with one invocation type is valid"""
         self.manager._hook_definitions = {
             "turn_npc_action": HookDefinition(
-                hook="turn_npc_action",
+                hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
                 description="NPC actions",
@@ -511,14 +511,14 @@ class TestHookInvocationConsistency(unittest.TestCase):
         """Same hook with different invocation types fails"""
         self.manager._hook_definitions = {
             "custom_hook": HookDefinition(
-                hook="custom_hook",
+                hook_id=TurnHookId("custom_hook"),
                 invocation="turn_phase",
                 after=[],
                 description="Turn phase version",
                 defined_by="module1"
             ),
             "custom_hook_dup": HookDefinition(
-                hook="custom_hook",  # Same name
+                hook_id=TurnHookId("custom_hook"),
                 invocation="entity",  # Different type
                 after=[],
                 description="Entity version",
@@ -530,7 +530,7 @@ class TestHookInvocationConsistency(unittest.TestCase):
         # For testing, we'll manually create the conflict
         self.manager._hook_definitions = {
             "custom_hook": HookDefinition(
-                hook="custom_hook",
+                hook_id=TurnHookId("custom_hook"),
                 invocation="turn_phase",
                 after=[],
                 description="First",
@@ -540,7 +540,7 @@ class TestHookInvocationConsistency(unittest.TestCase):
         # Manually add second with different invocation
         # (normally prevented by _register_hook_definition)
         self.manager._hook_definitions["custom_hook"] = HookDefinition(
-            hook="custom_hook",
+                hook_id=TurnHookId("custom_hook"),
             invocation="entity",
             after=[],
             description="Second",
@@ -553,14 +553,14 @@ class TestHookInvocationConsistency(unittest.TestCase):
         """Validation correctly maps hook names to invocation types"""
         self.manager._hook_definitions = {
             "turn_npc_action": HookDefinition(
-                hook="turn_npc_action",
+                hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
                 description="Turn",
                 defined_by="module1"
             ),
             "entity_entered_location": HookDefinition(
-                hook="entity_entered_location",
+                hook_id=EntityHookId("entity_entered_location"),
                 invocation="entity",
                 after=[],
                 description="Entity",
@@ -596,7 +596,7 @@ class TestFinalizeLoading(unittest.TestCase):
         # Set up valid state
         self.manager._hook_definitions = {
             "turn_npc_action": HookDefinition(
-                hook="turn_npc_action",
+                hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
                 description="NPC actions",
@@ -617,7 +617,7 @@ class TestFinalizeLoading(unittest.TestCase):
         """finalize_loading() catches prefix validation errors"""
         self.manager._hook_definitions = {
             "bad_name": HookDefinition(
-                hook="bad_name",
+                hook_id=TurnHookId("bad_name"),
                 invocation="turn_phase",
                 after=[],
                 description="Bad",
@@ -632,9 +632,9 @@ class TestFinalizeLoading(unittest.TestCase):
         """finalize_loading() catches dependency validation errors"""
         self.manager._hook_definitions = {
             "turn_environmental_effect": HookDefinition(
-                hook="turn_environmental_effect",
+                hook_id=TurnHookId("turn_environmental_effect"),
                 invocation="turn_phase",
-                after=["turn_undefined"],  # Bad dependency
+                after=[TurnHookId("turn_undefined")],  # Bad dependency
                 description="Env",
                 defined_by="module1"
             )
@@ -660,7 +660,7 @@ class TestFinalizeLoading(unittest.TestCase):
         """finalize_loading() catches turn phase on entity errors"""
         self.manager._hook_definitions = {
             "turn_npc_action": HookDefinition(
-                hook="turn_npc_action",
+                hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
                 description="Turn",

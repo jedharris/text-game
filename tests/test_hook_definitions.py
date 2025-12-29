@@ -1,12 +1,13 @@
 """
-Tests for Phase 1: Hook definition storage in BehaviorManager.
+Tests for Phase 1/2.5: Hook definition storage in BehaviorManager.
 
 Tests the basic infrastructure for storing hook definitions loaded from
-behavior module vocabularies.
+behavior module vocabularies, including typed hook IDs (Phase 2.5).
 """
 
 import unittest
 from src.behavior_manager import BehaviorManager, HookDefinition
+from src.types import TurnHookId, EntityHookId
 
 
 class TestHookDefinitionStorage(unittest.TestCase):
@@ -21,7 +22,7 @@ class TestHookDefinitionStorage(unittest.TestCase):
         vocabulary = {
             "hook_definitions": [
                 {
-                    "hook": "turn_environmental_effect",
+                    "hook_id": "turn_environmental_effect",
                     "invocation": "turn_phase",
                     "after": ["turn_npc_action"],
                     "description": "Apply environmental hazards"
@@ -36,7 +37,7 @@ class TestHookDefinitionStorage(unittest.TestCase):
         hook_def = self.manager._hook_definitions["turn_environmental_effect"]
 
         # Verify all fields
-        self.assertEqual(hook_def.hook, "turn_environmental_effect")
+        self.assertEqual(hook_def.hook_id, "turn_environmental_effect")
         self.assertEqual(hook_def.invocation, "turn_phase")
         self.assertEqual(hook_def.after, ["turn_npc_action"])
         self.assertEqual(hook_def.description, "Apply environmental hazards")
@@ -47,7 +48,7 @@ class TestHookDefinitionStorage(unittest.TestCase):
         vocabulary = {
             "hook_definitions": [
                 {
-                    "hook": "entity_entered_location",
+                    "hook_id": "entity_entered_location",
                     "invocation": "entity",
                     "description": "Called when an actor enters a new location"
                 }
@@ -61,7 +62,7 @@ class TestHookDefinitionStorage(unittest.TestCase):
         hook_def = self.manager._hook_definitions["entity_entered_location"]
 
         # Verify fields
-        self.assertEqual(hook_def.hook, "entity_entered_location")
+        self.assertEqual(hook_def.hook_id, "entity_entered_location")
         self.assertEqual(hook_def.invocation, "entity")
         self.assertEqual(hook_def.after, [])  # No dependencies for entity hooks
         self.assertEqual(hook_def.description, "Called when an actor enters a new location")
@@ -72,7 +73,7 @@ class TestHookDefinitionStorage(unittest.TestCase):
         vocab_a = {
             "hook_definitions": [
                 {
-                    "hook": "turn_foo",
+                    "hook_id": "turn_foo",
                     "invocation": "turn_phase"
                 }
             ]
@@ -81,7 +82,7 @@ class TestHookDefinitionStorage(unittest.TestCase):
         vocab_b = {
             "hook_definitions": [
                 {
-                    "hook": "turn_foo",
+                    "hook_id": "turn_foo",
                     "invocation": "turn_phase"
                 }
             ]
@@ -105,7 +106,7 @@ class TestHookDefinitionStorage(unittest.TestCase):
         vocabulary = {
             "hook_definitions": [
                 {
-                    "hook": "turn_foo",
+                    "hook_id": "turn_foo",
                     "invocation": "turn_phase",
                     "after": [],
                     "description": "First definition"
@@ -130,7 +131,7 @@ class TestHookDefinitionStorage(unittest.TestCase):
         vocabulary = {
             "hook_definitions": [
                 {
-                    "hook": "turn_condition_tick",
+                    "hook_id": "turn_condition_tick",
                     "invocation": "turn_phase",
                     "after": ["turn_environmental_effect", "turn_npc_action"],
                     "description": "Update conditions on actors"
@@ -148,7 +149,7 @@ class TestHookDefinitionStorage(unittest.TestCase):
         vocabulary = {
             "hook_definitions": [
                 {
-                    "hook": "turn_first_phase",
+                    "hook_id": "turn_first_phase",
                     "invocation": "turn_phase"
                     # No 'after' field
                 }
@@ -165,7 +166,7 @@ class TestHookDefinitionStorage(unittest.TestCase):
         vocabulary = {
             "hook_definitions": [
                 {
-                    "hook": "entity_custom_hook",
+                    "hook_id": "entity_custom_hook",
                     "invocation": "entity"
                     # No 'description' field
                 }
@@ -182,17 +183,17 @@ class TestHookDefinitionStorage(unittest.TestCase):
         vocabulary = {
             "hook_definitions": [
                 {
-                    "hook": "turn_phase_one",
+                    "hook_id": "turn_phase_one",
                     "invocation": "turn_phase",
                     "after": []
                 },
                 {
-                    "hook": "turn_phase_two",
+                    "hook_id": "turn_phase_two",
                     "invocation": "turn_phase",
                     "after": ["turn_phase_one"]
                 },
                 {
-                    "hook": "entity_custom",
+                    "hook_id": "entity_custom",
                     "invocation": "entity"
                 }
             ]
@@ -230,18 +231,18 @@ class TestHookDefinitionStorage(unittest.TestCase):
         self.assertEqual(len(self.manager._hook_definitions), 0)
 
     def test_hook_definition_dataclass_fields(self):
-        """Test that HookDefinition dataclass has correct fields."""
+        """Test that HookDefinition dataclass has correct fields (Phase 2.5: typed IDs)."""
         hook_def = HookDefinition(
-            hook="test_hook",
+            hook_id=EntityHookId("entity_test_hook"),
             invocation="entity",
-            after=["other_hook"],
+            after=[TurnHookId("turn_other_hook")],
             description="Test description",
             defined_by="test_module"
         )
 
-        self.assertEqual(hook_def.hook, "test_hook")
+        self.assertEqual(hook_def.hook_id, EntityHookId("entity_test_hook"))
         self.assertEqual(hook_def.invocation, "entity")
-        self.assertEqual(hook_def.after, ["other_hook"])
+        self.assertEqual(hook_def.after, [TurnHookId("turn_other_hook")])
         self.assertEqual(hook_def.description, "Test description")
         self.assertEqual(hook_def.defined_by, "test_module")
 

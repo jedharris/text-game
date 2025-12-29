@@ -1,6 +1,6 @@
 """Behavior management system for entity events."""
 
-from typing import Optional, Dict, Any, List, Callable, TYPE_CHECKING, Tuple, Protocol
+from typing import Optional, Dict, Any, List, Callable, TYPE_CHECKING, Tuple, Protocol, Literal
 from dataclasses import dataclass, field
 import importlib
 import logging
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 # Import EventResult from state_accessor to avoid duplication
 from src.state_accessor import EventResult, HandlerResult, NO_HANDLER, IGNORE_EVENT
-from src.types import EventName, HookName
+from src.types import EventName, HookName, TurnHookId, EntityHookId, HookId
 from src.action_types import ActionDict, HandlerCallable
 
 if TYPE_CHECKING:
@@ -32,17 +32,17 @@ class EventInfo:
     event_name: str                              # e.g., "on_damage"
     registered_by: List[str] = field(default_factory=list)  # Module names that register this event
     description: Optional[str] = None            # Optional documentation
-    hook: Optional[str] = None                   # Engine hook name, if any
+    hook: Optional[str] = None                   # Engine hook name (string - lookup in _hook_definitions for typed ID)
 
 
 @dataclass
 class HookDefinition:
-    """Definition of a hook from a behavior module vocabulary."""
-    hook: str                      # Hook name (e.g., "turn_environmental_effect")
-    invocation: str                # "turn_phase" or "entity"
-    after: List[str]               # Dependencies (for turn phases only)
-    description: str               # Human-readable description
-    defined_by: str                # Module that defined it (for error messages)
+    """Definition of a hook from a behavior module vocabulary (Phase 2.5: typed IDs)."""
+    hook_id: HookId                              # Hook identifier (typed)
+    invocation: Literal["turn_phase", "entity"]  # Invocation type
+    after: List[TurnHookId]                      # Dependencies (turn phases only, typed)
+    description: str                             # Human-readable description
+    defined_by: str                              # Module that defined it (for error messages)
 
 
 class BehaviorManager:
@@ -103,34 +103,61 @@ class BehaviorManager:
 
     def _register_hook_definition(self, hook_def: Dict[str, Any], module_path: str) -> None:
         """
-        Register a hook definition from a vocabulary.
+        Register a hook definition from a vocabulary (Phase 2.5: with type conversion).
 
         Args:
-            hook_def: Hook definition dict from vocabulary
+            hook_def: Hook definition dict from vocabulary (contains plain strings)
             module_path: Path of module defining this hook (for error messages)
 
         Raises:
-            ValueError: If hook already defined by different module
+            ValueError: If hook already defined by different module, or prefix doesn't match invocation type
         """
-        hook_name = hook_def['hook']
+        hook_name_str = hook_def['hook_id']  # Plain string from vocabulary JSON
+        invocation = hook_def['invocation']
+
+        # Parse-time validation: Check prefix matches invocation type
+        if invocation == "turn_phase":
+            if not hook_name_str.startswith("turn_"):
+                raise ValueError(
+                    f"Hook '{hook_name_str}' has invocation='turn_phase' but doesn't start with 'turn_'\n"
+                    f"  Defined in: {module_path}"
+                )
+            hook_id: HookId = TurnHookId(hook_name_str)
+        elif invocation == "entity":
+            if not hook_name_str.startswith("entity_"):
+                raise ValueError(
+                    f"Hook '{hook_name_str}' has invocation='entity' but doesn't start with 'entity_'\n"
+                    f"  Defined in: {module_path}"
+                )
+            hook_id = EntityHookId(hook_name_str)
+        else:
+            raise ValueError(
+                f"Hook '{hook_name_str}' has invalid invocation type '{invocation}'\n"
+                f"  Must be 'turn_phase' or 'entity'\n"
+                f"  Defined in: {module_path}"
+            )
 
         # Check for duplicates
-        if hook_name in self._hook_definitions:
-            existing = self._hook_definitions[hook_name]
+        if hook_name_str in self._hook_definitions:
+            existing = self._hook_definitions[hook_name_str]
             if existing.defined_by != module_path:
                 raise ValueError(
-                    f"Hook '{hook_name}' defined multiple times:\n"
+                    f"Hook '{hook_name_str}' defined multiple times:\n"
                     f"  1. {existing.defined_by}\n"
                     f"  2. {module_path}"
                 )
             # Same module re-defining - idempotent, just return
             return
 
-        # Store hook definition
-        self._hook_definitions[hook_name] = HookDefinition(
-            hook=hook_name,
-            invocation=hook_def['invocation'],
-            after=hook_def.get('after', []),
+        # Convert dependency strings to TurnHookIds
+        after_list = hook_def.get('after', [])
+        after_typed: List[TurnHookId] = [TurnHookId(dep) for dep in after_list]
+
+        # Store hook definition with typed IDs
+        self._hook_definitions[hook_name_str] = HookDefinition(
+            hook_id=hook_id,
+            invocation=invocation,  # type: ignore  # Literal type checked above
+            after=after_typed,
             description=hook_def.get('description', ''),
             defined_by=module_path
         )
@@ -188,17 +215,20 @@ class BehaviorManager:
         module_name: str,
         tier: int,
         description: Optional[str] = None,
-        hook: Optional[str] = None
+        hook: Optional[str] = None  # Accepts string from vocabulary JSON
     ) -> None:
         """
         Register an event in the event registry.
+
+        Note: Hook strings from vocabularies are stored temporarily and will be
+        converted to typed HookIds during validation (Phase 2.5).
 
         Args:
             event_name: The event name (e.g., "on_take")
             module_name: Module name registering this event
             tier: Tier number (1 = highest precedence)
             description: Optional documentation for the event
-            hook: Optional engine hook name
+            hook: Optional engine hook name (plain string, converted to typed ID later)
 
         Raises:
             ValueError: If hook conflict detected at same tier
@@ -208,7 +238,7 @@ class BehaviorManager:
                 event_name=event_name,
                 registered_by=[module_name],
                 description=description,
-                hook=hook
+                hook=hook  # Store as string, typed ID available via _hook_definitions lookup
             )
         else:
             info = self._event_registry[event_name]
