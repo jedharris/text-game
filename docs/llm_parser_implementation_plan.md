@@ -3,8 +3,8 @@
 **Status:** Phase 1 Complete, Phase 2 In Progress
 **Branch:** `feature/llm-parser`
 **Design Reference:** `docs/llm_command_parser_design.md`
-**Date:** 2025-01-26
-**Last Updated:** 2025-01-29
+**Date:** 2025-12-26
+**Last Updated:** 2025-12-29
 
 ## Branch Strategy (UPDATED)
 
@@ -161,7 +161,7 @@ The parser produces structured output; the engine handles all game logic.
 
 ### Phase 1: Shared MLX Backend ✅ COMPLETE
 
-**Status:** ✅ Complete (Jan 29, 2025)
+**Status:** ✅ Complete (Dec 29, 2025)
 **Issue:** [#335](https://github.com/jedharris/text-game/issues/335) (closed)
 **Commit:** [3245a2c](https://github.com/jedharris/text-game/commit/3245a2c)
 **Time Spent:** ~3 hours
@@ -289,7 +289,11 @@ The parser produces structured output; the engine handles all game logic.
 
 ---
 
-### Phase 2: LLM Command Parser + Contract Testing (8-9 hours)
+### Phase 2: LLM Command Parser + Contract Testing ✅ COMPLETE
+
+**Status:** ✅ Complete (Dec 29, 2025)
+**Issue:** [#336](https://github.com/jedharris/text-game/issues/336)
+**Time Spent:** ~4 hours (faster than estimated due to natural multi-word handling)
 
 **Goal:** Implement LLM-based command parsing with real game state testing and API contract validation
 
@@ -732,6 +736,45 @@ Output JSON:"""
 - ✅ JSON parsing handles code blocks and raw JSON
 - ✅ Error cases return None
 - ✅ All tests pass with frozen fixtures
+
+#### Results
+
+**Deliverables:**
+- ✅ `src/llm_command_parser.py` - LLMCommandParser class (227 lines)
+- ✅ `src/contract_validators.py` - Runtime validators (177 lines)
+- ✅ `tests/test_llm_command_parser.py` - Parser tests (17 tests, all passing)
+- ✅ `tests/test_parser_contracts.py` - Contract tests (23 tests, all passing)
+
+**Test Results:**
+- ✅ Parser tests: 17/17 passing (19.3s runtime)
+- ✅ Contract tests: 23/23 passing
+- ✅ Model: Qwen 2.5 7B 4-bit (~4-6GB memory)
+- ✅ Parse time: ~1s per command (deterministic, temp=0.0)
+- ✅ All 48 verbs from big_game vocabulary loaded
+
+**Key Achievements:**
+1. **Multi-word entity handling** - Works naturally without vocabulary changes!
+   - "ice wand" → `ice_wand`
+   - "keeper's journal" → `keepers_journal` (handles apostrophes)
+   - "ancient telescope" → `ancient_telescope`
+   - Complex commands: "use ice wand on frozen crystal" - both objects normalized correctly
+
+2. **Natural language variations** - Handles phrasings like:
+   - "pick up the bucket", "get bucket", "grab the bucket"
+   - All normalize to same command structure
+
+3. **Robust error handling**:
+   - Unknown verbs accepted (adapter will validate in Phase 4)
+   - Hallucinated objects handled gracefully
+   - Invalid JSON returns None
+
+4. **Contract validation** - Ensures compatibility with ActionDict/WordEntry schemas
+
+**Surprises/Learnings:**
+- Multi-word entities work WITHOUT vocabulary configuration - the LLM infers normalization from context
+- This solves the walkthroughs issue where "fire crystal" doesn't parse with traditional parser
+- Temperature=0.0 provides consistent, deterministic parsing
+- Shared backend integration worked smoothly with Phase 1 infrastructure
 
 ---
 
@@ -1583,11 +1626,11 @@ This is a **Workflow B** task (large change with phasing):
 | Phase | Estimated Time | Actual Time | Status |
 |-------|----------------|-------------|--------|
 | Phase 1: Shared MLX Backend | 3-4 hours | ~3 hours | ✅ Complete |
-| Phase 2: LLM Parser + Contracts | 8-9 hours | TBD | 🔄 In Progress |
+| Phase 2: LLM Parser + Contracts | 8-9 hours | ~4 hours | ✅ Complete |
 | Phase 3: Integration Contract | 2 hours | TBD | ⏳ Pending |
 | Phase 4: Integration Adapter | 2 hours | TBD | ⏳ Pending |
 | Phase 5: Documentation | 1 hour | TBD | ⏳ Pending |
-| **Total** | **16-18 hours** | **~3 hours** | **~20% Complete** |
+| **Total** | **16-18 hours** | **~7 hours** | **~40% Complete** |
 
 **Note:** Phase 2 increased from 4-5 hours to 8-9 hours to include contract testing (4 hours). This provides better integration validation and type safety.
 
@@ -1601,7 +1644,7 @@ This is a **Workflow B** task (large change with phasing):
 
 **Original Constraint:** Frozen fixtures to avoid dependency on changing big_game
 
-**New Reality (Jan 29, 2025):**
+**New Reality (Dec 29, 2025):**
 - Main branch is stable (only changes via deliberate merges)
 - Feature branches develop independently (`feature/llm-parser`, `feature/big-game-fixup`)
 - **Can test against real big_game** without breakage risk

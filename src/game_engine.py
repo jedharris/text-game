@@ -102,6 +102,66 @@ class GameEngine:
         """
         return Parser.from_vocab(self.merged_vocabulary)
 
+    def create_llm_parser(self, shared_backend):
+        """Create an LLM parser with adapter.
+
+        Args:
+            shared_backend: SharedMLXBackend instance (shared with narrator)
+
+        Returns:
+            Tuple of (LLMCommandParser, LLMParserAdapter) ready for command parsing
+        """
+        from src.llm_command_parser import LLMCommandParser
+        from src.llm_parser_adapter import LLMParserAdapter
+
+        # Extract verbs for parser
+        verbs = [v['word'] for v in self.merged_vocabulary.get('verbs', [])]
+
+        # Create parser and adapter
+        parser = LLMCommandParser(shared_backend, verbs)
+        adapter = LLMParserAdapter(self.merged_vocabulary)
+
+        return parser, adapter
+
+    def build_parser_context(self, actor_id: str = "player"):
+        """Build context dict for LLM parser from current game state.
+
+        Args:
+            actor_id: ID of actor whose context to build (default: "player")
+
+        Returns:
+            Dict with keys: location_objects, inventory, exits
+        """
+        from typing import List, Dict
+
+        actor = self.game_state.actors.get(actor_id)
+        if not actor:
+            return {"location_objects": [], "inventory": [], "exits": []}
+
+        location = next((loc for loc in self.game_state.locations if loc.id == actor.location), None)
+        if not location:
+            return {"location_objects": [], "inventory": [], "exits": []}
+
+        # Get location objects (items and other actors)
+        location_objects: List[str] = []
+        for item in location.items:
+            location_objects.append(item.id)
+        for other_actor_id, other_actor in self.game_state.actors.items():
+            if other_actor_id != actor_id and other_actor.location == location.id:
+                location_objects.append(other_actor_id)
+
+        # Get actor inventory (inventory is already a list of item IDs)
+        inventory: List[str] = actor.inventory if actor.inventory else []
+
+        # Get exits
+        exits: List[str] = list(location.exits.keys()) if location.exits else []
+
+        return {
+            "location_objects": location_objects,
+            "inventory": inventory,
+            "exits": exits
+        }
+
     def create_narrator(self, api_key: str,
                        model: str = "claude-3-5-haiku-20241022",
                        show_traits: bool = False):
