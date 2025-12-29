@@ -16,7 +16,7 @@ from src.action_types import ActionDict, HandlerCallable
 
 if TYPE_CHECKING:
     from src.state_accessor import StateAccessor
-    from src.state_manager import Entity
+    from src.state_manager import Entity, GameState
 
 
 class EventCallable(Protocol):
@@ -37,10 +37,11 @@ class EventInfo:
 
 @dataclass
 class HookDefinition:
-    """Definition of a hook from a behavior module vocabulary (Phase 2.5: typed IDs)."""
+    """Definition of a hook from a behavior module vocabulary (Phase 7: bidirectional dependencies)."""
     hook_id: HookId                              # Hook identifier (typed)
     invocation: Literal["turn_phase", "entity"]  # Invocation type
-    after: List[TurnHookId]                      # Dependencies (turn phases only, typed)
+    after: List[TurnHookId]                      # Runs after these hooks (turn phases only, typed)
+    before: List[TurnHookId]                     # Runs before these hooks (turn phases only, typed)
     description: str                             # Human-readable description
     defined_by: str                              # Module that defined it (for error messages)
 
@@ -153,11 +154,15 @@ class BehaviorManager:
         after_list = hook_def.get('after', [])
         after_typed: List[TurnHookId] = [TurnHookId(dep) for dep in after_list]
 
+        before_list = hook_def.get('before', [])
+        before_typed: List[TurnHookId] = [TurnHookId(dep) for dep in before_list]
+
         # Store hook definition with typed IDs
         self._hook_definitions[hook_name_str] = HookDefinition(
             hook_id=hook_id,
-            invocation=invocation,  # type: ignore  # Literal type checked above
+            invocation=invocation,
             after=after_typed,
+            before=before_typed,
             description=hook_def.get('description', ''),
             defined_by=module_path
         )
@@ -1078,7 +1083,7 @@ class BehaviorManager:
                         f"  Turn phases should not be attached to entities"
                     )
 
-        for location in game_state.locations.values():
+        for location in game_state.locations.values():  # type: ignore[attr-defined]  # Pre-existing: locations is list not dict
             for behavior in location.behaviors:
                 if behavior in turn_phase_modules:
                     raise ValueError(
