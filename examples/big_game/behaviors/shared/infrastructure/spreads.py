@@ -17,6 +17,7 @@ vocabulary = {
             "hook_id": "turn_condition_spread",
             "invocation": "turn_phase",
             "after": ["turn_gossip_spread"],
+            "before": ["turn_npc_action"],
             "description": "Spread environmental conditions to adjacent regions"
         }
     ],

@@ -166,7 +166,7 @@ vocabulary = {
         {
             "hook_id": "turn_npc_action",
             "invocation": "turn_phase",
-            "after": ["turn_condition_spread"],
+            "after": [],
             "description": "Execute NPC actions for the turn"
         }
     ],
