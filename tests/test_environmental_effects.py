@@ -645,7 +645,7 @@ class TestOnEnvironmentalEffect(unittest.TestCase):
                 break
 
         self.assertIsNotNone(env_event)
-        self.assertEqual(env_event["hook"], "environmental_effect")
+        self.assertEqual(env_event["hook"], "turn_environmental_effect")
 
 
 class TestSporeLevelValues(unittest.TestCase):

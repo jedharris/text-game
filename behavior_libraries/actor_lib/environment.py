@@ -377,10 +377,18 @@ def on_enter_part(entity, accessor, context):
 
 # Vocabulary extension - registers environmental events
 vocabulary = {
+    "hook_definitions": [
+        {
+            "hook_id": "turn_environmental_effect",
+            "invocation": "turn_phase",
+            "after": ["turn_npc_action"],
+            "description": "Apply environmental effects to all actors"
+        }
+    ],
     "events": [
         {
             "event": "on_environmental_effect",
-            "hook": "environmental_effect",
+            "hook": "turn_environmental_effect",
             "description": "Called each turn to apply environmental effects to all actors. "
                           "Checks breath, spores, temperature, and other environmental hazards."
         },
