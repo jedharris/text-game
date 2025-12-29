@@ -4,15 +4,7 @@
     "version": "0.1.2",
     "description": "A world shattered by magical catastrophe. Restore the waystone to heal the land.",
     "start_location": "nexus_chamber",
-    "author": "Big Game Project",
-    "extra_turn_phases": [
-      "turn_phase_scheduled",
-      "turn_phase_commitment",
-      "turn_phase_gossip",
-      "turn_phase_spread",
-      "npc_action",
-      "death_check"
-    ]
+    "author": "Big Game Project"
   },
   "extra": {
     "flags": {},
