@@ -14,10 +14,18 @@ from src.state_manager import Commitment
 
 # Vocabulary: wire hook to event
 vocabulary = {
+    "hook_definitions": [
+        {
+            "hook_id": "turn_commitments",
+            "invocation": "turn_phase",
+            "after": ["turn_scheduled_events"],
+            "description": "Process active commitments and check completion"
+        }
+    ],
     "events": [
         {
             "event": "on_turn_commitment",
-            "hook": "turn_phase_commitment",
+            "hook": "turn_commitments",
             "description": "Check commitment deadline each turn (per-entity)",
         }
     ]

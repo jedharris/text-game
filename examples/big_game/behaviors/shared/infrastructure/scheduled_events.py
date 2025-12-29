@@ -11,10 +11,18 @@ from src.state_manager import ScheduledEvent
 
 # Vocabulary: wire hook to event
 vocabulary = {
+    "hook_definitions": [
+        {
+            "hook_id": "turn_scheduled_events",
+            "invocation": "turn_phase",
+            "after": [],
+            "description": "Process scheduled events that have reached their trigger turn"
+        }
+    ],
     "events": [
         {
             "event": "on_turn_scheduled",
-            "hook": "turn_phase_scheduled",
+            "hook": "turn_scheduled_events",
             "description": "Check and fire scheduled event if trigger turn reached (per-entity)",
         }
     ]

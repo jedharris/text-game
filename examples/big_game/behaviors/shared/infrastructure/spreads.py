@@ -12,10 +12,18 @@ from src.infrastructure_utils import get_bool_flag
 
 # Vocabulary: wire hook to event
 vocabulary = {
+    "hook_definitions": [
+        {
+            "hook_id": "turn_condition_spread",
+            "invocation": "turn_phase",
+            "after": ["turn_gossip_spread"],
+            "description": "Spread environmental conditions to adjacent regions"
+        }
+    ],
     "events": [
         {
             "event": "on_turn_spread",
-            "hook": "turn_phase_spread",
+            "hook": "turn_condition_spread",
             "description": "Check spread milestone if reached (per-entity)",
         }
     ]

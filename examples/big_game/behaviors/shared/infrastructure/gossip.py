@@ -11,10 +11,18 @@ from src.state_manager import Gossip
 
 # Vocabulary: wire hook to event
 vocabulary = {
+    "hook_definitions": [
+        {
+            "hook_id": "turn_gossip_spread",
+            "invocation": "turn_phase",
+            "after": ["turn_commitments"],
+            "description": "Spread gossip messages to eligible NPCs"
+        }
+    ],
     "events": [
         {
             "event": "on_turn_gossip",
-            "hook": "turn_phase_gossip",
+            "hook": "turn_gossip_spread",
             "description": "Deliver gossip if it has reached arrival turn (per-entity)",
         }
     ]
