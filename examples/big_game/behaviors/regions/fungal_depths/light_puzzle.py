@@ -67,40 +67,17 @@ def on_water_mushroom(
         return EventResult(allow=True, feedback=None)
 
     state = accessor.game_state
+    player = state.actors.get("player")
 
     # Check bucket has charges
-    player = state.actors.get("player")
-    if player:
-        # Check if player has the bucket
-        if "bucket" in player.inventory:
-            # Get the actual bucket item to check charges
-            bucket = state.get_item("bucket")
-            if bucket:
-                charges = bucket.properties.get("water_charges", 0)
-                if charges <= 0:
-                    return EventResult(
-                        allow=True,
-                        feedback="The bucket is empty. Fill it from the pool first.",
-                    )
-                bucket["water_charges"] = charges - 1
-            else:
-                # Fallback to state.extra for water charges
-                water_charges = state.extra.get("bucket_water_charges", 0)
-                if water_charges <= 0:
-                    return EventResult(
-                        allow=True,
-                        feedback="The bucket is empty. Fill it from the pool first.",
-                    )
-                state.extra["bucket_water_charges"] = water_charges - 1
-        else:
-            # Simple inventory (list) - use state.extra for water charges
-            water_charges = state.extra.get("bucket_water_charges", 0)
-            if water_charges <= 0:
-                return EventResult(
-                    allow=True,
-                    feedback="The bucket is empty. Fill it from the pool first.",
-                )
-            state.extra["bucket_water_charges"] = water_charges - 1
+    # Note: handle_water already decrements bucket_water_charges, so we just verify it exists
+    # Water charges are managed in state.extra by liquid_lib handlers
+    water_charges = state.extra.get("bucket_water_charges", 0)
+    if water_charges <= 0:
+        return EventResult(
+            allow=True,
+            feedback="The bucket is empty. Fill it from the pool first.",
+        )
 
     effects = MUSHROOM_EFFECTS[mushroom_key]
     light_change = effects["light"]
@@ -286,16 +263,18 @@ def _apply_infection(state: Any, player: Any, amount: int) -> None:
     if not player:
         return
 
-    conditions = player.properties.get("conditions", [])
-    infection = None
-    for cond in conditions:
-        if cond.get("type") == "fungal_infection":
-            infection = cond
-            break
+    # Use conditions library for consistency
+    from behavior_libraries.actor_lib.conditions import get_condition, apply_condition, MAX_SEVERITY
+
+    infection = get_condition(player, "fungal_infection")
 
     if not infection:
-        infection = {"type": "fungal_infection", "severity": 0}
-        conditions.append(infection)
-        player.properties["conditions"] = conditions
-
-    infection["severity"] = min(100, infection.get("severity", 0) + amount)
+        # Create new infection with initial severity
+        apply_condition(player, "fungal_infection", {
+            "severity": min(amount, MAX_SEVERITY),
+            "acquired_turn": state.extra.get("turn_count", 0),
+        })
+    else:
+        # Increase existing infection severity
+        current = infection.get("severity", 0)
+        infection["severity"] = min(MAX_SEVERITY, current + amount)

@@ -179,14 +179,15 @@ def on_aldric_heal(
         transition_state(sm, "stabilized")
         state.extra["aldric_stabilized"] = True
 
-        # Reduce infection severity and damage
+        # Reduce infection severity (damage_per_turn will be calculated by tick_conditions)
         conditions = aldric.properties.get("conditions", {})
         infection = conditions.get("fungal_infection", {})
         if infection:
             old_severity = infection.get("severity", 80)
-            infection["severity"] = max(0, old_severity - 40)
+            infection["severity"] = max(0, old_severity - 40)  # 80 → 40 (moderate tier)
             infection["progression_rate"] = 0  # Stops progression
-            infection["damage_per_turn"] = 2  # Reduced from 7, now net +3 HP/turn with regen
+            # Note: damage_per_turn is calculated by tick_conditions() based on severity
+            # Severity 40 = tier 40+ = 4 damage/turn, net +1 HP/turn with 5 HP regen
 
         # Select fragments for the new state
         fragments = select_state_fragments(aldric, "stabilized", max_count=2)

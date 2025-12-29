@@ -1,0 +1,87 @@
+# Phase 4: Equipment Protection - Breathing Mask
+# Tests that breathing mask prevents spore zone infection
+
+# Initial state: Full health, no infection, no mask
+ASSERT actors.player.properties.health == 100
+
+# Navigate to Luminous Grotto (medium spore zone) without mask
+go west
+go down
+
+# After 1 turn in medium spore zone without mask: infection starts
+ASSERT actors.player.properties.conditions.fungal_infection.severity == 5
+
+# Advance 3 more turns to build up infection (severity 20+, damage tier 2)
+look
+look
+look
+
+# After 4 turns without mask: severity 20, damage_per_turn = 2
+ASSERT actors.player.properties.conditions.fungal_infection.severity >= 20
+ASSERT actors.player.properties.conditions.fungal_infection.severity < 25
+ASSERT actors.player.properties.conditions.fungal_infection.damage_per_turn == 2
+
+# Go to Myconid Sanctuary to get breathing mask
+go east
+
+# Take breathing mask (trust gate test - should succeed if trust >= 0)
+take mask
+
+# Wait one turn to ensure mask is properly acquired
+look
+
+# Return to medium spore zone WITH mask
+go west
+
+# Advance 5 turns in spore zone WITH mask: severity should NOT increase
+look
+look
+look
+look
+look
+
+# After 5 turns with mask: severity unchanged at 20
+# Mask blocks all environmental spore exposure
+ASSERT actors.player.properties.conditions.fungal_infection.severity >= 20
+ASSERT actors.player.properties.conditions.fungal_infection.severity < 25
+
+# Go to high spore zone (Spore Heart) WITH mask
+go down
+
+# Advance 3 turns in high spore zone WITH mask: still no increase
+look
+look
+look
+
+# After 3 turns in high spore zone with mask: severity still ~20
+ASSERT actors.player.properties.conditions.fungal_infection.severity >= 20
+ASSERT actors.player.properties.conditions.fungal_infection.severity < 25
+
+# Return to safe zone (Cavern Entrance)
+go up
+go up
+go east
+
+# Wait 10 turns to let infection heal naturally (net +3 HP/turn with damage=2)
+# Severity stays at 20 (no environmental exposure, no progression_rate)
+look
+look
+look
+look
+look
+look
+look
+look
+look
+look
+
+# After 10 turns in safe zone: severity unchanged, health at max
+ASSERT actors.player.properties.conditions.fungal_infection.severity >= 20
+ASSERT actors.player.properties.conditions.fungal_infection.severity < 25
+ASSERT actors.player.properties.health == 100
+
+# SUCCESS: Breathing mask completely prevents spore zone infection!
+# - Without mask: infection progresses in spore zones
+# - With mask: infection does NOT progress in spore zones
+# - High spore zones blocked just as effectively as medium zones
+# - Existing infection remains but doesn't worsen

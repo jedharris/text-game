@@ -223,6 +223,21 @@ def tick_conditions(actor) -> List[str]:
             )
             condition_data["severity"] = min(new_severity, MAX_SEVERITY)
 
+        # Update damage_per_turn for fungal_infection based on current severity
+        # This ensures damage scales correctly as severity increases via progression_rate
+        if condition_name == "fungal_infection":
+            severity = condition_data.get("severity", 0)
+            if severity >= 80:
+                condition_data["damage_per_turn"] = 10
+            elif severity >= 60:
+                condition_data["damage_per_turn"] = 7
+            elif severity >= 40:
+                condition_data["damage_per_turn"] = 4
+            elif severity >= 20:
+                condition_data["damage_per_turn"] = 2
+            else:
+                condition_data["damage_per_turn"] = 0
+
     # Remove expired conditions
     for condition_name in conditions_to_remove:
         del conditions[condition_name]

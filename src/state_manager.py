@@ -34,6 +34,7 @@ class CoreFieldProtectingDict(dict):
     This protection catches bugs where code accidentally modifies core fields
     through the properties dict instead of the proper attribute interface.
     """
+    _core_fields: set[str]
 
     def __init__(self, core_fields: set[str], *args: Any, **kwargs: Any):
         """

@@ -109,6 +109,150 @@ def extract_hp_info(result: Dict[str, Any]) -> Optional[str]:
     return None
 
 
+def parse_assertion(line: str) -> Optional[Tuple[str, str, str]]:
+    """Parse assertion line into components.
+
+    Args:
+        line: Assertion line like "ASSERT player.hp >= 90"
+
+    Returns:
+        (field_path, operator, expected_value) or None if not an assertion
+
+    Examples:
+        "ASSERT player.hp == 100" -> ("player.hp", "==", "100")
+        "ASSERT player.conditions.fungal_infection.severity >= 20" -> (...)
+    """
+    line = line.strip()
+    if not line.startswith("ASSERT "):
+        return None
+
+    # Remove ASSERT prefix
+    assertion = line[7:].strip()
+
+    # Find operator (longest match first to handle >=, <=, !=)
+    operators = [">=", "<=", "==", "!=", ">", "<", " contains "]
+    operator = None
+    parts = None
+
+    for op in operators:
+        if op in assertion:
+            parts = assertion.split(op, 1)
+            if len(parts) == 2:
+                operator = op.strip()
+                break
+
+    if not parts or not operator:
+        raise ValueError(f"Invalid assertion syntax: {line}")
+
+    field_path = parts[0].strip()
+    expected_value = parts[1].strip()
+
+    return (field_path, operator, expected_value)
+
+
+def evaluate_field_path(obj: Any, path: str) -> Any:
+    """Evaluate a dotted field path on an object.
+
+    Args:
+        obj: Object to evaluate on (typically GameEngine)
+        path: Dotted path like "player.hp" or "player.conditions.fungal_infection.severity"
+
+    Returns:
+        Value at the field path
+
+    Raises:
+        AttributeError: If path doesn't exist
+    """
+    parts = path.split(".")
+    current = obj
+
+    for part in parts:
+        # Try dict access first (for properties, conditions, etc.)
+        if isinstance(current, dict):
+            if part not in current:
+                raise AttributeError(f"Dict key '{part}' not found in path '{path}'")
+            current = current[part]
+        # Then try attribute access
+        elif hasattr(current, part):
+            current = getattr(current, part)
+        # Finally try __getitem__ (for custom dict-like objects)
+        else:
+            try:
+                current = current[part]
+            except (KeyError, TypeError):
+                raise AttributeError(f"Field '{part}' not found in path '{path}'")
+
+    return current
+
+
+def evaluate_assertion(engine: GameEngine, field_path: str, operator: str, expected_str: str) -> Tuple[bool, str]:
+    """Evaluate an assertion against current game state.
+
+    Args:
+        engine: Game engine instance
+        field_path: Dotted field path to evaluate
+        operator: Comparison operator (==, !=, >, <, >=, <=, contains)
+        expected_str: Expected value as string
+
+    Returns:
+        (success, error_message) - error_message is None if success
+    """
+    try:
+        # Get actual value
+        actual = evaluate_field_path(engine.game_state, field_path)
+
+        # Convert expected value to appropriate type
+        expected: Any = expected_str
+
+        # Try to convert to int/float if possible
+        try:
+            if "." in expected_str:
+                expected = float(expected_str)
+            else:
+                expected = int(expected_str)
+        except ValueError:
+            # Not a number - check for bool
+            if expected_str.lower() == "true":
+                expected = True
+            elif expected_str.lower() == "false":
+                expected = False
+            elif expected_str.lower() == "none":
+                expected = None
+            # Otherwise keep as string (strip quotes if present)
+            elif expected_str.startswith('"') and expected_str.endswith('"'):
+                expected = expected_str[1:-1]
+            elif expected_str.startswith("'") and expected_str.endswith("'"):
+                expected = expected_str[1:-1]
+
+        # Apply operator
+        if operator == "==":
+            success = actual == expected
+        elif operator == "!=":
+            success = actual != expected
+        elif operator == ">":
+            success = actual > expected
+        elif operator == "<":
+            success = actual < expected
+        elif operator == ">=":
+            success = actual >= expected
+        elif operator == "<=":
+            success = actual <= expected
+        elif operator == "contains":
+            success = expected in actual
+        else:
+            return False, f"Unknown operator: {operator}"
+
+        if success:
+            return True, ""
+        else:
+            return False, f"Assertion failed: {field_path} {operator} {expected_str}\n  Expected: {expected}\n  Actual: {actual}"
+
+    except AttributeError as e:
+        return False, f"Field path error: {e}"
+    except Exception as e:
+        return False, f"Assertion error: {e}"
+
+
 def parse_command_annotations(line: str) -> Tuple[str, bool]:
     """Parse command line and extract annotations.
 
@@ -132,8 +276,9 @@ def run_walkthrough(
     commands: List[str],
     verbose: bool = False,
     stop_on_error: bool = False,
-    show_hp: bool = False
-) -> Tuple[List[Dict[str, Any]], Dict[str, int]]:
+    show_hp: bool = False,
+    show_state: bool = False
+) -> Tuple[List[Dict[str, Any]], Dict[str, int], int]:
     """Run a sequence of commands and return results.
 
     Returns:
@@ -142,12 +287,33 @@ def run_walkthrough(
     results = []
     parser = engine.create_parser()
     failure_counts: Dict[str, int] = {}
-    unexpected_failures = []
+    unexpected_failures: List[Tuple[int, str, FailureCategory]] = []
+    assertion_failures: List[Tuple[int, str, str]] = []
 
     for i, line in enumerate(commands, 1):
         line = line.strip()
         if not line or line.startswith("#"):
             # Skip empty lines and comments
+            continue
+
+        # Check if this is an assertion
+        assertion = parse_assertion(line)
+        if assertion:
+            field_path, operator, expected = assertion
+            print(f"\n{'='*60}")
+            print(f"ASSERT {field_path} {operator} {expected}")
+            print("-" * 60)
+
+            assert_success, error = evaluate_assertion(engine, field_path, operator, expected)
+            if assert_success:
+                print(f"[✓] Assertion passed")
+            else:
+                print(f"[✗] {error}")
+                assertion_failures.append((i, line, error))
+                if stop_on_error:
+                    print(f"\n⚠️  Stopped at line {i} due to assertion failure")
+                    break
+
             continue
 
         # Parse annotations
@@ -184,7 +350,7 @@ def run_walkthrough(
                 "action": action
             })
 
-        success = result.get("success", False)
+        success = bool(result.get("success", False))
         results.append({
             "command": cmd,
             "result": result,
@@ -220,6 +386,22 @@ def run_walkthrough(
                 if hp_info:
                     print(hp_info)
 
+            # Show state if requested
+            if show_state:
+                print("\nPlayer State:")
+                from src.state_manager import ActorId
+                player = engine.game_state.actors.get(ActorId("player"))
+                if player:
+                    print(f"  HP: {player.properties.get('health')}")
+                    print(f"  Location: {player.location}")
+                    if player.inventory:
+                        print(f"  Inventory: {player.inventory}")
+                    conditions = player.properties.get('conditions')
+                    if conditions:
+                        print(f"  Conditions: {list(conditions.keys())}")
+                        for cond_name, cond_data in conditions.items():
+                            print(f"    {cond_name}: {cond_data}")
+
         # Stop on error if requested
         if stop_on_error and not success:
             print(f"\n⚠️  Stopped at command {i} due to failure")
@@ -233,7 +415,15 @@ def run_walkthrough(
             print(f"  Line {line_num}: {cmd}")
             print(f"    Category: {category.value}")
 
-    return results, failure_counts
+    # Report assertion failures
+    if assertion_failures:
+        print(f"\n{'='*60}")
+        print(f"⚠️  {len(assertion_failures)} ASSERTION FAILURES:")
+        for line_num, assertion_text, error in assertion_failures:
+            print(f"  Line {line_num}: {assertion_text}")
+            print(f"    {error}")
+
+    return results, failure_counts, len(assertion_failures)
 
 
 def save_game_state(engine: GameEngine, output_path: Path) -> None:
@@ -264,6 +454,8 @@ def main():
                           help="Save final game state to FILE")
     argparser.add_argument("--show-hp", action="store_true",
                           help="Show HP after combat rounds")
+    argparser.add_argument("--show-state", action="store_true",
+                          help="Show player state after each command (for debugging)")
 
     args = argparser.parse_args()
 
@@ -292,12 +484,13 @@ def main():
     executable_commands = [c for c in commands if c.strip() and not c.strip().startswith("#")]
     print(f"Running {len(executable_commands)} commands...")
 
-    results, failure_counts = run_walkthrough(
+    results, failure_counts, assertion_failure_count = run_walkthrough(
         engine,
         commands,
         args.verbose,
         args.stop_on_error,
-        args.show_hp
+        args.show_hp,
+        args.show_state
     )
 
     # Summary
@@ -324,12 +517,14 @@ def main():
         print(f"\n⚠️  {unexpected_failures} commands failed unexpectedly")
     if unexpected_successes > 0:
         print(f"\n?  {unexpected_successes} commands succeeded when expected to fail")
+    if assertion_failure_count > 0:
+        print(f"\n⚠️  {assertion_failure_count} assertions failed")
 
     # Save state if requested
     if args.save_state:
         save_game_state(engine, Path(args.save_state))
 
-    return 0 if unexpected_failures == 0 else 1
+    return 0 if (unexpected_failures == 0 and assertion_failure_count == 0) else 1
 
 
 if __name__ == "__main__":

@@ -1,0 +1,18 @@
+# Test walkthrough assertions
+# Simple test to verify assertion syntax works
+
+# Check initial health
+ASSERT actors.player.properties.health == 100
+
+# Move and check location changed
+go west
+ASSERT actors.player.location == cavern_entrance
+
+# Test comparison operators
+ASSERT actors.player.properties.health >= 90
+ASSERT actors.player.properties.health <= 100
+ASSERT actors.player.properties.health > 50
+ASSERT actors.player.properties.health < 150
+
+# Check inventory
+look

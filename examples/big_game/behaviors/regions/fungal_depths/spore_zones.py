@@ -15,7 +15,21 @@ from src.infrastructure_utils import get_current_turn
 
 # Vocabulary: wire hooks to events
 vocabulary: Dict[str, Any] = {
-    "events": []
+    "hook_definitions": [
+        {
+            "hook_id": "turn_spore_infection",
+            "invocation": "turn_phase",
+            "before": ["turn_condition_tick"],
+            "description": "Apply spore infection progression based on location"
+        }
+    ],
+    "events": [
+        {
+            "event": "on_spore_zone_turn",
+            "hook": "turn_spore_infection",
+            "description": "Check player location and apply fungal infection progression"
+        }
+    ]
 }
 
 # Spore levels and their infection rates
@@ -106,6 +120,10 @@ def on_spore_zone_turn(
     old_severity = infection.get("severity", 0)
     new_severity = min(MAX_SEVERITY, old_severity + base_rate)
     infection["severity"] = new_severity
+
+    # Note: damage_per_turn is calculated by tick_conditions() in conditions.py
+    # based on current severity. This ensures all actors (not just player in spore zones)
+    # get correct damage scaling as severity increases.
 
     # Generate appropriate message
     if new_severity >= 80:

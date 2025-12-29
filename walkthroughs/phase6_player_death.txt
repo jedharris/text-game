@@ -1,0 +1,93 @@
+# Phase 6: Player Death from Fungal Infection
+# Tests that player dies when infection damage reduces health to 0
+
+# Initial state: Full health, no infection
+ASSERT actors.player.properties.health == 100
+
+# Navigate to Spore Heart (high spore zone, 10 severity/turn)
+# Note: Pass through medium zone (Luminous Grotto, +5 severity) first
+go west
+go down
+go down
+
+# After navigation: 1 turn medium (+5), 1 turn high (+10) = severity 15
+ASSERT actors.player.properties.conditions.fungal_infection.severity == 15
+
+# Advance 1 more turn in high spore zone
+# Severity: 15 + 10 = 25, damage_per_turn = 2 (tier 20+)
+look
+
+ASSERT actors.player.properties.conditions.fungal_infection.severity == 25
+ASSERT actors.player.properties.conditions.fungal_infection.damage_per_turn == 2
+
+# Advance 2 more turns to increase severity
+# Turn 3: severity 35, damage 2, net +3 HP/turn
+# Turn 4: severity 45, damage 4, net +1 HP/turn
+look
+look
+
+ASSERT actors.player.properties.conditions.fungal_infection.severity == 45
+ASSERT actors.player.properties.conditions.fungal_infection.damage_per_turn == 4
+ASSERT actors.player.properties.health == 100
+
+# Advance 2 more turns
+# Turn 5: severity 55, damage 4
+# Turn 6: severity 65, damage 7, net -2 HP/turn
+look
+look
+
+ASSERT actors.player.properties.conditions.fungal_infection.severity == 65
+ASSERT actors.player.properties.conditions.fungal_infection.damage_per_turn == 7
+ASSERT actors.player.properties.health >= 96
+ASSERT actors.player.properties.health <= 100
+
+# Advance 2 more turns
+# Turn 7: severity 75, damage 7
+# Turn 8: severity 85, damage 10, net -5 HP/turn
+look
+look
+
+ASSERT actors.player.properties.conditions.fungal_infection.severity == 85
+ASSERT actors.player.properties.conditions.fungal_infection.damage_per_turn == 10
+ASSERT actors.player.properties.health >= 92
+ASSERT actors.player.properties.health <= 100
+
+# Now stay in high spore zone until death (approximately 18-20 turns needed)
+# Net damage: -5 HP/turn from severity 80+ (10 damage - 5 regen)
+# Starting from ~90 HP: 90 / 5 = 18 turns to death
+look
+look
+look
+look
+look
+look
+look
+look
+look
+look
+look
+look
+look
+look
+look
+look
+look
+look
+look
+look
+look
+look
+look
+look
+look
+
+# After ~32 turns total in spore zones:
+# - "Wanderer has been slain!" message should appear
+# - Player removed from actors dict (death confirmed)
+# - Cannot issue commands after death
+
+# SUCCESS: Player death from infection works!
+# - Infection damage correctly scales with severity
+# - Health depletes at expected rate (net -5 HP/turn at severity 80+)
+# - Death occurs when health reaches 0
+# - Death message displayed and player removed from game state

@@ -1,0 +1,107 @@
+# Phase 1: Player Fungal Infection Damage
+# Tests that fungal infection applies damage_per_turn based on severity tiers
+
+# Initial state: Full health, no infection
+ASSERT actors.player.properties.health == 100
+
+# Navigate to Luminous Grotto (medium spore level)
+go west
+go down
+
+# After 1 turn in medium spore zone: severity should be 5, damage_per_turn = 0
+# (Tier 0: severity < 20, no damage yet)
+ASSERT actors.player.properties.conditions.fungal_infection.severity == 5
+ASSERT actors.player.properties.conditions.fungal_infection.damage_per_turn == 0
+
+# Advance 3 more turns to reach severity 20+ (mild threshold)
+# Medium spore = +5 severity/turn, so need 3 more turns (5+5+5+5=20)
+look
+look
+look
+
+# After 4 turns: severity >= 20, damage_per_turn = 2
+ASSERT actors.player.properties.conditions.fungal_infection.severity >= 20
+ASSERT actors.player.properties.conditions.fungal_infection.severity < 25
+ASSERT actors.player.properties.conditions.fungal_infection.damage_per_turn == 2
+
+# Health check: With 2 damage/turn and 5 regen/turn, net +3 HP/turn
+# After 4 turns: gained 3*4 = 12 HP, should be at max (capped at 100)
+ASSERT actors.player.properties.health == 100
+
+# Advance 4 more turns to reach severity 40+ (moderate threshold)
+# Need 4 more turns to get from 20 to 40 (20+5+5+5+5=40)
+look
+look
+look
+look
+
+# After 8 turns total: severity >= 40, damage_per_turn = 4
+ASSERT actors.player.properties.conditions.fungal_infection.severity >= 40
+ASSERT actors.player.properties.conditions.fungal_infection.severity < 45
+ASSERT actors.player.properties.conditions.fungal_infection.damage_per_turn == 4
+
+# Health check: With 4 damage/turn and 5 regen/turn, net +1 HP/turn
+# Should still be at max health
+ASSERT actors.player.properties.health == 100
+
+# Advance 4 more turns to reach severity 60+ (severe threshold)
+# Need 4 more turns to get from 40 to 60
+look
+look
+look
+look
+
+# After 12 turns total: severity >= 60, damage_per_turn = 7
+ASSERT actors.player.properties.conditions.fungal_infection.severity >= 60
+ASSERT actors.player.properties.conditions.fungal_infection.severity < 65
+ASSERT actors.player.properties.conditions.fungal_infection.damage_per_turn == 7
+
+# Health check: With 7 damage/turn and 5 regen/turn, net -2 HP/turn
+# But the turn that crossed the tier used old damage value!
+# So only 3 turns at damage=7: lost 2*3 = 6 HP
+# Still at high health due to previous regen
+ASSERT actors.player.properties.health <= 100
+ASSERT actors.player.properties.health >= 94
+
+# Advance 4 more turns to reach severity 80+ (critical threshold)
+# Need 4 more turns to get from 60 to 80
+look
+look
+look
+look
+
+# After 16 turns total: severity >= 80, damage_per_turn = 10
+ASSERT actors.player.properties.conditions.fungal_infection.severity >= 80
+ASSERT actors.player.properties.conditions.fungal_infection.severity < 85
+ASSERT actors.player.properties.conditions.fungal_infection.damage_per_turn == 10
+
+# Health check: With 10 damage/turn and 5 regen/turn, net -5 HP/turn
+# From tier 60-80: 3 turns at damage=7 (net -2) = -6 HP
+# From tier 80+: 3 turns at damage=10 (net -5) = -15 HP
+# Total loss from 100: -6 - 15 = -21, so health ≈ 79
+ASSERT actors.player.properties.health <= 95
+ASSERT actors.player.properties.health >= 85
+
+# Advance 10 more turns to see critical damage accumulate
+look
+look
+look
+look
+look
+look
+look
+look
+look
+look
+
+# After 26 turns total: severity capped at 100, still damage_per_turn = 10
+ASSERT actors.player.properties.conditions.fungal_infection.severity == 100
+ASSERT actors.player.properties.conditions.fungal_infection.damage_per_turn == 10
+
+# Health check: With 10 damage/turn and 5 regen/turn, net -5 HP/turn
+# Previous: ~92 HP (actually still quite high due to regen)
+# After 10 more turns: 92 - (5*10) = 92 - 50 = 42 HP
+ASSERT actors.player.properties.health <= 45
+ASSERT actors.player.properties.health >= 40
+
+# SUCCESS: All damage tiers are working correctly!

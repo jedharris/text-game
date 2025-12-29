@@ -1631,6 +1631,17 @@
       }
     },
     {
+      "id": "silvermoss_2",
+      "name": "silvermoss",
+      "description": "A rare moss with antifungal properties. Can reduce the severity of fungal infection.",
+      "location": "luminous_grotto",
+      "properties": {
+        "portable": true,
+        "curative": true,
+        "infection_reduction": 40
+      }
+    },
+    {
       "id": "heartmoss",
       "name": "heartmoss",
       "description": "An ancient moss that grows only in the deep roots. It can cure the Spore Mother's blight.",
@@ -3357,7 +3368,7 @@
         "conditions": {
           "fungal_infection": {
             "severity": 80,
-            "damage_per_turn": 7,
+            "damage_per_turn": 10,
             "progression_rate": 2
           }
         },
