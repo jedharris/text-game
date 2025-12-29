@@ -39,16 +39,6 @@ class LLMProtocolHandler:
     # even when game state is corrupted
     META_COMMANDS = {"save", "quit", "help", "load"}
 
-    # Base turn phase hooks fire in this order after successful commands
-    # Each hook may have an event registered that processes the phase
-    # Games can declare additional phases via metadata.extra_turn_phases
-    BASE_TURN_PHASE_HOOKS = [
-        hooks.NPC_ACTION,
-        hooks.ENVIRONMENTAL_EFFECT,
-        hooks.CONDITION_TICK,
-        hooks.DEATH_CHECK,
-    ]
-
     def __init__(self, state: GameState, behavior_manager: Optional[BehaviorManager] = None):
         self.state = state
         self.state_corrupted = False
@@ -248,7 +238,10 @@ class LLMProtocolHandler:
 
         # Fire turn phase hooks after successful command
         if result.success:
-            turn_messages = self._fire_turn_phases(accessor, action)
+            from src import turn_executor
+            turn_messages = turn_executor.execute_turn_phases(
+                self.state, self.behavior_manager, accessor, action
+            )
             if turn_messages:
                 response["turn_phase_messages"] = turn_messages
 
@@ -394,125 +387,6 @@ class LLMProtocolHandler:
             player = self.state.actors.get(ActorId("player"))
             if player:
                 self.visited_locations.add(player.location)
-
-    def _get_turn_phase_hooks(self) -> List[str]:
-        """
-        Get the ordered list of turn phase hooks for this game.
-
-        Games can declare additional phases via metadata.extra_turn_phases.
-        Extra phases are prepended to base phases (they run first).
-
-        Returns:
-            List of hook names in execution order
-        """
-        extra_phases = self.state.metadata.extra_turn_phases
-        return list(extra_phases) + list(self.BASE_TURN_PHASE_HOOKS)
-
-    def _fire_turn_phases(self, accessor: "StateAccessor", action: ActionDict) -> List[str]:
-        """
-        Fire turn phase hooks after a successful command.
-
-        Turn phases run in order. Base phases are NPC_ACTION, ENVIRONMENTAL_EFFECT,
-        CONDITION_TICK, DEATH_CHECK. Games can declare additional phases via
-        metadata.extra_turn_phases which run before base phases.
-
-        Each phase may have an event registered via vocabulary that handles
-        the phase logic.
-
-        Virtual entity turn phases (commitments, scheduled_events, gossip, spreads)
-        use per-entity dispatch, iterating collections and invoking each entity's
-        behavior handler.
-
-        Args:
-            accessor: StateAccessor for state queries
-            action: The action dict from the command
-
-        Returns:
-            List of messages from turn phase handlers
-        """
-        # Increment turn counter before processing phases
-        self.state.increment_turn()
-
-        messages = []
-
-        for hook_name in self._get_turn_phase_hooks():
-            event_name = self.behavior_manager.get_event_for_hook(HookName(hook_name))
-            if event_name:
-                # Build context for the turn phase
-                actor_id: ActorId = action.get("actor_id") or ActorId("player")
-                context: Dict[str, Any] = {
-                    "hook": hook_name,
-                    "actor_id": actor_id,
-                    "current_turn": self.state.turn_count,
-                }
-
-                # Virtual entity turn phases use per-entity dispatch
-                if hook_name == hooks.TURN_PHASE_COMMITMENT:
-                    phase_messages = self._fire_commitment_phase(accessor, event_name, context)
-                    messages.extend(phase_messages)
-                elif hook_name == hooks.TURN_PHASE_SCHEDULED:
-                    phase_messages = self._fire_scheduled_event_phase(accessor, event_name, context)
-                    messages.extend(phase_messages)
-                elif hook_name == hooks.TURN_PHASE_GOSSIP:
-                    phase_messages = self._fire_gossip_phase(accessor, event_name, context)
-                    messages.extend(phase_messages)
-                elif hook_name == hooks.TURN_PHASE_SPREAD:
-                    phase_messages = self._fire_spread_phase(accessor, event_name, context)
-                    messages.extend(phase_messages)
-                else:
-                    # Standard turn phases: invoke with None entity (centralized handling)
-                    result = self.behavior_manager.invoke_behavior(
-                        None, event_name, accessor, context
-                    )
-
-                    if result and result.feedback:
-                        messages.append(result.feedback)
-
-        return messages
-
-    def _fire_commitment_phase(self, accessor: "StateAccessor", event_name: EventName, context: Dict[str, Any]) -> List[str]:
-        """Fire commitment turn phase by dispatching to each commitment."""
-        messages = []
-        for commitment in self.state.commitments:
-            result = self.behavior_manager.invoke_behavior(
-                commitment, event_name, accessor, context
-            )
-            if result and result.feedback:
-                messages.append(result.feedback)
-        return messages
-
-    def _fire_scheduled_event_phase(self, accessor: "StateAccessor", event_name: EventName, context: Dict[str, Any]) -> List[str]:
-        """Fire scheduled event turn phase by dispatching to each event."""
-        messages = []
-        for event in self.state.scheduled_events:
-            result = self.behavior_manager.invoke_behavior(
-                event, event_name, accessor, context
-            )
-            if result and result.feedback:
-                messages.append(result.feedback)
-        return messages
-
-    def _fire_gossip_phase(self, accessor: "StateAccessor", event_name: EventName, context: Dict[str, Any]) -> List[str]:
-        """Fire gossip turn phase by dispatching to each gossip entry."""
-        messages = []
-        for gossip in self.state.gossip:
-            result = self.behavior_manager.invoke_behavior(
-                gossip, event_name, accessor, context
-            )
-            if result and result.feedback:
-                messages.append(result.feedback)
-        return messages
-
-    def _fire_spread_phase(self, accessor: "StateAccessor", event_name: EventName, context: Dict[str, Any]) -> List[str]:
-        """Fire spread turn phase by dispatching to each spread."""
-        messages = []
-        for spread in self.state.spreads:
-            result = self.behavior_manager.invoke_behavior(
-                spread, event_name, accessor, context
-            )
-            if result and result.feedback:
-                messages.append(result.feedback)
-        return messages
 
     def handle_query(self, message: Dict) -> Dict:
         """Process a query message and return response."""

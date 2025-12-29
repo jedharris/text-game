@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from src.state_accessor import StateAccessor
     from src.behavior_manager import BehaviorManager
+    from src.action_types import ActionDict
 
 # Global cached turn phase execution order
 _ordered_turn_phases: List[str] = []
@@ -192,7 +193,7 @@ def execute_turn_phases(
     state: GameState,
     behavior_manager: "BehaviorManager",
     accessor: "StateAccessor",
-    action: Dict
+    action: "ActionDict"
 ) -> List[str]:
     """Execute all turn phases in dependency order.
 

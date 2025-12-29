@@ -77,6 +77,10 @@ class GameEngine:
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
 
+        # Initialize turn executor with hook definitions
+        from src import turn_executor
+        turn_executor.initialize(self.behavior_manager._hook_definitions)
+
         # Load and merge vocabulary
         self.merged_vocabulary = build_merged_vocabulary(
             game_state=self.game_state,
