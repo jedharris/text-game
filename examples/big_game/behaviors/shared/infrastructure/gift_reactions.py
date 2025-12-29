@@ -36,10 +36,17 @@ from src.infrastructure_utils import (
 
 # Vocabulary: wire hooks to events
 vocabulary = {
+    "hook_definitions": [
+        {
+            "hook_id": "entity_gift_given",
+            "invocation": "entity",
+            "description": "Called when an item is given to an entity"
+        }
+    ],
     "events": [
         {
             "event": "on_gift_given",
-            "hook": "after_give",
+            "hook": "entity_gift_given",
             "description": "Handle entity reactions to receiving gifts",
         },
     ]

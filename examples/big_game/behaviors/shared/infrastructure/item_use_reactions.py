@@ -33,10 +33,17 @@ from src.infrastructure_utils import (
 
 # Vocabulary: wire hooks to events
 vocabulary = {
+    "hook_definitions": [
+        {
+            "hook_id": "entity_item_used",
+            "invocation": "entity",
+            "description": "Called when an item is used"
+        }
+    ],
     "events": [
         {
             "event": "on_item_used",
-            "hook": "after_item_use",
+            "hook": "entity_item_used",
             "description": "Handle entity reactions to item use",
         },
     ]

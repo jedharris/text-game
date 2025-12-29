@@ -27,10 +27,17 @@ from src.infrastructure_utils import transition_state
 
 # Vocabulary: wire hooks to events
 vocabulary = {
+    "hook_definitions": [
+        {
+            "hook_id": "entity_state_changed",
+            "invocation": "entity",
+            "description": "Called when an actor's state changes"
+        }
+    ],
     "events": [
         {
             "event": "on_leader_state_change",
-            "hook": "after_actor_state_change",
+            "hook": "entity_state_changed",
             "description": "Mirror leader state changes to pack followers",
         },
     ]

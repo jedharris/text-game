@@ -37,10 +37,17 @@ from src.infrastructure_utils import (
 
 # Vocabulary: wire hooks to events
 vocabulary = {
+    "hook_definitions": [
+        {
+            "hook_id": "entity_actor_died",
+            "invocation": "entity",
+            "description": "Called when an actor dies"
+        }
+    ],
     "events": [
         {
             "event": "on_entity_death",
-            "hook": "on_actor_death",
+            "hook": "entity_actor_died",
             "description": "Handle entity death consequences",
         },
     ]
