@@ -62,7 +62,7 @@ TURN_PHASE_SPREAD = "turn_phase_spread"
 Example in scheduled_events.py vocabulary:
 ```python
 "hook_definitions": [{
-    "hook": "turn_scheduled_events",
+    "hook_id": "turn_scheduled_events",  # Note: hook_id not hook
     "invocation": "turn_phase",
     "after": [],  # No dependencies - runs early
     "description": "Process scheduled events"
@@ -211,7 +211,7 @@ self._hook_definitions = {}  # Clear after handoff
 vocabulary = {
     "hook_definitions": [
         {
-            "hook": "turn_environmental_effect",
+            "hook_id": "turn_environmental_effect",  # Note: hook_id not hook
             "invocation": "turn_phase",
             "after": ["turn_npc_action"],
             "description": "Apply environmental hazards"
@@ -220,17 +220,17 @@ vocabulary = {
     "events": [
         {
             "event": "on_environmental_effect",
-            "hook": "turn_environmental_effect"
+            "hook": "turn_environmental_effect"  # Event still uses "hook" field
         }
     ]
 }
 ```
 
 **Migration checklist per behavior module:**
-1. Add `hook_definitions` section to vocabulary
+1. Add `hook_definitions` section to vocabulary with `hook_id` field
 2. Rename hook to use prefix (`turn_*` or `entity_*`)
-3. Add dependencies via `after` field
-4. Update event hook reference to match new name
+3. Add dependencies via `after` field (for turn phases only)
+4. Update event `hook` reference to match new hook name
 
 ---
 
