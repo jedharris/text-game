@@ -60,16 +60,17 @@ Hooks are defined in behavior module vocabularies, not in engine code. Authors n
 vocabulary = {
     "hook_definitions": [
         {
-            "hook": "turn_environmental_effect",
+            "hook_id": "turn_environmental_effect",  # Note: hook_id, not hook
             "invocation": "turn_phase",
-            "after": ["turn_npc_action"],
+            "after": [TurnHookId("turn_npc_action")],  # Typed IDs
+            "before": [],  # Optional - can run before specified hooks
             "description": "Apply environmental hazards"
         }
     ],
     "events": [
         {
             "event": "on_environmental_effect",
-            "hook": "turn_environmental_effect"
+            "hook": "turn_environmental_effect"  # String reference to hook_id
         }
     ]
 }
@@ -86,12 +87,19 @@ BehaviorManager validates all hook definitions during game load:
 - Prefixes match invocation type
 - Dependencies reference defined hooks
 - Turn phases not attached to entities
-- No circular dependencies
+- No circular dependencies (cycles in `after`/`before` constraints)
+- No impossible constraints (e.g., A before B and B before A via different paths)
 
-90%+ of authoring errors caught before gameplay starts.
+90%+ of authoring errors caught before gameplay starts with clear error messages.
 
-**Explicit Dependencies**
-Turn phases use `after: [...]` field to declare dependencies. Turn executor builds execution order via topological sort. Dependencies are explicit and validated.
+**Bidirectional Dependencies**
+Turn phases use `after` and `before` fields to declare dependencies:
+- `after: List[TurnHookId]` - This hook runs after the specified hooks
+- `before: List[TurnHookId]` - This hook runs before the specified hooks
+
+This allows game-specific hooks to insert themselves into library execution order without modifying library code. Turn executor builds execution order via topological sort. Dependencies are explicit and validated.
+
+**Layer Ordering**: Games can declare hooks that run before library hooks using `before`, enabling clean extension without modifying deeper layers.
 
 **Runtime Protection**
 CoreFieldProtectingDict wraps entity properties dicts and raises TypeError on attempts to set core fields. Error message guides author to correct usage.
@@ -204,15 +212,17 @@ Add hook definition storage to BehaviorManager (temporary, for later handoff to 
 ```python
 from dataclasses import dataclass
 from typing import List
+from src.types import TurnHookId
 
 @dataclass
 class HookDefinition:
     """Definition of a hook from a behavior module vocabulary."""
-    hook: str                      # Hook name (e.g., "turn_environmental_effect")
-    invocation: str                # "turn_phase" or "entity"
-    after: List[str]               # Dependencies (for turn phases only)
-    description: str               # Human-readable description
-    defined_by: str                # Module that defined it (for error messages)
+    hook: str                          # Hook name (e.g., "turn_environmental_effect")
+    invocation: str                    # "turn_phase" or "entity"
+    after: List[TurnHookId]            # Runs after these hooks (for turn phases only)
+    before: List[TurnHookId]           # Runs before these hooks (for turn phases only)
+    description: str                   # Human-readable description
+    defined_by: str                    # Module that defined it (for error messages)
 ```
 
 ### Implementation
@@ -241,10 +251,15 @@ class BehaviorManager:
             return  # Same module re-defining - idempotent
 
         # Store hook definition
+        # Convert string dependencies to typed IDs
+        after = [TurnHookId(h) for h in hook_def.get('after', [])]
+        before = [TurnHookId(h) for h in hook_def.get('before', [])]
+
         self._hook_definitions[hook_name] = HookDefinition(
             hook=hook_name,
             invocation=hook_def['invocation'],
-            after=hook_def.get('after', []),
+            after=after,
+            before=before,
             description=hook_def.get('description', ''),
             defined_by=module_path
         )
@@ -296,7 +311,7 @@ All methods added to `src/behavior_manager.py`:
 Enforce `turn_*` for turn phases, `entity_*` for entity hooks.
 
 #### 2. validate_turn_phase_dependencies()
-Ensure `after` references point to defined turn phase hooks.
+Ensure `after` and `before` references point to defined turn phase hooks. Detect circular dependencies (cycles in the dependency graph). Raise ValueError for any impossible constraints with clear error messages identifying the conflicting hooks.
 
 #### 3. validate_hooks_are_defined()
 Ensure all event `hook` references point to defined hooks.
@@ -576,7 +591,8 @@ vocabulary = {
         {
             "hook_id": "turn_npc_action",  # Note: hook_id not hook
             "invocation": "turn_phase",
-            "after": [],  # No dependencies - early in turn
+            "after": [],   # No dependencies
+            "before": [],  # Optional, can be omitted if empty
             "description": "Execute NPC actions for the turn"
         }
     ],
@@ -590,10 +606,10 @@ vocabulary = {
 ```
 
 **Dependencies to define:**
-- `turn_npc_action`: No dependencies (runs early)
-- `turn_environmental_effect`: `"after": ["turn_npc_action"]`
-- `turn_condition_tick`: `"after": ["turn_environmental_effect"]`
-- `turn_death_check`: `"after": ["turn_condition_tick"]`
+- `turn_npc_action`: `after: []`, `before: []` (no dependencies initially - will accept game hooks via `before`)
+- `turn_environmental_effect`: `after: ["turn_npc_action"]`, `before: []`
+- `turn_condition_tick`: `after: ["turn_environmental_effect"]`, `before: []`
+- `turn_death_check`: `after: ["turn_condition_tick"]`, `before: []`
 
 **Migration order:**
 1. `turn_npc_action` first (no dependencies)
@@ -706,7 +722,7 @@ Each module must add hook_definition section to vocabulary.
 **Status:** Not started
 
 ### Goal
-Create dedicated turn_executor module and remove turn phase code from llm_protocol.
+Create dedicated turn_executor module with bidirectional dependency support, remove turn phase code from llm_protocol, and remove the Phase 6 workaround from library code.
 
 ### Implementation
 
@@ -745,11 +761,19 @@ def initialize(hook_definitions: Dict[str, HookDefinition]) -> None:
 def _topological_sort(phases: Dict[str, HookDefinition]) -> List[str]:
     """Sort turn phases by dependencies using Kahn's algorithm.
 
+    Handles both `after` and `before` constraints by building a unified
+    dependency graph:
+    - A.after=[B] creates edge B→A (A depends on B)
+    - A.before=[C] creates edge A→C (C depends on A)
+
     Raises:
-        ValueError: If circular dependencies detected
+        ValueError: If circular dependencies detected (authoring error)
+        ValueError: If impossible constraints detected (authoring error)
     """
-    # Implementation of topological sort
-    # Detect cycles and raise clear error
+    # Build directed graph from both after and before constraints
+    # Use Kahn's algorithm for topological sort
+    # Detect cycles and raise clear error with cycle path
+    # No conflict resolution - all conflicts are authoring errors
     pass
 
 def execute_turn_phases(state: GameState, behavior_manager) -> List[str]:
@@ -809,27 +833,71 @@ def _execute_turn_phases(self, state: GameState) -> List[str]:
     return turn_executor.execute_turn_phases(state, self.behavior_manager)
 ```
 
+#### 4. Remove Phase 6 Workaround
+
+In Phase 6, we added a temporary workaround where `turn_npc_action` depends on `turn_condition_spread` to ensure game infrastructure runs before library infrastructure. With bidirectional dependencies, we can now remove this workaround.
+
+**Update behavior_libraries/actor_lib/npc_actions.py:**
+
+```python
+vocabulary = {
+    "hook_definitions": [
+        {
+            "hook_id": "turn_npc_action",
+            "invocation": "turn_phase",
+            "after": [],  # Remove temporary dependency on turn_condition_spread
+            "before": [],
+            "description": "Execute NPC actions for the turn"
+        }
+    ]
+}
+```
+
+**Update examples/big_game/behaviors/shared/infrastructure/spreads.py:**
+
+```python
+vocabulary = {
+    "hook_definitions": [
+        {
+            "hook_id": "turn_condition_spread",
+            "invocation": "turn_phase",
+            "after": ["turn_gossip_spread"],
+            "before": ["turn_npc_action"],  # Declare game hook runs before library
+            "description": "Spread conditions between actors"
+        }
+    ]
+}
+```
+
+This is the proper solution: game layer declares it runs before library layer using `before`, without modifying library code.
+
 ### Tests
 
 Create `tests/test_turn_executor.py`:
-- Test topological sort with valid dependencies
-- Test circular dependency detection
+- Test topological sort with valid dependencies (both `after` and `before`)
+- Test bidirectional constraints (A before B creates same edge as B after A)
+- Test circular dependency detection with clear cycle reporting
 - Test turn phases execute in correct order
 - Test narration collection
+- Test game hooks can insert before library hooks via `before`
 
 ### Success Criteria
-- ✅ turn_executor.py created with dependency sorting
-- ✅ Circular dependency detection works
-- ✅ Turn phases execute in correct order
+- ✅ turn_executor.py created with bidirectional dependency sorting
+- ✅ Circular dependency detection works with clear error messages
+- ✅ Turn phases execute in correct order respecting both `after` and `before`
+- ✅ Phase 6 workaround removed from library code
+- ✅ Game hooks properly insert via `before` field
 - ✅ ~110 lines deleted from llm_protocol.py
 - ✅ All tests pass
 - ✅ All walkthroughs pass
-- ✅ **COMMIT:** "Phase 7: Add turn_executor module, clean up llm_protocol"
+- ✅ **COMMITS:** Multiple commits (turn_executor creation, workaround cleanup)
 
 ### Files Modified
 - `src/turn_executor.py` - NEW FILE
 - `src/game_engine.py` - Call turn_executor.initialize()
 - `src/llm_protocol.py` - Delete turn phase code (~110 lines)
+- `behavior_libraries/actor_lib/npc_actions.py` - Remove workaround dependency
+- `examples/big_game/behaviors/shared/infrastructure/spreads.py` - Add `before` constraint
 - `tests/test_turn_executor.py` - NEW FILE
 
 ---
@@ -992,3 +1060,79 @@ Based on Phase 1-3 experience (~8 hours) and remaining work:
 **Total:** 23-32 hours of focused work across all 9 phases
 
 **Key to success:** Systematic approach, clear phase boundaries, frequent commits, comprehensive testing.
+
+---
+
+## Appendix: Bidirectional Dependencies Design
+
+### Problem: Layer Ordering
+
+During Phase 6 implementation, we discovered that game-specific infrastructure hooks need to run before library infrastructure hooks, but there was no clean way to achieve this without modifying library code.
+
+**Example:** The game's `turn_condition_spread` hook needs to run before the library's `turn_npc_action` hook, but modifying `turn_npc_action` to depend on a game hook violates layering (libraries shouldn't know about games).
+
+### Solution: `before` Field
+
+Add bidirectional dependencies where hooks can declare both what they run `after` and what they run `before`.
+
+**Data Structure:**
+```python
+@dataclass
+class HookDefinition:
+    hook: str
+    invocation: str
+    after: List[TurnHookId]   # This hook runs after these hooks
+    before: List[TurnHookId]  # This hook runs before these hooks
+    description: str
+    defined_by: str
+```
+
+**Vocabulary Example:**
+```python
+# Library code (doesn't know about games)
+vocabulary = {
+    "hook_definitions": [
+        {
+            "hook_id": "turn_npc_action",
+            "invocation": "turn_phase",
+            "after": [],   # No dependencies
+            "before": [],  # Empty - games will declare they run before this
+            "description": "Execute NPC actions"
+        }
+    ]
+}
+
+# Game code (extends library)
+vocabulary = {
+    "hook_definitions": [
+        {
+            "hook_id": "turn_condition_spread",
+            "invocation": "turn_phase",
+            "after": ["turn_gossip_spread"],
+            "before": ["turn_npc_action"],  # Game declares it runs before library
+            "description": "Spread conditions"
+        }
+    ]
+}
+```
+
+**Topological Sort:**
+Build dependency graph from both `after` and `before` constraints:
+- `A.after = [B]` creates edge `B → A` (A depends on B, so B must run first)
+- `A.before = [C]` creates edge `A → C` (C depends on A, so A must run first)
+
+Use Kahn's algorithm for topological sort. Cycles are authoring errors and must fail loudly with clear error messages showing the cycle path.
+
+**Validation:**
+- Both `after` and `before` lists must reference defined turn phase hooks
+- No circular dependencies (detect cycles in combined graph)
+- Contradictions (e.g., A before B and B before A via any path) are authoring errors
+
+**Benefits:**
+1. **Clean layering:** Games extend libraries without modifying library code
+2. **Explicit:** Dependencies visible in hook definitions
+3. **Symmetric:** `after` and `before` are intuitive mirror operations
+4. **Validated:** Cycles and conflicts caught at load time
+5. **Flexible:** Handles all ordering scenarios including complex multi-layer games
+
+**Implementation:** Phase 7 creates turn_executor with bidirectional topological sort and removes the Phase 6 temporary workaround.
