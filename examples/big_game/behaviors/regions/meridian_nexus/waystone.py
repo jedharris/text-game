@@ -12,15 +12,28 @@ from src.behavior_manager import EventResult
 # Note: Item use reactions are handled by infrastructure/item_use_reactions.py
 # Waystone must have item_use_reactions configuration for fragment placement
 vocabulary: Dict[str, Any] = {
+    "hook_definitions": [
+        {
+            "hook_id": "entity_puzzle_solved",
+            "invocation": "entity",
+            "description": "Called when a puzzle is solved"
+        },
+        {
+            "hook_id": "turn_ending_check",
+            "invocation": "turn_phase",
+            "after": ["turn_death_check"],
+            "description": "Check game ending conditions each turn"
+        }
+    ],
     "events": [
         {
             "event": "on_waystone_complete",
-            "hook": "on_puzzle_solved",
+            "hook": "entity_puzzle_solved",
             "description": "Handle waystone completion for ending",
         },
         {
             "event": "on_ending_check",
-            "hook": "turn_phase_global",
+            "hook": "turn_ending_check",
             "description": "Check ending conditions each turn",
         },
     ]

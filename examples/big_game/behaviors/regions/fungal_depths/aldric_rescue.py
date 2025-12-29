@@ -18,10 +18,17 @@ from src.narrator_helpers import select_state_fragments
 # Vocabulary: wire hooks to events
 # Note: Dialog reactions are handled by infrastructure/dialog_reactions.py
 vocabulary: Dict[str, Any] = {
+    "hook_definitions": [
+        {
+            "hook_id": "entity_item_received",
+            "invocation": "entity",
+            "description": "Called when an entity receives an item"
+        }
+    ],
     "events": [
         {
             "event": "on_receive_item",
-            "hook": "receive_item",
+            "hook": "entity_item_received",
             "description": "Handle items given to Aldric (silvermoss healing)"
         }
     ]
