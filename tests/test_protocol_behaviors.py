@@ -71,7 +71,7 @@ def create_test_state():
                 name="sword",
                 description="A test sword",
                 location="room1",
-                properties={"portable": True}
+                _properties={"portable": True}
             )
         ],
         actors={
@@ -475,14 +475,14 @@ class TestProtocolBehaviorCommands(unittest.TestCase):
                     name="potion",
                     description="A test potion",
                     location="room1",
-                    properties={"portable": True, "drinkable": True}
+                    _properties={"portable": True, "drinkable": True}
                 ),
                 Item(
                     id="item2",
                     name="book",
                     description="A test book",
                     location="room1",
-                    properties={"portable": True, "readable": True}
+                    _properties={"portable": True, "readable": True}
                 )
             ],
             actors={

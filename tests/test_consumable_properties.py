@@ -45,7 +45,7 @@ class TestConsumableProperties(unittest.TestCase):
             name="apple",
             description="A red apple",
             location="player",
-            properties={"edible": True}
+            _properties={"edible": True}
         )
         state.items.append(apple)
         state.get_actor(ActorId("player")).inventory.append("item_apple")
@@ -84,7 +84,7 @@ class TestConsumableProperties(unittest.TestCase):
             name="potion",
             description="A healing potion",
             location="player",
-            properties={"drinkable": True}
+            _properties={"drinkable": True}
         )
         state.items.append(potion)
         state.get_actor(ActorId("player")).inventory.append("item_potion")
@@ -106,7 +106,7 @@ class TestConsumableProperties(unittest.TestCase):
             name="rock",
             description="A hard rock",
             location="player",
-            properties={"edible": False}
+            _properties={"edible": False}
         )
         state.items.append(rock)
         state.get_actor(ActorId("player")).inventory.append("item_rock")
@@ -129,7 +129,7 @@ class TestConsumableProperties(unittest.TestCase):
             name="oil",
             description="Motor oil",
             location="player",
-            properties={"drinkable": False}
+            _properties={"drinkable": False}
         )
         state.items.append(oil)
         state.get_actor(ActorId("player")).inventory.append("item_oil")

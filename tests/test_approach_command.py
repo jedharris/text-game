@@ -45,7 +45,7 @@ class TestApproachCommand(unittest.TestCase):
             id="part_room_north_wall",
             name="north wall",
             part_of="loc_room",
-            properties={"description": "A stone wall"}
+            _properties={"description": "A stone wall"}
         )
 
         # Part of item
@@ -53,7 +53,7 @@ class TestApproachCommand(unittest.TestCase):
             id="part_bench_left",
             name="left side of bench",
             part_of="item_bench",
-            properties={"description": "The left end of the bench"}
+            _properties={"description": "The left end of the bench"}
         )
 
         # NPC actor

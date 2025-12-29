@@ -34,7 +34,7 @@ class TestCrystalBallRevealHiddenItem(unittest.TestCase):
                     name="ball",
                     description="A crystal ball. Mist swirls within its depths.",
                     location="library",
-                    properties={"magical": True},
+                    _properties={"magical": True},
                     behaviors=["behaviors.crystal_ball"]
                 ),
                 Item(
@@ -42,7 +42,7 @@ class TestCrystalBallRevealHiddenItem(unittest.TestCase):
                     name="key",
                     description="A golden key that glows faintly with magic.",
                     location="library",
-                    properties={"portable": True, "magical": True, "states": {"hidden": True}}
+                    _properties={"portable": True, "magical": True, "states": {"hidden": True}}
                 )
             ],
             actors={
@@ -167,7 +167,7 @@ class TestCrystalBallInContainers(unittest.TestCase):
                     name="desk",
                     description="A large oak desk.",
                     location="library",
-                    properties={
+                    _properties={
                         "type": "furniture",
                         "portable": False,
                         "container": {
@@ -182,7 +182,7 @@ class TestCrystalBallInContainers(unittest.TestCase):
                     name="box",
                     description="A wooden box.",
                     location="library",
-                    properties={
+                    _properties={
                         "type": "container",
                         "portable": False,
                         "container": {
@@ -198,7 +198,7 @@ class TestCrystalBallInContainers(unittest.TestCase):
                     name="ball",
                     description="A crystal ball. Mist swirls within its depths.",
                     location="library",
-                    properties={"magical": True, "portable": True},
+                    _properties={"magical": True, "portable": True},
                     behaviors=["behaviors.crystal_ball"]
                 ),
                 Item(
@@ -206,7 +206,7 @@ class TestCrystalBallInContainers(unittest.TestCase):
                     name="key",
                     description="A golden key that glows faintly with magic.",
                     location="library",
-                    properties={
+                    _properties={
                         "portable": True,
                         "magical": True,
                         "states": {"hidden": True}
@@ -295,7 +295,7 @@ class TestCrystalBallMissingKey(unittest.TestCase):
                     name="ball",
                     description="A crystal ball. Mist swirls within its depths.",
                     location="library",
-                    properties={"magical": True},
+                    _properties={"magical": True},
                     behaviors=["behaviors.crystal_ball"]
                 )
                 # No sanctum key

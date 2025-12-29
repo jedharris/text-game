@@ -22,7 +22,7 @@ class TestPatrolStep(unittest.TestCase):
         state.actors[ActorId('guard')] = Actor(
             id='guard', name='Guard', description='A guard',
             location='forest', inventory=[],
-            properties={
+            _properties={
                 'patrol_route': ['forest', 'meadow', 'river'],
                 'patrol_index': 0
             }
@@ -44,7 +44,7 @@ class TestPatrolStep(unittest.TestCase):
         state.actors[ActorId('guard')] = Actor(
             id='guard', name='Guard', description='A guard',
             location='meadow', inventory=[],
-            properties={
+            _properties={
                 'patrol_route': ['forest', 'meadow'],
                 'patrol_index': 1
             }
@@ -65,7 +65,7 @@ class TestPatrolStep(unittest.TestCase):
         state.actors[ActorId('npc')] = Actor(
             id='npc', name='NPC', description='An NPC',
             location='forest', inventory=[],
-            properties={}
+            _properties={}
         )
 
         accessor = StateAccessor(state, Mock())
@@ -89,7 +89,7 @@ class TestWanderStep(unittest.TestCase):
         state.actors[ActorId('hunter')] = Actor(
             id='hunter', name='Hunter', description='A hunter',
             location='forest', inventory=[],
-            properties={
+            _properties={
                 'wander_area': ['forest', 'meadow', 'river'],
                 'wander_chance': 1.0  # Always wander for testing
             }
@@ -117,7 +117,7 @@ class TestWanderStep(unittest.TestCase):
         state.actors[ActorId('hunter')] = Actor(
             id='hunter', name='Hunter', description='A hunter',
             location='forest', inventory=[],
-            properties={
+            _properties={
                 'wander_area': ['forest', 'meadow'],
                 'wander_chance': 0.0  # Never wander
             }
@@ -137,7 +137,7 @@ class TestWanderStep(unittest.TestCase):
         state.actors[ActorId('npc')] = Actor(
             id='npc', name='NPC', description='An NPC',
             location='forest', inventory=[],
-            properties={}
+            _properties={}
         )
 
         accessor = StateAccessor(state, Mock())
@@ -158,7 +158,7 @@ class TestSetPatrolRoute(unittest.TestCase):
         state.actors[ActorId('guard')] = Actor(
             id='guard', name='Guard', description='A guard',
             location='forest', inventory=[],
-            properties={}
+            _properties={}
         )
 
         accessor = StateAccessor(state, Mock())
@@ -183,7 +183,7 @@ class TestSetWanderArea(unittest.TestCase):
         state.actors[ActorId('hunter')] = Actor(
             id='hunter', name='Hunter', description='A hunter',
             location='forest', inventory=[],
-            properties={}
+            _properties={}
         )
 
         accessor = StateAccessor(state, Mock())
@@ -213,7 +213,7 @@ class TestOnNpcMovement(unittest.TestCase):
         state.actors[ActorId('guard')] = Actor(
             id='guard', name='Guard', description='A guard',
             location='forest', inventory=[],
-            properties={
+            _properties={
                 'patrol_route': ['forest', 'meadow'],
                 'patrol_index': 0,
                 'patrol_frequency': 3  # Only move every 3 turns
@@ -243,7 +243,7 @@ class TestOnNpcMovement(unittest.TestCase):
         state.actors[ActorId('guard')] = Actor(
             id='guard', name='Guard', description='A guard',
             location='forest', inventory=[],
-            properties={
+            _properties={
                 'patrol_route': ['forest', 'meadow'],
                 'patrol_index': 0,
                 'patrol_frequency': 3

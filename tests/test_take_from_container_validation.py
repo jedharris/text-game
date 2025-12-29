@@ -36,7 +36,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
             name="table",
             description="A wooden table",
             location=location_id,
-            properties={
+            _properties={
                 "portable": False,
                 "container": {
                     "is_surface": True,
@@ -51,7 +51,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
             name="key",
             description="A brass key on the table.",
             location="item_table_container",  # On the table
-            properties={"portable": True}
+            _properties={"portable": True}
         )
 
         # Add a chest (enclosed container)
@@ -60,7 +60,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
             name="chest",
             description="A wooden chest",
             location=location_id,
-            properties={
+            _properties={
                 "portable": False,
                 "container": {
                     "is_surface": False,
@@ -76,7 +76,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
             name="ring",
             description="A gold ring in the chest.",
             location="item_chest",  # In the chest
-            properties={"portable": True}
+            _properties={"portable": True}
         )
 
         # Add items directly in room (not in containers)
@@ -85,7 +85,7 @@ class TestTakeFromContainerValidation(unittest.TestCase):
             name="coin",
             description="A silver coin on the floor.",
             location=location_id,
-            properties={"portable": True}
+            _properties={"portable": True}
         )
 
         self.game_state.items.append(table)
@@ -198,7 +198,7 @@ class TestTakeFromContainerWithAdjective(unittest.TestCase):
             name="table",
             description="A rough wooden table",
             location=location_id,
-            properties={
+            _properties={
                 "portable": False,
                 "container": {"is_surface": True, "capacity": 5}
             }
@@ -209,7 +209,7 @@ class TestTakeFromContainerWithAdjective(unittest.TestCase):
             name="table",
             description="A polished marble table",
             location=location_id,
-            properties={
+            _properties={
                 "portable": False,
                 "container": {"is_surface": True, "capacity": 5}
             }
@@ -221,7 +221,7 @@ class TestTakeFromContainerWithAdjective(unittest.TestCase):
             name="key",
             description="An iron key",
             location="item_wooden_table",
-            properties={"portable": True}
+            _properties={"portable": True}
         )
 
         gold_key = Item(
@@ -229,7 +229,7 @@ class TestTakeFromContainerWithAdjective(unittest.TestCase):
             name="key",
             description="A gold key",
             location="item_marble_table",
-            properties={"portable": True}
+            _properties={"portable": True}
         )
 
         self.game_state.items.append(wooden_table)

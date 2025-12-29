@@ -26,7 +26,7 @@ class TestStateAccessorParts(unittest.TestCase):
             id="part_room_north_wall",
             name="north wall",
             part_of="loc_room",
-            properties={"material": "stone"}
+            _properties={"material": "stone"}
         )
 
         self.item = Item(

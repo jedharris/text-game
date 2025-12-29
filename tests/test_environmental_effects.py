@@ -21,7 +21,7 @@ class TestNeedsBreath(unittest.TestCase):
             description="Test",
             location="loc_test",
             inventory=[],
-            properties={}
+            _properties={}
         )
 
         self.assertTrue(needs_breath(actor))
@@ -36,7 +36,7 @@ class TestNeedsBreath(unittest.TestCase):
             description="A golem",
             location="loc_test",
             inventory=[],
-            properties={"body": {"form": "construct"}}
+            _properties={"body": {"form": "construct"}}
         )
 
         self.assertFalse(needs_breath(actor))
@@ -59,7 +59,7 @@ class TestCheckBreath(unittest.TestCase):
             description="Test",
             location="loc_flooded",
             inventory=[],
-            properties={
+            _properties={
                 "health": 100,
                 "breath": 60,
                 "max_breath": 60
@@ -70,14 +70,14 @@ class TestCheckBreath(unittest.TestCase):
             id="part_air",
             name="air pocket",
             part_of="loc_flooded",
-            properties={"breathable": True}
+            _properties={"breathable": True}
         )
 
         self.underwater_part = Part(
             id="part_underwater",
             name="underwater",
             part_of="loc_flooded",
-            properties={"breathable": False}
+            _properties={"breathable": False}
         )
 
     def test_check_breath_breathable_restores(self):
@@ -136,7 +136,7 @@ class TestCheckBreath(unittest.TestCase):
             description="A golem",
             location="loc_flooded",
             inventory=[],
-            properties={"body": {"form": "construct"}}
+            _properties={"body": {"form": "construct"}}
         )
 
         result = check_breath(construct, self.underwater_part)
@@ -173,7 +173,7 @@ class TestCheckBreath(unittest.TestCase):
             id="part_deep",
             name="deep water",
             part_of="loc_flooded",
-            properties={"breathable": False, "breathing_item_works": False}
+            _properties={"breathable": False, "breathing_item_works": False}
         )
 
         mock_accessor = Mock()
@@ -196,7 +196,7 @@ class TestCheckBreath(unittest.TestCase):
             description="Test",
             location="loc_test",
             inventory=[],
-            properties={"health": 100}
+            _properties={"health": 100}
         )
 
         result = check_breath(actor, self.underwater_part)
@@ -217,7 +217,7 @@ class TestCheckSpores(unittest.TestCase):
             description="Test",
             location="loc_basement",
             inventory=[],
-            properties={"health": 100}
+            _properties={"health": 100}
         )
 
     def test_check_spores_none(self):
@@ -228,7 +228,7 @@ class TestCheckSpores(unittest.TestCase):
             id="part_safe",
             name="safe area",
             part_of="loc_basement",
-            properties={"spore_level": "none"}
+            _properties={"spore_level": "none"}
         )
 
         result = check_spores(self.actor, part)
@@ -244,7 +244,7 @@ class TestCheckSpores(unittest.TestCase):
             id="part_low",
             name="low spore area",
             part_of="loc_basement",
-            properties={"spore_level": "low"}
+            _properties={"spore_level": "low"}
         )
 
         result = check_spores(self.actor, part)
@@ -264,7 +264,7 @@ class TestCheckSpores(unittest.TestCase):
             id="part_med",
             name="medium spore area",
             part_of="loc_basement",
-            properties={"spore_level": "medium"}
+            _properties={"spore_level": "medium"}
         )
 
         result = check_spores(self.actor, part)
@@ -282,7 +282,7 @@ class TestCheckSpores(unittest.TestCase):
             id="part_high",
             name="high spore area",
             part_of="loc_basement",
-            properties={"spore_level": "high"}
+            _properties={"spore_level": "high"}
         )
 
         result = check_spores(self.actor, part)
@@ -305,7 +305,7 @@ class TestCheckSpores(unittest.TestCase):
             id="part_low",
             name="low spore area",
             part_of="loc_basement",
-            properties={"spore_level": "low"}
+            _properties={"spore_level": "low"}
         )
 
         result = check_spores(self.actor, part)
@@ -325,14 +325,14 @@ class TestCheckSpores(unittest.TestCase):
             description="A golem",
             location="loc_basement",
             inventory=[],
-            properties={"body": {"form": "construct"}}
+            _properties={"body": {"form": "construct"}}
         )
 
         part = Part(
             id="part_high",
             name="high spore area",
             part_of="loc_basement",
-            properties={"spore_level": "high"}
+            _properties={"spore_level": "high"}
         )
 
         result = check_spores(construct, part)
@@ -348,7 +348,7 @@ class TestCheckSpores(unittest.TestCase):
             id="part_normal",
             name="normal area",
             part_of="loc_basement",
-            properties={}
+            _properties={}
         )
 
         result = check_spores(self.actor, part)
@@ -367,7 +367,7 @@ class TestCheckTemperature(unittest.TestCase):
             description="Test",
             location="loc_test",
             inventory=[],
-            properties={"health": 100}
+            _properties={"health": 100}
         )
 
     def test_check_temperature_normal(self):
@@ -378,7 +378,7 @@ class TestCheckTemperature(unittest.TestCase):
             id="part_normal",
             name="normal area",
             part_of="loc_test",
-            properties={"temperature": "normal"}
+            _properties={"temperature": "normal"}
         )
 
         result = check_temperature(self.actor, part)
@@ -393,7 +393,7 @@ class TestCheckTemperature(unittest.TestCase):
             id="part_cold",
             name="cold area",
             part_of="loc_test",
-            properties={"temperature": "freezing"}
+            _properties={"temperature": "freezing"}
         )
 
         result = check_temperature(self.actor, part)
@@ -410,7 +410,7 @@ class TestCheckTemperature(unittest.TestCase):
             id="part_hot",
             name="hot area",
             part_of="loc_test",
-            properties={"temperature": "burning"}
+            _properties={"temperature": "burning"}
         )
 
         result = check_temperature(self.actor, part)
@@ -427,14 +427,14 @@ class TestCheckTemperature(unittest.TestCase):
             description="A golem",
             location="loc_test",
             inventory=[],
-            properties={"body": {"form": "construct"}}
+            _properties={"body": {"form": "construct"}}
         )
 
         part = Part(
             id="part_cold",
             name="cold area",
             part_of="loc_test",
-            properties={"temperature": "freezing"}
+            _properties={"temperature": "freezing"}
         )
 
         result = check_temperature(construct, part)
@@ -449,7 +449,7 @@ class TestCheckTemperature(unittest.TestCase):
             id="part_normal",
             name="normal area",
             part_of="loc_test",
-            properties={}
+            _properties={}
         )
 
         result = check_temperature(self.actor, part)
@@ -468,7 +468,7 @@ class TestApplyEnvironmentalEffects(unittest.TestCase):
             description="Test",
             location="loc_hazard",
             inventory=[],
-            properties={
+            _properties={
                 "health": 100,
                 "breath": 60,
                 "max_breath": 60
@@ -479,7 +479,7 @@ class TestApplyEnvironmentalEffects(unittest.TestCase):
             id="part_hazard",
             name="hazardous area",
             part_of="loc_hazard",
-            properties={
+            _properties={
                 "breathable": False,
                 "spore_level": "medium",
                 "temperature": "freezing"
@@ -534,7 +534,7 @@ class TestOnEnvironmentalEffect(unittest.TestCase):
             description="Test",
             location="loc_flooded",
             inventory=[],
-            properties={
+            _properties={
                 "health": 100,
                 "breath": 60,
                 "max_breath": 60,
@@ -548,7 +548,7 @@ class TestOnEnvironmentalEffect(unittest.TestCase):
             description="A sailor",
             location="loc_flooded",
             inventory=[],
-            properties={
+            _properties={
                 "health": 80,
                 "breath": 30,
                 "max_breath": 60,
@@ -560,14 +560,14 @@ class TestOnEnvironmentalEffect(unittest.TestCase):
             id="part_underwater",
             name="underwater",
             part_of="loc_flooded",
-            properties={"breathable": False}
+            _properties={"breathable": False}
         )
 
         location = Location(
             id="loc_flooded",
             name="Flooded Tunnel",
             description="A flooded tunnel",
-            properties={"default_part": "part_underwater"}
+            _properties={"default_part": "part_underwater"}
         )
 
         game_state = GameState(
@@ -603,7 +603,7 @@ class TestOnEnvironmentalEffect(unittest.TestCase):
             description="Test",
             location="loc_room",
             inventory=[],
-            properties={"health": 100, "breath": 60}
+            _properties={"health": 100, "breath": 60}
         )
 
         # Non-spatial location (no parts)

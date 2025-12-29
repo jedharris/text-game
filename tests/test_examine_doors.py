@@ -82,14 +82,14 @@ class TestExamineDoor(unittest.TestCase):
             name="door",
             description="A simple wooden door with iron hinges.",
             location=f"exit:{location_id}:north",
-            properties={"door": {"open": False, "locked": False}}
+            _properties={"door": {"open": False, "locked": False}}
         )
         iron_door = Item(
             id="door_iron",
             name="door",
             description="A heavy iron door with a sturdy lock.",
             location=f"exit:{location_id}:east",
-            properties={"door": {"open": False, "locked": True}}
+            _properties={"door": {"open": False, "locked": True}}
         )
         self.game_state.items.append(wooden_door)
         self.game_state.items.append(iron_door)
@@ -175,7 +175,7 @@ class TestExamineDoor(unittest.TestCase):
             name="door",
             description="A small decorative door ornament.",
             location=player.location,
-            properties={"portable": True}
+            _properties={"portable": True}
         )
         self.game_state.items.append(door_item)
 
@@ -231,14 +231,14 @@ class TestExamineDoorWithDirectionAdjective(unittest.TestCase):
             name="door",
             description="A simple wooden door with iron hinges.",
             location=f"exit:{location_id}:north",
-            properties={"door": {"open": False, "locked": False}}
+            _properties={"door": {"open": False, "locked": False}}
         )
         iron_door = Item(
             id="door_iron",
             name="door",
             description="A heavy iron door with a sturdy lock.",
             location=f"exit:{location_id}:east",
-            properties={"door": {"open": False, "locked": True}}
+            _properties={"door": {"open": False, "locked": True}}
         )
         self.game_state.items.append(wooden_door)
         self.game_state.items.append(iron_door)

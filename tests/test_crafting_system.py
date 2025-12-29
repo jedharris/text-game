@@ -160,7 +160,7 @@ class TestCheckRequirements(unittest.TestCase):
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='anywhere', inventory=[],
-            properties={'skills': []}
+            _properties={'skills': []}
         )
 
         accessor = StateAccessor(state, Mock())
@@ -184,7 +184,7 @@ class TestCheckRequirements(unittest.TestCase):
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='anywhere', inventory=[],
-            properties={'skills': ['herbalism']}
+            _properties={'skills': ['herbalism']}
         )
 
         accessor = StateAccessor(state, Mock())

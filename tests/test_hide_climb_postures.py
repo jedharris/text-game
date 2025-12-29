@@ -30,7 +30,7 @@ class TestHideCommand(unittest.TestCase):
             name="wardrobe",
             description="A large wardrobe",
             location="loc_room",
-            properties={
+            _properties={
                 "portable": False,
                 "allows_concealment": True
             }
@@ -42,7 +42,7 @@ class TestHideCommand(unittest.TestCase):
             name="table",
             description="A wooden table",
             location="loc_room",
-            properties={"portable": False}
+            _properties={"portable": False}
         )
 
         self.game_state = GameState(
@@ -142,7 +142,7 @@ class TestClimbCommand(unittest.TestCase):
             name="ladder",
             description="A wooden ladder",
             location="loc_room",
-            properties={
+            _properties={
                 "portable": False,
                 "climbable": True
             }
@@ -154,7 +154,7 @@ class TestClimbCommand(unittest.TestCase):
             name="desk",
             description="A wooden desk",
             location="loc_room",
-            properties={"portable": False}
+            _properties={"portable": False}
         )
 
         self.game_state = GameState(

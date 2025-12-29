@@ -203,7 +203,7 @@ class TestDirectionHandlerChain(unittest.TestCase):
                 description="The player",
                 location="room",
                 inventory=[],
-                properties={"posture": "climbing", "focused_on": "tree"}
+                _properties={"posture": "climbing", "focused_on": "tree"}
             )}
         )
 

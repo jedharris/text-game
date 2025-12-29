@@ -45,7 +45,7 @@ class TestPhase9EntityBehaviors(unittest.TestCase):
             name="test item",
             description="A test item",
             location="location_room",
-            properties={"portable": True},
+            _properties={"portable": True},
             behaviors=["test_behavior"]
         )
         state.items.append(item)
@@ -88,7 +88,7 @@ class TestPhase9EntityBehaviors(unittest.TestCase):
             name="test item",
             description="A test item",
             location="location_room",
-            properties={"portable": True},
+            _properties={"portable": True},
             behaviors=["behavior1", "behavior2"]
         )
         state.items.append(item)
@@ -131,7 +131,7 @@ class TestPhase9EntityBehaviors(unittest.TestCase):
             name="test item",
             description="A test item",
             location="location_room",
-            properties={"portable": True},
+            _properties={"portable": True},
             behaviors=["behavior1", "behavior2"]
         )
         state.items.append(item)
@@ -171,7 +171,7 @@ class TestPhase9EntityBehaviors(unittest.TestCase):
             name="test item",
             description="A test item",
             location="location_room",
-            properties={"portable": True},
+            _properties={"portable": True},
             behaviors=["test_behavior"]
         )
         state.items.append(item)
@@ -200,7 +200,7 @@ class TestPhase9EntityBehaviors(unittest.TestCase):
             name="test item",
             description="A test item",
             location="location_room",
-            properties={"portable": True},
+            _properties={"portable": True},
             behaviors=[]
         )
         state.items.append(item)
@@ -227,7 +227,7 @@ class TestPhase9EntityBehaviors(unittest.TestCase):
             name="test item",
             description="A test item",
             location="location_room",
-            properties={"portable": True},
+            _properties={"portable": True},
             behaviors=[]
         )
         state.items.append(item)
@@ -259,7 +259,7 @@ class TestPhase9EntityBehaviors(unittest.TestCase):
             name="test item",
             description="A test item",
             location="location_room",
-            properties={"portable": True},
+            _properties={"portable": True},
             behaviors=["test_behavior"]
         )
         state.items.append(item)
@@ -292,7 +292,7 @@ class TestPhase9EntityBehaviors(unittest.TestCase):
             name="test item",
             description="A test item",
             location="location_room",
-            properties={"portable": True},
+            _properties={"portable": True},
             behaviors=["test_behavior"]
         )
         state.items.append(item)

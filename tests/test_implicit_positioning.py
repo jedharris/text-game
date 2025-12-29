@@ -32,7 +32,7 @@ class TestInteractionDistanceProperty(unittest.TestCase):
             name="desk",
             description="A desk",
             location="loc_room",
-            properties={"interaction_distance": "near"}
+            _properties={"interaction_distance": "near"}
         )
 
         distance = item.properties.get("interaction_distance", "any")
@@ -44,7 +44,7 @@ class TestInteractionDistanceProperty(unittest.TestCase):
             id="part_wall",
             name="wall",
             part_of="loc_room",
-            properties={"interaction_distance": "near"}
+            _properties={"interaction_distance": "near"}
         )
 
         distance = part.properties.get("interaction_distance", "any")
@@ -79,7 +79,7 @@ class TestImplicitPositioningExamine(unittest.TestCase):
             name="desk",
             description="A wooden desk",
             location="loc_room",
-            properties={"interaction_distance": "near"}
+            _properties={"interaction_distance": "near"}
         )
 
         # Part with "near" distance
@@ -87,7 +87,7 @@ class TestImplicitPositioningExamine(unittest.TestCase):
             id="part_room_north_wall",
             name="north wall",
             part_of="loc_room",
-            properties={
+            _properties={
                 "description": "A stone wall",
                 "interaction_distance": "near"
             }

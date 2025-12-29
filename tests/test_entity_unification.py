@@ -30,7 +30,7 @@ class TestItemDoorProperties(unittest.TestCase):
         item = Item(
             id="door_1", name="door", description="A door",
             location="loc_room",
-            properties={"door": {"open": False}}
+            _properties={"door": {"open": False}}
         )
         self.assertTrue(item.is_door)
 
@@ -39,7 +39,7 @@ class TestItemDoorProperties(unittest.TestCase):
         item = Item(
             id="sword", name="sword", description="A sword",
             location="loc_room",
-            properties={"portable": True}
+            _properties={"portable": True}
         )
         self.assertFalse(item.is_door)
 
@@ -48,7 +48,7 @@ class TestItemDoorProperties(unittest.TestCase):
         item = Item(
             id="door_1", name="door", description="A door",
             location="loc_room",
-            properties={"door": {"open": True}}
+            _properties={"door": {"open": True}}
         )
         self.assertTrue(item.door_open)
 
@@ -56,7 +56,7 @@ class TestItemDoorProperties(unittest.TestCase):
         """door_open returns False for non-doors."""
         item = Item(
             id="sword", name="sword", description="A sword",
-            location="loc_room", properties={}
+            location="loc_room", _properties={}
         )
         self.assertFalse(item.door_open)
 
@@ -65,7 +65,7 @@ class TestItemDoorProperties(unittest.TestCase):
         item = Item(
             id="door_1", name="door", description="A door",
             location="loc_room",
-            properties={"door": {"open": False}}
+            _properties={"door": {"open": False}}
         )
         item.door_open = True
         self.assertTrue(item.properties["door"]["open"])
@@ -74,7 +74,7 @@ class TestItemDoorProperties(unittest.TestCase):
         """door_open setter creates door dict if missing."""
         item = Item(
             id="door_1", name="door", description="A door",
-            location="loc_room", properties={}
+            location="loc_room", _properties={}
         )
         item.door_open = True
         self.assertTrue(item.properties["door"]["open"])
@@ -84,7 +84,7 @@ class TestItemDoorProperties(unittest.TestCase):
         item = Item(
             id="door_1", name="door", description="A door",
             location="loc_room",
-            properties={"door": {"locked": True}}
+            _properties={"door": {"locked": True}}
         )
         self.assertTrue(item.door_locked)
 
@@ -92,7 +92,7 @@ class TestItemDoorProperties(unittest.TestCase):
         """door_locked returns False for non-doors."""
         item = Item(
             id="sword", name="sword", description="A sword",
-            location="loc_room", properties={}
+            location="loc_room", _properties={}
         )
         self.assertFalse(item.door_locked)
 
@@ -101,7 +101,7 @@ class TestItemDoorProperties(unittest.TestCase):
         item = Item(
             id="door_1", name="door", description="A door",
             location="loc_room",
-            properties={"door": {"locked": True}}
+            _properties={"door": {"locked": True}}
         )
         item.door_locked = False
         self.assertFalse(item.properties["door"]["locked"])
@@ -110,7 +110,7 @@ class TestItemDoorProperties(unittest.TestCase):
         """door_locked setter creates door dict if missing."""
         item = Item(
             id="door_1", name="door", description="A door",
-            location="loc_room", properties={}
+            location="loc_room", _properties={}
         )
         item.door_locked = True
         self.assertTrue(item.properties["door"]["locked"])
@@ -120,7 +120,7 @@ class TestItemDoorProperties(unittest.TestCase):
         item = Item(
             id="door_1", name="door", description="A door",
             location="loc_room",
-            properties={"door": {"lock_id": "lock_1"}}
+            _properties={"door": {"lock_id": "lock_1"}}
         )
         self.assertEqual(item.door_lock_id, "lock_1")
 
@@ -129,7 +129,7 @@ class TestItemDoorProperties(unittest.TestCase):
         item = Item(
             id="door_1", name="door", description="A door",
             location="loc_room",
-            properties={"door": {"open": False}}
+            _properties={"door": {"open": False}}
         )
         self.assertIsNone(item.door_lock_id)
 
@@ -137,7 +137,7 @@ class TestItemDoorProperties(unittest.TestCase):
         """door_lock_id returns None for non-doors."""
         item = Item(
             id="sword", name="sword", description="A sword",
-            location="loc_room", properties={}
+            location="loc_room", _properties={}
         )
         self.assertIsNone(item.door_lock_id)
 
@@ -176,14 +176,14 @@ class TestStateAccessorDoorMethods(unittest.TestCase):
                     name="door",
                     description="A door.",
                     location="exit:loc_room:north",
-                    properties={"door": {"open": False}}
+                    _properties={"door": {"open": False}}
                 ),
                 Item(
                     id="item_sword",
                     name="sword",
                     description="A sword.",
                     location="loc_room",
-                    properties={}
+                    _properties={}
                 )
             ],
             actors={"player": Actor(
@@ -276,7 +276,7 @@ class TestDoorVisibility(unittest.TestCase):
                     name="door",
                     description="A wooden door.",
                     location="exit:loc_room1:east",
-                    properties={"door": {"open": False}}
+                    _properties={"door": {"open": False}}
                 )
             ],
             actors={"player": Actor(
@@ -319,7 +319,7 @@ class TestDoorVisibility(unittest.TestCase):
             name="door",
             description="An ornate door on the wall.",
             location="loc_room1",
-            properties={"door": {"open": False}}
+            _properties={"door": {"open": False}}
         ))
 
         from utilities.utils import gather_location_contents
@@ -363,21 +363,21 @@ class TestFindAccessibleItemWithDoors(unittest.TestCase):
                     name="door",
                     description="A heavy iron door.",
                     location="exit:loc_room:north",
-                    properties={"door": {"open": False}}
+                    _properties={"door": {"open": False}}
                 ),
                 Item(
                     id="door_wooden",
                     name="door",
                     description="A wooden door.",
                     location="exit:loc_room:south",
-                    properties={"door": {"open": False}}
+                    _properties={"door": {"open": False}}
                 ),
                 Item(
                     id="item_key",
                     name="key",
                     description="A small key.",
                     location="loc_room",
-                    properties={"portable": True}
+                    _properties={"portable": True}
                 )
             ],
             actors={"player": Actor(
@@ -473,14 +473,14 @@ class TestHiddenDoors(unittest.TestCase):
                     name="door",
                     description="A normal door.",
                     location="exit:loc_library:north",
-                    properties={"door": {"open": False}}
+                    _properties={"door": {"open": False}}
                 ),
                 Item(
                     id="door_secret",
                     name="door",
                     description="A hidden door behind the bookshelf.",
                     location="exit:loc_library:east",
-                    properties={"door": {"open": False}, "states": {"hidden": True}}
+                    _properties={"door": {"open": False}, "states": {"hidden": True}}
                 )
             ],
             actors={"player": Actor(
@@ -557,7 +557,7 @@ class TestOpenCloseDoorItems(unittest.TestCase):
                     name="door",
                     description="A wooden door.",
                     location="exit:loc_room:north",
-                    properties={"door": {"open": False, "locked": False}}
+                    _properties={"door": {"open": False, "locked": False}}
                 )
             ],
             actors={"player": Actor(
@@ -648,7 +648,7 @@ class TestLockUnlockDoorItems(unittest.TestCase):
                     name="door",
                     description="An iron door.",
                     location="exit:loc_room:north",
-                    properties={
+                    _properties={
                         "door": {"open": False, "locked": True, "lock_id": "lock_1"}
                     }
                 ),
@@ -657,11 +657,11 @@ class TestLockUnlockDoorItems(unittest.TestCase):
                     name="key",
                     description="An iron key.",
                     location="player",
-                    properties={"portable": True}
+                    _properties={"portable": True}
                 )
             ],
             locks=[
-                Lock(id="lock_1", name="test lock", description="A test lock", properties={"opens_with": ["item_key"]})
+                Lock(id="lock_1", name="test lock", description="A test lock", _properties={"opens_with": ["item_key"]})
             ],
             actors={"player": Actor(
                 id="player", name="Adventurer", description="The player",
@@ -760,7 +760,7 @@ class TestMovementThroughDoorItems(unittest.TestCase):
                     name="door",
                     description="A heavy door.",
                     location="exit:loc_room1:north",
-                    properties={"door": {"open": False, "locked": False}}
+                    _properties={"door": {"open": False, "locked": False}}
                 )
             ],
             actors={"player": Actor(

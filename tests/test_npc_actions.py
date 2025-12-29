@@ -19,7 +19,7 @@ class TestNPCTakeAction(unittest.TestCase):
             description="Test player",
             location="loc_room",
             inventory=[],
-            properties={"health": 100, "max_health": 100}
+            _properties={"health": 100, "max_health": 100}
         )
 
         self.hostile_npc = Actor(
@@ -28,7 +28,7 @@ class TestNPCTakeAction(unittest.TestCase):
             description="A hostile wolf",
             location="loc_room",
             inventory=[],
-            properties={
+            _properties={
                 "health": 50,
                 "ai": {"disposition": "hostile"},
                 "attacks": [
@@ -43,7 +43,7 @@ class TestNPCTakeAction(unittest.TestCase):
             description="A neutral scholar",
             location="loc_room",
             inventory=[],
-            properties={
+            _properties={
                 "health": 40,
                 "ai": {"disposition": "neutral"}
             }
@@ -163,7 +163,7 @@ class TestNPCTakeAction(unittest.TestCase):
             description="An unarmed bandit",
             location="loc_room",
             inventory=[],
-            properties={
+            _properties={
                 "ai": {"disposition": "hostile"}
             }
         )
@@ -196,7 +196,7 @@ class TestNPCTakeAction(unittest.TestCase):
             description="A guard with no AI defined",
             location="loc_room",
             inventory=[],
-            properties={"health": 50}  # No ai property
+            _properties={"health": 50}  # No ai property
         )
 
         game_state = GameState(
@@ -230,7 +230,7 @@ class TestFireNPCActions(unittest.TestCase):
             description="Test",
             location="loc_room1",
             inventory=[],
-            properties={"health": 100}
+            _properties={"health": 100}
         )
 
         self.wolf = Actor(
@@ -239,7 +239,7 @@ class TestFireNPCActions(unittest.TestCase):
             description="A wolf",
             location="loc_room1",
             inventory=[],
-            properties={
+            _properties={
                 "health": 50,
                 "ai": {"disposition": "hostile"},
                 "attacks": [{"name": "bite", "damage": 5}]
@@ -252,7 +252,7 @@ class TestFireNPCActions(unittest.TestCase):
             description="A rat in another room",
             location="loc_room2",
             inventory=[],
-            properties={
+            _properties={
                 "health": 10,
                 "ai": {"disposition": "hostile"},
                 "attacks": [{"name": "nibble", "damage": 2}]
@@ -304,7 +304,7 @@ class TestFireNPCActions(unittest.TestCase):
             description="The pack leader",
             location="loc_room1",
             inventory=[],
-            properties={
+            _properties={
                 "health": 80,
                 "ai": {"disposition": "hostile", "pack_role": "alpha"},
                 "attacks": [{"name": "savage_bite", "damage": 15}]
@@ -317,7 +317,7 @@ class TestFireNPCActions(unittest.TestCase):
             description="A pack follower",
             location="loc_room1",
             inventory=[],
-            properties={
+            _properties={
                 "health": 50,
                 "ai": {"disposition": "hostile", "pack_role": "follower"},
                 "attacks": [{"name": "bite", "damage": 10}]
@@ -393,7 +393,7 @@ class TestFireNPCActions(unittest.TestCase):
             description="Another wolf",
             location="loc_room1",
             inventory=[],
-            properties={
+            _properties={
                 "health": 50,
                 "ai": {"disposition": "hostile"},
                 "attacks": [{"name": "bite", "damage": 5}]

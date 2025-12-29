@@ -30,7 +30,7 @@ class TestOpenCloseImplicitPositioning(unittest.TestCase):
             name="bag",
             description="A leather bag",
             location="loc_room",
-            properties={
+            _properties={
                 "portable": True,
                 "container": {
                     "is_surface": False,
@@ -46,7 +46,7 @@ class TestOpenCloseImplicitPositioning(unittest.TestCase):
             name="chest",
             description="A large chest",
             location="loc_room",
-            properties={
+            _properties={
                 "portable": False,
                 "interaction_distance": "near",
                 "container": {
@@ -63,7 +63,7 @@ class TestOpenCloseImplicitPositioning(unittest.TestCase):
             name="cabinet",
             description="A wooden cabinet",
             location="loc_room",
-            properties={
+            _properties={
                 "portable": False,
                 "interaction_distance": "near",
                 "container": {

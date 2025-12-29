@@ -20,7 +20,7 @@ class TestGetAvailableServices(unittest.TestCase):
             description="A healer",
             location="loc_test",
             inventory=[],
-            properties={
+            _properties={
                 "services": {
                     "cure": {"accepts": ["gold"], "amount_required": 5, "cure_amount": 100},
                     "heal": {"accepts": ["gold"], "amount_required": 3, "restore_amount": 50}
@@ -44,7 +44,7 @@ class TestGetAvailableServices(unittest.TestCase):
             description="A guard",
             location="loc_test",
             inventory=[],
-            properties={}
+            _properties={}
         )
 
         services = get_available_services(npc)
@@ -71,7 +71,7 @@ class TestGetServiceCost(unittest.TestCase):
             description="A healer",
             location="loc_test",
             inventory=[],
-            properties={
+            _properties={
                 "services": {
                     "cure": {"accepts": ["gold"], "amount_required": 10, "cure_amount": 100}
                 }
@@ -84,7 +84,7 @@ class TestGetServiceCost(unittest.TestCase):
             description="Test",
             location="loc_test",
             inventory=[],
-            properties={}
+            _properties={}
         )
 
     def test_get_service_cost_base(self):
@@ -140,7 +140,7 @@ class TestCanAffordService(unittest.TestCase):
             description="A healer",
             location="loc_test",
             inventory=[],
-            properties={
+            _properties={
                 "services": {
                     "cure": {"accepts": ["gold"], "amount_required": 5, "cure_amount": 100}
                 }
@@ -153,7 +153,7 @@ class TestCanAffordService(unittest.TestCase):
             description="Test",
             location="loc_test",
             inventory=["item_gold"],
-            properties={}
+            _properties={}
         )
 
         self.gold = Item(
@@ -161,7 +161,7 @@ class TestCanAffordService(unittest.TestCase):
             name="gold",
             description="Gold coins",
             location="player",
-            properties={"type": "gold", "amount": 10}
+            _properties={"type": "gold", "amount": 10}
         )
 
         self.location = Location(
@@ -221,7 +221,7 @@ class TestCanAffordService(unittest.TestCase):
             name="herb",
             description="An herb",
             location="player",
-            properties={"type": "herb", "amount": 10}
+            _properties={"type": "herb", "amount": 10}
         )
 
         self.customer.inventory = ["item_herb"]
@@ -253,7 +253,7 @@ class TestExecuteService(unittest.TestCase):
             description="A healer",
             location="loc_test",
             inventory=[],
-            properties={
+            _properties={
                 "services": {
                     "cure": {"accepts": ["gold"], "amount_required": 5, "cure_amount": 100},
                     "teach_herbalism": {"accepts": ["gold"], "amount_required": 10, "grants": "herbalism"},
@@ -268,7 +268,7 @@ class TestExecuteService(unittest.TestCase):
             description="Test",
             location="loc_test",
             inventory=["item_gold"],
-            properties={
+            _properties={
                 "health": 50,
                 "max_health": 100,
                 "conditions": {
@@ -282,7 +282,7 @@ class TestExecuteService(unittest.TestCase):
             name="gold",
             description="Gold coins",
             location="player",
-            properties={"type": "gold", "amount": 20}
+            _properties={"type": "gold", "amount": 20}
         )
 
         self.location = Location(
@@ -406,7 +406,7 @@ class TestExecuteService(unittest.TestCase):
             name="herb",
             description="An herb",
             location="player",
-            properties={"type": "herb", "amount": 100}
+            _properties={"type": "herb", "amount": 100}
         )
 
         self.customer.inventory = ["item_herb"]

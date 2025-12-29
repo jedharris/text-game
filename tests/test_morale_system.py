@@ -18,7 +18,7 @@ class TestGetMorale(unittest.TestCase):
             description="A goblin",
             location="loc_cave",
             inventory=[],
-            properties={
+            _properties={
                 "health": 50,
                 "max_health": 100,
                 "base_morale": 100,
@@ -32,7 +32,7 @@ class TestGetMorale(unittest.TestCase):
             description="The player",
             location="loc_cave",
             inventory=[],
-            properties={"disposition": "hostile"}
+            _properties={"disposition": "hostile"}
         )
 
         self.ally = Actor(
@@ -41,7 +41,7 @@ class TestGetMorale(unittest.TestCase):
             description="Another goblin",
             location="loc_cave",
             inventory=[],
-            properties={
+            _properties={
                 "pack_id": "goblin_pack",
                 "disposition": "hostile"
             }
@@ -162,7 +162,7 @@ class TestGetMorale(unittest.TestCase):
             description="Pack leader",
             location="loc_cave",
             inventory=[],
-            properties={
+            _properties={
                 "pack_id": "goblin_pack",
                 "pack_role": "alpha"
             }
@@ -225,7 +225,7 @@ class TestGetMorale(unittest.TestCase):
                 description="An enemy",
                 location="loc_cave",
                 inventory=[],
-                properties={"disposition": "hostile"}
+                _properties={"disposition": "hostile"}
             )
 
         game_state = GameState(
@@ -255,7 +255,7 @@ class TestCheckFleeCondition(unittest.TestCase):
             description="A goblin",
             location="loc_cave",
             inventory=[],
-            properties={
+            _properties={
                 "health": 100,
                 "max_health": 100,
                 "base_morale": 100,
@@ -368,7 +368,7 @@ class TestAttemptFlee(unittest.TestCase):
             description="A goblin",
             location="loc_cave",
             inventory=[],
-            properties={
+            _properties={
                 "health": 20,
                 "max_health": 100,
                 "base_morale": 100,
@@ -474,7 +474,7 @@ class TestAttemptFlee(unittest.TestCase):
             name="door",
             description="A locked door",
             location="exit:loc_cave:north",
-            properties={"door": {"open": False, "locked": True}}
+            _properties={"door": {"open": False, "locked": True}}
         )
 
         game_state = GameState(
@@ -522,7 +522,7 @@ class TestGetAlliesAndEnemies(unittest.TestCase):
             description="A goblin",
             location="loc_cave",
             inventory=[],
-            properties={
+            _properties={
                 "pack_id": "goblin_pack",
                 "disposition": "hostile"
             }
@@ -534,7 +534,7 @@ class TestGetAlliesAndEnemies(unittest.TestCase):
             description="Another goblin",
             location="loc_cave",
             inventory=[],
-            properties={
+            _properties={
                 "pack_id": "goblin_pack",
                 "disposition": "hostile"
             }
@@ -546,7 +546,7 @@ class TestGetAlliesAndEnemies(unittest.TestCase):
             description="The player",
             location="loc_cave",
             inventory=[],
-            properties={}
+            _properties={}
         )
 
         self.neutral = Actor(
@@ -555,7 +555,7 @@ class TestGetAlliesAndEnemies(unittest.TestCase):
             description="A rat",
             location="loc_cave",
             inventory=[],
-            properties={"disposition": "neutral"}
+            _properties={"disposition": "neutral"}
         )
 
         self.location = Location(

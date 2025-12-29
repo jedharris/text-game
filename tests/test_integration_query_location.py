@@ -44,7 +44,7 @@ class TestLocationQueryRefactoring(unittest.TestCase):
         """
         # Add NPC to same location as player
         npc = Actor(id="npc_guard", name="guard", description="A guard",
-                   location="location_room", inventory=[], properties={}, behaviors=[])
+                   location="location_room", inventory=[], _properties={}, behaviors=[])
         self.game_state.actors[ActorId("npc_guard")] = npc
 
         message = {
@@ -66,7 +66,7 @@ class TestLocationQueryRefactoring(unittest.TestCase):
         NPC should see player but not themselves.
         """
         npc = Actor(id="npc_guard", name="guard", description="A guard",
-                   location="location_room", inventory=[], properties={}, behaviors=[])
+                   location="location_room", inventory=[], _properties={}, behaviors=[])
         self.game_state.actors[ActorId("npc_guard")] = npc
 
         message = {
@@ -85,7 +85,7 @@ class TestLocationQueryRefactoring(unittest.TestCase):
     def test_query_location_default_actor_is_player(self):
         """Test that missing actor_id defaults to player."""
         npc = Actor(id="npc_guard", name="guard", description="A guard",
-                   location="location_room", inventory=[], properties={}, behaviors=[])
+                   location="location_room", inventory=[], _properties={}, behaviors=[])
         self.game_state.actors[ActorId("npc_guard")] = npc
 
         message = {

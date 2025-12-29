@@ -20,7 +20,7 @@ class TestGetTreatableConditions(unittest.TestCase):
             name="Antidote",
             description="Cures poison",
             location="loc_test",
-            properties={"cures": ["poison", "venom"]}
+            _properties={"cures": ["poison", "venom"]}
         )
 
         conditions = get_treatable_conditions(item)
@@ -37,7 +37,7 @@ class TestGetTreatableConditions(unittest.TestCase):
             name="Sword",
             description="A sword",
             location="loc_test",
-            properties={}
+            _properties={}
         )
 
         conditions = get_treatable_conditions(item)
@@ -65,7 +65,7 @@ class TestCanTreat(unittest.TestCase):
             name="Antidote",
             description="Cures poison",
             location="loc_test",
-            properties={"cures": ["poison"]}
+            _properties={"cures": ["poison"]}
         )
 
         self.assertTrue(can_treat(item, "poison"))
@@ -79,7 +79,7 @@ class TestCanTreat(unittest.TestCase):
             name="Antidote",
             description="Cures poison",
             location="loc_test",
-            properties={"cures": ["poison"]}
+            _properties={"cures": ["poison"]}
         )
 
         self.assertFalse(can_treat(item, "bleeding"))
@@ -93,7 +93,7 @@ class TestCanTreat(unittest.TestCase):
             name="Sword",
             description="A sword",
             location="loc_test",
-            properties={}
+            _properties={}
         )
 
         self.assertFalse(can_treat(item, "poison"))
@@ -110,7 +110,7 @@ class TestTreatCondition(unittest.TestCase):
             description="Test",
             location="loc_test",
             inventory=["item_antidote"],
-            properties={
+            _properties={
                 "health": 80,
                 "conditions": {
                     "poison": {"severity": 50, "damage_per_turn": 2}
@@ -123,7 +123,7 @@ class TestTreatCondition(unittest.TestCase):
             name="Antidote",
             description="Cures poison",
             location="loc_test",
-            properties={"cures": ["poison"], "consumable": True}
+            _properties={"cures": ["poison"], "consumable": True}
         )
 
         self.location = Location(
@@ -164,7 +164,7 @@ class TestTreatCondition(unittest.TestCase):
             name="Weak Antidote",
             description="Partially cures poison",
             location="loc_test",
-            properties={"cures": ["poison"], "cure_amount": 30}
+            _properties={"cures": ["poison"], "cure_amount": 30}
         )
 
         game_state = GameState(
@@ -219,7 +219,7 @@ class TestTreatCondition(unittest.TestCase):
             name="Healing Staff",
             description="A reusable healing staff",
             location="loc_test",
-            properties={"cures": ["poison"], "consumable": False}
+            _properties={"cures": ["poison"], "consumable": False}
         )
 
         self.actor.inventory = ["item_staff"]
@@ -284,7 +284,7 @@ class TestTreatCondition(unittest.TestCase):
             name="Panacea",
             description="Cures everything",
             location="loc_test",
-            properties={"cures": ["poison", "disease"]}
+            _properties={"cures": ["poison", "disease"]}
         )
 
         self.actor.inventory = ["item_cure_all"]
@@ -325,7 +325,7 @@ class TestTreatCondition(unittest.TestCase):
             name="Panacea",
             description="Cures everything",
             location="loc_test",
-            properties={"cures": ["poison", "disease"], "consumable": True}
+            _properties={"cures": ["poison", "disease"], "consumable": True}
         )
 
         self.actor.inventory = ["item_cure_all"]
@@ -382,7 +382,7 @@ class TestOnReceiveTreatment(unittest.TestCase):
             description="An infected scholar",
             location="loc_test",
             inventory=[],
-            properties={
+            _properties={
                 "conditions": {
                     "fungal_infection": {"severity": 30}
                 }
@@ -394,7 +394,7 @@ class TestOnReceiveTreatment(unittest.TestCase):
             name="Antifungal Herb",
             description="Cures fungal infections",
             location="loc_test",
-            properties={"cures": ["fungal_infection"], "consumable": True}
+            _properties={"cures": ["fungal_infection"], "consumable": True}
         )
 
         location = Location(id="loc_test", name="Test", description="Test")
@@ -427,7 +427,7 @@ class TestOnReceiveTreatment(unittest.TestCase):
             description="Healthy player",
             location="loc_test",
             inventory=[],
-            properties={}  # No conditions
+            _properties={}  # No conditions
         )
 
         antidote = Item(
@@ -435,7 +435,7 @@ class TestOnReceiveTreatment(unittest.TestCase):
             name="Antidote",
             description="Cures poison",
             location="loc_test",
-            properties={"cures": ["poison"]}
+            _properties={"cures": ["poison"]}
         )
 
         location = Location(id="loc_test", name="Test", description="Test")
@@ -467,7 +467,7 @@ class TestOnReceiveTreatment(unittest.TestCase):
             description="Test",
             location="loc_test",
             inventory=[],
-            properties={
+            _properties={
                 "conditions": {"poison": {"severity": 50}}
             }
         )
@@ -477,7 +477,7 @@ class TestOnReceiveTreatment(unittest.TestCase):
             name="Sword",
             description="A sword",
             location="loc_test",
-            properties={}  # No cures
+            _properties={}  # No cures
         )
 
         location = Location(id="loc_test", name="Test", description="Test")

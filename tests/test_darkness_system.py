@@ -18,7 +18,7 @@ class TestCheckVisibility(unittest.TestCase):
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(
             id='meadow', name='Meadow', description='A sunny meadow',
-            properties={}
+            _properties={}
         ))
 
         accessor = StateAccessor(state, Mock())
@@ -33,7 +33,7 @@ class TestCheckVisibility(unittest.TestCase):
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(
             id='cave', name='Cave', description='A dark cave',
-            properties={'requires_light': True}
+            _properties={'requires_light': True}
         ))
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
@@ -52,12 +52,12 @@ class TestCheckVisibility(unittest.TestCase):
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(
             id='cave', name='Cave', description='A dark cave',
-            properties={'requires_light': True}
+            _properties={'requires_light': True}
         ))
         state.items.append(Item(
             id='torch', name='Torch', description='A lit torch',
             location=None,
-            properties={'provides_light': True, 'states': {'lit': True}}
+            _properties={'provides_light': True, 'states': {'lit': True}}
         ))
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
@@ -76,12 +76,12 @@ class TestCheckVisibility(unittest.TestCase):
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(
             id='cave', name='Cave', description='A dark cave',
-            properties={'requires_light': True}
+            _properties={'requires_light': True}
         ))
         state.items.append(Item(
             id='torch', name='Torch', description='An unlit torch',
             location=None,
-            properties={'provides_light': True, 'states': {'lit': False}}
+            _properties={'provides_light': True, 'states': {'lit': False}}
         ))
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
@@ -100,7 +100,7 @@ class TestCheckVisibility(unittest.TestCase):
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(
             id='grotto', name='Grotto', description='A glowing grotto',
-            properties={'requires_light': True, 'ambient_light': True}
+            _properties={'requires_light': True, 'ambient_light': True}
         ))
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
@@ -119,12 +119,12 @@ class TestCheckVisibility(unittest.TestCase):
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(
             id='cave', name='Cave', description='A dark cave',
-            properties={'requires_light': True}
+            _properties={'requires_light': True}
         ))
         state.items.append(Item(
             id='brazier', name='Brazier', description='A burning brazier',
             location='cave',
-            properties={'provides_light': True, 'states': {'lit': True}}
+            _properties={'provides_light': True, 'states': {'lit': True}}
         ))
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
@@ -151,7 +151,7 @@ class TestGetLightSources(unittest.TestCase):
         state.items.append(Item(
             id='brazier', name='Brazier', description='A brazier',
             location='cave',
-            properties={'provides_light': True, 'states': {'lit': True}}
+            _properties={'provides_light': True, 'states': {'lit': True}}
         ))
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
@@ -175,7 +175,7 @@ class TestGetLightSources(unittest.TestCase):
         state.items.append(Item(
             id='torch', name='Torch', description='A torch',
             location=None,
-            properties={'provides_light': True, 'states': {'lit': True}}
+            _properties={'provides_light': True, 'states': {'lit': True}}
         ))
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
@@ -199,7 +199,7 @@ class TestGetLightSources(unittest.TestCase):
         state.items.append(Item(
             id='torch', name='Torch', description='A torch',
             location='cave',
-            properties={'provides_light': True, 'states': {'lit': False}}
+            _properties={'provides_light': True, 'states': {'lit': False}}
         ))
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
@@ -222,7 +222,7 @@ class TestGetDarknessDescription(unittest.TestCase):
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(
             id='cave', name='Cave', description='A cave',
-            properties={'darkness_description': 'Pitch black. You cannot see.'}
+            _properties={'darkness_description': 'Pitch black. You cannot see.'}
         ))
 
         accessor = StateAccessor(state, Mock())
@@ -237,7 +237,7 @@ class TestGetDarknessDescription(unittest.TestCase):
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(
             id='cave', name='Cave', description='A cave',
-            properties={'requires_light': True}
+            _properties={'requires_light': True}
         ))
 
         accessor = StateAccessor(state, Mock())
@@ -257,7 +257,7 @@ class TestOnVisibilityCheck(unittest.TestCase):
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(
             id='cave', name='Cave', description='A dark cave',
-            properties={'requires_light': True}
+            _properties={'requires_light': True}
         ))
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
@@ -280,7 +280,7 @@ class TestOnVisibilityCheck(unittest.TestCase):
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(
             id='cave', name='Cave', description='A dark cave',
-            properties={'requires_light': True}
+            _properties={'requires_light': True}
         ))
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
@@ -302,7 +302,7 @@ class TestOnVisibilityCheck(unittest.TestCase):
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(
             id='cave', name='Cave', description='A dark cave',
-            properties={'requires_light': True}
+            _properties={'requires_light': True}
         ))
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
@@ -324,7 +324,7 @@ class TestOnVisibilityCheck(unittest.TestCase):
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(
             id='cave', name='Cave', description='A dark cave',
-            properties={'requires_light': True}
+            _properties={'requires_light': True}
         ))
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
@@ -346,12 +346,12 @@ class TestOnVisibilityCheck(unittest.TestCase):
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(
             id='cave', name='Cave', description='A dark cave',
-            properties={'requires_light': True}
+            _properties={'requires_light': True}
         ))
         state.items.append(Item(
             id='torch', name='Torch', description='A torch',
             location=None,
-            properties={'provides_light': True, 'states': {'lit': True}}
+            _properties={'provides_light': True, 'states': {'lit': True}}
         ))
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',

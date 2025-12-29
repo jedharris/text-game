@@ -58,7 +58,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             name="chest",
             description="A wooden chest",
             location="location_room",
-            properties={"container": {"open": False, "capacity": 10}}
+            _properties={"container": {"open": False, "capacity": 10}}
         )
         state.items.append(chest)
 
@@ -116,7 +116,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             name="chest",
             description="A wooden chest",
             location="location_room",
-            properties={"container": {"open": True, "capacity": 10}}
+            _properties={"container": {"open": True, "capacity": 10}}
         )
         state.items.append(chest)
 
@@ -141,7 +141,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             name="chest",
             description="A wooden chest",
             location="location_room",
-            properties={"container": {"open": False, "capacity": 10}}
+            _properties={"container": {"open": False, "capacity": 10}}
         )
         state.items.append(chest)
 
@@ -176,7 +176,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             name="chest",
             description="A wooden chest",
             location="location_room",
-            properties={"container": {"open": True, "capacity": 10}}
+            _properties={"container": {"open": True, "capacity": 10}}
         )
         state.items.append(chest)
 
@@ -234,7 +234,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             name="chest",
             description="A wooden chest",
             location="location_room",
-            properties={"container": {"open": True, "capacity": 10}}
+            _properties={"container": {"open": True, "capacity": 10}}
         )
         state.items.append(chest)
 
@@ -283,7 +283,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             id="lock_door",
             name="Door Lock",
             description="A sturdy lock.",
-            properties={"opens_with": ["item_key"]}
+            _properties={"opens_with": ["item_key"]}
         )
         state.locks.append(lock)
 
@@ -299,7 +299,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             name="key",
             description="A brass key",
             location="player",
-            properties={"portable": True}
+            _properties={"portable": True}
         )
         state.items.append(key)
         player = state.get_actor(ActorId("player"))
@@ -338,7 +338,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             id="lock_door",
             name="Door Lock",
             description="A sturdy lock.",
-            properties={"opens_with": ["item_key"]}
+            _properties={"opens_with": ["item_key"]}
         )
         state.locks.append(lock)
 
@@ -381,7 +381,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             id="lock_door",
             name="Door Lock",
             description="A sturdy lock.",
-            properties={"opens_with": ["item_key"]}
+            _properties={"opens_with": ["item_key"]}
         )
         state.locks.append(lock)
 
@@ -397,7 +397,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             name="key",
             description="A brass key",
             location="npc_guard",
-            properties={"portable": True}
+            _properties={"portable": True}
         )
         state.items.append(key)
 
@@ -444,7 +444,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             id="lock_door",
             name="Door Lock",
             description="A sturdy lock.",
-            properties={"opens_with": ["item_key"]}
+            _properties={"opens_with": ["item_key"]}
         )
         state.locks.append(lock)
 
@@ -460,7 +460,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             name="key",
             description="A brass key",
             location="player",
-            properties={"portable": True}
+            _properties={"portable": True}
         )
         state.items.append(key)
         player = state.get_actor(ActorId("player"))
@@ -499,7 +499,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             id="lock_door",
             name="Door Lock",
             description="A sturdy lock.",
-            properties={"opens_with": ["item_key"]}
+            _properties={"opens_with": ["item_key"]}
         )
         state.locks.append(lock)
 
@@ -515,7 +515,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             name="key",
             description="A brass key",
             location="player",
-            properties={"portable": True}
+            _properties={"portable": True}
         )
         state.items.append(key)
         player = state.get_actor(ActorId("player"))
@@ -554,7 +554,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             id="lock_door",
             name="Door Lock",
             description="A sturdy lock.",
-            properties={"opens_with": ["item_key"]}
+            _properties={"opens_with": ["item_key"]}
         )
         state.locks.append(lock)
 
@@ -570,7 +570,7 @@ class TestPhase12InteractionLocks(unittest.TestCase):
             name="key",
             description="A brass key",
             location="npc_guard",
-            properties={"portable": True}
+            _properties={"portable": True}
         )
         state.items.append(key)
 
@@ -615,7 +615,7 @@ class TestWordEntryHandling(unittest.TestCase):
             name="umbrella",
             description="A dusty umbrella",
             location="location_room",
-            properties={"container": {"open": False, "capacity": 1}}
+            _properties={"container": {"open": False, "capacity": 1}}
         )
         state.items.append(umbrella)
 
@@ -649,7 +649,7 @@ class TestWordEntryHandling(unittest.TestCase):
             name="umbrella",
             description="A dusty umbrella",
             location="location_room",
-            properties={"container": {"open": True, "capacity": 1}}
+            _properties={"container": {"open": True, "capacity": 1}}
         )
         state.items.append(umbrella)
 
@@ -697,9 +697,9 @@ class TestWordEntryHandling(unittest.TestCase):
 
         # Add lock and key
         state.locks = [Lock(id="lock_main", name="Main Lock", description="Lock",
-                           properties={"opens_with": ["item_key"]})]
+                           _properties={"opens_with": ["item_key"]})]
         key = Item(id="item_key", name="key", description="A key",
-                   location="player", properties={"portable": True})
+                   location="player", _properties={"portable": True})
         state.items.append(key)
         # Add key to player's inventory
         state.get_actor(ActorId("player")).inventory.append("item_key")
@@ -748,9 +748,9 @@ class TestWordEntryHandling(unittest.TestCase):
 
         # Add lock and key
         state.locks = [Lock(id="lock_main", name="Main Lock", description="Lock",
-                           properties={"opens_with": ["item_key"]})]
+                           _properties={"opens_with": ["item_key"]})]
         key = Item(id="item_key", name="key", description="A key",
-                   location="player", properties={"portable": True})
+                   location="player", _properties={"portable": True})
         state.items.append(key)
         # Add key to player's inventory
         state.get_actor(ActorId("player")).inventory.append("item_key")

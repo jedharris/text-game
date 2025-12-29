@@ -40,7 +40,7 @@ class TestEntityToDictItem(unittest.TestCase):
             name="sword",
             description="A rusty sword.",
             location="loc_room",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["rusty", "ancient", "battle-worn"]
                 }
@@ -77,7 +77,7 @@ class TestEntityToDictItem(unittest.TestCase):
             name="door",
             description="A wooden door.",
             location="exit:loc_room:north",
-            properties={
+            _properties={
                 "door": {"open": False, "locked": True, "lock_id": "lock_1"}
             }
         )
@@ -97,7 +97,7 @@ class TestEntityToDictItem(unittest.TestCase):
             name="chest",
             description="A wooden chest.",
             location="loc_room",
-            properties={
+            _properties={
                 "container": {"is_surface": False, "open": False, "capacity": 5}
             }
         )
@@ -115,7 +115,7 @@ class TestEntityToDictItem(unittest.TestCase):
             name="lantern",
             description="A brass lantern.",
             location="player",
-            properties={
+            _properties={
                 "provides_light": True,
                 "states": {"lit": True}
             }
@@ -154,7 +154,7 @@ class TestEntityToDictLocation(unittest.TestCase):
             id="loc_room",
             name="Small Room",
             description="A small dusty room.",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["dusty", "cramped", "dimly lit"]
                 }
@@ -199,7 +199,7 @@ class TestEntityToDictActor(unittest.TestCase):
             description="A stern-looking guard.",
             location="loc_room",
             inventory=[],
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["vigilant", "armored", "suspicious"]
                 }
@@ -240,7 +240,7 @@ class TestEntityToDictExitDescriptor(unittest.TestCase):
             to="loc_hallway",
             name="stone archway",
             description="A worn stone archway.",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["ancient", "weathered", "mossy"]
                 }
@@ -264,7 +264,7 @@ class TestEntityToDictLock(unittest.TestCase):
             id="lock_iron",
             name="Iron Lock",
             description="An iron lock with intricate engravings.",
-            properties={"opens_with": ["item_key"]}
+            _properties={"opens_with": ["item_key"]}
         )
 
         result = entity_to_dict(lock)
@@ -280,7 +280,7 @@ class TestEntityToDictLock(unittest.TestCase):
             id="lock_iron",
             name="Iron Lock",
             description="An iron lock.",
-            properties={
+            _properties={
                 "opens_with": ["item_key"],
                 "llm_context": {
                     "traits": ["rusty", "ancient", "elaborate"]
@@ -306,7 +306,7 @@ class TestMaxTraits(unittest.TestCase):
             name="sword",
             description="A sword.",
             location="loc_room",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]
                 }
@@ -326,7 +326,7 @@ class TestMaxTraits(unittest.TestCase):
             name="sword",
             description="A sword.",
             location="loc_room",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["a", "b", "c", "d", "e"]
                 }
@@ -346,7 +346,7 @@ class TestMaxTraits(unittest.TestCase):
             name="sword",
             description="A sword.",
             location="loc_room",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["a", "b", "c"]
                 }
@@ -366,7 +366,7 @@ class TestMaxTraits(unittest.TestCase):
             name="sword",
             description="A sword.",
             location="loc_room",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["a", "b", "c"]
                 }
@@ -386,7 +386,7 @@ class TestMaxTraits(unittest.TestCase):
             name="sword",
             description="A sword.",
             location="loc_room",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["a", "b", "c", "d", "e"],
                     "state_variants": {"broken": "shattered"},
@@ -429,7 +429,7 @@ class TestTraitRandomization(unittest.TestCase):
             name="sword",
             description="A sword.",
             location="loc_room",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["a", "b", "c", "d", "e", "f", "g", "h"]
                 }
@@ -480,7 +480,7 @@ class TestTraitRandomization(unittest.TestCase):
             name="sword",
             description="A sword.",
             location="loc_room",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["sharp", "ancient"],
                     "state_variants": {
@@ -511,7 +511,7 @@ class TestSerializeForHandlerResult(unittest.TestCase):
             name="sword",
             description="A sword.",
             location="loc_room",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["sharp"]
                 }
@@ -536,7 +536,7 @@ class TestIncludeLlmContextFlag(unittest.TestCase):
             name="sword",
             description="A sword.",
             location="loc_room",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["sharp"]
                 }
@@ -561,7 +561,7 @@ class TestPerspectiveVariants(unittest.TestCase):
             name="stairs",
             description="A spiral staircase.",
             location="loc_room",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["worn", "ancient"]
                 }
@@ -582,7 +582,7 @@ class TestPerspectiveVariants(unittest.TestCase):
             name="stairs",
             description="A spiral staircase.",
             location="loc_room",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["worn"],
                     "perspective_variants": {
@@ -605,7 +605,7 @@ class TestPerspectiveVariants(unittest.TestCase):
             name="stairs",
             description="A spiral staircase.",
             location="loc_room",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["worn"],
                     "perspective_variants": {
@@ -630,7 +630,7 @@ class TestPerspectiveVariants(unittest.TestCase):
             name="stairs",
             description="A spiral staircase.",
             location="loc_room",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["worn"],
                     "perspective_variants": {
@@ -656,7 +656,7 @@ class TestPerspectiveVariants(unittest.TestCase):
             name="stairs",
             description="A spiral staircase.",
             location="loc_room",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["worn"],
                     "perspective_variants": {
@@ -683,7 +683,7 @@ class TestPerspectiveVariants(unittest.TestCase):
             name="stairs",
             description="A spiral staircase.",
             location="loc_room",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["worn"],
                     "perspective_variants": {
@@ -709,7 +709,7 @@ class TestPerspectiveVariants(unittest.TestCase):
             name="stairs",
             description="A spiral staircase.",
             location="loc_room",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["worn"],
                     "perspective_variants": {
@@ -733,7 +733,7 @@ class TestPerspectiveVariants(unittest.TestCase):
             name="stairs",
             description="A spiral staircase.",
             location="loc_room",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["worn"],
                     "perspective_variants": {

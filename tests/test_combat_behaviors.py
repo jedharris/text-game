@@ -22,14 +22,14 @@ def create_test_state():
                 name="sword",
                 description="A sharp sword",
                 location="player",
-                properties={"portable": True}
+                _properties={"portable": True}
             ),
             Item(
                 id="item_chair",
                 name="chair",
                 description="A wooden chair",
                 location="loc1",
-                properties={"portable": False}
+                _properties={"portable": False}
             )
         ],
         actors={

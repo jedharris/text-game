@@ -91,7 +91,7 @@ class TestExitPassageValidation(unittest.TestCase):
                     name="door",
                     description="An ornate door",
                     location="exit:room1:up",
-                    properties={"door": {"open": True, "locked": False}}
+                    _properties={"door": {"open": True, "locked": False}}
                 )
             ],
             actors={"player": Actor(
@@ -149,7 +149,7 @@ class TestExitPassageValidation(unittest.TestCase):
                     name="door",
                     description="An ornate door",
                     location="exit:room1:up",
-                    properties={"door": {"open": True, "locked": False}}
+                    _properties={"door": {"open": True, "locked": False}}
                 )
             ],
             actors={"player": Actor(
@@ -210,7 +210,7 @@ class TestExitPassageValidation(unittest.TestCase):
                     name="door",
                     description="An ornate door",
                     location="exit:room1:up",
-                    properties={"door": {"open": True, "locked": False}}
+                    _properties={"door": {"open": True, "locked": False}}
                 )
             ],
             actors={"player": Actor(
@@ -271,7 +271,7 @@ class TestExitPassageMovementMessages(unittest.TestCase):
                     name="door",
                     description="An ornate door covered in glowing runes.",
                     location="exit:library:up",
-                    properties={"door": {"open": True, "locked": False}}
+                    _properties={"door": {"open": True, "locked": False}}
                 )
             ],
             actors={"player": Actor(
@@ -360,7 +360,7 @@ class TestExitPassageMovementMessages(unittest.TestCase):
                     name="door",
                     description="A wooden door.",
                     location="exit:room1:east",
-                    properties={"door": {"open": True, "locked": False}}
+                    _properties={"door": {"open": True, "locked": False}}
                 )
             ],
             actors={"player": Actor(

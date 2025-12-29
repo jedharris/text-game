@@ -19,7 +19,7 @@ class TestPartEntity(unittest.TestCase):
             id="part_throne_north_wall",
             name="north wall",
             part_of="loc_throne_room",
-            properties={"material": "stone"},
+            _properties={"material": "stone"},
             behaviors=[]
         )
 

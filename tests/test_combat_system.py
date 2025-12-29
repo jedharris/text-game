@@ -22,7 +22,7 @@ class TestGetAttacks(unittest.TestCase):
             description="A wolf",
             location="loc_test",
             inventory=[],
-            properties={
+            _properties={
                 "attacks": [
                     {"name": "bite", "damage": 15, "type": "melee"},
                     {"name": "claw", "damage": 10, "type": "melee"}
@@ -46,7 +46,7 @@ class TestGetAttacks(unittest.TestCase):
             description="A peaceful scholar",
             location="loc_test",
             inventory=[],
-            properties={}
+            _properties={}
         )
 
         attacks = get_attacks(actor)
@@ -73,7 +73,7 @@ class TestSelectAttack(unittest.TestCase):
             description="A wolf",
             location="loc_test",
             inventory=[],
-            properties={
+            _properties={
                 "attacks": [
                     {"name": "bite", "damage": 15, "type": "melee"},
                     {"name": "knockdown_pounce", "damage": 8, "type": "melee", "effect": "knockdown"},
@@ -89,7 +89,7 @@ class TestSelectAttack(unittest.TestCase):
             description="Test",
             location="loc_test",
             inventory=[],
-            properties={
+            _properties={
                 "health": 100,
                 "max_health": 100
             }
@@ -144,7 +144,7 @@ class TestSelectAttack(unittest.TestCase):
             description="A rat",
             location="loc_test",
             inventory=[],
-            properties={
+            _properties={
                 "attacks": [
                     {"name": "nibble", "damage": 2},
                     {"name": "bite", "damage": 5}
@@ -166,7 +166,7 @@ class TestSelectAttack(unittest.TestCase):
             description="A scholar",
             location="loc_test",
             inventory=[],
-            properties={}
+            _properties={}
         )
 
         attack = select_attack(peaceful, self.target, {})
@@ -185,7 +185,7 @@ class TestCalculateDamage(unittest.TestCase):
             description="A wolf",
             location="loc_test",
             inventory=[],
-            properties={}
+            _properties={}
         )
 
         self.target = Actor(
@@ -194,7 +194,7 @@ class TestCalculateDamage(unittest.TestCase):
             description="Test",
             location="loc_test",
             inventory=[],
-            properties={"health": 100}
+            _properties={"health": 100}
         )
 
     def test_calculate_damage_base(self):
@@ -277,7 +277,7 @@ class TestExecuteAttack(unittest.TestCase):
             description="A wolf",
             location="loc_test",
             inventory=[],
-            properties={
+            _properties={
                 "attacks": [
                     {"name": "bite", "damage": 15}
                 ]
@@ -290,7 +290,7 @@ class TestExecuteAttack(unittest.TestCase):
             description="Test",
             location="loc_test",
             inventory=[],
-            properties={"health": 100, "max_health": 100}
+            _properties={"health": 100, "max_health": 100}
         )
 
         # Create mock accessor that calls real on_damage handler
@@ -402,7 +402,7 @@ class TestOnDeathCheck(unittest.TestCase):
             description="A wolf",
             location="loc_test",
             inventory=[],
-            properties={"health": 10, "max_health": 50}
+            _properties={"health": 10, "max_health": 50}
         )
 
     def test_death_check_triggers_at_zero(self):
@@ -464,7 +464,7 @@ class TestOnDeathCheck(unittest.TestCase):
             description="A statue",
             location="loc_test",
             inventory=[],
-            properties={}  # No health
+            _properties={}  # No health
         )
 
         mock_accessor = Mock()
@@ -502,7 +502,7 @@ class TestOnDeathCheckAll(unittest.TestCase):
             description="A guard",
             location="loc_test",
             inventory=[],
-            properties={"health": 50}
+            _properties={"health": 50}
         )
 
         dead_actor = Actor(
@@ -511,7 +511,7 @@ class TestOnDeathCheckAll(unittest.TestCase):
             description="A wolf",
             location="loc_test",
             inventory=[],
-            properties={"health": 0}
+            _properties={"health": 0}
         )
 
         game_state = GameState(

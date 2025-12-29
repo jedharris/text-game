@@ -32,7 +32,7 @@ class TestIsObservableBasic(unittest.TestCase):
             name="key",
             description="A small key",
             location="room1",
-            properties={},
+            _properties={},
             behaviors=[]
         )
 
@@ -53,7 +53,7 @@ class TestIsObservableBasic(unittest.TestCase):
             name="key",
             description="A small key",
             location="room1",
-            properties={"states": {"hidden": False}},
+            _properties={"states": {"hidden": False}},
             behaviors=[]
         )
 
@@ -74,7 +74,7 @@ class TestIsObservableBasic(unittest.TestCase):
             name="key",
             description="A hidden key",
             location="room1",
-            properties={"states": {"hidden": True}},
+            _properties={"states": {"hidden": True}},
             behaviors=[]
         )
 
@@ -93,7 +93,7 @@ class TestIsObservableBasic(unittest.TestCase):
         exit_desc = ExitDescriptor(
             type="open",
             to="room2",
-            properties={},
+            _properties={},
             behaviors=[]
         )
 
@@ -112,7 +112,7 @@ class TestIsObservableBasic(unittest.TestCase):
         exit_desc = ExitDescriptor(
             type="open",
             to="secret_room",
-            properties={"states": {"hidden": True}},
+            _properties={"states": {"hidden": True}},
             behaviors=[]
         )
 
@@ -153,7 +153,7 @@ class TestIsObservableWithBehaviors(unittest.TestCase):
             name="cloak",
             description="A magical cloak",
             location="room1",
-            properties={},
+            _properties={},
             behaviors=["test_hide"]
         )
 
@@ -179,7 +179,7 @@ class TestIsObservableWithBehaviors(unittest.TestCase):
             name="key",
             description="A key",
             location="room1",
-            properties={},
+            _properties={},
             behaviors=["test_show"]
         )
 
@@ -207,7 +207,7 @@ class TestIsObservableWithBehaviors(unittest.TestCase):
             name="key",
             description="A key",
             location="room1",
-            properties={},
+            _properties={},
             behaviors=["test_message"]
         )
 
@@ -241,7 +241,7 @@ class TestIsObservableWithBehaviors(unittest.TestCase):
             name="key",
             description="A hidden key",
             location="room1",
-            properties={"states": {"hidden": True}},
+            _properties={"states": {"hidden": True}},
             behaviors=["reveal_on_search"]
         )
 
@@ -284,7 +284,7 @@ class TestIsObservableWithBehaviors(unittest.TestCase):
             name="key",
             description="A key",
             location="room1",
-            properties={},
+            _properties={},
             behaviors=["test_context"]
         )
 
@@ -325,7 +325,7 @@ class TestIsObservableBehaviorPrecedence(unittest.TestCase):
             name="key",
             description="A hidden key",
             location="room1",
-            properties={"states": {"hidden": True}},
+            _properties={"states": {"hidden": True}},
             behaviors=["always_allow"]
         )
 
@@ -349,7 +349,7 @@ class TestIsObservableBehaviorPrecedence(unittest.TestCase):
             name="key",
             description="A hidden key",
             location="room1",
-            properties={"states": {"hidden": True}},
+            _properties={"states": {"hidden": True}},
             behaviors=[]
         )
 
@@ -379,7 +379,7 @@ class TestIsObservableEntityTypes(unittest.TestCase):
             name="ghost",
             description="A spectral figure",
             location="room1",
-            properties={"states": {"hidden": True}},
+            _properties={"states": {"hidden": True}},
             behaviors=[]
         )
 
@@ -399,7 +399,7 @@ class TestIsObservableEntityTypes(unittest.TestCase):
             name="merchant",
             description="A friendly merchant",
             location="room1",
-            properties={},
+            _properties={},
             behaviors=[]
         )
 
@@ -434,7 +434,7 @@ class TestObservabilityIntegration(unittest.TestCase):
                     name="key",
                     description="A shiny key",
                     location="room1",
-                    properties={"portable": True},
+                    _properties={"portable": True},
                     behaviors=[]
                 ),
                 Item(
@@ -442,7 +442,7 @@ class TestObservabilityIntegration(unittest.TestCase):
                     name="key",
                     description="A hidden key",
                     location="room1",
-                    properties={"portable": True, "states": {"hidden": True}},
+                    _properties={"portable": True, "states": {"hidden": True}},
                     behaviors=[]
                 )
             ],
@@ -518,7 +518,7 @@ class TestObservabilityIntegration(unittest.TestCase):
             name="chest",
             description="An open chest",
             location="room1",
-            properties={"container": {"open": True}},
+            _properties={"container": {"open": True}},
             behaviors=[]
         )
         hidden_gem = Item(
@@ -526,7 +526,7 @@ class TestObservabilityIntegration(unittest.TestCase):
             name="gem",
             description="A hidden gem",
             location="chest",
-            properties={"states": {"hidden": True}},
+            _properties={"states": {"hidden": True}},
             behaviors=[]
         )
         visible_coin = Item(
@@ -534,7 +534,7 @@ class TestObservabilityIntegration(unittest.TestCase):
             name="coin",
             description="A gold coin",
             location="chest",
-            properties={},
+            _properties={},
             behaviors=[]
         )
         self.game_state.items.append(container)
@@ -625,7 +625,7 @@ class TestHiddenExitsIntegration(unittest.TestCase):
                         "south": ExitDescriptor(
                             type="open",
                             to="secret_room",
-                            properties={"states": {"hidden": True}}
+                            _properties={"states": {"hidden": True}}
                         ),
                         "east": ExitDescriptor(
                             type="door",
@@ -659,7 +659,7 @@ class TestHiddenExitsIntegration(unittest.TestCase):
                     name="wooden door",
                     description="A wooden door",
                     location="exit:room1:east",
-                    properties={"door": {"open": True}},
+                    _properties={"door": {"open": True}},
                     behaviors=[]
                 )
             ],

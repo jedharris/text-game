@@ -36,7 +36,7 @@ def create_test_state_with_light_source():
                 name="lantern",
                 description="A magic lantern.",
                 location="room1",
-                properties={
+                _properties={
                     "portable": True,
                     "provides_light": True,
                     "states": {"lit": False}

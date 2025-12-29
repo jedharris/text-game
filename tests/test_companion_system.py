@@ -26,12 +26,12 @@ class TestGetCompanions(unittest.TestCase):
         state.actors[ActorId('wolf')] = Actor(
             id='wolf', name='Wolf', description='A tame wolf',
             location='forest', inventory=[],
-            properties={'is_companion': True}
+            _properties={'is_companion': True}
         )
         state.actors[ActorId('deer')] = Actor(
             id='deer', name='Deer', description='A deer',
             location='forest', inventory=[],
-            properties={}
+            _properties={}
         )
 
         accessor = StateAccessor(state, Mock())
@@ -76,7 +76,7 @@ class TestGetCompanions(unittest.TestCase):
         state.actors[ActorId('wolf')] = Actor(
             id='wolf', name='Wolf', description='A tame wolf',
             location='cave', inventory=[],
-            properties={'is_companion': True}
+            _properties={'is_companion': True}
         )
 
         accessor = StateAccessor(state, Mock())
@@ -99,7 +99,7 @@ class TestMakeCompanion(unittest.TestCase):
         state.actors[ActorId('wolf')] = Actor(
             id='wolf', name='Wolf', description='A wolf',
             location='forest', inventory=[],
-            properties={}
+            _properties={}
         )
 
         accessor = StateAccessor(state, Mock())
@@ -136,7 +136,7 @@ class TestDismissCompanion(unittest.TestCase):
         state.actors[ActorId('wolf')] = Actor(
             id='wolf', name='Wolf', description='A wolf',
             location='forest', inventory=[],
-            properties={'is_companion': True}
+            _properties={'is_companion': True}
         )
 
         accessor = StateAccessor(state, Mock())
@@ -159,7 +159,7 @@ class TestCheckCanFollow(unittest.TestCase):
         state.actors[ActorId('wolf')] = Actor(
             id='wolf', name='Wolf', description='A wolf',
             location='forest', inventory=[],
-            properties={'is_companion': True}
+            _properties={'is_companion': True}
         )
 
         accessor = StateAccessor(state, Mock())
@@ -179,7 +179,7 @@ class TestCheckCanFollow(unittest.TestCase):
         state.actors[ActorId('wolf')] = Actor(
             id='wolf', name='Wolf', description='A wolf',
             location='forest', inventory=[],
-            properties={
+            _properties={
                 'is_companion': True,
                 'location_restrictions': ['town'],
                 'cannot_follow_message': "The wolf refuses to enter the town."
@@ -199,12 +199,12 @@ class TestCheckCanFollow(unittest.TestCase):
         state = GameState(metadata=Metadata(title="Test"))
         state.locations.append(Location(
             id='lake', name='Lake', description='A lake',
-            properties={'terrain': 'underwater'}
+            _properties={'terrain': 'underwater'}
         ))
         state.actors[ActorId('wolf')] = Actor(
             id='wolf', name='Wolf', description='A wolf',
             location='forest', inventory=[],
-            properties={
+            _properties={
                 'is_companion': True,
                 'terrain_restrictions': ['underwater']
             }
@@ -227,7 +227,7 @@ class TestCheckCanFollow(unittest.TestCase):
         state.actors[ActorId('wolf')] = Actor(
             id='wolf', name='Wolf', description='A wolf',
             location='forest', inventory=[],
-            properties={
+            _properties={
                 'is_companion': True,
                 'location_restrictions': ['town']
             }
@@ -262,7 +262,7 @@ class TestOnPlayerMoveCompanionsFollow(unittest.TestCase):
         state.actors[ActorId('wolf')] = Actor(
             id='wolf', name='Wolf', description='A wolf',
             location='forest', inventory=[],
-            properties={
+            _properties={
                 'is_companion': True,
                 'follow_message': 'The wolf lopes along beside you.'
             }
@@ -306,7 +306,7 @@ class TestOnPlayerMoveCompanionsFollow(unittest.TestCase):
         state.actors[ActorId('wolf')] = Actor(
             id='wolf', name='Wolf', description='A wolf',
             location='forest', inventory=[],
-            properties={
+            _properties={
                 'is_companion': True,
                 'location_restrictions': ['town'],
                 'cannot_follow_message': 'The wolf refuses to enter the town.'
@@ -349,12 +349,12 @@ class TestOnPlayerMoveCompanionsFollow(unittest.TestCase):
         state.actors[ActorId('wolf')] = Actor(
             id='wolf', name='Wolf', description='A wolf',
             location='forest', inventory=[],
-            properties={'is_companion': True}
+            _properties={'is_companion': True}
         )
         state.actors[ActorId('dog')] = Actor(
             id='dog', name='Dog', description='A dog',
             location='forest', inventory=[],
-            properties={'is_companion': True}
+            _properties={'is_companion': True}
         )
 
         accessor = StateAccessor(state, Mock())

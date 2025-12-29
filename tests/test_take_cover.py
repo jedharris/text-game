@@ -30,7 +30,7 @@ class TestTakeCover(unittest.TestCase):
             name="pillar",
             description="A stone pillar",
             location="loc_room",
-            properties={
+            _properties={
                 "portable": False,
                 "provides_cover": True
             }
@@ -42,7 +42,7 @@ class TestTakeCover(unittest.TestCase):
             name="chair",
             description="A wooden chair",
             location="loc_room",
-            properties={"portable": False}
+            _properties={"portable": False}
         )
 
         # Part that provides cover
@@ -50,7 +50,7 @@ class TestTakeCover(unittest.TestCase):
             id="part_room_wall",
             name="wall",
             part_of="loc_room",
-            properties={
+            _properties={
                 "description": "A stone wall",
                 "provides_cover": True
             }

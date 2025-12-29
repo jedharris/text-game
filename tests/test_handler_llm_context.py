@@ -32,7 +32,7 @@ def create_test_game_state():
                 name="sword",
                 description="A rusty sword.",
                 location="loc_room",
-                properties={
+                _properties={
                     "portable": True,
                     "llm_context": {
                         "traits": ["rusty", "ancient", "battle-worn"]
@@ -44,7 +44,7 @@ def create_test_game_state():
                 name="chest",
                 description="A wooden chest.",
                 location="loc_room",
-                properties={
+                _properties={
                     "container": {"open": False, "is_surface": False},
                     "llm_context": {
                         "traits": ["wooden", "ornate", "heavy"]
@@ -56,7 +56,7 @@ def create_test_game_state():
                 name="key",
                 description="A brass key.",
                 location="player",
-                properties={
+                _properties={
                     "llm_context": {
                         "traits": ["brass", "small", "intricate"]
                     }
@@ -67,7 +67,7 @@ def create_test_game_state():
                 name="door",
                 description="A wooden door.",
                 location="exit:loc_room:north",
-                properties={
+                _properties={
                     "door": {"open": False, "locked": True, "lock_id": "lock_door"},
                     "llm_context": {
                         "traits": ["wooden", "sturdy", "old"]
@@ -79,7 +79,7 @@ def create_test_game_state():
                 name="book",
                 description="An old book.",
                 location="loc_room",
-                properties={
+                _properties={
                     "readable": True,
                     "text": "Ancient secrets within.",
                     "llm_context": {
@@ -92,7 +92,7 @@ def create_test_game_state():
                 name="ladder",
                 description="A wooden ladder.",
                 location="loc_room",
-                properties={
+                _properties={
                     "climbable": True,
                     "llm_context": {
                         "traits": ["rickety", "tall", "wooden"]
@@ -104,7 +104,7 @@ def create_test_game_state():
                 name="lever",
                 description="A metal lever.",
                 location="loc_room",
-                properties={
+                _properties={
                     "llm_context": {
                         "traits": ["rusty", "mechanical", "heavy"]
                     }
@@ -125,7 +125,7 @@ def create_test_game_state():
                 description="A stern guard.",
                 location="loc_room",
                 inventory=[],
-                properties={
+                _properties={
                     "llm_context": {
                         "traits": ["vigilant", "armored", "suspicious"]
                     }
@@ -137,7 +137,7 @@ def create_test_game_state():
                 id="lock_door",
                 name="Door Lock",
                 description="An iron lock.",
-                properties={
+                _properties={
                     "opens_with": ["item_key"],
                     "llm_context": {
                         "traits": ["iron", "ornate", "ancient"]

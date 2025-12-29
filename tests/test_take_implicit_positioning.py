@@ -30,7 +30,7 @@ class TestTakeImplicitPositioning(unittest.TestCase):
             name="coin",
             description="A gold coin",
             location="loc_room",
-            properties={"portable": True}
+            _properties={"portable": True}
         )
 
         # Item with "near" distance
@@ -39,7 +39,7 @@ class TestTakeImplicitPositioning(unittest.TestCase):
             name="key",
             description="A brass key",
             location="loc_room",
-            properties={"portable": True, "interaction_distance": "near"}
+            _properties={"portable": True, "interaction_distance": "near"}
         )
 
         # Item with "near" distance in container
@@ -48,7 +48,7 @@ class TestTakeImplicitPositioning(unittest.TestCase):
             name="box",
             description="A wooden box",
             location="loc_room",
-            properties={
+            _properties={
                 "portable": False,
                 "interaction_distance": "near",
                 "container": {"open": True, "is_surface": False}
@@ -60,7 +60,7 @@ class TestTakeImplicitPositioning(unittest.TestCase):
             name="gem",
             description="A ruby gem",
             location="item_box",
-            properties={"portable": True}
+            _properties={"portable": True}
         )
 
         self.game_state = GameState(

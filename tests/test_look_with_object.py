@@ -38,7 +38,7 @@ class TestLookWithObject(unittest.TestCase):
             name="desk",
             description="A wooden desk with carved legs",
             location="loc_room",
-            properties={"interaction_distance": "near"}
+            _properties={"interaction_distance": "near"}
         )
 
         self.game_state = GameState(

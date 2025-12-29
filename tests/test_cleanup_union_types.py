@@ -49,7 +49,7 @@ class TestBehaviorsListOnly(unittest.TestCase):
         door_item = Item(
             id="test_door", name="door", description="A door",
             location="exit:loc1:north",
-            properties={"door": {"open": False}},
+            _properties={"door": {"open": False}},
             behaviors=["behaviors.doors"]
         )
         self.assertIsInstance(door_item.behaviors, list)
@@ -61,7 +61,7 @@ class TestBehaviorsListOnly(unittest.TestCase):
         door_item = Item(
             id="test_door", name="door", description="A door",
             location="exit:loc1:north",
-            properties={"door": {"open": False}}
+            _properties={"door": {"open": False}}
         )
         self.assertIsInstance(door_item.behaviors, list)
         self.assertEqual(door_item.behaviors, [])

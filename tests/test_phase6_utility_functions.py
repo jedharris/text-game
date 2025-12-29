@@ -98,7 +98,7 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         from src.state_manager import Location
         other_room = Location(id="other_room", name="Other Room",
                              description="Another room", exits={}, items=["item_key"],
-                             properties={}, behaviors=[])
+                             _properties={}, behaviors=[])
         state.locations.append(other_room)
 
         # Create NPC in different location
@@ -167,7 +167,7 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
         # Create a container
         chest = Item(id="item_chest", name="chest", description="A chest",
                     location="location_room",
-                    properties={"is_container": True, "portable": False})
+                    _properties={"is_container": True, "portable": False})
         state.items.append(chest)
 
         chest_entry = make_word_entry("chest")
@@ -207,7 +207,7 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
                                 open=True, locked=False, lock_id="lock_main")
         state.items.append(door)
 
-        lock = Lock(id="lock_main", name="main lock", description="The main lock", properties={"locked": True, "opens_with": ["item_key"]})
+        lock = Lock(id="lock_main", name="main lock", description="The main lock", _properties={"locked": True, "opens_with": ["item_key"]})
         state.locks.append(lock)
 
         key = Item(id="item_key", name="key", description="A key",
@@ -241,7 +241,7 @@ class TestPhase6UtilityFunctions(unittest.TestCase):
                                 open=True, locked=False, lock_id="lock_main")
         state.items.append(door)
 
-        lock = Lock(id="lock_main", name="main lock", description="The main lock", properties={"locked": True, "opens_with": ["item_key"]})
+        lock = Lock(id="lock_main", name="main lock", description="The main lock", _properties={"locked": True, "opens_with": ["item_key"]})
         state.locks.append(lock)
 
         # Give key to NPC, not player

@@ -18,7 +18,7 @@ class TestGetPackMembers(unittest.TestCase):
             description="A large wolf",
             location="loc_forest",
             inventory=[],
-            properties={
+            _properties={
                 "pack_id": "wolf_pack",
                 "pack_role": "alpha",
                 "disposition": "neutral"
@@ -31,7 +31,7 @@ class TestGetPackMembers(unittest.TestCase):
             description="A wolf",
             location="loc_forest",
             inventory=[],
-            properties={
+            _properties={
                 "pack_id": "wolf_pack",
                 "pack_role": "follower",
                 "disposition": "neutral"
@@ -44,7 +44,7 @@ class TestGetPackMembers(unittest.TestCase):
             description="A wolf",
             location="loc_clearing",
             inventory=[],
-            properties={
+            _properties={
                 "pack_id": "wolf_pack",
                 "pack_role": "follower",
                 "disposition": "neutral"
@@ -57,7 +57,7 @@ class TestGetPackMembers(unittest.TestCase):
             description="A goblin",
             location="loc_forest",
             inventory=[],
-            properties={
+            _properties={
                 "pack_id": "goblin_pack",
                 "disposition": "hostile"
             }
@@ -151,7 +151,7 @@ class TestGetAlpha(unittest.TestCase):
             description="A large wolf",
             location="loc_forest",
             inventory=[],
-            properties={
+            _properties={
                 "pack_id": "wolf_pack",
                 "pack_role": "alpha",
                 "disposition": "neutral"
@@ -164,7 +164,7 @@ class TestGetAlpha(unittest.TestCase):
             description="A wolf",
             location="loc_forest",
             inventory=[],
-            properties={
+            _properties={
                 "pack_id": "wolf_pack",
                 "pack_role": "follower",
                 "disposition": "neutral"
@@ -230,7 +230,7 @@ class TestGetAlpha(unittest.TestCase):
             description="A lone wolf",
             location="loc_forest",
             inventory=[],
-            properties={}
+            _properties={}
         )
 
         game_state = GameState(
@@ -288,7 +288,7 @@ class TestIsAlpha(unittest.TestCase):
             description="A large wolf",
             location="loc_forest",
             inventory=[],
-            properties={
+            _properties={
                 "pack_id": "wolf_pack",
                 "pack_role": "alpha"
             }
@@ -306,7 +306,7 @@ class TestIsAlpha(unittest.TestCase):
             description="A wolf",
             location="loc_forest",
             inventory=[],
-            properties={
+            _properties={
                 "pack_id": "wolf_pack",
                 "pack_role": "follower"
             }
@@ -324,7 +324,7 @@ class TestIsAlpha(unittest.TestCase):
             description="A lone wolf",
             location="loc_forest",
             inventory=[],
-            properties={}
+            _properties={}
         )
 
         self.assertFalse(is_alpha(loner))
@@ -341,7 +341,7 @@ class TestSyncPackDisposition(unittest.TestCase):
             description="A large wolf",
             location="loc_forest",
             inventory=[],
-            properties={
+            _properties={
                 "pack_id": "wolf_pack",
                 "pack_role": "alpha",
                 "disposition": "hostile"
@@ -354,7 +354,7 @@ class TestSyncPackDisposition(unittest.TestCase):
             description="A wolf",
             location="loc_forest",
             inventory=[],
-            properties={
+            _properties={
                 "pack_id": "wolf_pack",
                 "pack_role": "follower",
                 "disposition": "neutral"
@@ -367,7 +367,7 @@ class TestSyncPackDisposition(unittest.TestCase):
             description="A wolf",
             location="loc_forest",
             inventory=[],
-            properties={
+            _properties={
                 "pack_id": "wolf_pack",
                 "pack_role": "follower",
                 "disposition": "neutral"
@@ -492,7 +492,7 @@ class TestSyncFollowerDisposition(unittest.TestCase):
             description="A large wolf",
             location="loc_forest",
             inventory=[],
-            properties={
+            _properties={
                 "pack_id": "wolf_pack",
                 "pack_role": "alpha",
                 "disposition": "hostile"
@@ -505,7 +505,7 @@ class TestSyncFollowerDisposition(unittest.TestCase):
             description="A wolf",
             location="loc_forest",
             inventory=[],
-            properties={
+            _properties={
                 "pack_id": "wolf_pack",
                 "pack_role": "follower",
                 "disposition": "neutral"

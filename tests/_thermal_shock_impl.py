@@ -64,7 +64,7 @@ class TestThermalShock(unittest.TestCase):
             name="fire wand",
             description="A wand of fire",
             location="loc_room",
-            properties={
+            _properties={
                 "portable": True,
                 "fire_aspected": True,
                 "attacks": [
@@ -83,7 +83,7 @@ class TestThermalShock(unittest.TestCase):
             name="ice wand",
             description="A wand of ice",
             location="loc_room",
-            properties={
+            _properties={
                 "portable": True,
                 "cold_aspected": True,
                 "attacks": [
@@ -103,7 +103,7 @@ class TestThermalShock(unittest.TestCase):
             description="A stone golem",
             location="loc_room",
             inventory=[],
-            properties={
+            _properties={
                 "health": 150,
                 "max_health": 150,
                 "armor": 10,

@@ -23,14 +23,14 @@ def create_test_state():
                 name="key",
                 description="A brass key",
                 location="player",
-                properties={"portable": True}
+                _properties={"portable": True}
             ),
             Item(
                 id="item_box",
                 name="box",
                 description="A wooden box",
                 location="loc1",
-                properties={
+                _properties={
                     "portable": False,
                     "container": {
                         "is_surface": False,
@@ -44,7 +44,7 @@ def create_test_state():
                 name="table",
                 description="A wooden table",
                 location="loc1",
-                properties={
+                _properties={
                     "portable": False,
                     "container": {
                         "is_surface": True,
@@ -57,7 +57,7 @@ def create_test_state():
                 name="chest",
                 description="A closed chest",
                 location="loc1",
-                properties={
+                _properties={
                     "portable": False,
                     "container": {
                         "is_surface": False,
@@ -71,7 +71,7 @@ def create_test_state():
                 name="rock",
                 description="A plain rock",
                 location="loc1",
-                properties={"portable": True}
+                _properties={"portable": True}
             )
         ],
         actors={

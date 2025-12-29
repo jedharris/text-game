@@ -20,7 +20,7 @@ class TestGetRelationship(unittest.TestCase):
             description="A healer",
             location="loc_test",
             inventory=[],
-            properties={
+            _properties={
                 "relationships": {
                     "player": {"trust": 5, "gratitude": 2, "fear": 0}
                 }
@@ -43,7 +43,7 @@ class TestGetRelationship(unittest.TestCase):
             description="A healer",
             location="loc_test",
             inventory=[],
-            properties={}
+            _properties={}
         )
 
         rel = get_relationship(actor, "player")
@@ -73,7 +73,7 @@ class TestModifyRelationship(unittest.TestCase):
             description="A healer",
             location="loc_test",
             inventory=[],
-            properties={}
+            _properties={}
         )
 
         self.location = Location(
@@ -188,7 +188,7 @@ class TestThresholdCrossing(unittest.TestCase):
             description="A healer",
             location="loc_test",
             inventory=[],
-            properties={}
+            _properties={}
         )
 
         self.location = Location(
@@ -351,7 +351,7 @@ class TestCheckThreshold(unittest.TestCase):
             description="A healer",
             location="loc_test",
             inventory=[],
-            properties={
+            _properties={
                 "relationships": {
                     "player": {"trust": 5, "gratitude": 0, "fear": 0}
                 }
@@ -371,7 +371,7 @@ class TestCheckThreshold(unittest.TestCase):
             description="A healer",
             location="loc_test",
             inventory=[],
-            properties={
+            _properties={
                 "relationships": {
                     "player": {"trust": 2, "gratitude": 0, "fear": 0}
                 }
@@ -390,7 +390,7 @@ class TestCheckThreshold(unittest.TestCase):
             description="A healer",
             location="loc_test",
             inventory=[],
-            properties={}
+            _properties={}
         )
 
         self.assertFalse(check_threshold(actor, "player", "trust", 3))
@@ -409,7 +409,7 @@ class TestGetDispositionFromRelationships(unittest.TestCase):
             description="A guard",
             location="loc_test",
             inventory=[],
-            properties={
+            _properties={
                 "relationships": {
                     "player": {"trust": 0, "gratitude": 0, "fear": 7}
                 }
@@ -431,7 +431,7 @@ class TestGetDispositionFromRelationships(unittest.TestCase):
             description="A healer",
             location="loc_test",
             inventory=[],
-            properties={
+            _properties={
                 "relationships": {
                     "player": {"trust": 5, "gratitude": 3, "fear": 0}
                 }
@@ -452,7 +452,7 @@ class TestGetDispositionFromRelationships(unittest.TestCase):
             description="A merchant",
             location="loc_test",
             inventory=[],
-            properties={
+            _properties={
                 "relationships": {
                     "player": {"trust": 1, "gratitude": 1, "fear": 1}
                 }
@@ -473,7 +473,7 @@ class TestGetDispositionFromRelationships(unittest.TestCase):
             description="A stranger",
             location="loc_test",
             inventory=[],
-            properties={}
+            _properties={}
         )
 
         disposition = get_disposition_from_relationships(actor, "player")

@@ -99,7 +99,7 @@ class TestPostureClearingOnMovement(unittest.TestCase):
             name="desk",
             description="A wooden desk",
             location="loc_room",
-            properties={"interaction_distance": "near"}
+            _properties={"interaction_distance": "near"}
         )
 
         self.item_shelf = Item(
@@ -107,7 +107,7 @@ class TestPostureClearingOnMovement(unittest.TestCase):
             name="shelf",
             description="A bookshelf",
             location="loc_room",
-            properties={"interaction_distance": "near"}
+            _properties={"interaction_distance": "near"}
         )
 
         self.game_state = GameState(

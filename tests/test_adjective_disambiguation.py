@@ -32,14 +32,14 @@ class TestFindItemWithAdjective(unittest.TestCase):
             name="key",
             description="A small iron key with rust spots.",
             location=location_id,
-            properties={"portable": True}
+            _properties={"portable": True}
         )
         brass_key = Item(
             id="item_brass_key",
             name="key",
             description="A large brass key with ornate handle.",
             location=location_id,
-            properties={"portable": True}
+            _properties={"portable": True}
         )
         self.game_state.items.append(iron_key)
         self.game_state.items.append(brass_key)
@@ -155,14 +155,14 @@ class TestFindDoorWithAdjective(unittest.TestCase):
             name="door",
             description="A heavy iron door with rivets.",
             location=f"exit:{location_id}:north",
-            properties={"door": {"open": False, "locked": False}}
+            _properties={"door": {"open": False, "locked": False}}
         )
         wooden_door = Item(
             id="door_wooden",
             name="door",
             description="A rough wooden door with brass hinges.",
             location=f"exit:{location_id}:east",
-            properties={"door": {"open": False, "locked": False}}
+            _properties={"door": {"open": False, "locked": False}}
         )
         self.game_state.items.append(iron_door)
         self.game_state.items.append(wooden_door)
@@ -262,14 +262,14 @@ class TestHandleTakeWithAdjective(unittest.TestCase):
             name="key",
             description="A small iron key with rust spots.",
             location=location_id,
-            properties={"portable": True}
+            _properties={"portable": True}
         )
         brass_key = Item(
             id="item_brass_key",
             name="key",
             description="A large brass key with ornate handle.",
             location=location_id,
-            properties={"portable": True}
+            _properties={"portable": True}
         )
         self.game_state.items.append(iron_key)
         self.game_state.items.append(brass_key)
@@ -324,14 +324,14 @@ class TestHandleOpenWithAdjective(unittest.TestCase):
             name="door",
             description="A heavy iron door with rivets.",
             location=f"exit:{location_id}:north",
-            properties={"door": {"open": False, "locked": False}}
+            _properties={"door": {"open": False, "locked": False}}
         )
         wooden_door = Item(
             id="door_wooden",
             name="door",
             description="A rough wooden door with brass hinges.",
             location=f"exit:{location_id}:east",
-            properties={"door": {"open": False, "locked": False}}
+            _properties={"door": {"open": False, "locked": False}}
         )
         self.game_state.items.append(iron_door)
         self.game_state.items.append(wooden_door)
@@ -392,7 +392,7 @@ class TestDoorStateAdjectives(unittest.TestCase):
             name="door",
             description="A heavy iron door.",  # No state words in description
             location=location_id,
-            properties={
+            _properties={
                 "door": {"open": False, "locked": True}
             }
         )
@@ -401,7 +401,7 @@ class TestDoorStateAdjectives(unittest.TestCase):
             name="door",
             description="A simple wooden door.",  # No state words in description
             location=location_id,
-            properties={
+            _properties={
                 "door": {"open": False, "locked": False}
             }
         )

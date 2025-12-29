@@ -60,7 +60,7 @@ class TestUnifiedActorModel(unittest.TestCase):
             description="A guard",
             location="location_room",
             inventory=[],
-            properties={},
+            _properties={},
             behaviors=[]
         )
         state.actors[ActorId("npc_guard")] = npc
@@ -92,7 +92,7 @@ class TestStateAccessorUnifiedModel(unittest.TestCase):
             description="A guard",
             location="location_hall",
             inventory=[],
-            properties={},
+            _properties={},
             behaviors=[]
         )
         state.actors[ActorId("npc_guard")] = npc
@@ -132,7 +132,7 @@ class TestStateAccessorUnifiedModel(unittest.TestCase):
             description="A guard",
             location="location_room",
             inventory=[],
-            properties={},
+            _properties={},
             behaviors=[]
         )
         state.actors[ActorId("npc_guard")] = npc
@@ -155,7 +155,7 @@ class TestStateAccessorUnifiedModel(unittest.TestCase):
             description="A guard",
             location="location_hall",
             inventory=[],
-            properties={},
+            _properties={},
             behaviors=[]
         )
         state.actors[ActorId("npc_guard")] = npc
@@ -179,7 +179,7 @@ class TestBehaviorsFieldList(unittest.TestCase):
             description="A test actor",
             location="location_room",
             inventory=[],
-            properties={},
+            _properties={},
             behaviors=["module1", "module2"]
         )
 
@@ -194,7 +194,7 @@ class TestBehaviorsFieldList(unittest.TestCase):
             name="Test Item",
             description="A test item",
             location="location_room",
-            properties={"portable": True},
+            _properties={"portable": True},
             behaviors=["module1"]
         )
 
@@ -207,7 +207,7 @@ class TestBehaviorsFieldList(unittest.TestCase):
             id="test_location",
             name="Test Location",
             description="A test location",
-            properties={},
+            _properties={},
             behaviors=["module1"]
         )
 
@@ -234,7 +234,7 @@ class TestSerializationUnifiedModel(unittest.TestCase):
             description="A guard",
             location="location_room",
             inventory=[],
-            properties={},
+            _properties={},
             behaviors=[]
         )
         state.actors[ActorId("npc_guard")] = npc

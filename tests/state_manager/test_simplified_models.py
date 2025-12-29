@@ -44,7 +44,7 @@ class TestSimplifiedItem(unittest.TestCase):
             name="Torch",
             description="A wooden torch",
             location="loc_1",
-            properties={
+            _properties={
                 "type": "tool",
                 "portable": True,
                 "states": {"lit": False}
@@ -64,7 +64,7 @@ class TestSimplifiedItem(unittest.TestCase):
             name="Chest",
             description="A wooden chest",
             location="loc_1",
-            properties={
+            _properties={
                 "container": {
                     "is_surface": False,
                     "capacity": 10,
@@ -120,7 +120,7 @@ class TestSimplifiedLocation(unittest.TestCase):
             name="Room",
             description="A room",
             exits={},
-            properties={"tags": ["indoor", "lit"]}
+            _properties={"tags": ["indoor", "lit"]}
         )
 
         self.assertEqual(loc.properties.get("tags"), ["indoor", "lit"])
@@ -149,7 +149,7 @@ class TestSimplifiedLocation(unittest.TestCase):
         exit_desc = ExitDescriptor(
             type="open",
             to="loc_2",
-            properties={
+            _properties={
                 "description": "A dark passage",
                 "conditions": ["has_torch"],
                 "on_fail": "You can't see in the dark."
@@ -202,7 +202,7 @@ class TestSimplifiedLocation(unittest.TestCase):
         exit_desc = ExitDescriptor(
             type="open",
             to="loc_2",
-            properties={"states": {"hidden": True}}
+            _properties={"states": {"hidden": True}}
         )
 
         self.assertTrue(exit_desc.states.get("hidden"))
@@ -214,7 +214,7 @@ class TestSimplifiedLocation(unittest.TestCase):
         exit_desc = ExitDescriptor(
             type="open",
             to="loc_2",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["worn steps", "cold draft"],
                     "state_variants": {
@@ -281,7 +281,7 @@ class TestSimplifiedActor(unittest.TestCase):
             description="A guard",
             location="loc_1",
             inventory=["item_5"],
-            properties={
+            _properties={
                 "dialogue": ["Hello!", "Go away."],
                 "states": {"hostile": False}
             }
@@ -303,7 +303,7 @@ class TestSimplifiedLock(unittest.TestCase):
             id="lock_1",
             name="Iron Lock",
             description="A sturdy lock",
-            properties={
+            _properties={
                 "opens_with": ["key_1"]
             }
         )
@@ -321,7 +321,7 @@ class TestSimplifiedLock(unittest.TestCase):
             id="lock_1",
             name="Stubborn Lock",
             description="A stubborn lock.",
-            properties={
+            _properties={
                 "opens_with": ["key_1"],
                 "fail_message": "The lock won't budge."
             }
@@ -338,7 +338,7 @@ class TestSimplifiedLock(unittest.TestCase):
             name="Enchanted Lock",
             description="A lock requiring an incantation",
             behaviors=["core:lock", "magic:incantation_lock"],
-            properties={"opens_with": ["key_1"]}
+            _properties={"opens_with": ["key_1"]}
         )
 
         self.assertEqual(lock.behaviors, ["core:lock", "magic:incantation_lock"])
@@ -352,7 +352,7 @@ class TestSimplifiedLock(unittest.TestCase):
             id="lock_1",
             name="ancient lock",
             description="An ancient rusted lock",
-            properties={
+            _properties={
                 "opens_with": ["key_1"],
                 "llm_context": {
                     "traits": ["ancient", "rusted"],
@@ -368,7 +368,7 @@ class TestSimplifiedLock(unittest.TestCase):
         """Lock llm_context can be set via property."""
         from src.state_manager import Lock
 
-        lock = Lock(id="lock_1", name="test lock", description="A test lock", properties={"opens_with": ["key_1"]})
+        lock = Lock(id="lock_1", name="test lock", description="A test lock", _properties={"opens_with": ["key_1"]})
         lock.llm_context = {"traits": ["shiny", "new"]}
 
         self.assertEqual(lock.llm_context["traits"], ["shiny", "new"])
@@ -402,7 +402,7 @@ class TestSimplifiedPlayerState(unittest.TestCase):
             description="",
             location="loc_1",
             inventory=[],
-            properties={
+            _properties={
                 "flags": {"started": True},
                 "stats": {"health": 100, "max_health": 100}
             }
@@ -421,7 +421,7 @@ class TestSimplifiedPlayerState(unittest.TestCase):
             description="A stern guard",
             location="loc_1",
             inventory=[],
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["vigilant", "imposing"],
                     "state_variants": {"alerted": "The guard is on high alert."}
@@ -783,7 +783,7 @@ class TestGenericSerializer(unittest.TestCase):
             name="Torch",
             description="A torch",
             location="loc_1",
-            properties={
+            _properties={
                 "type": "tool",
                 "portable": True,
                 "custom": "value"
@@ -1002,7 +1002,7 @@ class TestGenericSerializer(unittest.TestCase):
             description="",
             location="loc_1",
             inventory=["item_1"],
-            properties={
+            _properties={
                 "flags": {"started": True},
                 "stats": {"health": 100}
             }
@@ -1073,7 +1073,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
         state = GameState(
             metadata=Metadata(title="Test", version="1.0", start_location="loc_1"),
             locks=[
-                Lock(id="lock_1", name="test lock", description="A test lock", properties={"opens_with": ["key_1"]})
+                Lock(id="lock_1", name="test lock", description="A test lock", _properties={"opens_with": ["key_1"]})
             ]
         )
 
@@ -1186,7 +1186,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
         state = GameState(
             metadata=Metadata(title="Test", version="1.0", start_location="loc_1"),
             actors={
-                "player": Actor(id="player", name="Player", description="", location="loc_1", inventory=[], properties={"flags": {}}),
+                "player": Actor(id="player", name="Player", description="", location="loc_1", inventory=[], _properties={"flags": {}}),
                 "npc_guard": Actor(id="npc_guard", name="Guard", description="A guard", location="loc_1", inventory=[])
             }
         )
@@ -1213,7 +1213,7 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
             name="door",
             description="A door",
             location="exit:loc_1:north",
-            properties={"door": {"open": False, "locked": False}}
+            _properties={"door": {"open": False, "locked": False}}
         )
 
         state = GameState(

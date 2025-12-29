@@ -148,12 +148,12 @@ class TestHandleAskAbout(unittest.TestCase):
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[],
-            properties={'flags': {}}
+            _properties={'flags': {}}
         )
         state.actors[ActorId('scholar')] = Actor(
             id='scholar', name='Scholar', description='A scholar',
             location='start', inventory=[],
-            properties={
+            _properties={
                 'dialog_topics': {
                     'infection': {
                         'keywords': ['infection', 'sick', 'illness'],
@@ -180,12 +180,12 @@ class TestHandleAskAbout(unittest.TestCase):
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[],
-            properties={'flags': {}}
+            _properties={'flags': {}}
         )
         state.actors[ActorId('scholar')] = Actor(
             id='scholar', name='Scholar', description='A scholar',
             location='start', inventory=[],
-            properties={
+            _properties={
                 'dialog_topics': {
                     'infection': {
                         'keywords': ['infection'],
@@ -211,12 +211,12 @@ class TestHandleAskAbout(unittest.TestCase):
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[],
-            properties={'flags': {}}
+            _properties={'flags': {}}
         )
         state.actors[ActorId('scholar')] = Actor(
             id='scholar', name='Scholar', description='A scholar',
             location='start', inventory=[],
-            properties={
+            _properties={
                 'dialog_topics': {
                     'infection': {
                         'keywords': ['infection'],
@@ -250,12 +250,12 @@ class TestHandleAskAbout(unittest.TestCase):
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[],
-            properties={'flags': {}}
+            _properties={'flags': {}}
         )
         state.actors[ActorId('scholar')] = Actor(
             id='scholar', name='Scholar', description='A scholar',
             location='start', inventory=[],
-            properties={
+            _properties={
                 'dialog_topics': {},
                 'default_topic_summary': "The scholar shrugs. 'I don't know about that.'"
             }
@@ -284,7 +284,7 @@ class TestHandleTalkTo(unittest.TestCase):
         state.actors[ActorId('scholar')] = Actor(
             id='scholar', name='Scholar', description='A scholar',
             location='start', inventory=[],
-            properties={
+            _properties={
                 'dialog_topics': {
                     'infection': {
                         'keywords': ['infection', 'sick'],
@@ -406,7 +406,7 @@ class TestRequiresState(unittest.TestCase):
         state.actors[ActorId('scholar')] = Actor(
             id='scholar', name='Scholar', description='A scholar',
             location='start', inventory=[],
-            properties={
+            _properties={
                 'dialog_topics': {
                     'greeting': {
                         'keywords': ['hello', 'hi'],
@@ -626,12 +626,12 @@ class TestTrustDelta(unittest.TestCase):
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[],
-            properties={'flags': {}}
+            _properties={'flags': {}}
         )
         state.actors[ActorId('scholar')] = Actor(
             id='scholar', name='Scholar', description='A scholar',
             location='start', inventory=[],
-            properties={
+            _properties={
                 'dialog_topics': {
                     'infection': {
                         'keywords': ['infection'],
@@ -672,12 +672,12 @@ class TestPerTopicHandler(unittest.TestCase):
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[],
-            properties={'flags': {}}
+            _properties={'flags': {}}
         )
         state.actors[ActorId('scholar')] = Actor(
             id='scholar', name='Scholar', description='A scholar',
             location='start', inventory=[],
-            properties={
+            _properties={
                 'dialog_topics': {
                     'commitment': {
                         'keywords': ['promise', 'help'],
@@ -710,12 +710,12 @@ class TestPerTopicHandler(unittest.TestCase):
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[],
-            properties={'flags': {}}
+            _properties={'flags': {}}
         )
         state.actors[ActorId('scholar')] = Actor(
             id='scholar', name='Scholar', description='A scholar',
             location='start', inventory=[],
-            properties={
+            _properties={
                 'dialog_topics': {
                     'commitment': {
                         'keywords': ['promise', 'help'],
@@ -747,12 +747,12 @@ class TestPerTopicHandler(unittest.TestCase):
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[],
-            properties={'flags': {}}
+            _properties={'flags': {}}
         )
         state.actors[ActorId('scholar')] = Actor(
             id='scholar', name='Scholar', description='A scholar',
             location='start', inventory=[],
-            properties={
+            _properties={
                 'dialog_topics': {
                     'help_commitment': {
                         'keywords': ['promise', 'help'],
@@ -785,12 +785,12 @@ class TestPerTopicHandler(unittest.TestCase):
         state.actors[ActorId('player')] = Actor(
             id='player', name='Hero', description='The hero',
             location='start', inventory=[],
-            properties={'flags': {}}
+            _properties={'flags': {}}
         )
         state.actors[ActorId('scholar')] = Actor(
             id='scholar', name='Scholar', description='A scholar',
             location='start', inventory=[],
-            properties={
+            _properties={
                 'dialog_topics': {
                     'infection': {
                         'keywords': ['infection', 'sick'],

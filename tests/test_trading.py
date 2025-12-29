@@ -37,7 +37,7 @@ class TestTradingBehavior(unittest.TestCase):
             description="A trader",
             location="location_room",
             inventory=["item_reward"],
-            properties={
+            _properties={
                 "trades": {
                     "item_trade_good": {
                         "gives": "item_reward",
@@ -55,7 +55,7 @@ class TestTradingBehavior(unittest.TestCase):
             name="trade good",
             description="Something the trader wants",
             location="player",
-            properties={"portable": True},
+            _properties={"portable": True},
             behaviors=[]
         )
         state.items.append(trade_good)
@@ -66,7 +66,7 @@ class TestTradingBehavior(unittest.TestCase):
             name="reward",
             description="A valuable reward",
             location="npc_trader",
-            properties={"portable": True},
+            _properties={"portable": True},
             behaviors=[]
         )
         state.items.append(reward)
@@ -189,7 +189,7 @@ class TestTradingBehavior(unittest.TestCase):
             description="A guard",
             location="location_room",
             inventory=[],
-            properties={},
+            _properties={},
             behaviors=[]
         )
         state.actors[ActorId("npc_guard")] = guard
@@ -228,7 +228,7 @@ class TestOnReceiveItemBehavior(unittest.TestCase):
             description="A trader",
             location="location_room",
             inventory=["item_reward"],
-            properties={
+            _properties={
                 "trades": {
                     "item_test": {
                         "gives": "item_reward",
@@ -246,7 +246,7 @@ class TestOnReceiveItemBehavior(unittest.TestCase):
             name="test item",
             description="A test item",
             location="player",
-            properties={"portable": True},
+            _properties={"portable": True},
             behaviors=[]
         )
         state.items.append(test_item)
@@ -256,7 +256,7 @@ class TestOnReceiveItemBehavior(unittest.TestCase):
             name="reward",
             description="A reward",
             location="npc_trader",
-            properties={"portable": True},
+            _properties={"portable": True},
             behaviors=[]
         )
         state.items.append(reward)
@@ -291,7 +291,7 @@ class TestOnReceiveItemBehavior(unittest.TestCase):
             description="A trader",
             location="location_room",
             inventory=[],
-            properties={
+            _properties={
                 "trades": {
                     "item_something_else": {
                         "gives": "item_other",

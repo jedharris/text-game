@@ -55,7 +55,7 @@ class TestPhase1DataModel(unittest.TestCase):
             name="test",
             description="A test item",
             location="loc_test",
-            properties={"type": "object", "portable": True}
+            _properties={"type": "object", "portable": True}
         )
         # Currently Item doesn't have pushable field - this tests that it will
         self.assertFalse(getattr(item, 'pushable', False))
@@ -357,7 +357,7 @@ class TestPhase3EnhancedTake(unittest.TestCase):
             name="key",
             description="A silver key",
             location="loc_test",
-            properties={"type": "object", "portable": True}
+            _properties={"type": "object", "portable": True}
         ))
 
         result = self.handler.handle_command({
@@ -879,7 +879,7 @@ class TestPhase2PutCommand(unittest.TestCase):
             name="sword",
             description="A sword",
             location="loc_test",
-            properties={"type": "object", "portable": True}
+            _properties={"type": "object", "portable": True}
         ))
 
         result = self.handler.handle_command({

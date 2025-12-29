@@ -141,7 +141,7 @@ class TestExplicitPartOverridesUniversalSurface(unittest.TestCase):
             id="part_room_ceiling",
             name="ceiling",
             part_of="loc_room",
-            properties={
+            _properties={
                 "description": "A magnificent vaulted ceiling with colorful frescoes depicting ancient battles."
             }
         )
@@ -151,7 +151,7 @@ class TestExplicitPartOverridesUniversalSurface(unittest.TestCase):
             id="part_room_floor",
             name="floor",
             part_of="loc_room",
-            properties={
+            _properties={
                 "description": "Polished marble tiles arranged in intricate geometric patterns.",
                 "interaction_distance": "any"
             }
@@ -219,7 +219,7 @@ class TestExplicitPartOverridesUniversalSurface(unittest.TestCase):
             id="part_room_wall",
             name="wall",
             part_of="loc_room",
-            properties={
+            _properties={
                 "description": "The wall has intricate carvings.",
                 "interaction_distance": "near"
             }

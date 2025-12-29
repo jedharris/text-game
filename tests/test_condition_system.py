@@ -17,7 +17,7 @@ class TestApplyCondition(unittest.TestCase):
             description="Test player",
             location="loc_test",
             inventory=[],
-            properties={"health": 100, "max_health": 100}
+            _properties={"health": 100, "max_health": 100}
         )
 
     def test_apply_condition_new(self):
@@ -104,7 +104,7 @@ class TestTickConditions(unittest.TestCase):
             description="Test player",
             location="loc_test",
             inventory=[],
-            properties={
+            _properties={
                 "health": 100,
                 "max_health": 100,
                 "conditions": {}
@@ -205,7 +205,7 @@ class TestTreatCondition(unittest.TestCase):
             description="Test player",
             location="loc_test",
             inventory=[],
-            properties={
+            _properties={
                 "health": 80,
                 "max_health": 100,
                 "conditions": {
@@ -252,7 +252,7 @@ class TestRemoveCondition(unittest.TestCase):
             description="Test player",
             location="loc_test",
             inventory=[],
-            properties={
+            _properties={
                 "conditions": {
                     "poison": {"severity": 50}
                 }
@@ -289,7 +289,7 @@ class TestIsImmune(unittest.TestCase):
             description="A stone golem",
             location="loc_test",
             inventory=[],
-            properties={}
+            _properties={}
         )
 
     def test_is_immune_array_match(self):
@@ -352,7 +352,7 @@ class TestGetConditions(unittest.TestCase):
             description="Test",
             location="loc_test",
             inventory=[],
-            properties={"conditions": {"poison": {"severity": 50}}}
+            _properties={"conditions": {"poison": {"severity": 50}}}
         )
 
         conditions = get_conditions(actor)
@@ -369,7 +369,7 @@ class TestGetConditions(unittest.TestCase):
             description="Test",
             location="loc_test",
             inventory=[],
-            properties={}
+            _properties={}
         )
 
         conditions = get_conditions(actor)
@@ -398,7 +398,7 @@ class TestHasCondition(unittest.TestCase):
             description="Test",
             location="loc_test",
             inventory=[],
-            properties={"conditions": {"poison": {"severity": 50}}}
+            _properties={"conditions": {"poison": {"severity": 50}}}
         )
 
         self.assertTrue(has_condition(actor, "poison"))
@@ -413,7 +413,7 @@ class TestHasCondition(unittest.TestCase):
             description="Test",
             location="loc_test",
             inventory=[],
-            properties={"conditions": {"poison": {"severity": 50}}}
+            _properties={"conditions": {"poison": {"severity": 50}}}
         )
 
         self.assertFalse(has_condition(actor, "bleeding"))
@@ -434,7 +434,7 @@ class TestOnConditionTickHandler(unittest.TestCase):
             description="Test",
             location="loc_test",
             inventory=[],
-            properties={
+            _properties={
                 "health": 100,
                 "conditions": {"poison": {"severity": 50, "damage_per_turn": 5}}
             }
@@ -446,7 +446,7 @@ class TestOnConditionTickHandler(unittest.TestCase):
             description="A guard",
             location="loc_test",
             inventory=[],
-            properties={
+            _properties={
                 "health": 80,
                 "conditions": {"bleeding": {"severity": 30, "damage_per_turn": 3}}
             }
@@ -510,7 +510,7 @@ class TestHealthRegeneration(unittest.TestCase):
             description="Test",
             location="test_loc",
             inventory=[],
-            properties={"health": 50, "max_health": 100, "regeneration": 5}
+            _properties={"health": 50, "max_health": 100, "regeneration": 5}
         )
 
         messages = tick_conditions(actor)
@@ -529,7 +529,7 @@ class TestHealthRegeneration(unittest.TestCase):
             description="Test",
             location="test_loc",
             inventory=[],
-            properties={"health": 98, "max_health": 100, "regeneration": 5}
+            _properties={"health": 98, "max_health": 100, "regeneration": 5}
         )
 
         messages = tick_conditions(actor)
@@ -548,7 +548,7 @@ class TestHealthRegeneration(unittest.TestCase):
             description="Test",
             location="test_loc",
             inventory=[],
-            properties={"health": 100, "max_health": 100, "regeneration": 5}
+            _properties={"health": 100, "max_health": 100, "regeneration": 5}
         )
 
         messages = tick_conditions(actor)
@@ -567,7 +567,7 @@ class TestHealthRegeneration(unittest.TestCase):
             description="Test",
             location="test_loc",
             inventory=[],
-            properties={"health": 50, "regeneration": 5}  # No max_health
+            _properties={"health": 50, "regeneration": 5}  # No max_health
         )
 
         messages = tick_conditions(actor)
@@ -586,7 +586,7 @@ class TestHealthRegeneration(unittest.TestCase):
             description="Test",
             location="test_loc",
             inventory=[],
-            properties={"health": 100, "max_health": 150, "regeneration": 10}
+            _properties={"health": 100, "max_health": 150, "regeneration": 10}
         )
 
         # Apply damaging condition

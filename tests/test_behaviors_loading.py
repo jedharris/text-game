@@ -19,7 +19,7 @@ class TestBehaviorsFieldInModels(unittest.TestCase):
             name="Test",
             description="A test item",
             location="room1",
-            properties={"type": "tool", "portable": True}
+            _properties={"type": "tool", "portable": True}
         )
         self.assertEqual(item.behaviors, [])
 
@@ -30,7 +30,7 @@ class TestBehaviorsFieldInModels(unittest.TestCase):
             name="Test",
             description="A test item",
             location="room1",
-            properties={"type": "tool", "portable": True},
+            _properties={"type": "tool", "portable": True},
             behaviors=["module:on_take", "module:on_drop"]
         )
         self.assertIn("module:on_take", item.behaviors)
@@ -64,7 +64,7 @@ class TestBehaviorsFieldInModels(unittest.TestCase):
             name="door",
             description="A test door",
             location="exit:room1:north",
-            properties={"door": {"open": False}},
+            _properties={"door": {"open": False}},
             behaviors=[]
         )
         self.assertEqual(door_item.behaviors, [])
@@ -77,7 +77,7 @@ class TestBehaviorsFieldInModels(unittest.TestCase):
             name="door",
             description="A test door",
             location="exit:room1:north",
-            properties={"door": {"open": False}},
+            _properties={"door": {"open": False}},
             behaviors=["module:on_open", "module:on_close"]
         )
         self.assertIn("module:on_open", door_item.behaviors)

@@ -77,12 +77,12 @@ class TestInventoryCommandRefactoring(BaseTestCase):
         # Add NPC with item in inventory
         npc = Actor(id="npc_guard", name="guard", description="A guard",
                    location="location_room", inventory=["item_key"],
-                   properties={}, behaviors=[])
+                   _properties={}, behaviors=[])
         self.game_state.actors[ActorId("npc_guard")] = npc
 
         # Add the key item
         key = Item(id="item_key", name="key", description="A key",
-                  location="npc_guard", properties={"portable": True}, behaviors=[])
+                  location="npc_guard", _properties={"portable": True}, behaviors=[])
         self.game_state.items.append(key)
 
         # Also put sword in player inventory

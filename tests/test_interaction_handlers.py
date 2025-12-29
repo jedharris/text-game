@@ -23,42 +23,42 @@ def create_test_state():
                 name="lever",
                 description="A rusty lever",
                 location="loc1",
-                properties={"pullable": True}
+                _properties={"pullable": True}
             ),
             Item(
                 id="item_button",
                 name="button",
                 description="A red button",
                 location="loc1",
-                properties={"pushable": True}
+                _properties={"pushable": True}
             ),
             Item(
                 id="item_book",
                 name="book",
                 description="An old book",
                 location="loc1",
-                properties={"portable": True, "readable": True, "text": "Once upon a time..."}
+                _properties={"portable": True, "readable": True, "text": "Once upon a time..."}
             ),
             Item(
                 id="item_ladder",
                 name="ladder",
                 description="A wooden ladder",
                 location="loc1",
-                properties={"climbable": True}
+                _properties={"climbable": True}
             ),
             Item(
                 id="item_key",
                 name="key",
                 description="A brass key",
                 location="loc1",
-                properties={"portable": True, "usable": True}
+                _properties={"portable": True, "usable": True}
             ),
             Item(
                 id="item_rock",
                 name="rock",
                 description="A plain rock",
                 location="loc1",
-                properties={"portable": True}
+                _properties={"portable": True}
             )
         ],
         actors={
@@ -334,14 +334,14 @@ class TestPushWithAdjective(unittest.TestCase):
             name="door",
             description="A heavy iron door with rivets.",
             location="loc1",
-            properties={"door": {"open": False, "locked": False}}
+            _properties={"door": {"open": False, "locked": False}}
         )
         wooden_door = Item(
             id="door_wooden",
             name="door",
             description="A rough wooden door with brass hinges.",
             location="loc1",
-            properties={"door": {"open": False, "locked": False}}
+            _properties={"door": {"open": False, "locked": False}}
         )
         self.game_state.items.append(iron_door)
         self.game_state.items.append(wooden_door)
@@ -403,14 +403,14 @@ class TestPullWithAdjective(unittest.TestCase):
             name="lever",
             description="A tarnished copper lever.",
             location="loc1",
-            properties={"pullable": True}
+            _properties={"pullable": True}
         )
         brass_lever = Item(
             id="lever_brass",
             name="lever",
             description="A shiny brass lever.",
             location="loc1",
-            properties={"pullable": True}
+            _properties={"pullable": True}
         )
         self.game_state.items.append(copper_lever)
         self.game_state.items.append(brass_lever)
@@ -459,14 +459,14 @@ class TestReadWithAdjective(unittest.TestCase):
             name="book",
             description="An ancient tome.",
             location="loc1",
-            properties={"portable": True, "readable": True, "text": "Ancient secrets..."}
+            _properties={"portable": True, "readable": True, "text": "Ancient secrets..."}
         )
         leather_book = Item(
             id="book_leather",
             name="book",
             description="A leather-bound journal.",
             location="loc1",
-            properties={"portable": True, "readable": True, "text": "Dear diary..."}
+            _properties={"portable": True, "readable": True, "text": "Dear diary..."}
         )
         self.game_state.items.append(ancient_book)
         self.game_state.items.append(leather_book)
@@ -522,14 +522,14 @@ class TestClimbWithAdjective(unittest.TestCase):
             name="ladder",
             description="A rope ladder.",
             location="loc1",
-            properties={"climbable": True}
+            _properties={"climbable": True}
         )
         metal_ladder = Item(
             id="ladder_metal",
             name="ladder",
             description="A metal ladder.",
             location="loc1",
-            properties={"climbable": True}
+            _properties={"climbable": True}
         )
         self.game_state.items.append(rope_ladder)
         self.game_state.items.append(metal_ladder)
@@ -578,14 +578,14 @@ class TestUseWithAdjective(unittest.TestCase):
             name="key",
             description="A gleaming gold key.",
             location="loc1",
-            properties={"portable": True, "usable": True}
+            _properties={"portable": True, "usable": True}
         )
         silver_key = Item(
             id="key_silver",
             name="key",
             description="A tarnished silver key.",
             location="loc1",
-            properties={"portable": True, "usable": True}
+            _properties={"portable": True, "usable": True}
         )
         self.game_state.items.append(gold_key)
         self.game_state.items.append(silver_key)

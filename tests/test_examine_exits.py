@@ -189,7 +189,7 @@ class TestExamineExit(unittest.TestCase):
             to="tower",
             name="spiral staircase",
             description="A narrow spiral staircase winds upward into shadow.",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": ["worn stone steps", "cold draft from above"],
                     "state_variants": {"first_visit": "The stairs beckon."}

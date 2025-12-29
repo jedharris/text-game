@@ -373,7 +373,7 @@ class TestGetActorPart(unittest.TestCase):
             id="loc_gallery",
             name="Gallery",
             description="A gallery with walls",
-            properties={"default_part": "part_gallery_center"}
+            _properties={"default_part": "part_gallery_center"}
         )
 
         self.part_center = Part(
@@ -404,7 +404,7 @@ class TestGetActorPart(unittest.TestCase):
             description="A guard",
             location="loc_gallery",
             inventory=[],
-            properties={"focused_on": "part_gallery_north_wall"}
+            _properties={"focused_on": "part_gallery_north_wall"}
         )
 
         # NPC in spatial location without focus

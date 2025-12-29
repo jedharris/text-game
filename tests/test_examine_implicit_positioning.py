@@ -39,7 +39,7 @@ class TestExamineImplicitPositioning(unittest.TestCase):
             name="desk",
             description="A wooden desk with carved legs",
             location="loc_room",
-            properties={"interaction_distance": "near"}
+            _properties={"interaction_distance": "near"}
         )
 
         # Part with "near" distance
@@ -47,7 +47,7 @@ class TestExamineImplicitPositioning(unittest.TestCase):
             id="part_room_north_wall",
             name="wall",
             part_of="loc_room",
-            properties={
+            _properties={
                 "description": "A stone wall with ancient carvings",
                 "interaction_distance": "near"
             }
@@ -59,14 +59,14 @@ class TestExamineImplicitPositioning(unittest.TestCase):
             name="bench",
             description="A long wooden bench",
             location="loc_room",
-            properties={"interaction_distance": "near"}
+            _properties={"interaction_distance": "near"}
         )
 
         self.part_bench_left = Part(
             id="part_bench_left",
             name="left side of bench",
             part_of="item_bench",
-            properties={
+            _properties={
                 "description": "The left end of the bench, worn smooth by use"
             }
         )
