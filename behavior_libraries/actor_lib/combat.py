@@ -492,6 +492,14 @@ def on_attack(entity, accessor, context) -> Optional[Any]:
 
 # Vocabulary extension - registers combat events
 vocabulary = {
+    "hook_definitions": [
+        {
+            "hook_id": "turn_death_check",
+            "invocation": "turn_phase",
+            "after": ["turn_condition_tick"],
+            "description": "Check all actors for death (health <= 0)"
+        }
+    ],
     "verbs": [
         {
             "word": "attack",
@@ -515,7 +523,7 @@ vocabulary = {
         },
         {
             "event": "on_death_check_all",
-            "hook": "death_check",
+            "hook": "turn_death_check",
             "description": "Called each turn to check all actors for death (health <= 0)"
         }
     ]

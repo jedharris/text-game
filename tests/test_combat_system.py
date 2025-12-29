@@ -578,7 +578,7 @@ class TestCombatVocabulary(unittest.TestCase):
                 break
 
         self.assertIsNotNone(death_event)
-        self.assertEqual(death_event["hook"], "death_check")
+        self.assertEqual(death_event["hook"], "turn_death_check")
 
 
 if __name__ == '__main__':
