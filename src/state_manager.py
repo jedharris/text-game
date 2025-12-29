@@ -197,11 +197,18 @@ class ExitDescriptor:
     description: str = ""  # Prose description for examine
     passage: Optional[str] = None  # Traversal structure beyond door (e.g., "narrow stairs")
     door_at: Optional[LocationId] = None  # Which end the door is at
-    properties: Dict[str, Any] = field(default_factory=dict)
+    _properties: Dict[str, Any] = field(default_factory=lambda: CoreFieldProtectingDict(
+        {'type', 'to', 'door_id', 'name', 'description', 'passage', 'door_at', 'behaviors'}
+    ))
     behaviors: List[str] = field(default_factory=list)
     # Internal fields for id synthesis - set by parser
     _direction: str = field(default="", repr=False)
     _location_id: LocationId = field(default=LocationId(""), repr=False)
+
+    @property
+    def properties(self) -> Dict[str, Any]:
+        """Access properties dict with core field protection."""
+        return self._properties
 
     @property
     def id(self) -> ExitId:
@@ -241,8 +248,15 @@ class Location:
     description: str
     exits: Dict[str, ExitDescriptor] = field(default_factory=dict)
     items: List[ItemId] = field(default_factory=list)
-    properties: Dict[str, Any] = field(default_factory=dict)
+    _properties: Dict[str, Any] = field(default_factory=lambda: CoreFieldProtectingDict(
+        {'id', 'name', 'description', 'exits', 'items', 'behaviors'}
+    ))
     behaviors: List[str] = field(default_factory=list)
+
+    @property
+    def properties(self) -> Dict[str, Any]:
+        """Access properties dict with core field protection."""
+        return self._properties
 
     @property
     def states(self) -> Dict[str, Any]:
@@ -274,8 +288,15 @@ class Item:
     name: str
     description: str
     location: str  # Can be LocationId, ActorId, ItemId (container), or exit string
-    properties: Dict[str, Any] = field(default_factory=dict)
+    _properties: Dict[str, Any] = field(default_factory=lambda: CoreFieldProtectingDict(
+        {'id', 'name', 'description', 'location', 'behaviors'}
+    ))
     behaviors: List[str] = field(default_factory=list)
+
+    @property
+    def properties(self) -> Dict[str, Any]:
+        """Access properties dict with core field protection."""
+        return self._properties
 
     @property
     def states(self) -> Dict[str, Any]:
@@ -386,8 +407,15 @@ class Lock:
     id: LockId
     name: str
     description: str
-    properties: Dict[str, Any] = field(default_factory=dict)
+    _properties: Dict[str, Any] = field(default_factory=lambda: CoreFieldProtectingDict(
+        {'id', 'name', 'description', 'behaviors'}
+    ))
     behaviors: List[str] = field(default_factory=list)
+
+    @property
+    def properties(self) -> Dict[str, Any]:
+        """Access properties dict with core field protection."""
+        return self._properties
 
     @property
     def opens_with(self) -> List[ItemId]:
@@ -438,8 +466,15 @@ class Part:
     id: PartId
     name: str
     part_of: str  # Parent entity ID (can be LocationId, ItemId, or ActorId)
-    properties: Dict[str, Any] = field(default_factory=dict)
+    _properties: Dict[str, Any] = field(default_factory=lambda: CoreFieldProtectingDict(
+        {'id', 'name', 'part_of', 'behaviors'}
+    ))
     behaviors: List[str] = field(default_factory=list)
+
+    @property
+    def properties(self) -> Dict[str, Any]:
+        """Access properties dict with core field protection."""
+        return self._properties
 
     @property
     def states(self) -> Dict[str, Any]:
@@ -472,8 +507,15 @@ class Actor:
     description: str
     location: LocationId
     inventory: List[ItemId] = field(default_factory=list)
-    properties: Dict[str, Any] = field(default_factory=dict)
+    _properties: Dict[str, Any] = field(default_factory=lambda: CoreFieldProtectingDict(
+        {'id', 'name', 'description', 'location', 'inventory', 'behaviors'}
+    ))
     behaviors: List[str] = field(default_factory=list)
+
+    @property
+    def properties(self) -> Dict[str, Any]:
+        """Access properties dict with core field protection."""
+        return self._properties
 
     @property
     def stats(self) -> Dict[str, Any]:
@@ -528,8 +570,15 @@ class Commitment:
     id: CommitmentId
     name: str
     description: str
-    properties: Dict[str, Any] = field(default_factory=dict)
+    _properties: Dict[str, Any] = field(default_factory=lambda: CoreFieldProtectingDict(
+        {'id', 'name', 'description', 'behaviors'}
+    ))
     behaviors: List[str] = field(default_factory=list)
+
+    @property
+    def properties(self) -> Dict[str, Any]:
+        """Access properties dict with core field protection."""
+        return self._properties
 
     @property
     def states(self) -> Dict[str, Any]:
@@ -560,8 +609,15 @@ class ScheduledEvent:
     id: ScheduledEventId
     name: str
     description: str
-    properties: Dict[str, Any] = field(default_factory=dict)
+    _properties: Dict[str, Any] = field(default_factory=lambda: CoreFieldProtectingDict(
+        {'id', 'name', 'description', 'behaviors'}
+    ))
     behaviors: List[str] = field(default_factory=list)
+
+    @property
+    def properties(self) -> Dict[str, Any]:
+        """Access properties dict with core field protection."""
+        return self._properties
 
     @property
     def states(self) -> Dict[str, Any]:
@@ -592,8 +648,15 @@ class Gossip:
     id: GossipId
     name: str
     description: str
-    properties: Dict[str, Any] = field(default_factory=dict)
+    _properties: Dict[str, Any] = field(default_factory=lambda: CoreFieldProtectingDict(
+        {'id', 'name', 'description', 'behaviors'}
+    ))
     behaviors: List[str] = field(default_factory=list)
+
+    @property
+    def properties(self) -> Dict[str, Any]:
+        """Access properties dict with core field protection."""
+        return self._properties
 
     @property
     def states(self) -> Dict[str, Any]:
@@ -624,8 +687,15 @@ class Spread:
     id: SpreadId
     name: str
     description: str
-    properties: Dict[str, Any] = field(default_factory=dict)
+    _properties: Dict[str, Any] = field(default_factory=lambda: CoreFieldProtectingDict(
+        {'id', 'name', 'description', 'behaviors'}
+    ))
     behaviors: List[str] = field(default_factory=list)
+
+    @property
+    def properties(self) -> Dict[str, Any]:
+        """Access properties dict with core field protection."""
+        return self._properties
 
     @property
     def states(self) -> Dict[str, Any]:
@@ -875,7 +945,7 @@ def _parse_exit(direction: str, raw: Dict[str, Any], location_id: str = "") -> E
         description=raw.get('description', ''),
         passage=raw.get('passage'),
         door_at=LocationId(door_at) if door_at else None,
-        properties=_parse_properties(raw, core_fields),
+        _properties=CoreFieldProtectingDict(core_fields, _parse_properties(raw, core_fields)),
         behaviors=_parse_behaviors(raw.get('behaviors', []), f"exit:{location_id}:{direction}"),
         _direction=direction,
         _location_id=LocationId(location_id) if location_id else LocationId("")
@@ -904,7 +974,7 @@ def _parse_location(raw: Dict[str, Any]) -> Location:
         description=raw.get('description', ''),
         exits=exits,
         items=[ItemId(i) for i in items],
-        properties=_parse_properties(raw, core_fields),
+        _properties=CoreFieldProtectingDict(core_fields, _parse_properties(raw, core_fields)),
         behaviors=behaviors
     )
 
@@ -942,7 +1012,7 @@ def _parse_item(raw: Dict[str, Any]) -> Item:
         name=raw.get('name', ''),
         description=raw.get('description', ''),
         location=raw.get('location', ''),  # Keep as str - can be various ID types
-        properties=_parse_properties(raw, core_fields),
+        _properties=CoreFieldProtectingDict(core_fields, _parse_properties(raw, core_fields)),
         behaviors=behaviors
     )
 
@@ -956,7 +1026,7 @@ def _parse_lock(raw: Dict[str, Any]) -> Lock:
         id=LockId(lock_id),
         name=raw.get('name', lock_id),  # Default to id if no name
         description=raw.get('description', ''),
-        properties=_parse_properties(raw, core_fields),
+        _properties=CoreFieldProtectingDict(core_fields, _parse_properties(raw, core_fields)),
         behaviors=_parse_behaviors(raw.get('behaviors', []), f"lock:{lock_id}")
     )
 
@@ -984,7 +1054,7 @@ def _parse_actor(raw: Dict[str, Any], actor_id: Optional[str] = None) -> Actor:
         description=raw.get('description', ''),
         location=LocationId(location) if location else LocationId(""),
         inventory=[ItemId(i) for i in inventory],
-        properties=_parse_properties(raw, core_fields),
+        _properties=CoreFieldProtectingDict(core_fields, _parse_properties(raw, core_fields)),
         behaviors=_parse_behaviors(raw.get('behaviors', []), f"actor:{effective_id}")
     )
 
@@ -998,7 +1068,7 @@ def _parse_commitment(raw: Dict[str, Any]) -> Commitment:
         id=CommitmentId(commitment_id),
         name=raw.get('name', commitment_id),  # Default to id if no name
         description=raw.get('description', ''),
-        properties=_parse_properties(raw, core_fields),
+        _properties=CoreFieldProtectingDict(core_fields, _parse_properties(raw, core_fields)),
         behaviors=_parse_behaviors(raw.get('behaviors', []), f"commitment:{commitment_id}")
     )
 
@@ -1012,7 +1082,7 @@ def _parse_scheduled_event(raw: Dict[str, Any]) -> ScheduledEvent:
         id=ScheduledEventId(event_id),
         name=raw.get('name', event_id),  # Default to id if no name
         description=raw.get('description', ''),
-        properties=_parse_properties(raw, core_fields),
+        _properties=CoreFieldProtectingDict(core_fields, _parse_properties(raw, core_fields)),
         behaviors=_parse_behaviors(raw.get('behaviors', []), f"scheduled_event:{event_id}")
     )
 
@@ -1026,7 +1096,7 @@ def _parse_gossip(raw: Dict[str, Any]) -> Gossip:
         id=GossipId(gossip_id),
         name=raw.get('name', gossip_id),  # Default to id if no name
         description=raw.get('description', ''),
-        properties=_parse_properties(raw, core_fields),
+        _properties=CoreFieldProtectingDict(core_fields, _parse_properties(raw, core_fields)),
         behaviors=_parse_behaviors(raw.get('behaviors', []), f"gossip:{gossip_id}")
     )
 
@@ -1040,7 +1110,7 @@ def _parse_spread(raw: Dict[str, Any]) -> Spread:
         id=SpreadId(spread_id),
         name=raw.get('name', spread_id),  # Default to id if no name
         description=raw.get('description', ''),
-        properties=_parse_properties(raw, core_fields),
+        _properties=CoreFieldProtectingDict(core_fields, _parse_properties(raw, core_fields)),
         behaviors=_parse_behaviors(raw.get('behaviors', []), f"spread:{spread_id}")
     )
 
@@ -1090,11 +1160,12 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
     # Parse parts
     parts = []
     for part_data in data.get('parts', []):
+        core_fields = {'id', 'name', 'part_of', 'behaviors'}
         part = Part(
             id=PartId(part_data['id']),
             name=part_data['name'],
             part_of=part_data['part_of'],  # Keep as str - can be various ID types
-            properties=part_data.get('properties', {}),
+            _properties=CoreFieldProtectingDict(core_fields, part_data.get('properties', {})),
             behaviors=_parse_behaviors(part_data.get('behaviors', []), f"part:{part_data.get('id', '')}")
         )
         parts.append(part)
