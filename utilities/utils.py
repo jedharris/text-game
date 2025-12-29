@@ -14,7 +14,6 @@ from typing import Optional, List, Tuple, Dict, Any, Union, TYPE_CHECKING, cast,
 from src.state_accessor import EventResult
 from src.types import ActorId, LocationId, LockId, HookName
 from src.word_entry import WordEntry
-from src.hooks import VISIBILITY_CHECK
 from utilities.entity_serializer import serialize_for_handler_result
 
 if TYPE_CHECKING:
@@ -214,11 +213,11 @@ def is_observable(
     # Get the entity's states dict
     states = _get_entity_states(entity)
 
-    # If entity has behaviors and visibility_check hook is registered, invoke it
+    # If entity has behaviors and entity_visibility_check hook is registered, invoke it
     # Behaviors can override the hidden check (e.g., reveal on search)
     event = None
     if behavior_manager is not None:
-        event = behavior_manager.get_event_for_hook(HookName(VISIBILITY_CHECK))
+        event = behavior_manager.get_event_for_hook(HookName("entity_visibility_check"))
 
     if event and behavior_manager is not None and hasattr(entity, 'behaviors') and entity.behaviors:
         context = {"actor_id": actor_id, "method": method}

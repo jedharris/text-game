@@ -34,6 +34,13 @@ from utilities.handler_utils import get_display_name, validate_actor_and_locatio
 
 # Vocabulary extension - adds perception verbs
 vocabulary = {
+    "hook_definitions": [
+        {
+            "hook_id": "entity_visibility_check",
+            "invocation": "entity",
+            "description": "Called to check if an entity is visible"
+        }
+    ],
     "verbs": [
         {
             "word": "look",
@@ -75,7 +82,7 @@ vocabulary = {
     "events": [
         {
             "event": "on_observe",
-            "hook": "visibility_check",
+            "hook": "entity_visibility_check",
             "description": "Called to check if entity is visible. "
                           "Return allow=False to hide entity."
         }

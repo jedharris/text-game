@@ -10,7 +10,6 @@ from typing import Dict, Any, cast
 from src.action_types import ActionDict
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
-from src.hooks import LOCATION_ENTERED
 from src.types import ActorId
 from utilities.utils import find_accessible_item, find_exit_by_name, describe_location
 from utilities.handler_utils import get_display_name, validate_actor_and_location
@@ -20,6 +19,13 @@ from utilities.location_serializer import serialize_location_for_llm
 
 # Vocabulary extension - adds exit-related verbs and nouns
 vocabulary = {
+    "hook_definitions": [
+        {
+            "hook_id": "entity_entered_location",
+            "invocation": "entity",
+            "description": "Called when an actor enters a new location"
+        }
+    ],
     "verbs": [
         {
             "word": "go",
@@ -96,7 +102,7 @@ vocabulary = {
     "events": [
         {
             "event": "on_enter",
-            "hook": "location_entered",
+            "hook": "entity_entered_location",
             "description": "Called when an actor enters a location. "
                           "Context includes actor_id and from_direction."
         }
@@ -289,9 +295,9 @@ def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_descriptor, 
             primary=f"INCONSISTENT STATE: Failed to move actor: {result.detail}"
         )
 
-    # Invoke location_entered hook if destination location has behaviors
+    # Invoke entity_entered_location hook if destination location has behaviors
     on_enter_message = None
-    event = accessor.behavior_manager.get_event_for_hook(LOCATION_ENTERED)
+    event = accessor.behavior_manager.get_event_for_hook("entity_entered_location")
     if event and hasattr(destination, 'behaviors') and destination.behaviors:
         context = {"actor_id": actor_id, "from_direction": direction}
         behavior_result = accessor.behavior_manager.invoke_behavior(

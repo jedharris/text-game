@@ -132,9 +132,9 @@ class TestIsObservableWithBehaviors(unittest.TestCase):
         """Set up test fixtures."""
         self.accessor = Mock()
         self.behavior_manager = BehaviorManager()
-        # Register the visibility_check hook so behaviors are invoked
+        # Register the entity_visibility_check hook so behaviors are invoked
         self.behavior_manager._register_event(
-            "on_observe", "test_module", tier=1, hook="visibility_check"
+            "on_observe", "test_module", tier=1, hook="entity_visibility_check"
         )
 
     def test_behavior_returning_allow_false_hides_entity(self):
@@ -304,9 +304,9 @@ class TestIsObservableBehaviorPrecedence(unittest.TestCase):
         """Set up test fixtures."""
         self.accessor = Mock()
         self.behavior_manager = BehaviorManager()
-        # Register visibility_check hook for testing
+        # Register entity_visibility_check hook for testing
         self.behavior_manager._register_event(
-            "on_observe", "test_module", tier=1, hook="visibility_check"
+            "on_observe", "test_module", tier=1, hook="entity_visibility_check"
         )
 
     def test_hidden_checked_before_behaviors(self):
