@@ -1,0 +1,112 @@
+# Phase 1: Player Infection Hook-Up Test
+# Tests that player gets infected in spore zones
+# Prerequisites: None (fresh game)
+
+# ============================================================
+# Part 1: Start in Safe Zone (No Infection)
+# ============================================================
+
+# Navigate to Cavern Entrance (safe zone, no spores)
+go west
+
+# Check location
+look
+# Expected: Cavern entrance description, no infection message
+
+# ============================================================
+# Part 2: Enter Medium Spore Zone (Luminous Grotto)
+# ============================================================
+
+# Enter luminous grotto (medium spores, rate 5/turn)
+go down
+
+# Check location
+look
+# Expected: Luminous grotto description, spore warnings
+
+# ============================================================
+# Part 3: Accumulate Infection to First Threshold (Severity 20)
+# ============================================================
+
+# Do simple actions to advance turns (4 turns × 5/turn = 20 severity)
+look
+# Expected after turn 1: No message yet (severity 5)
+
+look
+# Expected after turn 2: No message yet (severity 10)
+
+look
+# Expected after turn 3: No message yet (severity 15)
+
+look
+# Expected after turn 4: "You cough as spores irritate your lungs." (severity 20)
+
+# ============================================================
+# Part 4: Accumulate to Second Threshold (Severity 40)
+# ============================================================
+
+# Continue 4 more turns (8 total × 5 = 40)
+look
+
+look
+
+look
+
+look
+# Expected after turn 8: "Fungal patches spread across your skin." (severity 40)
+
+# ============================================================
+# Part 5: Enter High Spore Zone (Spore Heart)
+# ============================================================
+
+# Go deeper into high spore zone (rate 10/turn)
+go down
+# Expected: Spore heart description, heavy spore warnings
+
+# Check location
+look
+# Expected: High spore warnings visible
+
+# ============================================================
+# Part 6: Accumulate to Severity 60
+# ============================================================
+
+# 2 turns in high spores (40 + 20 = 60)
+look
+# Expected after turn 1 in high: severity 50
+
+look
+# Expected after turn 2 in high: "Every breath is a struggle against the spores." (severity 60)
+
+# ============================================================
+# Part 7: Approach Critical (Severity 80)
+# ============================================================
+
+# 2 more turns in high spores (60 + 20 = 80)
+look
+
+look
+# Expected: "The infection is critical. You can barely move." (severity 80)
+
+# ============================================================
+# Part 8: Return to Safe Zone (Infection Persists)
+# ============================================================
+
+# Leave spore zones
+go up
+# Expected: Move successful, infection still present
+
+go up
+# Expected: Back at cavern entrance
+
+look
+# Expected: No NEW infection (safe zone), but existing infection persists
+
+# ============================================================
+# SUCCESS CRITERIA
+# ============================================================
+# ✓ Player gets infected in medium spore zone (rate 5/turn)
+# ✓ Player gets infected faster in high spore zone (rate 10/turn)
+# ✓ Severity accumulates correctly (20, 40, 60, 80)
+# ✓ Messages change at thresholds
+# ✓ Infection persists when leaving spore zones

@@ -936,6 +936,168 @@ class BehaviorManager:
         # All tiers failed - return last result with message, or last result if all empty
         return last_message_result if last_message_result else result
 
+    # ========== Phase 2: Hook System Validation Methods ==========
+
+    def validate_hook_prefixes(self) -> None:
+        """
+        Validate all hooks use correct prefixes (turn_* or entity_*).
+
+        Raises:
+            ValueError: If hook doesn't use required prefix
+        """
+        for hook_name, hook_def in self._hook_definitions.items():
+            if hook_def.invocation == "turn_phase":
+                if not hook_name.startswith("turn_"):
+                    raise ValueError(
+                        f"Turn phase hook '{hook_name}' must start with 'turn_' prefix\n"
+                        f"  Defined in: {hook_def.defined_by}"
+                    )
+            elif hook_def.invocation == "entity":
+                if not hook_name.startswith("entity_"):
+                    raise ValueError(
+                        f"Entity hook '{hook_name}' must start with 'entity_' prefix\n"
+                        f"  Defined in: {hook_def.defined_by}"
+                    )
+            else:
+                raise ValueError(
+                    f"Hook '{hook_name}' has invalid invocation type '{hook_def.invocation}'\n"
+                    f"  Must be 'turn_phase' or 'entity'\n"
+                    f"  Defined in: {hook_def.defined_by}"
+                )
+
+    def validate_turn_phase_dependencies(self) -> None:
+        """
+        Validate turn phase 'after' dependencies reference defined hooks.
+
+        Raises:
+            ValueError: If dependency references undefined hook
+        """
+        for hook_name, hook_def in self._hook_definitions.items():
+            if hook_def.invocation != "turn_phase":
+                continue
+
+            for dep in hook_def.after:
+                if dep not in self._hook_definitions:
+                    raise ValueError(
+                        f"Turn phase '{hook_name}' depends on undefined hook '{dep}'\n"
+                        f"  Defined in: {hook_def.defined_by}"
+                    )
+
+                # Dependency must also be a turn phase
+                dep_def = self._hook_definitions[dep]
+                if dep_def.invocation != "turn_phase":
+                    raise ValueError(
+                        f"Turn phase '{hook_name}' depends on '{dep}' which is not a turn phase\n"
+                        f"  '{dep}' is invocation type: {dep_def.invocation}\n"
+                        f"  Defined in: {hook_def.defined_by}"
+                    )
+
+    def validate_hooks_are_defined(self) -> None:
+        """
+        Validate all event hook references point to defined hooks.
+
+        Raises:
+            ValueError: If event references undefined hook
+        """
+        for event_name, event_info in self._event_registry.items():
+            hook_name = event_info.hook
+
+            if hook_name and hook_name not in self._hook_definitions:
+                modules_str = ", ".join(event_info.registered_by)
+                available_hooks = sorted(self._hook_definitions.keys())
+                raise ValueError(
+                    f"Event '{event_name}' references undefined hook '{hook_name}'\n"
+                    f"  Event defined in: {modules_str}\n"
+                    f"  Available hooks: {available_hooks}"
+                )
+
+    def validate_turn_phase_not_in_entity_behaviors(self, game_state: "GameState") -> None:
+        """
+        Validate turn phase behaviors not attached to entities.
+
+        Turn phases should only be in global behaviors, not entity behaviors lists.
+
+        Args:
+            game_state: Loaded game state to validate
+
+        Raises:
+            ValueError: If turn phase behavior attached to entity
+        """
+        from src.state_manager import GameState
+
+        # Get all turn phase module paths
+        turn_phase_modules = set()
+        for hook_def in self._hook_definitions.values():
+            if hook_def.invocation == "turn_phase":
+                turn_phase_modules.add(hook_def.defined_by)
+
+        # Check all entities
+        for actor in game_state.actors.values():
+            for behavior in actor.behaviors:
+                if behavior in turn_phase_modules:
+                    raise ValueError(
+                        f"Actor '{actor.id}' has turn phase behavior '{behavior}' in behaviors list\n"
+                        f"  Turn phases should not be attached to entities"
+                    )
+
+        for item in game_state.items:
+            for behavior in item.behaviors:
+                if behavior in turn_phase_modules:
+                    raise ValueError(
+                        f"Item '{item.id}' has turn phase behavior '{behavior}' in behaviors list\n"
+                        f"  Turn phases should not be attached to entities"
+                    )
+
+        for location in game_state.locations.values():
+            for behavior in location.behaviors:
+                if behavior in turn_phase_modules:
+                    raise ValueError(
+                        f"Location '{location.id}' has turn phase behavior '{behavior}' in behaviors list\n"
+                        f"  Turn phases should not be attached to entities"
+                    )
+
+    def validate_hook_invocation_consistency(self) -> None:
+        """
+        Validate each hook used consistently (not as both turn_phase and entity).
+
+        Raises:
+            ValueError: If hook defined with conflicting invocation types
+        """
+        # This is already enforced by duplicate detection in _register_hook_definition
+        # But we keep this as explicit validation pass for clarity
+
+        hook_invocations: Dict[str, Tuple[str, str]] = {}  # hook -> (invocation, module)
+
+        for hook_name, hook_def in self._hook_definitions.items():
+            if hook_name in hook_invocations:
+                prev_inv, prev_mod = hook_invocations[hook_name]
+                if prev_inv != hook_def.invocation:
+                    raise ValueError(
+                        f"Hook '{hook_name}' used with conflicting invocation types:\n"
+                        f"  1. {prev_mod}: {prev_inv}\n"
+                        f"  2. {hook_def.defined_by}: {hook_def.invocation}"
+                    )
+            else:
+                hook_invocations[hook_name] = (hook_def.invocation, hook_def.defined_by)
+
+    def finalize_loading(self, game_state: "GameState") -> None:
+        """
+        Call after all vocabularies loaded to run validations.
+
+        Args:
+            game_state: Loaded game state (for entity behavior validation)
+
+        Raises:
+            ValueError: If any validation fails
+        """
+        self.validate_hook_prefixes()
+        self.validate_turn_phase_dependencies()
+        self.validate_hooks_are_defined()
+        self.validate_hook_invocation_consistency()
+        self.validate_turn_phase_not_in_entity_behaviors(game_state)
+
+    # ========== End Phase 2 Validation Methods ==========
+
     def clear_cache(self) -> None:
         """Clear behavior cache (useful for hot reload)."""
         self._behavior_cache.clear()
