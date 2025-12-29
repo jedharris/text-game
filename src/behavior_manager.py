@@ -35,6 +35,16 @@ class EventInfo:
     hook: Optional[str] = None                   # Engine hook name, if any
 
 
+@dataclass
+class HookDefinition:
+    """Definition of a hook from a behavior module vocabulary."""
+    hook: str                      # Hook name (e.g., "turn_environmental_effect")
+    invocation: str                # "turn_phase" or "entity"
+    after: List[str]               # Dependencies (for turn phases only)
+    description: str               # Human-readable description
+    defined_by: str                # Module that defined it (for error messages)
+
+
 class BehaviorManager:
     """
     Manages loading and invoking entity behaviors.
@@ -58,6 +68,8 @@ class BehaviorManager:
         self._hook_to_event: Dict[str, Tuple[str, int]] = {}
         # Event fallbacks: event_name -> fallback_event_name
         self._fallback_events: Dict[str, str] = {}
+        # Hook definitions: hook_name -> HookDefinition (Phase 1: Hook System Redesign)
+        self._hook_definitions: Dict[str, HookDefinition] = {}
 
     def _calculate_tier(self, behavior_file_path: str, base_behavior_dir: str) -> int:
         """
@@ -88,6 +100,40 @@ class BehaviorManager:
 
         # Tier = depth + 1 (so Tier 1 is highest precedence)
         return depth + 1
+
+    def _register_hook_definition(self, hook_def: Dict[str, Any], module_path: str) -> None:
+        """
+        Register a hook definition from a vocabulary.
+
+        Args:
+            hook_def: Hook definition dict from vocabulary
+            module_path: Path of module defining this hook (for error messages)
+
+        Raises:
+            ValueError: If hook already defined by different module
+        """
+        hook_name = hook_def['hook']
+
+        # Check for duplicates
+        if hook_name in self._hook_definitions:
+            existing = self._hook_definitions[hook_name]
+            if existing.defined_by != module_path:
+                raise ValueError(
+                    f"Hook '{hook_name}' defined multiple times:\n"
+                    f"  1. {existing.defined_by}\n"
+                    f"  2. {module_path}"
+                )
+            # Same module re-defining - idempotent, just return
+            return
+
+        # Store hook definition
+        self._hook_definitions[hook_name] = HookDefinition(
+            hook=hook_name,
+            invocation=hook_def['invocation'],
+            after=hook_def.get('after', []),
+            description=hook_def.get('description', ''),
+            defined_by=module_path
+        )
 
     def _register_vocabulary(self, vocabulary: dict, module_name: str, tier: int) -> None:
         """
@@ -131,6 +177,10 @@ class BehaviorManager:
                 description=event_spec.get("description"),
                 hook=event_spec.get("hook")
             )
+
+        # Register hook definitions (Phase 1: Hook System Redesign)
+        for hook_def in vocabulary.get("hook_definitions", []):
+            self._register_hook_definition(hook_def, module_name)
 
     def _register_event(
         self,
