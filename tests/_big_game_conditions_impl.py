@@ -219,7 +219,7 @@ class TestRegionalBehaviorConditions(unittest.TestCase):
 
         # Get player
         player = self.engine.game_state.actors.get('player')
-        player.properties['location'] = 'spore_heart'
+        player.location = LocationId('spore_heart')
         player.properties['conditions'] = {}  # Start clean
 
         # Find spore heart location
@@ -251,7 +251,7 @@ class TestRegionalBehaviorConditions(unittest.TestCase):
         from behaviors.regions.frozen_reaches import hypothermia
 
         player = self.engine.game_state.actors.get('player')
-        player.properties['location'] = 'frozen_pass'
+        player.location = LocationId('frozen_pass')
         player.properties['conditions'] = {}
 
         # Find frozen pass

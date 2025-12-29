@@ -45,7 +45,7 @@ def create_test_state() -> GameState:
         description="The player character",
         location=LocationId("location_room"),
         inventory=[],
-        properties={"max_carry_weight": 100},
+        _properties={"max_carry_weight": 100},
         behaviors=[]
     )
 
@@ -56,7 +56,7 @@ def create_test_state() -> GameState:
         description="A room for testing",
         exits={},
         items=[ItemId("item_sword"), ItemId("item_table"), ItemId("item_lantern"), ItemId("item_anvil"), ItemId("item_feather")],
-        properties={},
+        _properties={},
         behaviors=[]
     )
 
@@ -66,7 +66,7 @@ def create_test_state() -> GameState:
         name="sword",
         description="A test sword",
         location="location_room",
-        properties={"portable": True},
+        _properties={"portable": True},
         behaviors=[]
     )
 
@@ -75,7 +75,7 @@ def create_test_state() -> GameState:
         name="table",
         description="A heavy table",
         location="location_room",
-        properties={"portable": False},
+        _properties={"portable": False},
         behaviors=[]
     )
 
@@ -84,7 +84,7 @@ def create_test_state() -> GameState:
         name="lantern",
         description="A magic lantern",
         location="location_room",
-        properties={
+        _properties={
             "portable": True,
             "states": {"lit": False}
         },
@@ -96,7 +96,7 @@ def create_test_state() -> GameState:
         name="anvil",
         description="A very heavy anvil",
         location="location_room",
-        properties={
+        _properties={
             "portable": True,
             "weight": 150
         },
@@ -108,7 +108,7 @@ def create_test_state() -> GameState:
         name="feather",
         description="A light feather",
         location="location_room",
-        properties={
+        _properties={
             "portable": True,
             "weight": 1
         },
