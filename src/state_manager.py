@@ -22,6 +22,88 @@ class LoadError(Exception):
     pass
 
 
+class CoreFieldProtectingDict(dict):
+    """
+    Dict that prevents modification of core entity fields via properties.
+
+    Core fields are structural fields defined in entity dataclass definitions
+    (e.g., id, name, location, inventory). These fields should only be modified
+    via direct attribute access (entity.location = value), not via properties
+    dict (entity.properties['location'] = value).
+
+    This protection catches bugs where code accidentally modifies core fields
+    through the properties dict instead of the proper attribute interface.
+    """
+
+    def __init__(self, core_fields: set[str], *args: Any, **kwargs: Any):
+        """
+        Create a protecting dict.
+
+        Args:
+            core_fields: Set of field names that cannot be modified via this dict
+            *args, **kwargs: Standard dict constructor arguments
+        """
+        super().__init__(*args, **kwargs)
+        # Use object.__setattr__ to bypass our own __setattr__ protection
+        object.__setattr__(self, '_core_fields', core_fields)
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        """Prevent setting core fields."""
+        if key in self._core_fields:
+            raise TypeError(
+                f"Cannot set core field '{key}' via properties dict. "
+                f"Use direct attribute access instead: entity.{key} = value"
+            )
+        super().__setitem__(key, value)
+
+    def __setattr__(self, key: str, value: Any) -> None:
+        """Block attribute-style writes to prevent circumvention."""
+        if key == '_core_fields':
+            # Allow setting _core_fields during __init__
+            object.__setattr__(self, key, value)
+        else:
+            raise TypeError(
+                f"Cannot set attributes on properties dict. "
+                f"Use dictionary-style access: properties['{key}'] = value"
+            )
+
+    def setdefault(self, key: str, default: Any = None) -> Any:
+        """Prevent using setdefault on core fields."""
+        if key in self._core_fields:
+            raise TypeError(
+                f"Cannot set core field '{key}' via properties dict. "
+                f"Use direct attribute access instead: entity.{key} = value"
+            )
+        return super().setdefault(key, default)
+
+    def update(self, *args: Any, **kwargs: Any) -> None:
+        """Prevent using update with core fields."""
+        # Build a dict of all updates to check
+        updates: Dict[str, Any] = {}
+        if args:
+            if len(args) > 1:
+                raise TypeError(f"update expected at most 1 arguments, got {len(args)}")
+            other = args[0]
+            if hasattr(other, "keys"):
+                for key in other.keys():
+                    updates[key] = other[key]
+            else:
+                for key, value in other:
+                    updates[key] = value
+        updates.update(kwargs)
+
+        # Check for core field violations
+        for key in updates:
+            if key in self._core_fields:
+                raise TypeError(
+                    f"Cannot set core field '{key}' via properties dict. "
+                    f"Use direct attribute access instead: entity.{key} = value"
+                )
+
+        # If no violations, perform the update
+        super().update(updates)
+
+
 class ContainerInfo:
     """Wrapper for container dict to provide attribute access."""
 
