@@ -29,6 +29,7 @@ class TestHookPrefixValidation(unittest.TestCase):
                 hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
+                before=[],
                 description="NPC actions",
                 defined_by="test_module"
             )
@@ -43,6 +44,7 @@ class TestHookPrefixValidation(unittest.TestCase):
                 hook_id=TurnHookId("npc_action"),
                 invocation="turn_phase",
                 after=[],
+                before=[],
                 description="NPC actions",
                 defined_by="test_module"
             )
@@ -59,6 +61,7 @@ class TestHookPrefixValidation(unittest.TestCase):
                 hook_id=EntityHookId("entity_entered_location"),
                 invocation="entity",
                 after=[],
+                before=[],
                 description="Entity entered",
                 defined_by="test_module"
             )
@@ -73,6 +76,7 @@ class TestHookPrefixValidation(unittest.TestCase):
                 hook_id=TurnHookId("location_entered"),
                 invocation="entity",
                 after=[],
+                before=[],
                 description="Entity entered",
                 defined_by="test_module"
             )
@@ -89,6 +93,7 @@ class TestHookPrefixValidation(unittest.TestCase):
                 hook_id=TurnHookId("global_event"),
                 invocation="global",  # Invalid type
                 after=[],
+                before=[],
                 description="Global event",
                 defined_by="test_module"
             )
@@ -105,6 +110,7 @@ class TestHookPrefixValidation(unittest.TestCase):
                 hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
+                before=[],
                 description="Valid",
                 defined_by="module1"
             ),
@@ -112,6 +118,7 @@ class TestHookPrefixValidation(unittest.TestCase):
                 hook_id=TurnHookId("bad_hook"),
                 invocation="turn_phase",
                 after=[],
+                before=[],
                 description="Invalid - no prefix",
                 defined_by="module2"
             )
@@ -134,6 +141,7 @@ class TestTurnPhaseDependencyValidation(unittest.TestCase):
                 hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
+                before=[],
                 description="Base",
                 defined_by="module1"
             ),
@@ -141,6 +149,7 @@ class TestTurnPhaseDependencyValidation(unittest.TestCase):
                 hook_id=TurnHookId("turn_environmental_effect"),
                 invocation="turn_phase",
                 after=[TurnHookId("turn_npc_action")],
+                before=[],
                 description="Depends on npc_action",
                 defined_by="module2"
             )
@@ -155,6 +164,7 @@ class TestTurnPhaseDependencyValidation(unittest.TestCase):
                 hook_id=TurnHookId("turn_environmental_effect"),
                 invocation="turn_phase",
                 after=[TurnHookId("turn_npc_action")],  # Not defined
+                before=[],
                 description="Depends on undefined",
                 defined_by="module1"
             )
@@ -171,6 +181,7 @@ class TestTurnPhaseDependencyValidation(unittest.TestCase):
                 hook_id=EntityHookId("entity_entered_location"),
                 invocation="entity",
                 after=[],
+                before=[],
                 description="Entity hook",
                 defined_by="module1"
             ),
@@ -178,6 +189,7 @@ class TestTurnPhaseDependencyValidation(unittest.TestCase):
                 hook_id=TurnHookId("turn_environmental_effect"),
                 invocation="turn_phase",
                 after=[TurnHookId("entity_entered_location")],  # Wrong type
+                before=[],
                 description="Depends on entity hook",
                 defined_by="module2"
             )
@@ -194,6 +206,7 @@ class TestTurnPhaseDependencyValidation(unittest.TestCase):
                 hook_id=EntityHookId("entity_entered_location"),
                 invocation="entity",
                 after=[TurnHookId("some_undefined_hook")],  # Should be ignored
+                before=[],
                 description="Entity hook",
                 defined_by="module1"
             )
@@ -208,6 +221,7 @@ class TestTurnPhaseDependencyValidation(unittest.TestCase):
                 hook_id=TurnHookId("turn_a"),
                 invocation="turn_phase",
                 after=[],
+                before=[],
                 description="First",
                 defined_by="module1"
             ),
@@ -215,6 +229,7 @@ class TestTurnPhaseDependencyValidation(unittest.TestCase):
                 hook_id=TurnHookId("turn_b"),
                 invocation="turn_phase",
                 after=[],
+                before=[],
                 description="Second",
                 defined_by="module2"
             ),
@@ -222,6 +237,7 @@ class TestTurnPhaseDependencyValidation(unittest.TestCase):
                 hook_id=TurnHookId("turn_c"),
                 invocation="turn_phase",
                 after=[TurnHookId("turn_a"), TurnHookId("turn_b")],
+                before=[],
                 description="Depends on both",
                 defined_by="module3"
             )
@@ -243,6 +259,7 @@ class TestHooksAreDefinedValidation(unittest.TestCase):
                 hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
+                before=[],
                 description="NPC actions",
                 defined_by="module1"
             )
@@ -294,6 +311,7 @@ class TestHooksAreDefinedValidation(unittest.TestCase):
                 hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
+                before=[],
                 description="Available",
                 defined_by="module1"
             ),
@@ -301,6 +319,7 @@ class TestHooksAreDefinedValidation(unittest.TestCase):
                 hook_id=EntityHookId("entity_entered_location"),
                 invocation="entity",
                 after=[],
+                before=[],
                 description="Also available",
                 defined_by="module2"
             )
@@ -347,6 +366,7 @@ class TestTurnPhaseNotInEntityBehaviors(unittest.TestCase):
                 hook_id=EntityHookId("entity_entered_location"),
                 invocation="entity",
                 after=[],
+                before=[],
                 description="Entity hook",
                 defined_by="behaviors.core.exits"
             )
@@ -370,6 +390,7 @@ class TestTurnPhaseNotInEntityBehaviors(unittest.TestCase):
                 hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
+                before=[],
                 description="Turn phase",
                 defined_by="behavior_libraries.actor_lib.npc_actions"
             )
@@ -396,6 +417,7 @@ class TestTurnPhaseNotInEntityBehaviors(unittest.TestCase):
                 hook_id=TurnHookId("turn_environmental_effect"),
                 invocation="turn_phase",
                 after=[],
+                before=[],
                 description="Turn phase",
                 defined_by="behavior_libraries.actor_lib.environment"
             )
@@ -421,6 +443,7 @@ class TestTurnPhaseNotInEntityBehaviors(unittest.TestCase):
                 hook_id=TurnHookId("turn_condition_tick"),
                 invocation="turn_phase",
                 after=[],
+                before=[],
                 description="Turn phase",
                 defined_by="behavior_libraries.actor_lib.conditions"
             )
@@ -445,6 +468,7 @@ class TestTurnPhaseNotInEntityBehaviors(unittest.TestCase):
                 hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
+                before=[],
                 description="Turn phase",
                 defined_by="behavior_libraries.actor_lib.npc_actions"
             )
@@ -459,6 +483,7 @@ class TestTurnPhaseNotInEntityBehaviors(unittest.TestCase):
                 hook_id=EntityHookId("entity_entered_location"),
                 invocation="entity",
                 after=[],
+                before=[],
                 description="Entity hook",
                 defined_by="behaviors.core.exits"
             ),
@@ -466,6 +491,7 @@ class TestTurnPhaseNotInEntityBehaviors(unittest.TestCase):
                 hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
+                before=[],
                 description="Turn phase",
                 defined_by="behavior_libraries.actor_lib.npc_actions"
             )
@@ -500,6 +526,7 @@ class TestHookInvocationConsistency(unittest.TestCase):
                 hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
+                before=[],
                 description="NPC actions",
                 defined_by="module1"
             )
@@ -514,6 +541,7 @@ class TestHookInvocationConsistency(unittest.TestCase):
                 hook_id=TurnHookId("custom_hook"),
                 invocation="turn_phase",
                 after=[],
+                before=[],
                 description="Turn phase version",
                 defined_by="module1"
             ),
@@ -521,6 +549,7 @@ class TestHookInvocationConsistency(unittest.TestCase):
                 hook_id=TurnHookId("custom_hook"),
                 invocation="entity",  # Different type
                 after=[],
+                before=[],
                 description="Entity version",
                 defined_by="module2"
             )
@@ -533,6 +562,7 @@ class TestHookInvocationConsistency(unittest.TestCase):
                 hook_id=TurnHookId("custom_hook"),
                 invocation="turn_phase",
                 after=[],
+                before=[],
                 description="First",
                 defined_by="module1"
             )
@@ -543,6 +573,7 @@ class TestHookInvocationConsistency(unittest.TestCase):
                 hook_id=TurnHookId("custom_hook"),
             invocation="entity",
             after=[],
+            before=[],
             description="Second",
             defined_by="module2"
         )
@@ -556,6 +587,7 @@ class TestHookInvocationConsistency(unittest.TestCase):
                 hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
+                before=[],
                 description="Turn",
                 defined_by="module1"
             ),
@@ -563,6 +595,7 @@ class TestHookInvocationConsistency(unittest.TestCase):
                 hook_id=EntityHookId("entity_entered_location"),
                 invocation="entity",
                 after=[],
+                before=[],
                 description="Entity",
                 defined_by="module2"
             )
@@ -599,6 +632,7 @@ class TestFinalizeLoading(unittest.TestCase):
                 hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
+                before=[],
                 description="NPC actions",
                 defined_by="module1"
             )
@@ -620,6 +654,7 @@ class TestFinalizeLoading(unittest.TestCase):
                 hook_id=TurnHookId("bad_name"),
                 invocation="turn_phase",
                 after=[],
+                before=[],
                 description="Bad",
                 defined_by="module1"
             )
@@ -635,6 +670,7 @@ class TestFinalizeLoading(unittest.TestCase):
                 hook_id=TurnHookId("turn_environmental_effect"),
                 invocation="turn_phase",
                 after=[TurnHookId("turn_undefined")],  # Bad dependency
+                before=[],
                 description="Env",
                 defined_by="module1"
             )
@@ -663,6 +699,7 @@ class TestFinalizeLoading(unittest.TestCase):
                 hook_id=TurnHookId("turn_npc_action"),
                 invocation="turn_phase",
                 after=[],
+                before=[],
                 description="Turn",
                 defined_by="behavior_libraries.actor_lib.npc_actions"
             )

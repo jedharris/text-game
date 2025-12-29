@@ -236,6 +236,7 @@ class TestHookDefinitionStorage(unittest.TestCase):
             hook_id=EntityHookId("entity_test_hook"),
             invocation="entity",
             after=[TurnHookId("turn_other_hook")],
+            before=[],
             description="Test description",
             defined_by="test_module"
         )
