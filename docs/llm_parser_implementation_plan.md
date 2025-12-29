@@ -1,9 +1,25 @@
 # LLM Command Parser Implementation Plan
 
-**Status:** Ready to implement
-**Branch:** `feature/llm-parser` (separate from ongoing big_game work)
+**Status:** Phase 1 Complete, Phase 2 In Progress
+**Branch:** `feature/llm-parser`
 **Design Reference:** `docs/llm_command_parser_design.md`
 **Date:** 2025-01-26
+**Last Updated:** 2025-01-29
+
+## Branch Strategy (UPDATED)
+
+**Current Setup:**
+- `main` branch - stable integration point
+- `feature/llm-parser` - LLM parser development (this work)
+- `feature/big-game-fixup` - ongoing big_game improvements (separate sessions)
+
+**Key Decision:** Main branch remains stable until deliberate merges. Both feature branches can develop independently and sync with main when convenient.
+
+**Implication for Testing:**
+- ✅ **NO frozen fixtures needed** - main is stable, won't change unexpectedly
+- ✅ **Test against real big_game** - deeper integration validation
+- ✅ **Contract validators still valuable** - detect type drift when syncing with main
+- ✅ **Better test quality** - real vocabulary complexity, actual multi-word entities
 
 ## Executive Summary
 
@@ -143,7 +159,12 @@ The parser produces structured output; the engine handles all game logic.
 
 ## Implementation Phases
 
-### Phase 1: Shared MLX Backend (3-4 hours)
+### Phase 1: Shared MLX Backend ✅ COMPLETE
+
+**Status:** ✅ Complete (Jan 29, 2025)
+**Issue:** [#335](https://github.com/jedharris/text-game/issues/335) (closed)
+**Commit:** [3245a2c](https://github.com/jedharris/text-game/commit/3245a2c)
+**Time Spent:** ~3 hours
 
 **Goal:** Create reusable infrastructure for sharing model weights
 
@@ -247,69 +268,52 @@ The parser produces structured output; the engine handles all game logic.
 - **Memory profiling**: Verify <7GB for 7B model with 2 caches
 - **Integration test**: Create both caches, generate from both, verify outputs differ
 
-#### Success Criteria
-- ✅ Model loads successfully
-- ✅ Multiple caches created from same backend
-- ✅ Caches are independent (different offsets)
-- ✅ Memory usage <7GB for 7B model
+#### Results
+
+**Deliverables:**
+- ✅ `src/shared_mlx.py` - SharedMLXBackend class (134 lines)
+- ✅ `tests/test_shared_mlx.py` - Comprehensive test suite (185 lines, 7 tests)
+
+**Test Results:**
+- ✅ All 7 tests pass
+- ✅ Model loads successfully (Qwen 2.5 7B 4-bit)
+- ✅ Load time: ~10-20 seconds (one-time)
+- ✅ Multiple independent caches created
+- ✅ Memory usage: **0.01 GB per cache** (10MB overhead, ~4-6GB total)
 - ✅ Both caches can generate text independently
+
+**Key Findings:**
+- Memory efficiency validated: single 7B model + 2 caches uses ~4-6GB (vs ~4-8GB for 2 separate 3B models)
+- Cache warming works correctly, enables fast subsequent generations
+- Type checking passes (mypy)
 
 ---
 
-### Phase 2: LLM Command Parser (4-5 hours)
+### Phase 2: LLM Command Parser + Contract Testing (8-9 hours)
 
-**Goal:** Implement LLM-based command parsing with frozen test data
+**Goal:** Implement LLM-based command parsing with real game state testing and API contract validation
+
+**UPDATED:** No frozen fixtures - test against real big_game state since main branch is stable
 
 #### Tasks
-1. Create frozen test fixtures (vocabulary snapshot, test contexts)
-2. Implement `LLMCommandParser` class
-3. Implement verb extraction from vocabulary
-4. Implement system prompt generation (cached)
-5. Implement per-turn user prompt generation (dynamic)
-6. Implement LLM call with cache management
-7. Implement JSON response parsing
-8. Add comprehensive unit tests
+
+##### Parser Implementation (4-5 hours)
+1. Implement `LLMCommandParser` class
+2. Implement verb extraction from vocabulary
+3. Implement system prompt generation (cached)
+4. Implement per-turn user prompt generation (dynamic)
+5. Implement LLM call with cache management
+6. Implement JSON response parsing
+7. Add comprehensive unit tests using **real big_game state**
+
+##### Contract Testing (4 hours)
+8. Create `src/contract_validators.py` with runtime schema validation
+9. Create `tests/test_parser_contracts.py` for type compatibility validation
+10. Validate parser output against current ActionDict/WordEntry schemas
 
 #### Deliverables
 
-- `tests/fixtures/parser_test_data/vocabulary_snapshot.json`:
-  ```json
-  {
-    "verbs": [
-      {"word": "take", "types": ["verb"]},
-      {"word": "drop", "types": ["verb"]},
-      {"word": "use", "types": ["verb"]},
-      {"word": "examine", "types": ["verb"]},
-      {"word": "go", "types": ["verb"]},
-      {"word": "open", "types": ["verb"]},
-      {"word": "close", "types": ["verb"]},
-      {"word": "unlock", "types": ["verb"]},
-      {"word": "inventory", "types": ["verb"]},
-      {"word": "look", "types": ["verb"]}
-    ]
-  }
-  ```
-
-- `tests/fixtures/parser_test_data/test_contexts.json`:
-  ```json
-  {
-    "small_room": {
-      "location_objects": ["ice_wand", "frozen_crystal", "stone_altar"],
-      "inventory": ["brass_key", "warm_cloak"],
-      "exits": ["north", "south", "down"]
-    },
-    "empty_room": {
-      "location_objects": [],
-      "inventory": [],
-      "exits": ["east"]
-    },
-    "complex_room": {
-      "location_objects": ["keepers_journal", "ancient_telescope", "star_map"],
-      "inventory": ["ice_wand", "fire_wand", "brass_key"],
-      "exits": ["north", "south", "east", "west", "up"]
-    }
-  }
-  ```
+**Parser Components:**
 
 - `src/llm_command_parser.py`:
   ```python
@@ -522,21 +526,78 @@ Output JSON:"""
               return None
   ```
 
+**Contract Validators:**
+
+- `src/contract_validators.py`:
+  ```python
+  from src.action_types import ActionDict
+  from src.word_entry import WordEntry
+
+  class ValidationError(Exception):
+      """Raised when contract validation fails."""
+      pass
+
+  def validate_action_dict(data: dict) -> ActionDict:
+      """Runtime validation that data conforms to ActionDict schema.
+
+      Validates:
+      - Required fields present (verb, actor_id)
+      - Field types match schema (object is WordEntry, not str)
+      - Optional fields have correct types
+
+      Raises:
+          ValidationError: If structure doesn't match
+      Returns:
+          Typed ActionDict if valid
+      """
+      # Implementation validates against current ActionDict structure
+
+  def validate_word_entry(data: dict) -> WordEntry:
+      """Validate WordEntry structure matches current schema."""
+      # Implementation validates WordEntry fields
+  ```
+
+- `tests/test_parser_contracts.py`:
+  ```python
+  class TestParserContracts(unittest.TestCase):
+      """Validate parser components conform to engine contracts."""
+
+      def test_adapter_produces_valid_action_dict(self):
+          """Adapter output must conform to ActionDict schema."""
+          # Test that adapter creates valid ActionDict
+          # Uses validate_action_dict() for runtime validation
+
+      def test_adapter_handles_all_action_dict_fields(self):
+          """Adapter must handle all current ActionDict optional fields."""
+          # Test with all optional fields (preposition, adjective, etc.)
+
+      def test_word_entry_structure_matches_current(self):
+          """WordEntry creation matches current structure."""
+          # Test WordEntry has all required fields
+  ```
+
+**Parser Tests (using real big_game):**
+
 - `tests/test_llm_command_parser.py`:
   ```python
   class TestLLMCommandParser(unittest.TestCase):
       @classmethod
       def setUpClass(cls):
-          """Load shared backend once for all tests."""
+          """Load shared backend and REAL game engine once for all tests."""
           cls.backend = SharedMLXBackend("mlx-community/Qwen2.5-7B-Instruct-4bit")
 
-          # Load frozen test data
-          with open('tests/fixtures/parser_test_data/vocabulary_snapshot.json') as f:
-              vocab = json.load(f)
-          cls.verbs = [v['word'] for v in vocab['verbs']]
+          # Load REAL big_game
+          from src.game_engine import GameEngine
+          cls.engine = GameEngine('examples/big_game')
 
-          with open('tests/fixtures/parser_test_data/test_contexts.json') as f:
-              cls.contexts = json.load(f)
+          # Extract REAL verbs from merged vocabulary
+          cls.verbs = [v['word'] for v in cls.engine.merged_vocabulary.get('verbs', [])]
+
+          # Create parser with real vocabulary
+          cls.parser = LLMCommandParser(cls.backend, cls.verbs)
+
+          # Build test contexts from REAL game locations
+          cls.contexts = cls._build_real_contexts(cls.engine.game_state)
 
       def setUp(self):
           """Create parser for each test."""
@@ -632,11 +693,36 @@ Output JSON:"""
   ```
 
 #### Testing Strategy
-- **Unit tests**: Test each public method with frozen data
-- **JSON validation**: Ensure all outputs match expected schema
+
+**UPDATED: Real Game State Testing**
+- **Integration with big_game**: Load actual GameEngine, use real merged vocabulary
+- **Real scenarios**: Test with actual multi-word items from big_game (ice_wand, keepers_journal, frozen_crystal, etc.)
+- **Actual complexity**: Multi-word entities with shared components (frozen_crystal, wild_crystal, sunken_crystal)
+- **Real exits and locations**: Test against actual game locations and navigation
+- **Contract validation**: Runtime schema validation ensures type compatibility
+
+**Test Coverage:**
+- **Simple commands**: verb + object using real items
+- **Complex commands**: verb + object + preposition + indirect_object
+- **Multi-word entities**: "Keeper's journal" → keepers_journal, "ice wand" → ice_wand
+- **Disambiguation**: Multiple items with shared words (ancient_telescope vs frozen_telescope)
+- **Direction commands**: Navigation using real exits
 - **Edge cases**: Unknown verbs, hallucinated objects, malformed input
 - **Natural variations**: Different phrasings of same command
-- **NO live game state**: All tests use frozen fixtures
+
+**Real Game Situations (6+ diverse scenarios):**
+1. **Simple Room**: Basic verb+object with ice_wand, frozen_crystal, warm_cloak
+2. **Shared Words**: ancient_telescope vs frozen_telescope, ice_wand vs fire_wand
+3. **Multi-Word Crystals**: frozen_crystal, wild_crystal, sunken_crystal, fungal_crystal
+4. **Complex Prepositions**: unlock chest with brass_key, put key in chest
+5. **Possessives**: "Keeper's journal" → keepers_journal, cleaning_supplies
+6. **Empty/Minimal**: No valid targets, hallucination handling
+
+**Contract Testing:**
+- **Type validation**: Parser output → validate_action_dict() → ActionDict
+- **Field completeness**: All ActionDict optional fields handled correctly
+- **WordEntry structure**: Matches current schema (word, word_type, synonyms, etc.)
+- **Main branch sync**: If ActionDict changes after rebase, contract tests fail immediately
 
 #### Success Criteria
 - ✅ Parser produces valid JSON for common commands
@@ -1494,26 +1580,37 @@ This is a **Workflow B** task (large change with phasing):
 
 ## Timeline Estimate
 
-| Phase | Estimated Time | Dependencies |
-|-------|----------------|--------------|
-| Phase 1: Shared MLX Backend | 3-4 hours | None |
-| Phase 2: LLM Parser | 4-5 hours | Phase 1 |
-| Phase 3: Integration Contract | 2 hours | Phase 2 |
-| Phase 4: Integration Adapter | 2 hours | Phase 3 |
-| Phase 5: Documentation | 1 hour | Phase 4 |
-| **Total** | **12-14 hours** | Sequential |
+| Phase | Estimated Time | Actual Time | Status |
+|-------|----------------|-------------|--------|
+| Phase 1: Shared MLX Backend | 3-4 hours | ~3 hours | ✅ Complete |
+| Phase 2: LLM Parser + Contracts | 8-9 hours | TBD | 🔄 In Progress |
+| Phase 3: Integration Contract | 2 hours | TBD | ⏳ Pending |
+| Phase 4: Integration Adapter | 2 hours | TBD | ⏳ Pending |
+| Phase 5: Documentation | 1 hour | TBD | ⏳ Pending |
+| **Total** | **16-18 hours** | **~3 hours** | **~20% Complete** |
 
-**Actual integration at merge time:** +2-3 hours for wiring and testing with live big_game
+**Note:** Phase 2 increased from 4-5 hours to 8-9 hours to include contract testing (4 hours). This provides better integration validation and type safety.
+
+**Integration at merge time:** +2-3 hours for wiring, but better validated thanks to contract tests and real game state testing.
 
 ---
 
 ## Appendix: Key Constraints
 
-### Independence Requirements
-- **No dependencies on big_game** - Use frozen test fixtures
-- **No modifications to core files** - Stub integration points only
-- **No integration tests with live game** - Wait until merge
-- **Feature branch development** - Separate from main until ready
+### Independence Requirements (UPDATED)
+
+**Original Constraint:** Frozen fixtures to avoid dependency on changing big_game
+
+**New Reality (Jan 29, 2025):**
+- Main branch is stable (only changes via deliberate merges)
+- Feature branches develop independently (`feature/llm-parser`, `feature/big-game-fixup`)
+- **Can test against real big_game** without breakage risk
+
+**Current Approach:**
+- ✅ **Test with real big_game** - Load actual GameEngine, use real vocabulary
+- ✅ **Contract validators** - Detect type drift when syncing with main
+- ✅ **No modifications to core files** - Stub integration points only (Phase 3)
+- ✅ **Feature branch development** - Isolated until ready to merge
 
 ### Technical Requirements
 - **Apple Silicon Mac** - MLX requires M1/M2/M3/M4
