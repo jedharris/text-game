@@ -19,7 +19,10 @@
     "scheduled_events": [],
     "companions": [],
     "environmental_spreads": {},
-    "town_reputation": 0
+    "town_reputation": 0,
+    "behaviors": [
+      "examples.big_game.behaviors.regions.frozen_reaches.hypothermia"
+    ]
   },
   "locations": [
     {
@@ -257,7 +260,8 @@
         "temperature_zone": "freezing",
         "hypothermia_rate": 5,
         "difficult_terrain": true,
-        "region": "frozen_reaches"
+        "region": "frozen_reaches",
+        "temperature": "freezing"
       }
     },
     {

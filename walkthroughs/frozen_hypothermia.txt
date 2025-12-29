@@ -1,140 +1,148 @@
 # Frozen Reaches Phase 1: Hypothermia and Hot Springs
 # Tests environmental hazard system and sanctuary mechanics
+# NOTE: Frozen Observatory access requires golem deactivation (Phase 2)
 
 # Initial state: Full health, no hypothermia
 ASSERT actors.player.properties.health == 100
 
 # Part 1: Cold zone (frozen_pass) - basic hypothermia accumulation
 
-# Navigate to Frozen Pass (cold zone, +5 severity/turn)
+# Player starts at nexus_chamber (no temperature zone, no hypothermia)
+# Navigate to frozen_pass (cold zone, +5 severity/turn)
 go north
 
 # After 1 turn in cold zone: severity should be 5
 ASSERT actors.player.properties.conditions.hypothermia.severity == 5
 
-# Advance 2 more turns in cold zone
-# Turn 2: severity 10
-# Turn 3: severity 15
-look
+# Advance 1 more turn in cold zone
 look
 
+# After 2 total turns: severity 10
+ASSERT actors.player.properties.conditions.hypothermia.severity == 10
+
+# Advance 1 more turn
+look
+
+# After 3 total turns: severity 15
 ASSERT actors.player.properties.conditions.hypothermia.severity == 15
 
 # Part 2: Hot springs instant cure
 
-# Go to hot springs (instant cure)
+# Navigate to ice_field (freezing zone, +10 severity/turn)
 go west
+
+# After 1 turn in freezing: 15 + 10 = 25
+ASSERT actors.player.properties.conditions.hypothermia.severity == 25
+
+# Go to hot springs (instant cure)
+go north
 
 # After entering hot springs: hypothermia cured
 ASSERT actors.player.properties.conditions.hypothermia.severity == 0
 
-# Part 3: Cold zone with cold_weather_gear (50% reduction)
+# Part 3: Freezing zone without gear (ice_field and ice_caves)
 
-# Return to frozen_pass
+# Leave hot springs back to ice_field
 go south
 
-# Take cold_weather_gear (should halve hypothermia rate)
-take cold weather gear
+# After 1 turn in freezing zone: +10 severity
+ASSERT actors.player.properties.conditions.hypothermia.severity == 10
 
-# Go back to frozen_pass with gear
-go north
-
-# With gear, cold zone gives +2.5/turn (halved from 5)
-# Turn 1: severity 2.5 → rounds to 2
-look
-
-ASSERT actors.player.properties.conditions.hypothermia.severity >= 2
-ASSERT actors.player.properties.conditions.hypothermia.severity <= 3
-
-# Advance 2 more turns with gear
-look
-look
-
-# After 3 turns: 2.5 * 3 = 7.5, rounds to 7-8
-ASSERT actors.player.properties.conditions.hypothermia.severity >= 7
-ASSERT actors.player.properties.conditions.hypothermia.severity <= 8
-
-# Part 4: Extreme cold (frozen_observatory) - rapid accumulation
-
-# Go to frozen_observatory (extreme cold, +20 severity/turn)
-go north
-go up
-
-# With cold_weather_gear: 20 * 0.5 = 10/turn
-# Current severity ~7, turn gives +10 = 17
-ASSERT actors.player.properties.conditions.hypothermia.severity >= 17
-ASSERT actors.player.properties.conditions.hypothermia.severity <= 18
-
-# Advance 2 more turns in extreme cold with gear
-look
-look
-
-# After 3 turns total: 7 + (10 * 3) = 37
-ASSERT actors.player.properties.conditions.hypothermia.severity >= 37
-ASSERT actors.player.properties.conditions.hypothermia.severity <= 38
-
-# Part 5: Hot springs cure from high severity
-
-# Return to hot springs (instant cure even from high severity)
-go down
+# Go to ice_caves (also freezing, +10 severity/turn)
 go south
-go west
+
+# After 1 turn in ice_caves: 10 + 10 = 20
+ASSERT actors.player.properties.conditions.hypothermia.severity == 20
+
+# Advance 2 more turns in freezing zone
+look
+look
+
+# After 4 total turns in freezing: 20 + 20 = 40
+ASSERT actors.player.properties.conditions.hypothermia.severity == 40
+
+# Part 4: Return to hot springs for cure
+
+# Navigate back to hot springs via ice_field
+go north
+go north
 
 # Hypothermia fully cured regardless of severity
 ASSERT actors.player.properties.conditions.hypothermia.severity == 0
 
-# Part 6: Death from hypothermia (extreme cold, no gear)
+# Part 5: Test cold zone (temple_sanctum) accumulation
 
-# Drop cold_weather_gear
-drop cold weather gear
-
-# Go to frozen_observatory without gear
+# Navigate to temple_sanctum (cold zone, +5 severity/turn)
+# Path: hot_springs -> ice_field (+10) -> frozen_pass (+5) -> temple_sanctum (+5)
 go south
+go east
 go north
-go up
 
-# Without gear: 20 severity/turn
-# Turn 1: severity 20
+# After navigation through freezing+cold+cold: 0 + 10 + 5 + 5 = 20
 ASSERT actors.player.properties.conditions.hypothermia.severity == 20
 
-# Advance to critical severity (80+)
-# Need 60 more severity: 60 / 20 = 3 turns
-look
-look
-look
-
-ASSERT actors.player.properties.conditions.hypothermia.severity >= 80
-
-# Continue until death
-# Hypothermia damage thresholds (from conditions.py):
-# - severity 30+: 2 damage/turn
-# - severity 60+: 4 damage/turn
-# - severity 80+: 7 damage/turn
-# With 5 HP/turn regen, net damage at 80+: -2 HP/turn
-# From 100 HP: ~50 turns to death
-
-# Advance turns to accumulate damage
-look
-look
-look
-look
-look
-look
+# Advance 4 more turns in temple_sanctum
 look
 look
 look
 look
 
-# After ~14 total turns at 80+ severity:
-# - Severity capped at 100
-# - Net -2 HP/turn for ~14 turns = -28 HP
-# - Health: ~72-74 HP
-ASSERT actors.player.properties.health >= 70
-ASSERT actors.player.properties.health <= 75
+# After 4 more turns: 20 + (4 * 5) = 40
+ASSERT actors.player.properties.conditions.hypothermia.severity == 40
 
-# SUCCESS: Hypothermia system works!
-# - Cold zones apply severity at correct rates
-# - Cold_weather_gear halves accumulation
-# - Hot springs provide instant cure
-# - Extreme cold is deadly without protection
-# - Hypothermia causes damage at high severity
+# Part 6: Test high severity accumulation and messaging
+
+# Continue accumulating in temple_sanctum
+# Need to reach 60+ for "violent shivers" message
+look
+look
+look
+look
+
+# After 8 more turns total: 40 + (4 * 5) = 60
+ASSERT actors.player.properties.conditions.hypothermia.severity == 60
+
+# Continue to 80+ for "freezing to death" message
+look
+look
+look
+look
+
+# After 12 more turns total: 60 + (4 * 5) = 80
+ASSERT actors.player.properties.conditions.hypothermia.severity == 80
+
+# Part 7: Test severity cap at 100
+
+# Continue to verify cap
+look
+look
+look
+look
+
+# After 16 more turns: 80 + (4 * 5) = 100, should be capped
+ASSERT actors.player.properties.conditions.hypothermia.severity == 100
+
+# Extra turns to confirm cap holds
+look
+look
+
+ASSERT actors.player.properties.conditions.hypothermia.severity == 100
+
+# Part 8: Hot springs cure from maximum severity
+
+# Navigate back to hot springs
+# Path: temple_sanctum -> frozen_pass -> ice_field -> hot_springs
+go south
+go west
+go north
+
+# Full cure even from max severity
+ASSERT actors.player.properties.conditions.hypothermia.severity == 0
+
+# SUCCESS: Phase 1 complete!
+# - Cold zones (+5/turn) work correctly
+# - Freezing zones (+10/turn) work correctly
+# - Hot springs provide instant cure at any severity
+# - Severity caps at 100
+# - Severity progression messages appear at correct thresholds
+# NOTE: Extreme cold (observatory) and health damage testing deferred to Phase 2

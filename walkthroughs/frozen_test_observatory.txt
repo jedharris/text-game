@@ -1,0 +1,20 @@
+# Test path to frozen_observatory and extreme cold
+
+# Navigate to frozen_observatory
+go north
+go north
+go up
+
+# Check that we're in extreme cold zone
+# After 1 turn: +20 severity
+ASSERT actors.player.properties.conditions.hypothermia.severity == 20
+
+# After 2 turns: +40 total
+look
+
+ASSERT actors.player.properties.conditions.hypothermia.severity == 40
+
+# After 3 turns: +60 total
+look
+
+ASSERT actors.player.properties.conditions.hypothermia.severity == 60
