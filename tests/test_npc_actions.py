@@ -447,7 +447,7 @@ class TestNPCActionVocabulary(unittest.TestCase):
                 break
 
         self.assertIsNotNone(npc_event)
-        self.assertEqual(npc_event["hook"], "npc_action")
+        self.assertEqual(npc_event["hook"], "turn_npc_action")
 
 
 if __name__ == '__main__':

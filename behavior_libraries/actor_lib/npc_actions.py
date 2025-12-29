@@ -162,10 +162,18 @@ def on_npc_action(entity, accessor, context):
 
 # Vocabulary extension - registers the NPC action event
 vocabulary = {
+    "hook_definitions": [
+        {
+            "hook_id": "turn_npc_action",
+            "invocation": "turn_phase",
+            "after": [],
+            "description": "Execute NPC actions for the turn"
+        }
+    ],
     "events": [
         {
             "event": "on_npc_action",
-            "hook": "npc_action",
+            "hook": "turn_npc_action",
             "description": "Called each turn to give NPCs a chance to act. "
                           "Alphas are processed before followers."
         },
