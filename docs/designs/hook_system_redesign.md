@@ -344,7 +344,7 @@ Create `tests/test_validation.py` with 26+ test cases covering:
 
 ## Phase 3: Core Field Protection
 
-**Status:** Needs re-implementation (was completed, then reverted)
+**Status:** ✅ **COMPLETED** (2025-12-28)
 
 ### Goal
 Add runtime protection to prevent core field access via properties dict.
@@ -372,14 +372,39 @@ Add runtime protection to prevent core field access via properties dict.
 8. Verify big game still works
 9. Documentation and cleanup
 
+### Results
+
+**All success criteria met!**
+
+- ✅ CoreFieldProtectingDict prevents all core field assignments via properties dict
+- ✅ Clear error messages guide developers: "Cannot set core field 'X' via properties dict. Use direct attribute access instead: entity.X = value"
+- ✅ LibCST tool properly scoped with stack-based tracking for nested calls
+- ✅ All test code fixed (10 files via LibCST, 2 manual fixes for conftest.py and _big_game_conditions_impl.py)
+- ✅ All 2095 tests pass (5 skipped)
+- ✅ Big game loads successfully (45 locations, 61 items, 43 actors)
+
+**Real bugs caught by protection:**
+- 3 game behaviors reading `location` via properties.get() (spore_zones.py, hypothermia.py, spore_mother.py)
+- 6 game behaviors reading `inventory` via properties.get() (telescope_repair.py, ice_extraction.py, golem_puzzle.py, spore_zones.py, hypothermia.py, light_puzzle.py)
+- 1 behavior library (crafting_lib/recipes.py) using properties= constructor param
+
+**Commits:**
+- 56c299f Phase 3: Add CoreFieldProtectingDict class and tests
+- 0873ab2 Phase 3: Update entity classes to use _properties with protection
+- aacf859 Phase 3: Fix LibCST refactoring tool for _properties rename
+- e47e505 Phase 3: Refactor test code to use _properties parameter
+- 9ba2798 Phase 3: Fix conftest.py and initial test errors
+- 125da5b Phase 3: Fix all remaining test code and game behaviors
+- 9397f05 Phase 3: Fix core field access bugs in game behaviors
+
 ### Success Criteria
 - ✅ CoreFieldProtectingDict prevents all core field assignments
 - ✅ Clear error messages guide authors
 - ✅ LibCST tool properly scoped (no double-underscores)
 - ✅ All test code fixed
-- ✅ All 2039+ tests pass
+- ✅ All 2095 tests pass
 - ✅ Big game loads and plays
-- ✅ **COMMIT:** "Phase 3: Core field protection complete"
+- ✅ **COMMITS:** 7 commits completing Phase 3
 
 ### Files Modified
 - `src/state_manager.py` - CoreFieldProtectingDict + 4 entity classes + 4 parsers
