@@ -51,7 +51,7 @@ class TestCommitmentTurnPhase(unittest.TestCase):
                     id=CommitmentId("commit_active"),
                     name="Active promise",
                     description="Active commitment with deadline",
-                    properties={
+                    _properties={
                         "state": "active",
                         "made_at_turn": 5,
                         "deadline_turn": 15,
@@ -63,7 +63,7 @@ class TestCommitmentTurnPhase(unittest.TestCase):
                     id=CommitmentId("commit_fulfilled"),
                     name="Fulfilled promise",
                     description="Already fulfilled commitment",
-                    properties={
+                    _properties={
                         "state": "fulfilled",
                         "made_at_turn": 5,
                         "config_id": "commit_done",
@@ -160,7 +160,7 @@ class TestScheduledEventTurnPhase(unittest.TestCase):
                     id=ScheduledEventId("evt_one_time"),
                     name="One-time event at turn 10",
                     description="Non-repeating event",
-                    properties={
+                    _properties={
                         "trigger_turn": 10,
                         "event_type": "test_event",
                         "data": {"message": "Test"},
@@ -172,7 +172,7 @@ class TestScheduledEventTurnPhase(unittest.TestCase):
                     id=ScheduledEventId("evt_repeating"),
                     name="Repeating event",
                     description="Repeats every 5 turns",
-                    properties={
+                    _properties={
                         "trigger_turn": 15,
                         "event_type": "periodic_tick",
                         "repeating": True,
@@ -266,7 +266,7 @@ class TestGossipTurnPhase(unittest.TestCase):
                     id=GossipId("gossip_pending"),
                     name="News arriving later",
                     description="Point-to-point gossip",
-                    properties={
+                    _properties={
                         "content": "Important news",
                         "source_npc": "npc_guard",
                         "target_npcs": ["npc_healer"],
@@ -327,7 +327,7 @@ class TestSpreadTurnPhase(unittest.TestCase):
                     description="A cold cave",
                     exits={},
                     items=[],
-                    properties={"region": "caves", "temperature": "COLD"},
+                    _properties={"region": "caves", "temperature": "COLD"},
                 ),
                 Location(
                     id=LocationId("loc_cave_2"),
@@ -335,7 +335,7 @@ class TestSpreadTurnPhase(unittest.TestCase):
                     description="Deeper in the cave",
                     exits={},
                     items=[],
-                    properties={"region": "caves", "temperature": "COLD"},
+                    _properties={"region": "caves", "temperature": "COLD"},
                 ),
             ],
             items=[],
@@ -355,7 +355,7 @@ class TestSpreadTurnPhase(unittest.TestCase):
                     id=SpreadId("cave_cold"),
                     name="Cave cold spread",
                     description="Cold spreading through caves",
-                    properties={
+                    _properties={
                         "active": True,
                         "milestones": [
                             {

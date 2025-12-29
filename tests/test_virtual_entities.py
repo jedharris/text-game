@@ -56,7 +56,7 @@ class TestCommitmentEntity(unittest.TestCase):
             id=CommitmentId('commit_test'),
             name='Test commitment',
             description='Test description',
-            properties={'state': 'ACTIVE', 'deadline_turn': 10},
+            _properties={'state': 'ACTIVE', 'deadline_turn': 10},
             behaviors=['behaviors.test']
         )
         serialized = _serialize_commitment(commitment)
@@ -73,14 +73,14 @@ class TestCommitmentEntity(unittest.TestCase):
             id=CommitmentId('commit_1'),
             name='First',
             description='First commitment',
-            properties={},
+            _properties={},
             behaviors=[]
         )
         commitment2 = Commitment(
             id=CommitmentId('commit_2'),
             name='Second',
             description='Second commitment',
-            properties={},
+            _properties={},
             behaviors=[]
         )
 
@@ -142,7 +142,7 @@ class TestScheduledEventEntity(unittest.TestCase):
             id=ScheduledEventId('evt_test'),
             name='Test event',
             description='Test description',
-            properties={'trigger_turn': 50, 'event_type': 'test'},
+            _properties={'trigger_turn': 50, 'event_type': 'test'},
             behaviors=[]
         )
         serialized = _serialize_scheduled_event(event)
@@ -156,7 +156,7 @@ class TestScheduledEventEntity(unittest.TestCase):
             id=ScheduledEventId('evt_1'),
             name='Event 1',
             description='Test event',
-            properties={},
+            _properties={},
             behaviors=[]
         )
 
@@ -216,7 +216,7 @@ class TestGossipEntity(unittest.TestCase):
             id=GossipId('gossip_test'),
             name='Test gossip',
             description='Test description',
-            properties={'content': 'Test news', 'created_turn': 1},
+            _properties={'content': 'Test news', 'created_turn': 1},
             behaviors=[]
         )
         serialized = _serialize_gossip(gossip)
@@ -229,7 +229,7 @@ class TestGossipEntity(unittest.TestCase):
             id=GossipId('gossip_1'),
             name='Gossip 1',
             description='Test gossip',
-            properties={},
+            _properties={},
             behaviors=[]
         )
 
@@ -289,7 +289,7 @@ class TestSpreadEntity(unittest.TestCase):
             id=SpreadId('spread_test'),
             name='Test spread',
             description='Test description',
-            properties={'active': True, 'milestones': []},
+            _properties={'active': True, 'milestones': []},
             behaviors=[]
         )
         serialized = _serialize_spread(spread)
@@ -302,7 +302,7 @@ class TestSpreadEntity(unittest.TestCase):
             id=SpreadId('spread_1'),
             name='Spread 1',
             description='Test spread',
-            properties={},
+            _properties={},
             behaviors=[]
         )
 

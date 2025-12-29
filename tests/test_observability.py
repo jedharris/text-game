@@ -466,7 +466,7 @@ class TestObservabilityIntegration(unittest.TestCase):
                     name="ghost",
                     description="A spectral figure",
                     location="room1",
-                    properties={"states": {"hidden": True}},
+                    _properties={"states": {"hidden": True}},
                     inventory=[]
                 )
             }

@@ -26,7 +26,7 @@ class TestGetAvailableTopics(unittest.TestCase):
         state.actors[ActorId('scholar')] = Actor(
             id=ActorId('scholar'), name='Scholar', description='A scholar',
             location=LocationId('start'), inventory=[],
-            properties={
+            _properties={
                 'dialog_topics': {
                     'infection': {
                         'keywords': ['infection', 'sick'],
@@ -51,12 +51,12 @@ class TestGetAvailableTopics(unittest.TestCase):
         state.actors[ActorId('player')] = Actor(
             id=ActorId('player'), name='Hero', description='The hero',
             location=LocationId('start'), inventory=[],
-            properties={'flags': {}}
+            _properties={'flags': {}}
         )
         state.actors[ActorId('scholar')] = Actor(
             id=ActorId('scholar'), name='Scholar', description='A scholar',
             location=LocationId('start'), inventory=[],
-            properties={
+            _properties={
                 'dialog_topics': {
                     'cure': {
                         'keywords': ['cure'],
@@ -81,12 +81,12 @@ class TestGetAvailableTopics(unittest.TestCase):
         state.actors[ActorId('player')] = Actor(
             id=ActorId('player'), name='Hero', description='The hero',
             location=LocationId('start'), inventory=[],
-            properties={'flags': {'knows_about_infection': True}}
+            _properties={'flags': {'knows_about_infection': True}}
         )
         state.actors[ActorId('scholar')] = Actor(
             id=ActorId('scholar'), name='Scholar', description='A scholar',
             location=LocationId('start'), inventory=[],
-            properties={
+            _properties={
                 'dialog_topics': {
                     'cure': {
                         'keywords': ['cure'],
@@ -119,7 +119,7 @@ class TestGetTopicHints(unittest.TestCase):
         state.actors[ActorId('scholar')] = Actor(
             id=ActorId('scholar'), name='Scholar', description='A scholar',
             location=LocationId('start'), inventory=[],
-            properties={
+            _properties={
                 'dialog_topics': {
                     'infection': {
                         'keywords': ['infection', 'sick', 'illness'],
@@ -339,7 +339,7 @@ class TestRequiresState(unittest.TestCase):
         state.actors[ActorId('scholar')] = Actor(
             id=ActorId('scholar'), name='Scholar', description='A scholar',
             location=LocationId('start'), inventory=[],
-            properties=npc_props
+            _properties=npc_props
         )
 
         accessor = StateAccessor(state, Mock())
@@ -467,7 +467,7 @@ class TestRequiresTrust(unittest.TestCase):
         state.actors[ActorId('npc')] = Actor(
             id=ActorId('npc'), name='Dealer', description='A dealer',
             location=LocationId('start'), inventory=[],
-            properties={
+            _properties={
                 'dialog_topics': {
                     'secret': topic_config
                 },
@@ -541,7 +541,7 @@ class TestTrustDelta(unittest.TestCase):
         state.actors[ActorId('player')] = Actor(
             id=ActorId('player'), name='Hero', description='The hero',
             location=LocationId('start'), inventory=[],
-            properties={'flags': {}}
+            _properties={'flags': {}}
         )
 
         topic_config: dict[str, Any] = {
@@ -554,7 +554,7 @@ class TestTrustDelta(unittest.TestCase):
         state.actors[ActorId('scholar')] = Actor(
             id=ActorId('scholar'), name='Scholar', description='A scholar',
             location=LocationId('start'), inventory=[],
-            properties={
+            _properties={
                 'dialog_topics': {
                     'infection': topic_config
                 },

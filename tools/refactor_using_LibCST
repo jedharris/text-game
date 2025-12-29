@@ -650,20 +650,22 @@ class RenameKeywordArgInConstructors(cst.CSTTransformer):
         self.old_arg = old_arg
         self.new_arg = new_arg
         self.changes = 0
-        self._in_target_call = False
+        self._call_stack: list[bool] = []
 
     def visit_Call(self, node: cst.Call) -> bool:
         # Check if calling one of our target constructors
-        if isinstance(node.func, cst.Name) and node.func.value in self.constructor_names:
-            self._in_target_call = True
+        is_target = isinstance(node.func, cst.Name) and node.func.value in self.constructor_names
+        self._call_stack.append(is_target)
         return True
 
     def leave_Call(self, original_node: cst.Call, updated_node: cst.Call) -> cst.Call:
-        self._in_target_call = False
+        self._call_stack.pop()
         return updated_node
 
     def leave_Arg(self, original_node: cst.Arg, updated_node: cst.Arg) -> cst.Arg:
-        if (self._in_target_call and
+        # Check if we're in any target call
+        in_target_call = any(self._call_stack)
+        if (in_target_call and
             updated_node.keyword and
             updated_node.keyword.value == self.old_arg):
             self.changes += 1
@@ -683,7 +685,9 @@ def create_transformer() -> cst.CSTTransformer:
     entity_constructors = [
         'Actor', 'Item', 'Location', 'Part',
         'Lock', 'ExitDescriptor',
-        'Commitment', 'ScheduledEvent', 'Gossip', 'Spread'
+        'Commitment', 'ScheduledEvent', 'Gossip', 'Spread',
+        # Aliases sometimes used in tests
+        'StateActor', 'StateItem', 'StateLocation'
     ]
     return RenameKeywordArgInConstructors(entity_constructors, 'properties', '_properties')
 

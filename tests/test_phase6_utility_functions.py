@@ -33,7 +33,7 @@ def create_door_item(door_id: str, location_id: str, direction: str,
         name="door",
         description=description,
         location=f"exit:{location_id}:{direction}",
-        properties={"door": door_props}
+        _properties={"door": door_props}
     )
 
 

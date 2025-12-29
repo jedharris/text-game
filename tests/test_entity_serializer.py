@@ -457,7 +457,7 @@ class TestTraitRandomization(unittest.TestCase):
             name="sword",
             description="A sword.",
             location="loc_room",
-            properties={
+            _properties={
                 "llm_context": {
                     "traits": original_traits.copy()
                 }

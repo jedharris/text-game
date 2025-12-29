@@ -31,7 +31,7 @@ def create_test_state_with_exits() -> GameState:
         description="The player character",
         location=LocationId("location_room"),
         inventory=[],
-        properties={},
+        _properties={},
         behaviors=[]
     )
 
@@ -42,7 +42,7 @@ def create_test_state_with_exits() -> GameState:
         description="A kitchen",
         exits={},
         items=[],
-        properties={},
+        _properties={},
         behaviors=[]
     )
 
@@ -67,7 +67,7 @@ def create_test_state_with_exits() -> GameState:
             )
         },
         items=[ItemId("item_sword")],
-        properties={},
+        _properties={},
         behaviors=[]
     )
 
@@ -77,7 +77,7 @@ def create_test_state_with_exits() -> GameState:
         description="A garden",
         exits={},
         items=[],
-        properties={},
+        _properties={},
         behaviors=[]
     )
 
@@ -86,7 +86,7 @@ def create_test_state_with_exits() -> GameState:
         name="sword",
         description="A test sword",
         location="location_room",
-        properties={
+        _properties={
             "portable": True,
             "llm_context": {"traits": ["shiny", "sharp", "well-balanced"]}
         },
@@ -98,7 +98,7 @@ def create_test_state_with_exits() -> GameState:
         name="oak tree",
         description="A large oak tree",
         location="location_room",
-        properties={
+        _properties={
             "portable": False,
             "climbable": True
         },

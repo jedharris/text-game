@@ -66,7 +66,7 @@ def on_cold_zone_turn(
     if not player:
         return EventResult(allow=True, feedback=None)
 
-    player_loc = player.properties.get("location")
+    player_loc = player.location
     if not player_loc:
         return EventResult(allow=True, feedback=None)
 

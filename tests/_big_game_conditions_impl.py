@@ -48,6 +48,7 @@ _setup_paths()
 
 from src.game_engine import GameEngine
 from src.state_accessor import StateAccessor
+from src.types import LocationId
 
 
 class TestBigGameConditionIntegration(unittest.TestCase):
