@@ -425,14 +425,21 @@ Add hook_definitions to core behavior modules, converting from src/hooks.py cons
 
 ### Hook Migrations
 
-From reference plan (declarative-petting-thunder.md):
-
 | Old Hook Name | New Hook Name | Invocation Type | Where Defined |
 |---------------|---------------|-----------------|---------------|
 | `location_entered` | `entity_entered_location` | `"entity"` | behaviors/core/exits.py |
 | `visibility_check` | `entity_visibility_check` | `"entity"` | behaviors/core/perception.py |
 
-### Implementation
+### Implementation Strategy (Lessons from Phase 3)
+
+**Incremental approach:**
+1. Migrate one hook at a time
+2. Add hook_definition to vocabulary
+3. Update event to reference new hook name
+4. Run tests to verify no breakage
+5. Commit before moving to next hook
+
+**Field name:** Use `hook_id` (not `hook`) to match actual implementation.
 
 #### 1. Update behaviors/core/exits.py
 
@@ -441,7 +448,7 @@ Add to vocabulary:
 vocabulary = {
     "hook_definitions": [
         {
-            "hook": "entity_entered_location",
+            "hook_id": "entity_entered_location",  # Note: hook_id not hook
             "invocation": "entity",
             "description": "Called when an actor enters a new location"
         }
@@ -455,6 +462,17 @@ vocabulary = {
 }
 ```
 
+**Verification:**
+```bash
+# Find all invocations of this hook
+grep -r 'location_entered' src/ tests/ behaviors/ behavior_libraries/ examples/
+
+# Run tests
+python -m unittest discover tests/
+```
+
+**Commit:** `git commit -m "Phase 4: Migrate entity_entered_location hook"`
+
 #### 2. Update behaviors/core/perception.py
 
 Add to vocabulary:
@@ -462,7 +480,7 @@ Add to vocabulary:
 vocabulary = {
     "hook_definitions": [
         {
-            "hook": "entity_visibility_check",
+            "hook_id": "entity_visibility_check",  # Note: hook_id not hook
             "invocation": "entity",
             "description": "Called to determine if an entity is visible"
         }
@@ -476,27 +494,47 @@ vocabulary = {
 }
 ```
 
-#### 3. Update code that fires these hooks
+**Verification:**
+```bash
+# Find all invocations of this hook
+grep -r 'visibility_check' src/ tests/ behaviors/ behavior_libraries/ examples/
 
-Search for `invoke_behavior(..., hook="location_entered")` and update to `"entity_entered_location"`.
+# Run tests
+python -m unittest discover tests/
+```
+
+**Commit:** `git commit -m "Phase 4: Migrate entity_visibility_check hook"`
+
+#### 3. Update any code that directly invokes these hooks
+
+If any code outside vocabularies invokes these hooks with old names, update them.
+
+**Search commands:**
+```bash
+grep -r 'invoke_behavior.*location_entered' src/ tests/
+grep -r 'invoke_behavior.*visibility_check' src/ tests/
+```
 
 ### Tests
 
-- Run existing tests - they should still pass (behavior unchanged, just renamed hooks)
-- Verify hook definitions loaded correctly
-- Verify validation passes
+- Run existing tests after each migration - they should still pass (behavior unchanged, just renamed hooks)
+- Verify hook definitions loaded correctly during game startup
+- Verify Phase 2 validations pass (prefix checks, etc.)
+- Expected: All 2095 tests pass (no new tests added in this phase)
 
 ### Success Criteria
 - ✅ Core hooks defined in behavior vocabularies (not src/hooks.py)
 - ✅ Hook names use `entity_*` prefix
+- ✅ Hook field uses `hook_id` (matches implementation)
 - ✅ All hook invocations updated to use new names
-- ✅ All tests pass
-- ✅ **COMMIT:** "Phase 4: Migrate core hooks to vocabulary definitions"
+- ✅ All 2095 tests pass
+- ✅ Validation passes (prefixes checked at load time)
+- ✅ **COMMITS:** 2+ commits (one per hook migration)
 
 ### Files Modified
-- `behaviors/core/exits.py` - Add hook_definition
-- `behaviors/core/perception.py` - Add hook_definition
-- Any files that invoke these hooks - Update hook names
+- `behaviors/core/exits.py` - Add hook_definition for entity_entered_location
+- `behaviors/core/perception.py` - Add hook_definition for entity_visibility_check
+- Any files that invoke these hooks - Update hook names (if any)
 
 ---
 
@@ -518,7 +556,16 @@ From reference plan:
 | `condition_tick` | `turn_condition_tick` | `"turn_phase"` | behavior_libraries/actor_lib/conditions.py |
 | `death_check` | `turn_death_check` | `"turn_phase"` | behavior_libraries/actor_lib/combat.py |
 
-### Implementation
+### Implementation Strategy (Same as Phase 4)
+
+**Incremental approach:**
+1. Migrate one hook at a time
+2. Add hook_definition with dependencies
+3. Update event to reference new hook name
+4. Run tests to verify no breakage
+5. Commit before moving to next hook
+
+**Field name:** Use `hook_id` (not `hook`) to match implementation.
 
 For each infrastructure module, add hook_definition to vocabulary:
 
@@ -527,7 +574,7 @@ For each infrastructure module, add hook_definition to vocabulary:
 vocabulary = {
     "hook_definitions": [
         {
-            "hook": "turn_npc_action",
+            "hook_id": "turn_npc_action",  # Note: hook_id not hook
             "invocation": "turn_phase",
             "after": [],  # No dependencies - early in turn
             "description": "Execute NPC actions for the turn"
@@ -543,28 +590,37 @@ vocabulary = {
 ```
 
 **Dependencies to define:**
-- `turn_environmental_effect` after `turn_npc_action`
-- `turn_condition_tick` after `turn_environmental_effect`
-- `turn_death_check` after `turn_condition_tick`
+- `turn_npc_action`: No dependencies (runs early)
+- `turn_environmental_effect`: `"after": ["turn_npc_action"]`
+- `turn_condition_tick`: `"after": ["turn_environmental_effect"]`
+- `turn_death_check`: `"after": ["turn_condition_tick"]`
+
+**Migration order:**
+1. `turn_npc_action` first (no dependencies)
+2. `turn_environmental_effect` second (depends on #1)
+3. `turn_condition_tick` third (depends on #2)
+4. `turn_death_check` last (depends on #3)
 
 ### Tests
 
-- Run existing tests
-- Verify dependencies prevent circular references
-- Verify all turn phases discovered
+- Run existing tests after each migration
+- Verify Phase 2 dependency validation passes
+- Verify no circular dependencies
+- Expected: All 2095 tests pass after each migration
 
 ### Success Criteria
 - ✅ All infrastructure hooks defined with proper prefixes
 - ✅ Dependencies specified via `after` field
 - ✅ All hook invocations updated to new names
-- ✅ All tests pass
-- ✅ **COMMIT:** "Phase 5: Migrate infrastructure hooks to vocabularies"
+- ✅ All 2095 tests pass
+- ✅ Phase 2 validation passes (prefixes, dependencies checked)
+- ✅ **COMMITS:** 4+ commits (one per hook migration)
 
 ### Files Modified
-- `behavior_libraries/actor_lib/npc_actions.py`
-- `behavior_libraries/actor_lib/environment.py`
-- `behavior_libraries/actor_lib/conditions.py`
-- `behavior_libraries/actor_lib/combat.py`
+- `behavior_libraries/actor_lib/npc_actions.py` - turn_npc_action
+- `behavior_libraries/actor_lib/environment.py` - turn_environmental_effect
+- `behavior_libraries/actor_lib/conditions.py` - turn_condition_tick
+- `behavior_libraries/actor_lib/combat.py` - turn_death_check
 
 ---
 
