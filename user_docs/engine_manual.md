@@ -99,10 +99,10 @@ src/
 ├── state_manager.py        # Entity models, load/save
 ├── state_accessor.py       # Unified state access API
 ├── behavior_manager.py     # Behavior module system
+├── turn_executor.py        # Turn phase execution with dependency ordering
 ├── parser.py               # Fast local command parser
 ├── parsed_command.py       # Parser output structure
 ├── word_entry.py           # Vocabulary entry type
-├── hooks.py                # Engine hook constants
 ├── vocabulary.json         # Base vocabulary
 └── narrator_protocol.txt   # LLM protocol specification
 
@@ -498,7 +498,8 @@ vocabulary = {
 ```
 
 Hooks provide stable engine contracts. Modules wire events to hooks via vocabulary.
-Hook names are defined in `src/hooks.py`.
+
+**NOTE:** Hook definitions are now vocabulary-based. See [docs/hook_system.md](../docs/hook_system.md) for complete documentation on defining and using hooks.
 
 ### Handler Precedence
 
@@ -689,22 +690,25 @@ Protocol handler checks for state corruption and blocks non-meta commands.
 
 ### Turn Phase Execution
 
-After each successful command, the protocol handler fires turn phase hooks in order:
+After each successful command, the turn_executor fires turn phase hooks in dependency order.
 
-```python
-TURN_PHASE_HOOKS = [
-    hooks.NPC_ACTION,           # NPCs take actions
-    hooks.ENVIRONMENTAL_EFFECT, # Environmental effects trigger
-    hooks.CONDITION_TICK,       # Conditions advance (poison, etc.)
-    hooks.DEATH_CHECK,          # Check for actor deaths
-]
-```
+**NOTE:** Turn phases are now ordered by dependencies declared in hook definitions, not hardcoded lists. See [docs/hook_system.md](../docs/hook_system.md) for details.
+
+**Common Turn Phases:**
+- `turn_scheduled_events` - Process scheduled events
+- `turn_commitments` - Check commitment deadlines
+- `turn_gossip_spread` - Spread gossip between NPCs
+- `turn_npc_action` - NPCs take actions
+- `turn_environmental_effect` - Environmental effects trigger
+- `turn_condition_tick` - Conditions advance (poison, etc.)
+- `turn_death_check` - Check for actor deaths
 
 **Turn Phase Flow:**
 1. Command succeeds
-2. `state.increment_turn()` advances turn counter
-3. For each hook in order:
-   - Look up event registered for hook via `behavior_manager.get_event_for_hook(hook)`
+2. `turn_executor.execute_turn_phases()` called
+3. Turn counter incremented
+4. For each hook in dependency order:
+   - Look up event registered for hook
    - If event found, invoke behaviors registered for that event
    - Collect messages from behaviors
 4. Return messages in `turn_phase_messages` field of result
@@ -821,25 +825,21 @@ The turn phase system provides a structured way to process game time advancement
 
 **Key Concepts:**
 - **Turn Counter**: `state.turn_count` tracks elapsed game turns, increments after each successful command
-- **Phase Hooks**: Stable engine contracts defined in `src/hooks.py`
+- **Phase Hooks**: Defined in behavior module vocabularies with `turn_*` prefix
 - **Events**: Behavior modules register events and wire them to hooks via vocabulary
-- **Execution Order**: Phases fire in defined order (NPC_ACTION → ENVIRONMENTAL_EFFECT → CONDITION_TICK → DEATH_CHECK)
+- **Execution Order**: Determined by `after` and `before` dependencies in hook definitions
+- **Turn Executor**: `turn_executor.py` performs topological sort and executes phases
 
-## 3.2 Hook Constants
+**NOTE:** Hooks are now defined in vocabularies, not engine code. See [docs/hook_system.md](../docs/hook_system.md) for complete documentation.
 
-Defined in `src/hooks.py`:
+## 3.2 Hook Naming Conventions
 
-```python
-# Turn phase hooks (fire after successful player command)
-NPC_ACTION = "npc_action"                   # NPCs take turn actions
-ENVIRONMENTAL_EFFECT = "environmental_effect"  # Environment affects actors
-CONDITION_TICK = "condition_tick"           # Conditions progress (poison, etc.)
-DEATH_CHECK = "death_check"                 # Check for actor deaths
+Hook names follow prefix conventions to indicate invocation type:
 
-# Other engine hooks
-LOCATION_ENTERED = "location_entered"       # Actor enters location
-VISIBILITY_CHECK = "visibility_check"       # Check if entity visible
-```
+- **`turn_*` hooks**: Turn phase hooks (execute once per turn)
+  - Examples: `turn_npc_action`, `turn_environmental_effect`, `turn_condition_tick`
+- **`entity_*` hooks**: Entity-specific hooks (execute per-entity)
+  - Examples: `entity_visibility_check`, `entity_location_entered`
 
 ## 3.3 Hook Registration
 
@@ -1011,7 +1011,7 @@ actor.properties["conditions"] = [
 ]
 ```
 
-**Hook:** Registers `on_condition_tick` → `hooks.CONDITION_TICK`
+**Hook:** Registers `on_condition_tick` → `turn_condition_tick`
 
 ### relationships.py
 
@@ -1108,13 +1108,13 @@ location.properties["environment"] = {
 }
 ```
 
-**Hook:** Registers `on_environment_tick` → `hooks.ENVIRONMENTAL_EFFECT`
+**Hook:** Registers `on_environmental_effect` → `turn_environmental_effect`
 
 ### npc_actions.py
 
 Generic NPC turn actions.
 
-**Hook:** Registers `on_npc_turn` → `hooks.NPC_ACTION`
+**Hook:** Registers `on_npc_action` → `turn_npc_action`
 
 Delegates to specific NPC behaviors based on NPC type/properties.
 
@@ -2259,7 +2259,7 @@ llm_game.py
             │   ├── state_manager.py
             │   ├── behavior_manager.py
             │   ├── state_accessor.py
-            │   └── hooks.py (engine hook constants)
+            │   └── turn_executor.py (turn phase execution)
             └── parser.py
                 ├── word_entry.py
                 └── parsed_command.py
@@ -2270,12 +2270,10 @@ behaviors/core/*
 
 behaviors/actors/*
     ├── state_accessor.py (imported by all)
-    ├── hooks.py (for turn phase registration)
     └── word_entry.py (for VOCABULARY)
 
 behavior_libraries/*
     ├── state_accessor.py (imported by all)
-    ├── hooks.py (optional, for turn phases)
     └── word_entry.py (for VOCABULARY)
 
 utilities/*

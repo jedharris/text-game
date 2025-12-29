@@ -43,7 +43,16 @@ This document captures the coding patterns and interfaces that keep the engine c
 - `load_game_state` normalizes behaviors to lists and merges legacy property shapes into `properties`. Keep new fixtures and content in the normalized format.
 - `game_state_to_dict` preserves behaviors as lists and merges `properties` back to top-level fields; when adding fields, ensure serializers and validators stay in sync.
 
-## 8) LLM / Protocol Integration
-- `LLMProtocolHandler` is the single protocol surface; it uses the behavior manager for post-command hooks and turn phases.
+## 8) Hook System
+- Hooks are defined in behavior module vocabularies, not in engine code.
+- **Hook naming**: `turn_*` for turn phases (execute once per turn), `entity_*` for entity hooks (execute per-entity).
+- **Hook definitions**: Added to vocabulary `"hook_definitions"` list with fields: `hook_id`, `invocation` (`"turn_phase"` or `"entity"`), `after`/`before` (dependencies for turn phases), `description`, automatically tracked by `BehaviorManager`.
+- **Turn phase execution**: `turn_executor.py` performs topological sort based on `after`/`before` dependencies and executes phases in order.
+- **Validation**: Load-time validation checks prefix consistency, dependency references, circular dependencies, and prevents turn phases on entities.
+- **Layer ordering**: Games extend libraries using `before` field without modifying library code.
+- See [docs/hook_system.md](../docs/hook_system.md) for complete documentation.
+
+## 9) LLM / Protocol Integration
+- `LLMProtocolHandler` is the single protocol surface; it delegates turn phase execution to `turn_executor`.
 - Vocabulary queries (`_query_vocabulary`) use the merged vocabulary via `vocabulary_service`; avoid ad hoc vocab loads.
 - Narration uses `LLMNarrator` with `Parser.from_vocab` and the merged vocab passed in; keep prompt loading separate from vocab loading.
