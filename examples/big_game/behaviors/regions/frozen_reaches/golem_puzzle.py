@@ -191,7 +191,7 @@ def _handle_ritual(
     if not player:
         return EventResult(allow=True, feedback=None)
 
-    inventory = str(player.properties.get("inventory", []))
+    inventory = str(player.inventory)
 
     if has_fire and not has_water:
         if "spring" not in inventory.lower() and "water" not in inventory.lower():

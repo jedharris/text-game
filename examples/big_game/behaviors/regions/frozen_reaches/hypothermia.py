@@ -105,7 +105,7 @@ def on_cold_zone_turn(
 
     # Check for cold weather gear (50% reduction)
     if "cold_weather_gear" in str(equipment) or "cold_weather_gear" in str(
-        player.properties.get("inventory", [])
+        player.inventory
     ):
         base_rate = int(base_rate * GEAR_COLD_REDUCTION)
 

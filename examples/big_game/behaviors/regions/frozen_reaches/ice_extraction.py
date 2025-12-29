@@ -219,9 +219,8 @@ def _check_for_heat_source(actor: Any, state: Any) -> bool:
     Returns:
         True if actor has a heat source
     """
-    inventory = actor.properties.get("inventory", [])
-
-    # Check for specific heat source items
+    # Check for specific heat source items in inventory
+    inventory = actor.inventory
     for item_id in inventory:
         if item_id in HEAT_SOURCES:
             return True

@@ -71,12 +71,12 @@ def on_water_mushroom(
     # Check bucket has charges
     player = state.actors.get("player")
     if player:
-        inventory = player.properties.get("inventory", {})
-        # Handle dict or list inventory formats
-        if isinstance(inventory, dict):
-            bucket = inventory.get("bucket", {})
-            if isinstance(bucket, dict) and bucket:
-                charges = bucket.get("water_charges", 0)
+        # Check if player has the bucket
+        if "bucket" in player.inventory:
+            # Get the actual bucket item to check charges
+            bucket = state.get_item("bucket")
+            if bucket:
+                charges = bucket.properties.get("water_charges", 0)
                 if charges <= 0:
                     return EventResult(
                         allow=True,

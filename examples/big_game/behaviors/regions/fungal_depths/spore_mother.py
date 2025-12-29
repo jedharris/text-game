@@ -52,7 +52,7 @@ def on_spore_mother_presence(
     if not player:
         return EventResult(allow=True, feedback=None)
 
-    player_loc = player.properties.get("location")
+    player_loc = player.location
     if player_loc != "spore_heart":
         # Reset counter if not in spore heart
         state.extra["spore_mother_presence_turns"] = 0

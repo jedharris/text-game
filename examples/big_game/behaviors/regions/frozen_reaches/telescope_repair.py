@@ -103,9 +103,8 @@ def on_use_component_on_telescope(
     actor_id = context.get("actor_id", "player")
     actor = state.actors.get(actor_id)
     if actor:
-        inventory = actor.properties.get("inventory", [])
-        if item_id in inventory:
-            inventory.remove(item_id)
+        if item_id in actor.inventory:
+            actor.inventory.remove(item_id)
 
     # Build installation message
     messages = {
