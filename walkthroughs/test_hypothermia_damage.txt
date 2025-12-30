@@ -1,0 +1,76 @@
+# Test hypothermia health damage
+# Validates that high hypothermia severity causes health damage
+
+# Initial state
+ASSERT actors.player.properties.health == 100
+
+# Navigate to frozen_pass and stay there to build up hypothermia
+go north
+
+# Wait in cold zone to accumulate severity
+# Each turn adds +5 in cold zone
+look
+look
+look
+look
+look
+look
+look
+look
+
+# After 9 turns total (1 move + 8 looks): 9 * 5 = 45 severity
+# At 40-59 severity: 2 damage/turn, with 5 regen = net +3 HP/turn
+ASSERT actors.player.properties.conditions.hypothermia.severity >= 40
+ASSERT actors.player.properties.conditions.hypothermia.severity < 60
+ASSERT actors.player.properties.health == 100
+
+# Continue to reach 60+ severity (4 damage/turn, net +1 HP/turn)
+look
+look
+look
+look
+
+# After 13 turns: 65 severity
+ASSERT actors.player.properties.conditions.hypothermia.severity >= 60
+ASSERT actors.player.properties.conditions.hypothermia.severity < 80
+ASSERT actors.player.properties.health == 100
+
+# Continue to reach 80+ severity (7 damage/turn, net -2 HP/turn)
+look
+look
+look
+look
+
+# After 17 turns: 85 severity
+# Now damage should exceed regen
+ASSERT actors.player.properties.conditions.hypothermia.severity >= 80
+
+# Health should start decreasing
+# After first turn at 80+: 100 - 2 = 98
+ASSERT actors.player.properties.health < 100
+
+# Continue at high severity to see health decrease
+look
+look
+look
+
+# After 3 more turns at 80+ severity: 98 - 6 = 92 HP
+ASSERT actors.player.properties.health >= 90
+ASSERT actors.player.properties.health <= 95
+
+# Verify severity caps at 100
+ASSERT actors.player.properties.conditions.hypothermia.severity == 100
+
+# Continue to show continued damage at cap
+look
+look
+look
+
+# After 3 more turns: 92 - 6 = 86 HP
+ASSERT actors.player.properties.health >= 84
+ASSERT actors.player.properties.health <= 90
+
+# SUCCESS: Hypothermia damage is working!
+# - Severity 80+ causes 7 damage/turn
+# - With 5 HP regen, net damage is -2 HP/turn
+# - Health decreases over time at high severity

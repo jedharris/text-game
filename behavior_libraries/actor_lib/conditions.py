@@ -238,6 +238,19 @@ def tick_conditions(actor) -> List[str]:
             else:
                 condition_data["damage_per_turn"] = 0
 
+        # Update damage_per_turn for hypothermia based on current severity
+        # Hypothermia becomes deadly at high severity levels
+        if condition_name == "hypothermia":
+            severity = condition_data.get("severity", 0)
+            if severity >= 80:
+                condition_data["damage_per_turn"] = 7
+            elif severity >= 60:
+                condition_data["damage_per_turn"] = 4
+            elif severity >= 40:
+                condition_data["damage_per_turn"] = 2
+            else:
+                condition_data["damage_per_turn"] = 0
+
     # Remove expired conditions
     for condition_name in conditions_to_remove:
         del conditions[condition_name]
