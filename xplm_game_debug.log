@@ -1,0 +1,269 @@
+2025-12-29 20:31:29,199 [INFO] root: Debug logging enabled - writing to xplm_game_debug.log
+2025-12-29 20:31:29,216 [INFO] src.shared_mlx: Loading shared MLX model: mlx-community/Qwen2.5-7B-Instruct-4bit
+2025-12-29 20:31:29,230 [DEBUG] urllib3.connectionpool: Starting new HTTPS connection (1): huggingface.co:443
+2025-12-29 20:31:29,337 [DEBUG] urllib3.connectionpool: https://huggingface.co:443 "GET /api/models/mlx-community/Qwen2.5-7B-Instruct-4bit/revision/main HTTP/1.1" 200 4275
+2025-12-29 20:31:29,963 [INFO] src.shared_mlx: Shared MLX model loaded successfully
+2025-12-29 20:31:29,965 [INFO] src.shared_mlx: Creating parser prompt cache
+2025-12-29 20:31:30,802 [INFO] src.shared_mlx: Parser cache warmed with 702 tokens
+2025-12-29 20:31:30,806 [INFO] src.mlx_narrator: Using shared MLX backend: mlx-community/Qwen2.5-7B-Instruct-4bit
+2025-12-29 20:31:30,824 [INFO] src.mlx_narrator: Warming prompt cache with 2535 tokens...
+2025-12-29 20:31:33,686 [INFO] src.mlx_narrator: Prompt cache initialized
+2025-12-29 20:31:33,686 [DEBUG] src.mlx_narrator: User message: Narrate the opening scene:
+{
+  "type": "query_response",
+  "query_type": "location",
+  "data": {
+    "location": {
+      "id": "nexus_chamber",
+      "name": "Nexus Chamber",
+      "description": "The...
+2025-12-29 20:31:40,872 [DEBUG] root: Building context for location: nexus_chamber
+2025-12-29 20:31:40,873 [DEBUG] root: Location has 0 item IDs
+2025-12-29 20:31:40,873 [DEBUG] root:   Adding actor to context: Waystone (id: waystone_spirit)
+2025-12-29 20:31:40,873 [DEBUG] root: Context: {'location_objects': ['Waystone'], 'inventory': [], 'exits': ['north', 'south', 'east', 'west', 'up'], 'topics': []}
+2025-12-29 20:31:41,510 [DEBUG] root: Parser output: {'type': 'command', 'action': {'verb': 'go', 'object': 'west'}, 'raw_input': 'west'}
+2025-12-29 20:31:41,510 [DEBUG] root: Parsed command: ParsedCommand(verb=WordEntry(word='go', word_type=<WordType.VERB: 'VERB'>, synonyms=['walk', 'move'], value=None, object_required=True), direct_object=WordEntry(word='west', word_type=<WordType.NOUN: 'NOUN'>, synonyms=[], value=None, object_required=False), direct_adjective=None, preposition=None, indirect_object=None, indirect_adjective=None, raw='west', object_missing=False)
+2025-12-29 20:31:41,510 [DEBUG] root: JSON command: {'type': 'command', 'action': {'verb': 'go', 'actor_id': 'player', 'object': WordEntry(word='west', word_type=<WordType.NOUN: 'NOUN'>, synonyms=[], value=None, object_required=False)}}
+2025-12-29 20:31:41,510 [DEBUG] src.behavior_manager: Event 'on_observe' triggered on entity 'npc_aldric' but no handler found. Entity behaviors: ['behaviors.regions.fungal_depths.aldric_rescue']. Silently ignoring.
+2025-12-29 20:31:41,510 [DEBUG] src.behavior_manager: Event 'on_observe' triggered on entity 'npc_aldric' but no handler found. Entity behaviors: ['behaviors.regions.fungal_depths.aldric_rescue']. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'alpha_wolf' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'frost_wolf_1' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'frost_wolf_2' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'salamander' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'steam_salamander_2' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'steam_salamander_3' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'stone_golem_1' but no handler found. Entity behaviors: ['behaviors.regions.frozen_reaches.golem_puzzle', 'behaviors.regions.frozen_reaches.thermal_shock']. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'stone_golem_2' but no handler found. Entity behaviors: ['behaviors.regions.frozen_reaches.golem_puzzle', 'behaviors.regions.frozen_reaches.thermal_shock']. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'hunter_sira' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'spider_matriarch' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'giant_spider_1' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'giant_spider_2' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'bee_queen' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'dire_bear' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'bear_cub_1' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'bear_cub_2' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'camp_leader_mira' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'old_swimmer_jek' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'sailor_garrett' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'merchant_delvan' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'the_archivist' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'predatory_fish' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'npc_aldric' but no handler found. Entity behaviors: ['behaviors.regions.fungal_depths.aldric_rescue']. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'npc_spore_mother' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'npc_sporeling_1' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'npc_sporeling_2' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'npc_sporeling_3' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'npc_myconid_elder' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'gate_guard' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'herbalist_maren' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'weaponsmith_toran' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'curiosity_dealer_vex' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'healer_elara' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'councilor_hurst' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'councilor_asha' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'councilor_varn' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,511 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'damaged_guardian' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,512 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'the_fence' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,512 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'whisper' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,512 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'shadow' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:41,512 [DEBUG] root: Result keys: dict_keys(['type', 'success', 'action', 'verbosity', 'narration', 'data', 'turn_phase_messages'])
+2025-12-29 20:31:41,512 [DEBUG] root: Result success: True
+2025-12-29 20:31:41,512 [DEBUG] root: Result verbosity: full
+2025-12-29 20:31:41,512 [DEBUG] root: Narration keys: dict_keys(['action_verb', 'primary_text', 'secondary_beats', 'viewpoint', 'scope', 'entity_refs', 'must_mention'])
+2025-12-29 20:31:41,512 [DEBUG] root: Narration dict: {
+  "success": true,
+  "verbosity": "full",
+  "action_verb": "go",
+  "primary_text": "You go west west to Cavern Entrance.\n\nCavern Entrance\nThe mouth of a vast cavern system leading to the Fungal Depths. Bioluminescent growths provide eerie illumination. The air is thick with spores and the musty smell of fungus. A small campfire burns near the entrance where a sick traveler has made camp.\n\nYou see: Aldric's journal\n\nAlso here: Scholar Aldric\n\nExits: east (east), down (down)",
+  "secondary_beats": [],
+  "viewpoint": {
+    "mode": "ground"
+  },
+  "scope": {
+    "scene_kind": "location_entry",
+    "outcome": "success",
+    "familiarity": "new"
+  },
+  "entity_refs": {
+    "aldric_journal": {
+      "name": "Aldric's journal",
+      "type": "item",
+      "salience": "medium"
+    },
+    "npc_aldric": {
+      "name": "Scholar Aldric",
+      "type": "actor",
+      "traits": [
+        "fungal patches on neck",
+        "frail frame",
+        "dark-circled eyes",
+        "pale skin"
+      ],
+      "salience": "medium"
+    }
+  },
+  "must_mention": {
+    "exits_text": "Exits lead east (east to Nexus Chamber) and down (down to Luminous Grotto)."
+  }
+}
+2025-12-29 20:31:41,512 [DEBUG] src.mlx_narrator: User message: Narrate this result:
+{
+  "success": true,
+  "verbosity": "full",
+  "action_verb": "go",
+  "primary_text": "You go west west to Cavern Entrance.\n\nCavern Entrance\nThe mouth of a vast cavern system le...
+2025-12-29 20:31:45,412 [DEBUG] root: Building context for location: cavern_entrance
+2025-12-29 20:31:45,412 [DEBUG] root: Location has 0 item IDs
+2025-12-29 20:31:45,412 [DEBUG] root:   Adding actor to context: Scholar Aldric (id: npc_aldric)
+2025-12-29 20:31:45,412 [DEBUG] root: Context: {'location_objects': ['Scholar Aldric'], 'inventory': [], 'exits': ['east', 'down'], 'topics': []}
+2025-12-29 20:31:46,001 [DEBUG] root: Parser output: {'type': 'command', 'action': {'verb': 'down', 'object': 'none'}, 'raw_input': 'down'}
+2025-12-29 20:31:46,001 [DEBUG] root: Parsed command: ParsedCommand(verb=WordEntry(word='down', word_type=<WordType.VERB: 'VERB'>, synonyms=['d'], value=None, object_required=False), direct_object=WordEntry(word='none', word_type=<WordType.NOUN: 'NOUN'>, synonyms=[], value=None, object_required=False), direct_adjective=None, preposition=None, indirect_object=None, indirect_adjective=None, raw='down', object_missing=False)
+2025-12-29 20:31:46,001 [DEBUG] root: JSON command: {'type': 'command', 'action': {'verb': 'down', 'actor_id': 'player', 'object': WordEntry(word='none', word_type=<WordType.NOUN: 'NOUN'>, synonyms=[], value=None, object_required=False)}}
+2025-12-29 20:31:46,002 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'alpha_wolf' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,002 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'frost_wolf_1' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,002 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'frost_wolf_2' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,002 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'salamander' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,002 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'steam_salamander_2' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,002 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'steam_salamander_3' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,002 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'stone_golem_1' but no handler found. Entity behaviors: ['behaviors.regions.frozen_reaches.golem_puzzle', 'behaviors.regions.frozen_reaches.thermal_shock']. Silently ignoring.
+2025-12-29 20:31:46,002 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'stone_golem_2' but no handler found. Entity behaviors: ['behaviors.regions.frozen_reaches.golem_puzzle', 'behaviors.regions.frozen_reaches.thermal_shock']. Silently ignoring.
+2025-12-29 20:31:46,002 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'hunter_sira' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,002 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'spider_matriarch' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,002 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'giant_spider_1' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,002 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'giant_spider_2' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,002 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'bee_queen' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,002 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'dire_bear' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,002 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'bear_cub_1' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,002 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'bear_cub_2' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'camp_leader_mira' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'old_swimmer_jek' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'sailor_garrett' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'merchant_delvan' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'the_archivist' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'predatory_fish' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'npc_aldric' but no handler found. Entity behaviors: ['behaviors.regions.fungal_depths.aldric_rescue']. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'npc_spore_mother' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'npc_sporeling_1' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'npc_sporeling_2' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'npc_sporeling_3' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'npc_myconid_elder' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'gate_guard' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'herbalist_maren' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'weaponsmith_toran' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'curiosity_dealer_vex' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'healer_elara' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'councilor_hurst' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'councilor_asha' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'councilor_varn' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'damaged_guardian' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'the_fence' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'whisper' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] src.behavior_manager: Event 'npc_take_action' triggered on entity 'shadow' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:31:46,003 [DEBUG] root: Result keys: dict_keys(['type', 'success', 'action', 'verbosity', 'narration', 'data', 'turn_phase_messages'])
+2025-12-29 20:31:46,003 [DEBUG] root: Result success: True
+2025-12-29 20:31:46,003 [DEBUG] root: Result verbosity: full
+2025-12-29 20:31:46,003 [DEBUG] root: Narration keys: dict_keys(['action_verb', 'primary_text', 'secondary_beats', 'viewpoint', 'scope', 'entity_refs', 'must_mention'])
+2025-12-29 20:31:46,003 [DEBUG] root: Narration dict: {
+  "success": true,
+  "verbosity": "full",
+  "action_verb": "down",
+  "primary_text": "You go down down to Luminous Grotto.\n\nLuminous Grotto\nA cavern lit by soft multicolored bioluminescence from mushrooms of every hue. A crystal-clear pool reflects impossible colors. The ceiling is too dark to read, but something is carved up there.\n\nYou see: silvermoss, bucket, blue mushroom, gold mushroom, violet mushroom, black mushroom, dead explorer, worn notebook\n\nExits: up (up), down (down), east (east)",
+  "secondary_beats": [],
+  "viewpoint": {
+    "mode": "ground"
+  },
+  "scope": {
+    "scene_kind": "location_entry",
+    "outcome": "success",
+    "familiarity": "familiar"
+  },
+  "entity_refs": {
+    "silvermoss": {
+      "name": "silvermoss",
+      "type": "item",
+      "salience": "medium"
+    },
+    "bucket": {
+      "name": "bucket",
+      "type": "item",
+      "salience": "medium"
+    },
+    "mushroom_blue": {
+      "name": "blue mushroom",
+      "type": "item",
+      "salience": "medium"
+    },
+    "mushroom_gold": {
+      "name": "gold mushroom",
+      "type": "item",
+      "salience": "medium"
+    },
+    "mushroom_violet": {
+      "name": "violet mushroom",
+      "type": "item",
+      "salience": "medium"
+    },
+    "mushroom_black": {
+      "name": "black mushroom",
+      "type": "item",
+      "salience": "medium"
+    },
+    "dead_explorer": {
+      "name": "dead explorer",
+      "type": "item",
+      "salience": "medium"
+    },
+    "research_notes": {
+      "name": "worn notebook",
+      "type": "item",
+      "salience": "medium"
+    }
+  },
+  "must_mention": {
+    "exits_text": "Exits lead up (up to Cavern Entrance), down (down to Spore Heart), and east (east to Myconid Sanctuary)."
+  }
+}
+2025-12-29 20:31:46,003 [DEBUG] src.mlx_narrator: User message: Narrate this result:
+{
+  "success": true,
+  "verbosity": "full",
+  "action_verb": "down",
+  "primary_text": "You go down down to Luminous Grotto.\n\nLuminous Grotto\nA cavern lit by soft multicolored ...
+2025-12-29 20:32:06,529 [DEBUG] root: Building context for location: luminous_grotto
+2025-12-29 20:32:06,529 [DEBUG] root: Location has 0 item IDs
+2025-12-29 20:32:06,529 [DEBUG] root: Context: {'location_objects': [], 'inventory': [], 'exits': ['up', 'down', 'east'], 'topics': []}
+2025-12-29 20:32:07,227 [DEBUG] root: Parser output: {'type': 'command', 'action': {'verb': 'take', 'object': ['notebook', 'silvermoss']}, 'raw_input': 'grab notebook and silvermoss'}
+2025-12-29 20:32:07,227 [DEBUG] root: Parsed command: ParsedCommand(verb=WordEntry(word='take', word_type=<WordType.VERB: 'VERB'>, synonyms=['get', 'grab', 'pick'], value=None, object_required=True), direct_object=['notebook', 'silvermoss'], direct_adjective=None, preposition=None, indirect_object=None, indirect_adjective=None, raw='grab notebook and silvermoss', object_missing=False)
+2025-12-29 20:32:07,227 [DEBUG] root: JSON command: {'type': 'command', 'action': {'verb': 'take', 'actor_id': 'player', 'object': ['notebook', 'silvermoss']}}
+2025-12-29 20:32:07,228 [DEBUG] src.behavior_manager: Event 'on_take' triggered on entity 'research_notes' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:32:07,228 [DEBUG] src.behavior_manager: Event 'on_take' triggered on entity 'silvermoss' but no handler found. Entity behaviors: []. Silently ignoring.
+2025-12-29 20:32:07,229 [DEBUG] root: Result keys: dict_keys(['type', 'success', 'action', 'verbosity', 'narration', 'data'])
+2025-12-29 20:32:07,229 [DEBUG] root: Result success: True
+2025-12-29 20:32:07,229 [DEBUG] root: Result verbosity: full
+2025-12-29 20:32:07,229 [DEBUG] root: Narration keys: dict_keys(['action_verb', 'primary_text', 'secondary_beats', 'viewpoint', 'scope', 'entity_refs'])
+2025-12-29 20:32:07,229 [DEBUG] root: Narration dict: {
+  "success": true,
+  "verbosity": "full",
+  "action_verb": "take",
+  "primary_text": "You take the notebook and the silvermoss.",
+  "secondary_beats": [],
+  "viewpoint": {
+    "mode": "ground",
+    "focus_name": "silvermoss"
+  },
+  "scope": {
+    "scene_kind": "action_result",
+    "outcome": "success",
+    "familiarity": "familiar"
+  },
+  "entity_refs": {}
+}
+2025-12-29 20:32:07,229 [DEBUG] src.mlx_narrator: User message: Narrate this result:
+{
+  "success": true,
+  "verbosity": "full",
+  "action_verb": "take",
+  "primary_text": "You take the notebook and the silvermoss.",
+  "secondary_beats": [],
+  "viewpoint": {
+    "...

@@ -1,0 +1,60 @@
+# Test Multi-Item Take Command
+# Tests taking multiple items at once via JSON protocol
+# Multi-item take: verb + object as LIST
+# Path: nexus_chamber -> cavern_entrance -> luminous_grotto
+
+# Navigate to luminous grotto
+go west
+go down
+
+# Look to confirm we're in the right place
+look
+
+# Test single item takes (should work)
+take notebook
+take silvermoss
+
+# Check inventory
+inventory
+
+# Drop items to test again
+drop notebook
+drop silvermoss
+
+# Test multi-item take using JSON list format (the main feature being tested)
+# This should execute multiple separate take commands and combine results
+{"type": "command", "action": {"verb": "take", "object": ["notebook", "silvermoss"]}}
+
+# Verify both items are in inventory
+inventory
+
+# Drop both items
+drop notebook
+drop silvermoss
+
+# Test with three items
+{"type": "command", "action": {"verb": "take", "object": ["notebook", "silvermoss", "bucket"]}}
+
+# Check inventory
+inventory
+
+# Drop all three
+drop notebook
+drop silvermoss
+drop bucket
+
+# Test with get synonym
+{"type": "command", "action": {"verb": "get", "object": ["notebook", "silvermoss"]}}
+
+# Check inventory
+inventory
+
+# Drop both again
+drop notebook
+drop silvermoss
+
+# Test with grab synonym
+{"type": "command", "action": {"verb": "grab", "object": ["notebook", "silvermoss"]}}
+
+# Verify success
+inventory

@@ -18,6 +18,7 @@ gui = ["wxPython"]
 text-game = "src.text_game:cli_main"
 llm-game = "src.llm_game:cli_main"
 xllm-game = "src.mlx_game:cli_main"
+xplm-game = "src.xplm_game:cli_main"
 
 [tool.setuptools.packages.find]
 where = ["."]

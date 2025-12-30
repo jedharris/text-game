@@ -88,7 +88,7 @@ class LLMParserAdapter:
                     "type": "command",
                     "action": {
                         "verb": str,
-                        "object": Optional[str],
+                        "object": Optional[str | list[str]],
                         "indirect_object": Optional[str],
                         "adjective": Optional[str],
                         "indirect_adjective": Optional[str],
@@ -119,7 +119,18 @@ class LLMParserAdapter:
             return None
 
         # Lookup objects (these can be None)
-        direct_object = self._lookup_entity(action.get('object'))
+        # IMPORTANT: For multi-item commands, object can be a list
+        # In this case, we pass the list through to the protocol handler
+        # which knows how to handle it
+        object_field = action.get('object')
+        if isinstance(object_field, list):
+            # Multi-item command - pass list through as-is
+            # Protocol handler will process it
+            direct_object = object_field
+        else:
+            # Single item - lookup as usual
+            direct_object = self._lookup_entity(object_field)
+
         indirect_object = self._lookup_entity(action.get('indirect_object'))
 
         # Lookup preposition
@@ -189,9 +200,8 @@ class LLMParserAdapter:
                 noun_key_no_apos == entity_no_apos or noun_key_no_apos == spaced_no_apos):
                 return self.noun_lookup[noun_key]
 
-        # Entity not in vocabulary - could be hallucinated or a direction
+        # Entity not in vocabulary - could be a direction or dialogue topic
         # For directions (north, south, etc.), they might not be in nouns
-        # Create a simple WordEntry for them
         if entity_id in ['north', 'south', 'east', 'west', 'up', 'down', 'northeast', 'northwest', 'southeast', 'southwest']:
             return WordEntry(
                 word=entity_id,
@@ -200,5 +210,16 @@ class LLMParserAdapter:
                 object_required=False
             )
 
-        # Return None and let handler reject it
+        # For dialogue topics (research, infection, etc.) that aren't in vocabulary,
+        # create a WordEntry so they can be passed to the game engine for validation
+        # The game engine's dialogue handlers will check if the topic is valid
+        if entity_id and entity_id.isalpha():  # Simple word, likely a topic
+            return WordEntry(
+                word=entity_id,
+                word_type=WordType.NOUN,
+                synonyms=[],
+                object_required=False
+            )
+
+        # Return None for invalid/hallucinated entities
         return None

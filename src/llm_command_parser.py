@@ -108,7 +108,7 @@ OUTPUT FORMAT:
   "type": "command",
   "action": {{
     "verb": "<verb from list above>",
-    "object": "<entity_id>",
+    "object": "<entity_id or list of entity_ids>",
     "adjective": "<optional>",
     "indirect_object": "<entity_id>",
     "indirect_adjective": "<optional>",
@@ -120,8 +120,9 @@ RULES:
 1. Use EXACT verb from the list above
 2. Use EXACT entity IDs from the current turn's object list
 3. Multi-word entities use underscores: "ice wand" → ice_wand
-4. Output ONLY valid JSON, no explanation
-5. If you cannot parse the command, output: {{"type": "error", "message": "I don't understand."}}
+4. For commands with multiple objects (e.g., "take X and Y" or "take X, Y and Z"), use a LIST for "object": ["entity1", "entity2", ...]
+5. Output ONLY valid JSON, no explanation
+6. If you cannot parse the command, output: {{"type": "error", "message": "I don't understand."}}
 
 EXAMPLES:
 
@@ -141,9 +142,17 @@ Available objects: brass_key, wooden_door
 Command: "unlock door with key"
 Output: {{"type": "command", "action": {{"verb": "unlock", "object": "wooden_door", "indirect_object": "brass_key", "preposition": "with"}}}}
 
-Available objects: ice_wand
+Available objects: ice_wand, bucket, silvermoss
 Command: "take wand"
 Output: {{"type": "command", "action": {{"verb": "take", "object": "ice_wand"}}}}
+
+Available objects: notebook, silvermoss, bucket
+Command: "take notebook and silvermoss"
+Output: {{"type": "command", "action": {{"verb": "take", "object": ["notebook", "silvermoss"]}}}}
+
+Available objects: fork, knife, spoon, plate
+Command: "take the fork, knife and spoon"
+Output: {{"type": "command", "action": {{"verb": "take", "object": ["fork", "knife", "spoon"]}}}}
 """
 
     def _build_user_prompt(self, context: Dict[str, List[str]], command: str) -> str:
@@ -154,10 +163,12 @@ Output: {{"type": "command", "action": {{"verb": "take", "object": "ice_wand"}}}
         location_objs = ', '.join(context.get('location_objects', [])) or 'none'
         inventory = ', '.join(context.get('inventory', [])) or 'none'
         exits = ', '.join(context.get('exits', [])) or 'none'
+        topics = ', '.join(context.get('topics', [])) or 'none'
 
         return f"""Available objects: {location_objs}
 Your inventory: {inventory}
 Exits: {exits}
+Conversation topics: {topics}
 
 Command: "{command}"
 
