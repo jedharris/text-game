@@ -1,0 +1,87 @@
+# Telescope Repair Challenge
+# Tests collecting all three components and repairing the frozen telescope
+
+# Part 1: Access observatory and examine telescope
+
+# Navigate to frozen_pass
+go north
+
+# Navigate to temple_sanctum
+go north
+
+# Deactivate golems with password
+ask guardian about "fire-that-gives-life and water-that-cleanses"
+
+# Go to observatory
+go up
+
+# Examine telescope to see repair requirements
+examine telescope
+
+# Part 2: Collect fire wand and mounting bracket from temple
+
+# Return to temple
+go down
+
+# Take fire wand (needed to extract lens from ice)
+take fire wand
+
+# Take mounting bracket from altar
+take mounting bracket
+
+# Verify we have them
+inventory
+
+# Part 3: Collect components from ice_caves
+
+# Navigate to ice_caves
+go south
+go east
+
+# Use fire wand to melt lens free from ice
+use fire wand on lens
+
+# Take crystal lens (now free from ice)
+take lens
+
+# Take command crystal (command orb) - this one can be picked up directly
+take command orb
+
+# Verify we have all three components
+inventory
+
+# Part 4: Return to observatory and install components
+
+# Navigate back to observatory
+go west
+go north
+go up
+
+# Install component 1: mounting bracket
+use mounting bracket on telescope
+
+# Examine telescope to see progress
+examine telescope
+
+# Install component 2: crystal lens
+use lens on telescope
+
+# Examine telescope to see progress
+examine telescope
+
+# Install component 3: command crystal
+use command orb on telescope
+
+# Examine telescope - should now be fully repaired
+examine telescope
+
+# Part 5: Use the repaired telescope
+
+# Use telescope to observe the world
+use telescope
+
+# SUCCESS: Telescope repair complete!
+# - All three components collected
+# - Components installed in telescope
+# - Telescope fully repaired and functional
+# - Can now observe the world state

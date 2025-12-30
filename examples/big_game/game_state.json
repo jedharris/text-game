@@ -21,7 +21,8 @@
     "environmental_spreads": {},
     "town_reputation": 0,
     "behaviors": [
-      "examples.big_game.behaviors.regions.frozen_reaches.hypothermia"
+      "examples.big_game.behaviors.regions.frozen_reaches.hypothermia",
+      "examples.big_game.behaviors.regions.frozen_reaches.telescope_repair"
     ]
   },
   "locations": [
