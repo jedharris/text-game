@@ -248,7 +248,7 @@ def on_examine(
     if "lens" in installed:
         status_parts.append("✓ Crystal lens installed")
     else:
-        status_parts.append("✗ Crystal lens needed (frozen in ice_caves wall)")
+        status_parts.append("✗ Crystal lens needed (frozen in ice_caves wall - requires heat to extract)")
 
     if "mounting" in installed:
         status_parts.append("✓ Mounting bracket installed")
