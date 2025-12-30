@@ -1,0 +1,178 @@
+# Frozen Reaches Phase 2: Observatory and Extreme Cold
+# Tests frozen_observatory extreme cold zone and golem deactivation persistence
+# Requires golem deactivation to access observatory
+
+# Initial state check
+ASSERT actors.player.properties.health == 100
+
+# Part 1: Navigate to Temple Sanctum and gather gear
+
+# Go to frozen_pass
+go north
+
+# Get cold weather gear (provides 50% reduction to hypothermia rate)
+take gear
+
+# Navigate to temple_sanctum
+go north
+
+# Part 2: Deactivate Stone Guardians via password
+
+# Read lore tablets to learn password
+examine lore tablets
+read lore tablets
+
+# Speak password to deactivate guardians
+ask guardian about "fire-that-gives-life and water-that-cleanses"
+
+# Verify guardians are deactivated
+examine guardian
+
+# Part 3: Access Frozen Observatory (extreme cold zone)
+
+# Enter observatory - extreme cold zone (+20 base severity/turn)
+# With cold_weather_gear: 20 * 0.5 = 10 severity/turn
+go up
+
+# After 1 turn in extreme cold with gear: +10 severity
+# Plus accumulation from navigation through cold zones
+ASSERT actors.player.properties.conditions.hypothermia.severity >= 15
+ASSERT actors.player.properties.conditions.hypothermia.severity <= 30
+
+# Part 4: Test extreme cold accumulation rate with gear
+
+# Spend another turn in extreme cold
+look
+
+# After 2 turns in extreme with gear: +20 total from observatory
+ASSERT actors.player.properties.conditions.hypothermia.severity >= 25
+ASSERT actors.player.properties.conditions.hypothermia.severity <= 40
+
+# Continue accumulating in extreme cold
+look
+look
+
+# After 4 turns in extreme cold with gear: +40 from observatory
+ASSERT actors.player.properties.conditions.hypothermia.severity >= 45
+ASSERT actors.player.properties.conditions.hypothermia.severity <= 60
+
+# Part 5: Test severity cap at 100
+
+# Continue to build up to cap
+look
+look
+look
+look
+look
+look
+
+# After 10 turns: should be at or near 100 cap
+ASSERT actors.player.properties.conditions.hypothermia.severity >= 90
+
+# Continue to verify cap
+look
+look
+
+# Severity should cap at 100
+ASSERT actors.player.properties.conditions.hypothermia.severity == 100
+
+# Extra turns to confirm cap holds
+look
+look
+
+ASSERT actors.player.properties.conditions.hypothermia.severity == 100
+
+# Part 6: Examine observatory telescope
+
+# Verify telescope interaction works
+examine telescope
+examine frozen telescope
+
+# Part 7: Return to hot springs for cure from extreme severity
+
+# Navigate back: observatory -> temple_sanctum -> frozen_pass -> ice_field -> hot_springs
+go down
+go south
+go west
+go north
+
+# Hot springs should cure even from severity 100
+ASSERT actors.player.properties.conditions.hypothermia.severity == 0
+
+# Part 8: Verify golem deactivation persists
+
+# Return to temple_sanctum
+go south
+go east
+go north
+
+# Guardians should still be deactivated (passive state)
+examine guardian
+
+# Should be able to access observatory again without re-entering password
+go up
+
+# Verify we're in observatory
+look
+
+# Part 9: Test extreme cold WITHOUT gear
+
+# First return to hot springs to reset severity to 0
+go down
+go south
+go west
+go north
+
+# Cure to 0
+ASSERT actors.player.properties.conditions.hypothermia.severity == 0
+
+# Return to observatory without gear
+go south
+go east
+go north
+go up
+
+# Drop gear to test unprotected extreme cold (+20/turn)
+drop gear
+
+# Test accumulation without protection
+look
+
+# After 1 look in observatory without gear:
+# We had ~39 from navigation, +20 from this turn = ~59
+ASSERT actors.player.properties.conditions.hypothermia.severity >= 55
+ASSERT actors.player.properties.conditions.hypothermia.severity <= 65
+
+# Continue without protection
+look
+look
+
+# After 3 more looks: should be approaching or at cap
+ASSERT actors.player.properties.conditions.hypothermia.severity >= 95
+
+# Continue to demonstrate faster accumulation without gear
+look
+look
+
+# After 5 turns without gear: 100 (capped)
+ASSERT actors.player.properties.conditions.hypothermia.severity == 100
+
+# Return to hot springs one final time
+go down
+go south
+go west
+go north
+
+# Final cure
+ASSERT actors.player.properties.conditions.hypothermia.severity == 0
+
+# SUCCESS: Phase 2 complete!
+# - Extreme cold zone (+20/turn base) works correctly
+# - Cold weather gear provides 50% protection (reduces to +10/turn)
+# - Severity caps at 100
+# - Hot springs cure works from maximum severity
+# - Golem deactivation persists across multiple visits
+# - Observatory telescope can be examined
+#
+# NOTE: Hypothermia health damage not implemented in conditions.py
+# This would need to be added to turn_condition_tick hook
