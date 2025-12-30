@@ -22,7 +22,9 @@
     "town_reputation": 0,
     "behaviors": [
       "examples.big_game.behaviors.regions.frozen_reaches.hypothermia",
-      "examples.big_game.behaviors.regions.frozen_reaches.telescope_repair"
+      "examples.big_game.behaviors.regions.frozen_reaches.telescope_repair",
+      "examples.big_game.behaviors.regions.frozen_reaches.salamanders",
+      "examples.big_game.behaviors.shared.infrastructure.gift_reactions"
     ]
   },
   "locations": [
@@ -2277,7 +2279,7 @@
           "pack_follows_leader_state": true
         },
         "gift_reactions": {
-          "handler": "behaviors.regions.frozen_reaches.salamanders:on_fire_gift"
+          "handler": "examples.big_game.behaviors.regions.frozen_reaches.salamanders:on_fire_gift"
         },
         "dialog_topics": {
           "handler": "behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"

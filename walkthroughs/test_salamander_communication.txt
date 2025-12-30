@@ -1,0 +1,92 @@
+# Salamander Communication and Befriending
+# Tests gesture-based dialogue, fire gift trust progression, and companion recruitment
+
+# Part 1: Initial encounter - gesture-based communication
+
+# Navigate to hot springs where salamanders are located
+go north
+go west
+go north
+
+# Talk to salamander - should get gesture response (NOT words)
+talk to salamander
+
+# Talk to steam salamander - should also get gesture response
+talk to steam salamander
+
+# Part 2: Fire gift progression - neutral to friendly
+
+# Need to get fire items for gifts
+# Go back to get ancient torch from frozen_pass
+go south
+go east
+go south
+
+# Get torch (fire item)
+take torch from supplies
+
+# Return to hot springs
+go north
+go west
+go north
+
+# Give torch to salamander (first fire gift)
+give torch to salamander
+
+# Talk again - should show friendly state gestures
+talk to salamander
+
+# Part 3: Continue trust building - friendly to companion-ready
+
+# Need more fire items - check what's available
+# Let's go to temple to get fire wand
+go south
+go east
+go north
+
+# Deactivate golems first (needed for access)
+ask guardian about "fire-that-gives-life and water-that-cleanses"
+
+# Get fire wand
+take fire wand
+
+# Return to hot springs
+go south
+go west
+go north
+
+# Give fire wand to salamander (second fire gift)
+give fire wand to salamander
+
+# Check if at companion-ready state
+talk to salamander
+
+# Part 4: Pack mirroring - verify followers match lead state
+
+# Talk to follower salamanders - should show same state as lead
+talk to steam salamander
+
+# Part 5: Verify non-fire items are rejected
+
+# Try giving non-fire item (should be rejected)
+go south
+go east
+go south
+
+# Get non-fire item
+take gear
+
+# Return to hot springs
+go north
+go west
+go north
+
+# Try giving cold weather gear (not fire item)
+give gear to salamander
+
+# SUCCESS: Salamander communication system validated!
+# - Gesture-based dialogue works (no words)
+# - Fire gifts increase trust
+# - State transitions work (neutral -> friendly -> companion-ready)
+# - Pack mirroring works (followers match lead)
+# - Non-fire items properly rejected

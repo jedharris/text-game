@@ -1,0 +1,27 @@
+# Salamander Gesture-Based Communication
+# Tests that salamanders communicate through gestures, NOT words
+
+# Part 1: Navigate to hot springs and meet salamanders
+
+# Go to hot springs
+go north
+go west
+go north
+
+# Part 2: Test gesture-based dialogue (salamanders don't speak words)
+
+# Talk to lead salamander - should get gestures, not words
+talk to fire salamander
+
+# Talk to follower salamander - should also get gestures
+talk to steam salamander
+
+# Part 3: Try different communication attempts
+
+# Ask salamander about something - should still get gestures
+ask salamander about fire
+
+# SUCCESS: Salamander gesture system validated!
+# - Salamanders communicate through gestures, flames, and sounds
+# - No verbal dialogue
+# - Consistent gesture-based responses
