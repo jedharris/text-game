@@ -81,6 +81,20 @@ vocabulary = {
                     "full": "container is full"
                 }
             }
+        },
+        {
+            "word": "remove",
+            "event": "on_remove",
+            "synonyms": ["take off", "doff", "put down", "put away", "unequip"],
+            "object_required": True,
+            "narration_mode": "brief",
+            "llm_context": {
+                "traits": ["unequips equipped item", "removes worn/wielded gear"],
+                "failure_narration": {
+                    "not_equipped": "not currently equipped",
+                    "not_holding": "not carrying that"
+                }
+            }
         }
     ],
     "nouns": [],
@@ -420,6 +434,76 @@ def handle_put(accessor, action):
     return build_action_result(
         item,
         f"You put the {item.name} {preposition} the {container.name}.",
+        beats=beats,
+        accessor=accessor,
+        actor_id=actor_id
+    )
+
+
+def handle_remove(accessor, action):
+    """
+    Handle remove/unequip command.
+
+    Allows an actor to unequip an equipped item from their inventory.
+
+    CRITICAL: Extracts actor_id from action to support both player and NPCs.
+
+    Args:
+        accessor: StateAccessor instance
+        action: Action dict with keys:
+            - actor_id: ID of actor performing action (required)
+            - object: Name of item to remove (required)
+
+    Returns:
+        HandlerResult with success flag and message
+    """
+    # Validate actor and location
+    actor_id, actor, location, error = validate_actor_and_location(
+        accessor, action, require_object=True
+    )
+    if error:
+        return error
+
+    object_name = action.get("object")
+    if not isinstance(object_name, WordEntry):
+        return HandlerResult(success=False, primary="I didn't understand what to remove.")
+
+    # Find the item in actor's inventory
+    item = find_item_in_inventory(accessor, object_name, actor_id)
+    if not item:
+        return HandlerResult(
+            success=False,
+            primary=f"You don't have any {get_display_name(object_name)}."
+        )
+
+    # Check if item is equippable (can't remove non-equippable items)
+    if not item.properties.get("equippable", False):
+        return HandlerResult(
+            success=False,
+            primary=f"The {item.name} is not something you can unequip."
+        )
+
+    # Check if item is equipped
+    is_equipped = item.states.get("equipped", False)
+    if not is_equipped:
+        return HandlerResult(
+            success=True,
+            primary=f"The {item.name} is not currently equipped."
+        )
+
+    # Unequip the item
+    result = accessor.update(item, {"states.equipped": False})
+    if not result.success:
+        return HandlerResult(
+            success=False,
+            primary=f"Failed to unequip the {item.name}: {result.detail}"
+        )
+
+    # Build and return result
+    beats = [result.detail] if result.detail else None
+    return build_action_result(
+        item,
+        f"You unequip the {item.name}.",
         beats=beats,
         accessor=accessor,
         actor_id=actor_id

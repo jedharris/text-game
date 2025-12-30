@@ -2237,12 +2237,64 @@
           "initial": "neutral"
         },
         "llm_context": {
-          "neutral": "The salamander watches cautiously, flame flickering with uncertainty. It keeps its distance but doesn't flee.",
-          "friendly": "The salamander's flame burns steady and warm. It approaches willingly, crackling softly in greeting.",
-          "companion": "The salamander stays close, its flame bright and content. It follows your movements with obvious trust.",
-          "wild": "The salamander's flame burns erratically, spines raised defensively. It hisses warnings if approached.",
-          "curious": "The salamander tilts its head, flame dancing with interest. It edges closer, clearly intrigued.",
-          "bonded": "The salamander curls near you protectively, its flame a comforting warmth. You are its chosen companion."
+          "traits": [
+            "sleek reptilian form",
+            "flame dancing along spine",
+            "scales flickering with inner heat",
+            "coal-bright eyes watching",
+            "graceful sinuous movement",
+            "emanates living warmth"
+          ],
+          "state_fragments": {
+            "neutral": [
+              "watching cautiously",
+              "flame flickering with uncertainty",
+              "keeping measured distance",
+              "poised between approach and retreat",
+              "wary but not fleeing",
+              "assessing with careful attention"
+            ],
+            "friendly": [
+              "flame burning steady and warm",
+              "approaching willingly",
+              "crackling softly in greeting",
+              "relaxed coiled posture",
+              "warmth radiating welcome",
+              "tail swaying contentedly"
+            ],
+            "companion": [
+              "staying close by choice",
+              "flame bright and content",
+              "following movements with trust",
+              "responding to gestures naturally",
+              "protective circling nearby",
+              "bond evident in every action"
+            ],
+            "wild": [
+              "flame burning erratically",
+              "spines raised defensively",
+              "hissing warnings if approached",
+              "darting unpredictable movements",
+              "heat flaring with agitation",
+              "untamed and untrusting"
+            ],
+            "curious": [
+              "tilting head inquiringly",
+              "flame dancing with interest",
+              "edging closer cautiously",
+              "clearly intrigued",
+              "whiskers twitching alertly",
+              "investigating with wonder"
+            ],
+            "bonded": [
+              "curling near protectively",
+              "flame a comforting warmth",
+              "chosen companion devotion",
+              "synchronized to your presence",
+              "absolute trust radiating",
+              "life-bonded connection visible"
+            ]
+          }
         },
         "fire_creature": true,
         "heat_aura": true,
@@ -2283,12 +2335,64 @@
           "initial": "neutral"
         },
         "llm_context": {
-          "neutral": "The smaller salamander watches cautiously, staying close to the lead. Its flame flickers in time with its leader's.",
-          "friendly": "The salamander moves in sync with the lead, crackling softly. It seems comfortable in your presence.",
-          "companion": "The salamander follows the lead's example, staying nearby with steady flame. Part of the pack.",
-          "wild": "The salamander mirrors the lead's defensive posture, flame erratic and wary.",
-          "curious": "The salamander tilts its head like the lead, clearly following its example.",
-          "bonded": "The salamander is bonded through the pack, protective and trusting."
+          "traits": [
+            "sleek reptilian form",
+            "flame dancing along spine",
+            "scales flickering with inner heat",
+            "coal-bright eyes watching",
+            "graceful sinuous movement",
+            "emanates living warmth"
+          ],
+          "state_fragments": {
+            "neutral": [
+              "watching cautiously",
+              "flame flickering with uncertainty",
+              "keeping measured distance",
+              "poised between approach and retreat",
+              "wary but not fleeing",
+              "assessing with careful attention"
+            ],
+            "friendly": [
+              "flame burning steady and warm",
+              "approaching willingly",
+              "crackling softly in greeting",
+              "relaxed coiled posture",
+              "warmth radiating welcome",
+              "tail swaying contentedly"
+            ],
+            "companion": [
+              "staying close by choice",
+              "flame bright and content",
+              "following movements with trust",
+              "responding to gestures naturally",
+              "protective circling nearby",
+              "bond evident in every action"
+            ],
+            "wild": [
+              "flame burning erratically",
+              "spines raised defensively",
+              "hissing warnings if approached",
+              "darting unpredictable movements",
+              "heat flaring with agitation",
+              "untamed and untrusting"
+            ],
+            "curious": [
+              "tilting head inquiringly",
+              "flame dancing with interest",
+              "edging closer cautiously",
+              "clearly intrigued",
+              "whiskers twitching alertly",
+              "investigating with wonder"
+            ],
+            "bonded": [
+              "curling near protectively",
+              "flame a comforting warmth",
+              "chosen companion devotion",
+              "synchronized to your presence",
+              "absolute trust radiating",
+              "life-bonded connection visible"
+            ]
+          }
         },
         "fire_creature": true,
         "heat_aura": true,
@@ -2321,12 +2425,64 @@
           "initial": "neutral"
         },
         "llm_context": {
-          "neutral": "The young salamander stays behind the lead, uncertain but curious.",
-          "friendly": "The salamander approaches with the lead, flame warm and welcoming.",
-          "companion": "The salamander stays close to the pack, trusting and loyal.",
-          "wild": "The salamander backs away with the lead, defensive and frightened.",
-          "curious": "The salamander edges forward with the lead, interested but cautious.",
-          "bonded": "The salamander is fully bonded to the pack, protective despite its youth."
+          "traits": [
+            "sleek reptilian form",
+            "flame dancing along spine",
+            "scales flickering with inner heat",
+            "coal-bright eyes watching",
+            "graceful sinuous movement",
+            "emanates living warmth"
+          ],
+          "state_fragments": {
+            "neutral": [
+              "watching cautiously",
+              "flame flickering with uncertainty",
+              "keeping measured distance",
+              "poised between approach and retreat",
+              "wary but not fleeing",
+              "assessing with careful attention"
+            ],
+            "friendly": [
+              "flame burning steady and warm",
+              "approaching willingly",
+              "crackling softly in greeting",
+              "relaxed coiled posture",
+              "warmth radiating welcome",
+              "tail swaying contentedly"
+            ],
+            "companion": [
+              "staying close by choice",
+              "flame bright and content",
+              "following movements with trust",
+              "responding to gestures naturally",
+              "protective circling nearby",
+              "bond evident in every action"
+            ],
+            "wild": [
+              "flame burning erratically",
+              "spines raised defensively",
+              "hissing warnings if approached",
+              "darting unpredictable movements",
+              "heat flaring with agitation",
+              "untamed and untrusting"
+            ],
+            "curious": [
+              "tilting head inquiringly",
+              "flame dancing with interest",
+              "edging closer cautiously",
+              "clearly intrigued",
+              "whiskers twitching alertly",
+              "investigating with wonder"
+            ],
+            "bonded": [
+              "curling near protectively",
+              "flame a comforting warmth",
+              "chosen companion devotion",
+              "synchronized to your presence",
+              "absolute trust radiating",
+              "life-bonded connection visible"
+            ]
+          }
         },
         "fire_creature": true,
         "heat_aura": true,
@@ -2362,11 +2518,56 @@
           "initial": "guarding"
         },
         "llm_context": {
-          "guarding": "The golem stands perfectly still, runes glowing faintly red. Its attention is focused on the temple's treasures.",
-          "hostile": "The golem moves with grinding purpose, runes blazing crimson. It will crush any who threaten the sanctum.",
-          "passive": "The golem has stepped aside, runes shifting to a calm blue. It will not attack but offers no service.",
-          "serving": "The golem kneels, runes glowing brilliant white. It awaits commands from whoever holds the control crystal.",
-          "destroyed": "The golem lies in rubble, its runes dark and lifeless."
+          "traits": [
+            "massive carved stone construct",
+            "ancient runes glowing along limbs",
+            "weathered granite surfaces",
+            "eyeless but vigilant presence",
+            "joints grinding with movement",
+            "emanates timeless patience"
+          ],
+          "state_fragments": {
+            "guarding": [
+              "standing perfectly motionless",
+              "runes glowing faint crimson red",
+              "attention locked on treasures",
+              "immovable sentinel stance",
+              "radiating territorial intent",
+              "coiled readiness beneath stillness"
+            ],
+            "hostile": [
+              "moving with grinding purpose",
+              "runes blazing furious crimson",
+              "stone fists clenched for crushing",
+              "advancing with unstoppable momentum",
+              "thunderous footfalls shaking ground",
+              "absolutely focused on threats"
+            ],
+            "passive": [
+              "stepped aside from threshold",
+              "runes shifted to calm blue",
+              "neutral observant stance",
+              "watchful but unthreatening",
+              "stillness of inactive guardian",
+              "awaiting no commands"
+            ],
+            "serving": [
+              "kneeling in subordinate posture",
+              "runes glowing brilliant white",
+              "attention fixed on master",
+              "awaiting commands patiently",
+              "responsive to crystal bearer",
+              "loyal construct obedience"
+            ],
+            "destroyed": [
+              "collapsed in rubble heap",
+              "runes dark and lifeless",
+              "cracked stone fragments scattered",
+              "motionless forever",
+              "ancient magic extinguished",
+              "broken guardians remains"
+            ]
+          }
         },
         "health": 150,
         "max_health": 150,
@@ -2456,11 +2657,56 @@
           "initial": "guarding"
         },
         "llm_context": {
-          "guarding": "The golem stands perfectly still, runes glowing faintly red. Its attention mirrors its twin's vigilance.",
-          "hostile": "The golem advances in lockstep with its companion, runes blazing. Together they are an unstoppable force.",
-          "passive": "The golem has stepped aside beside its twin, runes calm blue. Passage is granted but no aid offered.",
-          "serving": "The golem kneels in perfect synchronization with its companion, awaiting commands.",
-          "destroyed": "The golem lies shattered, its connection to its twin severed forever."
+          "traits": [
+            "massive carved stone construct",
+            "ancient runes glowing along limbs",
+            "weathered granite surfaces",
+            "eyeless but vigilant presence",
+            "joints grinding with movement",
+            "emanates timeless patience"
+          ],
+          "state_fragments": {
+            "guarding": [
+              "standing perfectly motionless",
+              "runes glowing faint crimson red",
+              "attention locked on treasures",
+              "immovable sentinel stance",
+              "radiating territorial intent",
+              "coiled readiness beneath stillness"
+            ],
+            "hostile": [
+              "moving with grinding purpose",
+              "runes blazing furious crimson",
+              "stone fists clenched for crushing",
+              "advancing with unstoppable momentum",
+              "thunderous footfalls shaking ground",
+              "absolutely focused on threats"
+            ],
+            "passive": [
+              "stepped aside from threshold",
+              "runes shifted to calm blue",
+              "neutral observant stance",
+              "watchful but unthreatening",
+              "stillness of inactive guardian",
+              "awaiting no commands"
+            ],
+            "serving": [
+              "kneeling in subordinate posture",
+              "runes glowing brilliant white",
+              "attention fixed on master",
+              "awaiting commands patiently",
+              "responsive to crystal bearer",
+              "loyal construct obedience"
+            ],
+            "destroyed": [
+              "collapsed in rubble heap",
+              "runes dark and lifeless",
+              "cracked stone fragments scattered",
+              "motionless forever",
+              "ancient magic extinguished",
+              "broken guardians remains"
+            ]
+          }
         },
         "health": 150,
         "max_health": 150,
