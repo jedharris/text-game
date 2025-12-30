@@ -24,7 +24,8 @@
       "examples.big_game.behaviors.regions.frozen_reaches.hypothermia",
       "examples.big_game.behaviors.regions.frozen_reaches.telescope_repair",
       "examples.big_game.behaviors.regions.frozen_reaches.salamanders",
-      "examples.big_game.behaviors.shared.infrastructure.gift_reactions"
+      "examples.big_game.behaviors.shared.infrastructure.gift_reactions",
+      "examples.big_game.behaviors.shared.infrastructure.give_verb_handler"
     ]
   },
   "locations": [
