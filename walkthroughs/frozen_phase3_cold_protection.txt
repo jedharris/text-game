@@ -1,0 +1,69 @@
+# Frozen Reaches Phase 3: Cold Weather Gear Protection
+# Tests equipment-based hypothermia mitigation
+
+# Initial state
+ASSERT actors.player.properties.health == 100
+
+# Part 1: Baseline - freezing zone without protection
+# Navigate to frozen_pass (cold zone, +5), then ice_field (freezing zone, +10)
+go north
+
+# After frozen_pass: +5 severity
+ASSERT actors.player.properties.conditions.hypothermia.severity == 5
+
+go west
+
+# After ice_field: 5 + 10 = 15 severity  
+ASSERT actors.player.properties.conditions.hypothermia.severity == 15
+
+# Advance 1 more turn in freezing
+look
+
+# After 2 turns in freezing: 15 + 10 = 25
+ASSERT actors.player.properties.conditions.hypothermia.severity == 25
+
+# Part 2: Get cold weather gear (50% reduction when equipped)
+# NOTE: Gear must be EQUIPPED to provide protection (not just carried)
+# Since no equip/wear verb exists yet, gear provides NO protection in this test
+# Go back to frozen_pass
+go east
+
+# After frozen_pass: 25 + 5 = 30
+ASSERT actors.player.properties.conditions.hypothermia.severity == 30
+
+# Pick up cold weather gear
+get gear
+
+# Verify we have the gear
+inventory
+
+# Get + inventory both consume turns in cold zone: 30 + 5 + 5 = 40
+ASSERT actors.player.properties.conditions.hypothermia.severity == 40
+
+# Return to freezing zone - gear in inventory provides NO protection
+go west
+
+# Without equipped gear: full rate in freezing (10)
+# Previous: 40 + 10 (from ice_field without equipped gear) = 50
+ASSERT actors.player.properties.conditions.hypothermia.severity == 50
+
+# Advance 1 more turn in freezing without equipped gear
+look
+
+# After another turn: 50 + 10 = 60
+ASSERT actors.player.properties.conditions.hypothermia.severity == 60
+
+# Part 3: Hot springs cure (instant)
+# Go to hot springs
+go north
+
+# Hot springs instant cure - severity drops to 0
+ASSERT actors.player.properties.conditions.hypothermia.severity == 0
+
+# Part 4: Verify we completed the test
+# Player should be alive and healthy
+ASSERT actors.player.properties.health >= 50
+
+# TODO: Add tests for cold_weather_gear and cold_resistance_cloak once equip/wear verb is implemented
+# The gear should provide 50% reduction when equipped
+# The cloak should provide full immunity in cold zones, 50% reduction in freezing zones

@@ -109,6 +109,59 @@ def extract_hp_info(result: Dict[str, Any]) -> Optional[str]:
     return None
 
 
+def extract_vitals_info(engine: GameEngine) -> str:
+    """Extract vital stats for player display.
+
+    Shows:
+    - HP: current/max
+    - Equipped: items by slot
+    - Conditions: name(severity)
+
+    Returns:
+        Formatted vitals string
+    """
+    from src.state_manager import ActorId
+
+    player = engine.game_state.actors.get(ActorId("player"))
+    if not player:
+        return "  [No player found]"
+
+    parts = []
+
+    # HP - can be either int or dict with current/max
+    hp = player.properties.get("health", 100)
+    if isinstance(hp, dict):
+        current_hp = hp.get("current", 0)
+        max_hp = hp.get("max", 100)
+    else:
+        current_hp = hp
+        max_hp = 100
+    parts.append(f"HP: {current_hp}/{max_hp}")
+
+    # Equipment
+    equipment = player.properties.get("equipment", {})
+    if equipment:
+        equipped_items = []
+        for slot, item_id in equipment.items():
+            equipped_items.append(f"{item_id} ({slot})")
+        parts.append(f"Equipped: {', '.join(equipped_items)}")
+    else:
+        parts.append("Equipped: none")
+
+    # Conditions
+    conditions = player.properties.get("conditions", {})
+    if conditions:
+        cond_strs = []
+        for cond_name, cond_data in conditions.items():
+            severity = cond_data.get("severity", 0)
+            cond_strs.append(f"{cond_name}({severity})")
+        parts.append(f"Conditions: {', '.join(cond_strs)}")
+    else:
+        parts.append("Conditions: none")
+
+    return "  " + "  |  ".join(parts)
+
+
 def parse_assertion(line: str) -> Optional[Tuple[str, str, str]]:
     """Parse assertion line into components.
 
@@ -277,7 +330,8 @@ def run_walkthrough(
     verbose: bool = False,
     stop_on_error: bool = False,
     show_hp: bool = False,
-    show_state: bool = False
+    show_state: bool = False,
+    show_vitals: bool = False
 ) -> Tuple[List[Dict[str, Any]], Dict[str, int], int]:
     """Run a sequence of commands and return results.
 
@@ -380,6 +434,11 @@ def run_walkthrough(
 
             print(f"[{status}] {msg}")
 
+            # Show vitals if requested
+            if show_vitals:
+                vitals_info = extract_vitals_info(engine)
+                print(vitals_info)
+
             # Show HP if requested and available
             if show_hp:
                 hp_info = extract_hp_info(result)
@@ -456,6 +515,8 @@ def main():
                           help="Show HP after combat rounds")
     argparser.add_argument("--show-state", action="store_true",
                           help="Show player state after each command (for debugging)")
+    argparser.add_argument("--show-vitals", action="store_true",
+                          help="Show vital stats (HP, equipment, conditions) after each command")
 
     args = argparser.parse_args()
 
@@ -490,7 +551,8 @@ def main():
         args.verbose,
         args.stop_on_error,
         args.show_hp,
-        args.show_state
+        args.show_state,
+        args.show_vitals
     )
 
     # Summary

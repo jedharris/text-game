@@ -132,10 +132,8 @@ def on_cold_zone_turn(
         else:
             base_rate = int(base_rate * CLOAK_FREEZING_REDUCTION)
 
-    # Check for cold weather gear (50% reduction)
-    if "cold_weather_gear" in str(equipment) or "cold_weather_gear" in str(
-        player.inventory
-    ):
+    # Check for cold weather gear (50% reduction) - must be equipped
+    if "cold_weather_gear" in str(equipment):
         base_rate = int(base_rate * GEAR_COLD_REDUCTION)
 
     if base_rate == 0:

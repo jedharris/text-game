@@ -1,0 +1,24 @@
+# Demo of --show-vitals flag
+# Shows equipment changes and condition progression
+
+# Start at nexus, go to frozen_pass
+go north
+
+# Get the cold weather gear
+get gear
+
+# Wear the gear to see equipment change
+wear gear
+
+# Go to freezing zone to see hypothermia with gear
+go west
+
+# Look to advance time and see condition progression
+look
+
+# Return to hot springs for cure
+go east
+go north
+
+# Final check - should be cured
+look

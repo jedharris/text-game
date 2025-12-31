@@ -212,5 +212,4 @@ def _has_breathing_mask(player: Any) -> bool:
     if not player:
         return False
     equipment = player.properties.get("equipment", {})
-    return "breathing_mask" in equipment.get("face", "") or \
-           "breathing_mask" in str(player.inventory)
+    return "breathing_mask" in equipment.get("face", "")
