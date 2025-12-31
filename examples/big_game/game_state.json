@@ -25,7 +25,7 @@
     {
       "id": "nexus_chamber",
       "name": "Nexus Chamber",
-      "description": "The heart of the meridian convergence, a vast circular chamber where reality itself seems to bend. At the center stands the damaged waystone, its surface cracked and dim. Twilight suffuses the space from no visible source. Exits lead north to the frozen passes, south to the forest edge, east to flooded ruins, and west to dark caverns. A stairway spirals upward to an observatory.",
+      "description": "The central hub connecting all five devastated regions.",
       "exits": {
         "north": {
           "type": "open",
@@ -54,12 +54,32 @@
         "lighting": "twilight",
         "wolf_exclusion": true,
         "region": "meridian_nexus"
+      },
+      "llm_context": {
+        "traits": [
+          "vast domed chamber with impossible geometry",
+          "five doorways pulsing with different elemental energies",
+          "damaged waystone at center, surface cracked and dim",
+          "twilight glow suffusing space from no visible source",
+          "ancient runes spiraling across floor in mandala pattern",
+          "crystalline formations growing from ceiling like chandeliers",
+          "spiral stairway ascending to observatory above",
+          "air thick with latent magical potential",
+          "echoes lingering longer than natural",
+          "sense of convergence and possibility"
+        ],
+        "atmosphere": "nexus of power, hub of possibilities, threshold between realms",
+        "state_variants": {
+          "first_visit": "The chamber's vast space and pulsing energies are overwhelming. This is clearly a place of great significance.",
+          "revisit": "The familiar convergence point, doorways waiting to carry you onward.",
+          "all_regions_unlocked": "All five doorways glow steadily, the network fully restored and accessible."
+        }
       }
     },
     {
       "id": "observatory_platform",
       "name": "Observatory Platform",
-      "description": "An elevated stone platform high above the nexus chamber, offering a panoramic view of the fractured landscape below. An ancient telescope stands at the platform's edge, its brass fittings tarnished but intact. Through breaks in the perpetual twilight clouds, glimpses of all five devastated regions are visible.",
+      "description": "An elevated observation platform high above the nexus chamber.",
       "exits": {
         "down": {
           "type": "open",
@@ -75,12 +95,30 @@
         "elevation": "high",
         "lighting": "twilight",
         "region": "meridian_nexus"
+      },
+      "llm_context": {
+        "traits": [
+          "circular stone platform open to perpetual twilight sky",
+          "telescope mounting in center, empty and waiting",
+          "constellation charts carved into floor",
+          "waist-high wall offering panoramic view of fractured landscape",
+          "all five devastated regions visible through breaks in clouds",
+          "wind whistling across exposed surface",
+          "elevated high above nexus chamber below",
+          "sense of watching and being watched"
+        ],
+        "atmosphere": "place of observation and discovery, threshold to cosmic knowledge",
+        "state_variants": {
+          "first_visit": "The empty telescope mount and celestial charts suggest this was once a place of great learning.",
+          "revisit": "The familiar platform, still waiting for its telescope to be restored.",
+          "telescope_repaired": "The restored telescope gleams in its mount, ready to pierce the veil of distance once more."
+        }
       }
     },
     {
       "id": "keepers_quarters",
       "name": "Keeper's Quarters",
-      "description": "A cozy chamber frozen in time. Dust hangs motionless in the air, food on the table appears fresh despite unknown years passing. Personal effects lie about as if the occupant stepped away moments ago. A spectral presence lingers here, stronger than elsewhere in the nexus.",
+      "description": "The meridian keeper's personal chambers, frozen in temporal stasis.",
       "exits": {
         "west": {
           "type": "open",
@@ -96,12 +134,30 @@
         "temporal_stasis": true,
         "echo_primary_location": true,
         "region": "meridian_nexus"
+      },
+      "llm_context": {
+        "traits": [
+          "cozy chamber frozen in time",
+          "dust hanging motionless in air",
+          "food on table appearing fresh despite unknown years",
+          "personal effects lying about as if occupant just stepped away",
+          "spectral presence lingering here, stronger than elsewhere",
+          "small chamber lined with bookshelves",
+          "desk covered in astronomical calculations",
+          "star charts pinned to walls",
+          "sense of dedicated solitude preserved"
+        ],
+        "atmosphere": "scholar's sanctuary, dedication made manifest",
+        "state_variants": {
+          "first_visit": "The keeper's dedication is evident in every carefully organized space. This was a life of purpose.",
+          "revisit": "The keeper's quarters, still holding the memory of scholarly devotion."
+        }
       }
     },
     {
       "id": "crystal_garden",
       "name": "Crystal Garden",
-      "description": "A serene grotto where crystalline formations grow from the walls and floor. Five pedestals hold shattered crystals, each corresponding to one of the devastated regions. When whole, these crystals resonated with the health of their regions. Now they are dim and broken, waiting to be restored.",
+      "description": "A grotto holding five pedestals for regional resonance crystals.",
       "exits": {
         "up": {
           "type": "open",
@@ -116,12 +172,29 @@
         "safe_zone": true,
         "magical_resonance": "high",
         "region": "meridian_nexus"
+      },
+      "llm_context": {
+        "traits": [
+          "serene grotto where crystalline formations grow from walls and floor",
+          "five pedestals holding shattered crystals",
+          "each crystal corresponding to one of the devastated regions",
+          "crystals once resonated with health of their regions",
+          "now dim and broken, waiting to be restored",
+          "light refracting through mineral structures",
+          "silence of deep earth",
+          "underground mineral wonderland"
+        ],
+        "atmosphere": "mineral wonderland, geologic art, patient creation",
+        "state_variants": {
+          "first_visit": "The crystal formations are stunning, nature's slow artistry.",
+          "revisit": "The crystal garden, beauty eternal in stone."
+        }
       }
     },
     {
       "id": "frozen_pass",
       "name": "Frozen Pass",
-      "description": "The entrance to the Frozen Reaches, where an eternal winter has gripped the land. Cold wind howls through the pass, carrying flurries of snow. The temperature drops noticeably as you move away from the nexus. An abandoned camp sits to one side, half-buried in snow, its former occupants frozen where they fell.",
+      "description": "The northern passage from the nexus into the Frozen Reaches.",
       "exits": {
         "south": {
           "type": "open",
@@ -150,12 +223,29 @@
         "region": "frozen_reaches",
         "lighting": "bright",
         "danger_level": "low"
+      },
+      "llm_context": {
+        "traits": [
+          "narrow defile between ice walls where eternal winter grips",
+          "cold wind howling through pass, carrying snow flurries",
+          "temperature dropping noticeably from nexus warmth",
+          "abandoned camp half-buried in snow to one side",
+          "former occupants frozen where they fell",
+          "footing treacherous with ice",
+          "wind funneling through creating constant howl",
+          "cold intensified by confinement"
+        ],
+        "atmosphere": "confined passage, wind's fury, difficult travel",
+        "state_variants": {
+          "first_visit": "The wind through the pass is brutal, cold cutting deep.",
+          "revisit": "The frozen pass, wind howling as always."
+        }
       }
     },
     {
       "id": "temple_sanctum",
       "name": "Temple Sanctum",
-      "description": "A vast chamber lined with frost-covered stone pillars. Ancient carved faces watch from the walls, their expressions frozen in time. Two massive stone guardians stand at the far end, runes glowing dimly along their limbs. A side chamber near the entrance holds treasures, while an altar with intricate carvings dominates the center. Inscriptions cover the walls - fragments of forgotten knowledge.",
+      "description": "An ancient temple sanctum deep in the frozen peaks.",
       "exits": {
         "south": {
           "type": "open",
@@ -176,12 +266,29 @@
         "region": "frozen_reaches",
         "lighting": "dim",
         "danger_level": "high_conditional"
+      },
+      "llm_context": {
+        "traits": [
+          "vast chamber lined with frost-covered stone pillars",
+          "ancient carved faces watching from walls, expressions frozen",
+          "two massive stone guardians at far end, runes glowing dimly",
+          "side chamber near entrance holding treasures",
+          "inscriptions covering walls - fragments of forgotten knowledge",
+          "vaulted ceiling soaring into shadows",
+          "peace and power despite frozen desolation"
+        ],
+        "atmosphere": "holy space, sanctuary of enduring faith",
+        "state_variants": {
+          "first_visit": "The sanctum's peace feels almost tangible, a refuge from chaos.",
+          "revisit": "The familiar sanctum, peace waiting within.",
+          "blessing_received": "The sanctum glows with renewed divine favor, your worthiness recognized."
+        }
       }
     },
     {
       "id": "ice_caves",
       "name": "Ice Caves",
-      "description": "Crystal blue walls of ice surround you, refracting light into dancing patterns. Your breath freezes instantly in the frigid air. The cave extends deeper into the glacier - a main chamber with ice crystals growing from the walls, a deep section where frozen pools lie still, and hints of hidden passages in the shadows. The floor makes ominous cracking sounds underfoot.",
+      "description": "A labyrinth of ice chambers carved deep within the glacier.",
       "exits": {
         "west": {
           "type": "open",
@@ -202,6 +309,24 @@
           "thin_ice",
           "hidden_passages"
         ]
+      },
+      "llm_context": {
+        "traits": [
+          "crystal blue walls refracting light into dancing patterns",
+          "breath freezing instantly in frigid air",
+          "main chamber with ice crystals growing from walls",
+          "deeper sections where frozen pools lie still",
+          "hidden passages lurking in shadows",
+          "floor making ominous cracking sounds underfoot",
+          "icicles hanging like teeth",
+          "cold absolute and penetrating",
+          "beauty hostile to warm life"
+        ],
+        "atmosphere": "frozen labyrinth, beauty and danger, cold's palace",
+        "state_variants": {
+          "first_visit": "The ice caves are breathtakingly beautiful and lethally cold.",
+          "revisit": "The familiar ice caves, frozen beauty eternal."
+        }
       }
     },
     {
@@ -226,6 +351,20 @@
         "temperature_zone": "freezing",
         "hypothermia_rate": 5,
         "region": "frozen_reaches"
+      },
+      "llm_context": {
+        "traits": [
+          "slope ascending toward massive glacier",
+          "snow packed hard by wind",
+          "temperature dropping with altitude",
+          "ice wall looming ahead",
+          "final approach to frozen realm's heart"
+        ],
+        "atmosphere": "ascent, anticipation, approaching cold's source",
+        "state_variants": {
+          "first_visit": "The glacier ahead is massive, ancient ice accumulated.",
+          "revisit": "The glacier approach, ascending toward ice."
+        }
       }
     },
     {
@@ -255,12 +394,27 @@
         "hypothermia_rate": 5,
         "difficult_terrain": true,
         "region": "frozen_reaches"
+      },
+      "llm_context": {
+        "traits": [
+          "vast expanse of glacial ice",
+          "crevasses threatening unwary travelers",
+          "horizon white in all directions",
+          "wind unobstructed across emptiness",
+          "exposure total and terrifying",
+          "winter's heart made geography"
+        ],
+        "atmosphere": "desolation, exposure, endless frozen waste",
+        "state_variants": {
+          "first_visit": "The ice field's vastness is overwhelming, horizon to horizon white.",
+          "revisit": "The ice field, endless as always."
+        }
       }
     },
     {
       "id": "hot_springs",
       "name": "Hot Springs",
-      "description": "Steam rises from pools of heated water, creating an oasis of warmth in the frozen landscape. Sulfurous mist clings to multicolored mineral deposits around the springs. The warmth is like an embrace after the bitter cold. Small fire-wreathed creatures bask near the hottest pools - salamanders drawn to the heat.",
+      "description": "A geothermal oasis of warmth in the frozen landscape.",
       "exits": {
         "south": {
           "type": "open",
@@ -273,6 +427,22 @@
         "healing_zone": true,
         "safe_zone": true,
         "region": "frozen_reaches"
+      },
+      "llm_context": {
+        "traits": [
+          "steam rising from pools of heated water",
+          "sulfurous mist clinging to multicolored mineral deposits",
+          "warmth like an embrace after bitter cold",
+          "small fire-wreathed salamanders basking near hottest pools",
+          "water bubbling from earth's heat",
+          "minerals staining rocks in rainbows",
+          "life persisting in geothermal refuge"
+        ],
+        "atmosphere": "geothermal refuge, warmth's persistence, contrast to cold",
+        "state_variants": {
+          "first_visit": "The hot springs' warmth is shocking after the frozen realm's cold.",
+          "revisit": "The hot springs, warmth bubbling eternal."
+        }
       }
     },
     {
@@ -293,6 +463,21 @@
         "temperature_zone": "cold",
         "hypothermia_rate": 3,
         "region": "frozen_reaches"
+      },
+      "llm_context": {
+        "traits": [
+          "evergreens heavy with snow",
+          "branches bending under white burden",
+          "silence of snow-muffled world",
+          "tracks of animals visible in drifts",
+          "cold crisp and biting",
+          "beauty in frozen stillness"
+        ],
+        "atmosphere": "winter realm, pristine white silence, cold's domain",
+        "state_variants": {
+          "first_visit": "The snow-laden forest is beautiful and treacherous in equal measure.",
+          "revisit": "The familiar snow forest, frozen and still."
+        }
       }
     },
     {
@@ -309,6 +494,23 @@
         "temperature_zone": "cold",
         "wolf_territory": true,
         "region": "frozen_reaches"
+      },
+      "llm_context": {
+        "traits": [
+          "cave mouth dark and foreboding",
+          "bones scattered around entrance",
+          "scent of wild canines strong",
+          "den worn smooth by pack's passage",
+          "warning in arrangement of remains",
+          "predator's claimed territory"
+        ],
+        "atmosphere": "lair, danger, pack's sanctuary",
+        "state_variants": {
+          "first_visit": "The scattered bones and strong scent make the danger clear.",
+          "revisit": "The wolf den, pack territory marked clearly.",
+          "pack_friendly": "The wolves' scent carries no threat now, territory shared.",
+          "pack_defeated": "The den stands empty, pack scattered or fallen."
+        }
       }
     },
     {
@@ -331,12 +533,27 @@
         "difficult_terrain": true,
         "crevasse_hazard": true,
         "region": "frozen_reaches"
+      },
+      "llm_context": {
+        "traits": [
+          "ancient ice compressed to density",
+          "surface scored by wind and time",
+          "blue ice visible in cracks",
+          "standing atop frozen ages",
+          "sense of geological time",
+          "cold's monument to persistence"
+        ],
+        "atmosphere": "summit of ice, ancient cold, time made tangible",
+        "state_variants": {
+          "first_visit": "Standing on ice thousands of years old, time compressed beneath boots.",
+          "revisit": "The glacier surface, ice eternal."
+        }
       }
     },
     {
       "id": "frozen_observatory",
       "name": "Frozen Observatory",
-      "description": "An ancient structure encased in ice, its purpose clearly astronomical. A great telescope, twin to the one in the Nexus, points skyward through a cracked dome. The wind here is relentless, trying to tear you from the platform. The cold is extreme - exposure will kill quickly without protection.",
+      "description": "An astronomical observatory frozen in magical ice.",
       "exits": {
         "down": {
           "type": "open",
@@ -353,6 +570,24 @@
         "region": "frozen_reaches",
         "lighting": "bright",
         "danger_level": "environmental"
+      },
+      "llm_context": {
+        "traits": [
+          "ancient structure encased in magical ice",
+          "great telescope pointing skyward through cracked dome",
+          "twin to the telescope in the nexus",
+          "relentless wind trying to tear visitors from platform",
+          "extreme cold - exposure lethal without protection",
+          "preservation perfect and complete",
+          "equipment visible through crystal ice",
+          "knowledge frozen in time, waiting for rescue"
+        ],
+        "atmosphere": "frozen preservation, knowledge iced, stasis magical",
+        "state_variants": {
+          "first_visit": "The entire observatory frozen in perfect preservation. Why?",
+          "revisit": "The frozen observatory, ice unchanged.",
+          "ice_melting": "The ice is beginning to thaw, observatory awakening."
+        }
       }
     },
     {
@@ -375,6 +610,20 @@
       },
       "properties": {
         "region": "beast_wilds"
+      },
+      "llm_context": {
+        "traits": [
+          "treeline marking civilization's boundary",
+          "path worn by hunters and travelers",
+          "birdsong mixing with wind",
+          "safety of town behind, unknown ahead",
+          "transition between tamed and wild"
+        ],
+        "atmosphere": "threshold, journey's beginning, wild calling",
+        "state_variants": {
+          "first_visit": "The forest ahead feels both inviting and ominous.",
+          "revisit": "The familiar forest edge, gateway to wilderness."
+        }
       }
     },
     {
@@ -406,6 +655,21 @@
       "properties": {
         "difficult_terrain": true,
         "region": "beast_wilds"
+      },
+      "llm_context": {
+        "traits": [
+          "undergrowth encroaching on trail",
+          "roots and vines creating obstacles",
+          "navigation requiring attention",
+          "wildlife sounds from concealment",
+          "nature reclaiming cleared space"
+        ],
+        "atmosphere": "overgrown, challenging passage, wilderness asserting",
+        "state_variants": {
+          "first_visit": "The path is barely maintained, nature fighting every cleared inch.",
+          "revisit": "The tangled path, growth ever persistent.",
+          "path_cleared": "Recent clearing has made passage easier, though still challenging."
+        }
       }
     },
     {
@@ -424,6 +688,21 @@
       },
       "properties": {
         "region": "beast_wilds"
+      },
+      "llm_context": {
+        "traits": [
+          "trees impossibly old and massive",
+          "roots thick as houses breaking surface",
+          "canopy high overhead blocking sun",
+          "moss carpeting everything in green velvet",
+          "silence profound and waiting",
+          "sense of ancient watchfulness"
+        ],
+        "atmosphere": "primordial, sacred, time measured in centuries",
+        "state_variants": {
+          "first_visit": "These trees were old when the town was young. What have they witnessed?",
+          "revisit": "The timeless grove, ancient and enduring."
+        }
       }
     },
     {
@@ -438,6 +717,23 @@
       },
       "properties": {
         "region": "beast_wilds"
+      },
+      "llm_context": {
+        "traits": [
+          "underground grove impossibly lit",
+          "massive hive structure dominating space",
+          "flowers blooming without sun",
+          "bees filling air with purposeful flight",
+          "honey scent thick and sweet",
+          "queen's domain thriving in depths"
+        ],
+        "atmosphere": "underground hive, magical ecosystem, queen's realm",
+        "state_variants": {
+          "first_visit": "An underground clearing with flowering plants and thriving hive. How?",
+          "revisit": "The bee queen's clearing, hive buzzing with life.",
+          "queen_friendly": "The bees acknowledge your presence without aggression.",
+          "queen_hostile": "The bees swarm defensively, queen's territory threatened."
+        }
       }
     },
     {
@@ -458,6 +754,21 @@
         "difficult_terrain": true,
         "web_hazard": true,
         "region": "beast_wilds"
+      },
+      "llm_context": {
+        "traits": [
+          "dense undergrowth woven with webs",
+          "silver threads everywhere catching light",
+          "movement in peripheral vision constant",
+          "sticky strands brushing against skin",
+          "crawling sensation persistent",
+          "arachnid domain thoroughly claimed"
+        ],
+        "atmosphere": "web-choked, predator territory, silk everywhere",
+        "state_variants": {
+          "first_visit": "The sheer quantity of webbing is unnerving. How many spiders?",
+          "revisit": "The spider thicket, webs thick as always."
+        }
       }
     },
     {
@@ -472,6 +783,22 @@
       },
       "properties": {
         "region": "beast_wilds"
+      },
+      "llm_context": {
+        "traits": [
+          "massive web architecture spanning space",
+          "egg sacs clustered in protected alcoves",
+          "bones wrapped in silk suspended",
+          "throne of web for giant occupant",
+          "danger concentrated and waiting",
+          "matriarch's domain absolute"
+        ],
+        "atmosphere": "lair, breeding ground, silk fortress",
+        "state_variants": {
+          "first_visit": "The web construction is sophisticated, the work of intelligence and time.",
+          "revisit": "The matriarch's lair, web throne waiting.",
+          "matriarch_defeated": "The webs hang empty, eggs abandoned without guardian."
+        }
       }
     },
     {
@@ -498,6 +825,20 @@
       },
       "properties": {
         "region": "beast_wilds"
+      },
+      "llm_context": {
+        "traits": [
+          "well-worn path heading south",
+          "markers indicating regular use",
+          "terrain gradually descending",
+          "forest thinning to either side",
+          "traveler's route between regions"
+        ],
+        "atmosphere": "passage, connection, path to elsewhere",
+        "state_variants": {
+          "first_visit": "A proper trail, showing signs of regular traffic.",
+          "revisit": "The southern trail, reliable passage onward."
+        }
       }
     },
     {
@@ -512,6 +853,21 @@
       },
       "properties": {
         "region": "beast_wilds"
+      },
+      "llm_context": {
+        "traits": [
+          "campfire ring with split logs for seating",
+          "drying racks for meat and hides",
+          "tools organized and well-maintained",
+          "professionalism in every detail",
+          "temporary but carefully arranged",
+          "respect for wilderness evident"
+        ],
+        "atmosphere": "working camp, woodcraft expertise, hunter's domain",
+        "state_variants": {
+          "first_visit": "A professional hunter's camp, everything purposeful.",
+          "revisit": "The familiar hunters' camp, well-ordered as always."
+        }
       }
     },
     {
@@ -528,6 +884,22 @@
         "region": "beast_wilds",
         "wolf_territory": true,
         "territorial_warning": true
+      },
+      "llm_context": {
+        "traits": [
+          "open space among snow-laden trees",
+          "pack gathering ground",
+          "multiple tracks crisscrossing snow",
+          "hunting ground and meeting place",
+          "exposure making defense difficult"
+        ],
+        "atmosphere": "pack territory, open confrontation space",
+        "state_variants": {
+          "first_visit": "The many tracks suggest this is important to the pack.",
+          "revisit": "The wolf clearing, pack's meeting ground.",
+          "pack_friendly": "Wolves acknowledge your passage through their territory.",
+          "pack_defeated": "The clearing lies empty and silent."
+        }
       }
     },
     {
@@ -548,6 +920,22 @@
         "region": "beast_wilds",
         "danger_level": "extreme",
         "lighting": "dim"
+      },
+      "llm_context": {
+        "traits": [
+          "cave worn smooth by occupation",
+          "prey remains scattered throughout",
+          "territorial scent marking strong",
+          "darkness concealing depths",
+          "danger's home clearly marked",
+          "warning in bones and smell"
+        ],
+        "atmosphere": "predator sanctuary, kill site, claimed territory",
+        "state_variants": {
+          "first_visit": "The evidence of violent feeding is unmistakable.",
+          "revisit": "The predator's den, danger dwelling within.",
+          "predator_defeated": "The den lies empty, threat ended."
+        }
       }
     },
     {
@@ -577,6 +965,22 @@
         "breathable": true,
         "lighting": "dim",
         "region": "sunken_district"
+      },
+      "llm_context": {
+        "traits": [
+          "cobblestones submerged beneath water",
+          "statue tops breaking surface",
+          "buildings half-drowned rising",
+          "water lapping at second story windows",
+          "reflection doubling drowned architecture",
+          "lost normalcy visible beneath waves"
+        ],
+        "atmosphere": "drowned civilization, loss made visible, water's conquest",
+        "state_variants": {
+          "first_visit": "The drowned plaza speaks of sudden catastrophe, life interrupted.",
+          "revisit": "The flooded plaza, water claiming what was built.",
+          "water_receding": "The water level has dropped, more of the plaza emerging."
+        }
       }
     },
     {
@@ -595,6 +999,22 @@
         "safe_zone": true,
         "lighting": "firelit",
         "region": "sunken_district"
+      },
+      "llm_context": {
+        "traits": [
+          "makeshift shelters clustered on high ground",
+          "campfires smoking, laundry strung between poles",
+          "children's laughter mixing with worry",
+          "supply crates stacked haphazardly",
+          "constant activity of survival and hope",
+          "defensive perimeter marked by stakes"
+        ],
+        "atmosphere": "refuge of resilience, community forged by disaster",
+        "state_variants": {
+          "first_visit": "The organized chaos of survival. These people have made the best of desperate circumstances.",
+          "revisit": "The familiar bustle of the camp, life persisting despite hardship.",
+          "water_receding": "The camp buzzes with excited preparation as the floodwaters begin to retreat."
+        }
       }
     },
     {
@@ -616,6 +1036,22 @@
         "breathable": true,
         "lighting": "dim",
         "region": "sunken_district"
+      },
+      "llm_context": {
+        "traits": [
+          "interior spaces partially submerged",
+          "furniture floating or waterlogged",
+          "possessions ruined by flooding",
+          "mold creeping up walls",
+          "destruction intimate and total",
+          "homes become diving spaces"
+        ],
+        "atmosphere": "personal loss, homes drowned, intimacy of disaster",
+        "state_variants": {
+          "first_visit": "The waterlogged rooms still hold traces of interrupted lives.",
+          "revisit": "The flooded chambers, water claiming all.",
+          "water_receding": "The chambers are draining, revealing water's damage."
+        }
       }
     },
     {
@@ -638,6 +1074,22 @@
         "lighting": "dark",
         "requires_swimming": true,
         "region": "sunken_district"
+      },
+      "llm_context": {
+        "traits": [
+          "corridor with water level rising and falling",
+          "tideline marks on walls showing rhythm",
+          "timing required for safe passage",
+          "ocean's breath reaching inland",
+          "danger in predictable cycles"
+        ],
+        "atmosphere": "tidal zone, rhythm of water, timing essential",
+        "state_variants": {
+          "first_visit": "The tideline marks make the danger clear - timing is everything.",
+          "revisit": "The tidal passage, rhythm continuing.",
+          "low_tide": "The water has receded, passage safe for now.",
+          "high_tide": "The passage is flooded, water surging through."
+        }
       }
     },
     {
@@ -655,6 +1107,21 @@
         "breathable": true,
         "lighting": "dim_filtered",
         "region": "sunken_district"
+      },
+      "llm_context": {
+        "traits": [
+          "caves carved by ocean waves",
+          "walls smooth from water's patience",
+          "pools reflecting in darkness",
+          "sound of waves echoing",
+          "salt smell pervasive",
+          "ocean's reach into land"
+        ],
+        "atmosphere": "marine grottos, wave-carved, ocean's territory",
+        "state_variants": {
+          "first_visit": "The sea caves extend deep, ocean's patient excavation.",
+          "revisit": "The familiar sea caves, waves echoing."
+        }
       }
     },
     {
@@ -677,6 +1144,22 @@
         "lighting": "dim",
         "requires_swimming": true,
         "region": "sunken_district"
+      },
+      "llm_context": {
+        "traits": [
+          "streets lined with shop fronts",
+          "signs hanging still on brackets",
+          "display windows empty or shattered",
+          "commerce district abandoned",
+          "ghosts of haggling haunting silence",
+          "prosperity's memory preserved"
+        ],
+        "atmosphere": "commercial district, trade suspended, empty abundance",
+        "state_variants": {
+          "first_visit": "The merchant quarter once bustled with trade. Now only silence.",
+          "revisit": "The familiar merchant quarter, shops standing empty.",
+          "merchants_returning": "A few brave merchants have reopened, commerce stirring."
+        }
       }
     },
     {
@@ -692,12 +1175,28 @@
       "properties": {
         "multi_level": true,
         "region": "sunken_district"
+      },
+      "llm_context": {
+        "traits": [
+          "large building for goods storage",
+          "crates and barrels stacked high",
+          "inventory abandoned mid-counting",
+          "dust coating wealth of goods",
+          "organization visible in arrangement",
+          "supply waiting for demand"
+        ],
+        "atmosphere": "storehouse, abundance suspended, commerce frozen",
+        "state_variants": {
+          "first_visit": "The warehouse holds significant supplies, waiting for trade's return.",
+          "revisit": "The warehouse, goods gathering dust.",
+          "trade_restored": "Merchants bustle through, inventory moving again."
+        }
       }
     },
     {
       "id": "deep_archive",
       "name": "Deep Archive",
-      "description": "A sealed chamber deep beneath the flooded streets, kept dry by ancient magic. Glowworms cover the ceiling, casting soft light on shelves of preserved books. A spectral figure drifts between the stacks.",
+      "description": "A magically sealed archive deep beneath the sunken district.",
       "exits": {
         "up": {
           "type": "open",
@@ -711,12 +1210,31 @@
         "lighting": "glowworm",
         "requires_advanced_swimming": true,
         "region": "sunken_district"
+      },
+      "llm_context": {
+        "traits": [
+          "sealed chamber deep beneath flooded streets",
+          "kept dry by ancient magic despite water above",
+          "glowworms covering ceiling, casting soft light",
+          "shelves of preserved books illuminated by gentle glow",
+          "spectral figure drifting between the stacks",
+          "endless shelves receding into darkness",
+          "scent of old paper and leather",
+          "silence heavy with preserved knowledge",
+          "scrolls and tomes beyond counting"
+        ],
+        "atmosphere": "repository of ages, knowledge sleeping in darkness",
+        "state_variants": {
+          "first_visit": "The archive's vastness is staggering. How much knowledge lies forgotten here?",
+          "revisit": "The familiar archive, secrets waiting in the stacks.",
+          "archivist_allied": "The Archivist's presence makes the archive feel less forbidding, more welcoming."
+        }
       }
     },
     {
       "id": "cavern_entrance",
       "name": "Cavern Entrance",
-      "description": "The mouth of a vast cavern system leading to the Fungal Depths. Bioluminescent growths provide eerie illumination. The air is thick with spores and the musty smell of fungus. A small campfire burns near the entrance where a sick traveler has made camp.",
+      "description": "The western entrance to the vast Fungal Depths cavern system.",
       "exits": {
         "east": {
           "type": "open",
@@ -732,6 +1250,24 @@
         "breathable": true,
         "temperature": "cool",
         "region": "fungal_depths"
+      },
+      "llm_context": {
+        "traits": [
+          "wide mouth of vast cavern system leading deeper",
+          "bioluminescent growths providing eerie illumination",
+          "air thick with spores and musty smell of fungus",
+          "small campfire burning near entrance",
+          "sick traveler making camp here",
+          "ethereal blue-green glow from within",
+          "sound of dripping water echoing",
+          "threshold between surface and fungal depths"
+        ],
+        "atmosphere": "gateway to wonder, entrance to living darkness",
+        "state_variants": {
+          "first_visit": "The glow from within is mesmerizing. What creates such beautiful light in the depths?",
+          "revisit": "The familiar cavern mouth, luminous fungi beckoning you inward.",
+          "myconids_friendly": "The fungi at the entrance pulse in welcoming rhythm, sensing friendly presence."
+        }
       }
     },
     {
@@ -759,12 +1295,28 @@
         "light_level": 2,
         "max_light_level": 6,
         "region": "fungal_depths"
+      },
+      "llm_context": {
+        "traits": [
+          "bioluminescent fungi coating every surface",
+          "blue-green glow illuminating naturally",
+          "ecosystem of light and darkness",
+          "myconid cultivation evident",
+          "beauty alien and complete",
+          "life creating own illumination"
+        ],
+        "atmosphere": "bioluminescent wonder, fungal garden, living light",
+        "state_variants": {
+          "first_visit": "The grotto's natural illumination is breathtaking, life glowing.",
+          "revisit": "The luminous grotto, fungi glowing steadily.",
+          "myconids_friendly": "The fungi pulse in welcoming rhythm, cultivation tended."
+        }
       }
     },
     {
       "id": "spore_heart",
       "name": "Spore Heart",
-      "description": "The beating heart of the fungal network. Organic walls pulse like breathing flesh. Golden spore haze hangs thick in the air. At the center of the chamber, something massive waits - part plant, part something else entirely.",
+      "description": "The living core of the fungal corruption.",
       "exits": {
         "up": {
           "type": "open",
@@ -781,12 +1333,30 @@
         "breathable": true,
         "temperature": "warm",
         "region": "fungal_depths"
+      },
+      "llm_context": {
+        "traits": [
+          "massive pulsing fungal mass filling chamber",
+          "bioluminescence throbbing like heartbeat",
+          "mycelia threads spreading across every surface",
+          "spores drifting in rhythmic clouds",
+          "warmth and wetness oppressive",
+          "sense of alien intelligence watching",
+          "corruption's living core"
+        ],
+        "atmosphere": "infection's heart, alien life triumphant and terrible",
+        "state_variants": {
+          "first_visit": "The massive organism pulses with disturbing vitality. This is the source of the corruption.",
+          "revisit": "The spore heart, pulsing with alien life.",
+          "heart_weakened": "The pulsing slows, the bioluminescence dims. The corruption is dying.",
+          "heart_destroyed": "The chamber lies silent, the massive organism reduced to withering husks."
+        }
       }
     },
     {
       "id": "myconid_sanctuary",
       "name": "Myconid Sanctuary",
-      "description": "A cavern of geometric precision, where mushroom-folk have built their community. Orderly rings of Myconids stand in silent communion, communicating through colored spore puffs. The air here is clean - they filter the spores.",
+      "description": "A mushroom-folk community deep in the fungal caverns.",
       "exits": {
         "west": {
           "type": "open",
@@ -799,12 +1369,31 @@
         "temperature": "comfortable",
         "safe_zone": true,
         "region": "fungal_depths"
+      },
+      "llm_context": {
+        "traits": [
+          "cavern of geometric precision",
+          "orderly rings of Myconids standing in silent communion",
+          "mushroom-folk communicating through colored spore puffs",
+          "air clean - they filter the spores",
+          "grotto transformed into living garden",
+          "luminous mushrooms in careful cultivation",
+          "pools reflecting bioluminescent glow",
+          "intelligence and harmony in alien form"
+        ],
+        "atmosphere": "sanctuary of alien minds, beauty in strange forms",
+        "state_variants": {
+          "first_visit": "The myconids move with clear purpose and intelligence. This is no simple fungal growth.",
+          "revisit": "The familiar sanctuary, myconids tending their luminous gardens.",
+          "elder_friendly": "The myconids acknowledge your presence with welcoming pulses of light.",
+          "corruption_cleansed": "The sanctuary glows more brightly, freed from the taint of hostile spores."
+        }
       }
     },
     {
       "id": "deep_root_caverns",
       "name": "Deep Root Caverns",
-      "description": "Absolute darkness swallows all light. The air here is toxic - unbreathable without protection. Massive roots, thick as trees, descend from impossibly far above. Ancient bones suggest others have tried this path before.",
+      "description": "A deadly cavern deep beneath the spore heart.",
       "exits": {
         "up": {
           "type": "open",
@@ -819,6 +1408,23 @@
         "toxic_air": true,
         "breath_limit": 12,
         "region": "fungal_depths"
+      },
+      "llm_context": {
+        "traits": [
+          "absolute darkness swallowing all light",
+          "air toxic - unbreathable without protection",
+          "massive roots thick as trees descending from impossibly far above",
+          "ancient bones scattered - others tried this path before",
+          "enormous tree roots penetrating from surface",
+          "living wood in stone chambers defying natural law",
+          "magic evident in impossible growth",
+          "worlds connected by living bridge"
+        ],
+        "atmosphere": "root cathedral, life's persistence, worlds connecting",
+        "state_variants": {
+          "first_visit": "The roots reaching this deep defy natural explanation. Magic at work.",
+          "revisit": "The deep root caverns, living wood in stone."
+        }
       }
     },
     {
@@ -840,6 +1446,22 @@
         "companion_filter": true,
         "lighting": "daylight",
         "region": "civilized_remnants"
+      },
+      "llm_context": {
+        "traits": [
+          "massive iron-bound gates standing ajar",
+          "guard towers flanking entrance, windows dark",
+          "cobblestone approach worn smooth by generations",
+          "town crest carved above archway, paint faded",
+          "silence where bustle should be",
+          "sense of abandonment and lost normalcy"
+        ],
+        "atmosphere": "threshold to civilization's remnants, gateway to what was lost",
+        "state_variants": {
+          "first_visit": "The empty guard posts and silent approach feel wrong. This town should be alive with activity.",
+          "revisit": "The familiar gates stand as silent sentinel to the town within.",
+          "town_restored": "The gates stand proudly once more, guards nodding greeting from towers above."
+        }
       }
     },
     {
@@ -868,6 +1490,22 @@
         "commercial": true,
         "lighting": "daylight",
         "region": "civilized_remnants"
+      },
+      "llm_context": {
+        "traits": [
+          "cobblestone plaza with dry fountain centerpiece",
+          "merchant stalls standing empty, canopies tattered",
+          "scattered goods left where dropped in panic",
+          "town hall looming on northern edge",
+          "wind whistling through abandoned commerce",
+          "ghosts of laughter and haggling haunting the silence"
+        ],
+        "atmosphere": "heart of lost community, commerce turned to memory",
+        "state_variants": {
+          "first_visit": "The scattered goods and empty stalls paint a picture of sudden catastrophe.",
+          "revisit": "The abandoned marketplace, forever frozen in flight.",
+          "merchants_returned": "A few brave merchants have returned, bringing life back to the square."
+        }
       }
     },
     {
@@ -888,6 +1526,21 @@
         "healing_available": true,
         "lighting": "bright",
         "region": "civilized_remnants"
+      },
+      "llm_context": {
+        "traits": [
+          "building dedicated to healing arts",
+          "herb bundles hanging from rafters",
+          "clean linens stacked and ready",
+          "medicine smell mixing with incense",
+          "peace and competence combined",
+          "care made architecture"
+        ],
+        "atmosphere": "healing space, medical sanctuary, care institutionalized",
+        "state_variants": {
+          "first_visit": "The sanctuary's organization speaks of dedication to healing.",
+          "revisit": "The familiar healers' sanctuary, ready for patients."
+        }
       }
     },
     {
@@ -904,6 +1557,21 @@
         "skill_gated": true,
         "lighting": "daylight",
         "region": "civilized_remnants"
+      },
+      "llm_context": {
+        "traits": [
+          "cultivated beds of medicinal plants",
+          "each herb carefully labeled",
+          "growing knowledge preserved",
+          "bees working among blooms",
+          "life dedicated to healing life",
+          "pharmacy in plant form"
+        ],
+        "atmosphere": "medicinal garden, cultivation for healing, growing care",
+        "state_variants": {
+          "first_visit": "The garden is a living pharmacopeia, each plant purposeful.",
+          "revisit": "The healers' garden, herbs growing steadily."
+        }
       }
     },
     {
@@ -920,12 +1588,28 @@
         "political": true,
         "lighting": "dim",
         "region": "civilized_remnants"
+      },
+      "llm_context": {
+        "traits": [
+          "circular chamber with tiered seating",
+          "council table of ancient oak",
+          "town seal carved above speaker's podium",
+          "dust coating abandoned authority",
+          "silence where debate should ring",
+          "governance suspended, not ended"
+        ],
+        "atmosphere": "seat of lost authority, power awaiting restoration",
+        "state_variants": {
+          "first_visit": "The empty council seats speak of leadership fled or fallen. Who governs now?",
+          "revisit": "The abandoned council hall, authority in abeyance.",
+          "council_restored": "The council seats are filled once more, governance and order returning."
+        }
       }
     },
     {
       "id": "broken_statue_hall",
       "name": "Broken Statue Hall",
-      "description": "A hall dominated by a shattered stone construct - an ancient guardian, broken but not destroyed. Its runes flicker weakly. An inscription speaks of protection and purpose. Tools and fragments lie nearby.",
+      "description": "A hall containing the shattered remains of an ancient stone guardian.",
       "exits": {
         "north": {
           "type": "open",
@@ -935,6 +1619,22 @@
       "properties": {
         "lighting": "dim",
         "region": "civilized_remnants"
+      },
+      "llm_context": {
+        "traits": [
+          "hall dominated by shattered stone construct - ancient guardian",
+          "broken but not destroyed completely",
+          "runes flickering weakly along guardian's limbs",
+          "inscription speaking of protection and purpose",
+          "tools and fragments lying nearby",
+          "sense of interrupted restoration",
+          "broken majesty waiting for repair"
+        ],
+        "atmosphere": "monument to destruction, glory fallen and mourning",
+        "state_variants": {
+          "first_visit": "The destruction here was deliberate. Someone wanted to erase what these statues represented.",
+          "revisit": "The broken statues, silent witnesses to past violence."
+        }
       }
     },
     {
@@ -955,6 +1655,21 @@
         "hidden": true,
         "lighting": "dark",
         "region": "civilized_remnants"
+      },
+      "llm_context": {
+        "traits": [
+          "stairway descending into earth",
+          "carved from living rock",
+          "ancient construction evident",
+          "threshold to buried civilization",
+          "darkness below beckoning",
+          "portal to forgotten past"
+        ],
+        "atmosphere": "descent, threshold to depths, gateway to ancient",
+        "state_variants": {
+          "first_visit": "The stairs descend deep, ancient city waiting below.",
+          "revisit": "The undercity entrance, darkness waiting below."
+        }
       }
     },
     {
@@ -971,6 +1686,22 @@
         "illegal": true,
         "lighting": "dim",
         "region": "civilized_remnants"
+      },
+      "llm_context": {
+        "traits": [
+          "ancient streets carved from living rock",
+          "buildings grown from stone rather than built",
+          "bioluminescent lichen providing dim illumination",
+          "silence broken by distant water dripping",
+          "sense of civilization predating surface",
+          "alien architecture with its own logic"
+        ],
+        "atmosphere": "buried city, ancient mysteries beneath the known",
+        "state_variants": {
+          "first_visit": "This place predates everything above. What civilization built this?",
+          "revisit": "The ancient undercity, secrets in stone.",
+          "lights_restored": "Ancient mechanisms hum to life, proper lighting flooding the streets for the first time in ages."
+        }
       }
     }
   ],
@@ -984,6 +1715,20 @@
         "portable": false,
         "usable": true,
         "syncs_with": "frozen_telescope"
+      },
+      "llm_context": {
+        "traits": [
+          "bronze tube tarnished green",
+          "intricate focusing mechanism",
+          "runes of far-seeing etched",
+          "craftsmanship of lost age",
+          "vision extending beyond natural"
+        ],
+        "state_variants": {
+          "in_location": "mounted on platform or lying disassembled",
+          "examined": "ancient telescope, awaiting lens and mounting",
+          "repaired": "restored to full function, optics gleaming"
+        }
       }
     },
     {
@@ -998,6 +1743,21 @@
           "has_temple_password_partial",
           "knows_keeper_backstory"
         ]
+      },
+      "llm_context": {
+        "traits": [
+          "leather-bound tome worn smooth",
+          "pages yellowed but carefully preserved",
+          "marginalia in precise hand",
+          "diagrams of waystone network",
+          "ink faded but still legible",
+          "knowledge treasure preserved"
+        ],
+        "state_variants": {
+          "in_location": "lying open to crucial page, beckoning reader",
+          "in_inventory": "weight of contained knowledge pressing against pack",
+          "examined": "keeper's observations of meridian fracture, warnings and hopes recorded"
+        }
       }
     },
     {
@@ -1009,6 +1769,20 @@
         "portable": true,
         "export_item": true,
         "export_to": "frozen_reaches"
+      },
+      "llm_context": {
+        "traits": [
+          "brushes of various stiffnesses",
+          "cleaning solutions in stoppered bottles",
+          "rags carefully folded",
+          "maintenance tools for equipment",
+          "order and preparedness embodied"
+        ],
+        "state_variants": {
+          "in_location": "supplies organized and ready for use",
+          "in_inventory": "weight of proper equipment maintenance",
+          "examined": "complete cleaning kit, tools for every task"
+        }
       }
     },
     {
@@ -1020,6 +1794,22 @@
         "portable": true,
         "export_item": true,
         "export_to": "civilized_remnants"
+      },
+      "llm_context": {
+        "traits": [
+          "pulsing sphere of violet crystal",
+          "life-energy swirling within",
+          "thrumming with potential animation",
+          "facets catching light hypnotically",
+          "warmth of awakening magic",
+          "spark of artificial life contained"
+        ],
+        "state_variants": {
+          "in_location": "resting dormant, violet glow faint but persistent",
+          "in_inventory": "pulsing in rhythm with your heartbeat, eerily alive",
+          "examined": "awakening magic for dormant constructs, life given to stone",
+          "in_use": "pouring life-energy forth, animation magic cascading out"
+        }
       }
     },
     {
@@ -1032,6 +1822,20 @@
         "crystal_type": "regional",
         "region": "frozen_reaches",
         "restored": false
+      },
+      "llm_context": {
+        "traits": [
+          "shard of pure crystallized ice",
+          "never melting despite warmth",
+          "frost magic concentrated",
+          "cold radiating perpetually",
+          "winter made solid and eternal"
+        ],
+        "state_variants": {
+          "in_location": "jutting from ice or lying glittering",
+          "in_inventory": "perpetual cold from crystal shard",
+          "examined": "frozen crystal, ice magic in physical form"
+        }
       }
     },
     {
@@ -1044,6 +1848,20 @@
         "crystal_type": "regional",
         "region": "beast_wilds",
         "restored": false
+      },
+      "llm_context": {
+        "traits": [
+          "crystal pulsing with untamed energy",
+          "green-brown coloration shifting",
+          "growth and life magic within",
+          "nature's power crystallized",
+          "wilderness made mineral"
+        ],
+        "state_variants": {
+          "in_location": "half-buried in natural growth",
+          "in_inventory": "vibrant energy thrumming through pack",
+          "examined": "wild crystal, primal magic in stone form"
+        }
       }
     },
     {
@@ -1056,6 +1874,20 @@
         "crystal_type": "regional",
         "region": "sunken_district",
         "restored": false
+      },
+      "llm_context": {
+        "traits": [
+          "deep blue crystal shot with white",
+          "water magic swirling within",
+          "smooth from water's caress",
+          "ocean's power crystallized",
+          "tides made solid"
+        ],
+        "state_variants": {
+          "in_location": "lying in or near water, gleaming wet",
+          "in_inventory": "coolness and sense of depths",
+          "examined": "sunken crystal, water magic preserved in stone"
+        }
       }
     },
     {
@@ -1068,6 +1900,20 @@
         "crystal_type": "regional",
         "region": "fungal_depths",
         "restored": false
+      },
+      "llm_context": {
+        "traits": [
+          "crystal veined with mycelia threads",
+          "bioluminescence pulsing within",
+          "life magic of unusual form",
+          "fungus and mineral merged",
+          "alien beauty in hybrid form"
+        ],
+        "state_variants": {
+          "in_location": "growing from fungal substrate, half-organic",
+          "in_inventory": "faint pulsing visible through pack",
+          "examined": "fungal crystal, life magic in strange fusion"
+        }
       }
     },
     {
@@ -1080,6 +1926,20 @@
         "crystal_type": "regional",
         "region": "civilized_remnants",
         "restored": false
+      },
+      "llm_context": {
+        "traits": [
+          "crystal fragment from shattered whole",
+          "fracture surfaces still sharp",
+          "magic bleeding from broken edges",
+          "piece of greater power",
+          "potential in remnant form"
+        ],
+        "state_variants": {
+          "in_location": "shard lying among debris",
+          "in_inventory": "fragment of something once whole",
+          "examined": "remnant crystal, broken but still potent"
+        }
       }
     },
     {
@@ -1105,7 +1965,21 @@
       },
       "behaviors": [
         "behaviors.regions.frozen_reaches.telescope_repair"
-      ]
+      ],
+      "llm_context": {
+        "traits": [
+          "telescope encased in magical ice",
+          "preservation in frozen stasis",
+          "visible through crystalline surface",
+          "waiting for thaw or transport",
+          "time suspended in ice"
+        ],
+        "state_variants": {
+          "in_location": "frozen in ice wall, perfectly preserved",
+          "examined": "telescope visible through ice, intact beneath",
+          "freed": "ice melted away, telescope ready for use"
+        }
+      }
     },
     {
       "id": "ice_wand",
@@ -1130,7 +2004,23 @@
       },
       "behaviors": [
         "behaviors.regions.frozen_reaches.ice_extraction"
-      ]
+      ],
+      "llm_context": {
+        "traits": [
+          "crystalline rod of frozen azure",
+          "frost patterns spiraling along length",
+          "cold radiating from polished surface",
+          "tip crackling with ice magic",
+          "grip wrapped in frost-resistant leather",
+          "condensation forming where held"
+        ],
+        "state_variants": {
+          "in_location": "resting on frost-rimed surface, cold mist pooling around it",
+          "in_inventory": "weight reassuring, chill penetrating through pack",
+          "examined": "ancient ice magic bound within flawless crystal core",
+          "wielded": "frost magic surging through your grip, eager to be released"
+        }
+      }
     },
     {
       "id": "lore_tablets",
@@ -1147,6 +2037,19 @@
           "knows_guardian_ritual",
           "knows_guardian_solutions"
         ]
+      },
+      "llm_context": {
+        "traits": [
+          "stone tablets carved with text",
+          "historical records preserved",
+          "weight of ancient knowledge",
+          "truth waiting in stone",
+          "past speaking to present"
+        ],
+        "state_variants": {
+          "in_location": "standing upright or lying scattered",
+          "examined": "tablets bearing historical accounts, readable"
+        }
       }
     },
     {
@@ -1158,6 +2061,21 @@
         "portable": true,
         "wearable": true,
         "cold_protection": 5
+      },
+      "llm_context": {
+        "traits": [
+          "thick wool lined with fur",
+          "deep hood for full coverage",
+          "weight reassuring and protective",
+          "warmth woven into every thread",
+          "comfort against cold's bite"
+        ],
+        "state_variants": {
+          "in_location": "folded or hanging ready for wear",
+          "in_inventory": "bulky but essential cold weather gear",
+          "examined": "quality cloak, warmth guaranteed",
+          "worn": "warmth enveloping, cold held at bay"
+        }
       }
     },
     {
@@ -1174,6 +2092,21 @@
           "furs",
           "clothing"
         ]
+      },
+      "llm_context": {
+        "traits": [
+          "multiple layers of insulation",
+          "mittens, scarf, and thermal underclothes",
+          "professional arctic equipment",
+          "survival through preparation",
+          "every piece purpose-made"
+        ],
+        "state_variants": {
+          "in_location": "gear bundled and ready for expedition",
+          "in_inventory": "bulky but potentially life-saving equipment",
+          "examined": "complete cold weather outfit, expertly made",
+          "worn": "multiple layers creating warm cocoon"
+        }
       }
     },
     {
@@ -1191,6 +2124,20 @@
           "supplies",
           "pack"
         ]
+      },
+      "llm_context": {
+        "traits": [
+          "collection of dried and salted foods",
+          "carefully rationed and stored",
+          "survival measured in meals",
+          "variety of preservation methods",
+          "foresight made edible"
+        ],
+        "state_variants": {
+          "in_location": "supplies stored in organized containers",
+          "in_inventory": "weight of prepared survival",
+          "examined": "well-preserved provisions, properly stored"
+        }
       }
     },
     {
@@ -1209,6 +2156,20 @@
         "synonyms": [
           "map"
         ]
+      },
+      "llm_context": {
+        "traits": [
+          "map fragment showing region section",
+          "edges torn or water-damaged",
+          "partial information still valuable",
+          "piece of larger whole",
+          "navigation aid incomplete"
+        ],
+        "state_variants": {
+          "in_location": "tucked in explorer's pack or lying loose",
+          "in_inventory": "fragmentary map, limited but useful",
+          "examined": "partial map showing some of region layout"
+        }
       }
     },
     {
@@ -1225,6 +2186,20 @@
           "lily",
           "flower"
         ]
+      },
+      "llm_context": {
+        "traits": [
+          "delicate flower of ice-blue petals",
+          "frost patterns on each petal",
+          "cold radiating from bloom",
+          "beauty thriving in frozen realm",
+          "crystalline perfection"
+        ],
+        "state_variants": {
+          "in_location": "blooming impossibly in frozen soil",
+          "in_inventory": "perpetual cold from preserved flower",
+          "examined": "frost lily, ice magic in botanical form"
+        }
       }
     },
     {
@@ -1255,7 +2230,21 @@
       },
       "behaviors": [
         "behaviors.regions.frozen_reaches.ice_extraction"
-      ]
+      ],
+      "llm_context": {
+        "traits": [
+          "sharp fragment of magical ice",
+          "edges dangerously keen",
+          "cold radiating from surface",
+          "weapon and component both",
+          "frozen danger"
+        ],
+        "state_variants": {
+          "in_location": "jutting from ice or lying glittering",
+          "in_inventory": "carefully wrapped against melting and cutting",
+          "examined": "ice shard, sharp and magically preserved"
+        }
+      }
     },
     {
       "id": "crystal_lens",
@@ -1284,7 +2273,22 @@
       },
       "behaviors": [
         "behaviors.regions.frozen_reaches.ice_extraction"
-      ]
+      ],
+      "llm_context": {
+        "traits": [
+          "perfectly ground optical crystal",
+          "prismatic surfaces flawless",
+          "clarity beyond normal glass",
+          "magical enhancement evident",
+          "precisely calibrated curvature",
+          "telescope component waiting"
+        ],
+        "state_variants": {
+          "in_location": "embedded in ice wall, frozen for preservation",
+          "in_inventory": "wrapped carefully, precision instrument protected",
+          "examined": "crafted for ancient telescope, focusing distant visions clearly"
+        }
+      }
     },
     {
       "id": "command_crystal",
@@ -1313,7 +2317,23 @@
       },
       "behaviors": [
         "behaviors.regions.frozen_reaches.ice_extraction"
-      ]
+      ],
+      "llm_context": {
+        "traits": [
+          "multifaceted orb of amber crystal",
+          "golden light pulsing within",
+          "runes etched across every surface",
+          "warm to touch despite stone nature",
+          "resonating with command authority",
+          "ancient binding magic evident"
+        ],
+        "state_variants": {
+          "in_location": "resting in alcove, runes glowing softly in darkness",
+          "in_inventory": "weight significant beyond mere mass, authority incarnate",
+          "examined": "control runes for stone guardians, key to ancient servitors",
+          "active": "blazing with authority, commands flowing through golden light"
+        }
+      }
     },
     {
       "id": "mounting_bracket",
@@ -1326,6 +2346,21 @@
         "synonyms": [
           "bracket"
         ]
+      },
+      "llm_context": {
+        "traits": [
+          "brass framework precision-machined",
+          "adjustment screws still smooth",
+          "verdigris patina on surface",
+          "runic alignments etched within",
+          "telescope mount component",
+          "ancient engineering preserved"
+        ],
+        "state_variants": {
+          "in_location": "lying amid other brass fittings, still functional",
+          "in_inventory": "solid weight of quality craftsmanship",
+          "examined": "bracket for mounting telescope lens, alignment runes intact"
+        }
       }
     },
     {
@@ -1342,6 +2377,21 @@
           "warmcloak",
           "frostcloak"
         ]
+      },
+      "llm_context": {
+        "traits": [
+          "cloak shimmering with frost enchantment",
+          "magical warmth radiating from fabric",
+          "runes embroidered in silver thread",
+          "protection beyond mere insulation",
+          "magic woven with wool"
+        ],
+        "state_variants": {
+          "in_location": "hanging with faint magical aura",
+          "in_inventory": "magical warmth seeping from pack",
+          "examined": "enchanted cloak, cold cannot touch wearer",
+          "worn": "magical barrier against any chill"
+        }
       }
     },
     {
@@ -1366,7 +2416,23 @@
       },
       "behaviors": [
         "behaviors.regions.frozen_reaches.ice_extraction"
-      ]
+      ],
+      "llm_context": {
+        "traits": [
+          "rod of blackened heartwood",
+          "ember-glow pulsing through cracks",
+          "heat shimmering from charred surface",
+          "tip crowned with dancing flame",
+          "grip wrapped in asbestos cloth",
+          "faint smoke wisping from length"
+        ],
+        "state_variants": {
+          "in_location": "lying amid scorch marks, air wavering above it",
+          "in_inventory": "warmth radiating through pack, comfortingly dangerous",
+          "examined": "primal fire magic barely contained within scorched wood",
+          "wielded": "flames licking along length, power thrumming in your palm"
+        }
+      }
     },
     {
       "id": "stone_pillar_1",
@@ -1378,6 +2444,20 @@
         "provides_cover": true,
         "cover_value": 80,
         "part_type": "structural"
+      },
+      "llm_context": {
+        "traits": [
+          "carved pillar with constellation markings",
+          "rotating mechanism at base",
+          "ancient alignment puzzle",
+          "stars carved in relief",
+          "knowledge test in stone"
+        ],
+        "state_variants": {
+          "in_location": "standing in puzzle chamber",
+          "examined": "pillar carved with star patterns, rotatable",
+          "aligned": "pillar locked in correct position, stars aligned"
+        }
       }
     },
     {
@@ -1390,6 +2470,20 @@
         "provides_cover": true,
         "cover_value": 80,
         "part_type": "structural"
+      },
+      "llm_context": {
+        "traits": [
+          "twin to first pillar, different stars",
+          "rotation independent",
+          "second part of celestial puzzle",
+          "precision required for alignment",
+          "patience tested in turning"
+        ],
+        "state_variants": {
+          "in_location": "standing opposite first pillar",
+          "examined": "pillar with complementary constellation carvings",
+          "aligned": "pillar in correct position, completing pattern"
+        }
       }
     },
     {
@@ -1403,6 +2497,21 @@
           "damage": 15,
           "type": "melee"
         }
+      },
+      "llm_context": {
+        "traits": [
+          "blade pitted with rust spots",
+          "once-fine weapon fallen to disrepair",
+          "balance still true despite corrosion",
+          "edge dulled but serviceable",
+          "potential waiting for care"
+        ],
+        "state_variants": {
+          "in_location": "lying abandoned, rust claiming metal",
+          "in_inventory": "weight familiar despite neglect",
+          "examined": "rusty sword, needing maintenance but functional",
+          "wielded": "grip worn smooth, blade eager despite rust"
+        }
       }
     },
     {
@@ -1414,6 +2523,20 @@
         "portable": true,
         "consumable": true,
         "food": true
+      },
+      "llm_context": {
+        "traits": [
+          "meat preserved by ice and time",
+          "perpetually frozen, never spoiling",
+          "emergency rations magical",
+          "survival ensured by cold",
+          "ancient provision still good"
+        ],
+        "state_variants": {
+          "in_location": "frozen solid in ice region storage",
+          "in_inventory": "cold seeping through pack from provisions",
+          "examined": "magically preserved meat, edible indefinitely"
+        }
       }
     },
     {
@@ -1425,6 +2548,20 @@
         "portable": true,
         "healing": true,
         "consumable": true
+      },
+      "llm_context": {
+        "traits": [
+          "linen strips infused with frost magic",
+          "cold radiating from fabric",
+          "specialized healing for ice region",
+          "magic woven into medicine",
+          "chill comforting rather than painful"
+        ],
+        "state_variants": {
+          "in_location": "bandages resting in perpetual cold",
+          "in_inventory": "magical cold seeping through pack",
+          "examined": "enchanted bandages, frost magic for healing"
+        }
       }
     },
     {
@@ -1444,7 +2581,22 @@
       },
       "behaviors": [
         "behaviors.regions.frozen_reaches.ice_extraction"
-      ]
+      ],
+      "llm_context": {
+        "traits": [
+          "wooden shaft wrapped in pitch-soaked cloth",
+          "unlit but ready for flame",
+          "handle carved with grip pattern",
+          "traditional light source",
+          "smell of pitch strong"
+        ],
+        "state_variants": {
+          "in_location": "standing in sconce or lying ready",
+          "in_inventory": "careful storage to avoid pitch stains",
+          "examined": "well-made torch, pitch fresh enough to catch",
+          "lit": "flames dancing, smoke trailing upward"
+        }
+      }
     },
     {
       "id": "spider_silk",
@@ -1454,6 +2606,20 @@
       "properties": {
         "portable": true,
         "trade_good": true
+      },
+      "llm_context": {
+        "traits": [
+          "threads impossibly strong and fine",
+          "silvery sheen catching light",
+          "sticky quality to strands",
+          "valuable crafting material",
+          "strength from delicate appearance"
+        ],
+        "state_variants": {
+          "in_location": "spun in web or gathered in bundle",
+          "in_inventory": "lightweight but precious material",
+          "examined": "giant spider silk, stronger than steel"
+        }
       }
     },
     {
@@ -1465,6 +2631,20 @@
         "portable": true,
         "dangerous": true,
         "trade_good": true
+      },
+      "llm_context": {
+        "traits": [
+          "gland containing potent poison",
+          "slightly translucent membrane",
+          "liquid visible within",
+          "danger in organic container",
+          "careful handling essential"
+        ],
+        "state_variants": {
+          "in_location": "lying among spider remains",
+          "in_inventory": "sealed carefully against leakage",
+          "examined": "venom sac intact, toxin potent"
+        }
       }
     },
     {
@@ -1476,6 +2656,20 @@
         "portable": true,
         "curative": true,
         "crafted": true
+      },
+      "llm_context": {
+        "traits": [
+          "paste in small clay jar",
+          "ingredients specifically for young bears",
+          "honey mixed with healing herbs",
+          "knowledge of beast healing preserved",
+          "smell sweet and medicinal both"
+        ],
+        "state_variants": {
+          "in_location": "jar sitting sealed and ready",
+          "in_inventory": "delicate jar requiring careful carrying",
+          "examined": "specialized medicine, formulated for bear cubs"
+        }
       }
     },
     {
@@ -1491,6 +2685,20 @@
           "meat",
           "deer meat"
         ]
+      },
+      "llm_context": {
+        "traits": [
+          "deer meat properly dressed",
+          "lean and nutritious",
+          "hunter's provision",
+          "sustenance earned with skill",
+          "respect for prey in preparation"
+        ],
+        "state_variants": {
+          "in_location": "hanging or wrapped for preservation",
+          "in_inventory": "food supplies adding weight",
+          "examined": "quality venison, will keep for days"
+        }
       }
     },
     {
@@ -1507,6 +2715,20 @@
           "tracker tools",
           "equipment"
         ]
+      },
+      "llm_context": {
+        "traits": [
+          "collection of hunter's tools",
+          "magnifying lens in leather case",
+          "measuring cord marked in increments",
+          "small vials for samples",
+          "woodcraft knowledge made tangible"
+        ],
+        "state_variants": {
+          "in_location": "kit laid out ready for tracking work",
+          "in_inventory": "tools of the tracking trade, organized",
+          "examined": "professional tracking kit, well-maintained"
+        }
       }
     },
     {
@@ -1527,6 +2749,21 @@
           "journal",
           "hunter journal"
         ]
+      },
+      "llm_context": {
+        "traits": [
+          "practical logbook in oiled leather",
+          "tracking notes and kill tallies",
+          "sketches of beast behaviors",
+          "pages marked with blood and dirt",
+          "woodsman's knowledge preserved",
+          "survival wisdom recorded"
+        ],
+        "state_variants": {
+          "in_location": "tucked in hunter's pack, tools of trade nearby",
+          "in_inventory": "practical weight, knowledge worth carrying",
+          "examined": "beast lore and tracking wisdom, hunter's lifetime learning"
+        }
       }
     },
     {
@@ -1544,6 +2781,21 @@
           "wolf fang",
           "fang"
         ]
+      },
+      "llm_context": {
+        "traits": [
+          "massive tooth broken from jaw",
+          "still wickedly sharp",
+          "dried blood darkening surface",
+          "proof of dominance claimed",
+          "trophy and token both",
+          "respect earned in battle"
+        ],
+        "state_variants": {
+          "in_location": "embedded in tree trunk, mark of territory fight",
+          "in_inventory": "weight of earned respect among pack",
+          "examined": "alpha wolf's fang, proof of combat prowess or friendship"
+        }
       }
     },
     {
@@ -1561,6 +2813,20 @@
           "queen honey",
           "queens honey"
         ]
+      },
+      "llm_context": {
+        "traits": [
+          "golden honey glowing with magic",
+          "viscous and sweet beyond measure",
+          "healing properties legendary",
+          "bee queen's gift",
+          "treasure liquid and living"
+        ],
+        "state_variants": {
+          "in_location": "contained in wax vessel, glowing",
+          "in_inventory": "precious jar requiring careful carrying",
+          "examined": "royal honey, magical healing in edible form"
+        }
       }
     },
     {
@@ -1572,6 +2838,20 @@
         "portable": true,
         "breathing_item": true,
         "uses": 3
+      },
+      "llm_context": {
+        "traits": [
+          "animal bladder sealed and inflated",
+          "buoyancy when in water",
+          "tied with strong cord",
+          "makeshift flotation device",
+          "surface slightly tacky"
+        ],
+        "state_variants": {
+          "in_location": "bobbing slightly if in water, otherwise resting",
+          "in_inventory": "awkward inflated bulk in pack",
+          "examined": "sealed bladder, airtight and buoyant"
+        }
       }
     },
     {
@@ -1583,6 +2863,20 @@
         "portable": true,
         "is_container": true,
         "waterproof": true
+      },
+      "llm_context": {
+        "traits": [
+          "oiled canvas treated for water resistance",
+          "drawstring closure with wax seal",
+          "capacity for several items",
+          "protection for valuables",
+          "slight chemical smell from treatment"
+        ],
+        "state_variants": {
+          "in_location": "collapsed flat, ready to be filled",
+          "in_inventory": "reassuring waterproof protection for gear",
+          "examined": "watertight sack, seams sealed and closure intact"
+        }
       }
     },
     {
@@ -1595,6 +2889,21 @@
         "quest_item": true,
         "light_source": true,
         "waystone_fragment": true
+      },
+      "llm_context": {
+        "traits": [
+          "luminous sphere pulsing blue-green",
+          "water magic swirling within",
+          "surface smooth as still pond",
+          "coolness radiating from core",
+          "tides responding to presence",
+          "ocean's heart crystallized"
+        ],
+        "state_variants": {
+          "in_location": "resting in tidal pool, waves lapping reverently",
+          "in_inventory": "coolness seeping through pack, tidal pull felt",
+          "examined": "water magic essence, key to flooded realm healing"
+        }
       }
     },
     {
@@ -1605,6 +2914,20 @@
       "properties": {
         "portable": true,
         "tool": true
+      },
+      "llm_context": {
+        "traits": [
+          "iron lever on stone mounting",
+          "mechanism connecting to unknown function",
+          "wear showing regular ancient use",
+          "potential action waiting",
+          "simple interface to complex magic"
+        ],
+        "state_variants": {
+          "in_location": "protruding from wall or floor",
+          "examined": "lever mechanism, function unclear but intact",
+          "pulled": "lever shifted, mechanism engaging with grinding sound"
+        }
       }
     },
     {
@@ -1617,6 +2940,20 @@
         "rare_flower": true,
         "export_item": true,
         "export_to": "beast_wilds"
+      },
+      "llm_context": {
+        "traits": [
+          "aquatic flower with floating petals",
+          "water magic infused in tissues",
+          "blue-green coloration shifting",
+          "grows only in pure water",
+          "liquid grace made botanical"
+        ],
+        "state_variants": {
+          "in_location": "floating on water surface, roots dangling",
+          "in_inventory": "kept wet in waterproof container",
+          "examined": "water bloom, aquatic magic in flower form"
+        }
       }
     },
     {
@@ -1628,6 +2965,20 @@
         "portable": true,
         "curative": true,
         "infection_reduction": 40
+      },
+      "llm_context": {
+        "traits": [
+          "moss with metallic silver sheen",
+          "soft texture like finest velvet",
+          "faint magical properties",
+          "grows in places of power",
+          "beauty and utility combined"
+        ],
+        "state_variants": {
+          "in_location": "growing in silver patches on stone",
+          "in_inventory": "delicate organic material requiring care",
+          "examined": "rare silvermoss, magical resonance evident"
+        }
       }
     },
     {
@@ -1638,6 +2989,20 @@
       "properties": {
         "portable": true,
         "quest_item": true
+      },
+      "llm_context": {
+        "traits": [
+          "crimson moss pulsing faintly",
+          "warmth emanating from fronds",
+          "life magic concentrated",
+          "rare and precious growth",
+          "vitality made vegetable"
+        ],
+        "state_variants": {
+          "in_location": "growing in warm red clusters",
+          "in_inventory": "living warmth in wrapped bundle",
+          "examined": "heartmoss, life essence in plant form"
+        }
       }
     },
     {
@@ -1654,6 +3019,21 @@
           "fragment",
           "spore fragment"
         ]
+      },
+      "llm_context": {
+        "traits": [
+          "pulsing chunk of living fungus",
+          "bioluminescent glow rhythmic",
+          "mycelia threads reaching",
+          "warm and disturbingly organic",
+          "infection's core piece",
+          "cure and curse combined"
+        ],
+        "state_variants": {
+          "in_location": "sprouting from infected ground, pulsing with corruption",
+          "in_inventory": "warmth unsettling through pack, life too alien",
+          "examined": "fragment of spore heart corruption, needed for healing paradoxically"
+        }
       }
     },
     {
@@ -1667,6 +3047,21 @@
         "flags_on_read": [
           "knows_mushroom_hint"
         ]
+      },
+      "llm_context": {
+        "traits": [
+          "battered notebook water-stained",
+          "hasty entries in desperate hand",
+          "sketches of fungal corruption",
+          "pages stuck together with spores",
+          "final entry unfinished abruptly",
+          "tragedy documented in ink"
+        ],
+        "state_variants": {
+          "in_location": "lying beside skeletal hand, final testament",
+          "in_inventory": "unsettling weight of another's last words",
+          "examined": "descent into madness chronicled, infection claiming researcher"
+        }
       }
     },
     {
@@ -1679,6 +3074,20 @@
         "light_source": true,
         "light_level": 3,
         "requires_trust": 0
+      },
+      "llm_context": {
+        "traits": [
+          "glass lantern housing bioluminescent fungi",
+          "soft blue-green glow pulsing",
+          "no heat, pure living light",
+          "mycelia visible through glass",
+          "alien beauty in function"
+        ],
+        "state_variants": {
+          "in_location": "casting gentle luminescence in radius",
+          "in_inventory": "glow seeping through pack fabric",
+          "examined": "living lantern, fungal light perpetual and cold"
+        }
       }
     },
     {
@@ -1691,6 +3100,21 @@
         "wearable": true,
         "filters_toxic_air": true,
         "requires_trust": 0
+      },
+      "llm_context": {
+        "traits": [
+          "leather mask with glass eye-pieces",
+          "charcoal filter in nose piece",
+          "straps for securing across face",
+          "protection against spores and toxins",
+          "slightly claustrophobic when worn"
+        ],
+        "state_variants": {
+          "in_location": "hanging by straps, lenses reflecting light",
+          "in_inventory": "lightweight but bulky safety equipment",
+          "examined": "breathing apparatus, filter fresh and functional",
+          "worn": "view narrowed to glass circles, each breath filtered"
+        }
       }
     },
     {
@@ -1702,6 +3126,20 @@
         "portable": true,
         "is_container": true,
         "water_capacity": 3
+      },
+      "llm_context": {
+        "traits": [
+          "sturdy wooden bucket iron-banded",
+          "rope handle worn smooth by use",
+          "water stains darkening interior",
+          "practical tool of many uses",
+          "solid weight reassuring"
+        ],
+        "state_variants": {
+          "in_location": "sitting ready for water-carrying or other tasks",
+          "in_inventory": "wooden weight knocking against pack",
+          "examined": "well-made bucket, handle strong and rim intact"
+        }
       }
     },
     {
@@ -1716,6 +3154,20 @@
         "pulse_pattern": "steady",
         "item_use_reactions": {
           "handler": "behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
+        }
+      },
+      "llm_context": {
+        "traits": [
+          "cap of deep azure hue",
+          "bioluminescent glow soft",
+          "stem thick and fleshy",
+          "edible and nutritious",
+          "beauty in fungal form"
+        ],
+        "state_variants": {
+          "in_location": "growing from nutrient-rich surface",
+          "in_inventory": "fragile fungus wrapped carefully",
+          "examined": "blue mushroom, safe for consumption"
         }
       }
     },
@@ -1732,6 +3184,20 @@
         "item_use_reactions": {
           "handler": "behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
         }
+      },
+      "llm_context": {
+        "traits": [
+          "cap gleaming golden yellow",
+          "warm light pulsing gently",
+          "pleasant earthy aroma",
+          "valuable as food and light",
+          "treasure in fungal form"
+        ],
+        "state_variants": {
+          "in_location": "sprouting like golden coins from substrate",
+          "in_inventory": "golden glow visible through wrapping",
+          "examined": "gold mushroom, prized for many properties"
+        }
       }
     },
     {
@@ -1746,6 +3212,20 @@
         "pulse_pattern": "rapid",
         "item_use_reactions": {
           "handler": "behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
+        }
+      },
+      "llm_context": {
+        "traits": [
+          "cap of deep purple shading to lavender",
+          "faint humming vibration",
+          "magical properties evident",
+          "rare and sought-after",
+          "power in purple flesh"
+        ],
+        "state_variants": {
+          "in_location": "growing in isolated violet clusters",
+          "in_inventory": "vibration subtle through pack fabric",
+          "examined": "violet mushroom, magic-infused and potent"
         }
       }
     },
@@ -1762,6 +3242,20 @@
         "item_use_reactions": {
           "handler": "behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
         }
+      },
+      "llm_context": {
+        "traits": [
+          "cap dark as midnight, light-absorbing",
+          "ominous appearance despite safety",
+          "strong earthy flavor",
+          "grows in deepest darkness",
+          "shadow made edible"
+        ],
+        "state_variants": {
+          "in_location": "sprouting from dark crevices",
+          "in_inventory": "dark cap wrapped against crushing",
+          "examined": "black mushroom, intimidating but harmless"
+        }
       }
     },
     {
@@ -1772,6 +3266,19 @@
       "properties": {
         "portable": false,
         "fixed": true
+      },
+      "llm_context": {
+        "traits": [
+          "skeletal remains in explorer's garb",
+          "backpack and tools beside body",
+          "silent testimony to danger",
+          "warning and resource both",
+          "story ended, equipment remaining"
+        ],
+        "state_variants": {
+          "in_location": "collapsed against wall or lying prone",
+          "examined": "explorer's remains, journey ended long ago"
+        }
       }
     },
     {
@@ -1792,6 +3299,21 @@
         "gift_value": {
           "npc_aldric": 1
         }
+      },
+      "llm_context": {
+        "traits": [
+          "loose pages bundled hastily",
+          "diagrams of bioluminescent fungi",
+          "chemical formulas half-complete",
+          "observations in excited scrawl",
+          "discovery documented incompletely",
+          "potential unrealized"
+        ],
+        "state_variants": {
+          "in_location": "scattered around explorer's body, final work",
+          "in_inventory": "fragile pages requiring careful handling",
+          "examined": "grotto ecosystem research, luminous mushroom properties noted"
+        }
       }
     },
     {
@@ -1803,6 +3325,20 @@
         "portable": true,
         "curative": true,
         "requires_herbalism": "basic"
+      },
+      "llm_context": {
+        "traits": [
+          "bundle of dried medicinal plants",
+          "pungent herbal aroma",
+          "carefully selected and preserved",
+          "knowledge in plant form",
+          "healing potential wrapped in leaves"
+        ],
+        "state_variants": {
+          "in_location": "bundle lying ready for gathering",
+          "in_inventory": "herbal scent seeping from pack",
+          "examined": "quality healing herbs, properly dried and potent"
+        }
       }
     },
     {
@@ -1815,6 +3351,20 @@
         "dangerous": true,
         "poisonous": true,
         "requires_herbalism": "advanced"
+      },
+      "llm_context": {
+        "traits": [
+          "dark berries on thorny stem",
+          "poisonous but medicinally valuable",
+          "careful handling required",
+          "danger and utility intertwined",
+          "respect demanded by toxicity"
+        ],
+        "state_variants": {
+          "in_location": "growing with warning thorns visible",
+          "in_inventory": "sealed container for dangerous plant",
+          "examined": "nightshade, poison requiring expert use"
+        }
       }
     },
     {
@@ -1827,6 +3377,20 @@
         "rare_flower": true,
         "export_item": true,
         "export_to": "beast_wilds"
+      },
+      "llm_context": {
+        "traits": [
+          "silvery petals glowing softly",
+          "blooms only in moonlight",
+          "ethereal beauty otherworldly",
+          "magical essence concentrated",
+          "night made flower"
+        ],
+        "state_variants": {
+          "in_location": "growing in places touched by moon",
+          "in_inventory": "silver glow seeping through pack",
+          "examined": "moonpetal, lunar magic captured in bloom"
+        }
       }
     },
     {
@@ -1837,6 +3401,21 @@
       "properties": {
         "portable": true,
         "tool": true
+      },
+      "llm_context": {
+        "traits": [
+          "tool of finest tempered steel",
+          "edge never dulling",
+          "runes of shaping along blade",
+          "handle worn smooth by use",
+          "balanced for precision work",
+          "stonewright's masterpiece"
+        ],
+        "state_variants": {
+          "in_location": "lying beside half-carved block, work interrupted",
+          "in_inventory": "tool weight familiar and purposeful",
+          "examined": "magical chisel for repairing stone constructs, enchanted for guardians"
+        }
       }
     },
     {
@@ -1848,6 +3427,21 @@
         "portable": true,
         "quest_item": true,
         "waystone_fragment": true
+      },
+      "llm_context": {
+        "traits": [
+          "bronze medallion of authority",
+          "town crest raised in relief",
+          "chain of office attached",
+          "weight beyond mere metal",
+          "legitimacy incarnate",
+          "symbol commanding respect"
+        ],
+        "state_variants": {
+          "in_location": "lying amid council chamber debris, authority abandoned",
+          "in_inventory": "weight of responsibility literally carried",
+          "examined": "official seal of town council, commands obedience from citizens"
+        }
       }
     },
     {
@@ -1859,6 +3453,20 @@
         "portable": true,
         "curative": true,
         "stops_bleeding": true
+      },
+      "llm_context": {
+        "traits": [
+          "clean linen strips rolled tight",
+          "soft fabric for wound wrapping",
+          "essential medical supply",
+          "care made manifest",
+          "comfort in preparation"
+        ],
+        "state_variants": {
+          "in_location": "bandages waiting for need",
+          "in_inventory": "medical supplies taking little space",
+          "examined": "clean bandages, ready for emergency"
+        }
       }
     }
   ],
@@ -1901,8 +3509,27 @@
       "name": "altar",
       "part_of": "temple_sanctum",
       "properties": {
-        "description": "An ancient stone altar at the center of the sanctum, covered in intricate carvings. A precision brass bracket rests upon it.",
-        "interaction_distance": "near"
+        "description": "The central altar of the temple, carved from white marble veined with gold.",
+        "interaction_distance": "near",
+        "part_type": "surface",
+        "synonyms": [
+          "marble altar",
+          "white altar"
+        ],
+        "llm_context": {
+          "traits": [
+            "altar of white marble veined with gold",
+            "intricate carvings covering all surfaces",
+            "ancient symbols of protection and devotion",
+            "surface bearing temple treasures and offerings",
+            "dominating center of sanctum",
+            "craftsmanship of lost civilization"
+          ],
+          "perspective_variants": {
+            "in_location": "standing at the heart of the chamber, commanding reverence",
+            "examined": "ancient altar carved with protective wards and blessings, surface holds sacred offerings"
+          }
+        }
       }
     },
     {
@@ -1978,6 +3605,58 @@
         },
         "gossip_reactions": {
           "handler": "behaviors.regions.meridian_nexus.echo:on_echo_gossip"
+        },
+        "llm_context": {
+          "traits": [
+            "translucent figure of shifting light",
+            "face familiar yet impossible to pin down",
+            "voice layered with multiple tones",
+            "presence that resonates with memory",
+            "form flickering between solid and ethereal",
+            "residual consciousness seeking closure"
+          ],
+          "state_fragments": {
+            "dormant": [
+              "barely visible shimmer in air",
+              "occasional ripple of presence",
+              "waiting for right conditions",
+              "potential rather than actual",
+              "memory sleeping",
+              "not yet awakened to awareness"
+            ],
+            "manifesting": [
+              "form coalescing from ambient magic",
+              "features swimming into focus",
+              "voice strengthening from whisper",
+              "struggling against dissolution",
+              "momentary clarity achieved",
+              "presence intensifying"
+            ],
+            "communicating": [
+              "fully visible and coherent",
+              "speaking with urgency",
+              "sharing crucial memory",
+              "resonating with importance",
+              "truth carrier",
+              "message desperate to be heard"
+            ],
+            "fading": [
+              "form growing translucent",
+              "voice weakening to echo",
+              "purpose fulfilled or abandoned",
+              "dispersing back to ambient magic",
+              "farewell in dissolution",
+              "letting go of material persistence"
+            ],
+            "permanent": [
+              "form solidified beyond normal echo",
+              "having claimed full manifestation",
+              "no longer fading",
+              "resident spirit not mere echo",
+              "achieved true persistence",
+              "anchored to this plane permanently"
+            ]
+          }
         }
       }
     },
@@ -2009,6 +3688,42 @@
               "echo_essence_fragment"
             ],
             "handler": "behaviors.regions.meridian_nexus.waystone:on_fragment_place"
+          }
+        },
+        "llm_context": {
+          "traits": [
+            "ethereal form bound to ancient stone",
+            "face worn smooth like weathered marker",
+            "eyes glowing with directional magic",
+            "voice like wind through carved runes",
+            "form pulsing in rhythm with waystone",
+            "guardian and guide in one"
+          ],
+          "state_fragments": {
+            "damaged": [
+              "form flickering and unstable",
+              "guidance magic sputtering",
+              "confusion evident in glowing eyes",
+              "voice fragmented and unclear",
+              "unable to fulfill purpose",
+              "wounded by waystone's breaking"
+            ],
+            "partial": [
+              "form more stable but incomplete",
+              "some directional magic restored",
+              "giving hesitant guidance",
+              "stronger but still uncertain",
+              "healing alongside waystone",
+              "glimpses of former power"
+            ],
+            "repaired": [
+              "form bright and clear",
+              "guidance magic flowing freely",
+              "eyes blazing with directional certainty",
+              "voice ringing with authority",
+              "purpose fully restored",
+              "waystone spirit complete again"
+            ]
           }
         }
       },
@@ -2128,7 +3843,9 @@
             "lean and agile",
             "white-streaked fur",
             "watchful stance",
-            "moves with pack"
+            "moves with pack",
+            "ice crystals clinging to whiskers",
+            "breath frosting in sharp exhales"
           ],
           "state_fragments": {
             "hostile": [
@@ -2185,7 +3902,9 @@
             "muscular build",
             "thick winter coat",
             "loyal demeanor",
-            "steady presence"
+            "steady presence",
+            "ice crystals clinging to whiskers",
+            "breath frosting in sharp exhales"
           ],
           "state_fragments": {
             "hostile": [
@@ -2967,6 +4686,30 @@
               "eyes dim and empty",
               "mandibles still at last",
               "web beginning to decay"
+            ],
+            "wary": [
+              "legs poised for sudden movement",
+              "multiple eyes tracking carefully",
+              "silk strands held taut and ready",
+              "body low and defensive",
+              "assessing threat level",
+              "calculating distance to retreat"
+            ],
+            "neutral": [
+              "settled in web center",
+              "watching with passive interest",
+              "legs relaxed but alert",
+              "neither threatening nor welcoming",
+              "silk gently swaying",
+              "ancient patience evident"
+            ],
+            "allied": [
+              "approaching willingly",
+              "legs moving with purpose not threat",
+              "mandibles clicking in communication",
+              "silk offered as gift",
+              "protective of territory shared",
+              "rare trust extended"
             ]
           }
         }
@@ -2994,7 +4737,9 @@
             "dog-sized body",
             "clicking legs",
             "multiple gleaming eyes",
-            "fangs ready to strike"
+            "fangs ready to strike",
+            "spinnerets producing silver thread constantly",
+            "chitinous armor gleaming dully"
           ],
           "state_fragments": {
             "hostile": [
@@ -3034,7 +4779,9 @@
             "larger than its sibling",
             "more aggressive stance",
             "thick hairy legs",
-            "venom-dripping fangs"
+            "venom-dripping fangs",
+            "spinnerets producing silver thread constantly",
+            "chitinous armor gleaming dully"
           ],
           "state_fragments": {
             "hostile": [
@@ -3191,7 +4938,9 @@
             "powerful claws capable of terrible damage",
             "eyes that shift between rage and desperation",
             "protective stance over cubs",
-            "deep rumbling growl in chest"
+            "deep rumbling growl in chest",
+            "scars crisscrossing muzzle from past battles",
+            "breath misting in cold air"
           ],
           "state_fragments": {
             "hostile": [
@@ -3233,6 +4982,14 @@
               "consumed by loss and rage",
               "will not stop until satisfied",
               "eyes empty of everything but vengeance"
+            ],
+            "dead": [
+              "massive corpse sprawled across ground",
+              "once-fearsome form now still",
+              "blood matting thick fur",
+              "great chest no longer heaving",
+              "claws relaxed in death",
+              "forest predator felled"
             ]
           }
         }
@@ -3279,7 +5036,9 @@
             "small furry form",
             "eyes too large for weakened face",
             "soft whimpering sounds",
-            "seeking mother's warmth"
+            "seeking mother's warmth",
+            "rounded ears twitching at sounds",
+            "small paws with tiny claws"
           ],
           "state_fragments": {
             "sick": [
@@ -3305,6 +5064,14 @@
               "boundless energy",
               "approaching player with curiosity",
               "happy grunts and yips"
+            ],
+            "dead": [
+              "small body lying still",
+              "fur matted and lifeless",
+              "eyes closed forever",
+              "no longer suffering",
+              "peaceful in death",
+              "tiny tragedy"
             ]
           }
         }
@@ -3351,7 +5118,9 @@
             "slightly larger cub",
             "protective of sibling",
             "trying to stay strong",
-            "watching mother anxiously"
+            "watching mother anxiously",
+            "rounded ears twitching at sounds",
+            "small paws with tiny claws"
           ],
           "state_fragments": {
             "sick": [
@@ -3377,6 +5146,14 @@
               "thick healthy coat",
               "boundless cub energy",
               "happy growling play sounds"
+            ],
+            "dead": [
+              "small body lying still",
+              "fur matted and lifeless",
+              "eyes closed forever",
+              "no longer suffering",
+              "peaceful in death",
+              "tiny tragedy"
             ]
           }
         }
@@ -3403,6 +5180,50 @@
           "current": 0,
           "floor": -3,
           "ceiling": 5
+        },
+        "llm_context": {
+          "traits": [
+            "weathered face lined with determination",
+            "practical leather armor patched many times",
+            "commanding presence despite exhaustion",
+            "eyes that assess and decide quickly",
+            "voice carrying authority earned through crisis",
+            "protective stance toward camp survivors"
+          ],
+          "state_fragments": {
+            "neutral": [
+              "measuring newcomer carefully",
+              "hand resting near weapon",
+              "expression guarded but not hostile",
+              "weight of leadership visible",
+              "ready to defend if needed",
+              "calculating risk and benefit"
+            ],
+            "friendly": [
+              "shoulders relaxing slightly",
+              "cautious smile breaking through",
+              "gesturing openly",
+              "offering practical help",
+              "sharing burden of leadership",
+              "hope kindling in tired eyes"
+            ],
+            "allied": [
+              "standing shoulder to shoulder",
+              "full trust extended",
+              "strategic mind engaged with yours",
+              "protective of shared cause",
+              "relief at having capable ally",
+              "fighting for same future"
+            ],
+            "disappointed": [
+              "jaw tightening with betrayal",
+              "eyes hardening to cold assessment",
+              "stepping back emotionally",
+              "trust shattered visibly",
+              "hand moving to weapon hilt",
+              "regretting extended faith"
+            ]
+          }
         }
       },
       "behaviors": []
@@ -3415,7 +5236,17 @@
       "inventory": [],
       "properties": {
         "teaches": "basic_swimming",
-        "teaching_cost": 5
+        "teaching_cost": 5,
+        "llm_context": {
+          "traits": [
+            "ancient weathered face like driftwood",
+            "body lean and sinewy from decades swimming",
+            "eyes clouded with cataracts but knowing",
+            "skin mapped with old scars",
+            "speaking in sea metaphors",
+            "moving with water's own rhythm"
+          ]
+        }
       },
       "behaviors": []
     },
@@ -3456,6 +5287,50 @@
         "condition_reactions": {
           "drowning_stopped": {
             "handler": "behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
+          }
+        },
+        "llm_context": {
+          "traits": [
+            "wiry sailor with sun-weathered skin",
+            "tattoos of ships and sea serpents",
+            "tangled wet hair plastered to face",
+            "desperate eyes searching for rescue",
+            "hands grasping for anything solid",
+            "lungs burning for air"
+          ],
+          "state_fragments": {
+            "drowning": [
+              "thrashing in murky water",
+              "coughing up water between gasps",
+              "going under repeatedly",
+              "strength failing rapidly",
+              "panic overriding seamanship",
+              "seconds from death"
+            ],
+            "stabilized": [
+              "floating with support",
+              "breathing ragged but steady",
+              "consciousness wavering",
+              "clinging weakly to rescuer",
+              "water expelled from lungs",
+              "immediate danger passed"
+            ],
+            "rescued": [
+              "sprawled on dry ground",
+              "coughing violently",
+              "shaking with cold and shock",
+              "mumbling thanks through chattering teeth",
+              "soaked clothes steaming slightly",
+              "alive against odds"
+            ],
+            "dead": [
+              "floating face-down motionless",
+              "tattoos visible through clear water",
+              "hair drifting like seaweed",
+              "final bubbles long since risen",
+              "sailor claimed by water ironically",
+              "rescue came too late"
+            ]
           }
         }
       },
@@ -3503,6 +5378,50 @@
           "bleeding_stopped": {
             "handler": "behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
           }
+        },
+        "llm_context": {
+          "traits": [
+            "rotund figure in fine but sodden clothes",
+            "balding head gleaming with sweat",
+            "fingers adorned with rings",
+            "calculating eyes behind friendly face",
+            "voice pitched for persuasion",
+            "trapped in flooded warehouse prison"
+          ],
+          "state_fragments": {
+            "trapped": [
+              "clinging to floating debris",
+              "water up to chest",
+              "terror poorly masked by bluster",
+              "calling out desperately",
+              "strength fading visibly",
+              "bargaining frantically for rescue"
+            ],
+            "freed": [
+              "coughing up brackish water",
+              "trembling with relief and cold",
+              "clinging to rescuer gratefully",
+              "all mercantile facade stripped away",
+              "vulnerable and terrified still",
+              "needing dry ground desperately"
+            ],
+            "mobile": [
+              "wringing out expensive clothes",
+              "composure gradually returning",
+              "assessing damage to warehouse",
+              "calculating losses and debts",
+              "merchant mind re-engaging",
+              "grateful but already planning"
+            ],
+            "dead": [
+              "floating face-down in dark water",
+              "fine clothes dragging body under",
+              "rings glinting beneath surface",
+              "no longer calling for help",
+              "opportunity lost to flood",
+              "another victim of rising water"
+            ]
+          }
         }
       },
       "behaviors": []
@@ -3527,6 +5446,42 @@
           "current": 0,
           "floor": -2,
           "ceiling": 5
+        },
+        "llm_context": {
+          "traits": [
+            "tall figure in ink-stained robes",
+            "fingers constantly moving as if taking notes",
+            "eyes that see through to truth",
+            "surrounded by faint shimmer of preservation magic",
+            "voice precise and measured",
+            "keeper of dangerous knowledge"
+          ],
+          "state_fragments": {
+            "guardian": [
+              "standing before sealed archive entrance",
+              "barrier magic crackling around form",
+              "expression stern and unyielding",
+              "testing worthiness with questions",
+              "protecting knowledge from unworthy",
+              "duty absolute and uncompromising"
+            ],
+            "helpful": [
+              "gesturing toward relevant texts",
+              "explaining complex concepts patiently",
+              "excitement evident when sharing lore",
+              "pleased to find curious mind",
+              "archive opening to worthy seeker",
+              "knowledge given freely to deserving"
+            ],
+            "allied": [
+              "working beside as equal",
+              "sharing dangerous truths",
+              "barrier magic standing ready to protect both",
+              "trust extended to fellow scholar",
+              "collaborative search for answers",
+              "united in pursuit of truth"
+            ]
+          }
         }
       },
       "behaviors": []
@@ -3539,7 +5494,17 @@
       "inventory": [],
       "properties": {
         "hazard_type": "environmental",
-        "not_combat_encounter": true
+        "not_combat_encounter": true,
+        "llm_context": {
+          "traits": [
+            "sleek muscular body built for hunting",
+            "rows of serrated teeth visible",
+            "eyes dead and pitiless",
+            "fins cutting water silently",
+            "scales reflecting murky light",
+            "predator instinct in every twitch"
+          ]
+        }
       },
       "behaviors": []
     },
@@ -3816,7 +5781,51 @@
         "max_health": 30,
         "fungal": true,
         "pack_id": "sporeling_pack",
-        "pack_role": "follower"
+        "pack_role": "follower",
+        "llm_context": {
+          "traits": [
+            "small mushroom-like humanoid",
+            "cap dotted with glowing spores",
+            "shuffling uncertain gait",
+            "eyes wide and vacant",
+            "emanating faint fungal smell",
+            "movements jerky and confused"
+          ],
+          "state_fragments": {
+            "hostile": [
+              "spores flaring angry red",
+              "lurching forward aggressively",
+              "hissing with fungal breath",
+              "claws extended for slashing",
+              "infected rage driving it",
+              "no reasoning with corrupted mind"
+            ],
+            "wary": [
+              "keeping cautious distance",
+              "spores pulsing yellow uncertainty",
+              "head tilting in confusion",
+              "torn between programmed hostility and hesitation",
+              "infection loosening grip slightly",
+              "possibility of reason flickering"
+            ],
+            "allied": [
+              "spores glowing soft blue",
+              "approaching with trust",
+              "offering small fungal gifts",
+              "infection receding from mind",
+              "child-like curiosity emerging",
+              "grateful for being saved"
+            ],
+            "confused": [
+              "spores flashing erratically",
+              "stumbling in circles",
+              "clutching head with small hands",
+              "warring impulses visible",
+              "infection fighting with self",
+              "whimpering in distress"
+            ]
+          }
+        }
       },
       "behaviors": []
     },
@@ -3840,7 +5849,51 @@
         "max_health": 30,
         "fungal": true,
         "pack_id": "sporeling_pack",
-        "pack_role": "follower"
+        "pack_role": "follower",
+        "llm_context": {
+          "traits": [
+            "small mushroom-like humanoid",
+            "cap dotted with glowing spores",
+            "shuffling uncertain gait",
+            "eyes wide and vacant",
+            "emanating faint fungal smell",
+            "movements jerky and confused"
+          ],
+          "state_fragments": {
+            "hostile": [
+              "spores flaring angry red",
+              "lurching forward aggressively",
+              "hissing with fungal breath",
+              "claws extended for slashing",
+              "infected rage driving it",
+              "no reasoning with corrupted mind"
+            ],
+            "wary": [
+              "keeping cautious distance",
+              "spores pulsing yellow uncertainty",
+              "head tilting in confusion",
+              "torn between programmed hostility and hesitation",
+              "infection loosening grip slightly",
+              "possibility of reason flickering"
+            ],
+            "allied": [
+              "spores glowing soft blue",
+              "approaching with trust",
+              "offering small fungal gifts",
+              "infection receding from mind",
+              "child-like curiosity emerging",
+              "grateful for being saved"
+            ],
+            "confused": [
+              "spores flashing erratically",
+              "stumbling in circles",
+              "clutching head with small hands",
+              "warring impulses visible",
+              "infection fighting with self",
+              "whimpering in distress"
+            ]
+          }
+        }
       },
       "behaviors": []
     },
@@ -3864,7 +5917,51 @@
         "max_health": 20,
         "fungal": true,
         "pack_id": "sporeling_pack",
-        "pack_role": "follower"
+        "pack_role": "follower",
+        "llm_context": {
+          "traits": [
+            "small mushroom-like humanoid",
+            "cap dotted with glowing spores",
+            "shuffling uncertain gait",
+            "eyes wide and vacant",
+            "emanating faint fungal smell",
+            "movements jerky and confused"
+          ],
+          "state_fragments": {
+            "hostile": [
+              "spores flaring angry red",
+              "lurching forward aggressively",
+              "hissing with fungal breath",
+              "claws extended for slashing",
+              "infected rage driving it",
+              "no reasoning with corrupted mind"
+            ],
+            "wary": [
+              "keeping cautious distance",
+              "spores pulsing yellow uncertainty",
+              "head tilting in confusion",
+              "torn between programmed hostility and hesitation",
+              "infection loosening grip slightly",
+              "possibility of reason flickering"
+            ],
+            "allied": [
+              "spores glowing soft blue",
+              "approaching with trust",
+              "offering small fungal gifts",
+              "infection receding from mind",
+              "child-like curiosity emerging",
+              "grateful for being saved"
+            ],
+            "confused": [
+              "spores flashing erratically",
+              "stumbling in circles",
+              "clutching head with small hands",
+              "warring impulses visible",
+              "infection fighting with self",
+              "whimpering in distress"
+            ]
+          }
+        }
       },
       "behaviors": []
     },
@@ -4007,6 +6104,42 @@
             "friendly"
           ],
           "initial": "suspicious"
+        },
+        "llm_context": {
+          "traits": [
+            "young face trying to look stern",
+            "town militia uniform slightly too large",
+            "spear held with nervous grip",
+            "shoulders squared with borrowed authority",
+            "watching road with mix of duty and fear",
+            "first real posting evident"
+          ],
+          "state_fragments": {
+            "suspicious": [
+              "eyes narrowing with distrust",
+              "spear lowering to challenge",
+              "stepping forward to block passage",
+              "voice cracking slightly on challenge",
+              "trying to seem more confident than feels",
+              "ready to call for backup"
+            ],
+            "neutral": [
+              "relaxing to parade rest",
+              "assessing without prejudice",
+              "professional demeanor settling",
+              "following protocol by rote",
+              "neither welcoming nor blocking",
+              "waiting for reason to decide"
+            ],
+            "friendly": [
+              "grin breaking through formal stance",
+              "spear shifting to casual lean",
+              "chatting about town gossip",
+              "offering unsolicited advice",
+              "proud to be helpful",
+              "waving through checkpoint"
+            ]
+          }
         }
       },
       "behaviors": []
@@ -4027,7 +6160,17 @@
           "sell_healing_items",
           "buy_plants",
           "teach_basic_herbalism"
-        ]
+        ],
+        "llm_context": {
+          "traits": [
+            "nimble fingers sorting dried plants",
+            "apron stained with herbal tinctures",
+            "weathered face from outdoor gathering",
+            "eyes cataloging symptoms at glance",
+            "voice gentle with bedside manner",
+            "practical knowledge in every movement"
+          ]
+        }
       },
       "behaviors": []
     },
@@ -4042,7 +6185,17 @@
           "sell_weapons",
           "sell_armor",
           "repair_weapons"
-        ]
+        ],
+        "llm_context": {
+          "traits": [
+            "massive shoulders from hammer work",
+            "burns and scars mapping both arms",
+            "leather apron scored and stained",
+            "testing grip and balance constantly",
+            "voice rough from forge smoke",
+            "pride evident in every blade shown"
+          ]
+        }
       },
       "behaviors": []
     },
@@ -4285,6 +6438,16 @@
           "current": 0,
           "floor": -3,
           "ceiling": 5
+        },
+        "llm_context": {
+          "traits": [
+            "broad-shouldered former guard captain",
+            "graying beard trimmed military-precise",
+            "stance wide and defensive",
+            "scarred knuckles from past service",
+            "voice gruff but measured",
+            "assessing threats constantly"
+          ]
         }
       },
       "behaviors": []
@@ -4302,7 +6465,17 @@
           "floor": -3,
           "ceiling": 5
         },
-        "can_perform_unbranding": true
+        "can_perform_unbranding": true,
+        "llm_context": {
+          "traits": [
+            "regal bearing despite refugee status",
+            "silver hair braided with faded ribbons",
+            "robes once fine now travel-stained",
+            "eyes sharp with political cunning",
+            "voice modulated for persuasion",
+            "hands gesturing with habitual authority"
+          ]
+        }
       },
       "behaviors": []
     },
@@ -4319,7 +6492,17 @@
           "floor": -3,
           "ceiling": 5
         },
-        "has_undercity_connections": true
+        "has_undercity_connections": true,
+        "llm_context": {
+          "traits": [
+            "thin scholarly figure bent from study",
+            "ink-stained fingers constantly writing",
+            "spectacles perched on sharp nose",
+            "robes pocketed with notes and scrolls",
+            "speaking in numbered points",
+            "logic prized above emotion"
+          ]
+        }
       },
       "behaviors": []
     },
@@ -4344,7 +6527,51 @@
           "stone_chisel",
           "animator_crystal",
           "ritual_knowledge"
-        ]
+        ],
+        "llm_context": {
+          "traits": [
+            "massive stone construct cracked and broken",
+            "ancient runes flickering weakly along limbs",
+            "missing left arm entirely",
+            "gaping fracture across torso",
+            "one eye dark and lifeless",
+            "seated against wall in broken dignity"
+          ],
+          "state_fragments": {
+            "non_functional": [
+              "all runes dark and dead",
+              "completely motionless",
+              "stone cold and lifeless",
+              "ancient magic dormant",
+              "nothing but weathered statue",
+              "waiting for impossible restoration"
+            ],
+            "partially_awakened": [
+              "runes flickering erratically",
+              "head turning slowly to track movement",
+              "attempting communication through broken voice",
+              "one massive fist clenching weakly",
+              "awareness struggling against damage",
+              "power insufficient for full function"
+            ],
+            "functional": [
+              "runes glowing steady amber",
+              "rising to knees with grinding effort",
+              "deep voice resonating from stone throat",
+              "following simple commands",
+              "damaged but operational",
+              "incomplete but determined"
+            ],
+            "active": [
+              "runes blazing brilliant gold",
+              "standing fully despite missing arm",
+              "moving with surprising grace",
+              "voice strong and commanding",
+              "ancient purpose fulfilled again",
+              "guardian restored to duty"
+            ]
+          }
+        }
       },
       "behaviors": []
     },
@@ -4358,7 +6585,17 @@
         "services": [
           "buy_stolen",
           "sell_contraband"
-        ]
+        ],
+        "llm_context": {
+          "traits": [
+            "nondescript appearance cultivated carefully",
+            "fingers quick and light",
+            "eyes that assess value instantly",
+            "clothing chosen for blend not style",
+            "smile friendly but calculating",
+            "connections hidden but extensive"
+          ]
+        }
       },
       "behaviors": []
     },
@@ -4372,7 +6609,17 @@
         "services": [
           "sell_npc_secrets",
           "sell_location_secrets"
-        ]
+        ],
+        "llm_context": {
+          "traits": [
+            "barely tangible presence",
+            "voice soft as breath on skin",
+            "secrets carried like currency",
+            "appearing without announcement",
+            "speaking truths uncomfortable to hear",
+            "gone before questions can form"
+          ]
+        }
       },
       "behaviors": []
     },
@@ -4387,7 +6634,17 @@
           "assassination_contracts"
         ],
         "discovery_chance": 0.2,
-        "delay_turns": 3
+        "delay_turns": 3,
+        "llm_context": {
+          "traits": [
+            "darkness given form and purpose",
+            "edges indistinct and shifting",
+            "presence felt more than seen",
+            "voice like whispers in empty rooms",
+            "slipping between light and dark",
+            "observer from hidden vantage"
+          ]
+        }
       },
       "behaviors": []
     }

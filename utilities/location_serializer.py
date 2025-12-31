@@ -11,6 +11,7 @@ from typing import Any, Dict, Optional
 
 from src.types import ActorId
 from utilities.entity_serializer import entity_to_dict
+from utilities.state_variant_selector import select_state_variant
 from utilities.utils import gather_location_contents
 
 
@@ -76,8 +77,27 @@ def serialize_location_for_llm(accessor, location, actor_id: ActorId) -> Dict[st
     player_context = _build_player_context(accessor, actor_id)
     result["player_context"] = player_context
 
-    # Serialize location (doesn't need player_context - it's not an item)
-    result["location"] = entity_to_dict(location)
+    # Serialize location
+    location_dict = entity_to_dict(location)
+
+    # Select state variant based on world state (Context Builder logic)
+    if 'llm_context' in location_dict:
+        state = accessor.game_state
+        state_note = select_state_variant(
+            location_dict['llm_context'],
+            location,
+            state.extra,
+            actor_id
+        )
+
+        if state_note:
+            location_dict['state_note'] = state_note
+
+        # Remove state_variants from output - Narration Model should only see selected variant
+        # (same pattern as perspective_variants for items)
+        location_dict['llm_context'].pop('state_variants', None)
+
+    result["location"] = location_dict
 
     # Gather visible contents using shared utility
     contents = gather_location_contents(accessor, location.id, actor_id)
