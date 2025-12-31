@@ -24,8 +24,7 @@
       "examples.big_game.behaviors.regions.frozen_reaches.hypothermia",
       "examples.big_game.behaviors.regions.frozen_reaches.telescope_repair",
       "examples.big_game.behaviors.regions.frozen_reaches.salamanders",
-      "examples.big_game.behaviors.shared.infrastructure.gift_reactions",
-      "examples.big_game.behaviors.shared.infrastructure.give_verb_handler"
+      "examples.big_game.behaviors.shared.infrastructure.gift_reactions"
     ]
   },
   "locations": [
@@ -1110,7 +1109,7 @@
             "accepted_items": [
               "crystal_lens",
               "mounting_bracket",
-              "command_crystal"
+              "command_orb"
             ],
             "handler": "behaviors.regions.frozen_reaches.telescope_repair:on_use_component_on_telescope"
           }
@@ -1300,7 +1299,7 @@
       ]
     },
     {
-      "id": "command_crystal",
+      "id": "command_orb",
       "name": "command orb",
       "description": "An ancient command orb, hidden in a side passage of the ice caves. This orb grants full control over the temple guardians - the best solution to the golem puzzle.",
       "location": "ice_caves",
@@ -2070,9 +2069,7 @@
           ],
           "handler": "behaviors.regions.beast_wilds.wolf_pack:on_wolf_state_change"
         },
-        "gift_reactions": {
-          "handler": "behaviors.regions.beast_wilds.wolf_pack:on_wolf_feed"
-        },
+        "gift_reactions": {},
         "llm_context": {
           "traits": [
             "massive grey form",
@@ -2126,7 +2123,9 @@
           }
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.regions.beast_wilds.wolf_pack"
+      ]
     },
     "frost_wolf_1": {
       "id": "frost_wolf_1",
@@ -2279,14 +2278,14 @@
           "is_pack_leader": true,
           "pack_follows_leader_state": true
         },
-        "gift_reactions": {
-          "handler": "examples.big_game.behaviors.regions.frozen_reaches.salamanders:on_fire_gift"
-        },
+        "gift_reactions": {},
         "dialog_topics": {
           "handler": "behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.regions.frozen_reaches.salamanders"
+      ]
     },
     "steam_salamander_2": {
       "id": "steam_salamander_2",
@@ -2324,7 +2323,9 @@
           "handler": "behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.regions.frozen_reaches.salamanders"
+      ]
     },
     "steam_salamander_3": {
       "id": "steam_salamander_3",
@@ -2362,7 +2363,9 @@
           "handler": "behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.regions.frozen_reaches.salamanders"
+      ]
     },
     "stone_golem_1": {
       "id": "stone_golem_1",
@@ -2428,9 +2431,9 @@
           "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_password"
         },
         "item_use_reactions": {
-          "command_crystal": {
+          "command_orb": {
             "accepted_items": [
-              "command_crystal"
+              "command_orb"
             ],
             "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_item_use"
           },
@@ -2522,9 +2525,9 @@
           "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_password"
         },
         "item_use_reactions": {
-          "command_crystal": {
+          "command_orb": {
             "accepted_items": [
-              "command_crystal"
+              "command_orb"
             ],
             "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_item_use"
           },
@@ -2687,6 +2690,11 @@
               "hands relaxed at last"
             ]
           }
+        },
+        "trust_state": {
+          "current": 0,
+          "floor": -5,
+          "ceiling": 5
         }
       },
       "behaviors": []
@@ -2858,9 +2866,7 @@
           "water_bloom",
           "frost_lily"
         ],
-        "gift_reactions": {
-          "handler": "behaviors.regions.beast_wilds.bee_queen:on_flower_offer"
-        },
+        "gift_reactions": {},
         "take_reactions": {
           "handler": "behaviors.regions.beast_wilds.bee_queen:on_honey_theft"
         },
@@ -2915,7 +2921,9 @@
           }
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.regions.beast_wilds.bee_queen"
+      ]
     },
     "dire_bear": {
       "id": "dire_bear",
@@ -3015,7 +3023,9 @@
           }
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.regions.beast_wilds.bear_cubs"
+      ]
     },
     "bear_cub_1": {
       "id": "bear_cub_1",
@@ -3805,9 +3815,16 @@
           "sell_healing_items",
           "buy_plants",
           "teach_basic_herbalism"
-        ]
+        ],
+        "trust_state": {
+          "current": 0,
+          "floor": -5,
+          "ceiling": 5
+        }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.regions.civilized_remnants.services"
+      ]
     },
     "weaponsmith_toran": {
       "id": "weaponsmith_toran",
@@ -3937,6 +3954,11 @@
               "partnership clearly implied"
             ]
           }
+        },
+        "trust_state": {
+          "current": 0,
+          "floor": 0,
+          "ceiling": 5
         }
       },
       "behaviors": []
@@ -4047,9 +4069,16 @@
               "reassuring calm presence"
             ]
           }
+        },
+        "trust_state": {
+          "current": 0,
+          "floor": -5,
+          "ceiling": 5
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.regions.civilized_remnants.services"
+      ]
     },
     "councilor_hurst": {
       "id": "councilor_hurst",

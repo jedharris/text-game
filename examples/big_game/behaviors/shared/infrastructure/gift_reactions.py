@@ -29,9 +29,7 @@ from typing import Any
 from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import load_handler
 from src.behavior_manager import EventResult
 from src.infrastructure_utils import (
-    get_current_state,
-    modify_trust,
-    transition_state,
+    apply_trust_change,
 )
 
 # Vocabulary: wire hooks to events
@@ -143,26 +141,12 @@ def _process_gift_reaction(
     # Apply trust changes if configured
     trust_delta = reaction_config.get("trust_delta", 0)
     if trust_delta:
-        trust_state = target.properties.get("trust_state", {"current": 0})
-        old_trust = trust_state.get("current", 0)
-        new_trust = modify_trust(
-            current=old_trust,
-            delta=trust_delta,
-            floor=trust_state.get("floor", -5),
-            ceiling=trust_state.get("ceiling", 5),
-        )
-        trust_state["current"] = new_trust
-        target.properties["trust_state"] = trust_state
-
-        # Check for state transitions based on trust thresholds
         transitions = reaction_config.get("trust_transitions", {})
-        sm = target.properties.get("state_machine")
-        if sm and transitions:
-            current_state = get_current_state(sm)
-            for threshold_str, new_state in transitions.items():
-                threshold = int(threshold_str)
-                if old_trust < threshold <= new_trust:
-                    transition_state(sm, new_state)
+        apply_trust_change(
+            entity=target,
+            delta=trust_delta,
+            transitions=transitions,
+        )
 
     # Set flags if configured
     flags = reaction_config.get("set_flags", {})

@@ -8,9 +8,9 @@ from typing import Any, Dict
 
 from src.behavior_manager import EventResult
 from src.infrastructure_utils import (
+    apply_trust_change,
     create_commitment,
     get_current_turn,
-    modify_trust,
     transition_state,
 )
 from src.narrator_helpers import select_state_fragments
@@ -120,14 +120,11 @@ def on_aldric_commitment(
     aldric = state.actors.get("npc_aldric")
     if aldric:
         # Aldric becomes slightly more hopeful
-        trust_state = aldric.properties.get("trust_state", {"current": 0})
-        new_trust = modify_trust(
-            current=trust_state.get("current", 0),
-            delta=1,
-            ceiling=5,
-        )
-        trust_state["current"] = new_trust
-        aldric.properties["trust_state"] = trust_state
+        # Initialize trust_state if missing
+        if "trust_state" not in aldric.properties:
+            aldric.properties["trust_state"] = {"current": 0}
+
+        apply_trust_change(entity=aldric, delta=1)
 
     return EventResult(
         allow=True,
@@ -218,14 +215,11 @@ def on_aldric_heal(
             del conditions["fungal_infection"]
 
         # Increase trust for teaching
-        trust_state = aldric.properties.get("trust_state", {"current": 0})
-        new_trust = modify_trust(
-            current=trust_state.get("current", 0),
-            delta=2,
-            ceiling=5,
-        )
-        trust_state["current"] = new_trust
-        aldric.properties["trust_state"] = trust_state
+        # Initialize trust_state if missing
+        if "trust_state" not in aldric.properties:
+            aldric.properties["trust_state"] = {"current": 0}
+
+        apply_trust_change(entity=aldric, delta=2)
 
         # Select fragments for the new state
         fragments = select_state_fragments(aldric, "recovering", max_count=2)

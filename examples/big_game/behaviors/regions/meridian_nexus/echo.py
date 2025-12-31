@@ -8,7 +8,7 @@ from typing import Any, Dict
 
 from src.behavior_manager import EventResult
 from src.state_accessor import IGNORE_EVENT
-from src.infrastructure_utils import modify_trust
+from src.infrastructure_utils import apply_trust_change
 
 # Vocabulary: wire hooks to events
 # Note: Dialog reactions are handled by infrastructure/dialog_reactions.py
@@ -55,13 +55,13 @@ def on_echo_gossip(
     if not echo:
         return EventResult(allow=True, feedback=None)
 
-    trust_state = echo.properties.get("trust_state", {"current": 0})
+    # Initialize trust_state if missing
+    if "trust_state" not in echo.properties:
+        echo.properties["trust_state"] = {"current": 0}
 
     # Respond to different events
     if "spore_mother" in gossip_content and "healed" in gossip_content:
-        trust_state["current"] = modify_trust(
-            trust_state.get("current", 0), delta=2, ceiling=5
-        )
+        apply_trust_change(entity=echo, delta=2)
         return EventResult(
             allow=True,
             feedback=(
@@ -71,9 +71,7 @@ def on_echo_gossip(
         )
 
     if "spore_mother" in gossip_content and "killed" in gossip_content:
-        trust_state["current"] = modify_trust(
-            trust_state.get("current", 0), delta=-2, floor=-5
-        )
+        apply_trust_change(entity=echo, delta=-2)
         return EventResult(
             allow=True,
             feedback=(
@@ -83,9 +81,7 @@ def on_echo_gossip(
         )
 
     if "salamander" in gossip_content and ("killed" in gossip_content or "died" in gossip_content):
-        trust_state["current"] = modify_trust(
-            trust_state.get("current", 0), delta=-1, floor=-5
-        )
+        apply_trust_change(entity=echo, delta=-1)
         return EventResult(
             allow=True,
             feedback=(
@@ -113,9 +109,7 @@ def on_echo_gossip(
         )
 
     if "cubs" in gossip_content and "died" in gossip_content:
-        trust_state["current"] = modify_trust(
-            trust_state.get("current", 0), delta=-1, floor=-5
-        )
+        apply_trust_change(entity=echo, delta=-1)
         return EventResult(
             allow=True,
             feedback=(
@@ -124,7 +118,6 @@ def on_echo_gossip(
             ),
         )
 
-    echo.properties["trust_state"] = trust_state
     return EventResult(allow=True, feedback=None)
 
 

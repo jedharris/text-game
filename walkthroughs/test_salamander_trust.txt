@@ -1,0 +1,61 @@
+# Salamander Trust System
+# Tests gesture communication, fire gifts, trust progression, and state transitions
+
+# Part 1: Navigate to hot springs and test gesture communication
+go north
+go west
+go north
+
+# Talk to lead salamander - should get gestures (neutral state)
+talk to salamander
+
+# Part 2: Get fire items for trust building
+go south
+go east
+go north
+
+# Deactivate golems to access temple treasures
+ask guardian about "fire-that-gives-life and water-that-cleanses"
+
+# Take fire wand (fire-aspected item)
+take fire wand
+
+# Part 3: First gift - neutral to friendly transition
+go south
+go west
+go north
+
+# Give fire wand to salamander (should trigger trust increase and friendly transition)
+give fire wand to salamander
+
+# Talk again - should show friendly state gestures
+talk to salamander
+
+# Talk to follower - should also show friendly (pack mirroring)
+talk to steam salamander
+
+# Part 4: Test non-fire item rejection
+
+# Go to temple to get non-fire item
+go south
+go east
+go north
+
+# Take non-fire item
+take cloak
+
+# Go back to hot springs
+go south
+go west
+go north
+
+# Try giving non-fire item - should be rejected
+give cloak to salamander
+
+# SUCCESS: Salamander trust system validated!
+# - Gesture-based dialogue works (no words)
+# - Fire gifts accepted with reactions
+# - Trust increases from gifts
+# - State transitions work (neutral -> friendly)
+# - Pack mirroring works (followers match lead state)
+# - Non-fire items properly rejected

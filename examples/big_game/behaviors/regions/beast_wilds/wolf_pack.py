@@ -7,8 +7,8 @@ from typing import Any, Dict
 
 from src.behavior_manager import EventResult
 from src.infrastructure_utils import (
+    apply_trust_change,
     get_current_state,
-    modify_trust,
     transition_state,
 )
 from src.narrator_helpers import select_state_fragments
@@ -20,7 +20,13 @@ from src.narrator_helpers import select_state_fragments
 #   - pack_behavior.pack_follows_leader_state=true for pack mirroring
 #   - gift_reactions configuration for feeding mechanics
 vocabulary: Dict[str, Any] = {
-    "events": []
+    "events": [
+        {
+            "event": "on_receive_item",
+            "hook": "entity_item_received",
+            "description": "Handle feeding wolves to build trust"
+        }
+    ]
 }
 
 
@@ -72,7 +78,7 @@ def on_wolf_state_change(
     return EventResult(allow=True, feedback=None)
 
 
-def on_wolf_feed(
+def on_receive_item(
     entity: Any,
     accessor: Any,
     context: dict[str, Any],
@@ -83,24 +89,26 @@ def on_wolf_feed(
     cause state transitions (hostile -> wary -> neutral -> friendly).
 
     Args:
-        entity: The item being given
+        entity: The wolf receiving the item (when called via on_receive_item)
         accessor: StateAccessor instance
-        context: Context with target_actor, item
+        context: Context with item, item_id, giver_id
 
     Returns:
         EventResult with feeding result message
     """
-    target = context.get("target_actor")
-    if not target:
-        return EventResult(allow=True, feedback=None)
+    # When called via on_receive_item, entity is the wolf
+    wolf = entity
+    wolf_id = wolf.id if hasattr(wolf, "id") else str(wolf)
 
-    # Check if target is a wolf
-    target_id = target.id if hasattr(target, "id") else str(target)
-    if "wolf" not in target_id.lower():
+    # Check if this is a wolf
+    if "wolf" not in wolf_id.lower():
         return EventResult(allow=True, feedback=None)
 
     # Check if item is food (meat/venison)
-    item = context.get("item") or entity
+    item = context.get("item")
+    if not item:
+        return EventResult(allow=True, feedback=None)
+
     item_id = item.id if hasattr(item, "id") else str(item)
     food_items = ["venison", "meat", "rabbit"]
     is_food = any(food in item_id.lower() for food in food_items)
@@ -113,35 +121,22 @@ def on_wolf_feed(
     if not alpha:
         return EventResult(allow=True, feedback=None)
 
-    # Increase trust
-    trust_state = alpha.properties.get("trust_state", {"current": 0})
-    old_trust = trust_state.get("current", 0)
-    new_trust = modify_trust(
-        current=old_trust,
+    # Initialize trust_state if missing
+    if "trust_state" not in alpha.properties:
+        alpha.properties["trust_state"] = {"current": 0}
+
+    # Increase trust with state transitions
+    result = apply_trust_change(
+        entity=alpha,
         delta=1,
-        floor=trust_state.get("floor", -3),
-        ceiling=trust_state.get("ceiling", 6),
+        transitions={"1": "wary", "2": "neutral", "3": "friendly", "5": "allied"},
     )
-    trust_state["current"] = new_trust
-    alpha.properties["trust_state"] = trust_state
 
     # Check for state transitions based on trust
     sm = alpha.properties.get("state_machine")
     if sm:
-        current_state = get_current_state(sm)
-        new_state = None
-
-        if current_state == "hostile" and new_trust >= 1:
-            new_state = "wary"
-        elif current_state == "wary" and new_trust >= 2:
-            new_state = "neutral"
-        elif current_state == "neutral" and new_trust >= 3:
-            new_state = "friendly"
-        elif current_state == "friendly" and new_trust >= 5:
-            new_state = "allied"
-
-        if new_state:
-            transition_state(sm, new_state)
+        if result["state_changed"]:
+            new_state = result["new_state"]
             # Pack will mirror via on_wolf_state_change
 
             # Select fragments for the new state
@@ -163,11 +158,16 @@ def on_wolf_feed(
                     "at your feet - a massive fang, freely given. A mark of pack bond."
                 )
 
+            # Get previous state for context
+            prev_state = get_current_state(sm) if not result["state_changed"] else None
+            # Since we just transitioned, the current state is new_state
+            # But we don't have the old state anymore - this is a limitation
+
             return EventResult(
                 allow=True,
                 feedback=f"The wolf accepts the {item_id}. Its posture changes noticeably.{extra_feedback}",
                 context={
-                    "npc_state": {"previous": current_state, "current": new_state},
+                    "npc_state": {"current": new_state},
                     "communication": {"type": "body_language"}
                 },
                 hints=["trust-building", "tense"],

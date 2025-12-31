@@ -30,8 +30,8 @@ from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import l
 from src.behavior_manager import EventResult
 from src.infrastructure_types import GossipId
 from src.infrastructure_utils import (
+    apply_trust_change,
     create_gossip,
-    modify_trust,
     transition_state,
 )
 
@@ -116,15 +116,11 @@ def on_entity_death(
     for target_id, delta in trust_changes.items():
         target = state.actors.get(target_id)
         if target:
-            trust_state = target.properties.get("trust_state", {"current": 0})
-            new_trust = modify_trust(
-                current=trust_state.get("current", 0),
-                delta=delta,
-                floor=trust_state.get("floor", -5),
-                ceiling=trust_state.get("ceiling", 5),
-            )
-            trust_state["current"] = new_trust
-            target.properties["trust_state"] = trust_state
+            # Initialize trust_state if missing
+            if "trust_state" not in target.properties:
+                target.properties["trust_state"] = {"current": 0}
+
+            apply_trust_change(entity=target, delta=delta)
 
     # Trigger state changes on other entities
     state_changes = death_config.get("trigger_state_changes", {})

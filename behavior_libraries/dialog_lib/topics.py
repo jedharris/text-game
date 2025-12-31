@@ -29,6 +29,7 @@ Usage:
     )
 """
 from src.types import ActorId
+from src.infrastructure_utils import apply_trust_change
 
 import importlib
 import logging
@@ -318,17 +319,14 @@ def handle_ask_about(accessor, npc, topic_text: str) -> DialogResult:
         # Initialize trust_state if missing
         if 'trust_state' not in npc.properties:
             npc.properties['trust_state'] = {'current': 0}
-        trust_state = npc.properties['trust_state']
-        # Get bounds if defined
-        floor = trust_state.get('floor')
-        ceiling = trust_state.get('ceiling')
-        # Calculate new value with bounds
-        new_trust = trust_state['current'] + trust_delta
-        if floor is not None and new_trust < floor:
-            new_trust = floor
-        if ceiling is not None and new_trust > ceiling:
-            new_trust = ceiling
-        trust_state['current'] = new_trust
+
+        # Apply trust change using unified utility
+        transitions = topic.get('trust_transitions', {})
+        apply_trust_change(
+            entity=npc,
+            delta=trust_delta,
+            transitions=transitions,
+        )
 
     # Return summary
     summary = topic.get('summary', f"{npc.name} discusses {topic_name}.")

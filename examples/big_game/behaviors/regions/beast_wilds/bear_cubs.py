@@ -9,9 +9,9 @@ from typing import Any, Dict
 from src.behavior_manager import EventResult
 from src.infrastructure_types import TurnNumber
 from src.infrastructure_utils import (
+    apply_trust_change,
     create_commitment,
     get_current_turn,
-    modify_trust,
     transition_state,
 )
 
@@ -206,15 +206,11 @@ def on_cubs_healed(
             transition_state(sm, "grateful")
 
         # Increase trust
-        trust_state = bear.properties.get("trust_state", {"current": 0})
-        new_trust = modify_trust(
-            current=trust_state.get("current", 0),
-            delta=3,
-            floor=trust_state.get("floor", -5),
-            ceiling=trust_state.get("ceiling", 5),
-        )
-        trust_state["current"] = new_trust
-        bear.properties["trust_state"] = trust_state
+        # Initialize trust_state if missing
+        if "trust_state" not in bear.properties:
+            bear.properties["trust_state"] = {"current": 0}
+
+        apply_trust_change(entity=bear, delta=3)
 
     # Mark cubs as recovering
     for cub_id in ["bear_cub_1", "bear_cub_2"]:

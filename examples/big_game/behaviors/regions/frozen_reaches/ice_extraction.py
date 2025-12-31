@@ -42,7 +42,7 @@ vocabulary: Dict[str, Any] = {
 # Heat source item IDs that can safely melt ice
 HEAT_SOURCES = [
     "torch",
-    "fire_crystal",
+    "fire_wand",
     "salamander_heated_stone",
     "lit_torch",  # In case torch becomes lit_torch when lit
 ]

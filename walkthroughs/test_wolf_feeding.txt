@@ -1,0 +1,17 @@
+# Wolf Pack Feeding System Test
+# Tests giving venison to alpha wolf to build trust
+
+# Navigate to forest edge where venison is
+go south
+
+# Take venison
+take venison
+
+# Navigate to wolf clearing
+go north
+go west
+
+# Give venison to alpha wolf - should get reaction
+give venison to alpha wolf
+
+# SUCCESS: Wolf feeding system validated!

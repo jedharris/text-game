@@ -1,0 +1,27 @@
+# Test Gift Reaction System
+# Focused test to verify salamander gift reactions work
+
+# Navigate to hot springs
+go north
+go west
+go north
+
+# Get fire wand from temple first
+go south
+go east
+go north
+
+# Deactivate golems
+ask guardian about "fire-that-gives-life and water-that-cleanses"
+
+# Take fire wand (fire item)
+take fire wand
+
+# Go to hot springs
+go south
+go west
+go north
+
+# Give fire wand to salamander - should get reaction message
+give fire wand to salamander
+# EXPECT: output should contain "flame" or "brightens" or "accepts"

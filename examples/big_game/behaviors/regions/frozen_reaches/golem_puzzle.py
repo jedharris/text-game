@@ -31,7 +31,7 @@ vocabulary: Dict[str, Any] = {
         {"word": "cold", "synonyms": []},
         {"word": "resistance", "synonyms": []},
         {"word": "lore", "synonyms": []},  # for lore_tablets
-        {"word": "fire", "synonyms": []},  # for fire_crystal
+        {"word": "fire", "synonyms": []},  # for fire_wand
     ]
 }
 
@@ -127,22 +127,22 @@ def on_golem_item_use(
     item_id = entity.id if hasattr(entity, "id") else str(entity)
     item_lower = item_id.lower()
 
-    # Check for command crystal first (specific item)
-    if "command_crystal" in item_lower or "command_orb" in item_lower:
-        return _handle_control_crystal(entity, accessor, context)
+    # Check for command orb first (specific item)
+    if "command_orb" in item_lower:
+        return _handle_control_orb(entity, accessor, context)
 
     # Check for ritual items (fire + water combination)
     return _handle_ritual(entity, accessor, context)
 
 
-def _handle_control_crystal(
+def _handle_control_orb(
     entity: Any,
     accessor: Any,
     context: dict[str, Any],
 ) -> EventResult:
-    """Handle using the control crystal on golems.
+    """Handle using the command orb on golems.
 
-    The control crystal gives full control - golems serve the player.
+    The command orb gives full control - golems serve the player.
     """
     target = context.get("target")
     target_id = target.id if target and hasattr(target, "id") else str(target) if target else ""
@@ -158,9 +158,9 @@ def _handle_control_crystal(
     return EventResult(
         allow=True,
         feedback=(
-            "The control crystal flares with power as you raise it. Both golems "
+            "The command orb flares with power as you raise it. Both golems "
             "immediately kneel, their runes blazing white. They await your commands, "
-            "bound to serve whoever holds the crystal. This is their original purpose."
+            "bound to serve whoever holds the orb. This is their original purpose."
         ),
     )
 

@@ -8,7 +8,7 @@ from typing import Any, Dict
 
 from src.behavior_manager import EventResult
 from src.infrastructure_utils import (
-    modify_trust,
+    apply_trust_change,
     transition_state,
 )
 
@@ -17,7 +17,13 @@ from src.infrastructure_utils import (
 # Note: Take reactions are handled by infrastructure/take_reactions.py
 # Bee Queen must have appropriate reaction configurations
 vocabulary: Dict[str, Any] = {
-    "events": []
+    "events": [
+        {
+            "event": "on_receive_item",
+            "hook": "entity_item_received",
+            "description": "Handle flower offerings to Bee Queen"
+        }
+    ]
 }
 
 # Valid flower types and their sources
@@ -28,7 +34,7 @@ FLOWER_TYPES = {
 }
 
 
-def on_flower_offer(
+def on_receive_item(
     entity: Any,
     accessor: Any,
     context: dict[str, Any],
@@ -39,24 +45,26 @@ def on_flower_offer(
     Trading 3 types unlocks allied state.
 
     Args:
-        entity: The item being given (flower)
+        entity: The bee queen receiving the item (when called via on_receive_item)
         accessor: StateAccessor instance
-        context: Context with target_actor
+        context: Context with item, item_id, giver_id
 
     Returns:
         EventResult with trade result
     """
-    target = context.get("target_actor")
-    if not target:
-        return EventResult(allow=True, feedback=None)
+    # When called via on_receive_item, entity is the bee queen
+    bee_queen = entity
+    bee_queen_id = bee_queen.id if hasattr(bee_queen, "id") else str(bee_queen)
 
-    # Check if target is bee queen
-    target_id = target.id if hasattr(target, "id") else str(target)
-    if target_id != "bee_queen":
+    # Check if this is the bee queen
+    if bee_queen_id != "bee_queen":
         return EventResult(allow=True, feedback=None)
 
     # Check if item is a valid flower
-    item = context.get("item") or entity
+    item = context.get("item")
+    if not item:
+        return EventResult(allow=True, feedback=None)
+
     item_id = item.id if hasattr(item, "id") else str(item)
     item_lower = item_id.lower()
 
@@ -117,14 +125,11 @@ def on_flower_offer(
                 transition_state(sm, "allied")
 
         # Increase trust
-        trust_state = queen.properties.get("trust_state", {"current": 0})
-        new_trust = modify_trust(
-            current=trust_state.get("current", 0),
-            delta=1,
-            ceiling=5,
-        )
-        trust_state["current"] = new_trust
-        queen.properties["trust_state"] = trust_state
+        # Initialize trust_state if missing
+        if "trust_state" not in queen.properties:
+            queen.properties["trust_state"] = {"current": 0}
+
+        apply_trust_change(entity=queen, delta=1)
 
     trade_count = len(traded)
     if trade_count >= 3:

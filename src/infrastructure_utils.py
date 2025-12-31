@@ -102,13 +102,15 @@ def increment_turn(state: GameState) -> TurnNumber:
 # =============================================================================
 
 
-def modify_trust(
+def _modify_trust(
     current: int,
     delta: int,
     floor: int | None = None,
     ceiling: int | None = None,
 ) -> int:
     """Modify a trust value with optional bounds.
+
+    Private implementation detail. External code should use apply_trust_change().
 
     Args:
         current: Current trust value
@@ -138,6 +140,64 @@ def check_trust_threshold(current: int, threshold: int, at_least: bool = True) -
     if at_least:
         return current >= threshold
     return current <= threshold
+
+
+def apply_trust_change(
+    entity: Any,
+    delta: int,
+    transitions: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    """Apply trust change to an entity and check for state transitions.
+
+    Unified trust modification for all interaction types (gifts, dialog, etc).
+
+    Args:
+        entity: Actor with trust_state property
+        delta: Change to apply (positive or negative)
+        transitions: Optional dict mapping trust thresholds to state names
+                     {"3": "friendly", "5": "companion"}
+
+    Returns:
+        {
+            "old_trust": int,
+            "new_trust": int,
+            "state_changed": bool,
+            "new_state": str | None
+        }
+    """
+    trust_state = entity.properties.get("trust_state", {"current": 0})
+    old_trust = trust_state.get("current", 0)
+
+    new_trust = _modify_trust(
+        current=old_trust,
+        delta=delta,
+        floor=trust_state.get("floor", -5),
+        ceiling=trust_state.get("ceiling", 5),
+    )
+    trust_state["current"] = new_trust
+    entity.properties["trust_state"] = trust_state
+
+    # Check for state transitions
+    state_changed = False
+    new_state = None
+    if transitions:
+        sm = entity.properties.get("state_machine")
+        if sm:
+            for threshold_str, target_state in transitions.items():
+                threshold = int(threshold_str)
+                # Trigger transition when crossing threshold upward
+                if old_trust < threshold <= new_trust:
+                    transition_state(sm, target_state)
+                    state_changed = True
+                    new_state = target_state
+                    break  # Only transition once per change
+
+    return {
+        "old_trust": old_trust,
+        "new_trust": new_trust,
+        "state_changed": state_changed,
+        "new_state": new_state,
+    }
 
 
 def calculate_recovery_amount(

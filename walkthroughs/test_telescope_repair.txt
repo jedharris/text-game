@@ -44,7 +44,7 @@ use fire wand on lens
 # Take crystal lens (now free from ice)
 take lens
 
-# Take command crystal (command orb) - this one can be picked up directly
+# Take command orb (command orb) - this one can be picked up directly
 take command orb
 
 # Verify we have all three components
@@ -69,7 +69,7 @@ use lens on telescope
 # Examine telescope to see progress
 examine telescope
 
-# Install component 3: command crystal
+# Install component 3: command orb
 use command orb on telescope
 
 # Examine telescope - should now be fully repaired

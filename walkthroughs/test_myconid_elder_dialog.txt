@@ -1,0 +1,26 @@
+# Myconid Elder Dialog Trust System
+# Tests dialog-based trust progression through asking about topics
+
+# Navigate to myconid sanctuary
+go west
+go down
+go east
+
+# Part 1: Test initial dialog without trust
+# Ask about resistance - requires trust >= 2, should be unavailable
+ask elder about resistance
+
+# Part 2: Build trust through dialog
+# Ask about cure - has trust_delta: 1
+ask elder about cure
+
+# Part 3: Ask about cure again to increase trust to 2
+ask elder about cure
+
+# Part 4: Now resistance topic should be available
+ask elder about resistance
+
+# SUCCESS: Dialog trust system validated!
+# - Topics with trust_delta increase trust when discussed
+# - Topics with requires_trust gate properly
+# - Trust progression through dialog works

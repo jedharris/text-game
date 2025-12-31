@@ -27,7 +27,7 @@ from typing import Any
 from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import load_handler
 from src.behavior_manager import EventResult
 from src.infrastructure_utils import (
-    modify_trust,
+    apply_trust_change,
     transition_state,
 )
 
@@ -191,15 +191,16 @@ def _process_reaction(
     # Apply trust changes
     trust_delta = reaction_config.get("trust_delta", 0)
     if trust_delta and hasattr(entity, "properties"):
-        trust_state = entity.properties.get("trust_state", {"current": 0})
-        new_trust = modify_trust(
-            current=trust_state.get("current", 0),
+        # Initialize trust_state if missing
+        if "trust_state" not in entity.properties:
+            entity.properties["trust_state"] = {"current": 0}
+
+        transitions = reaction_config.get("trust_transitions", {})
+        apply_trust_change(
+            entity=entity,
             delta=trust_delta,
-            floor=trust_state.get("floor", -5),
-            ceiling=trust_state.get("ceiling", 5),
+            transitions=transitions,
         )
-        trust_state["current"] = new_trust
-        entity.properties["trust_state"] = trust_state
 
     # State transitions
     new_state = reaction_config.get("transition_to")

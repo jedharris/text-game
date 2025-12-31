@@ -7,7 +7,7 @@ with trust-gated access.
 from typing import Any, Dict
 
 from src.behavior_manager import EventResult
-from src.infrastructure_utils import modify_trust
+from src.infrastructure_utils import apply_trust_change
 
 # Vocabulary: wire hooks to events
 # Note: Dialog reactions are handled by infrastructure/dialog_reactions.py
@@ -19,7 +19,6 @@ vocabulary: Dict[str, Any] = {
 
 # Service keywords
 HEAL_KEYWORDS = ["heal", "cure", "medicine", "treatment", "help"]
-SHOP_KEYWORDS = ["buy", "sell", "trade", "purchase", "wares"]
 
 
 def on_service_request(
@@ -49,11 +48,6 @@ def on_service_request(
     if "elara" in actor_id.lower():
         if any(k in keyword for k in HEAL_KEYWORDS):
             return _handle_elara_healing(entity, accessor)
-
-    # Marcus - Shopkeeper
-    if "marcus" in actor_id.lower():
-        if any(k in keyword for k in SHOP_KEYWORDS):
-            return _handle_marcus_shop(entity, accessor)
 
     return EventResult(allow=True, feedback=None)
 
@@ -92,7 +86,7 @@ def on_gossip_received(
     # Check gossip content for trust-affecting events
     if "sira" in gossip_content and "died" in gossip_content:
         if "elara" in actor_id.lower():
-            # Sira's death affects Elara
+            # Sira's death affects Elara (healer_elara or npc_healer_elara)
             if state.extra.get("player_confessed_sira"):
                 trust_change = -1  # Confessed first
                 message = "Elara nods grimly. 'At least you told me yourself.'"
@@ -105,15 +99,15 @@ def on_gossip_received(
         message = f"The news reaches {entity.name if hasattr(entity, 'name') else 'them'}. Trust is lost."
 
     if trust_change != 0:
-        trust_state = npc.properties.get("trust_state", {"current": 0})
-        new_trust = modify_trust(
-            current=trust_state.get("current", 0),
+        # Initialize trust_state if missing
+        if "trust_state" not in npc.properties:
+            npc.properties["trust_state"] = {"current": 0}
+
+        # Apply unified trust change
+        apply_trust_change(
+            entity=npc,
             delta=trust_change,
-            floor=trust_state.get("floor", -5),
-            ceiling=trust_state.get("ceiling", 5),
         )
-        trust_state["current"] = new_trust
-        npc.properties["trust_state"] = trust_state
 
     if message:
         return EventResult(allow=True, feedback=message)
@@ -155,14 +149,11 @@ def on_confession(
             # Apply reduced penalty
             elara = state.actors.get("npc_healer_elara")
             if elara:
-                trust_state = elara.properties.get("trust_state", {"current": 0})
-                new_trust = modify_trust(
-                    current=trust_state.get("current", 0),
-                    delta=-1,  # Reduced from -2
-                    floor=-5,
-                )
-                trust_state["current"] = new_trust
-                elara.properties["trust_state"] = trust_state
+                # Initialize trust_state if missing
+                if "trust_state" not in elara.properties:
+                    elara.properties["trust_state"] = {"current": 0}
+
+                apply_trust_change(entity=elara, delta=-1)  # Reduced from -2
 
             return EventResult(
                 allow=True,
@@ -225,27 +216,3 @@ def _handle_elara_healing(entity: Any, accessor: Any) -> EventResult:
     )
 
 
-def _handle_marcus_shop(entity: Any, accessor: Any) -> EventResult:
-    """Handle Marcus's shop service."""
-    state = accessor.game_state
-    marcus = entity
-
-    trust_state = marcus.properties.get("trust_state", {"current": 0})
-    trust = trust_state.get("current", 0)
-
-    if trust < -1:
-        return EventResult(
-            allow=True,
-            feedback=(
-                "Marcus barely acknowledges you. 'Shop's closed. To you, at least.'"
-            ),
-        )
-
-    # Shop available
-    return EventResult(
-        allow=True,
-        feedback=(
-            "Marcus spreads his wares before you. Bandages, herbs, basic supplies. "
-            "'Fair prices for fair dealing,' he says."
-        ),
-    )

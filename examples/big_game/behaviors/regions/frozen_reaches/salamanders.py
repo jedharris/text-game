@@ -8,7 +8,7 @@ from typing import Any, Dict
 
 from src.behavior_manager import EventResult
 from src.infrastructure_utils import (
-    modify_trust,
+    apply_trust_change,
     transition_state,
 )
 
@@ -19,7 +19,13 @@ from src.infrastructure_utils import (
 #   - pack_behavior.pack_follows_leader_state=true for pack mirroring
 #   - gift_reactions configuration for fire gift mechanics
 vocabulary: Dict[str, Any] = {
-    "events": [],
+    "events": [
+        {
+            "event": "on_receive_item",
+            "hook": "entity_item_received",
+            "description": "Handle fire gifts to salamanders"
+        }
+    ],
     # Add adjectives for multi-word NPC and item names
     "adjectives": [
         {"word": "fire", "synonyms": []},
@@ -32,7 +38,7 @@ vocabulary: Dict[str, Any] = {
 # Fire items salamanders accept
 FIRE_ITEMS = [
     "torch",
-    "fire_crystal",
+    "wand",  # fire_wand
     "warm_coal",
     "heated_stone",
     "fire",
@@ -40,7 +46,7 @@ FIRE_ITEMS = [
 ]
 
 
-def on_fire_gift(
+def on_receive_item(
     entity: Any,
     accessor: Any,
     context: dict[str, Any],
@@ -51,24 +57,26 @@ def on_fire_gift(
     transition salamanders to friendly/companion state.
 
     Args:
-        entity: The item being given
+        entity: The salamander receiving the gift (when called via on_receive_item)
         accessor: StateAccessor instance
-        context: Context with target_actor
+        context: Context with item, item_id, giver_id
 
     Returns:
         EventResult with gift result
     """
-    target = context.get("target_actor")
-    if not target:
-        return EventResult(allow=True, feedback=None)
+    # When called via on_receive_item, entity is the salamander
+    salamander = entity
+    salamander_id = salamander.id if hasattr(salamander, "id") else str(salamander)
 
-    # Check if target is a salamander
-    target_id = target.id if hasattr(target, "id") else str(target)
-    if "salamander" not in target_id.lower():
+    # Check if this is a salamander
+    if "salamander" not in salamander_id.lower():
         return EventResult(allow=True, feedback=None)
 
     # Check if item is fire-aspected
-    item = context.get("item") or entity
+    item = context.get("item")
+    if not item:
+        return EventResult(allow=True, feedback=None)
+
     item_id = item.id if hasattr(item, "id") else str(item)
     item_lower = item_id.lower()
 
@@ -87,38 +95,34 @@ def on_fire_gift(
     # Find lead salamander (all trust changes apply to lead)
     lead = state.actors.get("salamander")
     if not lead:
-        lead = target  # Use target if lead not found
+        lead = salamander  # Use this salamander if lead not found
 
-    # Increase trust/gratitude
-    trust_state = lead.properties.get("trust_state", {"current": 0})
-    old_trust = trust_state.get("current", 0)
-    new_trust = modify_trust(
-        current=old_trust,
+    # Initialize trust_state if missing
+    if "trust_state" not in lead.properties:
+        lead.properties["trust_state"] = {"current": 0}
+
+    # Increase trust/gratitude with state transitions
+    result = apply_trust_change(
+        entity=lead,
         delta=1,
-        floor=0,
-        ceiling=5,
+        transitions={"1": "friendly", "3": "companion"},
     )
-    trust_state["current"] = new_trust
-    lead.properties["trust_state"] = trust_state
 
-    # Check for state transitions
-    sm = lead.properties.get("state_machine", {})
-    current_state = sm.get("current", sm.get("initial", "neutral"))
+    # Mirror state to pack if transition occurred
+    if result["state_changed"]:
+        _mirror_salamander_state(state, result["new_state"])
 
-    if current_state == "neutral" and new_trust >= 1:
-        transition_state(sm, "friendly")
-        _mirror_salamander_state(state, "friendly")
+        if result["new_state"] == "friendly":
+            return EventResult(
+                allow=True,
+                feedback=(
+                    "The salamander's flame brightens with delight as it accepts the "
+                    f"{item_id}. It approaches cautiously, curling near you with a "
+                    "contented crackle. The other salamanders watch with interest."
+                ),
+            )
 
-        return EventResult(
-            allow=True,
-            feedback=(
-                "The salamander's flame brightens with delight as it accepts the "
-                f"{item_id}. It approaches cautiously, curling near you with a "
-                "contented crackle. The other salamanders watch with interest."
-            ),
-        )
-
-    if current_state == "friendly" and new_trust >= 3:
+    if result["new_trust"] >= 3 and result["state_changed"] and result["new_state"] == "companion":
         # Ready for companion - but needs invitation
         return EventResult(
             allow=True,

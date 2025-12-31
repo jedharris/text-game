@@ -40,7 +40,7 @@ vocabulary: Dict[str, Any] = {
 REQUIRED_COMPONENTS = {
     "crystal_lens": "lens",
     "mounting_bracket": "mounting",
-    "command_crystal": "power_source"
+    "command_orb": "power_source"
 }
 
 
@@ -170,7 +170,7 @@ def on_use(
             feedback=(
                 "The telescope is damaged and partially frozen. You can see through it, "
                 "but the image is blurry and incomplete. It needs repair.\n\n"
-                "Required components: crystal lens, mounting bracket, control crystal."
+                "Required components: crystal lens, mounting bracket, command orb."
             )
         )
 
@@ -236,7 +236,7 @@ def on_examine(
             allow=True,
             feedback=(
                 "The telescope is fully repaired and operational. All three components "
-                "are installed: crystal lens, mounting bracket, and control crystal. "
+                "are installed: crystal lens, mounting bracket, and command orb. "
                 "Runes glow along its brass fittings, and through the lens you can see "
                 "the entire world with perfect clarity."
             )
@@ -256,9 +256,9 @@ def on_examine(
         status_parts.append("✗ Mounting bracket needed (temple_sanctum altar)")
 
     if "power_source" in installed:
-        status_parts.append("✓ Control crystal installed")
+        status_parts.append("✓ Command orb installed")
     else:
-        status_parts.append("✗ Control crystal needed (ice_caves hidden passage)")
+        status_parts.append("✗ Command orb needed (ice_caves)")
 
     status = "\n".join(status_parts)
 
