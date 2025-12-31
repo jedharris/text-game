@@ -245,6 +245,38 @@ vocabulary: Dict[str, Any] = {
 - Validation at load, not runtime
 - Fail fast during development
 
+## Narration System Terminology
+
+The narration system has two distinct components:
+
+### Context Builder (Game Engine)
+- **Location**: `utilities/location_serializer.py`, `utilities/entity_serializer.py`
+- **Responsibility**: Assembles narration context from game state
+  - Queries game state (flags, properties, visit history)
+  - Selects appropriate `state_variant` or `perspective_variant`
+  - Composes narration context (traits + selected variant)
+  - Removes non-selected variants before sending to model
+- **Output**: JSON "recipe" containing exactly what the model should use
+
+### Narration Model (LLM)
+- **Location**: Claude API / Anthropic
+- **Responsibility**: Generates natural language prose
+  - Receives narration context from Context Builder
+  - Composes vivid description using provided traits
+  - Varies phrasing while respecting context
+  - Never makes game logic decisions
+- **Input**: JSON recipe from Context Builder
+- **Output**: Human-readable prose for player
+
+### Data Flow
+```
+Game State → Context Builder → Narration Context → Narration Model → Prose
+(flags,      (Python code)     (JSON recipe)       (Claude)         (player)
+properties)
+```
+
+**Key Principle**: The Context Builder makes ALL logic decisions (which variant to use). The Narration Model only handles language generation, never game logic.
+
 ## Common Utilities
 
 ```python

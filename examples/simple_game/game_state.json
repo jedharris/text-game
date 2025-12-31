@@ -237,7 +237,8 @@
       "location": "loc_start",
       "properties": {
         "type": "object",
-        "portable": true
+        "portable": true,
+        "equippable": true
       },
       "llm_context": {
         "traits": [

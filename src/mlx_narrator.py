@@ -51,18 +51,20 @@ class MLXNarrator:
                  vocabulary: Optional[Dict[str, Any]] = None,
                  show_traits: bool = False,
                  temperature: float = 0.8,
-                 max_tokens: int = DEFAULT_MAX_TOKENS):
+                 max_tokens: int = DEFAULT_MAX_TOKENS,
+                 shared_backend: Optional[Any] = None):
         """Initialize the narrator.
 
         Args:
             json_handler: LLMProtocolHandler for game engine communication
-            model: MLX model path (HuggingFace format)
+            model: MLX model path (HuggingFace format) - only used if shared_backend is None
             prompt_file: Path to system prompt file (required, must exist)
             behavior_manager: Optional BehaviorManager to get merged vocabulary
             vocabulary: Optional merged vocabulary dict (if not provided, loads default)
             show_traits: If True, print llm_context traits before each LLM narration
             temperature: Temperature for generation (0.0-2.0)
             max_tokens: Max tokens to generate
+            shared_backend: Optional SharedMLXBackend instance (saves ~4-6GB memory)
 
         Raises:
             ImportError: If mlx-lm is not installed
@@ -80,11 +82,19 @@ class MLXNarrator:
         self.show_traits = show_traits
         self.temperature = temperature
         self.max_tokens = max_tokens
+        self.shared_backend = shared_backend
 
-        # Load model and tokenizer
-        logger.info(f"Loading MLX model: {model}")
-        self.model, self.tokenizer = load(model)[:2]  # Ignore cache info
-        logger.info("MLX model loaded successfully")
+        # Load model and tokenizer (or use shared backend)
+        if shared_backend is not None:
+            logger.info(f"Using shared MLX backend: {shared_backend.model_path}")
+            self.model = shared_backend.model
+            self.tokenizer = shared_backend.tokenizer
+            self._owns_model = False
+        else:
+            logger.info(f"Loading MLX model: {model}")
+            self.model, self.tokenizer = load(model)[:2]  # Ignore cache info
+            logger.info("MLX model loaded successfully")
+            self._owns_model = True
 
         # Store merged vocabulary for parser (must be before _load_system_prompt)
         self.merged_vocabulary = self._get_merged_vocabulary(vocabulary)

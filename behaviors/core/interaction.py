@@ -53,10 +53,10 @@ vocabulary = {
         {
             "word": "use",
             "event": "on_use",
-            "synonyms": [],
+            "synonyms": ["wear", "wield", "hold", "don"],
             "object_required": True,
             "llm_context": {
-                "traits": ["activates object function", "context-dependent"],
+                "traits": ["activates object function", "context-dependent", "equips if equippable"],
                 "failure_narration": {
                     "no_effect": "nothing happens",
                     "cannot_use": "cannot use that"
@@ -234,6 +234,21 @@ def _handle_generic_interaction(accessor, action, required_property: Optional[st
             success=False,
             primary=f"You can't {verb_str} the {item.name}."
         )
+
+    # Special handling for "use" verb on equippable items
+    # If item is equippable and not equipped, equip it instead of triggering on_use
+    if verb_str == "use" and item.properties.get("equippable", False):
+        is_equipped = item.states.get("equipped", False)
+        if not is_equipped:
+            # Equip the item
+            result = accessor.update(item, {"states.equipped": True})
+            data = serialize_for_handler_result(item, accessor, actor_id)
+            return HandlerResult(
+                success=True,
+                primary=f"You equip the {item.name}.",
+                data=data
+            )
+        # If already equipped, fall through to normal use behavior
 
     # Invoke entity behaviors
     result = accessor.update(item, {}, verb=verb_str, actor_id=actor_id)

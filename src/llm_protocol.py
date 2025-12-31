@@ -170,6 +170,130 @@ class LLMProtocolHandler:
 
         actor_id: ActorId = action.get("actor_id") or ActorId("player")
 
+        # Import StateAccessor early to avoid shadowing issues
+        from src.state_accessor import StateAccessor, HandlerResult
+
+        # Detect multi-object commands where "object" is a list
+        # Example: {"verb": "take", "object": ["notebook", "silvermoss", "bucket"]}
+        object_field = action.get('object')
+        if isinstance(object_field, list) and len(object_field) > 1:
+            # Multi-object command - execute each separately and combine results
+            objects = object_field
+            results = []
+
+            # Find the actual handler verb (might be different from synonym)
+            # For example, "get" -> "take", "grab" -> "take"
+            handler_verb = verb
+            if not self.behavior_manager or not self.behavior_manager.has_handler(verb):
+                # Try common synonym mappings
+                synonym_map = {
+                    'get': 'take',
+                    'grab': 'take',
+                    'pick': 'take',
+                }
+                handler_verb = synonym_map.get(verb, verb)
+
+            for obj in objects:
+                # Create action for this object
+                single_action: ActionDict = {
+                    'verb': handler_verb,
+                    'object': obj,
+                    'actor_id': actor_id
+                }
+                # Copy any other fields from original action (adjective, etc.)
+                for key in ['adjective', 'preposition', 'indirect_object', 'indirect_adjective']:
+                    if key in action:
+                        single_action[key] = action[key]
+
+                # Convert string to WordEntry if needed
+                single_action = self._convert_action_strings_to_wordentry(single_action)
+
+                # Execute command
+                accessor_single = StateAccessor(self.state, self.behavior_manager)
+                result = self.behavior_manager.invoke_handler(handler_verb, accessor_single, single_action)
+                results.append((obj, result))
+
+            # Combine results
+            all_succeeded = all(result and result.success for _, result in results)
+
+            # Build combined message
+            if all_succeeded:
+                # All succeeded - create combined message
+                item_names = []
+                for obj, result in results:
+                    if hasattr(obj, 'word'):
+                        item_names.append(obj.word)
+                    else:
+                        item_names.append(str(obj))
+
+                # Format as "X, Y and Z" or "X and Y"
+                if len(item_names) > 2:
+                    primary_text = f"You {verb} the {', '.join(item_names[:-1])} and the {item_names[-1]}."
+                else:
+                    primary_text = f"You {verb} the {' and the '.join(item_names)}."
+
+                # Combine beats from all results
+                beats = []
+                for _, result in results:
+                    if result and result.beats:
+                        beats.extend(result.beats)
+
+                accessor = StateAccessor(self.state, self.behavior_manager)
+                combined_result = HandlerResult(
+                    success=True,
+                    primary=primary_text,
+                    beats=beats if beats else None
+                )
+
+                verbosity = self._determine_verbosity(verb, True, combined_result.data)
+                familiarity = self._determine_familiarity(verb, True, combined_result.data)
+
+                assembler = NarrationAssembler(accessor, actor_id)
+                narration_plan = assembler.assemble(combined_result, verb, verbosity, familiarity)
+
+                return {
+                    "type": "result",
+                    "success": True,
+                    "action": verb,
+                    "verbosity": verbosity,
+                    "narration": narration_plan,
+                    "data": combined_result.data
+                }
+            else:
+                # Some failed - report each outcome
+                messages = []
+                for obj, result in results:
+                    if result and result.success:
+                        item_name = obj.word if hasattr(obj, 'word') else str(obj)
+                        messages.append(f"You {verb} the {item_name}.")
+                    else:
+                        if result and result.primary:
+                            messages.append(result.primary)
+                        else:
+                            item_name = obj.word if hasattr(obj, 'word') else str(obj)
+                            messages.append(f"Failed to {verb} the {item_name}.")
+
+                accessor = StateAccessor(self.state, self.behavior_manager)
+                combined_result = HandlerResult(
+                    success=all_succeeded,
+                    primary=" ".join(messages)
+                )
+
+                verbosity = self._determine_verbosity(verb, all_succeeded, combined_result.data)
+                familiarity = self._determine_familiarity(verb, all_succeeded, combined_result.data)
+
+                assembler = NarrationAssembler(accessor, actor_id)
+                narration_plan = assembler.assemble(combined_result, verb, verbosity, familiarity)
+
+                return {
+                    "type": "result",
+                    "success": all_succeeded,
+                    "action": verb,
+                    "verbosity": verbosity,
+                    "narration": narration_plan,
+                    "data": combined_result.data
+                }
+
         # Convert string fields to WordEntry objects for handlers
         action = self._convert_action_strings_to_wordentry(action)
 
@@ -184,7 +308,7 @@ class LLMProtocolHandler:
                 "narration": {"primary_text": error_msg}
             }
 
-        from src.state_accessor import StateAccessor
+        # StateAccessor already imported above
         accessor = StateAccessor(self.state, self.behavior_manager)
 
         result = self.behavior_manager.invoke_handler(verb, accessor, action)

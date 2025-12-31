@@ -102,6 +102,102 @@ class GameEngine:
         """
         return Parser.from_vocab(self.merged_vocabulary)
 
+    def create_llm_parser(self, shared_backend):
+        """Create an LLM parser with adapter.
+
+        Args:
+            shared_backend: SharedMLXBackend instance (shared with narrator)
+
+        Returns:
+            Tuple of (LLMCommandParser, LLMParserAdapter) ready for command parsing
+        """
+        from src.llm_command_parser import LLMCommandParser
+        from src.llm_parser_adapter import LLMParserAdapter
+
+        # Extract verbs for parser
+        verbs = [v['word'] for v in self.merged_vocabulary.get('verbs', [])]
+
+        # Create parser and adapter
+        parser = LLMCommandParser(shared_backend, verbs)
+        adapter = LLMParserAdapter(self.merged_vocabulary)
+
+        return parser, adapter
+
+    def build_parser_context(self, actor_id: str = "player"):
+        """Build context dict for LLM parser from current game state.
+
+        Args:
+            actor_id: ID of actor whose context to build (default: "player")
+
+        Returns:
+            Dict with keys: location_objects, inventory, exits
+        """
+        from typing import List, Dict
+
+        actor = self.game_state.actors.get(actor_id)
+        if not actor:
+            return {"location_objects": [], "inventory": [], "exits": []}
+
+        location = next((loc for loc in self.game_state.locations if loc.id == actor.location), None)
+        if not location:
+            return {"location_objects": [], "inventory": [], "exits": []}
+
+        # Get location objects (items and other actors)
+        # Use entity names (which match vocabulary entries) for parser context
+        location_objects: List[str] = []
+
+        # IMPORTANT: location.items is a List[ItemId] (list of item ID strings)
+        # We need to look up the actual Item objects from game_state.items
+        import logging
+        logging.debug(f"Building context for location: {location.id}")
+        logging.debug(f"Location has {len(location.items)} item IDs")
+
+        for item_id in location.items:
+            # Look up the actual Item object
+            item = next((i for i in self.game_state.items if i.id == item_id), None)
+            if item:
+                # Items: use name if available, otherwise use ID
+                # The name should match what's in the vocabulary
+                item_name = getattr(item, 'name', item_id)
+                logging.debug(f"  Adding item to context: {item_name} (id: {item_id})")
+                location_objects.append(item_name)
+
+        for other_actor_id, other_actor in self.game_state.actors.items():
+            if other_actor_id != actor_id and other_actor.location == location.id:
+                # Actors: use name (e.g., "Waystone") not ID (e.g., "waystone_spirit")
+                # The name should match what's in the vocabulary
+                actor_name = getattr(other_actor, 'name', other_actor_id)
+                logging.debug(f"  Adding actor to context: {actor_name} (id: {other_actor_id})")
+                location_objects.append(actor_name)
+
+        # Get actor inventory
+        # Convert item IDs to item names (matching vocabulary entries)
+        inventory: List[str] = []
+        for item_id in actor.inventory:
+            item = next((i for i in self.game_state.items if i.id == item_id), None)
+            if item:
+                item_name = getattr(item, 'name', item_id)
+                inventory.append(item_name)
+
+        # Get exits
+        exits: List[str] = list(location.exits.keys()) if location.exits else []
+
+        # Get available dialogue topics from NPCs in location
+        topics: List[str] = []
+        for other_actor_id, other_actor in self.game_state.actors.items():
+            if other_actor_id != actor_id and other_actor.location == location.id:
+                # Check if actor has dialogue_topics property
+                dialogue_topics = getattr(other_actor, 'dialogue_topics', None)
+                if dialogue_topics:
+                    topics.extend(dialogue_topics)
+
+        return {
+            "location_objects": location_objects,
+            "inventory": inventory,
+            "exits": exits,
+            "topics": topics
+        }
+
     def create_narrator(self, api_key: str,
                        model: str = "claude-3-5-haiku-20241022",
                        show_traits: bool = False):
@@ -148,17 +244,19 @@ class GameEngine:
                             model: str = "mlx-community/Llama-3.2-3B-Instruct-4bit",
                             show_traits: bool = False,
                             temperature: float = 0.8,
-                            max_tokens: int = 300):
+                            max_tokens: int = 300,
+                            shared_backend=None):
         """Create an MLXNarrator with game-specific configuration.
 
         Uses Apple's MLX framework for native Metal GPU acceleration.
         Automatically loads narrator_style.txt from game directory.
 
         Args:
-            model: MLX model path (HuggingFace format)
+            model: MLX model path (HuggingFace format) - only used if shared_backend is None
             show_traits: If True, print llm_context traits before narration
             temperature: Temperature for generation (0.0-2.0)
             max_tokens: Max tokens to generate
+            shared_backend: Optional SharedMLXBackend instance (saves ~4-6GB memory)
 
         Returns:
             MLXNarrator instance ready for natural language interaction
@@ -187,7 +285,8 @@ class GameEngine:
             vocabulary=self.merged_vocabulary,
             show_traits=show_traits,
             temperature=temperature,
-            max_tokens=max_tokens
+            max_tokens=max_tokens,
+            shared_backend=shared_backend
         )
 
     def reload_state(self, new_state: GameState) -> None:

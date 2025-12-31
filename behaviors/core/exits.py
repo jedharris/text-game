@@ -295,6 +295,10 @@ def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_descriptor, 
             primary=f"INCONSISTENT STATE: Failed to move actor: {result.detail}"
         )
 
+    # Track visit for location state narration (Context Builder)
+    from utilities.state_variant_selector import track_location_visit
+    track_location_visit(accessor.game_state.extra, actor_id, destination_id)
+
     # Invoke entity_entered_location hook if destination location has behaviors
     on_enter_message = None
     event = accessor.behavior_manager.get_event_for_hook("entity_entered_location")

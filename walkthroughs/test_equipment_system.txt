@@ -1,0 +1,63 @@
+# Test Equipment System
+# Tests use verb to equip items and remove verb to unequip them
+# Uses natural language synonyms: wear, wield, hold, don, take off, put down
+# Game: simple_game
+# Equippable item: sword
+# Non-equippable item: key
+
+# Start location has sword on ground
+look
+
+# Test 1: Take the sword (should not auto-equip)
+take sword
+inventory
+
+# Test 2: Use the sword to equip it
+# Expected: "You equip the sword."
+use sword
+
+# Test 3: Try to use the sword again (already equipped)
+# Expected: Falls through to on_use behavior (if any), or "You use the sword."
+use sword
+
+# Test 4: Remove the sword
+# Expected: "You unequip the sword."
+remove sword
+
+# Test 5: Try to remove when not equipped
+# Expected: "The sword is not currently equipped."
+remove sword
+
+# Test 6: Test natural language synonym "wield" to equip
+# Expected: Should map to "use" and equip the sword
+wield sword
+
+# Unequip for next test
+remove sword
+
+# Test 7: Test natural language synonym "take off" to unequip
+# First equip again
+use sword
+# Then test "take off"
+# Expected: Should map to "remove" and unequip
+take off sword
+
+# Test 8: Test non-equippable item (key)
+# Navigate to hallway to get key
+north
+take key
+
+# Test 9: Try to use (equip) non-equippable item
+# Expected: Should just trigger on_use behavior (if any), not try to equip
+use key
+
+# Test 10: Try to remove non-equippable item
+# Expected: "The key is not something you can unequip."
+remove key
+
+# Test 11: Verify sword can be re-equipped
+south
+use sword
+
+# Final inventory check
+inventory

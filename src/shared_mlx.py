@@ -6,6 +6,7 @@ separate prompt caches for each use case.
 """
 
 import logging
+import os
 from typing import Tuple, Any
 
 import mlx.core as mx
@@ -44,6 +45,13 @@ class SharedMLXBackend:
         self.model_path = model_path
 
         logger.info(f"Loading shared MLX model: {model_path}")
+
+        # Set reasonable timeout for HuggingFace Hub network requests (5 seconds)
+        # This prevents hanging when network is slow or unavailable
+        # If model is cached locally, it will load from cache after timeout
+        if 'HF_HUB_ETAG_TIMEOUT' not in os.environ:
+            os.environ['HF_HUB_ETAG_TIMEOUT'] = '5'
+
         # load() returns (model, tokenizer, config) - we only need first two
         self.model, self.tokenizer = load(model_path)[:2]
         logger.info("Shared MLX model loaded successfully")

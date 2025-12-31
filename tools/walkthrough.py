@@ -379,30 +379,40 @@ def run_walkthrough(
         print(f"> {cmd}")
         print("-" * 60)
 
-        # Parse the command
-        parsed = parser.parse_command(cmd)
-        if not parsed:
-            print(f"PARSE ERROR: Could not parse '{cmd}'")
-            result = {"success": False, "error": {"message": f"Could not parse: {cmd}"}}
+        # Check if command is JSON (starts with '{')
+        if cmd.strip().startswith('{'):
+            import json
+            try:
+                json_message = json.loads(cmd)
+                result = engine.json_handler.handle_message(json_message)
+            except json.JSONDecodeError as e:
+                print(f"JSON PARSE ERROR: {e}")
+                result = {"success": False, "error": {"message": f"Invalid JSON: {e}"}}
         else:
-            # Build action dict from parsed command
-            # All fields can be WordEntry; protocol handler extracts strings as needed
-            action: Dict[str, Any] = {"verb": parsed.verb}
-            if parsed.direct_object:
-                action["object"] = parsed.direct_object
-            if parsed.indirect_object:
-                action["indirect_object"] = parsed.indirect_object
-            if parsed.direct_adjective:
-                action["adjective"] = parsed.direct_adjective
-            if parsed.indirect_adjective:
-                action["indirect_adjective"] = parsed.indirect_adjective
-            if parsed.preposition:
-                action["preposition"] = parsed.preposition
+            # Parse the command using text parser
+            parsed = parser.parse_command(cmd)
+            if not parsed:
+                print(f"PARSE ERROR: Could not parse '{cmd}'")
+                result = {"success": False, "error": {"message": f"Could not parse: {cmd}"}}
+            else:
+                # Build action dict from parsed command
+                # All fields can be WordEntry; protocol handler extracts strings as needed
+                action: Dict[str, Any] = {"verb": parsed.verb}
+                if parsed.direct_object:
+                    action["object"] = parsed.direct_object
+                if parsed.indirect_object:
+                    action["indirect_object"] = parsed.indirect_object
+                if parsed.direct_adjective:
+                    action["adjective"] = parsed.direct_adjective
+                if parsed.indirect_adjective:
+                    action["indirect_adjective"] = parsed.indirect_adjective
+                if parsed.preposition:
+                    action["preposition"] = parsed.preposition
 
-            result = engine.json_handler.handle_command({
-                "type": "command",
-                "action": action
-            })
+                result = engine.json_handler.handle_command({
+                    "type": "command",
+                    "action": action
+                })
 
         success = bool(result.get("success", False))
         results.append({
