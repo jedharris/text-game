@@ -65,9 +65,23 @@ exit_forest_north ←──connected──→ exit_cave_south
 - **Entities**: Exits, doorways, passages
 - **Query**: "What's connected to this exit?"
 
-### Key Insight
+### Key Insight: The Continuum of Places
 
-Some entities exist only in containment space (items, actors). Some exist only in connection space (doorways, passages). Exits exist in **both**: they are contained in a location AND connected to other exits/doorways/passages.
+**Ontologically, the connection graph is fundamental.** Every "where" is a node in the connection graph. Each "where" is an island with a tree of contained items, actors, sub-places, etc.
+
+Locations, passages, and doorways form a continuum - they're all "places in the connection graph":
+- **Locations (rooms)**: Large places containing many things, connected to other locations via exits
+- **Passages (stairs, tunnels)**: Medium places connecting locations, representing physical space between them
+- **Doorways (door frames)**: Small places where exits meet, can contain doors
+
+All three are **containers** (keys in `_entities_at` index) but are **not contained** (no `.where` property themselves - they ARE the "where").
+
+**Participation in spaces:**
+- **Containment space only**: Items, actors (have `.where`, are not "wheres")
+- **Connection space only**: Initially passages and doorways (are "wheres" but have no `.where`)
+- **Both spaces**: Exits (have `.where` = the location they're in, AND connect to other entities)
+
+**Future flexibility**: Over time, passages and doorways may gain containment semantics (items on stairs, actors blocking doorways). The structure supports this - they're already container keys. Current semantic constraint: they can only contain doors (for doorways) or nothing (for passages), and their contents cannot be mutated by gameplay.
 
 ## Exits as First-Class Entities
 
@@ -84,13 +98,19 @@ location.exits = {
 exit_forest_north = {
     "id": "exit_forest_north",
     "name": "cave entrance",
-    "location": "loc_forest",        # Containment: where you access it from
-    "destination": "loc_cave",       # Where it leads
-    "direction": "north",            # Optional: for "go north" matching
+    "location": "loc_forest",            # Containment: where you access it from
+    "connections": ["exit_cave_south"],  # What this exit connects to (drives connection index)
+    "direction": "north",                # Optional: for "go north" matching
     "adjectives": ["dark", "narrow"],
     "description": "A dark narrow opening in the hillside"
 }
 ```
+
+**Connection semantics:**
+- `.connections` is a list of entity IDs (typically other exits)
+- Initially contains one paired exit: `["exit_cave_south"]`
+- Future: multi-destination portals could have multiple connections
+- Connection index is **derived** from `.connections` at load time (symmetric - if A→B then B→A)
 
 ### Benefits
 
@@ -162,14 +182,15 @@ The passage can have its own description ("narrow stone stairs spiral upward"). 
 
 ### Entity Types by Space
 
-| Entity Type | Containment Space | Connection Space |
-|-------------|-------------------|------------------|
-| Item        | Yes (has location) | No |
-| Actor       | Yes (has location) | No |
-| Exit        | Yes (has location) | Yes (connects to exits, doorways, passages) |
-| Doorway     | No | Yes (connects to exits or passages) |
-| Passage     | No | Yes (connects to exits) |
-| Door        | Yes (location = doorway) | No |
+| Entity Type | Has `.where`? | Is a "where"? | Connection Space | Notes |
+|-------------|---------------|---------------|------------------|-------|
+| Location    | No | Yes (container key) | No | Root containers |
+| Item        | Yes | No | No | Normal contained entities |
+| Actor       | Yes | No | No | Normal contained entities |
+| Exit        | Yes | Yes (container key) | Yes (`.connections` list) | Dual participation |
+| Doorway     | No | Yes (container key) | Yes (`.connections` list) | Can contain doors only (initially) |
+| Passage     | No | Yes (container key) | Yes (`.connections` list) | Cannot contain entities (initially) |
+| Door        | Yes (`.where` = doorway) | No | No | Contained in doorways |
 
 ## Index Structures
 
@@ -183,6 +204,12 @@ class GameState:
     _entity_where: Dict[str, str] = field(default_factory=dict)      # entity_id → where_id
 ```
 
+**Index scope:**
+- **Keys** in `_entities_at`: Any entity that can serve as a container (locations, doorways, passages, exits, container items)
+- **Values** in both indices: Entities with `.where` property (items, actors, exits, doors)
+- Built from entities with `hasattr(entity, 'where')` or equivalent `.location` property
+- Passages and doorways are **keys only** (containers without being contained)
+
 ### Connection Index
 
 ```python
@@ -192,7 +219,15 @@ class GameState:
     _connected_to: Dict[str, Set[str]] = field(default_factory=dict)  # entity_id → set(connected_entity_ids)
 ```
 
-The connection index is symmetric: adding a connection A→B automatically adds B→A.
+**Index semantics:**
+- Connection index is **symmetric**: adding a connection A→B automatically adds B→A
+- Built from entity `.connections` lists at load time (exits, doorways, passages)
+- Index is **derived**, not stored in game_state.json
+- Validation ensures symmetry: if A→B then B→A must be true
+
+**Index scope:**
+- Entities with `.connections` property: Exits, doorways, passages
+- Future: Any entity type that participates in peer-to-peer relationships
 
 ### Centralized Update Functions
 
@@ -285,7 +320,212 @@ The LLM produces:
 
 No special direction handling needed. Exits are entities; LLM matches them.
 
+## LLM Integration Details
+
+### Exit Serialization for LLM Context
+
+**What changes**: Exit entities are serialized into the LLM parser context just like items and actors.
+
+**Format**:
+```python
+def build_parser_context(self, actor_id: ActorId = ActorId("player")):
+    # ... existing code for items, actors ...
+
+    # Add exits from current location
+    location = self.get_entity_where(actor_id)
+    exits_here = self.get_entities_at(location, entity_type="exit")
+
+    context["exits"] = [
+        {
+            "id": exit.id,
+            "name": exit.name,
+            "direction": exit.direction if hasattr(exit, 'direction') else None,
+            "description": exit.description,
+            "adjectives": exit.adjectives
+        }
+        for exit in exits_here
+    ]
+```
+
+**Player experience**: Commands like "enter the dark opening" will match exit descriptions, not just directions.
+
+### Vocabulary Generation Changes
+
+**Direction verbs**: Initially unchanged - "go", "enter", "exit" remain as verbs.
+
+**Direction vocabulary**: Initially unchanged - "north", "south" etc. remain as direction category.
+
+**Future evolution**: After Phase 6 completes, direction words could migrate to:
+- Exit synonyms: `exit_forest_north.synonyms = ["north"]`
+- Exit adjectives: `exit_forest_north.adjectives = ["northern"]`
+
+This would eliminate the direction vocabulary category entirely. Deferred until after migration completes.
+
+### Parser Matching Strategy
+
+**LLM output unchanged**: Parser still returns `{"verb": "go", "object": "exit_forest_north"}`.
+
+**Match priority** (handled by LLM, not code):
+1. Exact name match: "cave entrance" → exit with `name: "cave entrance"`
+2. Direction match: "north" → exit with `direction: "north"`
+3. Synonym match: "north" → exit with `"north"` in `.synonyms` (future)
+4. Description match: "dark opening" → exit with `description` containing those words
+
+**Backward compatibility**: Existing "go north" commands continue to work identically.
+
+## Exit ID Convention
+
+**Convention-based IDs**: `exit_{location_id}_{direction}`
+
+Examples:
+- `exit_forest_north` - north exit from forest
+- `exit_cave_south` - south exit from cave (pairs with forest_north)
+
+**Migration requirements:**
+- Tool must know opposite direction mappings: north↔south, east↔west, up↔down, ne↔sw, etc.
+- Tool creates paired exits with reciprocal IDs
+- Future: non-directional exits (portals) will use different ID patterns (e.g., `exit_forest_portal`)
+
+**Validation:**
+- Each exit in `.connections` list must reference an existing exit ID
+- Connection graph must be symmetric (enforced at load time)
+
+## Default Semantics and Authoring Invariants
+
+**Strong defaults**: Initial implementation enforces strict invariants with validation:
+
+1. **Paired exits are required**: Every exit must have exactly one connection to its paired exit
+2. **Symmetric connections**: If A→B in `.connections`, then B→A must exist
+3. **One direction per exit**: Each exit has exactly one direction (initially)
+4. **Fixed doorway/passage structure**: Doorways can only contain doors; passages cannot contain entities
+
+**No override fields initially**: Authors cannot deviate from these defaults. Validation enforces the invariants.
+
+**Future extensibility**: Optional fields will be added later to support:
+- One-way exits (`one_way: true`)
+- Multi-destination portals (`.connections` with >1 entry)
+- Directionless exits (portal, hidden passage)
+- Mutable doorway/passage contents
+
+**Authoring burden unchanged**: Despite new entity model, authors still specify source, destination, direction - same as current format. Migration tool generates the paired exits automatically.
+
+## Invariants and Validation
+
+### Core Invariants
+
+**1. Read-only `.location`/`.where` property**
+- ONLY `set_entity_where()` may mutate `.location` (or `.where` alias)
+- Direct assignment `entity.location = "new_place"` is forbidden
+- Enforced by: Code review, future linting rule
+- Rationale: Ensures indices stay synchronized with entity state
+
+**2. Removed entities excluded from indices**
+- Entities with `.location` starting with `"__"` are not indexed
+- Example: `entity.location = "__consumed_by_player__"` removes from `_entities_at` and `_entity_where`
+- Check in `_build_whereabouts_index()` and `set_entity_where()`
+- Rationale: Prevents removed entities from appearing in queries
+
+**3. Door location must be doorway**
+- Validation: `if entity.type == "door": assert entity.location.startswith("doorway_")`
+- Checked during: State loading (Phase 4+)
+- Rationale: Doors live in doorways, not locations
+
+**4. Symmetric connections**
+- Validation: `if A in _connected_to[B]: assert B in _connected_to[A]`
+- Checked during: Index building at load time
+- Rationale: Connections are bidirectional - if you can go A→B, you can go B→A
+
+**5. Exit connections reference existing entities**
+- Validation: `for conn in exit.connections: assert conn in all_entity_ids`
+- Checked during: State loading (Phase 5+)
+- Rationale: Prevents dangling references
+
+### Validation Strategy
+
+**Load-time validation** (fail fast):
+- Build indices from entity data
+- Check symmetric connection constraint
+- Validate door locations are doorways
+- Fail with detailed error message if invariants violated
+
+**Debug mode consistency checks** (development only):
+- After every `set_entity_where()` call: assert `entity.location == _entity_where[entity.id]`
+- After every `add_connection()`: assert symmetry
+- Enabled via `--debug` flag or environment variable
+- Performance: Only in dev builds, not production
+
+**Runtime validation** (minimal):
+- `set_entity_where()`: Check that `new_where` exists as a container
+- `add_connection()`: Check that both entities exist
+- Rationale: Prevent obviously invalid operations, but trust internal code
+
+### Error Reporting
+
+**Load-time errors** (fail loudly):
+```python
+raise ValueError(
+    f"Connection symmetry violation: "
+    f"{entity_a} → {entity_b} exists but {entity_b} → {entity_a} does not"
+)
+```
+
+**Debug mode errors** (assert):
+```python
+assert entity.location == self._entity_where[entity.id], \
+    f"Index out of sync: {entity.id}.location={entity.location} but index says {self._entity_where[entity.id]}"
+```
+
+**Runtime errors** (minimal):
+```python
+if new_where not in self._entities_at:
+    raise ValueError(f"Cannot move {entity_id} to non-existent container {new_where}")
+```
+
+## Migration Stability
+
+### Deterministic ID Generation
+
+**Requirement**: Generated exit IDs must be stable across re-runs of migration tool.
+
+**Strategy**:
+- Use convention-based naming: `exit_{source_location}_{direction}`
+- Paired exit IDs derived from opposite direction: `exit_{dest_location}_{opposite_direction}`
+- Doorway IDs use content hash: `doorway_{hash(sorted([exit_a, exit_b]))}`
+- Passage IDs use location and direction: `passage_{source_location}_{direction}`
+
+**Testing**: Run migration twice, diff the outputs - should be identical.
+
+### Canonical Ordering
+
+**Lists in JSON**: All entity lists serialized in sorted order by ID.
+
+**Why**: Stable diffs, easier code review of migrated files.
+
+**Implementation**:
+```python
+game_state["exits"] = sorted(exits, key=lambda e: e["id"])
+game_state["doorways"] = sorted(doorways, key=lambda d: d["id"])
+```
+
+### Save File Compatibility
+
+**Breaking changes acceptable**: During Phases 1-7, old save files will not load with new code.
+
+**Migration tool for saves**: After Phase 7 completes, create `tools/migrate_saves.py` to update old save files.
+
+**No backward compatibility in code**: New code only supports new format. Conversion is external.
+
+**Rationale**: Clean separation of concerns - migration is one-time, runtime code is simple.
+
+**User impact**: After migration, players must start new games or run migration tool on their saves.
+
 ## Migration Strategy
+
+**Two-phase approach**: Containment index migration (Phases 1-2) is separate from and precedes exit/connection migration (Phases 3-7).
+
+**Phase 1-2 will be completed and tested thoroughly** (including walkthroughs and manual play) before starting Phase 3.
+
+**Exit migration (Phases 3-7) will be done on a separate branch** to allow careful testing and iteration without blocking other work.
 
 ### Phase 1: Add Containment Index Infrastructure
 1. Add `_entities_at`, `_entity_where` to GameState
@@ -349,16 +589,18 @@ No special direction handling needed. Exits are entities; LLM matches them.
    - Could share a common base class or protocol
    - Doorway and Passage exist only in connection space (no `.location`)
 
-3. **Bidirectional exit authoring**: Auto-generation by default, explicit override available
-   - Author writes one exit; engine creates paired exit automatically
+3. **Bidirectional exit authoring**: Auto-generation by migration tool
+   - Migration tool creates paired exits automatically from `Location.exits` entries
+   - Each direction becomes its own Exit entity
    - Reduces boilerplate and errors for common case
-   - Authors can write both exits explicitly for asymmetric cases (one-way, different descriptions per side)
-   - **Principle**: If authors stick with defaults, everything looks the same as now
+   - **Principle**: Authoring burden unchanged - still specify source, destination, direction
+   - Future: Authors can write both exits explicitly for asymmetric cases (after override fields are added)
 
 4. **Connection index persistence**: Rebuild from entity data at load time
    - Minimal data in game_state.json is source of truth
-   - Connections derived from per-entity properties (e.g., exit's `destination`)
+   - Connections derived from per-entity `.connections` lists
    - Index is computed, not stored
+   - Symmetric constraint validated at load time
 
 5. **Direction vocabulary**: Keep as-is for now
    - Avoid excessive change in this phase
@@ -384,13 +626,21 @@ No special direction handling needed. Exits are entities; LLM matches them.
    - Author specifies connections to two exits
    - Future: could generalize, but defer until use cases emerge
 
-## Open Questions (Deferred)
+## Open Questions (Deferred to Future Phases)
 
-1. **Non-default exit cases**: One-way exits, asymmetric properties - what's the authoring format?
-   - Defer until we have concrete use cases
+1. **Non-default exit cases**: One-way exits, asymmetric properties - authoring format for overrides
+   - Deferred until after migration completes
+   - Will add optional override fields (e.g., `one_way: true`) when use cases emerge
+   - Initial strict validation ensures consistency
 
 2. **Multi-way passages**: Could a passage connect more than two exits?
-   - Defer - current model assumes two endpoints
+   - Deferred - current model assumes two endpoints
+   - Structure supports it (`.connections` is a list), semantics will be added later
+
+3. **Entity type enumeration**: Complete list of entities participating in indices
+   - Will be discovered during Phase 1 implementation
+   - Core types are clear: Items, Actors, Locations, (future: Exits, Doors, Doorways, Passages)
+   - Missing types will be found via bugs and added incrementally
 
 ## Benefits
 
@@ -410,9 +660,16 @@ No special direction handling needed. Exits are entities; LLM matches them.
 
 ## Success Criteria
 
+**Phase 1-2 (Containment Index):**
 1. All unit tests pass
-2. All integration tests pass
-3. Exits accessible by direction, name, and destination
-4. Doors work correctly from both sides of exit
-5. Myconid Sanctuary bug is fixed
-6. No performance regression
+2. Walkthroughs complete successfully
+3. Manual playtesting confirms no regressions
+4. Myconid Sanctuary bug is fixed (items are takeable)
+5. No performance regression
+
+**Phase 3-7 (Exit/Connection Migration):**
+1. All exits traversable by direction, name, description
+2. Doors work correctly from both sides
+3. All game content migrated to new format
+4. Validation catches symmetric connection violations
+5. LLM parser matches exits as entities
