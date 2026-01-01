@@ -10,19 +10,20 @@ This adapter converts those to ParsedCommand with WordEntry objects by:
 4. Building ParsedCommand
 """
 
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Union
 from src.parsed_command import ParsedCommand
 from src.word_entry import WordEntry, WordType
+from src.vocabulary_generator import MergedVocabulary
 
 
 class LLMParserAdapter:
     """Converts LLM parser output (string IDs) to ParsedCommand (WordEntry objects)."""
 
-    def __init__(self, merged_vocabulary: Dict[str, List[Dict[str, Any]]]):
+    def __init__(self, merged_vocabulary: MergedVocabulary):
         """Initialize adapter with merged vocabulary.
 
         Args:
-            merged_vocabulary: Merged vocabulary dict with keys: 'verbs', 'nouns', 'adjectives', etc.
+            merged_vocabulary: Merged vocabulary with verbs, nouns, adjectives, prepositions, articles.
         """
         self.merged_vocabulary = merged_vocabulary
 
@@ -120,13 +121,19 @@ class LLMParserAdapter:
 
         # Lookup objects (these can be None)
         # IMPORTANT: For multi-item commands, object can be a list
-        # In this case, we pass the list through to the protocol handler
-        # which knows how to handle it
+        # Convert list[str] to list[WordEntry] by looking up each entity
+        # Protocol handler will split this into separate commands
         object_field = action.get('object')
+        direct_object: Optional[Union[WordEntry, List[WordEntry]]] = None
         if isinstance(object_field, list):
-            # Multi-item command - pass list through as-is
-            # Protocol handler will process it
-            direct_object = object_field
+            # Multi-item command - lookup each entity ID
+            word_entries = []
+            for entity_id in object_field:
+                entry = self._lookup_entity(entity_id)
+                if entry:
+                    word_entries.append(entry)
+            # Pass list of WordEntry objects to protocol handler
+            direct_object = word_entries if word_entries else None
         else:
             # Single item - lookup as usual
             direct_object = self._lookup_entity(object_field)

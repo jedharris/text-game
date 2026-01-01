@@ -1,7 +1,7 @@
 """Parsed command data structure."""
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Union, List
 from src.word_entry import WordEntry
 
 
@@ -12,7 +12,7 @@ class ParsedCommand:
 
     Attributes:
         verb: The action verb (if present)
-        direct_object: Primary noun being acted upon (includes directions)
+        direct_object: Primary noun being acted upon (includes directions), or list for multi-item commands
         direct_adjective: Adjective modifying direct_object (includes directions as adjectives)
         preposition: Relational word (with, to, in, etc.)
         indirect_object: Secondary noun
@@ -21,7 +21,7 @@ class ParsedCommand:
         object_missing: True if verb accepts optional object but none provided
     """
     verb: Optional[WordEntry] = None
-    direct_object: Optional[WordEntry] = None
+    direct_object: Optional[Union[WordEntry, List[WordEntry]]] = None
     direct_adjective: Optional[WordEntry] = None
     preposition: Optional[WordEntry] = None
     indirect_object: Optional[WordEntry] = None

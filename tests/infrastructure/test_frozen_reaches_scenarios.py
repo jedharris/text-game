@@ -17,7 +17,7 @@ from examples.big_game.behaviors.regions.frozen_reaches.hypothermia import (
     on_cold_zone_turn,
     on_enter_hot_springs,
 )
-from examples.big_game.behaviors.regions.frozen_reaches.salamanders import on_fire_gift
+from examples.big_game.behaviors.regions.frozen_reaches.salamanders import on_receive_item as on_fire_gift
 from src.behavior_manager import EventResult
 from src.infrastructure_utils import transition_state
 from tests.infrastructure.test_scenario_framework import (

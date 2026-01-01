@@ -9,9 +9,9 @@ import re
 from typing import Dict, List, Optional, Any
 
 import mlx.core as mx
-from mlx_lm import stream_generate  # type: ignore
-from mlx_lm.sample_utils import make_sampler  # type: ignore
-from mlx_lm.models.cache import trim_prompt_cache  # type: ignore
+from mlx_lm import stream_generate
+from mlx_lm.sample_utils import make_sampler
+from mlx_lm.models.cache import trim_prompt_cache
 
 from src.shared_mlx import SharedMLXBackend
 

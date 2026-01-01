@@ -5,7 +5,7 @@ based on game state (environmental spreads, quest flags, visit history).
 """
 import unittest
 from types import SimpleNamespace
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from src.types import ActorId, LocationId
 from utilities.state_variant_selector import (
@@ -17,7 +17,7 @@ from utilities.state_variant_selector import (
 class TestStateVariantSelection(unittest.TestCase):
     """Test state variant selection priority and logic."""
 
-    def _make_location(self, properties: Dict[str, Any] = None) -> Any:
+    def _make_location(self, properties: Optional[Dict[str, Any]] = None) -> Any:
         """Helper to create mock location."""
         loc = SimpleNamespace()
         loc.id = LocationId("test_location")

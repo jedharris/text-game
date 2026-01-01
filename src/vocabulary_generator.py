@@ -9,6 +9,17 @@ from typing import List, Dict, Any
 from .state_manager import GameState
 
 
+# Type alias for merged vocabulary structure
+# Structure: {
+#   "verbs": List[Dict[str, Any]],      # Each verb: {word, synonyms, object_required, value}
+#   "nouns": List[Dict[str, Any]],      # Each noun: {word, synonyms, value?}
+#   "adjectives": List[Dict[str, Any]], # Each adjective: {word, synonyms}
+#   "prepositions": List[str],          # Simple strings
+#   "articles": List[str]               # Simple strings
+# }
+MergedVocabulary = Dict[str, Any]
+
+
 def _make_plural(word: str) -> str:
     """Generate simple plural form of a word."""
     if word.endswith('s') or word.endswith('x') or word.endswith('z'):
@@ -85,7 +96,7 @@ def extract_nouns_from_state(state: GameState) -> List[Dict[str, Any]]:
     return nouns
 
 
-def merge_vocabulary(base_vocab: Dict[str, Any], extracted_nouns: List[Dict[str, Any]]) -> Dict[str, Any]:
+def merge_vocabulary(base_vocab: Dict[str, Any], extracted_nouns: List[Dict[str, Any]]) -> MergedVocabulary:
     """
     Merge base vocabulary with extracted nouns from game state.
 
@@ -94,7 +105,7 @@ def merge_vocabulary(base_vocab: Dict[str, Any], extracted_nouns: List[Dict[str,
         extracted_nouns: List of noun dicts extracted from game state
 
     Returns:
-        Merged vocabulary dict
+        Merged vocabulary dict with proper structure
     """
     # Copy base vocabulary
     merged = {

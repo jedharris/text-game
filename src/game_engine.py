@@ -14,6 +14,7 @@ from src.behavior_manager import BehaviorManager
 from src.llm_protocol import LLMProtocolHandler
 from src.vocabulary_service import build_merged_vocabulary
 from src.parser import Parser
+from src.types import ActorId
 
 
 class GameEngine:
@@ -123,7 +124,7 @@ class GameEngine:
 
         return parser, adapter
 
-    def build_parser_context(self, actor_id: str = "player"):
+    def build_parser_context(self, actor_id: ActorId = ActorId("player")):
         """Build context dict for LLM parser from current game state.
 
         Args:

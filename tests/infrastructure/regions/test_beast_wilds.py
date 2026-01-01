@@ -5,7 +5,7 @@ import unittest
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-from examples.big_game.behaviors.regions.beast_wilds.wolf_pack import on_wolf_feed
+from examples.big_game.behaviors.regions.beast_wilds.wolf_pack import on_receive_item as on_wolf_feed
 from examples.big_game.behaviors.regions.beast_wilds.sira_rescue import (
     on_sira_death,
     on_sira_encounter,
@@ -16,7 +16,7 @@ from examples.big_game.behaviors.regions.beast_wilds.bear_cubs import (
     on_cubs_died,
     on_cubs_healed,
 )
-from examples.big_game.behaviors.regions.beast_wilds.bee_queen import on_flower_offer, on_honey_theft
+from examples.big_game.behaviors.regions.beast_wilds.bee_queen import on_receive_item as on_flower_offer, on_honey_theft
 
 
 class MockActor:

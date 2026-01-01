@@ -11,7 +11,7 @@ from src.infrastructure_utils import (
     attempt_trust_recovery,
     calculate_recovery_amount,
     check_trust_threshold,
-    modify_trust,
+    # modify_trust is now private (_modify_trust). Use apply_trust_change() instead.
 )
 
 

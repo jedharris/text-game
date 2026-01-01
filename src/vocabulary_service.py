@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from src.vocabulary_generator import extract_nouns_from_state, merge_vocabulary
+from src.vocabulary_generator import extract_nouns_from_state, merge_vocabulary, MergedVocabulary
 from src.state_manager import GameState
 from src.behavior_manager import BehaviorManager
 
@@ -21,7 +21,7 @@ def build_merged_vocabulary(
     behavior_manager: BehaviorManager,
     base_vocab: Optional[Dict[str, Any]] = None,
     base_vocab_path: Optional[Path] = None,
-) -> Dict[str, Any]:
+) -> MergedVocabulary:
     """
     Build merged vocabulary: base + extracted nouns + behavior extensions.
 
@@ -30,6 +30,9 @@ def build_merged_vocabulary(
         behavior_manager: BehaviorManager providing behavior vocabulary.
         base_vocab: Optional preloaded base vocabulary dict.
         base_vocab_path: Optional path to base vocabulary JSON (used if base_vocab not provided).
+
+    Returns:
+        Properly structured merged vocabulary with verbs, nouns, adjectives, prepositions, articles.
     """
     vocab = base_vocab or load_base_vocabulary(base_vocab_path)
     extracted_nouns = extract_nouns_from_state(game_state)

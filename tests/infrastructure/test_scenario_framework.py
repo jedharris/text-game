@@ -24,7 +24,7 @@ from src.infrastructure_utils import (
     get_current_turn,
     get_pending_gossip_about,
     modify_condition_severity,
-    modify_trust,
+    # modify_trust is now private (_modify_trust). Use apply_trust_change() instead.
     transition_commitment_state,
     transition_state,
 )
@@ -285,12 +285,17 @@ class ScenarioTestCase(unittest.TestCase):
     def modify_actor_trust(
         self, actor_id: str, delta: int, floor: int | None = None, ceiling: int | None = None
     ) -> int:
-        """Modify an actor's trust value."""
+        """Modify an actor's trust value.
+
+        NOTE: This uses private _modify_trust for testing. Production code should use apply_trust_change().
+        """
+        from src.infrastructure_utils import _modify_trust
+
         actor = self.game_state.actors.get(actor_id)
         if not actor:
             return 0
         trust = actor.properties.get("trust_state", {"current": 0})
-        new_trust = modify_trust(
+        new_trust = _modify_trust(
             current=trust.get("current", 0),
             delta=delta,
             floor=floor or trust.get("floor", -5),

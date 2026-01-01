@@ -201,9 +201,14 @@ class LLMProtocolHandler:
                     'actor_id': actor_id
                 }
                 # Copy any other fields from original action (adjective, etc.)
-                for key in ['adjective', 'preposition', 'indirect_object', 'indirect_adjective']:
-                    if key in action:
-                        single_action[key] = action[key]
+                if 'adjective' in action:
+                    single_action['adjective'] = action['adjective']
+                if 'preposition' in action:
+                    single_action['preposition'] = action['preposition']
+                if 'indirect_object' in action:
+                    single_action['indirect_object'] = action['indirect_object']
+                if 'indirect_adjective' in action:
+                    single_action['indirect_adjective'] = action['indirect_adjective']
 
                 # Convert string to WordEntry if needed
                 single_action = self._convert_action_strings_to_wordentry(single_action)
@@ -242,7 +247,7 @@ class LLMProtocolHandler:
                 combined_result = HandlerResult(
                     success=True,
                     primary=primary_text,
-                    beats=beats if beats else None
+                    beats=beats
                 )
 
                 verbosity = self._determine_verbosity(verb, True, combined_result.data)

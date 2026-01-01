@@ -58,7 +58,7 @@ class TestWordEntryContract(unittest.TestCase):
         """Invalid word_type raises ValidationError."""
         entry = WordEntry(
             word="test",
-            word_type="invalid"  # type: ignore
+            word_type="invalid"  # Intentionally invalid for testing
         )
         with self.assertRaises(ValidationError):
             validate_word_entry(entry)
@@ -275,7 +275,7 @@ class TestAdapterContract(unittest.TestCase):
         }
 
         with self.assertRaises(ValidationError):
-            validate_adapter_contract(parser_output, invalid_action)  # type: ignore
+            validate_adapter_contract(parser_output, invalid_action)  # Intentionally invalid for testing
 
 
 if __name__ == "__main__":

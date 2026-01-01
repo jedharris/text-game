@@ -5,7 +5,7 @@ Tests the full flow: player input → LLM parser → adapter → ParsedCommand
 
 import unittest
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from src.game_engine import GameEngine
 from src.shared_mlx import SharedMLXBackend
@@ -16,6 +16,12 @@ from src.parsed_command import ParsedCommand
 
 class TestLLMParserIntegration(unittest.TestCase):
     """Test full LLM parser + adapter integration with real big_game."""
+
+    backend: SharedMLXBackend
+    engine: GameEngine
+    verbs: List[str]
+    parser: LLMCommandParser
+    adapter: LLMParserAdapter
 
     @classmethod
     def setUpClass(cls):
@@ -53,7 +59,7 @@ class TestLLMParserIntegration(unittest.TestCase):
         self,
         player_input: str,
         context: Dict[str, List[str]]
-    ) -> ParsedCommand:
+    ) -> Optional[ParsedCommand]:
         """Full pipeline: player input → LLM parser → adapter → ParsedCommand."""
         # Step 1: LLM parser
         parser_output = self.parser.parse_command(player_input, context)

@@ -1,6 +1,6 @@
 """Type definitions for action dictionaries and protocol messages."""
 
-from typing import Optional, TypedDict, Protocol, Literal
+from typing import Optional, TypedDict, Protocol, Literal, Union, List
 
 from src.types import ActorId
 from src.word_entry import WordEntry
@@ -8,11 +8,15 @@ from src.state_accessor import HandlerResult
 
 
 class ActionDict(TypedDict, total=False):
-    """Structured action payload passed to handlers."""
+    """Structured action payload passed to handlers.
+
+    Note: object can be a list[WordEntry] for multi-item commands like "take key and ball".
+    The protocol handler splits these into separate single-item commands before invoking handlers.
+    """
 
     actor_id: ActorId
     verb: str
-    object: Optional[WordEntry]
+    object: Optional[Union[WordEntry, List[WordEntry]]]
     adjective: str
     indirect_object: Optional[WordEntry]
     indirect_adjective: str

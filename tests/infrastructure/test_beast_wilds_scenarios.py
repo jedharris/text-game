@@ -17,7 +17,7 @@ from examples.big_game.behaviors.regions.beast_wilds.bear_cubs import (
     on_cubs_died,
     on_cubs_healed,
 )
-from examples.big_game.behaviors.regions.beast_wilds.bee_queen import on_flower_offer, on_honey_theft
+from examples.big_game.behaviors.regions.beast_wilds.bee_queen import on_receive_item as on_flower_offer, on_honey_theft
 from examples.big_game.behaviors.regions.beast_wilds.sira_rescue import (
     on_sira_death,
     on_sira_encounter,
@@ -28,13 +28,13 @@ from examples.big_game.behaviors.regions.beast_wilds.spider_nest import (
     on_spider_respawn_check,
     on_web_movement,
 )
-from examples.big_game.behaviors.regions.beast_wilds.wolf_pack import on_wolf_feed
+from examples.big_game.behaviors.regions.beast_wilds.wolf_pack import on_receive_item as on_wolf_feed
 from src.behavior_manager import EventResult
 from src.infrastructure_utils import (
     get_pending_gossip_about,
-    modify_trust,
     transition_state,
 )
+# Note: modify_trust is now private (_modify_trust). Tests should use apply_trust_change() instead.
 from tests.infrastructure.test_scenario_framework import (
     MockEntity,
     MockItem,
