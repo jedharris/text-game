@@ -24,6 +24,13 @@ from typing import Union, Sequence
 import libcst as cst
 from libcst import matchers as m
 
+# Import transformer library
+from libcst_transformers import (
+    ReplaceLocationIdAssignment,
+    ReplaceDictLocationAssignment,
+    AddAccessorToSetUp
+)
+
 
 # =============================================================================
 # TRANSFORMER CLASSES - Edit these for your refactoring needs
@@ -675,21 +682,209 @@ class RenameKeywordArgInConstructors(cst.CSTTransformer):
         return updated_node
 
 
+class ReplaceLocationIdAssignment(cst.CSTTransformer):
+    """
+    Replace entity.location = LocationId(value) with accessor.set_entity_where(entity.id, value).
+
+    ONLY handles the specific pattern: variable.location = LocationId(...)
+    Does NOT handle:
+    - self.location = Location(...) - test fixtures
+    - dict[key].location = ... - will handle separately
+    - entity.location = "string" - will handle separately
+    """
+
+    def __init__(self):
+        self.changes = 0
+
+    def leave_SimpleStatementLine(
+        self, original_node: cst.SimpleStatementLine, updated_node: cst.SimpleStatementLine
+    ) -> cst.SimpleStatementLine:
+        """Replace entity.location = LocationId(...) assignments."""
+        if len(updated_node.body) != 1:
+            return updated_node
+
+        stmt = updated_node.body[0]
+        if not isinstance(stmt, cst.Assign):
+            return updated_node
+
+        if len(stmt.targets) != 1:
+            return updated_node
+
+        target = stmt.targets[0].target
+
+        # Must be *.location attribute
+        if not m.matches(target, m.Attribute(attr=m.Name("location"))):
+            return updated_node
+
+        if not isinstance(target, cst.Attribute):
+            return updated_node
+
+        # Entity must be a simple Name (variable), not self.X or dict[key]
+        entity_expr = target.value
+        if not isinstance(entity_expr, cst.Name):
+            return updated_node
+
+        # Value must be LocationId(...) call
+        if not m.matches(stmt.value, m.Call(func=m.Name("LocationId"))):
+            return updated_node
+
+        # Extract the value from LocationId(value)
+        if isinstance(stmt.value, cst.Call) and len(stmt.value.args) > 0:
+            location_value = stmt.value.args[0].value
+        else:
+            return updated_node
+
+        # Build: self.accessor.set_entity_where(entity.id, location_value)
+        new_call = cst.Call(
+            func=cst.Attribute(
+                value=cst.Attribute(value=cst.Name("self"), attr=cst.Name("accessor")),
+                attr=cst.Name("set_entity_where")
+            ),
+            args=[
+                cst.Arg(value=cst.Attribute(value=entity_expr, attr=cst.Name("id"))),
+                cst.Arg(value=location_value)
+            ]
+        )
+
+        new_stmt = cst.Expr(value=new_call)
+        self.changes += 1
+
+        return updated_node.with_changes(body=[new_stmt])
+
+
+class ReplaceDictLocationAssignment(cst.CSTTransformer):
+    """
+    Replace state.actors[ActorId(id)].location = value with accessor.set_entity_where(id, value).
+
+    Handles the specific pattern: dict[key].location = ...
+    where dict is typically state.actors or self.engine.game_state.actors
+    and key is ActorId(...) or ItemId(...)
+
+    Does NOT handle:
+    - self.location = Location(...) - test fixtures
+    - entity.location = "string" or LocationId(...) - handled by other transformers
+    """
+
+    def __init__(self):
+        self.changes = 0
+
+    def leave_SimpleStatementLine(
+        self, original_node: cst.SimpleStatementLine, updated_node: cst.SimpleStatementLine
+    ) -> cst.SimpleStatementLine:
+        """Replace dict[key].location = value assignments."""
+        if len(updated_node.body) != 1:
+            return updated_node
+
+        stmt = updated_node.body[0]
+        if not isinstance(stmt, cst.Assign):
+            return updated_node
+
+        if len(stmt.targets) != 1:
+            return updated_node
+
+        target = stmt.targets[0].target
+
+        # Must be *.location attribute
+        if not m.matches(target, m.Attribute(attr=m.Name("location"))):
+            return updated_node
+
+        if not isinstance(target, cst.Attribute):
+            return updated_node
+
+        # Entity must be a subscript (dict[key])
+        entity_expr = target.value
+        if not isinstance(entity_expr, cst.Subscript):
+            return updated_node
+
+        # The subscript slice should be ActorId(...) or ItemId(...)
+        # Note: slice is a tuple in LibCST, not a list
+        if not isinstance(entity_expr.slice, (list, tuple)) or len(entity_expr.slice) != 1:
+            return updated_node
+
+        slice_elem = entity_expr.slice[0]
+        if not isinstance(slice_elem, cst.SubscriptElement):
+            return updated_node
+
+        slice_value = slice_elem.slice
+        if not isinstance(slice_value, cst.Index):
+            return updated_node
+
+        key_expr = slice_value.value
+
+        # Extract the ID string from ActorId("id") or ItemId("id")
+        entity_id_str = None
+        if m.matches(key_expr, m.Call(func=m.Name("ActorId") | m.Name("ItemId"))):
+            if isinstance(key_expr, cst.Call) and len(key_expr.args) > 0:
+                arg_value = key_expr.args[0].value
+                # Extract the string value
+                if isinstance(arg_value, cst.SimpleString):
+                    entity_id_str = arg_value
+                else:
+                    return updated_node
+            else:
+                return updated_node
+        else:
+            return updated_node
+
+        # Get the location value (could be string, LocationId(...), or variable)
+        location_value = stmt.value
+
+        # If it's LocationId(...), extract the inner value
+        if m.matches(location_value, m.Call(func=m.Name("LocationId"))):
+            if isinstance(location_value, cst.Call) and len(location_value.args) > 0:
+                location_value = location_value.args[0].value
+
+        # Build: self.accessor.set_entity_where(entity_id_str, location_value)
+        new_call = cst.Call(
+            func=cst.Attribute(
+                value=cst.Attribute(value=cst.Name("self"), attr=cst.Name("accessor")),
+                attr=cst.Name("set_entity_where")
+            ),
+            args=[
+                cst.Arg(value=entity_id_str),
+                cst.Arg(value=location_value)
+            ]
+        )
+
+        new_stmt = cst.Expr(value=new_call)
+        self.changes += 1
+
+        return updated_node.with_changes(body=[new_stmt])
+
+
 def create_transformer() -> cst.CSTTransformer:
     """
     Configure which transformations to apply.
     Edit this function for your specific refactoring needs.
+
+    Available transformers from libcst_transformers.py:
+
+    Location Migration (Entity Whereabouts Phase 2):
+    - ReplaceLocationIdAssignment: variable.location = LocationId(...) → accessor.set_entity_where(...)
+    - ReplaceDictLocationAssignment: dict[ActorId(...)].location = ... → accessor.set_entity_where(...)
+    - AddAccessorToSetUp: Adds self.accessor = StateAccessor(...) to test setUp methods
+
+    General Purpose:
+    - RenameFunction: Rename function calls and definitions
+    - ChangeMethodCall: Change method names on specific objects
+    - RenameKeywordArg: Rename keyword arguments in function calls
+    - UpdateTypeAnnotation: Update type annotations
+    - AddImport: Add import statements
+
+    To compose multiple transformers, use SequenceTransformer (see examples in script).
     """
 
-    # Phase 3: Rename properties= to _properties= in entity constructors
-    entity_constructors = [
-        'Actor', 'Item', 'Location', 'Part',
-        'Lock', 'ExitDescriptor',
-        'Commitment', 'ScheduledEvent', 'Gossip', 'Spread',
-        # Aliases sometimes used in tests
-        'StateActor', 'StateItem', 'StateLocation'
-    ]
-    return RenameKeywordArgInConstructors(entity_constructors, 'properties', '_properties')
+    # Phase 2 test migration: Replace dict[ActorId(...)].location = ... pattern
+    # Uncomment ONE of the following:
+
+    # Step 1: Add accessor to test setUp methods
+    return AddAccessorToSetUp()
+
+    # Step 2: Transform dict[ActorId(...)].location assignments
+    # return ReplaceDictLocationAssignment()
+
+    # Step 3: Transform variable.location = LocationId(...) assignments
+    # return ReplaceLocationIdAssignment()
 
 
 def main():

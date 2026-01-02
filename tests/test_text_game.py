@@ -12,6 +12,7 @@ from pathlib import Path
 from src.state_manager import load_game_state
 from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
+from src.state_accessor import StateAccessor
 
 try:
     from src.text_game import format_command_result, format_inventory_query
@@ -37,6 +38,7 @@ class TestBehaviorMessageDisplay(unittest.TestCase):
 
         # Create behavior manager and load modules
         self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
@@ -107,6 +109,7 @@ class TestMessageKeyConsistency(unittest.TestCase):
         self.game_state = load_game_state(fixture_path)
 
         self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
@@ -216,6 +219,7 @@ class TestFormatFunctions(unittest.TestCase):
         self.game_state = load_game_state(fixture_path)
 
         self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
@@ -279,6 +283,7 @@ class TestExamineLLMContext(unittest.TestCase):
         self.game_state = load_game_state(fixture_path)
 
         self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)

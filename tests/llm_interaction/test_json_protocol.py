@@ -21,6 +21,7 @@ sys.path.insert(0, str(project_root))
 
 from src.state_manager import load_game_state, GameState
 from src.llm_protocol import LLMProtocolHandler
+from src.state_accessor import StateAccessor
 
 
 def get_result_message(result: Dict[str, Any]) -> str:
@@ -1783,6 +1784,7 @@ class TestLightSourceFunctionality(unittest.TestCase):
 
         # Create behavior manager and load core modules
         self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         behaviors_dir = Path(__file__).parent.parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)

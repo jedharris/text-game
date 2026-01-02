@@ -15,6 +15,7 @@ from pathlib import Path
 from src.state_manager import load_game_state, Item, GameState, ContainerInfo
 from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
+from src.state_accessor import StateAccessor
 
 
 def get_result_message(result: Dict[str, Any]) -> str:
@@ -265,6 +266,7 @@ class TestPhase3EnhancedTake(unittest.TestCase):
         self.game_state = load_game_state(self.game_data)
 
         self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
@@ -393,6 +395,7 @@ class TestPhase5GameState(unittest.TestCase):
         self.game_state = load_game_state(fixture_path)
 
         self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)

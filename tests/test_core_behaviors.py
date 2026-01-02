@@ -17,6 +17,7 @@ from unittest.mock import Mock, MagicMock
 from src.state_manager import load_game_state
 from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager, EventResult
+from src.state_accessor import StateAccessor
 
 
 def get_result_message(result: Dict[str, Any]) -> str:
@@ -57,6 +58,7 @@ class TestConsumablesBehaviors(unittest.TestCase):
 
         # Create behavior manager and load core modules
         self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
@@ -250,6 +252,7 @@ class TestLightSourcesBehaviors(unittest.TestCase):
 
         # Create behavior manager and load core modules
         self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
@@ -418,6 +421,7 @@ class TestContainersBehaviors(unittest.TestCase):
 
         # Create behavior manager and load core modules
         self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
