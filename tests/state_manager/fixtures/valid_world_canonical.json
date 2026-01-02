@@ -66,17 +66,7 @@
   "locations": [
     {
       "description": "A grand entrance with marble floors.",
-      "exits": {
-        "east": {
-          "to": "loc_3",
-          "type": "open"
-        },
-        "north": {
-          "door_id": "door_1",
-          "to": "loc_2",
-          "type": "door"
-        }
-      },
+      "exits": {},
       "id": "loc_1",
       "items": [
         "item_1"
@@ -89,13 +79,7 @@
     },
     {
       "description": "A dimly lit chamber with ancient tapestries.",
-      "exits": {
-        "south": {
-          "door_id": "door_1",
-          "to": "loc_1",
-          "type": "door"
-        }
-      },
+      "exits": {},
       "id": "loc_2",
       "items": [
         "item_2"
@@ -108,12 +92,7 @@
     },
     {
       "description": "A small storage room.",
-      "exits": {
-        "west": {
-          "to": "loc_1",
-          "type": "open"
-        }
-      },
+      "exits": {},
       "id": "loc_3",
       "items": [],
       "name": "Side Room",
@@ -147,7 +126,7 @@
     "author": "Test Author",
     "start_location": "loc_1",
     "title": "Test Adventure",
-    "version": "1.0"
+    "version": "0.05"
   },
   "actors": {
     "player": {
@@ -155,7 +134,9 @@
       "name": "Adventurer",
       "description": "",
       "location": "loc_1",
-      "inventory": ["item_4"],
+      "inventory": [
+        "item_4"
+      ],
       "flags": {
         "started": true
       },

@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "Doors Test",
-    "version": "0.1.2",
+    "version": "0.05",
     "start_location": "loc_room1"
   },
   "locations": [
@@ -9,29 +9,13 @@
       "id": "loc_room1",
       "name": "Room 1",
       "description": "A room with a wooden door to the north.",
-      "exits": {
-        "north": {
-          "type": "door",
-          "to": "loc_room2",
-          "door_id": "door_wooden",
-          "name": "wooden door",
-          "description": "A sturdy wooden door."
-        }
-      }
+      "exits": {}
     },
     {
       "id": "loc_room2",
       "name": "Room 2",
       "description": "A room with a wooden door to the south.",
-      "exits": {
-        "south": {
-          "type": "door",
-          "to": "loc_room1",
-          "door_id": "door_wooden",
-          "name": "wooden door",
-          "description": "The same sturdy wooden door, viewed from the other side."
-        }
-      }
+      "exits": {}
     }
   ],
   "items": [

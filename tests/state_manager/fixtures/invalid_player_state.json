@@ -2,7 +2,7 @@
   "metadata": {
     "title": "Invalid Player State Test",
     "author": "Test",
-    "version": "1.0",
+    "version": "0.05",
     "start_location": "loc_1"
   },
   "locations": [
@@ -19,7 +19,9 @@
       "name": "Adventurer",
       "description": "The player character",
       "location": "loc_999",
-      "inventory": ["item_999"]
+      "inventory": [
+        "item_999"
+      ]
     }
   }
 }

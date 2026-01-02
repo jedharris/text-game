@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "Simple Exits Test",
-    "version": "0.1.2",
+    "version": "0.05",
     "start_location": "loc_a"
   },
   "locations": [
@@ -9,68 +9,31 @@
       "id": "loc_a",
       "name": "Room A",
       "description": "A room with exits in all directions.",
-      "exits": {
-        "north": {
-          "type": "open",
-          "to": "loc_b"
-        },
-        "south": {
-          "type": "open",
-          "to": "loc_c"
-        },
-        "east": {
-          "type": "open",
-          "to": "loc_d"
-        },
-        "west": {
-          "type": "open",
-          "to": "loc_e"
-        }
-      }
+      "exits": {}
     },
     {
       "id": "loc_b",
       "name": "Room B",
       "description": "North of Room A.",
-      "exits": {
-        "south": {
-          "type": "open",
-          "to": "loc_a"
-        }
-      }
+      "exits": {}
     },
     {
       "id": "loc_c",
       "name": "Room C",
       "description": "South of Room A.",
-      "exits": {
-        "north": {
-          "type": "open",
-          "to": "loc_a"
-        }
-      }
+      "exits": {}
     },
     {
       "id": "loc_d",
       "name": "Room D",
       "description": "East of Room A.",
-      "exits": {
-        "west": {
-          "type": "open",
-          "to": "loc_a"
-        }
-      }
+      "exits": {}
     },
     {
       "id": "loc_e",
       "name": "Room E",
       "description": "West of Room A.",
-      "exits": {
-        "east": {
-          "type": "open",
-          "to": "loc_a"
-        }
-      }
+      "exits": {}
     }
   ],
   "items": [],

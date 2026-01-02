@@ -1207,10 +1207,11 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
 
     # Parse metadata and enforce minimum version
     metadata = _parse_metadata(data.get('metadata', {}))
-    if metadata.version and metadata.version < "0.04":
+    if metadata.version and metadata.version < "0.05":
         raise ValueError(
             f"game_state version {metadata.version} is unsupported; "
-            "please migrate to version 0.04 or later."
+            "please migrate to version 0.05 or later. "
+            "Version 0.05 requires Exit entities with direct door_id/passage/door_at attributes."
         )
 
     # Parse locations

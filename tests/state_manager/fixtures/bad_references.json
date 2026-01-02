@@ -2,7 +2,7 @@
   "metadata": {
     "title": "Bad References Test",
     "author": "Test",
-    "version": "1.0",
+    "version": "0.05",
     "start_location": "loc_1"
   },
   "locations": [
@@ -10,12 +10,7 @@
       "id": "loc_1",
       "name": "Room",
       "description": "A room.",
-      "exits": {
-        "north": {
-          "type": "open",
-          "to": "loc_999"
-        }
-      }
+      "exits": {}
     }
   ]
 }

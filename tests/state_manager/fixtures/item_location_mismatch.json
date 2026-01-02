@@ -2,7 +2,7 @@
   "metadata": {
     "title": "Item Location Consistency Test",
     "author": "Test",
-    "version": "1.0",
+    "version": "0.05",
     "start_location": "loc_1"
   },
   "locations": [
@@ -11,7 +11,9 @@
       "name": "Room One",
       "description": "First room.",
       "exits": {},
-      "items": ["item_1"]
+      "items": [
+        "item_1"
+      ]
     },
     {
       "id": "loc_2",

@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "The Cavern of Trials",
-    "version": "0.1.2",
+    "version": "0.05",
     "description": "A three-tier behavior demonstration with puzzle mechanics.",
     "start_location": "loc_entrance",
     "author": "Layered Game Example",
@@ -12,38 +12,7 @@
       "id": "loc_entrance",
       "name": "Cavern Entrance",
       "description": "You stand at the entrance to an ancient cavern system. The air is cool and damp. Passages lead north to a grotto, east to a stalactite cavern, south to a reflection chamber, west to a shrine, and down to an idol chamber.",
-      "exits": {
-        "north": {
-          "type": "open",
-          "to": "loc_mushroom_grotto",
-          "name": "passage",
-          "description": "A dark passage leads north, with a faint greenish glow visible in the distance."
-        },
-        "east": {
-          "type": "open",
-          "to": "loc_stalactites",
-          "name": "tunnel",
-          "description": "An echoing tunnel extends to the east."
-        },
-        "south": {
-          "type": "open",
-          "to": "loc_well",
-          "name": "corridor",
-          "description": "A smooth corridor leads south, where you hear the sound of dripping water."
-        },
-        "west": {
-          "type": "open",
-          "to": "loc_shrine",
-          "name": "archway",
-          "description": "An ornate archway opens to the west."
-        },
-        "down": {
-          "type": "open",
-          "to": "loc_idol_chamber",
-          "name": "stairs",
-          "description": "Stone stairs descend into darkness."
-        }
-      },
+      "exits": {},
       "items": [],
       "tags": []
     },
@@ -51,14 +20,7 @@
       "id": "loc_mushroom_grotto",
       "name": "Mushroom Grotto",
       "description": "A cavern filled with bioluminescent mushrooms. Some glow dimly, others are dark. A bucket of water sits near the entrance. Strange symbols are carved into the ceiling, but it's too dark to read them clearly.",
-      "exits": {
-        "south": {
-          "type": "open",
-          "to": "loc_entrance",
-          "name": "passage",
-          "description": "The passage leads back south to the entrance."
-        }
-      },
+      "exits": {},
       "items": [
         "item_bucket",
         "item_mushroom_blue",
@@ -74,14 +36,7 @@
       "id": "loc_stalactites",
       "name": "Singing Stalactites Cavern",
       "description": "Massive stalactites hang from the ceiling, each a different size. A musical score is carved into the wall showing five notes. Crystal shards are visible embedded high in the ceiling.",
-      "exits": {
-        "west": {
-          "type": "open",
-          "to": "loc_entrance",
-          "name": "tunnel",
-          "description": "The tunnel leads back west."
-        }
-      },
+      "exits": {},
       "items": [
         "item_stalactite_do",
         "item_stalactite_re",
@@ -95,14 +50,7 @@
       "id": "loc_well",
       "name": "Well of Reflections",
       "description": "A circular chamber with a deep well at its center. The water glows with an eerie light. Looking into the well, you see... yourself. But something feels different each time you look.",
-      "exits": {
-        "north": {
-          "type": "open",
-          "to": "loc_entrance",
-          "name": "corridor",
-          "description": "The corridor leads back north."
-        }
-      },
+      "exits": {},
       "items": [
         "item_well"
       ],
@@ -112,14 +60,7 @@
       "id": "loc_shrine",
       "name": "Household Shrine",
       "description": "A small shrine room with a stone altar. Incense burners line the walls. The air feels sacred and still.",
-      "exits": {
-        "east": {
-          "type": "open",
-          "to": "loc_entrance",
-          "name": "archway",
-          "description": "The archway leads back east."
-        }
-      },
+      "exits": {},
       "items": [
         "item_shrine_altar"
       ],
@@ -129,21 +70,7 @@
       "id": "loc_idol_chamber",
       "name": "Weighted Idol Chamber",
       "description": "A square chamber with a pedestal in the center holding a golden idol. Pressure plates surround the pedestal. A sealed door is set into the north wall.",
-      "exits": {
-        "up": {
-          "type": "open",
-          "to": "loc_entrance",
-          "name": "stairs",
-          "description": "Stairs lead back up."
-        },
-        "north": {
-          "type": "door",
-          "to": "loc_treasure",
-          "door_id": "door_treasure",
-          "name": "sealed door",
-          "description": "A heavy sealed door with pressure-sensitive mechanisms."
-        }
-      },
+      "exits": {},
       "items": [
         "item_pedestal",
         "item_golden_idol"
@@ -154,15 +81,7 @@
       "id": "loc_treasure",
       "name": "Treasure Chamber",
       "description": "You've successfully navigated the trials! Ancient treasures glitter in the torchlight.",
-      "exits": {
-        "south": {
-          "type": "door",
-          "to": "loc_idol_chamber",
-          "door_id": "door_treasure",
-          "name": "door",
-          "description": "The door back to the idol chamber."
-        }
-      },
+      "exits": {},
       "items": [
         "item_treasure_chest"
       ],

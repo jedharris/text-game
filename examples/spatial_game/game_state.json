@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "The Wizard's Tower",
-    "version": "0.1.2",
+    "version": "0.05",
     "description": "A custom game demonstrating engine extensibility.",
     "start_location": "loc_garden",
     "author": "Extended Game Example",
@@ -12,14 +12,7 @@
       "id": "loc_garden",
       "name": "Overgrown Garden",
       "description": "You stand in an overgrown garden. Weeds choke the flowerbeds and ivy climbs the crumbling walls. A weathered stone path leads north to a tower entrance.",
-      "exits": {
-        "north": {
-          "type": "open",
-          "to": "loc_tower_entrance",
-          "name": "stone path",
-          "description": "A weathered stone path winds through the overgrown garden toward the tower entrance."
-        }
-      },
+      "exits": {},
       "items": [
         "item_rusty_trowel",
         "item_garden_bench",
@@ -31,47 +24,7 @@
       "id": "loc_tower_entrance",
       "name": "Tower Entrance",
       "description": "You are in the entrance hall of a tall stone tower. Dust motes dance in shafts of light from narrow windows. A wooden door leads east. The garden is to the south.",
-      "exits": {
-        "south": {
-          "type": "open",
-          "to": "loc_garden",
-          "name": "garden archway",
-          "description": "An ivy-covered archway leads back to the overgrown garden."
-        },
-        "up": {
-          "type": "open",
-          "to": "loc_library",
-          "name": "spiral staircase",
-          "description": "A worn spiral staircase of grey stone winds upward into the tower.",
-          "behaviors": [
-            "behaviors.magic_staircase"
-          ],
-          "properties": {
-            "states": {
-              "hidden": true
-            },
-            "llm_context": {
-              "traits": [
-                "worn grey stone",
-                "spiral design",
-                "narrow passage",
-                "ancient construction"
-              ],
-              "perspective_variants": {
-                "default": "A spiral staircase of worn grey stone winds upward into the tower's heights.",
-                "climbing": "The worn stone steps continue spiraling above and below you, the passage narrow but sure."
-              }
-            }
-          }
-        },
-        "east": {
-          "type": "door",
-          "to": "loc_storage",
-          "door_id": "door_storage",
-          "name": "wooden door",
-          "description": "A simple wooden door leads to what appears to be a storage area."
-        }
-      },
+      "exits": {},
       "items": [
         "item_welcome_mat",
         "item_umbrella_stand"
@@ -85,15 +38,7 @@
       "id": "loc_storage",
       "name": "Storage Room",
       "description": "A small dusty storage room. Old crates are stacked against the walls. A door leads west back to the entrance.",
-      "exits": {
-        "west": {
-          "type": "door",
-          "to": "loc_tower_entrance",
-          "door_id": "door_storage",
-          "name": "wooden door",
-          "description": "The wooden door leads back to the tower entrance hall."
-        }
-      },
+      "exits": {},
       "items": [
         "item_crate",
         "item_old_rope"
@@ -104,37 +49,7 @@
       "id": "loc_library",
       "name": "Wizard's Library",
       "description": "Towering bookshelves line the circular room. A large desk sits near the window. Stairs lead down and up.",
-      "exits": {
-        "down": {
-          "type": "open",
-          "to": "loc_tower_entrance",
-          "name": "spiral staircase",
-          "description": "The spiral staircase winds downward to the entrance hall below.",
-          "properties": {
-            "llm_context": {
-              "traits": [
-                "worn grey stone",
-                "spiral design",
-                "narrow passage",
-                "descending"
-              ],
-              "perspective_variants": {
-                "default": "The spiral staircase winds downward to the entrance hall below.",
-                "climbing": "The worn stone steps spiral away both above and below you."
-              }
-            }
-          }
-        },
-        "up": {
-          "type": "door",
-          "to": "loc_sanctum",
-          "door_id": "door_sanctum",
-          "name": "ornate door",
-          "description": "An ornate door covered in glowing runes bars the way to the upper sanctum. Beyond it, narrow stone stairs wind upward.",
-          "passage": "narrow stone stairs",
-          "door_at": "loc_library"
-        }
-      },
+      "exits": {},
       "items": [
         "item_desk",
         "item_crystal_ball"
@@ -145,17 +60,7 @@
       "id": "loc_sanctum",
       "name": "Wizard's Sanctum",
       "description": "The wizard's private sanctum at the top of the tower. Arcane symbols cover the floor. A large window overlooks the land below.",
-      "exits": {
-        "down": {
-          "type": "door",
-          "to": "loc_library",
-          "door_id": "door_sanctum",
-          "name": "ornate door",
-          "description": "Narrow stone stairs wind downward to the ornate rune-covered door that leads back to the library.",
-          "passage": "narrow stone stairs",
-          "door_at": "loc_library"
-        }
-      },
+      "exits": {},
       "items": [
         "item_altar",
         "item_magic_wand"
