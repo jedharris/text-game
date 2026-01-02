@@ -165,7 +165,7 @@ class Location:
     id: str                           # Globally unique ID
     name: str                         # User-facing name
     description: str                  # Prose description
-    exits: Dict[str, ExitDescriptor]  # Direction → exit mapping
+    exits: Dict[str, Any]             # DEPRECATED - now always empty dict
     items: List[str]                  # Item IDs in this location
     properties: Dict[str, Any]        # Flexible properties
     behaviors: List[str]              # Behavior module paths
@@ -198,14 +198,27 @@ class Lock:
     behaviors: List[str]
 
 @dataclass
-class ExitDescriptor:
-    type: str                         # "open" or "door"
-    to: Optional[str]                 # Destination location ID
-    door_id: Optional[str]            # Door item ID (if type="door")
+class Exit:
+    """First-class exit entity (as of version 0.05).
+
+    Exit type is computed dynamically:
+    - If door_id is set, this is a door exit
+    - If door_id is None, this is an open exit
+    """
+    id: str                           # Globally unique ID
     name: str                         # User-facing exit name
+    location: str                     # LocationId where exit is accessed from
+    connections: List[str]            # Entity IDs this exit connects to
+    direction: Optional[str]          # Direction name (e.g., "north")
     description: str                  # Prose description
-    properties: Dict[str, Any]
-    behaviors: List[str]
+    door_id: Optional[str]            # Item ID of door blocking this exit
+    passage: Optional[str]            # Traversal structure beyond door
+    door_at: Optional[str]            # Which end the door is at
+    adjectives: List[str]             # Adjectives for vocabulary matching
+    synonyms: List[str]               # Synonym names
+    properties: Dict[str, Any]        # Flexible properties
+    behaviors: List[str]              # Behavior module paths
+    traits: Dict[str, Any]            # llm_context and other traits
 
 @dataclass
 class GameState:
@@ -213,6 +226,7 @@ class GameState:
     locations: List[Location]
     items: List[Item]
     locks: List[Lock]
+    exits: List[Exit]                 # Exit entities (as of version 0.05)
     actors: Dict[str, Actor]          # Actor ID → Actor
     parts: List[Part]
     extra: Dict[str, Any]             # Global data not tied to specific entities
@@ -369,10 +383,12 @@ def get_location(self, location_id: str) -> Optional[Location]
 def get_item(self, item_id: str) -> Optional[Item]
 def get_actor(self, actor_id: str) -> Optional[Actor]
 def get_lock(self, lock_id: str) -> Optional[Lock]
+def get_exit(self, exit_id: str) -> Exit  # Raises KeyError if not found
 
 def get_items_in_location(self, location_id: str) -> List[Item]
 def get_actors_in_location(self, location_id: str) -> List[Actor]
 def get_items_in_container(self, container_id: str) -> List[Item]
+def get_exits_from_location(self, location_id: str) -> List[Exit]
 ```
 
 **Entity Matching:**
@@ -383,7 +399,7 @@ def find_entity_in_location(
     location_id: str,
     adjective: Optional[str] = None,
     actor_id: str = "player"
-) -> Optional[Union[Item, Actor, ExitDescriptor]]
+) -> Optional[Union[Item, Actor, Exit]]
 ```
 
 **State Updates:**
