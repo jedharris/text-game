@@ -182,7 +182,7 @@ import unittest
 from src.state_manager import GameState
 ```
 
-**EXCEPTION**: Integration tests for specific games need path setup (see Integration Testing section).
+**CRITICAL EXCEPTION**: Tests that manipulate sys.path AND use GameEngine with game-specific behaviors MUST use subprocess isolation (see "When to Use Subprocess Isolation" below).
 
 ### 8. Consistent Import Order
 
@@ -681,6 +681,128 @@ def test_something(self):
 
 ---
 
+## When to Use Subprocess Isolation
+
+### The Problem
+
+Tests that manipulate `sys.path` and load game-specific behaviors via `GameEngine` cause **module cache pollution**. Python caches imported modules in `sys.modules`, so when tests load behaviors with short names like `behaviors.magic_star`, those modules persist across tests and cause context-dependent failures.
+
+### Symptoms
+
+- Test passes when run individually: `python -m unittest tests.test_foo -v` ✅
+- Test fails when run in discovery: `python -m unittest discover -s tests` ❌
+- Failure depends on which other tests ran first
+- Import errors or wrong behavior implementations
+
+### When Isolation is Required
+
+Use the two-file subprocess isolation pattern when ALL of these are true:
+
+1. ✅ Test manipulates `sys.path` (adds game directory to path)
+2. ✅ Test uses `GameEngine(GAME_DIR)` to load a game
+3. ✅ Game has custom behaviors in its `behaviors/` directory
+
+### How to Use Subprocess Isolation
+
+Create two files:
+
+**`tests/test_<game>_scenarios.py`** (wrapper):
+```python
+"""Integration tests for <game> scenarios."""
+import subprocess
+import sys
+import unittest
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).parent.parent
+
+class Test<Game>Scenarios(unittest.TestCase):
+    """Run <game> scenario tests in isolated subprocesses."""
+
+    def _run_test_class(self, class_name: str) -> subprocess.CompletedProcess:
+        """Run a single test class in a subprocess."""
+        return subprocess.run(
+            [
+                sys.executable,
+                '-m', 'unittest',
+                f'tests._<game>_scenarios_impl.{class_name}',
+                '-v'
+            ],
+            capture_output=True,
+            text=True,
+            cwd=PROJECT_ROOT
+        )
+
+    def test_feature_x(self):
+        """Test feature X."""
+        result = self._run_test_class('TestFeatureX')
+        if result.returncode != 0:
+            print(result.stderr)
+        self.assertEqual(result.returncode, 0, f"Tests failed:\n{result.stderr}")
+```
+
+**`tests/_<game>_scenarios_impl.py`** (implementation):
+```python
+"""Implementation of <game> scenario tests.
+
+DO NOT import this module directly - it will cause module pollution.
+Run via test_<game>_scenarios.py wrapper.
+"""
+import sys
+from pathlib import Path
+
+GAME_DIR = (Path(__file__).parent.parent / 'examples' / '<game>').resolve()
+PROJECT_ROOT = Path(__file__).parent.parent.resolve()
+
+def _setup_paths():
+    """Ensure game directory is first in sys.path."""
+    while '' in sys.path:
+        sys.path.remove('')
+    if str(GAME_DIR) not in sys.path:
+        sys.path.insert(0, str(GAME_DIR))
+    if str(PROJECT_ROOT) not in sys.path:
+        sys.path.insert(1, str(PROJECT_ROOT))
+
+_setup_paths()
+
+from src.game_engine import GameEngine
+
+class TestFeatureX(unittest.TestCase):
+    """Test feature X in <game>."""
+
+    def setUp(self):
+        self.engine = GameEngine(GAME_DIR)
+        # Test implementation
+```
+
+### Detecting Tests That Need Isolation
+
+Run the isolation detector tool:
+```bash
+python tools/find_isolation_candidates.py
+```
+
+This scans all test files and reports:
+- Tests that need isolation (imports GameEngine + manipulates sys.path)
+- Tests already using isolation (subprocess wrapper pattern)
+- Tests that don't need isolation
+
+### When NOT to Use Isolation
+
+Don't use subprocess isolation for:
+- Tests importing behaviors with absolute paths: `from examples.big_game.behaviors.regions.beast_wilds.sira_rescue import on_sira_encounter`
+- Tests using only `behavior_libraries` imports
+- Tests using `GameEngine` with games that have no custom behaviors (e.g., simple_game)
+- Regular unit tests of src/ modules
+
+### Related Documentation
+
+- [integration_testing.md](integration_testing.md) - Full guide to integration test structure
+- [test_isolation_analysis.md](test_isolation_analysis.md) - Deep dive into isolation patterns
+- [test_isolation_root_cause.md](test_isolation_root_cause.md) - Technical details of module cache pollution
+
+---
+
 ## Migration Strategy
 
 When updating existing tests:
@@ -690,7 +812,8 @@ When updating existing tests:
 3. **Move to base classes** (inherit from BaseTestCase/BehaviorTestCase)
 4. **Add super().setUp() calls**
 5. **Use conftest helpers**
-6. **Remove sys.path manipulation**
-7. **Validate** - run both individually and via discovery
+6. **Remove sys.path manipulation** (unless test needs isolation)
+7. **Check if isolation needed** (run `tools/find_isolation_candidates.py`)
+8. **Validate** - run both individually and via discovery
 
 This can be done incrementally as you touch test files for other work.
