@@ -55,17 +55,16 @@ class TestConsumablesBehaviors(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_with_core_behaviors.json"
         self.game_state = load_game_state(fixture_path)
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
 
         # Create behavior manager and load core modules
-        self.manager = BehaviorManager()
+        self.behavior_manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
-        modules = self.manager.discover_modules(str(behaviors_dir))
-        self.manager.load_modules(modules)
+        modules = self.behavior_manager.discover_modules(str(behaviors_dir))
+        self.behavior_manager.load_modules(modules)
 
-        # Create handler with behavior manager
-        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
+        # Create accessor and handler with behavior manager
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.behavior_manager)
 
     def test_drink_potion_success(self):
         """Test drinking a potion successfully."""
@@ -250,17 +249,16 @@ class TestLightSourcesBehaviors(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_with_core_behaviors.json"
         self.game_state = load_game_state(fixture_path)
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
 
         # Create behavior manager and load core modules
-        self.manager = BehaviorManager()
+        self.behavior_manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
-        modules = self.manager.discover_modules(str(behaviors_dir))
-        self.manager.load_modules(modules)
+        modules = self.behavior_manager.discover_modules(str(behaviors_dir))
+        self.behavior_manager.load_modules(modules)
 
-        # Create handler with behavior manager
-        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
+        # Create accessor and handler with behavior manager
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.behavior_manager)
 
     def test_lantern_starts_unlit(self):
         """Test that lantern starts in unlit state."""
@@ -354,11 +352,11 @@ class TestLightSourcesBehaviors(unittest.TestCase):
         state = load_game_state(fixture_path)
 
         # Create handler with behavior manager
-        handler = LLMProtocolHandler(state, behavior_manager=self.manager)
+        handler = LLMProtocolHandler(state, behavior_manager=self.behavior_manager)
 
         # Move player to hallway where lantern and table are
         from src.state_accessor import StateAccessor
-        accessor = StateAccessor(state, self.manager)
+        accessor = StateAccessor(state, self.behavior_manager)
         accessor.set_entity_where("player", "loc_hallway")
 
         lantern = state.get_item("item_lantern")
@@ -417,20 +415,20 @@ class TestContainersBehaviors(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_with_core_behaviors.json"
         self.game_state = load_game_state(fixture_path)
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
+
+        # Create behavior manager and load core modules
+        self.behavior_manager = BehaviorManager()
+        behaviors_dir = Path(__file__).parent.parent / "behaviors"
+        modules = self.behavior_manager.discover_modules(str(behaviors_dir))
+        self.behavior_manager.load_modules(modules)
+
+        # Create accessor and handler with behavior manager
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Move player to room2 where chest is
         self.accessor.set_entity_where("player", "room2")
 
-        # Create behavior manager and load core modules
-        self.manager = BehaviorManager()
-        behaviors_dir = Path(__file__).parent.parent / "behaviors"
-        modules = self.manager.discover_modules(str(behaviors_dir))
-        self.manager.load_modules(modules)
-
-        # Create handler with behavior manager
-        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.behavior_manager)
 
     def test_open_chest_succeeds(self):
         """Test opening treasure chest succeeds."""

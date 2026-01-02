@@ -264,15 +264,15 @@ class TestPhase3EnhancedTake(unittest.TestCase):
             "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_test"}}
         }
         self.game_state = load_game_state(self.game_data)
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
-        self.manager = BehaviorManager()
+        self.behavior_manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
-        modules = self.manager.discover_modules(str(behaviors_dir))
-        self.manager.load_modules(modules)
+        modules = self.behavior_manager.discover_modules(str(behaviors_dir))
+        self.behavior_manager.load_modules(modules)
 
-        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.behavior_manager)
 
     def test_take_from_surface_visible_item(self):
         """Test taking an item from a surface container (visible)."""
@@ -394,15 +394,15 @@ class TestPhase5GameState(unittest.TestCase):
         """Set up with the actual game state file."""
         fixture_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
         self.game_state = load_game_state(fixture_path)
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
-        self.manager = BehaviorManager()
+        self.behavior_manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
-        modules = self.manager.discover_modules(str(behaviors_dir))
-        self.manager.load_modules(modules)
+        modules = self.behavior_manager.discover_modules(str(behaviors_dir))
+        self.behavior_manager.load_modules(modules)
 
-        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.behavior_manager)
 
     def test_tower_has_pedestal_item(self):
         """Test that tower contains a pedestal item."""
@@ -576,8 +576,8 @@ class TestPhase6RoomDescriptions(unittest.TestCase):
             "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_test"}}
         }
         self.game_state = load_game_state(self.game_data)
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         self.handler = LLMProtocolHandler(self.game_state)
 
@@ -771,8 +771,8 @@ class TestPhase2PutCommand(unittest.TestCase):
             }
         }
         self.game_state = load_game_state(self.game_data)
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_put_item_on_surface(self):
@@ -974,8 +974,8 @@ class TestPhase4PushCommand(unittest.TestCase):
             "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_test"}}
         }
         self.game_state = load_game_state(self.game_data)
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_push_pushable_item_succeeds(self):
@@ -1076,8 +1076,8 @@ class TestContainerCapacity(unittest.TestCase):
             "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_test"}}
         }
         self.game_state = load_game_state(self.game_data)
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         self.handler = LLMProtocolHandler(self.game_state)
 

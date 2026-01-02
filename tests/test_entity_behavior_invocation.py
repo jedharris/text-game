@@ -64,14 +64,14 @@ class TestEntityBehaviorInvocationOnTake(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.game_state = create_test_state_with_light_source()
-        self.manager = BehaviorManager()
+        self.behavior_manager = BehaviorManager()
 
         # Load behavior modules
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
-        modules = self.manager.discover_modules(str(behaviors_dir))
-        self.manager.load_modules(modules)
+        modules = self.behavior_manager.discover_modules(str(behaviors_dir))
+        self.behavior_manager.load_modules(modules)
 
-        self.accessor = StateAccessor(self.game_state, self.manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_take_invokes_on_take_behavior(self):
         """Test that taking an item invokes its on_take behavior."""
@@ -108,14 +108,14 @@ class TestEntityBehaviorInvocationOnDrop(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures with lantern in inventory."""
         self.game_state = create_test_state_with_light_source()
-        self.manager = BehaviorManager()
+        self.behavior_manager = BehaviorManager()
 
         # Load behavior modules
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
-        modules = self.manager.discover_modules(str(behaviors_dir))
-        self.manager.load_modules(modules)
+        modules = self.behavior_manager.discover_modules(str(behaviors_dir))
+        self.behavior_manager.load_modules(modules)
 
-        self.accessor = StateAccessor(self.game_state, self.manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Put lantern in player inventory and set it lit
         lantern = self.game_state.get_item("lantern")
@@ -158,14 +158,14 @@ class TestEntityBehaviorInvocationNPC(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures with NPC."""
         self.game_state = create_test_state_with_light_source()
-        self.manager = BehaviorManager()
+        self.behavior_manager = BehaviorManager()
 
         # Load behavior modules
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
-        modules = self.manager.discover_modules(str(behaviors_dir))
-        self.manager.load_modules(modules)
+        modules = self.behavior_manager.discover_modules(str(behaviors_dir))
+        self.behavior_manager.load_modules(modules)
 
-        self.accessor = StateAccessor(self.game_state, self.manager)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Add NPC in same room
         self.game_state.actors[ActorId("guard")] = Actor(

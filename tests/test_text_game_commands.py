@@ -70,9 +70,8 @@ class TestVocabularyMerging(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.game_state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
         self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
         behaviors_dir = project_root / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
@@ -105,9 +104,8 @@ class TestParserCommands(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures with proper vocabulary."""
         self.game_state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
         self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
         behaviors_dir = project_root / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
@@ -171,9 +169,8 @@ class TestGameEngineIntegration(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.game_state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
         self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
         behaviors_dir = project_root / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
@@ -193,9 +190,8 @@ class TestLocationQuery(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.game_state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
         self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
         behaviors_dir = project_root / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
@@ -240,9 +236,8 @@ class TestExamineCommand(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.game_state = load_game_state(str(project_root / "examples" / "simple_game" / "game_state.json"))
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
         self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
         behaviors_dir = project_root / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
