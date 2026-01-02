@@ -2,17 +2,23 @@
 from src.types import ActorId
 
 import unittest
-from src.state_manager import GameState, Location, Actor, ExitDescriptor, Metadata
+from src.state_manager import (
+    GameState, Location, Actor, Exit, Metadata,
+    _build_whereabouts_index, _build_connection_index
+)
 from src.state_accessor import StateAccessor
 from src.behavior_manager import BehaviorManager, EventResult
 from behaviors.core.exits import handle_go, handle_climb
+from tests.conftest import BaseTestCase
 
 
-class TestOnEnterEvent(unittest.TestCase):
+class TestOnEnterEvent(BaseTestCase):
     """Test on_enter event invocation when entering locations."""
 
     def setUp(self):
         """Set up test game state."""
+        super().setUp()
+
         self.game_state = GameState(
             metadata=Metadata(title="Test"),
             locations=[
@@ -20,20 +26,7 @@ class TestOnEnterEvent(unittest.TestCase):
                     id="room1",
                     name="Start Room",
                     description="A plain room.",
-                    exits={
-                        "north": ExitDescriptor(
-                            type="open",
-                            to="room2",
-                            name="doorway",
-                            description="A simple doorway"
-                        ),
-                        "up": ExitDescriptor(
-                            type="open",
-                            to="room3",
-                            name="ladder",
-                            description="A wooden ladder"
-                        )
-                    }
+                    exits={}
                 ),
                 Location(
                     id="room2",
@@ -50,6 +43,44 @@ class TestOnEnterEvent(unittest.TestCase):
                     # No behaviors - should not invoke on_enter
                 )
             ],
+            exits=[
+                Exit(
+                    id="exit_room1_north",
+                    name="doorway",
+                    location="room1",
+                    direction="north",
+                    connections=["exit_room2_south"],
+                    description="A simple doorway",
+                    properties={"type": "open"}
+                ),
+                Exit(
+                    id="exit_room2_south",
+                    name="doorway",
+                    location="room2",
+                    direction="south",
+                    connections=["exit_room1_north"],
+                    description="A simple doorway",
+                    properties={"type": "open"}
+                ),
+                Exit(
+                    id="exit_room1_up",
+                    name="ladder",
+                    location="room1",
+                    direction="up",
+                    connections=["exit_room3_down"],
+                    description="A wooden ladder",
+                    properties={"type": "open"}
+                ),
+                Exit(
+                    id="exit_room3_down",
+                    name="ladder",
+                    location="room3",
+                    direction="down",
+                    connections=["exit_room1_up"],
+                    description="A wooden ladder",
+                    properties={"type": "open"}
+                )
+            ],
             actors={"player": Actor(
                 id="player",
                 name="Adventurer",
@@ -58,6 +89,10 @@ class TestOnEnterEvent(unittest.TestCase):
                 inventory=[]
             )}
         )
+
+        # Build indices
+        _build_whereabouts_index(self.game_state)
+        _build_connection_index(self.game_state)
 
         # Create behavior manager and load exits module
         self.behavior_manager = BehaviorManager()
@@ -124,14 +159,31 @@ class TestOnEnterEvent(unittest.TestCase):
         """Test that 'climb' also invokes on_enter."""
         from src.parser import WordEntry, WordType
 
-        # Move to room1, then climb ladder to room3
-        # First, set up a climbable exit from room1 to room2 (with behavior)
-        self.game_state.locations[0].exits["north"] = ExitDescriptor(
-            type="open",
-            to="room2",
+        # Add stairs exit from room1 to room2 (with behavior)
+        # Note: stairs need a direction to be findable by find_exit_by_name
+        stairs_exit = Exit(
+            id="exit_room1_stairs",
             name="stairs",
-            description="Steep stairs"
+            location="room1",
+            direction="northeast",
+            connections=["exit_room2_stairs"],
+            description="Steep stairs",
+            properties={"type": "open"}
         )
+        stairs_exit_back = Exit(
+            id="exit_room2_stairs",
+            name="stairs",
+            location="room2",
+            direction="southwest",
+            connections=["exit_room1_stairs"],
+            description="Steep stairs",
+            properties={"type": "open"}
+        )
+        self.game_state.exits.extend([stairs_exit, stairs_exit_back])
+
+        # Rebuild indices to include new exits
+        _build_whereabouts_index(self.game_state)
+        _build_connection_index(self.game_state)
 
         stairs_entry = WordEntry(
             word="stairs",
