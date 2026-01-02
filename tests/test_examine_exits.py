@@ -242,7 +242,7 @@ class TestExamineExit(unittest.TestCase):
             id="tower",
             name="Tower",
             description="A tower.",
-            exits={"down": ExitDescriptor(type="open", to=self.location_id)}
+            exits={}
         )
         self.game_state.locations.append(tower)
 
@@ -422,13 +422,13 @@ class TestExamineExitWithDirectionAdjective(unittest.TestCase):
             id="north_room",
             name="North Room",
             description="A room to the north.",
-            exits={"south": ExitDescriptor(type="open", to=self.location_id)}
+            exits={}
         )
         east_room = Location(
             id="east_room",
             name="East Room",
             description="A room to the east.",
-            exits={"west": ExitDescriptor(type="open", to=self.location_id)}
+            exits={}
         )
         self.game_state.locations.append(north_room)
         self.game_state.locations.append(east_room)
@@ -534,7 +534,7 @@ class TestExitSynonymMatching(unittest.TestCase):
             id="tower",
             name="Tower",
             description="A tower.",
-            exits={"down": ExitDescriptor(type="open", to=self.location_id)}
+            exits={}
         )
         self.game_state.locations.append(tower)
 
@@ -662,7 +662,7 @@ class TestExamineDirectionExitEndToEnd(unittest.TestCase):
             id="north_room",
             name="North Room",
             description="A room to the north.",
-            exits={"south": ExitDescriptor(type="open", to=self.location_id)}
+            exits={}
         )
         self.game_state.locations.append(north_room)
 

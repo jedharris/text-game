@@ -11,7 +11,7 @@ import unittest
 from tests.conftest import make_action, create_test_state
 from src.state_accessor import StateAccessor
 from src.behavior_manager import BehaviorManager
-from src.state_manager import Item, Location, ExitDescriptor
+from src.state_manager import Item, Location, Exit, _build_whereabouts_index, _build_connection_index
 
 
 def get_result_message(result: Dict[str, Any]) -> str:
@@ -60,21 +60,59 @@ class TestExamineDoor(unittest.TestCase):
             id="other_room",
             name="Other Room",
             description="Another room.",
-            exits={"south": ExitDescriptor(type="door", to=location_id, door_id="door_wooden")}
+            exits={}
         )
         another_room = Location(
             id="another_room",
             name="Another Room",
             description="Yet another room.",
-            exits={"west": ExitDescriptor(type="door", to=location_id, door_id="door_iron")}
+            exits={}
         )
         self.game_state.locations.append(other_room)
         self.game_state.locations.append(another_room)
 
         # Add exits from player's current location
-        room = self.accessor.get_location(location_id)
-        room.exits["north"] = ExitDescriptor(type="door", to="other_room", door_id="door_wooden")
-        room.exits["east"] = ExitDescriptor(type="door", to="another_room", door_id="door_iron")
+        from src.state_manager import _build_whereabouts_index, _build_connection_index
+        north_exit = Exit(
+            id=f"exit_{location_id}_north",
+            name="doorway",
+            location=location_id,
+            direction="north",
+            connections=[f"exit_other_room_south"],
+            properties={"type": "door", "door_id": "door_wooden"}
+        )
+        east_exit = Exit(
+            id=f"exit_{location_id}_east",
+            name="doorway",
+            location=location_id,
+            direction="east",
+            connections=[f"exit_another_room_west"],
+            properties={"type": "door", "door_id": "door_iron"}
+        )
+        self.game_state.exits.extend([north_exit, east_exit])
+
+        # Add corresponding exits at other ends (for bidirectional connection)
+        other_exit = Exit(
+            id="exit_other_room_south",
+            name="doorway",
+            location="other_room",
+            direction="south",
+            connections=[f"exit_{location_id}_north"],
+            properties={"type": "door", "door_id": "door_wooden"}
+        )
+        another_exit = Exit(
+            id="exit_another_room_west",
+            name="doorway",
+            location="another_room",
+            direction="west",
+            connections=[f"exit_{location_id}_east"],
+            properties={"type": "door", "door_id": "door_iron"}
+        )
+        self.game_state.exits.extend([other_exit, another_exit])
+
+        # Rebuild indices
+        _build_whereabouts_index(self.game_state)
+        _build_connection_index(self.game_state)
 
         # Add door items
         wooden_door = Item(
@@ -209,21 +247,59 @@ class TestExamineDoorWithDirectionAdjective(unittest.TestCase):
             id="other_room",
             name="Other Room",
             description="Another room.",
-            exits={"south": ExitDescriptor(type="door", to=location_id, door_id="door_wooden")}
+            exits={}
         )
         another_room = Location(
             id="another_room",
             name="Another Room",
             description="Yet another room.",
-            exits={"west": ExitDescriptor(type="door", to=location_id, door_id="door_iron")}
+            exits={}
         )
         self.game_state.locations.append(other_room)
         self.game_state.locations.append(another_room)
 
         # Add exits from player's current location
-        room = self.accessor.get_location(location_id)
-        room.exits["north"] = ExitDescriptor(type="door", to="other_room", door_id="door_wooden")
-        room.exits["east"] = ExitDescriptor(type="door", to="another_room", door_id="door_iron")
+        from src.state_manager import _build_whereabouts_index, _build_connection_index
+        north_exit = Exit(
+            id=f"exit_{location_id}_north",
+            name="doorway",
+            location=location_id,
+            direction="north",
+            connections=[f"exit_other_room_south"],
+            properties={"type": "door", "door_id": "door_wooden"}
+        )
+        east_exit = Exit(
+            id=f"exit_{location_id}_east",
+            name="doorway",
+            location=location_id,
+            direction="east",
+            connections=[f"exit_another_room_west"],
+            properties={"type": "door", "door_id": "door_iron"}
+        )
+        self.game_state.exits.extend([north_exit, east_exit])
+
+        # Add corresponding exits at other ends (for bidirectional connection)
+        other_exit = Exit(
+            id="exit_other_room_south",
+            name="doorway",
+            location="other_room",
+            direction="south",
+            connections=[f"exit_{location_id}_north"],
+            properties={"type": "door", "door_id": "door_wooden"}
+        )
+        another_exit = Exit(
+            id="exit_another_room_west",
+            name="doorway",
+            location="another_room",
+            direction="west",
+            connections=[f"exit_{location_id}_east"],
+            properties={"type": "door", "door_id": "door_iron"}
+        )
+        self.game_state.exits.extend([other_exit, another_exit])
+
+        # Rebuild indices
+        _build_whereabouts_index(self.game_state)
+        _build_connection_index(self.game_state)
 
         # Add door items
         wooden_door = Item(

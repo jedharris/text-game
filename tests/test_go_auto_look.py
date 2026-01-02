@@ -91,21 +91,35 @@ class TestGoTransitionContext(SimpleGameTestCase):
 
     def test_go_transition_includes_exit_details(self):
         """Test that transition includes exit name and type when available."""
-        # Find the start location
-        location = None
-        for loc in self.game_state.locations:
-            if loc.id == "loc_start":
-                location = loc
-                break
-        self.assertIsNotNone(location)
+        # Remove existing north exit from loc_start
+        from src.state_manager import Exit, _build_whereabouts_index, _build_connection_index
+        self.game_state.exits = [
+            e for e in self.game_state.exits
+            if e.id not in ["exit_loc_start_north", "exit_loc_hallway_south"]
+        ]
 
-        # Create an ExitDescriptor with a name
-        from src.state_manager import ExitDescriptor
-        location.exits["north"] = ExitDescriptor(
-            to="loc_hallway",
-            type="passage",
-            name="archway"
+        # Create new Exit entities with specific name and type
+        north_exit = Exit(
+            id="exit_start_north",
+            name="archway",
+            location="loc_start",
+            direction="north",
+            connections=["exit_hallway_south"],
+            properties={"type": "passage"}
         )
+        south_exit = Exit(
+            id="exit_hallway_south",
+            name="archway",
+            location="loc_hallway",
+            direction="south",
+            connections=["exit_start_north"],
+            properties={"type": "passage"}
+        )
+        self.game_state.exits.extend([north_exit, south_exit])
+
+        # Rebuild indices
+        _build_whereabouts_index(self.game_state)
+        _build_connection_index(self.game_state)
 
         action = make_action(object="north", actor_id="player")
         result = self.behavior_manager.invoke_handler("go", self.accessor, action)
