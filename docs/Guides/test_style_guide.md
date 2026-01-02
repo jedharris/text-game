@@ -106,7 +106,43 @@ def test_something(self):
     result = some_function(accessor, ...)
 ```
 
-### 5. Use conftest Helpers
+### 5. Follow Correct Setup Order
+
+**DO** create accessor AFTER loading behaviors:
+
+```python
+# GOOD - correct order
+def setUp(self):
+    super().setUp()
+
+    # 1. Load game state
+    self.game_state = load_game_state(...)
+
+    # 2. Create and configure behavior manager
+    self.behavior_manager = BehaviorManager()
+    modules = self.behavior_manager.discover_modules(str(behaviors_dir))
+    self.behavior_manager.load_modules(modules)
+
+    # 3. Create accessor (now behavior_manager is ready)
+    self.accessor = StateAccessor(self.game_state, self.behavior_manager)
+
+    # 4. Create handlers/other objects
+    self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.behavior_manager)
+
+# BAD - accessor created before behaviors loaded
+def setUp(self):
+    self.game_state = load_game_state(...)
+    self.behavior_manager = BehaviorManager()
+    self.accessor = StateAccessor(self.game_state, self.behavior_manager)  # Too early!
+
+    # Behaviors loaded after accessor created
+    modules = self.behavior_manager.discover_modules(...)
+    self.behavior_manager.load_modules(modules)
+```
+
+**Why it matters**: While the accessor will still work, creating it before loading behaviors is poor practice and suggests confusion about the setup dependencies.
+
+### 6. Use conftest Helpers
 
 **DO** use helper functions from `conftest.py`:
 - `create_test_state()` - Minimal game state
@@ -130,7 +166,7 @@ def test_take_sword(self):
     }
 ```
 
-### 6. No sys.path Manipulation in Unit Tests
+### 7. No sys.path Manipulation in Unit Tests
 
 **DON'T** manipulate `sys.path` in regular unit tests:
 
@@ -148,7 +184,7 @@ from src.state_manager import GameState
 
 **EXCEPTION**: Integration tests for specific games need path setup (see Integration Testing section).
 
-### 7. Consistent Import Order
+### 8. Consistent Import Order
 
 **DO** follow this import order:
 
@@ -512,6 +548,36 @@ def setUp(self):
 
 def test_one(self):
     result = handler(self.accessor, ...)
+```
+
+### ❌ Duplicate Manager (Same Name)
+
+```python
+# BAD - creates manager twice, wasting first one
+def setUp(self):
+    self.game_state = load_game_state(...)
+    self.behavior_manager = BehaviorManager()
+    self.accessor = StateAccessor(self.game_state, self.behavior_manager)  # Uses empty manager!
+
+    # Create AGAIN and load behaviors
+    self.behavior_manager = BehaviorManager()
+    modules = self.behavior_manager.discover_modules(...)
+    self.behavior_manager.load_modules(modules)
+```
+
+**Fix**: Create once, in correct order:
+```python
+# GOOD
+def setUp(self):
+    self.game_state = load_game_state(...)
+
+    # Create and configure manager
+    self.behavior_manager = BehaviorManager()
+    modules = self.behavior_manager.discover_modules(...)
+    self.behavior_manager.load_modules(modules)
+
+    # Now create accessor
+    self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 ```
 
 ### ❌ Inconsistent Naming
