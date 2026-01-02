@@ -205,13 +205,7 @@ def on_turn_end_contagion(entity, accessor, context) -> Optional[Any]:
     return None
 
 
-# Vocabulary extension for UC1-specific events
-vocabulary = {
-    "events": [
-        {
-            "event": "on_turn_end_contagion",
-            "hook": "turn_end",
-            "description": "Check for contagion spread at end of turn (UC1 custom behavior)"
-        }
-    ]
-}
+# NOTE: The on_turn_end_contagion handler is defined above but not currently
+# hooked into turn phases. Tests verify contagion logic by calling check_contagion()
+# directly. If automatic turn-based contagion spread is needed in gameplay, a hook
+# definition will need to be added (see issue for long-term effects testing).

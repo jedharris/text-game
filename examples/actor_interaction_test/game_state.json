@@ -598,9 +598,7 @@
       "description": "A hardy adventurer testing the actor interaction systems.",
       "location": "loc_central_hub",
       "inventory": [],
-      "behaviors": [
-        "behaviors.actor_lib.combat"
-      ],
+      "behaviors": [],
       "flags": {},
       "stats": {},
       "states": {},
@@ -634,9 +632,7 @@
           }
         }
       },
-      "behaviors": [
-        "behaviors.actor_lib.combat"
-      ]
+      "behaviors": []
     },
     "npc_alpha_wolf": {
       "id": "npc_alpha_wolf",
@@ -659,9 +655,7 @@
         "flee_threshold": 20,
         "flee_destination": "loc_wolf_den"
       },
-      "behaviors": [
-        "behaviors.actor_lib.combat"
-      ]
+      "behaviors": []
     },
     "npc_wolf_1": {
       "id": "npc_wolf_1",
@@ -683,9 +677,7 @@
         ],
         "flee_threshold": 30
       },
-      "behaviors": [
-        "behaviors.actor_lib.combat"
-      ]
+      "behaviors": []
     },
     "npc_wolf_2": {
       "id": "npc_wolf_2",
@@ -707,9 +699,7 @@
         ],
         "flee_threshold": 35
       },
-      "behaviors": [
-        "behaviors.actor_lib.combat"
-      ]
+      "behaviors": []
     },
     "npc_sailor": {
       "id": "npc_sailor",
@@ -727,9 +717,7 @@
         "breath": 20,
         "max_breath": 60
       },
-      "behaviors": [
-        "behaviors.actor_lib.combat"
-      ]
+      "behaviors": []
     },
     "npc_diving_golem": {
       "id": "npc_diving_golem",
@@ -748,9 +736,7 @@
           "form": "construct"
         }
       },
-      "behaviors": [
-        "behaviors.actor_lib.combat"
-      ]
+      "behaviors": []
     },
     "npc_guardian_golem_1": {
       "id": "npc_guardian_golem_1",
@@ -789,9 +775,7 @@
           "lightning": 50
         }
       },
-      "behaviors": [
-        "behaviors.actor_lib.combat"
-      ]
+      "behaviors": []
     },
     "npc_guardian_golem_2": {
       "id": "npc_guardian_golem_2",
@@ -824,9 +808,7 @@
           "rust": 100
         }
       },
-      "behaviors": [
-        "behaviors.actor_lib.combat"
-      ]
+      "behaviors": []
     },
     "npc_healer": {
       "id": "npc_healer",
@@ -865,9 +847,7 @@
           }
         }
       },
-      "behaviors": [
-        "behaviors.actor_lib.combat"
-      ]
+      "behaviors": []
     },
     "npc_merchant": {
       "id": "npc_merchant",
@@ -902,9 +882,7 @@
           }
         }
       },
-      "behaviors": [
-        "behaviors.actor_lib.combat"
-      ]
+      "behaviors": []
     },
     "npc_spider_queen": {
       "id": "npc_spider_queen",
@@ -936,9 +914,7 @@
           }
         ]
       },
-      "behaviors": [
-        "behaviors.actor_lib.combat"
-      ]
+      "behaviors": []
     },
     "npc_spider_worker_1": {
       "id": "npc_spider_worker_1",
@@ -964,9 +940,7 @@
           }
         ]
       },
-      "behaviors": [
-        "behaviors.actor_lib.combat"
-      ]
+      "behaviors": []
     },
     "npc_spider_worker_2": {
       "id": "npc_spider_worker_2",
@@ -993,9 +967,7 @@
           }
         ]
       },
-      "behaviors": [
-        "behaviors.actor_lib.combat"
-      ]
+      "behaviors": []
     },
     "npc_broken_statue": {
       "id": "npc_broken_statue",
@@ -1023,9 +995,7 @@
           }
         ]
       },
-      "behaviors": [
-        "behaviors.actor_lib.combat"
-      ]
+      "behaviors": []
     }
   }
 }

@@ -448,14 +448,14 @@ class TestTurnPhaseNotInEntityBehaviors(unittest.TestCase):
                 defined_by="behavior_libraries.actor_lib.conditions"
             )
         }
-        self.game_state.locations = {
-            LocationId("cave"): Location(
+        self.game_state.locations = [
+            Location(
                 id=LocationId("cave"),
                 name="Cave",
                 description="Test",
                 behaviors=["behavior_libraries.actor_lib.conditions"]
             )
-        }
+        ]
         with self.assertRaises(ValueError) as ctx:
             self.manager.validate_turn_phase_not_in_entity_behaviors(self.game_state)
         self.assertIn("has turn phase behavior", str(ctx.exception))
