@@ -4,7 +4,7 @@ StateAccessor - Clean API for state queries and mutations with automatic behavio
 This module provides the core abstraction for accessing and modifying game state.
 """
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, cast, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Union, cast, TYPE_CHECKING
 
 from src.types import LocationId, ActorId, ItemId, LockId, PartId, EntityId, EventName
 from src.state_manager import (
@@ -464,7 +464,90 @@ class StateAccessor:
 
         return actors
 
+    def get_entities_at(self, where_id: str, entity_type: Optional[str] = None) -> List[Union[Item, Actor]]:
+        """Get all entities at a location/container.
+
+        Args:
+            where_id: Location/container ID
+            entity_type: Optional filter: "item", "actor", "exit" (future)
+
+        Returns:
+            List of entity objects (Item, Actor, etc.)
+        """
+        entity_ids = self.game_state._entities_at.get(where_id, set())
+        entities: List[Union[Item, Actor]] = []
+
+        for entity_id in entity_ids:
+            # Try to get as item
+            if entity_type is None or entity_type == "item":
+                item = next((i for i in self.game_state.items if i.id == entity_id), None)
+                if item:
+                    entities.append(item)
+                    continue
+
+            # Try to get as actor
+            if entity_type is None or entity_type == "actor":
+                actor = self.game_state.actors.get(ActorId(entity_id))
+                if actor:
+                    entities.append(actor)
+                    continue
+
+        return entities
+
     # Mutation methods
+
+    def set_entity_where(self, entity_id: str, new_where: str) -> None:
+        """Move entity to new container. Updates entity.location and containment index.
+
+        Args:
+            entity_id: Entity to move
+            new_where: New container ID
+
+        Raises:
+            ValueError: If entity not found or new_where doesn't exist
+        """
+        # Find the entity
+        entity: Optional[Union[Item, Actor]] = None
+        item = next((i for i in self.game_state.items if i.id == entity_id), None)
+        if item:
+            entity = item
+        else:
+            entity = self.game_state.actors.get(ActorId(entity_id))
+
+        if not entity:
+            raise ValueError(f"Entity not found: {entity_id}")
+
+        # Validate new_where exists (unless it's a removal state like "__consumed__")
+        if not new_where.startswith("__"):
+            # Check if new_where is a valid location
+            location_exists = any(loc.id == new_where for loc in self.game_state.locations)
+            # Check if new_where is a valid actor (for inventory)
+            actor_exists = new_where in self.game_state.actors
+            # Check if new_where is a valid item (for container items)
+            item_exists = any(i.id == new_where for i in self.game_state.items)
+
+            if not (location_exists or actor_exists or item_exists):
+                raise ValueError(f"Container not found: {new_where}")
+
+        # Update reverse index (remove old entry)
+        old_where = self.game_state._entity_where.get(entity_id)
+        if old_where and old_where in self.game_state._entities_at:
+            self.game_state._entities_at[old_where].discard(entity_id)
+
+        # Update entity.location
+        entity.location = new_where
+
+        # Update indices (skip if removed)
+        if new_where.startswith("__"):
+            # Removed entity - remove from index
+            self.game_state._entity_where.pop(entity_id, None)
+        else:
+            # Add to forward index
+            if new_where not in self.game_state._entities_at:
+                self.game_state._entities_at[new_where] = set()
+            self.game_state._entities_at[new_where].add(entity_id)
+            # Update reverse index
+            self.game_state._entity_where[entity_id] = new_where
 
     def _set_path(self, entity: Any, path: str, value: Any) -> Optional[str]:
         """

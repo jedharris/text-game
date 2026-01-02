@@ -134,60 +134,53 @@ class GameEngine:
             Dict with keys: location_objects, inventory, exits
         """
         from typing import List, Dict
+        from src.state_accessor import StateAccessor
 
         actor = self.game_state.actors.get(actor_id)
         if not actor:
             return {"location_objects": [], "inventory": [], "exits": []}
 
-        location = next((loc for loc in self.game_state.locations if loc.id == actor.location), None)
+        location_id = actor.location
+        if not location_id:
+            return {"location_objects": [], "inventory": [], "exits": []}
+
+        location = next((loc for loc in self.game_state.locations if loc.id == location_id), None)
         if not location:
             return {"location_objects": [], "inventory": [], "exits": []}
 
-        # Get location objects (items and other actors)
-        # Use entity names (which match vocabulary entries) for parser context
+        # Create temporary accessor for queries
+        accessor = StateAccessor(self.game_state, self.behavior_manager)
+
+        # Get location objects using index (fixes Myconid Sanctuary bug)
         location_objects: List[str] = []
 
-        # IMPORTANT: location.items is a List[ItemId] (list of item ID strings)
-        # We need to look up the actual Item objects from game_state.items
-        import logging
-        logging.debug(f"Building context for location: {location.id}")
-        logging.debug(f"Location has {len(location.items)} item IDs")
+        # Get items at location
+        items_here = accessor.get_entities_at(location_id, entity_type="item")
+        for item in items_here:
+            item_name = getattr(item, 'name', item.id)
+            location_objects.append(item_name)
 
-        for item_id in location.items:
-            # Look up the actual Item object
-            item = next((i for i in self.game_state.items if i.id == item_id), None)
-            if item:
-                # Items: use name if available, otherwise use ID
-                # The name should match what's in the vocabulary
-                item_name = getattr(item, 'name', item_id)
-                logging.debug(f"  Adding item to context: {item_name} (id: {item_id})")
-                location_objects.append(item_name)
-
-        for other_actor_id, other_actor in self.game_state.actors.items():
-            if other_actor_id != actor_id and other_actor.location == location.id:
-                # Actors: use name (e.g., "Waystone") not ID (e.g., "waystone_spirit")
-                # The name should match what's in the vocabulary
-                actor_name = getattr(other_actor, 'name', other_actor_id)
-                logging.debug(f"  Adding actor to context: {actor_name} (id: {other_actor_id})")
+        # Get actors at location (excluding self)
+        actors_here = accessor.get_entities_at(location_id, entity_type="actor")
+        for other_actor in actors_here:
+            if other_actor.id != actor_id:
+                actor_name = getattr(other_actor, 'name', other_actor.id)
                 location_objects.append(actor_name)
 
-        # Get actor inventory
-        # Convert item IDs to item names (matching vocabulary entries)
+        # Get actor inventory (query index, not actor.inventory list)
         inventory: List[str] = []
-        for item_id in actor.inventory:
-            item = next((i for i in self.game_state.items if i.id == item_id), None)
-            if item:
-                item_name = getattr(item, 'name', item_id)
-                inventory.append(item_name)
+        inventory_items = accessor.get_entities_at(actor_id, entity_type="item")
+        for item in inventory_items:
+            item_name = getattr(item, 'name', item.id)
+            inventory.append(item_name)
 
-        # Get exits
+        # Get exits (unchanged for now)
         exits: List[str] = list(location.exits.keys()) if location.exits else []
 
-        # Get available dialogue topics from NPCs in location
+        # Get dialogue topics (unchanged)
         topics: List[str] = []
-        for other_actor_id, other_actor in self.game_state.actors.items():
-            if other_actor_id != actor_id and other_actor.location == location.id:
-                # Check if actor has dialogue_topics property
+        for other_actor in actors_here:
+            if other_actor.id != actor_id:
                 dialogue_topics = getattr(other_actor, 'dialogue_topics', None)
                 if dialogue_topics:
                     topics.extend(dialogue_topics)

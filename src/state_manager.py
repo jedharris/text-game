@@ -752,6 +752,10 @@ class GameState:
     extra: Dict[str, Any] = field(default_factory=dict)
     turn_count: int = 0
 
+    # Bidirectional containment index (whereabouts)
+    _entities_at: Dict[str, set[str]] = field(default_factory=dict)  # where_id → set(entity_ids)
+    _entity_where: Dict[str, str] = field(default_factory=dict)      # entity_id → where_id
+
     def get_actor(self, actor_id: ActorId) -> Actor:
         """Get actor by ID."""
         actor = self.actors.get(actor_id)
@@ -812,12 +816,19 @@ class GameState:
                   to_location: Optional[LocationId] = None, to_container: Optional[ItemId] = None) -> None:
         """Move item to new location.
 
+        DEPRECATED: Use accessor.set_entity_where() instead.
+        This method is kept for backward compatibility but will be removed in a future version.
+
         Args:
             item_id: The item to move
             to_actor: Actor ID to move item to (adds to their inventory)
             to_location: Location ID to move item to
             to_container: Container item ID to move item into
         """
+        # Note: This method still updates location.items and actor.inventory lists
+        # for backward compatibility. After Phase 7, these lists will be removed
+        # and only the index will be used.
+
         item = self.get_item(item_id)
         old_location = item.location
 
@@ -833,23 +844,43 @@ class GameState:
                     loc.items.remove(item_id)
                     break
 
-        # Add to new location
+        # Determine new location
+        new_location: Optional[str] = None
         if to_actor:
+            new_location = to_actor
             target_actor = self.actors.get(to_actor)
             if target_actor:
-                item.location = to_actor
                 if item_id not in target_actor.inventory:
                     target_actor.inventory.append(item_id)
         elif to_location:
-            item.location = to_location
+            new_location = to_location
             loc = self.get_location(to_location)
             if item_id not in loc.items:
                 loc.items.append(item_id)
         elif to_container:
-            item.location = to_container
+            new_location = to_container
+
+        # Update entity location and index
+        if new_location:
+            # Update indices
+            if old_location and old_location in self._entities_at:
+                self._entities_at[old_location].discard(item_id)
+
+            item.location = new_location
+
+            if not new_location.startswith("__"):
+                if new_location not in self._entities_at:
+                    self._entities_at[new_location] = set()
+                self._entities_at[new_location].add(item_id)
+                self._entity_where[item_id] = new_location
+            else:
+                self._entity_where.pop(item_id, None)
 
     def set_actor_location(self, location_id: LocationId, actor_id: ActorId = ActorId("player")) -> None:
         """Set an actor's current location.
+
+        DEPRECATED: Use accessor.set_entity_where() instead.
+        This method is kept for backward compatibility but will be removed in a future version.
 
         Args:
             location_id: The location to move the actor to
@@ -857,7 +888,19 @@ class GameState:
         """
         actor = self.actors.get(actor_id)
         if actor:
+            old_location = actor.location
+
+            # Update indices
+            if old_location and old_location in self._entities_at:
+                self._entities_at[old_location].discard(actor_id)
+
             actor.location = location_id
+
+            # Update indices
+            if location_id not in self._entities_at:
+                self._entities_at[location_id] = set()
+            self._entities_at[location_id].add(actor_id)
+            self._entity_where[actor_id] = location_id
 
     def set_actor_flag(self, flag_name: str, value: Any, actor_id: ActorId = ActorId("player")) -> None:
         """Set a flag on an actor.
@@ -1128,6 +1171,39 @@ def _parse_metadata(raw: Dict[str, Any]) -> Metadata:
     )
 
 
+def _build_whereabouts_index(game_state: GameState) -> None:
+    """Build containment index from entity .location properties.
+
+    Populates _entities_at and _entity_where from:
+    - Items with .location
+    - Actors with .location
+    - Future: Exits with .location (Phase 3+)
+
+    Excluded: Entities with .location starting with "__" (removed entities)
+    """
+    # Clear indices
+    game_state._entities_at.clear()
+    game_state._entity_where.clear()
+
+    # Index all items
+    for item in game_state.items:
+        if hasattr(item, 'location') and item.location and not item.location.startswith("__"):
+            # Add to forward index
+            if item.location not in game_state._entities_at:
+                game_state._entities_at[item.location] = set()
+            game_state._entities_at[item.location].add(item.id)
+            # Add to reverse index
+            game_state._entity_where[item.id] = item.location
+
+    # Index all actors
+    for actor_id, actor in game_state.actors.items():
+        if hasattr(actor, 'location') and actor.location and not actor.location.startswith("__"):
+            if actor.location not in game_state._entities_at:
+                game_state._entities_at[actor.location] = set()
+            game_state._entities_at[actor.location].add(actor_id)
+            game_state._entity_where[actor_id] = actor.location
+
+
 def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
     """Load game state from file path or dict.
 
@@ -1203,6 +1279,9 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
         turn_count=data.get('turn_count', 0),
         extra=data.get('extra', {})
     )
+
+    # Build containment index
+    _build_whereabouts_index(state)
 
     # Validate after loading
     from src.validators import validate_game_state

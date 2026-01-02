@@ -162,8 +162,8 @@ def on_drink(entity: Any, accessor: Any, context: Dict) -> EventResult:
     if entity.id in player.inventory:
         player.inventory.remove(entity.id)
 
-    # Mark as consumed (empty location)
-    entity.location = ""
+    # Mark as consumed
+    accessor.set_entity_where(entity.id, "__consumed_by_player__")
 
     # Heal player
     current_health = player.stats.get("health", 100)
@@ -207,7 +207,7 @@ def on_eat(entity: Any, accessor: Any, context: Dict) -> EventResult:
         player.inventory.remove(entity.id)
 
     # Mark as consumed
-    entity.location = ""
+    accessor.set_entity_where(entity.id, "__consumed_by_player__")
 
     return EventResult(
         allow=True,
