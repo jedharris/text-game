@@ -8,7 +8,10 @@ import unittest
 from tests.conftest import create_test_state, make_word_entry
 from src.state_accessor import StateAccessor
 from src.behavior_manager import BehaviorManager
-from src.state_manager import Location, ExitDescriptor
+from src.state_manager import (
+    Location, Exit,
+    _build_whereabouts_index, _build_connection_index
+)
 from behaviors.core.perception import handle_examine
 from utilities.utils import find_exit_by_name
 from src.word_entry import WordEntry, WordType
@@ -32,35 +35,77 @@ class TestFindExitByName(unittest.TestCase):
             id="tower",
             name="Tower",
             description="A tower.",
-            exits={"down": ExitDescriptor(type="open", to=self.location_id)}
+            exits={}
         )
         cellar = Location(
             id="cellar",
             name="Cellar",
             description="A cellar.",
-            exits={"up": ExitDescriptor(type="open", to=self.location_id)}
+            exits={}
         )
         self.game_state.locations.append(tower)
         self.game_state.locations.append(cellar)
 
-        # Add exits from player's current location
-        room = self.accessor.get_location(self.location_id)
-        room.exits["up"] = ExitDescriptor(
-            type="open",
-            to="tower",
-            name="spiral staircase",
-            description="A narrow spiral staircase winds upward."
-        )
-        room.exits["down"] = ExitDescriptor(
-            type="open",
-            to="cellar",
-            name="stone steps",
-            description="Rough stone steps descend into darkness."
-        )
-        room.exits["north"] = ExitDescriptor(
-            type="open",
-            to="tower"  # No name or description
-        )
+        # Add exits - create Exit entities
+        new_exits = [
+            Exit(
+                id=f"exit_{self.location_id}_up",
+                name="spiral staircase",
+                location=self.location_id,
+                direction="up",
+                connections=["exit_tower_down"],
+                description="A narrow spiral staircase winds upward.",
+                properties={"type": "open"}
+            ),
+            Exit(
+                id="exit_tower_down",
+                name="spiral staircase",
+                location="tower",
+                direction="down",
+                connections=[f"exit_{self.location_id}_up"],
+                description="A narrow spiral staircase winds downward.",
+                properties={"type": "open"}
+            ),
+            Exit(
+                id=f"exit_{self.location_id}_down",
+                name="stone steps",
+                location=self.location_id,
+                direction="down",
+                connections=["exit_cellar_up"],
+                description="Rough stone steps descend into darkness.",
+                properties={"type": "open"}
+            ),
+            Exit(
+                id="exit_cellar_up",
+                name="stone steps",
+                location="cellar",
+                direction="up",
+                connections=[f"exit_{self.location_id}_down"],
+                description="Rough stone steps ascend to the light.",
+                properties={"type": "open"}
+            ),
+            Exit(
+                id=f"exit_{self.location_id}_north",
+                name="",  # Unnamed exit - can only be found by direction
+                location=self.location_id,
+                direction="north",
+                connections=["exit_tower_south"],
+                properties={"type": "open"}
+            ),
+            Exit(
+                id="exit_tower_south",
+                name="",
+                location="tower",
+                direction="south",
+                connections=[f"exit_{self.location_id}_north"],
+                properties={"type": "open"}
+            )
+        ]
+        self.game_state.exits.extend(new_exits)
+
+        # Rebuild indices
+        _build_whereabouts_index(self.game_state)
+        _build_connection_index(self.game_state)
 
     def test_find_exit_by_direction(self):
         """Find exit using direction name."""
@@ -119,13 +164,32 @@ class TestFindExitByName(unittest.TestCase):
             id="single_exit_room",
             name="Single Exit Room",
             description="A room with one exit.",
-            exits={"east": ExitDescriptor(
-                type="open",
-                to="tower",
-                name="stone passage"
-            )}
+            exits={}
         )
         self.game_state.locations.append(single_exit_loc)
+
+        # Add single exit
+        single_exit = Exit(
+            id="exit_single_room_east",
+            name="stone passage",
+            location="single_exit_room",
+            direction="east",
+            connections=["exit_tower_west"],
+            properties={"type": "open"}
+        )
+        tower_exit = Exit(
+            id="exit_tower_west",
+            name="stone passage",
+            location="tower",
+            direction="west",
+            connections=["exit_single_room_east"],
+            properties={"type": "open"}
+        )
+        self.game_state.exits.extend([single_exit, tower_exit])
+
+        # Rebuild indices and move player
+        _build_whereabouts_index(self.game_state)
+        _build_connection_index(self.game_state)
         self.accessor.set_entity_where("player", "single_exit_room")
 
         exit_entry = make_word_entry("exit")
