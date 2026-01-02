@@ -128,8 +128,19 @@ class TestCommitmentTurnPhase(unittest.TestCase):
             on_turn_commitments,
         )
 
+        # Create game state with ONLY the fulfilled commitment
+        # (dispatcher processes ALL commitments, so we need isolated state)
         commitment = self.game_state.commitments[1]
-        accessor = StateAccessor(self.game_state, self.behavior_manager)
+        test_state = GameState(
+            metadata=self.game_state.metadata,
+            locations=self.game_state.locations,
+            items=[],
+            locks=[],
+            actors=self.game_state.actors,
+            extra={},
+            commitments=[commitment]  # Only the fulfilled commitment
+        )
+        accessor = StateAccessor(test_state, self.behavior_manager)
         context = {"current_turn": 100, "hook": "turn_commitment"}
 
         result = on_turn_commitments(None, accessor, context)
