@@ -98,13 +98,13 @@ class TestHardcodedLightSourceRemoval(unittest.TestCase):
         self.game_state = load_game_state(self.game_data)
 
         # Create behavior manager and load core modules
-        self.manager = BehaviorManager()
+        self.behavior_manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
-        modules = self.manager.discover_modules(str(behaviors_dir))
-        self.manager.load_modules(modules)
+        modules = self.behavior_manager.discover_modules(str(behaviors_dir))
+        self.behavior_manager.load_modules(modules)
 
         # Create handler with behavior manager
-        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.behavior_manager)
 
     def test_plain_lantern_not_auto_lit_on_take(self):
         """Test that plain lantern (no behavior) is NOT auto-lit on take."""
@@ -264,13 +264,13 @@ class TestHardcodedChestRemoval(unittest.TestCase):
         self.game_state = load_game_state(self.game_data)
 
         # Create behavior manager and load core modules
-        self.manager = BehaviorManager()
+        self.behavior_manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
-        modules = self.manager.discover_modules(str(behaviors_dir))
-        self.manager.load_modules(modules)
+        modules = self.behavior_manager.discover_modules(str(behaviors_dir))
+        self.behavior_manager.load_modules(modules)
 
         # Create handler with behavior manager
-        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.behavior_manager)
 
     def test_plain_chest_openable_no_win(self):
         """Test that plain chest is openable but doesn't set win flag."""
@@ -378,13 +378,13 @@ class TestBehaviorDrivenApproach(unittest.TestCase):
         self.game_state = load_game_state(self.game_data)
 
         # Create behavior manager and load core modules
-        self.manager = BehaviorManager()
+        self.behavior_manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
-        modules = self.manager.discover_modules(str(behaviors_dir))
-        self.manager.load_modules(modules)
+        modules = self.behavior_manager.discover_modules(str(behaviors_dir))
+        self.behavior_manager.load_modules(modules)
 
         # Create handler with behavior manager
-        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.behavior_manager)
 
     def test_potion_with_behavior_heals(self):
         """Test that potion with behavior heals player."""
