@@ -286,10 +286,9 @@ class TestExamineDoorIntegration(unittest.TestCase):
         # Load actual game state
         fixture_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
         self.game_state = load_game_state(fixture_path)
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
 
         self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)

@@ -188,6 +188,119 @@ class ReplaceDictLocationAssignment(cst.CSTTransformer):
         return updated_node.with_changes(body=[new_stmt])
 
 
+class FixDuplicateManagers(cst.CSTTransformer):
+    """
+    Fix duplicate BehaviorManager instances in setUp methods.
+
+    Detects the pattern:
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
+        self.behavior_manager = BehaviorManager()
+        self.behavior_manager.load_modules(...)
+
+    Transforms to:
+        self.behavior_manager = BehaviorManager()
+        self.behavior_manager.load_modules(...)
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
+
+    The bug: accessor uses the empty self.manager, while behaviors are loaded
+    into self.behavior_manager. This causes tests to fail when invoking behaviors.
+    """
+
+    def __init__(self):
+        self.changes = 0
+
+    def leave_FunctionDef(
+        self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
+    ) -> cst.FunctionDef:
+        """Fix duplicate managers in setUp methods."""
+        # Only process setUp methods
+        if updated_node.name.value != "setUp":
+            return updated_node
+
+        # Check if this setUp has the duplicate manager pattern
+        has_manager = False
+        has_behavior_manager = False
+        manager_index = None
+        behavior_manager_index = None
+        accessor_indices = []  # Can have multiple accessor assignments
+
+        for i, stmt_node in enumerate(updated_node.body.body):
+            if not isinstance(stmt_node, cst.SimpleStatementLine):
+                continue
+
+            for s in stmt_node.body:
+                if isinstance(s, cst.Assign):
+                    for target in s.targets:
+                        if not isinstance(target.target, cst.Attribute):
+                            continue
+                        if not m.matches(target.target.value, m.Name("self")):
+                            continue
+
+                        attr_name = target.target.attr.value
+
+                        # Track self.manager = BehaviorManager()
+                        if attr_name == "manager" and m.matches(
+                            s.value, m.Call(func=m.Name("BehaviorManager"))
+                        ):
+                            has_manager = True
+                            manager_index = i
+
+                        # Track self.behavior_manager = BehaviorManager()
+                        elif attr_name == "behavior_manager" and m.matches(
+                            s.value, m.Call(func=m.Name("BehaviorManager"))
+                        ):
+                            has_behavior_manager = True
+                            behavior_manager_index = i
+
+                        # Track all self.accessor = StateAccessor(...) assignments
+                        elif attr_name == "accessor":
+                            accessor_indices.append(i)
+
+        # Only proceed if we have the duplicate pattern
+        if not (has_manager and has_behavior_manager):
+            return updated_node
+
+        # Build new setUp body
+        new_body_list = []
+
+        for i, stmt_node in enumerate(updated_node.body.body):
+            # Skip the self.manager = BehaviorManager() line
+            if i == manager_index:
+                self.changes += 1
+                continue
+
+            # If this is an accessor line that references self.manager, skip it
+            # (we'll keep only accessor lines that reference self.behavior_manager)
+            if i in accessor_indices:
+                skip_this_accessor = False
+                if isinstance(stmt_node, cst.SimpleStatementLine):
+                    for s in stmt_node.body:
+                        if isinstance(s, cst.Assign):
+                            if isinstance(s.value, cst.Call):
+                                # Check if second arg is self.manager
+                                if len(s.value.args) >= 2:
+                                    arg = s.value.args[1]
+                                    if m.matches(
+                                        arg.value,
+                                        m.Attribute(
+                                            value=m.Name("self"),
+                                            attr=m.Name("manager")
+                                        )
+                                    ):
+                                        skip_this_accessor = True
+
+                if skip_this_accessor:
+                    continue
+
+            # Keep all other statements
+            new_body_list.append(stmt_node)
+
+        return updated_node.with_changes(
+            body=updated_node.body.with_changes(body=tuple(new_body_list))
+        )
+
+
 class AddAccessorToSetUp(cst.CSTTransformer):
     """
     Add self.accessor = StateAccessor(...) to test setUp methods.
@@ -286,19 +399,26 @@ class AddAccessorToSetUp(cst.CSTTransformer):
 
                             attr_name = target.target.attr.value
 
-                            # Check for self.manager or self.behavior_manager
-                            if attr_name in ("manager", "behavior_manager"):
+                            # Check for self.behavior_manager (preferred)
+                            if attr_name == "behavior_manager":
+                                manager_index = i
+                                manager_var = attr_name
+                            # Check for self.manager (fallback, only if behavior_manager not found)
+                            elif attr_name == "manager" and manager_var != "behavior_manager":
                                 manager_index = i
                                 manager_var = attr_name
                             # Check for self.game_state
                             elif attr_name == "game_state":
                                 game_state_index = i
 
-        # Decide where to insert: prefer right after game_state
-        if game_state_index is not None:
-            insert_index = game_state_index + 1
-        elif manager_index is not None:
+        # Decide where to insert: prefer right after manager if it exists,
+        # otherwise after game_state
+        if manager_index is not None:
+            # Manager exists - insert accessor right after it
             insert_index = manager_index + 1
+        elif game_state_index is not None:
+            # No manager but have game_state - will need to create manager
+            insert_index = game_state_index + 1
         else:
             # Can't find a good insertion point
             return updated_node
@@ -306,8 +426,8 @@ class AddAccessorToSetUp(cst.CSTTransformer):
         # Build statements to insert
         statements_to_insert = []
 
-        # If manager doesn't exist OR exists but comes after our insertion point, create one
-        if manager_index is None or manager_index >= insert_index:
+        # Only create a manager if one doesn't exist at all
+        if manager_index is None:
             manager_stmt = cst.SimpleStatementLine(
                 body=[
                     cst.Assign(

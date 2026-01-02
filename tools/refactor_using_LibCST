@@ -28,7 +28,8 @@ from libcst import matchers as m
 from libcst_transformers import (
     ReplaceLocationIdAssignment,
     ReplaceDictLocationAssignment,
-    AddAccessorToSetUp
+    AddAccessorToSetUp,
+    FixDuplicateManagers
 )
 
 
@@ -859,10 +860,13 @@ def create_transformer() -> cst.CSTTransformer:
 
     Available transformers from libcst_transformers.py:
 
+    Test Standardization:
+    - FixDuplicateManagers: Fix duplicate BehaviorManager instances in setUp
+    - AddAccessorToSetUp: Adds self.accessor = StateAccessor(...) to test setUp methods
+
     Location Migration (Entity Whereabouts Phase 2):
     - ReplaceLocationIdAssignment: variable.location = LocationId(...) → accessor.set_entity_where(...)
     - ReplaceDictLocationAssignment: dict[ActorId(...)].location = ... → accessor.set_entity_where(...)
-    - AddAccessorToSetUp: Adds self.accessor = StateAccessor(...) to test setUp methods
 
     General Purpose:
     - RenameFunction: Rename function calls and definitions
@@ -874,11 +878,11 @@ def create_transformer() -> cst.CSTTransformer:
     To compose multiple transformers, use SequenceTransformer (see examples in script).
     """
 
-    # Phase 2 test migration: Replace dict[ActorId(...)].location = ... pattern
-    # Uncomment ONE of the following:
-
-    # Step 1: Add accessor to test setUp methods
-    return AddAccessorToSetUp()
+    # Test standardization: Fix duplicate managers then add accessor
+    return CompositeTransformer([
+        FixDuplicateManagers(),
+        AddAccessorToSetUp()
+    ])
 
     # Step 2: Transform dict[ActorId(...)].location assignments
     # return ReplaceDictLocationAssignment()
