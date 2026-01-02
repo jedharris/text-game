@@ -6,6 +6,7 @@ and that each handler receives the correct entity instance.
 
 import unittest
 from typing import Any
+from pathlib import Path
 from src.state_manager import (
     GameState,
     Commitment,
@@ -15,7 +16,7 @@ from src.state_manager import (
     Location,
 )
 from src.types import CommitmentId, ScheduledEventId, GossipId, SpreadId, LocationId
-from src.behavior_manager import EventResult
+from src.behavior_manager import EventResult, BehaviorManager
 from src.state_accessor import StateAccessor
 
 
@@ -72,17 +73,23 @@ class TestCommitmentTurnPhase(unittest.TestCase):
             ],
         )
 
+        # Set up behavior manager
+        self.behavior_manager = BehaviorManager()
+        behaviors_dir = Path(__file__).parent.parent / "examples" / "big_game" / "behaviors"
+        modules = self.behavior_manager.discover_modules(str(behaviors_dir))
+        self.behavior_manager.load_modules(modules)
+
     def test_commitment_not_expired(self):
         """Commitment before deadline should return None feedback."""
         from examples.big_game.behaviors.shared.infrastructure.commitments import (
-            on_turn_commitment,
+            on_turn_commitments,
         )
 
         commitment = self.game_state.commitments[0]
-        accessor = StateAccessor(self.game_state, None)
+        accessor = StateAccessor(self.game_state, self.behavior_manager)
         context = {"current_turn": 10, "hook": "turn_commitment"}
 
-        result = on_turn_commitment(commitment, accessor, context)
+        result = on_turn_commitments(commitment, accessor, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
@@ -93,14 +100,14 @@ class TestCommitmentTurnPhase(unittest.TestCase):
     def test_commitment_expired(self):
         """Commitment past deadline should transition to ABANDONED."""
         from examples.big_game.behaviors.shared.infrastructure.commitments import (
-            on_turn_commitment,
+            on_turn_commitments,
         )
 
         commitment = self.game_state.commitments[0]
-        accessor = StateAccessor(self.game_state, None)
+        accessor = StateAccessor(self.game_state, self.behavior_manager)
         context = {"current_turn": 20, "hook": "turn_commitment"}
 
-        result = on_turn_commitment(commitment, accessor, context)
+        result = on_turn_commitments(commitment, accessor, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
@@ -112,14 +119,14 @@ class TestCommitmentTurnPhase(unittest.TestCase):
     def test_commitment_already_fulfilled(self):
         """Fulfilled commitment should not process expiration."""
         from examples.big_game.behaviors.shared.infrastructure.commitments import (
-            on_turn_commitment,
+            on_turn_commitments,
         )
 
         commitment = self.game_state.commitments[1]
-        accessor = StateAccessor(self.game_state, None)
+        accessor = StateAccessor(self.game_state, self.behavior_manager)
         context = {"current_turn": 100, "hook": "turn_commitment"}
 
-        result = on_turn_commitment(commitment, accessor, context)
+        result = on_turn_commitments(commitment, accessor, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
@@ -182,17 +189,23 @@ class TestScheduledEventTurnPhase(unittest.TestCase):
             ],
         )
 
+        # Set up behavior manager
+        self.behavior_manager = BehaviorManager()
+        behaviors_dir = Path(__file__).parent.parent / "examples" / "big_game" / "behaviors"
+        modules = self.behavior_manager.discover_modules(str(behaviors_dir))
+        self.behavior_manager.load_modules(modules)
+
     def test_event_not_triggered(self):
         """Event before trigger turn should return None feedback."""
         from examples.big_game.behaviors.shared.infrastructure.scheduled_events import (
-            on_turn_scheduled,
+            on_turn_scheduled_events,
         )
 
         event = self.game_state.scheduled_events[0]
-        accessor = StateAccessor(self.game_state, None)
+        accessor = StateAccessor(self.game_state, self.behavior_manager)
         context = {"current_turn": 5, "hook": "turn_scheduled_events"}
 
-        result = on_turn_scheduled(event, accessor, context)
+        result = on_turn_scheduled_events(event, accessor, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
@@ -201,14 +214,14 @@ class TestScheduledEventTurnPhase(unittest.TestCase):
     def test_one_time_event_triggered(self):
         """One-time event at trigger turn should fire."""
         from examples.big_game.behaviors.shared.infrastructure.scheduled_events import (
-            on_turn_scheduled,
+            on_turn_scheduled_events,
         )
 
         event = self.game_state.scheduled_events[0]
-        accessor = StateAccessor(self.game_state, None)
+        accessor = StateAccessor(self.game_state, self.behavior_manager)
         context = {"current_turn": 10, "hook": "turn_scheduled_events"}
 
-        result = on_turn_scheduled(event, accessor, context)
+        result = on_turn_scheduled_events(event, accessor, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
@@ -218,14 +231,14 @@ class TestScheduledEventTurnPhase(unittest.TestCase):
     def test_repeating_event_updates_trigger(self):
         """Repeating event should update trigger_turn after firing."""
         from examples.big_game.behaviors.shared.infrastructure.scheduled_events import (
-            on_turn_scheduled,
+            on_turn_scheduled_events,
         )
 
         event = self.game_state.scheduled_events[1]
-        accessor = StateAccessor(self.game_state, None)
+        accessor = StateAccessor(self.game_state, self.behavior_manager)
         context = {"current_turn": 15, "hook": "turn_scheduled_events"}
 
-        result = on_turn_scheduled(event, accessor, context)
+        result = on_turn_scheduled_events(event, accessor, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
@@ -278,17 +291,23 @@ class TestGossipTurnPhase(unittest.TestCase):
             ],
         )
 
+        # Set up behavior manager
+        self.behavior_manager = BehaviorManager()
+        behaviors_dir = Path(__file__).parent.parent / "examples" / "big_game" / "behaviors"
+        modules = self.behavior_manager.discover_modules(str(behaviors_dir))
+        self.behavior_manager.load_modules(modules)
+
     def test_gossip_not_arrived(self):
         """Gossip before arrival should return None feedback."""
         from examples.big_game.behaviors.shared.infrastructure.gossip import (
-            on_turn_gossip,
+            on_turn_gossip_spread,
         )
 
         gossip = self.game_state.gossip[0]
-        accessor = StateAccessor(self.game_state, None)
+        accessor = StateAccessor(self.game_state, self.behavior_manager)
         context = {"current_turn": 10, "hook": "turn_gossip_spread"}
 
-        result = on_turn_gossip(gossip, accessor, context)
+        result = on_turn_gossip_spread(gossip, accessor, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
@@ -297,14 +316,14 @@ class TestGossipTurnPhase(unittest.TestCase):
     def test_gossip_arrived(self):
         """Gossip at arrival turn should process delivery."""
         from examples.big_game.behaviors.shared.infrastructure.gossip import (
-            on_turn_gossip,
+            on_turn_gossip_spread,
         )
 
         gossip = self.game_state.gossip[0]
-        accessor = StateAccessor(self.game_state, None)
+        accessor = StateAccessor(self.game_state, self.behavior_manager)
         context = {"current_turn": 17, "hook": "turn_gossip_spread"}
 
-        result = on_turn_gossip(gossip, accessor, context)
+        result = on_turn_gossip_spread(gossip, accessor, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
@@ -375,17 +394,23 @@ class TestSpreadTurnPhase(unittest.TestCase):
             ],
         )
 
+        # Set up behavior manager
+        self.behavior_manager = BehaviorManager()
+        behaviors_dir = Path(__file__).parent.parent / "examples" / "big_game" / "behaviors"
+        modules = self.behavior_manager.discover_modules(str(behaviors_dir))
+        self.behavior_manager.load_modules(modules)
+
     def test_spread_before_milestone(self):
         """Spread before milestone should return None feedback."""
         from examples.big_game.behaviors.shared.infrastructure.spreads import (
-            on_turn_spread,
+            on_turn_condition_spread,
         )
 
         spread = self.game_state.spreads[0]
-        accessor = StateAccessor(self.game_state, None)
+        accessor = StateAccessor(self.game_state, self.behavior_manager)
         context = {"current_turn": 10, "hook": "turn_condition_spread"}
 
-        result = on_turn_spread(spread, accessor, context)
+        result = on_turn_condition_spread(spread, accessor, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
@@ -394,14 +419,14 @@ class TestSpreadTurnPhase(unittest.TestCase):
     def test_spread_at_milestone(self):
         """Spread at milestone should apply effects and return feedback."""
         from examples.big_game.behaviors.shared.infrastructure.spreads import (
-            on_turn_spread,
+            on_turn_condition_spread,
         )
 
         spread = self.game_state.spreads[0]
-        accessor = StateAccessor(self.game_state, None)
+        accessor = StateAccessor(self.game_state, self.behavior_manager)
         context = {"current_turn": 25, "hook": "turn_condition_spread"}
 
-        result = on_turn_spread(spread, accessor, context)
+        result = on_turn_condition_spread(spread, accessor, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
@@ -417,15 +442,15 @@ class TestSpreadTurnPhase(unittest.TestCase):
     def test_spread_milestone_not_repeated(self):
         """Already-reached milestone should not fire again."""
         from examples.big_game.behaviors.shared.infrastructure.spreads import (
-            on_turn_spread,
+            on_turn_condition_spread,
         )
 
         spread = self.game_state.spreads[0]
         spread.properties["reached_milestones"] = [25]
-        accessor = StateAccessor(self.game_state, None)
+        accessor = StateAccessor(self.game_state, self.behavior_manager)
         context = {"current_turn": 30, "hook": "turn_condition_spread"}
 
-        result = on_turn_spread(spread, accessor, context)
+        result = on_turn_condition_spread(spread, accessor, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
