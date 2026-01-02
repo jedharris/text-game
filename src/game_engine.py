@@ -174,8 +174,12 @@ class GameEngine:
             item_name = getattr(item, 'name', item.id)
             inventory.append(item_name)
 
-        # Get exits (unchanged for now)
-        exits: List[str] = list(location.exits.keys()) if location.exits else []
+        # Get exits using index
+        exits: List[str] = []
+        exits_here = accessor.get_exits_from_location(location_id)
+        for exit_entity in exits_here:
+            if exit_entity.direction:
+                exits.append(exit_entity.direction)
 
         # Get dialogue topics (unchanged)
         topics: List[str] = []

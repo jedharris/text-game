@@ -439,7 +439,7 @@ class NarrationAssembler:
         Format visible exits into prose text.
 
         Args:
-            exits: Dict of direction -> ExitDescriptor
+            exits: Dict of direction -> Exit entity
 
         Returns:
             Formatted exits text
@@ -449,18 +449,18 @@ class NarrationAssembler:
 
         exit_parts: List[str] = []
 
-        for direction, exit_desc in exits.items():
+        for direction, exit_entity in exits.items():
             # Handle named exits
-            if hasattr(exit_desc, "name") and exit_desc.name:
+            if exit_entity.name:
                 # Get destination name if available
-                dest_name = self._get_destination_name(exit_desc)
+                dest_name = self._get_destination_name(exit_entity)
                 if dest_name:
-                    exit_parts.append(f"{direction} ({exit_desc.name} to {dest_name})")
+                    exit_parts.append(f"{direction} ({exit_entity.name} to {dest_name})")
                 else:
-                    exit_parts.append(f"{direction} ({exit_desc.name})")
+                    exit_parts.append(f"{direction} ({exit_entity.name})")
             else:
                 # Simple direction exit
-                dest_name = self._get_destination_name(exit_desc)
+                dest_name = self._get_destination_name(exit_entity)
                 if dest_name:
                     exit_parts.append(f"{direction} to {dest_name}")
                 else:
@@ -474,18 +474,26 @@ class NarrationAssembler:
             all_but_last = ", ".join(exit_parts[:-1])
             return f"Exits lead {all_but_last}, and {exit_parts[-1]}."
 
-    def _get_destination_name(self, exit_desc: Any) -> Optional[str]:
+    def _get_destination_name(self, exit_entity: Any) -> Optional[str]:
         """
         Get the destination location name for an exit.
 
         Args:
-            exit_desc: ExitDescriptor or similar
+            exit_entity: Exit entity
 
         Returns:
             Destination location name or None
         """
-        dest_id = getattr(exit_desc, "to", None)
-        if not dest_id:
+        # Get destination by traversing connections
+        if not exit_entity.connections:
+            return None
+
+        # Get first connected exit
+        connected_exit_id = exit_entity.connections[0]
+        try:
+            connected_exit = self.accessor.game_state.get_exit(connected_exit_id)
+            dest_id = connected_exit.location
+        except (KeyError, AttributeError):
             return None
 
         dest_location = self.accessor.get_location(dest_id)
