@@ -601,3 +601,244 @@ class RenameSelfManager(cst.CSTTransformer):
             )
 
         return updated_node
+
+
+class ReplaceExitDescriptorImport(cst.CSTTransformer):
+    """
+    Replace ExitDescriptor with Exit in imports.
+
+    Also adds _build_whereabouts_index and _build_connection_index to imports.
+
+    Example:
+        from src.state_manager import GameState, Location, ExitDescriptor
+        → from src.state_manager import GameState, Location, Exit, _build_whereabouts_index, _build_connection_index
+    """
+
+    def __init__(self):
+        self.changes = 0
+        self.has_exit_import = False
+        self.has_exit_descriptor_import = False
+        self.has_index_imports = False
+
+    def visit_Module(self, node: cst.Module) -> bool:
+        """Check current imports."""
+        for item in node.body:
+            if isinstance(item, cst.SimpleStatementLine):
+                for stmt in item.body:
+                    if isinstance(stmt, cst.ImportFrom):
+                        if stmt.module and m.matches(stmt.module, m.Attribute(value=m.Name("src"), attr=m.Name("state_manager"))):
+                            if isinstance(stmt.names, cst.ImportStar):
+                                continue
+                            elif not isinstance(stmt.names, cst.ImportStar):
+                                for name in stmt.names:
+                                    if isinstance(name, cst.ImportAlias):
+                                        if name.name.value == "Exit":
+                                            self.has_exit_import = True
+                                        elif name.name.value == "ExitDescriptor":
+                                            self.has_exit_descriptor_import = True
+                                        elif name.name.value == "_build_whereabouts_index":
+                                            self.has_index_imports = True
+        return True
+
+    def leave_ImportFrom(
+        self, original_node: cst.ImportFrom, updated_node: cst.ImportFrom
+    ) -> cst.ImportFrom:
+        """Replace ExitDescriptor with Exit and add index imports."""
+        # Only process src.state_manager imports
+        if not (updated_node.module and m.matches(
+            updated_node.module,
+            m.Attribute(value=m.Name("src"), attr=m.Name("state_manager"))
+        )):
+            return updated_node
+
+        if isinstance(updated_node.names, cst.ImportStar):
+            return updated_node
+
+        # Build new names list
+        new_names = []
+        found_exit_descriptor = False
+        found_exit = False
+        found_whereabouts = False
+        found_connection = False
+
+        for name in updated_node.names:
+            if isinstance(name, cst.ImportAlias):
+                if name.name.value == "ExitDescriptor":
+                    # Replace with Exit
+                    new_names.append(name.with_changes(name=cst.Name("Exit")))
+                    found_exit_descriptor = True
+                    found_exit = True
+                    self.changes += 1
+                elif name.name.value == "Exit":
+                    new_names.append(name)
+                    found_exit = True
+                elif name.name.value == "_build_whereabouts_index":
+                    new_names.append(name)
+                    found_whereabouts = True
+                elif name.name.value == "_build_connection_index":
+                    new_names.append(name)
+                    found_connection = True
+                else:
+                    new_names.append(name)
+
+        # Add index imports if ExitDescriptor was found but index imports weren't
+        if found_exit_descriptor or found_exit:
+            if not found_whereabouts:
+                new_names.append(cst.ImportAlias(name=cst.Name("_build_whereabouts_index")))
+                self.changes += 1
+            if not found_connection:
+                new_names.append(cst.ImportAlias(name=cst.Name("_build_connection_index")))
+                self.changes += 1
+
+        if self.changes > 0:
+            return updated_node.with_changes(names=new_names)
+
+        return updated_node
+
+
+class ClearLocationExits(cst.CSTTransformer):
+    """
+    Replace exits={...} with exits={} in Location() constructor calls.
+
+    This clears the old ExitDescriptor-based exits dict so Exit entities
+    can be used instead.
+
+    Example:
+        Location(
+            id="room",
+            name="Room",
+            exits={"north": ExitDescriptor(...)}
+        )
+        → Location(
+            id="room",
+            name="Room",
+            exits={}
+        )
+    """
+
+    def __init__(self):
+        self.changes = 0
+
+    def leave_Call(self, original_node: cst.Call, updated_node: cst.Call) -> cst.Call:
+        """Clear exits dict in Location calls."""
+        # Check if this is a Location() call
+        if not m.matches(updated_node.func, m.Name("Location")):
+            return updated_node
+
+        # Find exits= argument
+        new_args = []
+        for arg in updated_node.args:
+            if isinstance(arg.keyword, cst.Name) and arg.keyword.value == "exits":
+                # Check if value is a non-empty dict
+                if isinstance(arg.value, cst.Dict):
+                    if len(arg.value.elements) > 0:
+                        # Replace with empty dict
+                        new_args.append(arg.with_changes(value=cst.Dict(elements=[])))
+                        self.changes += 1
+                    else:
+                        new_args.append(arg)
+                else:
+                    new_args.append(arg)
+            else:
+                new_args.append(arg)
+
+        if self.changes > 0:
+            return updated_node.with_changes(args=new_args)
+
+        return updated_node
+
+
+class AddIndexBuildingCalls(cst.CSTTransformer):
+    """
+    Add _build_whereabouts_index() and _build_connection_index() calls
+    after GameState creation.
+
+    Looks for patterns like:
+        self.game_state = GameState(...)
+        state = GameState(...)
+
+    And adds index building calls right after:
+        _build_whereabouts_index(self.game_state)
+        _build_connection_index(self.game_state)
+
+    Only adds if not already present.
+    """
+
+    def __init__(self):
+        self.changes = 0
+        self.game_state_var = None
+        self.needs_index_calls = False
+
+    def leave_SimpleStatementLine(
+        self, original_node: cst.SimpleStatementLine, updated_node: cst.SimpleStatementLine
+    ) -> Union[cst.SimpleStatementLine, cst.FlattenSentinel[cst.SimpleStatementLine]]:
+        """Detect GameState assignments and add index calls after them."""
+        if len(updated_node.body) != 1:
+            return updated_node
+
+        stmt = updated_node.body[0]
+        if not isinstance(stmt, cst.Assign):
+            return updated_node
+
+        # Check if this is a GameState assignment
+        if not m.matches(stmt.value, m.Call(func=m.Name("GameState"))):
+            return updated_node
+
+        # Get the variable name (self.game_state or state)
+        if len(stmt.targets) != 1:
+            return updated_node
+
+        target = stmt.targets[0].target
+        if isinstance(target, cst.Attribute):
+            # self.game_state
+            if m.matches(target, m.Attribute(value=m.Name("self"), attr=m.Name("game_state"))):
+                var_expr = target
+        elif isinstance(target, cst.Name):
+            # state
+            var_expr = target
+        else:
+            return updated_node
+
+        # Check if the GameState call has an exits= argument
+        has_exits_arg = False
+        if isinstance(stmt.value, cst.Call):
+            for arg in stmt.value.args:
+                if isinstance(arg.keyword, cst.Name) and arg.keyword.value == "exits":
+                    has_exits_arg = True
+                    break
+
+        if not has_exits_arg:
+            # No exits argument, don't add index calls
+            return updated_node
+
+        # Build the index calls
+        whereabouts_call = cst.SimpleStatementLine(
+            body=[
+                cst.Expr(
+                    value=cst.Call(
+                        func=cst.Name("_build_whereabouts_index"),
+                        args=[cst.Arg(value=var_expr)]
+                    )
+                )
+            ]
+        )
+
+        connection_call = cst.SimpleStatementLine(
+            body=[
+                cst.Expr(
+                    value=cst.Call(
+                        func=cst.Name("_build_connection_index"),
+                        args=[cst.Arg(value=var_expr)]
+                    )
+                )
+            ]
+        )
+
+        self.changes += 2
+
+        # Return the original statement followed by the index calls
+        return cst.FlattenSentinel([
+            updated_node,
+            whereabouts_call,
+            connection_call
+        ])

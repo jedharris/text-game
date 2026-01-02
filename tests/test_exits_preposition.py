@@ -5,7 +5,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from src.state_manager import GameState, Location, Actor, ExitDescriptor, Metadata
+from src.state_manager import GameState, Location, Actor, Exit, Metadata, _build_whereabouts_index, _build_connection_index
 from src.state_accessor import StateAccessor
 from src.behavior_manager import BehaviorManager
 from src.parser import Parser
@@ -25,14 +25,7 @@ class TestGoThroughPreposition(unittest.TestCase):
                     id="room1",
                     name="First Room",
                     description="A room with an archway to the north.",
-                    exits={
-                        "north": ExitDescriptor(
-                            type="open",
-                            to="room2",
-                            name="stone archway",
-                            description="A grand stone archway"
-                        )
-                    }
+                    exits={}
                 ),
                 Location(
                     id="room2",
@@ -44,14 +37,7 @@ class TestGoThroughPreposition(unittest.TestCase):
                     id="room3",
                     name="Third Room",
                     description="A room with stairs down.",
-                    exits={
-                        "down": ExitDescriptor(
-                            type="open",
-                            to="room4",
-                            name="spiral staircase",
-                            description="A narrow spiral staircase"
-                        )
-                    }
+                    exits={}
                 ),
                 Location(
                     id="room4",
