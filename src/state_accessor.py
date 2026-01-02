@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional, Union, cast, TYPE_CHECKING
 
 from src.types import LocationId, ActorId, ItemId, LockId, PartId, EntityId, EventName
 from src.state_manager import (
-    GameState, Location, Item, Actor, Lock, Part, ExitDescriptor, Entity
+    GameState, Location, Item, Actor, Lock, Part, ExitDescriptor, Exit, Entity
 )
 from src.narration_types import ReactionRef
 
@@ -464,18 +464,18 @@ class StateAccessor:
 
         return actors
 
-    def get_entities_at(self, where_id: str, entity_type: Optional[str] = None) -> List[Union[Item, Actor]]:
+    def get_entities_at(self, where_id: str, entity_type: Optional[str] = None) -> List[Union[Item, Actor, Exit]]:
         """Get all entities at a location/container.
 
         Args:
             where_id: Location/container ID
-            entity_type: Optional filter: "item", "actor", "exit" (future)
+            entity_type: Optional filter: "item", "actor", "exit"
 
         Returns:
-            List of entity objects (Item, Actor, etc.)
+            List of entity objects (Item, Actor, Exit, etc.)
         """
         entity_ids = self.game_state._entities_at.get(where_id, set())
-        entities: List[Union[Item, Actor]] = []
+        entities: List[Union[Item, Actor, Exit]] = []
 
         for entity_id in entity_ids:
             # Try to get as item
@@ -490,6 +490,13 @@ class StateAccessor:
                 actor = self.game_state.actors.get(ActorId(entity_id))
                 if actor:
                     entities.append(actor)
+                    continue
+
+            # Try to get as exit
+            if entity_type is None or entity_type == "exit":
+                exit_entity = next((e for e in self.game_state.exits if e.id == entity_id), None)
+                if exit_entity:
+                    entities.append(exit_entity)
                     continue
 
         return entities
