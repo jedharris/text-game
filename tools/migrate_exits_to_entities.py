@@ -67,10 +67,25 @@ def migrate_exit_descriptor(
     behaviors = descriptor.get("behaviors", [])
     properties = descriptor.get("properties", {})
 
+    # Store type and door_id in properties for backward compat
+    if "type" in descriptor:
+        properties["type"] = descriptor["type"]
+    if "door_id" in descriptor:
+        properties["door_id"] = descriptor["door_id"]
+    if "passage" in descriptor:
+        properties["passage"] = descriptor["passage"]
+    if "door_at" in descriptor:
+        properties["door_at"] = descriptor["door_at"]
+
     # Build connections list
     connections = []
     if target_exit_id:
         connections.append(target_exit_id)
+
+    # Get traits - merge llm_context if present
+    traits = descriptor.get("traits", {})
+    if "llm_context" in descriptor:
+        traits["llm_context"] = descriptor["llm_context"]
 
     return {
         "id": exit_id,
@@ -83,7 +98,7 @@ def migrate_exit_descriptor(
         "synonyms": descriptor.get("synonyms", []),
         "properties": properties,
         "behaviors": behaviors,
-        "traits": descriptor.get("traits", {})
+        "traits": traits
     }
 
 

@@ -1206,7 +1206,7 @@ DIRECTION_ABBREVIATIONS = {
 
 def find_exit_by_name(
     accessor: "StateAccessor", name: WordEntry, actor_id: ActorId, adjective: Optional[str] = None
-) -> Union[Tuple[str, "ExitDescriptor"], Tuple[None, List[str]], None]:
+) -> Union[Tuple[str, "Exit"], Tuple[None, List[str]], None]:
     """
     Find an exit in the current location by name, direction, or adjective.
 
@@ -1225,7 +1225,7 @@ def find_exit_by_name(
         adjective: Optional adjective/direction to filter by
 
     Returns:
-        - Tuple of (direction, ExitDescriptor) if exactly one match found
+        - Tuple of (direction, Exit) if exactly one match found
         - Tuple of (None, list_of_exit_names) if multiple ambiguous matches found
         - None if no match found
     """
@@ -1270,23 +1270,23 @@ def find_exit_by_name(
         adj_lower = adj_str.lower().strip()
         canonical = name.word
         full_search = f"{adj_lower} {canonical}".lower()
-        for direction, exit_desc in visible_exits.items():
-            if exit_desc.name and full_search in exit_desc.name.lower():
-                return (direction, exit_desc)
+        for direction, exit_entity in visible_exits.items():
+            if exit_entity.name and full_search in exit_entity.name.lower():
+                return (direction, exit_entity)
 
     # 4. Search by exit.name field using name_matches (handles synonyms)
     # Collect ALL matches to detect ambiguity
     matches = []
-    for direction, exit_desc in visible_exits.items():
-        if exit_desc.name:
-            if name_matches(name, exit_desc.name):
-                matches.append((direction, exit_desc))
+    for direction, exit_entity in visible_exits.items():
+        if exit_entity.name:
+            if name_matches(name, exit_entity.name):
+                matches.append((direction, exit_entity))
 
     if len(matches) == 1:
         return matches[0]
     elif len(matches) > 1:
         # Return ambiguity indicator with list of matching exit names
-        exit_names = [exit_desc.name for _, exit_desc in matches]
+        exit_names = [exit_entity.name for _, exit_entity in matches]
         return (None, exit_names)
 
     return None

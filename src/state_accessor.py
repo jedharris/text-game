@@ -381,7 +381,7 @@ class StateAccessor:
 
         return None
 
-    def get_visible_exits(self, location_id: LocationId, actor_id: ActorId) -> Dict[str, ExitDescriptor]:
+    def get_visible_exits(self, location_id: LocationId, actor_id: ActorId) -> Dict[str, "Exit"]:
         """
         Get all visible exits for a location.
 
@@ -392,7 +392,7 @@ class StateAccessor:
             actor_id: The actor observing (for behavior context)
 
         Returns:
-            Dict of direction -> ExitDescriptor for visible exits only
+            Dict of direction -> Exit entity for visible exits only
         """
         from utilities.utils import is_observable
 
@@ -400,14 +400,17 @@ class StateAccessor:
         if not location:
             return {}
 
+        # Get all exits at this location
+        exits_here = self.get_exits_from_location(location_id)
+
         visible_exits = {}
-        for direction, exit_desc in location.exits.items():
+        for exit_entity in exits_here:
             visible, _ = is_observable(
-                exit_desc, self, self.behavior_manager,
+                exit_entity, self, self.behavior_manager,
                 actor_id=actor_id, method="look"
             )
-            if visible:
-                visible_exits[direction] = exit_desc
+            if visible and exit_entity.direction:
+                visible_exits[exit_entity.direction] = exit_entity
 
         return visible_exits
 

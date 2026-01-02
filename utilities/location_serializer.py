@@ -144,35 +144,38 @@ def serialize_location_for_llm(accessor, location, actor_id: ActorId) -> Dict[st
 
     # Serialize exits - pass player_context for perspective_variants
     exits = {}
-    for direction, exit_desc in visible_exits.items():
-        # Handle both ExitDescriptor objects and plain strings (backward compatibility)
-        if isinstance(exit_desc, str):
-            # Plain string destination
-            exit_data = {
-                "type": "passage",
-                "to": exit_desc
-            }
-        else:
-            # ExitDescriptor object
-            exit_data = {
-                "type": exit_desc.type,
-                "to": exit_desc.to
-            }
-            # Include name and description for LLM narration
-            if exit_desc.name:
-                exit_data["name"] = exit_desc.name
-            if exit_desc.description:
-                exit_data["description"] = exit_desc.description
-            if exit_desc.door_id:
-                exit_data["door_id"] = exit_desc.door_id
-            # Include llm_context if present - pass player_context for perspective_variants
-            if exit_desc.llm_context:
-                exit_dict = entity_to_dict(exit_desc, player_context=player_context)
-                if "llm_context" in exit_dict:
-                    exit_data["llm_context"] = exit_dict["llm_context"]
-                # Also include perspective_note if present
-                if "perspective_note" in exit_dict:
-                    exit_data["perspective_note"] = exit_dict["perspective_note"]
+    for direction, exit_entity in visible_exits.items():
+        # Exit entity object
+        # Get destination by traversing connections
+        destination_id = None
+        if exit_entity.connections:
+            connected_exit_id = exit_entity.connections[0]
+            try:
+                connected_exit = accessor.game_state.get_exit(connected_exit_id)
+                destination_id = connected_exit.location
+            except KeyError:
+                pass
+
+        exit_data = {
+            "type": exit_entity.properties.get("type", "passage"),
+            "to": destination_id
+        }
+        # Include name and description for LLM narration
+        if exit_entity.name:
+            exit_data["name"] = exit_entity.name
+        if exit_entity.description:
+            exit_data["description"] = exit_entity.description
+        door_id = exit_entity.properties.get("door_id")
+        if door_id:
+            exit_data["door_id"] = door_id
+        # Include llm_context if present in traits - pass player_context for perspective_variants
+        if "llm_context" in exit_entity.traits:
+            exit_dict = entity_to_dict(exit_entity, player_context=player_context)
+            if "llm_context" in exit_dict:
+                exit_data["llm_context"] = exit_dict["llm_context"]
+            # Also include perspective_note if present
+            if "perspective_note" in exit_dict:
+                exit_data["perspective_note"] = exit_dict["perspective_note"]
         exits[direction] = exit_data
     result["exits"] = exits
 
