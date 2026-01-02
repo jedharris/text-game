@@ -4,9 +4,15 @@ Validates that turn phases correctly dispatch to individual entity handlers
 and that each handler receives the correct entity instance.
 """
 
+import sys
 import unittest
 from typing import Any
 from pathlib import Path
+
+# Add big_game directory to sys.path for behaviors imports
+BIG_GAME_DIR = Path(__file__).parent.parent / "examples" / "big_game"
+if str(BIG_GAME_DIR) not in sys.path:
+    sys.path.insert(0, str(BIG_GAME_DIR))
 from src.state_manager import (
     GameState,
     Commitment,
