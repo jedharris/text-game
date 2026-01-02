@@ -129,7 +129,7 @@ def _execute_trade(
 
     # Transfer item from NPC to giver
     # 1. Change item location
-    gives_item.location = giver_id
+    accessor.set_entity_where(gives_item_id, giver_id)
 
     # 2. Remove from NPC inventory
     if gives_item_id in npc.inventory:

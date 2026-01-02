@@ -112,7 +112,7 @@ def on_peer(entity: Any, accessor: Any, context: Dict) -> EventResult:
 
         # Place the key in the same location as the crystal ball
         crystal_ball_location = entity.location
-        sanctum_key.location = crystal_ball_location
+        accessor.set_entity_where(sanctum_key.id, crystal_ball_location)
 
         # Determine the appropriate message based on where the crystal ball is
         location_item = accessor.get_item(crystal_ball_location)

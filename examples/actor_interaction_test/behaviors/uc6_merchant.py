@@ -119,7 +119,7 @@ def update_escort_location(accessor, npc, new_location: str) -> Optional[str]:
         return None
 
     # Move NPC to new location
-    npc.location = new_location
+    accessor.set_entity_where(npc.id, new_location)
 
     # Check if arrived at destination
     if check_escort_arrival(accessor, npc):

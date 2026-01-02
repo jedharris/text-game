@@ -162,7 +162,7 @@ def on_player_move_companions_follow(entity, accessor, context: dict) -> EventRe
 
         if can_follow:
             # Move companion to new location
-            actor.location = to_location
+            accessor.set_entity_where(actor_id_key, to_location)
             follow_msg = actor.properties.get(
                 'follow_message',
                 f"{actor.name} follows you."

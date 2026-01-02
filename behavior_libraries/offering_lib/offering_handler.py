@@ -100,8 +100,8 @@ def handle_offer(accessor, action: Dict) -> HandlerResult:
     # Offering accepted - remove item from game (consumed by offering)
     # The target's behavior may have already handled this, but we'll ensure it
     if hasattr(item, 'location'):
-        # Mark as consumed (empty location means removed from world)
-        item.location = ""
+        # Mark as consumed using proper removal state
+        accessor.set_entity_where(item.id, f"__consumed_by_{actor_id}__")
 
     # Build response message
     base_message = f"You offer the {item.name} to the {target.name}."

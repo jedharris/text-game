@@ -43,7 +43,7 @@ def patrol_step(accessor, actor) -> Optional[str]:
 
     # Move actor
     old_location = actor.location
-    actor.location = next_location
+    accessor.set_entity_where(actor.id, next_location)
     actor.properties['patrol_index'] = next_index
 
     # Generate message

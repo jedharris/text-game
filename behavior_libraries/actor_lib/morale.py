@@ -274,7 +274,7 @@ def attempt_flee(
 
     # Choose random exit and move
     direction, destination = random.choice(available_exits)
-    actor.location = destination
+    accessor.set_entity_where(actor.id, destination)
 
     return FleeResult(
         success=True,

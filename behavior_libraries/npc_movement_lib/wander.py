@@ -48,7 +48,7 @@ def wander_step(accessor, actor) -> Optional[str]:
     next_location = random.choice(available)
 
     # Move actor
-    actor.location = next_location
+    accessor.set_entity_where(actor.id, next_location)
 
     return f"{actor.name} wanders to {next_location}."
 

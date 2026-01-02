@@ -149,7 +149,7 @@ def on_receive_item(
                 # Give the fragment to the player
                 fang = state.get_item("alpha_fang_fragment")
                 if fang:
-                    fang.location = "player"
+                    accessor.set_entity_where(fang.id, "player")
                     player = state.actors.get("player")
                     if player and fang.id not in player.inventory:
                         player.inventory.append(fang.id)

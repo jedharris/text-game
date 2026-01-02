@@ -340,12 +340,11 @@ def on_death(entity, accessor, context):
     # Default death processing
     death_location = entity.location
 
-    # Drop all inventory items
+    # Drop all inventory items using index-aware mutation
     if hasattr(entity, 'inventory') and entity.inventory:
         for item_id in list(entity.inventory):
-            item = accessor.get_item(item_id)
-            if item:
-                item.location = death_location
+            # Use accessor to update index
+            accessor.set_entity_where(item_id, death_location)
         entity.inventory.clear()
 
     # Remove actor from game

@@ -50,7 +50,8 @@ Each phase must pass ALL levels of testing before proceeding:
 
 **Level 4: Manual Testing**
 - Play through all regions of big_game
-- Test edge cases (locked doors, one-way passages, hidden exits)
+- Play through spatial_game (has doors and edge cases)
+- Test edge cases using dedicated test game (see Phase 4.8)
 - Verify narration quality
 - Check for performance regressions
 
@@ -553,7 +554,140 @@ def validate_migration(game_state: Dict[str, Any]) -> List[str]:
     return errors
 ```
 
-#### 4.7: Main Migration Function
+#### 4.7: Create Edge Case Test Game
+
+Before migrating real games, create a comprehensive test game with all edge cases:
+
+Create [tests/fixtures/exit_edge_cases_old_format.json](../tests/fixtures/exit_edge_cases_old_format.json):
+
+```json
+{
+  "metadata": {
+    "title": "Exit Edge Cases Test",
+    "version": "1.0",
+    "start_location": "loc_entry"
+  },
+  "locations": [
+    {
+      "id": "loc_entry",
+      "name": "Entry Hall",
+      "description": "A grand entrance",
+      "exits": {
+        "north": {
+          "destination": "loc_locked_room",
+          "name": "heavy door",
+          "description": "A heavy wooden door",
+          "properties": {"has_door": true}
+        },
+        "east": {
+          "destination": "loc_one_way_source",
+          "name": "archway"
+        }
+      }
+    },
+    {
+      "id": "loc_locked_room",
+      "name": "Locked Room",
+      "description": "Room behind locked door",
+      "exits": {
+        "south": {
+          "destination": "loc_entry",
+          "name": "heavy door",
+          "properties": {"has_door": true}
+        }
+      }
+    },
+    {
+      "id": "loc_one_way_source",
+      "name": "Cliff Edge",
+      "description": "You can jump down but not climb back up",
+      "exits": {
+        "down": {
+          "destination": "loc_one_way_dest",
+          "name": "cliff edge",
+          "description": "A steep drop",
+          "properties": {"one_way": true}
+        },
+        "west": {
+          "destination": "loc_entry"
+        }
+      }
+    },
+    {
+      "id": "loc_one_way_dest",
+      "name": "Valley Floor",
+      "description": "At the bottom of the cliff",
+      "exits": {
+        "north": {
+          "destination": "loc_hidden_exit_room"
+        }
+      }
+    },
+    {
+      "id": "loc_hidden_exit_room",
+      "name": "Dark Cave",
+      "description": "A dark cave with hidden passages",
+      "exits": {
+        "south": {
+          "destination": "loc_one_way_dest"
+        },
+        "secret": {
+          "destination": "loc_secret_room",
+          "name": "crack in wall",
+          "description": "A barely visible crack",
+          "properties": {"hidden": true}
+        }
+      }
+    },
+    {
+      "id": "loc_secret_room",
+      "name": "Secret Chamber",
+      "description": "A hidden chamber",
+      "exits": {
+        "out": {
+          "destination": "loc_hidden_exit_room"
+        }
+      }
+    }
+  ],
+  "items": [
+    {
+      "id": "heavy_door",
+      "name": "heavy door",
+      "description": "A heavy wooden door",
+      "location": "doorway_entry_locked",
+      "type": "door",
+      "properties": {
+        "exit": "exit:loc_entry:north",
+        "locked": true,
+        "key_id": "brass_key"
+      }
+    },
+    {
+      "id": "brass_key",
+      "name": "brass key",
+      "description": "A brass key",
+      "location": "loc_entry"
+    }
+  ],
+  "actors": {
+    "player": {
+      "id": "player",
+      "name": "Player",
+      "location": "loc_entry",
+      "inventory": []
+    }
+  }
+}
+```
+
+This test game includes:
+- **Locked door**: loc_entry ↔ loc_locked_room
+- **One-way passage**: Cliff you can jump down but not climb up
+- **Hidden exit**: Secret passage in cave (non-standard direction "secret")
+- **Multiple exit types**: Standard directions, custom names, special properties
+
+#### 4.8: Main Migration Function
 
 ```python
 def migrate_game_state(input_path: Path, output_path: Path, dry_run: bool = False) -> None:
@@ -719,24 +853,48 @@ python tools/migrate_exits.py tests/fixtures/test_game_old_format.json --dry-run
 
 Should produce validation success with 2 exits.
 
-#### Integration Test: Migrate big_game
+#### Integration Test: Migrate Edge Case Test Game
 
-**CRITICAL**: Backup before migration:
-
+Run migration on edge case test:
 ```bash
-cp examples/big_game/game_state.json examples/big_game/game_state.json.backup
+python tools/migrate_exits.py tests/fixtures/exit_edge_cases_old_format.json --dry-run
 ```
 
-Run migration:
+Validation checks:
+- [ ] No validation errors
+- [ ] 12 exits created (6 locations with various exit configurations)
+- [ ] 1 doorway created (for heavy_door)
+- [ ] Door location updated to doorway
+- [ ] Properties preserved (one_way, hidden, etc.)
+- [ ] Non-standard directions handled ("secret", "out")
+
+#### Integration Test: Migrate Test Games
+
+**big_game**:
 ```bash
+# Backup first (already on branch, but be safe)
+cp examples/big_game/game_state.json examples/big_game/game_state.json.backup
+
 python tools/migrate_exits.py examples/big_game/game_state.json --output examples/big_game/game_state.json.new --dry-run
 ```
 
 Validation checks:
 - [ ] No validation errors
 - [ ] Exit count = 2 × (number of old exits)
-- [ ] Doorway count = number of old doors
+- [ ] Doorway count = number of old doors (likely 0 for big_game)
 - [ ] All locations still have same connectivity
+
+**spatial_game**:
+```bash
+cp examples/spatial_game/game_state.json examples/spatial_game/game_state.json.backup
+
+python tools/migrate_exits.py examples/spatial_game/game_state.json --output examples/spatial_game/game_state.json.new --dry-run
+```
+
+Validation checks:
+- [ ] No validation errors
+- [ ] Doors properly migrated
+- [ ] Edge cases (if any) preserved
 
 #### Determinism Test
 
@@ -757,14 +915,17 @@ Should show no differences.
 - [ ] Exit pair creation logic
 - [ ] Door/doorway migration logic
 - [ ] Comprehensive validation
+- [ ] Edge case test game created
 - [ ] Unit tests for migration functions
-- [ ] Integration test with test game passes
+- [ ] Integration test with minimal test game passes
+- [ ] Integration test with edge case test game passes
 - [ ] Determinism test passes
 - [ ] big_game migration validates successfully (dry-run)
+- [ ] spatial_game migration validates successfully (dry-run)
 - [ ] Migration tool documentation
 - [ ] Code review complete
 
-**Exit criteria**: Migration tool validated on test data, ready to migrate big_game.
+**Exit criteria**: Migration tool validated on all test data (minimal, edge cases, big_game, spatial_game), ready to migrate games.
 
 ---
 
@@ -1002,27 +1163,38 @@ class TestConnectionIndex(unittest.TestCase):
 
 ### Implementation Steps
 
-#### 6.1: Backup and Migrate big_game
+#### 6.1: Backup and Migrate All Games
 
 **CRITICAL**: Full backup before migration:
 
 ```bash
-# Backup entire game directory
+# Backup entire game directories (already on branch, but be thorough)
 cp -r examples/big_game examples/big_game.backup.$(date +%Y%m%d)
+cp -r examples/spatial_game examples/spatial_game.backup.$(date +%Y%m%d)
 
-# Backup just game_state.json
+# Also backup just game_state.json files
 cp examples/big_game/game_state.json examples/big_game/game_state.json.pre-migration
+cp examples/spatial_game/game_state.json examples/spatial_game/game_state.json.pre-migration
 ```
 
-Run migration:
+Run migrations:
 ```bash
+# Migrate big_game
 python tools/migrate_exits.py examples/big_game/game_state.json
+
+# Migrate spatial_game
+python tools/migrate_exits.py examples/spatial_game/game_state.json
+
+# Migrate edge case test game
+python tools/migrate_exits.py tests/fixtures/exit_edge_cases_old_format.json --output tests/fixtures/exit_edge_cases.json
 ```
 
 Validation:
 ```bash
 # Should load without errors
 python -c "from src.game_state_loader import load_game_state; load_game_state('examples/big_game')"
+python -c "from src.game_state_loader import load_game_state; load_game_state('examples/spatial_game')"
+python -c "from src.game_state_loader import load_game_state; load_game_state('tests/fixtures/exit_edge_cases.json')"
 ```
 
 #### 6.2: Update Exit Vocabulary Generation
@@ -1394,19 +1566,36 @@ python tools/walkthrough.py examples/big_game --file walkthroughs/exit_migration
 
 #### Manual Testing Checklist
 
-- [ ] Visit every location in big_game
+**Edge case test game** (tests/fixtures/exit_edge_cases.json):
+- [ ] Lock/unlock door with key
+- [ ] Open/close door
+- [ ] Door blocks passage when locked
+- [ ] Door accessible from both sides (entry hall and locked room)
+- [ ] Jump down cliff (one-way)
+- [ ] Cannot go back up cliff
+- [ ] Find hidden exit ("secret" direction or "examine crack in wall")
+- [ ] Traverse hidden exit
+- [ ] All custom exit names work ("crack in wall", "heavy door", "cliff edge")
+
+**spatial_game**:
+- [ ] Test all doors
+- [ ] Test any edge cases present
+- [ ] Verify all traversal works
+- [ ] Check narration quality
+
+**big_game**:
+- [ ] Visit every location
 - [ ] Traverse every exit in both directions
-- [ ] Test all door interactions (open, close, lock, unlock)
 - [ ] Verify narration quality (exits described appropriately)
-- [ ] Test edge cases:
-  - [ ] Hidden exits (if any)
-  - [ ] One-way passages (if any)
-  - [ ] Blocked/conditional exits
+- [ ] Test any conditional/blocked exits
 - [ ] Performance check (no noticeable slowdown)
 
 ### Deliverables Phase 6
 
-- [ ] big_game migrated to new format (backup created)
+- [ ] All games migrated to new format (backups created):
+  - [ ] big_game
+  - [ ] spatial_game
+  - [ ] exit_edge_cases test game
 - [ ] Exit vocabulary generation updated
 - [ ] Parser context building updated
 - [ ] Exit traversal handler rewritten
@@ -1414,13 +1603,13 @@ python tools/walkthrough.py examples/big_game --file walkthroughs/exit_migration
 - [ ] Location narration updated
 - [ ] Integration tests written and passing
 - [ ] Walkthrough tests written and achieving 100%
-- [ ] Manual testing checklist completed
-- [ ] All 109 existing tests still pass
+- [ ] Manual testing checklist completed for all three games
+- [ ] All existing tests still pass
 - [ ] Mypy clean
 - [ ] Performance validated (no regression)
 - [ ] Code review complete
 
-**Exit criteria**: big_game fully playable with new exit system, all tests passing.
+**Exit criteria**: All games fully playable with new exit system, all edge cases tested, all tests passing.
 
 ---
 
@@ -1619,11 +1808,19 @@ All must achieve 100% expected results.
 
 #### Manual Playthrough
 
-Full playthrough of big_game:
+**Edge case test game**:
+- [ ] Full playthrough testing all edge cases
+- [ ] Verify edge case behaviors work as intended
+
+**spatial_game**:
+- [ ] Full playthrough
+- [ ] Test all doors and passages
+- [ ] Verify all mechanics work
+
+**big_game**:
 - [ ] Start from beginning
 - [ ] Visit all major regions
 - [ ] Complete key quests
-- [ ] Test all doors and passages
 - [ ] Verify narration quality throughout
 
 ### Deliverables Phase 7

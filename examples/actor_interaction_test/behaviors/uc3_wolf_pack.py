@@ -125,7 +125,7 @@ def directed_flee(accessor, actor) -> Optional[str]:
     if flee_dest:
         # Direct flee to specified destination
         old_location = actor.location
-        actor.location = flee_dest
+        accessor.set_entity_where(actor.id, flee_dest)
         return f"{actor.name} flees to safety!"
 
     # Fall back to library's random flee

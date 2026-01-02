@@ -145,7 +145,7 @@ def on_spore_mother_heal(
     spore_heart = state.get_item("spore_heart_fragment")
     if spore_heart:
         # Set item location and add to player inventory
-        spore_heart.location = "player"
+        accessor.set_entity_where(spore_heart.id, "player")
         player = state.actors.get("player")
         if player and spore_heart.id not in player.inventory:
             player.inventory.append(spore_heart.id)

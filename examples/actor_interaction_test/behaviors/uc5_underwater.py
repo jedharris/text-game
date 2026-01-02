@@ -88,7 +88,7 @@ def rescue_to_surface(accessor, actor, surface_location: str) -> str:
         return f"{actor.name} doesn't need to breathe."
 
     old_location = actor.location
-    actor.location = surface_location
+    accessor.set_entity_where(actor.id, surface_location)
 
     # Restore breath to max
     max_breath = actor.properties.get("max_breath", 60)
