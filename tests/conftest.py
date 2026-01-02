@@ -4,6 +4,7 @@ Pytest configuration and shared test fixtures.
 Based on behavior_refactoring_testing.md lines 14-106
 """
 import unittest
+import sys
 from pathlib import Path
 from dataclasses import field
 from typing import Any, Dict, List, Optional
@@ -12,6 +13,40 @@ from src.behavior_manager import BehaviorManager
 from src.state_accessor import StateAccessor
 from src.word_entry import WordEntry, WordType
 from src.types import ActorId, ItemId, LocationId
+
+
+# Automatic module cleanup for all test modules
+# This function will be injected into every test module's namespace
+def _cleanup_test_module():
+    """Clean up module cache pollution after all tests in a module complete."""
+    # Remove all behaviors.* modules from sys.modules
+    to_remove = [k for k in list(sys.modules.keys())
+                 if k.startswith('behaviors.') or k == 'behaviors']
+    for key in to_remove:
+        del sys.modules[key]
+
+    # Remove game directories from sys.path
+    project_root = Path(__file__).parent.parent
+    for game_name in ['big_game', 'spatial_game', 'extended_game', 'actor_interaction_test']:
+        game_dir = str(project_root / "examples" / game_name)
+        while game_dir in sys.path:
+            sys.path.remove(game_dir)
+
+
+# Hook into unittest's module loading to inject tearDownModule
+_original_load_tests_from_module = unittest.TestLoader.loadTestsFromModule
+
+def _patched_load_tests_from_module(self, module, *args, **kwargs):
+    """Patched loader that injects tearDownModule into test modules."""
+    # Inject tearDownModule if not already present
+    if not hasattr(module, 'tearDownModule'):
+        module.tearDownModule = _cleanup_test_module
+
+    # Call original loader
+    return _original_load_tests_from_module(self, module, *args, **kwargs)
+
+# Apply the patch
+unittest.TestLoader.loadTestsFromModule = _patched_load_tests_from_module  # type: ignore[method-assign]
 
 
 def create_test_state() -> GameState:
