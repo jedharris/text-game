@@ -864,8 +864,8 @@ class TestCommandMessages(unittest.TestCase):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixtures_path))
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_take_item_success(self):
@@ -1183,8 +1183,8 @@ class TestQueryMessages(unittest.TestCase):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixtures_path))
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_query_location(self):
@@ -1370,8 +1370,8 @@ class TestVocabularyQueryProtocol(unittest.TestCase):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixtures_path))
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_vocabulary_query_response_structure(self):
@@ -1470,8 +1470,8 @@ class TestErrorHandling(unittest.TestCase):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixtures_path))
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_missing_message_type(self):
@@ -1537,8 +1537,8 @@ class TestResultFormat(unittest.TestCase):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixtures_path))
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_success_result_format(self):
@@ -1603,8 +1603,8 @@ class TestEndToEndInteractions(unittest.TestCase):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixtures_path))
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_take_key_unlock_door_sequence(self):
@@ -1797,16 +1797,16 @@ class TestLightSourceFunctionality(unittest.TestCase):
 
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixtures_path))
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
         # Create behavior manager and load core modules
-        self.manager = BehaviorManager()
+        self.behavior_manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent.parent / "behaviors"
-        modules = self.manager.discover_modules(str(behaviors_dir))
-        self.manager.load_modules(modules)
+        modules = self.behavior_manager.discover_modules(str(behaviors_dir))
+        self.behavior_manager.load_modules(modules)
 
-        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
+        self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.behavior_manager)
 
     def test_take_light_source_auto_lights(self):
         """Test that taking an item with provides_light sets lit state."""
@@ -2055,8 +2055,8 @@ class TestTraitRandomization(unittest.TestCase):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixtures_path))
-        self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
+        self.behavior_manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.behavior_manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_traits_are_shuffled(self):
