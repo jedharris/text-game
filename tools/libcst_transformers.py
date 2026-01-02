@@ -267,8 +267,9 @@ class AddAccessorToSetUp(cst.CSTTransformer):
 
         # Find where to insert accessor (after manager or game_state creation)
         insert_index: Optional[int] = None
-        has_manager = False
+        manager_index: Optional[int] = None
         manager_var: Optional[str] = None
+        game_state_index: Optional[int] = None
 
         for i, stmt_node in enumerate(updated_node.body.body):
             if not isinstance(stmt_node, (cst.SimpleStatementLine, cst.BaseCompoundStatement)):
@@ -287,23 +288,26 @@ class AddAccessorToSetUp(cst.CSTTransformer):
 
                             # Check for self.manager or self.behavior_manager
                             if attr_name in ("manager", "behavior_manager"):
-                                has_manager = True
+                                manager_index = i
                                 manager_var = attr_name
-                                insert_index = i + 1
                             # Check for self.game_state
                             elif attr_name == "game_state":
-                                if insert_index is None:
-                                    insert_index = i + 1
+                                game_state_index = i
 
-        if insert_index is None:
+        # Decide where to insert: prefer right after game_state
+        if game_state_index is not None:
+            insert_index = game_state_index + 1
+        elif manager_index is not None:
+            insert_index = manager_index + 1
+        else:
             # Can't find a good insertion point
             return updated_node
 
         # Build statements to insert
         statements_to_insert = []
 
-        # If no manager exists, create one
-        if not has_manager:
+        # If manager doesn't exist OR exists but comes after our insertion point, create one
+        if manager_index is None or manager_index >= insert_index:
             manager_stmt = cst.SimpleStatementLine(
                 body=[
                     cst.Assign(
@@ -322,6 +326,7 @@ class AddAccessorToSetUp(cst.CSTTransformer):
             self.needs_behavior_manager_import = True
 
         # Build the accessor assignment
+        assert manager_var is not None, "manager_var should be set by now"
         accessor_value = cst.Call(
             func=cst.Name("StateAccessor"),
             args=[

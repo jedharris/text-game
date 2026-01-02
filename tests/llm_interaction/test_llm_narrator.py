@@ -158,7 +158,7 @@ class TestProcessTurn(unittest.TestCase):
     def test_process_turn_take_item(self):
         """Test processing a take command."""
         # Ensure player is in loc_start where sword is
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
 
         # Mock responses: first for command generation, second for narration
         responses = [
@@ -180,7 +180,7 @@ class TestProcessTurn(unittest.TestCase):
 
     def test_process_turn_movement(self):
         """Test processing a movement command."""
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
 
         responses = [
             '{"type": "command", "action": {"verb": "go", "object": "north"}}',
@@ -208,7 +208,7 @@ class TestProcessTurn(unittest.TestCase):
 
     def test_process_turn_failed_action(self):
         """Test processing a command that fails."""
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
 
         # Try to take something that doesn't exist
         responses = [
@@ -225,7 +225,7 @@ class TestProcessTurn(unittest.TestCase):
 
     def test_process_turn_examine(self):
         """Test processing an examine command."""
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
 
         responses = [
             '{"type": "command", "action": {"verb": "examine", "object": "sword"}}',
@@ -254,7 +254,7 @@ class TestProcessTurn(unittest.TestCase):
 
     def test_process_turn_query(self):
         """Test processing a location query."""
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
 
         responses = [
             '{"type": "query", "query_type": "location"}',
@@ -280,7 +280,7 @@ class TestGetOpening(unittest.TestCase):
 
     def test_get_opening_returns_narrative(self):
         """Test that get_opening returns a narrative."""
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
 
         responses = [
             "You awaken in a small stone chamber. Dim light filters through cracks in the ceiling."
@@ -294,7 +294,7 @@ class TestGetOpening(unittest.TestCase):
 
     def test_get_opening_includes_location_context(self):
         """Test that get_opening sends location info to LLM."""
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
 
         responses = ["Opening narrative"]
         narrator = MockLLMNarrator(self.handler, responses)
@@ -309,7 +309,7 @@ class TestGetOpening(unittest.TestCase):
 
     def test_get_opening_queries_full_location(self):
         """Test that get_opening requests items, doors, npcs."""
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
 
         responses = ["You stand in a dusty chamber."]
         narrator = MockLLMNarrator(self.handler, responses)
@@ -380,7 +380,7 @@ class TestIntegration(unittest.TestCase):
 
     def test_full_game_sequence(self):
         """Test a sequence of game actions."""
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
 
         # Sequence: look, take sword, go north
         responses = [
@@ -414,7 +414,7 @@ class TestIntegration(unittest.TestCase):
 
     def test_unlock_and_open_door(self):
         """Test unlocking and opening a door."""
-        self.game_state.actors[ActorId("player")].location = "loc_hallway"
+        self.accessor.set_entity_where("player", "loc_hallway")
         # Give player the key
         self.game_state.actors[ActorId("player")].inventory = ["item_key"]
 
@@ -531,7 +531,7 @@ class TestVerbosityTracking(unittest.TestCase):
 
     def test_first_room_entry_uses_full_verbosity(self):
         """Test that first entry to a room uses full verbosity."""
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
 
         responses = [
             '{"type": "command", "action": {"verb": "go", "object": "north"}}',
@@ -547,7 +547,7 @@ class TestVerbosityTracking(unittest.TestCase):
 
     def test_second_room_entry_uses_brief_verbosity(self):
         """Test that returning to a visited room uses brief verbosity."""
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
 
         # First visit to hallway
         responses = [
@@ -572,7 +572,7 @@ class TestVerbosityTracking(unittest.TestCase):
 
     def test_first_examine_uses_full_verbosity(self):
         """Test that first examine of an entity uses full verbosity."""
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
 
         responses = [
             '{"type": "command", "action": {"verb": "examine", "object": "sword"}}',
@@ -587,7 +587,7 @@ class TestVerbosityTracking(unittest.TestCase):
 
     def test_second_examine_uses_brief_verbosity(self):
         """Test that re-examining an entity uses brief verbosity."""
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
 
         responses = [
             '{"type": "command", "action": {"verb": "examine", "object": "sword"}}',
@@ -607,7 +607,7 @@ class TestVerbosityTracking(unittest.TestCase):
 
     def test_take_uses_tracking_verbosity(self):
         """Test that take uses tracking mode - full on first occurrence."""
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
 
         # Load behavior module to get narration_mode
         behavior_manager = BehaviorManager()
@@ -628,7 +628,7 @@ class TestVerbosityTracking(unittest.TestCase):
 
     def test_drop_always_uses_brief_verbosity(self):
         """Test that drop actions always use brief verbosity."""
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
         self.game_state.actors[ActorId("player")].inventory = ["item_sword"]
 
         # Load behavior module to get narration_mode annotations
@@ -649,7 +649,7 @@ class TestVerbosityTracking(unittest.TestCase):
 
     def test_open_uses_tracking_close_uses_brief(self):
         """Test that open uses tracking (full on first) and close uses brief."""
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
 
         # Load behavior modules to get narration_mode annotations
         behavior_manager = BehaviorManager()
@@ -681,7 +681,7 @@ class TestVerbosityTracking(unittest.TestCase):
         Tracking only happens on commands. The opening scene uses a query to get
         location info but doesn't mark it as visited until the first command.
         """
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
 
         responses = ["You awaken in a small room."]
         narrator = MockLLMNarrator(self.handler, responses)
@@ -694,7 +694,7 @@ class TestVerbosityTracking(unittest.TestCase):
 
     def test_location_added_to_visited_after_movement(self):
         """Test that new location is added to visited set after movement."""
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
 
         responses = [
             '{"type": "command", "action": {"verb": "go", "object": "north"}}',
@@ -709,7 +709,7 @@ class TestVerbosityTracking(unittest.TestCase):
 
     def test_entity_added_to_examined_after_examine(self):
         """Test that entity is added to examined set after examine."""
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
 
         responses = [
             '{"type": "command", "action": {"verb": "examine", "object": "sword"}}',
@@ -777,7 +777,7 @@ class TestNarrationMode(unittest.TestCase):
 
     def test_brief_mode_verbs_always_brief_verbosity(self):
         """Test that brief mode verbs always use brief verbosity."""
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
         self.game_state.actors[ActorId("player")].inventory = ["item_sword"]
 
         behavior_manager = BehaviorManager()
@@ -799,7 +799,7 @@ class TestNarrationMode(unittest.TestCase):
 
     def test_brief_mode_verbs_dont_track(self):
         """Test that brief mode verbs don't add to tracking sets."""
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
         self.game_state.actors[ActorId("player")].inventory = ["item_sword"]
 
         behavior_manager = BehaviorManager()
@@ -820,7 +820,7 @@ class TestNarrationMode(unittest.TestCase):
 
     def test_tracking_mode_first_occurrence_full(self):
         """Test that tracking mode verbs use full verbosity on first occurrence."""
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
 
         behavior_manager = BehaviorManager()
         behavior_manager.load_module("behaviors.core.manipulation")
@@ -841,7 +841,7 @@ class TestNarrationMode(unittest.TestCase):
 
     def test_tracking_mode_subsequent_occurrence_brief(self):
         """Test that tracking mode verbs use brief verbosity on subsequent occurrences."""
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
 
         behavior_manager = BehaviorManager()
         behavior_manager.load_module("behaviors.core.manipulation")

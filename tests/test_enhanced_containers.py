@@ -264,9 +264,10 @@ class TestPhase3EnhancedTake(unittest.TestCase):
             "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_test"}}
         }
         self.game_state = load_game_state(self.game_data)
-
         self.manager = BehaviorManager()
         self.accessor = StateAccessor(self.game_state, self.manager)
+
+        self.manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
@@ -393,9 +394,10 @@ class TestPhase5GameState(unittest.TestCase):
         """Set up with the actual game state file."""
         fixture_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
         self.game_state = load_game_state(fixture_path)
-
         self.manager = BehaviorManager()
         self.accessor = StateAccessor(self.game_state, self.manager)
+
+        self.manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
@@ -437,7 +439,7 @@ class TestPhase5GameState(unittest.TestCase):
 
     def test_take_potion_from_pedestal(self):
         """Test taking potion from pedestal in tower."""
-        self.game_state.actors[ActorId("player")].location = "loc_tower"
+        self.accessor.set_entity_where("player", "loc_tower")
 
         result = self.handler.handle_command({
             "type": "command",
@@ -480,7 +482,7 @@ class TestPhase5GameState(unittest.TestCase):
 
     def test_take_lantern_from_table(self):
         """Test taking lantern from table - behaviors should still work."""
-        self.game_state.actors[ActorId("player")].location = "loc_hallway"
+        self.accessor.set_entity_where("player", "loc_hallway")
 
         result = self.handler.handle_command({
             "type": "command",
@@ -574,6 +576,8 @@ class TestPhase6RoomDescriptions(unittest.TestCase):
             "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_test"}}
         }
         self.game_state = load_game_state(self.game_data)
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
 
         self.handler = LLMProtocolHandler(self.game_state)
 
@@ -767,6 +771,8 @@ class TestPhase2PutCommand(unittest.TestCase):
             }
         }
         self.game_state = load_game_state(self.game_data)
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_put_item_on_surface(self):
@@ -968,6 +974,8 @@ class TestPhase4PushCommand(unittest.TestCase):
             "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_test"}}
         }
         self.game_state = load_game_state(self.game_data)
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_push_pushable_item_succeeds(self):
@@ -1068,6 +1076,8 @@ class TestContainerCapacity(unittest.TestCase):
             "actors": {"player": {"id": "player", "name": "Adventurer", "description": "The player", "location": "loc_test"}}
         }
         self.game_state = load_game_state(self.game_data)
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
 
         self.handler = LLMProtocolHandler(self.game_state)
 

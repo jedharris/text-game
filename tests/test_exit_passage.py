@@ -310,7 +310,7 @@ class TestExitPassageMovementMessages(unittest.TestCase):
     def test_passage_first_when_door_at_destination(self):
         """When door_at == destination, message mentions passage first."""
         # Move player to sanctum first
-        self.game_state.actors[ActorId("player")].location = "sanctum"
+        self.accessor.set_entity_where("player", "sanctum")
 
         # Player is at sanctum, door_at is library (the destination)
         # So: passage first, then door

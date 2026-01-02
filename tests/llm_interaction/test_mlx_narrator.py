@@ -269,7 +269,7 @@ class TestMLXProcessTurn(unittest.TestCase):
 
     def test_process_turn_take_item(self) -> None:
         """Test processing a take command."""
-        self.game_state.actors[ActorId("player")].location = LocationId("loc_start")
+        self.accessor.set_entity_where("player", "loc_start")
 
         responses = [
             '```json\n{"type": "command", "action": {"verb": "take", "object": "sword"}}\n```',
@@ -308,7 +308,7 @@ class TestMLXGetOpening(unittest.TestCase):
 
     def test_get_opening_returns_narrative(self) -> None:
         """Test that get_opening returns a narrative."""
-        self.game_state.actors[ActorId("player")].location = LocationId("loc_start")
+        self.accessor.set_entity_where("player", "loc_start")
 
         responses = [
             "You awaken in a small stone chamber. Dim light filters through cracks in the ceiling."
@@ -322,7 +322,7 @@ class TestMLXGetOpening(unittest.TestCase):
 
     def test_get_opening_marks_start_location_visited(self) -> None:
         """Test that get_opening marks the starting location as visited."""
-        self.game_state.actors[ActorId("player")].location = LocationId("loc_start")
+        self.accessor.set_entity_where("player", "loc_start")
 
         responses = ["You awaken in a small room."]
         narrator = MockMLXNarrator(self.handler, responses)
@@ -356,7 +356,7 @@ class TestMLXVerbosityTracking(unittest.TestCase):
 
     def test_first_room_entry_uses_full_verbosity(self) -> None:
         """Test that first entry to a room uses full verbosity."""
-        self.game_state.actors[ActorId("player")].location = LocationId("loc_start")
+        self.accessor.set_entity_where("player", "loc_start")
 
         responses = [
             '{"type": "command", "action": {"verb": "go", "object": "north"}}',

@@ -22,6 +22,7 @@ from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
 from src.word_entry import WordEntry, WordType
 from tests.conftest import make_action, make_word_entry
+from src.state_accessor import StateAccessor
 
 
 def get_result_message(result: Dict[str, Any]) -> str:
@@ -60,6 +61,8 @@ class TestExamineLockBase(unittest.TestCase):
         # Load game state
         state_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
         self.game_state = load_game_state(str(state_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
 
         # Set up behavior manager
         self.behavior_manager = BehaviorManager()
@@ -72,7 +75,7 @@ class TestExamineLockBase(unittest.TestCase):
 
     def move_player_to(self, location_id: str):
         """Helper to move player to a specific location."""
-        self.game_state.actors[ActorId("player")].location = location_id
+        self.accessor.set_entity_where("player", location_id)
 
 
 class TestExamineLockBasic(TestExamineLockBase):

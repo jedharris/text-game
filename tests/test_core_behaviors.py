@@ -55,10 +55,11 @@ class TestConsumablesBehaviors(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_with_core_behaviors.json"
         self.game_state = load_game_state(fixture_path)
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
 
         # Create behavior manager and load core modules
         self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
@@ -249,10 +250,11 @@ class TestLightSourcesBehaviors(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_with_core_behaviors.json"
         self.game_state = load_game_state(fixture_path)
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
 
         # Create behavior manager and load core modules
         self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
@@ -415,13 +417,14 @@ class TestContainersBehaviors(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_with_core_behaviors.json"
         self.game_state = load_game_state(fixture_path)
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
 
         # Move player to room2 where chest is
-        self.game_state.actors[ActorId("player")].location = "room2"
+        self.accessor.set_entity_where("player", "room2")
 
         # Create behavior manager and load core modules
         self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)

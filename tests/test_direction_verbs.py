@@ -173,7 +173,7 @@ class TestDirectionHandlers(unittest.TestCase):
     def test_direction_no_exit_fails(self):
         """Direction handler should fail if no exit in that direction."""
         # Move to north_room which has no exits
-        self.game_state.actors[ActorId("player")].location = "north_room"
+        self.accessor.set_entity_where("player", "north_room")
         from behaviors.core.exits import handle_north
         result = handle_north(self.accessor, {"actor_id": "player"})
         self.assertFalse(result.success)
@@ -238,13 +238,15 @@ class TestDirectionVerbsEndToEnd(unittest.TestCase):
         _clear_behavior_modules()
         # Use simple_game because its behavior directory structure is clean
         self.engine = GameEngine(Path('examples/simple_game'))
-        # Player starts in dungeon_cell which has 'east' exit
-        self.engine.game_state.actors[ActorId('player')].location = 'dungeon_cell'
+        from src.state_accessor import StateAccessor
+        self.accessor = StateAccessor(self.engine.game_state, self.engine.behavior_manager)
+        # Move player to starting location
+        self.accessor.set_entity_where('player', 'loc_start')
 
     def test_bare_north_moves_player(self):
         """Typing 'north' should move player north from loc_start."""
         # Start at loc_start which has north exit
-        self.engine.game_state.actors[ActorId('player')].location = 'loc_start'
+        self.accessor.set_entity_where('player', 'loc_start')
         response = self.engine.json_handler.handle_message({
             "type": "command",
             "action": {"verb": "north"}
@@ -255,7 +257,7 @@ class TestDirectionVerbsEndToEnd(unittest.TestCase):
     def test_bare_up_moves_player(self):
         """Typing 'up' should move player up from loc_hallway."""
         # Start at loc_hallway which has up exit
-        self.engine.game_state.actors[ActorId('player')].location = 'loc_hallway'
+        self.accessor.set_entity_where('player', 'loc_hallway')
         response = self.engine.json_handler.handle_message({
             "type": "command",
             "action": {"verb": "up"}
@@ -266,7 +268,7 @@ class TestDirectionVerbsEndToEnd(unittest.TestCase):
     def test_go_north_still_works(self):
         """'go north' should still work."""
         from src.word_entry import WordEntry, WordType
-        self.engine.game_state.actors[ActorId('player')].location = 'loc_start'
+        self.accessor.set_entity_where('player', 'loc_start')
         response = self.engine.json_handler.handle_message({
             "type": "command",
             "action": {

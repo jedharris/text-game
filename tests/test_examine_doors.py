@@ -144,7 +144,7 @@ class TestExamineDoor(unittest.TestCase):
         from behaviors.core.perception import handle_examine
 
         # Move player to other_room which has exit with door_wooden
-        self.game_state.actors[ActorId("player")].location = "other_room"
+        self.accessor.set_entity_where("player", "other_room")
 
         action = make_action(object="door", actor_id="player")
         result = handle_examine(self.accessor, action)
@@ -286,6 +286,8 @@ class TestExamineDoorIntegration(unittest.TestCase):
         # Load actual game state
         fixture_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
         self.game_state = load_game_state(fixture_path)
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
 
         self.behavior_manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
@@ -297,7 +299,7 @@ class TestExamineDoorIntegration(unittest.TestCase):
     def test_examine_door_in_hallway(self):
         """Test examining door when in hallway with two doors."""
         # Move to hallway
-        self.game_state.actors[ActorId("player")].location = "loc_hallway"
+        self.accessor.set_entity_where("player", "loc_hallway")
 
         result = self.handler.handle_command({
             "type": "command",
@@ -310,7 +312,7 @@ class TestExamineDoorIntegration(unittest.TestCase):
 
     def test_examine_iron_door_in_hallway(self):
         """Test examining iron door specifically."""
-        self.game_state.actors[ActorId("player")].location = "loc_hallway"
+        self.accessor.set_entity_where("player", "loc_hallway")
 
         result = self.handler.handle_command({
             "type": "command",
@@ -322,7 +324,7 @@ class TestExamineDoorIntegration(unittest.TestCase):
 
     def test_examine_wooden_door_in_hallway(self):
         """Test examining wooden door specifically."""
-        self.game_state.actors[ActorId("player")].location = "loc_hallway"
+        self.accessor.set_entity_where("player", "loc_hallway")
 
         result = self.handler.handle_command({
             "type": "command",
@@ -334,7 +336,7 @@ class TestExamineDoorIntegration(unittest.TestCase):
 
     def test_examine_table_still_works(self):
         """Test that examining items still works."""
-        self.game_state.actors[ActorId("player")].location = "loc_hallway"
+        self.accessor.set_entity_where("player", "loc_hallway")
 
         result = self.handler.handle_command({
             "type": "command",

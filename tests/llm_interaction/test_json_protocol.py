@@ -22,6 +22,7 @@ sys.path.insert(0, str(project_root))
 from src.state_manager import load_game_state, GameState
 from src.llm_protocol import LLMProtocolHandler
 from src.state_accessor import StateAccessor
+from src.behavior_manager import BehaviorManager
 
 
 def get_result_message(result: Dict[str, Any]) -> str:
@@ -62,6 +63,9 @@ class _LLMProtocolHandlerReference:
 
     def __init__(self, state: GameState):
         self.game_state = state
+        from src.state_accessor import StateAccessor
+        from src.behavior_manager import BehaviorManager
+        self.accessor = StateAccessor(state, BehaviorManager())
 
     def handle_message(self, message: dict) -> dict:
         """Route message to appropriate handler based on type."""
@@ -309,7 +313,7 @@ class _LLMProtocolHandlerReference:
 
         # Move player
         new_loc_id = exit_desc.to
-        self.game_state.actors[ActorId("player")].location = new_loc_id
+        self.accessor.set_entity_where("player", new_loc_id)
         new_loc = self._get_location_by_id(new_loc_id)
 
         return {
@@ -860,6 +864,8 @@ class TestCommandMessages(unittest.TestCase):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixtures_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_take_item_success(self):
@@ -899,7 +905,7 @@ class TestCommandMessages(unittest.TestCase):
     def test_take_non_portable_item(self):
         """Test take command for non-portable item."""
         # Move player to treasure room
-        self.game_state.actors[ActorId("player")].location = "loc_treasure"
+        self.accessor.set_entity_where("player", "loc_treasure")
 
         message = {
             "type": "command",
@@ -970,7 +976,7 @@ class TestCommandMessages(unittest.TestCase):
     def test_go_through_closed_door(self):
         """Test movement through closed door."""
         # Move to hallway and try to go east through locked door
-        self.game_state.actors[ActorId("player")].location = "loc_hallway"
+        self.accessor.set_entity_where("player", "loc_hallway")
 
         message = {
             "type": "command",
@@ -1004,7 +1010,7 @@ class TestCommandMessages(unittest.TestCase):
     def test_open_locked_door_with_key(self):
         """Test opening locked door after unlocking it with key."""
         # Move to hallway
-        self.game_state.actors[ActorId("player")].location = "loc_hallway"
+        self.accessor.set_entity_where("player", "loc_hallway")
         # Give player the key
         self.game_state.get_actor(ActorId("player")).inventory.append("item_key")
 
@@ -1032,7 +1038,7 @@ class TestCommandMessages(unittest.TestCase):
     def test_open_locked_door_without_key(self):
         """Test opening locked door without key."""
         # Move to hallway
-        self.game_state.actors[ActorId("player")].location = "loc_hallway"
+        self.accessor.set_entity_where("player", "loc_hallway")
         # Close the wooden door so we can test the iron door (door is now an item)
         for item in self.game_state.items:
             if item.id == "door_wooden" and item.is_door:
@@ -1108,7 +1114,7 @@ class TestCommandMessages(unittest.TestCase):
     def test_unlock_door_with_key(self):
         """Test unlocking a door with key."""
         # Move to hallway and give key
-        self.game_state.actors[ActorId("player")].location = "loc_hallway"
+        self.accessor.set_entity_where("player", "loc_hallway")
         self.game_state.get_actor(ActorId("player")).inventory.append("item_key")
 
         # Use adjective "iron" and object "door" (as parser would produce)
@@ -1129,7 +1135,7 @@ class TestCommandMessages(unittest.TestCase):
 
     def test_unlock_door_without_key(self):
         """Test unlocking door without key."""
-        self.game_state.actors[ActorId("player")].location = "loc_hallway"
+        self.accessor.set_entity_where("player", "loc_hallway")
 
         # Use adjective "iron" and object "door" (as parser would produce)
         message = {
@@ -1177,6 +1183,8 @@ class TestQueryMessages(unittest.TestCase):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixtures_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_query_location(self):
@@ -1215,7 +1223,7 @@ class TestQueryMessages(unittest.TestCase):
 
     def test_query_entities_doors(self):
         """Test entities query for doors in location."""
-        self.game_state.actors[ActorId("player")].location = "loc_hallway"
+        self.accessor.set_entity_where("player", "loc_hallway")
 
         message = {
             "type": "query",
@@ -1317,7 +1325,7 @@ class TestQueryMessages(unittest.TestCase):
             }
         }
 
-        self.game_state.actors[ActorId("player")].location = "loc_hallway"
+        self.accessor.set_entity_where("player", "loc_hallway")
 
         message = {
             "type": "query",
@@ -1339,7 +1347,7 @@ class TestQueryMessages(unittest.TestCase):
         loc = self.game_state.get_location("loc_start")
         self.assertIsNone(loc.exits["north"].llm_context)
 
-        self.game_state.actors[ActorId("player")].location = "loc_start"
+        self.accessor.set_entity_where("player", "loc_start")
 
         message = {
             "type": "query",
@@ -1362,6 +1370,8 @@ class TestVocabularyQueryProtocol(unittest.TestCase):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixtures_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_vocabulary_query_response_structure(self):
@@ -1460,6 +1470,8 @@ class TestErrorHandling(unittest.TestCase):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixtures_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_missing_message_type(self):
@@ -1525,6 +1537,8 @@ class TestResultFormat(unittest.TestCase):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixtures_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_success_result_format(self):
@@ -1589,6 +1603,8 @@ class TestEndToEndInteractions(unittest.TestCase):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixtures_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_take_key_unlock_door_sequence(self):
@@ -1663,7 +1679,7 @@ class TestEndToEndInteractions(unittest.TestCase):
     def test_disambiguation_with_adjective(self):
         """Test using adjective to disambiguate doors."""
         # Move to hallway (has two doors)
-        self.game_state.actors[ActorId("player")].location = "loc_hallway"
+        self.accessor.set_entity_where("player", "loc_hallway")
         self.game_state.get_actor(ActorId("player")).inventory.append("item_key")
 
         # Query doors
@@ -1701,7 +1717,7 @@ class TestEndToEndInteractions(unittest.TestCase):
     def test_failed_action_then_retry(self):
         """Test failed action, then success after getting requirements."""
         # Move to hallway
-        self.game_state.actors[ActorId("player")].location = "loc_hallway"
+        self.accessor.set_entity_where("player", "loc_hallway")
 
         # Try to unlock iron door without key - should fail
         result = self.handler.handle_message({
@@ -1781,10 +1797,11 @@ class TestLightSourceFunctionality(unittest.TestCase):
 
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixtures_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
 
         # Create behavior manager and load core modules
         self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
         behaviors_dir = Path(__file__).parent.parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
@@ -2038,6 +2055,8 @@ class TestTraitRandomization(unittest.TestCase):
         """Load test game state."""
         fixtures_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixtures_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_traits_are_shuffled(self):
@@ -2126,7 +2145,7 @@ class TestTraitRandomization(unittest.TestCase):
         original_traits = [f"exit_trait_{i}" for i in range(15)]
         loc.exits["up"].llm_context = {"traits": original_traits.copy()}
 
-        self.game_state.actors[ActorId("player")].location = "loc_hallway"
+        self.accessor.set_entity_where("player", "loc_hallway")
 
         message = {
             "type": "query",

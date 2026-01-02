@@ -126,7 +126,7 @@ class TestFindExitByName(unittest.TestCase):
             )}
         )
         self.game_state.locations.append(single_exit_loc)
-        self.game_state.actors[ActorId("player")].location = "single_exit_room"
+        self.accessor.set_entity_where("player", "single_exit_room")
 
         exit_entry = make_word_entry("exit")
         result = find_exit_by_name(self.accessor, exit_entry, "player")

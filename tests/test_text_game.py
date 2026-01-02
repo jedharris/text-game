@@ -35,10 +35,11 @@ class TestBehaviorMessageDisplay(unittest.TestCase):
         # Load game state with lantern
         fixture_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
         self.game_state = load_game_state(fixture_path)
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
 
         # Create behavior manager and load modules
         self.manager = BehaviorManager()
-        self.accessor = StateAccessor(self.game_state, self.manager)
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
@@ -47,7 +48,7 @@ class TestBehaviorMessageDisplay(unittest.TestCase):
         self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
 
         # Move player to hallway where lantern is
-        self.game_state.actors[ActorId("player")].location = "loc_hallway"
+        self.accessor.set_entity_where("player", "loc_hallway")
 
     def test_take_command_includes_behavior_message(self):
         """Test that take command includes behavior message from on_take."""
@@ -107,15 +108,16 @@ class TestMessageKeyConsistency(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
         self.game_state = load_game_state(fixture_path)
-
         self.manager = BehaviorManager()
         self.accessor = StateAccessor(self.game_state, self.manager)
+
+        self.manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
 
         self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
-        self.game_state.actors[ActorId("player")].location = "loc_hallway"
+        self.accessor.set_entity_where("player", "loc_hallway")
 
     def test_take_result_uses_message_key(self):
         """Test that take command result uses 'message' key, not 'behavior_message'."""
@@ -189,8 +191,11 @@ class TestLLMGameSetup(unittest.TestCase):
 
         json_handler = LLMProtocolHandler(state, behavior_manager=behavior_manager)
 
+        # Create accessor for state manipulation
+        accessor = StateAccessor(state, behavior_manager)
+
         # Move to hallway and take lantern
-        state.actors[ActorId("player")].location = "loc_hallway"
+        accessor.set_entity_where("player", "loc_hallway")
         result = json_handler.handle_message({
             "type": "command",
             "action": {"verb": "take", "object": "lantern"}
@@ -217,9 +222,10 @@ class TestFormatFunctions(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
         self.game_state = load_game_state(fixture_path)
-
         self.manager = BehaviorManager()
         self.accessor = StateAccessor(self.game_state, self.manager)
+
+        self.manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
@@ -281,15 +287,16 @@ class TestExamineLLMContext(unittest.TestCase):
         """Set up test fixtures with fancy game state that has llm_context."""
         fixture_path = Path(__file__).parent.parent / "examples" / "fancy_game" / "game_state.json"
         self.game_state = load_game_state(fixture_path)
-
         self.manager = BehaviorManager()
         self.accessor = StateAccessor(self.game_state, self.manager)
+
+        self.manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"
         modules = self.manager.discover_modules(str(behaviors_dir))
         self.manager.load_modules(modules)
 
         self.handler = LLMProtocolHandler(self.game_state, behavior_manager=self.manager)
-        self.game_state.actors[ActorId("player")].location = "loc_hallway"
+        self.accessor.set_entity_where("player", "loc_hallway")
 
     def test_examine_item_includes_llm_context(self):
         """Test that examining an item includes llm_context in response."""
@@ -335,7 +342,8 @@ class TestExamineLLMContext(unittest.TestCase):
         simple_path = Path(__file__).parent.parent / "examples" / "simple_game" / "game_state.json"
         state = load_game_state(simple_path)
         handler = LLMProtocolHandler(state, behavior_manager=self.manager)
-        state.actors[ActorId("player")].location = "loc_start"
+        accessor = StateAccessor(state, self.manager)
+        accessor.set_entity_where("player", "loc_start")
 
         result = handler.handle_message({
             "type": "command",
