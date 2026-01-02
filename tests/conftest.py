@@ -19,9 +19,12 @@ from src.types import ActorId, ItemId, LocationId
 # This function will be injected into every test module's namespace
 def _cleanup_test_module():
     """Clean up module cache pollution after all tests in a module complete."""
-    # Remove all behaviors.* modules from sys.modules
+    # Remove all behaviors.*, behavior_libraries.*, and examples.* modules from sys.modules
+    # This includes both successfully imported modules and failed import attempts
     to_remove = [k for k in list(sys.modules.keys())
-                 if k.startswith('behaviors.') or k == 'behaviors']
+                 if k.startswith('behaviors.') or k == 'behaviors' or
+                    k.startswith('behavior_libraries.') or k == 'behavior_libraries' or
+                    k.startswith('examples.') or k == 'examples']
     for key in to_remove:
         del sys.modules[key]
 
