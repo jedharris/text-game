@@ -29,7 +29,8 @@ from libcst_transformers import (
     ReplaceLocationIdAssignment,
     ReplaceDictLocationAssignment,
     AddAccessorToSetUp,
-    FixDuplicateManagers
+    FixDuplicateManagers,
+    RenameSelfManager
 )
 
 
@@ -878,11 +879,8 @@ def create_transformer() -> cst.CSTTransformer:
     To compose multiple transformers, use SequenceTransformer (see examples in script).
     """
 
-    # Test standardization: Fix duplicate managers then add accessor
-    return CompositeTransformer([
-        FixDuplicateManagers(),
-        AddAccessorToSetUp()
-    ])
+    # Test standardization: Rename self.manager to self.behavior_manager
+    return RenameSelfManager()
 
     # Step 2: Transform dict[ActorId(...)].location assignments
     # return ReplaceDictLocationAssignment()

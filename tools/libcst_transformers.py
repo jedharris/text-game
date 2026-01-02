@@ -544,3 +544,60 @@ class AddAccessorToSetUp(cst.CSTTransformer):
             new_body_list.insert(insert_index, import_stmt)
 
         return updated_node.with_changes(body=tuple(new_body_list))
+
+
+class RenameSelfManager(cst.CSTTransformer):
+    """
+    Rename self.manager to self.behavior_manager throughout test file.
+
+    Only applies to test files, and only if:
+    1. self.manager is used (not self.behavior_manager)
+    2. The variable holds a BehaviorManager instance
+
+    Renames all occurrences:
+    - self.manager = BehaviorManager()
+    - self.accessor = StateAccessor(self.game_state, self.manager)
+    - self.handler = Handler(self.manager)
+    - self.manager.load_modules(...)
+    """
+
+    def __init__(self):
+        self.changes = 0
+        self.has_manager = False
+        self.has_behavior_manager = False
+
+    def visit_FunctionDef(self, node: cst.FunctionDef) -> None:
+        """Check if setUp creates self.manager or self.behavior_manager."""
+        if node.name.value != "setUp":
+            return
+
+        for stmt_wrapper in node.body.body:
+            if isinstance(stmt_wrapper, cst.SimpleStatementLine):
+                for stmt in stmt_wrapper.body:
+                    if isinstance(stmt, cst.Assign):
+                        for target in stmt.targets:
+                            if isinstance(target.target, cst.Attribute):
+                                attr = target.target
+                                if (isinstance(attr.value, cst.Name) and
+                                    attr.value.value == "self"):
+                                    if attr.attr.value == "manager":
+                                        self.has_manager = True
+                                    elif attr.attr.value == "behavior_manager":
+                                        self.has_behavior_manager = True
+
+    def leave_Attribute(self, original_node: cst.Attribute, updated_node: cst.Attribute) -> cst.Attribute:
+        """Rename self.manager to self.behavior_manager."""
+        # Only rename if we found self.manager and NOT self.behavior_manager
+        if not self.has_manager or self.has_behavior_manager:
+            return updated_node
+
+        # Check if this is self.manager
+        if (isinstance(updated_node.value, cst.Name) and
+            updated_node.value.value == "self" and
+            updated_node.attr.value == "manager"):
+            self.changes += 1
+            return updated_node.with_changes(
+                attr=cst.Name("behavior_manager")
+            )
+
+        return updated_node
