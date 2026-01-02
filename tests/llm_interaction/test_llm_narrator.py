@@ -19,6 +19,7 @@ from src.llm_narrator import LLMNarrator
 from src.command_utils import parsed_to_json
 from src.behavior_manager import BehaviorManager
 from tests.llm_interaction.mock_narrator import MockLLMNarrator
+from src.state_accessor import StateAccessor
 
 
 class TestJSONExtraction(unittest.TestCase):
@@ -28,6 +29,8 @@ class TestJSONExtraction(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixture_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_extract_json_from_code_block(self):
@@ -148,6 +151,8 @@ class TestProcessTurn(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixture_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_process_turn_take_item(self):
@@ -269,6 +274,8 @@ class TestGetOpening(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixture_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_get_opening_returns_narrative(self):
@@ -322,6 +329,8 @@ class TestMockNarrator(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixture_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_mock_tracks_calls(self):
@@ -365,6 +374,8 @@ class TestIntegration(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixture_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_full_game_sequence(self):
@@ -444,6 +455,8 @@ class TestEdgeCases(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixture_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_empty_input(self):
@@ -501,6 +514,8 @@ class TestVerbosityTracking(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixture_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_narrator_has_visit_tracking_sets(self):
@@ -718,6 +733,8 @@ class TestNarrationMode(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixture_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
 
     def test_get_narration_mode_returns_brief_for_marked_verbs(self):
         """Test that verbs marked with narration_mode=brief return 'brief'."""
@@ -860,6 +877,8 @@ class TestSystemPrompt(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixture_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_mock_narrator_has_empty_system_prompt(self):
@@ -875,6 +894,8 @@ class TestMergedVocabulary(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixture_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_vocabulary_section_includes_base_verbs(self):

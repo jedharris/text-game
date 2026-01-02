@@ -18,6 +18,7 @@ from src.llm_protocol import LLMProtocolHandler
 from src.behavior_manager import BehaviorManager
 from src.types import ActorId, LocationId
 from typing import Dict, Any, Optional
+from src.state_accessor import StateAccessor
 
 
 # Mock the mlx_lm import for testing
@@ -218,6 +219,8 @@ class TestMLXJSONExtraction(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixture_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_extract_json_from_code_block(self) -> None:
@@ -260,6 +263,8 @@ class TestMLXProcessTurn(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixture_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_process_turn_take_item(self) -> None:
@@ -297,6 +302,8 @@ class TestMLXGetOpening(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixture_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_get_opening_returns_narrative(self) -> None:
@@ -332,6 +339,8 @@ class TestMLXVerbosityTracking(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixture_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_narrator_has_visit_tracking_sets(self) -> None:
@@ -368,6 +377,8 @@ class TestMLXMergedVocabulary(unittest.TestCase):
         """Set up test fixtures."""
         fixture_path = Path(__file__).parent / "fixtures" / "test_game_state.json"
         self.game_state = load_game_state(str(fixture_path))
+        self.manager = BehaviorManager()
+        self.accessor = StateAccessor(self.game_state, self.manager)
         self.handler = LLMProtocolHandler(self.game_state)
 
     def test_vocabulary_section_includes_behavior_verbs_when_manager_provided(self) -> None:

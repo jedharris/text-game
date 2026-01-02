@@ -208,26 +208,40 @@ class AddAccessorToSetUp(cst.CSTTransformer):
 
     def __init__(self):
         self.changes = 0
-        self.needs_import = False
-        self.has_import = False
+        self.needs_state_accessor_import = False
+        self.has_state_accessor_import = False
+        self.needs_behavior_manager_import = False
+        self.has_behavior_manager_import = False
+        self.needs_manager_creation = False
 
     def visit_Module(self, node: cst.Module) -> bool:
-        """Check if StateAccessor is already imported."""
+        """Check if StateAccessor and BehaviorManager are already imported."""
         for item in node.body:
             if isinstance(item, cst.SimpleStatementLine):
                 for stmt in item.body:
                     if isinstance(stmt, cst.ImportFrom):
                         if stmt.module and m.matches(stmt.module, m.Attribute()):
-                            # Check for 'from src.state_accessor import StateAccessor'
                             module_str = cst.Module([]).code_for_node(stmt.module)
+
+                            # Check for StateAccessor import
                             if module_str == "src.state_accessor":
                                 if isinstance(stmt.names, cst.ImportStar):
-                                    self.has_import = True
+                                    self.has_state_accessor_import = True
                                 elif not isinstance(stmt.names, cst.ImportStar):
                                     for name in stmt.names:
                                         if isinstance(name, cst.ImportAlias):
                                             if name.name.value == "StateAccessor":
-                                                self.has_import = True
+                                                self.has_state_accessor_import = True
+
+                            # Check for BehaviorManager import
+                            if module_str == "src.behavior_manager":
+                                if isinstance(stmt.names, cst.ImportStar):
+                                    self.has_behavior_manager_import = True
+                                elif not isinstance(stmt.names, cst.ImportStar):
+                                    for name in stmt.names:
+                                        if isinstance(name, cst.ImportAlias):
+                                            if name.name.value == "BehaviorManager":
+                                                self.has_behavior_manager_import = True
         return True
 
     def leave_FunctionDef(
@@ -252,28 +266,32 @@ class AddAccessorToSetUp(cst.CSTTransformer):
                                 return updated_node
 
         # Find where to insert accessor (after manager or game_state creation)
-        insert_index = None
+        insert_index: Optional[int] = None
         has_manager = False
-        manager_var = None
+        manager_var: Optional[str] = None
 
-        for i, stmt in enumerate(updated_node.body.body):
-            if isinstance(stmt, cst.SimpleStatementLine):
+        for i, stmt_node in enumerate(updated_node.body.body):
+            if not isinstance(stmt_node, (cst.SimpleStatementLine, cst.BaseCompoundStatement)):
+                continue
+            if isinstance(stmt_node, cst.SimpleStatementLine):
+                stmt = stmt_node
                 for s in stmt.body:
                     if isinstance(s, cst.Assign):
                         for target in s.targets:
+                            if not isinstance(target.target, cst.Attribute):
+                                continue
+                            if not m.matches(target.target.value, m.Name("self")):
+                                continue
+
+                            attr_name = target.target.attr.value
+
                             # Check for self.manager or self.behavior_manager
-                            if m.matches(target.target, m.Attribute(value=m.Name("self"))):
-                                if isinstance(target.target, cst.Attribute):
-                                    attr_name = target.target.attr.value
-                                    if attr_name in ("manager", "behavior_manager"):
-                                        has_manager = True
-                                        manager_var = attr_name
-                                        insert_index = i + 1
+                            if attr_name in ("manager", "behavior_manager"):
+                                has_manager = True
+                                manager_var = attr_name
+                                insert_index = i + 1
                             # Check for self.game_state
-                            elif m.matches(
-                                target.target,
-                                m.Attribute(value=m.Name("self"), attr=m.Name("game_state"))
-                            ):
+                            elif attr_name == "game_state":
                                 if insert_index is None:
                                     insert_index = i + 1
 
@@ -281,23 +299,36 @@ class AddAccessorToSetUp(cst.CSTTransformer):
             # Can't find a good insertion point
             return updated_node
 
+        # Build statements to insert
+        statements_to_insert = []
+
+        # If no manager exists, create one
+        if not has_manager:
+            manager_stmt = cst.SimpleStatementLine(
+                body=[
+                    cst.Assign(
+                        targets=[
+                            cst.AssignTarget(
+                                target=cst.Attribute(value=cst.Name("self"), attr=cst.Name("manager"))
+                            )
+                        ],
+                        value=cst.Call(func=cst.Name("BehaviorManager"), args=[])
+                    )
+                ]
+            )
+            statements_to_insert.append(manager_stmt)
+            manager_var = "manager"
+            self.needs_manager_creation = True
+            self.needs_behavior_manager_import = True
+
         # Build the accessor assignment
-        if has_manager and manager_var:
-            accessor_value = cst.Call(
-                func=cst.Name("StateAccessor"),
-                args=[
-                    cst.Arg(value=cst.Attribute(value=cst.Name("self"), attr=cst.Name("game_state"))),
-                    cst.Arg(value=cst.Attribute(value=cst.Name("self"), attr=cst.Name(manager_var)))
-                ]
-            )
-        else:
-            accessor_value = cst.Call(
-                func=cst.Name("StateAccessor"),
-                args=[
-                    cst.Arg(value=cst.Attribute(value=cst.Name("self"), attr=cst.Name("game_state"))),
-                    cst.Arg(value=cst.Name("None"))
-                ]
-            )
+        accessor_value = cst.Call(
+            func=cst.Name("StateAccessor"),
+            args=[
+                cst.Arg(value=cst.Attribute(value=cst.Name("self"), attr=cst.Name("game_state"))),
+                cst.Arg(value=cst.Attribute(value=cst.Name("self"), attr=cst.Name(manager_var)))
+            ]
+        )
 
         accessor_stmt = cst.SimpleStatementLine(
             body=[
@@ -311,21 +342,56 @@ class AddAccessorToSetUp(cst.CSTTransformer):
                 )
             ]
         )
+        statements_to_insert.append(accessor_stmt)
 
-        # Insert the accessor assignment
-        new_body = list(updated_node.body.body)
-        new_body.insert(insert_index, accessor_stmt)
+        # Insert all statements
+        new_body_list = list(updated_node.body.body)
+        for stmt in reversed(statements_to_insert):
+            new_body_list.insert(insert_index, stmt)
 
         self.changes += 1
-        self.needs_import = True
+        self.needs_state_accessor_import = True
 
         return updated_node.with_changes(
-            body=updated_node.body.with_changes(body=new_body)
+            body=updated_node.body.with_changes(body=tuple(new_body_list))
         )
 
     def leave_Module(self, original_node: cst.Module, updated_node: cst.Module) -> cst.Module:
-        """Add StateAccessor import if needed and not present."""
-        if not self.needs_import or self.has_import:
+        """Add StateAccessor and BehaviorManager imports if needed and not present."""
+        imports_to_add = []
+
+        # Check which imports are needed
+        if self.needs_state_accessor_import and not self.has_state_accessor_import:
+            imports_to_add.append(
+                cst.SimpleStatementLine(
+                    body=[
+                        cst.ImportFrom(
+                            module=cst.Attribute(
+                                value=cst.Name("src"),
+                                attr=cst.Name("state_accessor")
+                            ),
+                            names=[cst.ImportAlias(name=cst.Name("StateAccessor"))]
+                        )
+                    ]
+                )
+            )
+
+        if self.needs_behavior_manager_import and not self.has_behavior_manager_import:
+            imports_to_add.append(
+                cst.SimpleStatementLine(
+                    body=[
+                        cst.ImportFrom(
+                            module=cst.Attribute(
+                                value=cst.Name("src"),
+                                attr=cst.Name("behavior_manager")
+                            ),
+                            names=[cst.ImportAlias(name=cst.Name("BehaviorManager"))]
+                        )
+                    ]
+                )
+            )
+
+        if not imports_to_add:
             return updated_node
 
         # Find the last import statement
@@ -347,21 +413,9 @@ class AddAccessorToSetUp(cst.CSTTransformer):
         else:
             insert_index = last_import_index + 1
 
-        # Create the import statement
-        import_stmt = cst.SimpleStatementLine(
-            body=[
-                cst.ImportFrom(
-                    module=cst.Attribute(
-                        value=cst.Name("src"),
-                        attr=cst.Name("state_accessor")
-                    ),
-                    names=[cst.ImportAlias(name=cst.Name("StateAccessor"))]
-                )
-            ]
-        )
+        # Insert all imports
+        new_body_list = list(updated_node.body)
+        for import_stmt in reversed(imports_to_add):
+            new_body_list.insert(insert_index, import_stmt)
 
-        # Insert the import
-        new_body = list(updated_node.body)
-        new_body.insert(insert_index, import_stmt)
-
-        return updated_node.with_changes(body=new_body)
+        return updated_node.with_changes(body=tuple(new_body_list))
