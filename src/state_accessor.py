@@ -501,6 +501,45 @@ class StateAccessor:
 
         return entities
 
+    def get_exit_connections(self, exit_id: str) -> List[Exit]:
+        """Get all exits connected to this exit.
+
+        Args:
+            exit_id: Exit ID to query
+
+        Returns:
+            List of connected Exit entities
+        """
+        connected_ids = self.game_state._connected_to.get(exit_id, set())
+        exits: List[Exit] = []
+
+        for connected_id in connected_ids:
+            exit_entity = next((e for e in self.game_state.exits if e.id == connected_id), None)
+            if exit_entity:
+                exits.append(exit_entity)
+
+        return exits
+
+    def get_exits_from_location(self, location_id: str) -> List[Exit]:
+        """Get all exits accessible from a location.
+
+        Args:
+            location_id: Location ID to query
+
+        Returns:
+            List of Exit entities at this location
+        """
+        # Use containment index to find exits at location
+        entity_ids = self.game_state._entities_at.get(location_id, set())
+        exits: List[Exit] = []
+
+        for entity_id in entity_ids:
+            exit_entity = next((e for e in self.game_state.exits if e.id == entity_id), None)
+            if exit_entity:
+                exits.append(exit_entity)
+
+        return exits
+
     # Mutation methods
 
     def set_entity_where(self, entity_id: str, new_where: str) -> None:
@@ -555,6 +594,60 @@ class StateAccessor:
             self.game_state._entities_at[new_where].add(entity_id)
             # Update reverse index
             self.game_state._entity_where[entity_id] = new_where
+
+    def connect_exits(self, exit_id_a: str, exit_id_b: str) -> None:
+        """Create bidirectional connection between exits.
+
+        Updates both Exit entities and the connection index.
+
+        Args:
+            exit_id_a: First exit ID
+            exit_id_b: Second exit ID
+
+        Raises:
+            ValueError: If either exit doesn't exist
+        """
+        # Find exits
+        exit_a = self.game_state.get_exit(exit_id_a)
+        exit_b = self.game_state.get_exit(exit_id_b)
+
+        # Add connections to Exit entities
+        if exit_id_b not in exit_a.connections:
+            exit_a.connections.append(exit_id_b)
+        if exit_id_a not in exit_b.connections:
+            exit_b.connections.append(exit_id_a)
+
+        # Update connection index
+        self.game_state._connected_to.setdefault(exit_id_a, set()).add(exit_id_b)
+        self.game_state._connected_to.setdefault(exit_id_b, set()).add(exit_id_a)
+
+    def disconnect_exits(self, exit_id_a: str, exit_id_b: str) -> None:
+        """Remove bidirectional connection between exits.
+
+        Updates both Exit entities and the connection index.
+
+        Args:
+            exit_id_a: First exit ID
+            exit_id_b: Second exit ID
+
+        Raises:
+            ValueError: If either exit doesn't exist
+        """
+        # Find exits
+        exit_a = self.game_state.get_exit(exit_id_a)
+        exit_b = self.game_state.get_exit(exit_id_b)
+
+        # Remove connections from Exit entities
+        if exit_id_b in exit_a.connections:
+            exit_a.connections.remove(exit_id_b)
+        if exit_id_a in exit_b.connections:
+            exit_b.connections.remove(exit_id_a)
+
+        # Update connection index
+        if exit_id_a in self.game_state._connected_to:
+            self.game_state._connected_to[exit_id_a].discard(exit_id_b)
+        if exit_id_b in self.game_state._connected_to:
+            self.game_state._connected_to[exit_id_b].discard(exit_id_a)
 
     def _set_path(self, entity: Any, path: str, value: Any) -> Optional[str]:
         """

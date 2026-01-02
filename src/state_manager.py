@@ -778,6 +778,9 @@ class GameState:
     _entities_at: Dict[str, set[str]] = field(default_factory=dict)  # where_id → set(entity_ids)
     _entity_where: Dict[str, str] = field(default_factory=dict)      # entity_id → where_id
 
+    # Connection index (exits)
+    _connected_to: Dict[str, set[str]] = field(default_factory=dict)  # exit_id → set(connected_exit_ids)
+
     def get_actor(self, actor_id: ActorId) -> Actor:
         """Get actor by ID."""
         actor = self.actors.get(actor_id)
@@ -1151,6 +1154,37 @@ def _build_whereabouts_index(game_state: GameState) -> None:
             game_state._entity_where[exit_entity.id] = exit_entity.location
 
 
+def _build_connection_index(game_state: GameState) -> None:
+    """Build connection index from Exit entities.
+
+    Populates _connected_to from Exit.connections lists.
+    Validates that all connection IDs reference existing exits.
+
+    Args:
+        game_state: GameState to build index for
+
+    Raises:
+        ValueError: If connection references non-existent exit
+    """
+    # Clear index
+    game_state._connected_to.clear()
+
+    # Build exit ID set for validation
+    exit_ids = {exit_entity.id for exit_entity in game_state.exits}
+
+    # Index all exit connections
+    for exit_entity in game_state.exits:
+        # Validate connections
+        for connected_id in exit_entity.connections:
+            if connected_id not in exit_ids:
+                raise ValueError(
+                    f"Exit {exit_entity.id} references exit {connected_id} which does not exist"
+                )
+
+        # Add to index
+        game_state._connected_to[exit_entity.id] = set(exit_entity.connections)
+
+
 def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
     """Load game state from file path or dict.
 
@@ -1248,6 +1282,9 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
 
     # Build containment index
     _build_whereabouts_index(state)
+
+    # Build connection index
+    _build_connection_index(state)
 
     # Validate after loading
     from src.validators import validate_game_state
