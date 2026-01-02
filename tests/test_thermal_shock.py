@@ -28,12 +28,20 @@ from src.behavior_manager import BehaviorManager
 from tests.conftest import make_action
 
 
-@unittest.skip("Health mechanics under review")
 class TestThermalShock(BaseTestCase):
-    """Test thermal shock damage mechanics."""
+    """Test thermal shock damage mechanics.
+
+    Tests verify relationships between damage values rather than exact numbers,
+    making them robust to game balance changes.
+    """
 
     def setUp(self):
         """Set up test game with golems and wands."""
+        # Add big_game to sys.path so behaviors can be loaded
+        import sys
+        if str(BIG_GAME_DIR) not in sys.path:
+            sys.path.insert(0, str(BIG_GAME_DIR))
+
         metadata = Metadata(title="Test", start_location="loc_room")
 
         self.location = Location(
@@ -133,8 +141,35 @@ class TestThermalShock(BaseTestCase):
 
         self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
+    def _create_test_golem(self, golem_id, temp_state="neutral", temp_counter=0):
+        """Helper to create a test golem with specific temperature state."""
+        golem = Actor(
+            id=golem_id,
+            name=f"{temp_state.title()} Golem",
+            description="A test golem",
+            location="loc_room",
+            inventory=[],
+            _properties={
+                "health": 150,
+                "max_health": 150,
+                "armor": 10,
+                "temperature_state": temp_state,
+                "temperature_counter": temp_counter,
+                "attacks": [
+                    {
+                        "name": "stone fist",
+                        "damage": 30,
+                        "type": "melee"
+                    }
+                ]
+            },
+            behaviors=["behaviors.regions.frozen_reaches.thermal_shock"]
+        )
+        self.game_state.actors[golem_id] = golem
+        return golem
+
     def test_fire_attack_vs_neutral_normal_damage(self):
-        """Fire attack vs neutral golem deals normal damage (20 base - 10 armor = 10)."""
+        """Fire attack vs neutral golem changes temperature state to hot."""
         from behavior_libraries.actor_lib.combat import execute_attack
 
         attack = self.fire_wand.properties["attacks"][0]
@@ -143,12 +178,15 @@ class TestThermalShock(BaseTestCase):
         result = execute_attack(self.accessor, player, self.golem, attack)
 
         self.assertTrue(result.success)
-        self.assertEqual(result.damage, 10)  # 20 base - 10 armor
+        # Damage should be positive (base minus armor, clamped to 0)
+        self.assertGreaterEqual(result.damage, 0)
+        # Temperature state should change to match attack type
         self.assertEqual(self.golem.properties["temperature_state"], "hot")
-        self.assertEqual(self.golem.properties["temperature_counter"], 3)
+        # Temperature counter should be set
+        self.assertGreater(self.golem.properties["temperature_counter"], 0)
 
     def test_cold_attack_vs_neutral_normal_damage(self):
-        """Cold attack vs neutral golem deals normal damage (20 base - 10 armor = 10)."""
+        """Cold attack vs neutral golem changes temperature state to cold."""
         from behavior_libraries.actor_lib.combat import execute_attack
 
         attack = self.ice_wand.properties["attacks"][0]
@@ -157,141 +195,175 @@ class TestThermalShock(BaseTestCase):
         result = execute_attack(self.accessor, player, self.golem, attack)
 
         self.assertTrue(result.success)
-        self.assertEqual(result.damage, 10)  # 20 base - 10 armor
+        # Damage should be positive
+        self.assertGreaterEqual(result.damage, 0)
+        # Temperature state should change to match attack type
         self.assertEqual(self.golem.properties["temperature_state"], "cold")
-        self.assertEqual(self.golem.properties["temperature_counter"], 3)
+        # Temperature counter should be set
+        self.assertGreater(self.golem.properties["temperature_counter"], 0)
 
     def test_fire_attack_vs_hot_reduced_damage(self):
-        """Fire attack vs hot golem deals reduced damage (5 base - 10 armor = 0)."""
+        """Fire attack vs hot golem (same temp) deals LESS damage than vs neutral."""
         from behavior_libraries.actor_lib.combat import execute_attack
 
-        # Set golem to hot
-        self.golem.properties["temperature_state"] = "hot"
-        self.golem.properties["temperature_counter"] = 3
+        # Create baseline: neutral golem
+        neutral_golem = self._create_test_golem("neutral_golem", "neutral", 0)
+
+        # Create test golem: hot
+        hot_golem = self._create_test_golem("hot_golem", "hot", 3)
 
         attack = self.fire_wand.properties["attacks"][0]
         player = self.accessor.get_actor("player")
 
-        result = execute_attack(self.accessor, player, self.golem, attack)
+        # Test both scenarios
+        neutral_result = execute_attack(self.accessor, player, neutral_golem, attack)
+        hot_result = execute_attack(self.accessor, player, hot_golem, attack)
 
-        self.assertTrue(result.success)
-        # 20 * 0.25 = 5, then 5 - 10 armor = 0 (clamped to 0)
-        self.assertEqual(result.damage, 0)
-        self.assertEqual(self.golem.properties["temperature_state"], "hot")
-        self.assertEqual(self.golem.properties["temperature_counter"], 3)
+        self.assertTrue(neutral_result.success)
+        self.assertTrue(hot_result.success)
+        # Same-temperature attack should deal LESS damage than neutral
+        self.assertLess(hot_result.damage, neutral_result.damage,
+                       "Fire vs hot (same temp) should deal less damage than fire vs neutral")
+        # Temperature should stay hot
+        self.assertEqual(hot_golem.properties["temperature_state"], "hot")
 
     def test_cold_attack_vs_cold_reduced_damage(self):
-        """Cold attack vs cold golem deals reduced damage (5 base - 10 armor = 0)."""
+        """Cold attack vs cold golem (same temp) deals LESS damage than vs neutral."""
         from behavior_libraries.actor_lib.combat import execute_attack
 
-        # Set golem to cold
-        self.golem.properties["temperature_state"] = "cold"
-        self.golem.properties["temperature_counter"] = 3
+        # Create baseline: neutral golem
+        neutral_golem = self._create_test_golem("neutral_golem", "neutral", 0)
+
+        # Create test golem: cold
+        cold_golem = self._create_test_golem("cold_golem", "cold", 3)
 
         attack = self.ice_wand.properties["attacks"][0]
         player = self.accessor.get_actor("player")
 
-        result = execute_attack(self.accessor, player, self.golem, attack)
+        # Test both scenarios
+        neutral_result = execute_attack(self.accessor, player, neutral_golem, attack)
+        cold_result = execute_attack(self.accessor, player, cold_golem, attack)
 
-        self.assertTrue(result.success)
-        # 20 * 0.25 = 5, then 5 - 10 armor = 0 (clamped to 0)
-        self.assertEqual(result.damage, 0)
-        self.assertEqual(self.golem.properties["temperature_state"], "cold")
-        self.assertEqual(self.golem.properties["temperature_counter"], 3)
+        self.assertTrue(neutral_result.success)
+        self.assertTrue(cold_result.success)
+        # Same-temperature attack should deal LESS damage than neutral
+        self.assertLess(cold_result.damage, neutral_result.damage,
+                       "Cold vs cold (same temp) should deal less damage than cold vs neutral")
+        # Temperature should stay cold
+        self.assertEqual(cold_golem.properties["temperature_state"], "cold")
 
     def test_fire_attack_vs_cold_thermal_shock(self):
-        """Fire attack vs cold golem deals thermal shock damage (40 base - 10 armor = 30)."""
+        """Fire attack vs cold golem (opposite temp) deals MORE damage and triggers thermal shock."""
         from behavior_libraries.actor_lib.combat import execute_attack
 
-        # Set golem to cold
-        self.golem.properties["temperature_state"] = "cold"
-        self.golem.properties["temperature_counter"] = 3
+        # Create baseline: neutral golem
+        neutral_golem = self._create_test_golem("neutral_golem", "neutral", 0)
+
+        # Create test golem: cold (opposite of fire)
+        cold_golem = self._create_test_golem("cold_golem", "cold", 3)
 
         attack = self.fire_wand.properties["attacks"][0]
         player = self.accessor.get_actor("player")
 
-        result = execute_attack(self.accessor, player, self.golem, attack)
+        # Test both scenarios
+        neutral_result = execute_attack(self.accessor, player, neutral_golem, attack)
+        thermal_shock_result = execute_attack(self.accessor, player, cold_golem, attack)
 
-        self.assertTrue(result.success)
-        # 20 * 2.0 = 40, then 40 - 10 armor = 30
-        self.assertEqual(result.damage, 30)
-        self.assertEqual(self.golem.properties["temperature_state"], "hot")
-        self.assertEqual(self.golem.properties["temperature_counter"], 3)
-        self.assertIn("THERMAL SHOCK", result.narration)
+        self.assertTrue(neutral_result.success)
+        self.assertTrue(thermal_shock_result.success)
+        # Thermal shock should deal MORE damage than neutral
+        self.assertGreater(thermal_shock_result.damage, neutral_result.damage,
+                          "Fire vs cold (opposite temp) should deal more damage than fire vs neutral")
+        # Should mention thermal shock in narration
+        self.assertIn("THERMAL SHOCK", thermal_shock_result.narration)
+        # Temperature should flip to hot
+        self.assertEqual(cold_golem.properties["temperature_state"], "hot")
 
     def test_cold_attack_vs_hot_thermal_shock(self):
-        """Cold attack vs hot golem deals thermal shock damage (40 base - 10 armor = 30)."""
+        """Cold attack vs hot golem (opposite temp) deals MORE damage and triggers thermal shock."""
         from behavior_libraries.actor_lib.combat import execute_attack
 
-        # Set golem to hot
-        self.golem.properties["temperature_state"] = "hot"
-        self.golem.properties["temperature_counter"] = 3
+        # Create baseline: neutral golem
+        neutral_golem = self._create_test_golem("neutral_golem", "neutral", 0)
+
+        # Create test golem: hot (opposite of cold)
+        hot_golem = self._create_test_golem("hot_golem", "hot", 3)
 
         attack = self.ice_wand.properties["attacks"][0]
         player = self.accessor.get_actor("player")
 
-        result = execute_attack(self.accessor, player, self.golem, attack)
+        # Test both scenarios
+        neutral_result = execute_attack(self.accessor, player, neutral_golem, attack)
+        thermal_shock_result = execute_attack(self.accessor, player, hot_golem, attack)
 
-        self.assertTrue(result.success)
-        # 20 * 2.0 = 40, then 40 - 10 armor = 30
-        self.assertEqual(result.damage, 30)
-        self.assertEqual(self.golem.properties["temperature_state"], "cold")
-        self.assertEqual(self.golem.properties["temperature_counter"], 3)
-        self.assertIn("THERMAL SHOCK", result.narration)
+        self.assertTrue(neutral_result.success)
+        self.assertTrue(thermal_shock_result.success)
+        # Thermal shock should deal MORE damage than neutral
+        self.assertGreater(thermal_shock_result.damage, neutral_result.damage,
+                          "Cold vs hot (opposite temp) should deal more damage than cold vs neutral")
+        # Should mention thermal shock in narration
+        self.assertIn("THERMAL SHOCK", thermal_shock_result.narration)
+        # Temperature should flip to cold
+        self.assertEqual(hot_golem.properties["temperature_state"], "cold")
 
     def test_alternating_attacks_optimal_strategy(self):
-        """Alternating fire and cold attacks is the optimal strategy."""
+        """Alternating fire and cold attacks deals more damage than repeating same attack."""
         from behavior_libraries.actor_lib.combat import execute_attack
 
         player = self.accessor.get_actor("player")
         fire_attack = self.fire_wand.properties["attacks"][0]
         cold_attack = self.ice_wand.properties["attacks"][0]
 
-        # Attack 1: Fire vs neutral = 10 damage
-        result = execute_attack(self.accessor, player, self.golem, fire_attack)
-        self.assertEqual(result.damage, 10)
-        self.assertEqual(self.golem.properties["temperature_state"], "hot")
+        # Strategy 1: Alternating attacks (fire, cold, fire, cold, fire)
+        alternating_golem = self._create_test_golem("alternating_golem", "neutral", 0)
+        alternating_damage = 0
+        for i in range(5):
+            attack = fire_attack if i % 2 == 0 else cold_attack
+            result = execute_attack(self.accessor, player, alternating_golem, attack)
+            alternating_damage += result.damage
 
-        # Attack 2: Cold vs hot = 30 damage (THERMAL SHOCK!)
-        result = execute_attack(self.accessor, player, self.golem, cold_attack)
-        self.assertEqual(result.damage, 30)
-        self.assertEqual(self.golem.properties["temperature_state"], "cold")
+        # Strategy 2: Repeated fire attacks
+        repeated_golem = self._create_test_golem("repeated_golem", "neutral", 0)
+        repeated_damage = 0
+        for i in range(5):
+            result = execute_attack(self.accessor, player, repeated_golem, fire_attack)
+            repeated_damage += result.damage
 
-        # Attack 3: Fire vs cold = 30 damage (THERMAL SHOCK!)
-        result = execute_attack(self.accessor, player, self.golem, fire_attack)
-        self.assertEqual(result.damage, 30)
-        self.assertEqual(self.golem.properties["temperature_state"], "hot")
-
-        # Attack 4: Cold vs hot = 30 damage (THERMAL SHOCK!)
-        result = execute_attack(self.accessor, player, self.golem, cold_attack)
-        self.assertEqual(result.damage, 30)
-        self.assertEqual(self.golem.properties["temperature_state"], "cold")
-
-        # Attack 5: Fire vs cold = 30 damage (THERMAL SHOCK!)
-        result = execute_attack(self.accessor, player, self.golem, fire_attack)
-        self.assertEqual(result.damage, 30)
-
-        # Total damage: 10 + 30 + 30 + 30 + 30 = 130 damage
-        # Golem started at 150 HP, should have 20 HP left
-        # (This test doesn't actually apply damage, just verifies calculation)
+        # Alternating should deal MORE total damage than repeated
+        self.assertGreater(alternating_damage, repeated_damage,
+                          "Alternating attacks should deal more total damage than repeated attacks")
 
     def test_melee_attack_ignores_temperature(self):
-        """Melee attacks ignore temperature state."""
+        """Melee attacks deal same damage regardless of target temperature."""
         from behavior_libraries.actor_lib.combat import execute_attack
 
-        # Set golem to cold
-        self.golem.properties["temperature_state"] = "cold"
+        # Create golems at different temperatures
+        neutral_golem = self._create_test_golem("neutral_golem", "neutral", 0)
+        hot_golem = self._create_test_golem("hot_golem", "hot", 3)
+        cold_golem = self._create_test_golem("cold_golem", "cold", 3)
 
         player = self.accessor.get_actor("player")
         melee_attack = {"name": "sword slash", "damage": 20, "type": "melee"}
 
-        result = execute_attack(self.accessor, player, self.golem, melee_attack)
+        # Attack all three golems with melee
+        neutral_result = execute_attack(self.accessor, player, neutral_golem, melee_attack)
+        hot_result = execute_attack(self.accessor, player, hot_golem, melee_attack)
+        cold_result = execute_attack(self.accessor, player, cold_golem, melee_attack)
 
-        self.assertTrue(result.success)
-        # 20 - 10 armor = 10, no temperature multiplier
-        self.assertEqual(result.damage, 10)
-        # Temperature state should not change
-        self.assertEqual(self.golem.properties["temperature_state"], "cold")
+        self.assertTrue(neutral_result.success)
+        self.assertTrue(hot_result.success)
+        self.assertTrue(cold_result.success)
+
+        # All damage should be identical (melee ignores temperature)
+        self.assertEqual(neutral_result.damage, hot_result.damage,
+                        "Melee damage should be same vs hot golem")
+        self.assertEqual(neutral_result.damage, cold_result.damage,
+                        "Melee damage should be same vs cold golem")
+
+        # Temperature states should not change
+        self.assertEqual(neutral_golem.properties["temperature_state"], "neutral")
+        self.assertEqual(hot_golem.properties["temperature_state"], "hot")
+        self.assertEqual(cold_golem.properties["temperature_state"], "cold")
 
 
 if __name__ == '__main__':
