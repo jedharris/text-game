@@ -352,7 +352,9 @@ class TestLightSourcesBehaviors(unittest.TestCase):
         handler = LLMProtocolHandler(state, behavior_manager=self.manager)
 
         # Move player to hallway where lantern and table are
-        state.set_actor_location("loc_hallway")
+        from src.state_accessor import StateAccessor
+        accessor = StateAccessor(state, self.manager)
+        accessor.set_entity_where("player", "loc_hallway")
 
         lantern = state.get_item("item_lantern")
 

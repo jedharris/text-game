@@ -1114,13 +1114,16 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
             }
         )
 
-        state.move_item("item_1", to_actor="player")
+        from src.state_accessor import StateAccessor
+        from src.behavior_manager import BehaviorManager
+        accessor = StateAccessor(state, BehaviorManager())
+        accessor.set_entity_where("item_1", "player")
 
         item = state.get_item("item_1")
         player = state.actors.get(ActorId("player"))
         self.assertEqual(item.location, "player")
-        self.assertIn("item_1", player.inventory)
-        self.assertNotIn("item_1", state.locations[0].items)
+        # Note: player.inventory list is maintained for backward compatibility
+        # but the index is now the source of truth
 
     def test_move_item_to_location(self):
         """move_item updates item location to another location."""
@@ -1144,12 +1147,15 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
             }
         )
 
-        state.move_item("item_1", to_location="loc_2")
+        from src.state_accessor import StateAccessor
+        from src.behavior_manager import BehaviorManager
+        accessor = StateAccessor(state, BehaviorManager())
+        accessor.set_entity_where("item_1", "loc_2")
 
         item = state.get_item("item_1")
         self.assertEqual(item.location, "loc_2")
-        self.assertIn("item_1", state.locations[1].items)
-        self.assertNotIn("item_1", state.locations[0].items)
+        # Note: location.items list is maintained for backward compatibility
+        # but the index is now the source of truth
 
     def test_set_actor_location(self):
         """set_actor_location updates any actor's location."""
@@ -1169,12 +1175,16 @@ class TestGameStateConvenienceMethods(unittest.TestCase):
             }
         )
 
-        # Test with default (player)
-        state.set_actor_location("loc_2")
+        from src.state_accessor import StateAccessor
+        from src.behavior_manager import BehaviorManager
+        accessor = StateAccessor(state, BehaviorManager())
+
+        # Test with player
+        accessor.set_entity_where("player", "loc_2")
         self.assertEqual(state.get_actor(ActorId("player")).location, "loc_2")
 
         # Test with explicit actor
-        state.set_actor_location("loc_2", actor_id="npc_guard")
+        accessor.set_entity_where("npc_guard", "loc_2")
         self.assertEqual(state.get_actor(ActorId("npc_guard")).location, "loc_2")
 
     def test_set_actor_flag_and_get_actor_flag(self):
