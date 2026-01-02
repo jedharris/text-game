@@ -89,7 +89,7 @@ class TestCommitmentTurnPhase(unittest.TestCase):
         accessor = StateAccessor(self.game_state, self.behavior_manager)
         context = {"current_turn": 10, "hook": "turn_commitment"}
 
-        result = on_turn_commitments(commitment, accessor, context)
+        result = on_turn_commitments(None, accessor, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
@@ -107,7 +107,7 @@ class TestCommitmentTurnPhase(unittest.TestCase):
         accessor = StateAccessor(self.game_state, self.behavior_manager)
         context = {"current_turn": 20, "hook": "turn_commitment"}
 
-        result = on_turn_commitments(commitment, accessor, context)
+        result = on_turn_commitments(None, accessor, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
@@ -126,7 +126,7 @@ class TestCommitmentTurnPhase(unittest.TestCase):
         accessor = StateAccessor(self.game_state, self.behavior_manager)
         context = {"current_turn": 100, "hook": "turn_commitment"}
 
-        result = on_turn_commitments(commitment, accessor, context)
+        result = on_turn_commitments(None, accessor, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
@@ -205,7 +205,7 @@ class TestScheduledEventTurnPhase(unittest.TestCase):
         accessor = StateAccessor(self.game_state, self.behavior_manager)
         context = {"current_turn": 5, "hook": "turn_scheduled_events"}
 
-        result = on_turn_scheduled_events(event, accessor, context)
+        result = on_turn_scheduled_events(None, accessor, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
@@ -221,7 +221,7 @@ class TestScheduledEventTurnPhase(unittest.TestCase):
         accessor = StateAccessor(self.game_state, self.behavior_manager)
         context = {"current_turn": 10, "hook": "turn_scheduled_events"}
 
-        result = on_turn_scheduled_events(event, accessor, context)
+        result = on_turn_scheduled_events(None, accessor, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
@@ -238,7 +238,7 @@ class TestScheduledEventTurnPhase(unittest.TestCase):
         accessor = StateAccessor(self.game_state, self.behavior_manager)
         context = {"current_turn": 15, "hook": "turn_scheduled_events"}
 
-        result = on_turn_scheduled_events(event, accessor, context)
+        result = on_turn_scheduled_events(None, accessor, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
@@ -307,7 +307,7 @@ class TestGossipTurnPhase(unittest.TestCase):
         accessor = StateAccessor(self.game_state, self.behavior_manager)
         context = {"current_turn": 10, "hook": "turn_gossip_spread"}
 
-        result = on_turn_gossip_spread(gossip, accessor, context)
+        result = on_turn_gossip_spread(None, accessor, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
@@ -323,7 +323,7 @@ class TestGossipTurnPhase(unittest.TestCase):
         accessor = StateAccessor(self.game_state, self.behavior_manager)
         context = {"current_turn": 17, "hook": "turn_gossip_spread"}
 
-        result = on_turn_gossip_spread(gossip, accessor, context)
+        result = on_turn_gossip_spread(None, accessor, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
@@ -410,7 +410,7 @@ class TestSpreadTurnPhase(unittest.TestCase):
         accessor = StateAccessor(self.game_state, self.behavior_manager)
         context = {"current_turn": 10, "hook": "turn_condition_spread"}
 
-        result = on_turn_condition_spread(spread, accessor, context)
+        result = on_turn_condition_spread(None, accessor, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
@@ -426,7 +426,7 @@ class TestSpreadTurnPhase(unittest.TestCase):
         accessor = StateAccessor(self.game_state, self.behavior_manager)
         context = {"current_turn": 25, "hook": "turn_condition_spread"}
 
-        result = on_turn_condition_spread(spread, accessor, context)
+        result = on_turn_condition_spread(None, accessor, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
@@ -450,7 +450,7 @@ class TestSpreadTurnPhase(unittest.TestCase):
         accessor = StateAccessor(self.game_state, self.behavior_manager)
         context = {"current_turn": 30, "hook": "turn_condition_spread"}
 
-        result = on_turn_condition_spread(spread, accessor, context)
+        result = on_turn_condition_spread(None, accessor, context)
 
         self.assertIsInstance(result, EventResult)
         self.assertTrue(result.allow)
