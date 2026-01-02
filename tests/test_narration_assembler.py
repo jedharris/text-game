@@ -8,7 +8,8 @@ import unittest
 from typing import Any, Dict
 
 from src.state_manager import (
-    GameState, Location, Item, Actor, Metadata, ExitDescriptor
+    GameState, Location, Item, Actor, Metadata, Exit,
+    _build_whereabouts_index, _build_connection_index
 )
 from src.behavior_manager import BehaviorManager
 from src.state_accessor import StateAccessor, HandlerResult
@@ -51,21 +52,7 @@ def create_test_state_with_exits() -> GameState:
         id=LocationId("location_room"),
         name="Test Room",
         description="A room for testing",
-        exits={
-            "north": ExitDescriptor(
-                type="open",
-                to=LocationId("location_kitchen"),
-                _direction="north",
-                _location_id=LocationId("location_room")
-            ),
-            "east": ExitDescriptor(
-                type="door",
-                to=LocationId("location_garden"),
-                name="garden door",
-                _direction="east",
-                _location_id=LocationId("location_room")
-            )
-        },
+        exits={},
         items=[ItemId("item_sword")],
         _properties={},
         behaviors=[]
@@ -111,8 +98,46 @@ def create_test_state_with_exits() -> GameState:
         items=[sword, tree],
         locks=[],
         actors={ActorId("player"): player},
+        exits=[
+            Exit(
+                id="exit_room_north",
+                name="north exit",
+                location=LocationId("location_room"),
+                direction="north",
+                connections=["exit_kitchen_south"],
+                properties={"type": "open"}
+            ),
+            Exit(
+                id="exit_kitchen_south",
+                name="south exit",
+                location=LocationId("location_kitchen"),
+                direction="south",
+                connections=["exit_room_north"],
+                properties={"type": "open"}
+            ),
+            Exit(
+                id="exit_room_east",
+                name="garden door",
+                location=LocationId("location_room"),
+                direction="east",
+                connections=["exit_garden_west"],
+                properties={"type": "door"}
+            ),
+            Exit(
+                id="exit_garden_west",
+                name="garden door",
+                location=LocationId("location_garden"),
+                direction="west",
+                connections=["exit_room_east"],
+                properties={"type": "door"}
+            )
+        ],
         extra={}
     )
+
+    # Build indices
+    _build_whereabouts_index(state)
+    _build_connection_index(state)
 
     return state
 
@@ -481,10 +506,15 @@ class TestNarrationAssemblerMustMention(unittest.TestCase):
 
     def test_single_exit_format(self) -> None:
         """Single exit uses different format."""
-        # Modify state to have only one exit
-        location = self.accessor.get_location(LocationId("location_room"))
-        assert location is not None
-        del location.exits["east"]
+        # Modify state to have only one exit - remove the east exit
+        self.game_state.exits = [
+            e for e in self.game_state.exits
+            if e.id not in ["exit_room_east", "exit_garden_west"]
+        ]
+
+        # Rebuild indices after modifying exits
+        _build_whereabouts_index(self.game_state)
+        _build_connection_index(self.game_state)
 
         result = HandlerResult(success=True, primary="You look around.")
         plan = self.assembler.assemble(result, "look", "full", "new")
