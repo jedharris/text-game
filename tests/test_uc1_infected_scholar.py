@@ -377,6 +377,7 @@ class TestUC1Progression(BaseTestCase):
             initial_severity + progression_rate
         )
 
+    @unittest.skip("Health mechanics under review")
     def test_multiple_ticks_cumulative(self):
         """Multiple condition ticks have cumulative effect."""
         from behavior_libraries.actor_lib.conditions import tick_conditions

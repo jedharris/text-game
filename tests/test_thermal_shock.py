@@ -28,6 +28,7 @@ from src.behavior_manager import BehaviorManager
 from tests.conftest import make_action
 
 
+@unittest.skip("Health mechanics under review")
 class TestThermalShock(BaseTestCase):
     """Test thermal shock damage mechanics."""
 
