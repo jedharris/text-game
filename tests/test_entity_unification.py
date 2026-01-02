@@ -173,7 +173,7 @@ class TestStateAccessorDoorMethods(unittest.TestCase):
                     location="loc_room",
                     direction="north",
                     connections=["exit_other_south"],
-                    properties={"type": "door", "door_id": "door_1"}
+                    door_id="door_1"
                 ),
                 Exit(
                     id="exit_other_south",
@@ -181,7 +181,7 @@ class TestStateAccessorDoorMethods(unittest.TestCase):
                     location="loc_other",
                     direction="south",
                     connections=["exit_room_north"],
-                    properties={"type": "door", "door_id": "door_1"}
+                    door_id="door_1"
                 )
             ],
             items=[
@@ -241,8 +241,7 @@ class TestStateAccessorDoorMethods(unittest.TestCase):
             name="opening",
             location="loc_room",
             direction="south",
-            connections=[],
-            properties={"type": "open"}
+            connections=[]
         )
         self.game_state.exits.append(south_exit)
         _build_whereabouts_index(self.game_state)
@@ -297,7 +296,7 @@ class TestDoorVisibility(unittest.TestCase):
                     location="loc_room1",
                     direction="east",
                     connections=["exit_room2_west"],
-                    properties={"type": "door", "door_id": "door_connecting"}
+                    door_id="door_connecting"
                 ),
                 Exit(
                     id="exit_room2_west",
@@ -305,7 +304,7 @@ class TestDoorVisibility(unittest.TestCase):
                     location="loc_room2",
                     direction="west",
                     connections=["exit_room1_east"],
-                    properties={"type": "door", "door_id": "door_connecting"}
+                    door_id="door_connecting"
                 )
             ],
             items=[
@@ -785,7 +784,7 @@ class TestMovementThroughDoorItems(unittest.TestCase):
                     location="loc_room1",
                     direction="north",
                     connections=["exit_room2_south"],
-                    properties={"type": "door", "door_id": "door_1"}
+                    door_id="door_1"
                 ),
                 Exit(
                     id="exit_room2_south",
@@ -793,7 +792,7 @@ class TestMovementThroughDoorItems(unittest.TestCase):
                     location="loc_room2",
                     direction="south",
                     connections=["exit_room1_north"],
-                    properties={"type": "door", "door_id": "door_1"}
+                    door_id="door_1"
                 )
             ],
             items=[

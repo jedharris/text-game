@@ -67,15 +67,10 @@ def migrate_exit_descriptor(
     behaviors = descriptor.get("behaviors", [])
     properties = descriptor.get("properties", {})
 
-    # Store type and door_id in properties for backward compat
-    if "type" in descriptor:
-        properties["type"] = descriptor["type"]
-    if "door_id" in descriptor:
-        properties["door_id"] = descriptor["door_id"]
-    if "passage" in descriptor:
-        properties["passage"] = descriptor["passage"]
-    if "door_at" in descriptor:
-        properties["door_at"] = descriptor["door_at"]
+    # Extract direct attributes (not in properties)
+    door_id = descriptor.get("door_id")
+    passage = descriptor.get("passage")
+    door_at = descriptor.get("door_at")
 
     # Build connections list
     connections = []
@@ -87,7 +82,7 @@ def migrate_exit_descriptor(
     if "llm_context" in descriptor:
         traits["llm_context"] = descriptor["llm_context"]
 
-    return {
+    result = {
         "id": exit_id,
         "name": name,
         "location": location_id,
@@ -100,6 +95,16 @@ def migrate_exit_descriptor(
         "behaviors": behaviors,
         "traits": traits
     }
+
+    # Add optional direct attributes if present
+    if door_id is not None:
+        result["door_id"] = door_id
+    if passage is not None:
+        result["passage"] = passage
+    if door_at is not None:
+        result["door_at"] = door_at
+
+    return result
 
 
 def build_connection_map(data: Dict[str, Any]) -> Dict[Tuple[str, str], Dict[str, Any]]:

@@ -537,10 +537,12 @@
       "description": "A simple wooden doorway leads north. The door frame is rough-hewn, its planks showing years of wear.",
       "adjectives": [],
       "synonyms": [],
-      "properties": {},
+      "properties": {
+        "type": "door",
+        "door_id": "door_wooden"
+      },
       "behaviors": [],
-      "traits": {},
-      "door_id": "door_wooden"
+      "traits": {}
     },
     {
       "id": "exit_loc_hallway_up",
@@ -553,7 +555,9 @@
       "description": "A narrow spiral staircase carved from living rock winds upward into shadow. The worn treads speak of centuries of footsteps.",
       "adjectives": [],
       "synonyms": [],
-      "properties": {},
+      "properties": {
+        "type": "open"
+      },
       "behaviors": [],
       "traits": {
         "llm_context": {
@@ -605,7 +609,10 @@
       "description": "A grand stone archway frames an imposing iron door. Gargoyle faces flank the doorframe, their weathered features watching silently.",
       "adjectives": [],
       "synonyms": [],
-      "properties": {},
+      "properties": {
+        "type": "door",
+        "door_id": "door_treasure"
+      },
       "behaviors": [],
       "traits": {
         "llm_context": {
@@ -645,8 +652,7 @@
             "revisit": "The familiar eastern archway, no less impressive for its familiarity."
           }
         }
-      },
-      "door_id": "door_treasure"
+      }
     },
     {
       "id": "exit_loc_hallway_south",
@@ -659,10 +665,12 @@
       "description": "The wooden doorway leads back south to the small room where you began.",
       "adjectives": [],
       "synonyms": [],
-      "properties": {},
+      "properties": {
+        "type": "door",
+        "door_id": "door_wooden"
+      },
       "behaviors": [],
-      "traits": {},
-      "door_id": "door_wooden"
+      "traits": {}
     },
     {
       "id": "exit_loc_tower_down",
@@ -675,7 +683,9 @@
       "description": "The spiral staircase winds downward into the shadows of the hallway below. A cold draft rises from the depths.",
       "adjectives": [],
       "synonyms": [],
-      "properties": {},
+      "properties": {
+        "type": "open"
+      },
       "behaviors": [],
       "traits": {}
     },
@@ -690,10 +700,12 @@
       "description": "The imposing iron doorway leads west back to the hallway. The grand archway frames the exit.",
       "adjectives": [],
       "synonyms": [],
-      "properties": {},
+      "properties": {
+        "type": "door",
+        "door_id": "door_treasure"
+      },
       "behaviors": [],
-      "traits": {},
-      "door_id": "door_treasure"
+      "traits": {}
     }
   ]
 }

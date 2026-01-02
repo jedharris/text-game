@@ -27,6 +27,8 @@ class TestPhase11MovementPerception(unittest.TestCase):
 
     def test_handle_go_success(self):
         """Test player moving to adjacent location."""
+        from src.state_manager import Exit, _build_whereabouts_index, _build_connection_index
+
         state = create_test_state()
         behavior_manager = BehaviorManager()
 
@@ -35,14 +37,31 @@ class TestPhase11MovementPerception(unittest.TestCase):
             id="location_hall",
             name="Hall",
             description="A hallway",
-            exits={"west": "location_room"},
+            exits={},
             items=[],
         )
         state.locations.append(hall)
 
-        # Connect rooms
-        room = state.get_location("location_room")
-        room.exits["east"] = "location_hall"
+        # Connect rooms using Exit entities
+        east_exit = Exit(
+            id="exit_room_east",
+            name="exit",
+            location="location_room",
+            direction="east",
+            connections=["exit_hall_west"]
+        )
+        west_exit = Exit(
+            id="exit_hall_west",
+            name="exit",
+            location="location_hall",
+            direction="west",
+            connections=["exit_room_east"]
+        )
+        state.exits.extend([east_exit, west_exit])
+
+        # Build indices
+        _build_whereabouts_index(state)
+        _build_connection_index(state)
 
         import behaviors.core.exits
         behavior_manager.load_module(behaviors.core.exits)
@@ -75,6 +94,8 @@ class TestPhase11MovementPerception(unittest.TestCase):
 
     def test_handle_go_npc(self):
         """Test NPC movement (critical for actor_id threading)."""
+        from src.state_manager import Exit, _build_whereabouts_index, _build_connection_index
+
         state = create_test_state()
         behavior_manager = BehaviorManager()
 
@@ -83,14 +104,31 @@ class TestPhase11MovementPerception(unittest.TestCase):
             id="location_hall",
             name="Hall",
             description="A hallway",
-            exits={"west": "location_room"},
+            exits={},
             items=[],
         )
         state.locations.append(hall)
 
-        # Connect rooms
-        room = state.get_location("location_room")
-        room.exits["east"] = "location_hall"
+        # Connect rooms using Exit entities
+        east_exit = Exit(
+            id="exit_room_east",
+            name="exit",
+            location="location_room",
+            direction="east",
+            connections=["exit_hall_west"]
+        )
+        west_exit = Exit(
+            id="exit_hall_west",
+            name="exit",
+            location="location_hall",
+            direction="west",
+            connections=["exit_room_east"]
+        )
+        state.exits.extend([east_exit, west_exit])
+
+        # Build indices
+        _build_whereabouts_index(state)
+        _build_connection_index(state)
 
         # Add NPC
         guard = Actor(

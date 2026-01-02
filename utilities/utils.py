@@ -846,11 +846,10 @@ def find_door_with_adjective(
             exits_here = accessor.get_exits_from_location(location_id)
             for exit_entity in exits_here:
                 if exit_entity.direction == direction_adj:
-                    door_id = exit_entity.properties.get('door_id')
-                    if door_id:
+                    if exit_entity.door_id:
                         # Return the door if it's in matching_doors
                         for door in matching_doors:
-                            if door.id == door_id:
+                            if door.id == exit_entity.door_id:
                                 return door
             # No door in that direction
             return None
@@ -934,8 +933,7 @@ def _is_item_visible_in_location(
     if item.is_door:
         exits_here = accessor.get_exits_from_location(location_id)
         for exit_entity in exits_here:
-            door_id = exit_entity.properties.get('door_id')
-            if door_id == item.id:
+            if exit_entity.door_id == item.id:
                 return True
 
     return False

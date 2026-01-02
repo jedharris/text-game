@@ -79,7 +79,7 @@ class TestExamineDoor(unittest.TestCase):
             location=location_id,
             direction="north",
             connections=[f"exit_other_room_south"],
-            properties={"type": "door", "door_id": "door_wooden"}
+            door_id="door_wooden"
         )
         east_exit = Exit(
             id=f"exit_{location_id}_east",
@@ -87,7 +87,7 @@ class TestExamineDoor(unittest.TestCase):
             location=location_id,
             direction="east",
             connections=[f"exit_another_room_west"],
-            properties={"type": "door", "door_id": "door_iron"}
+            door_id="door_iron"
         )
         self.game_state.exits.extend([north_exit, east_exit])
 
@@ -98,7 +98,7 @@ class TestExamineDoor(unittest.TestCase):
             location="other_room",
             direction="south",
             connections=[f"exit_{location_id}_north"],
-            properties={"type": "door", "door_id": "door_wooden"}
+            door_id="door_wooden"
         )
         another_exit = Exit(
             id="exit_another_room_west",
@@ -106,7 +106,7 @@ class TestExamineDoor(unittest.TestCase):
             location="another_room",
             direction="west",
             connections=[f"exit_{location_id}_east"],
-            properties={"type": "door", "door_id": "door_iron"}
+            door_id="door_iron"
         )
         self.game_state.exits.extend([other_exit, another_exit])
 
@@ -266,7 +266,7 @@ class TestExamineDoorWithDirectionAdjective(unittest.TestCase):
             location=location_id,
             direction="north",
             connections=[f"exit_other_room_south"],
-            properties={"type": "door", "door_id": "door_wooden"}
+            door_id="door_wooden"
         )
         east_exit = Exit(
             id=f"exit_{location_id}_east",
@@ -274,7 +274,7 @@ class TestExamineDoorWithDirectionAdjective(unittest.TestCase):
             location=location_id,
             direction="east",
             connections=[f"exit_another_room_west"],
-            properties={"type": "door", "door_id": "door_iron"}
+            door_id="door_iron"
         )
         self.game_state.exits.extend([north_exit, east_exit])
 
@@ -285,7 +285,7 @@ class TestExamineDoorWithDirectionAdjective(unittest.TestCase):
             location="other_room",
             direction="south",
             connections=[f"exit_{location_id}_north"],
-            properties={"type": "door", "door_id": "door_wooden"}
+            door_id="door_wooden"
         )
         another_exit = Exit(
             id="exit_another_room_west",
@@ -293,7 +293,7 @@ class TestExamineDoorWithDirectionAdjective(unittest.TestCase):
             location="another_room",
             direction="west",
             connections=[f"exit_{location_id}_east"],
-            properties={"type": "door", "door_id": "door_iron"}
+            door_id="door_iron"
         )
         self.game_state.exits.extend([other_exit, another_exit])
 

@@ -11,7 +11,13 @@
       "id": "loc_start",
       "name": "Small Room",
       "description": "You are in a small room.",
-      "exits": {},
+      "exits": {
+        "north": {
+          "type": "door",
+          "to": "loc_hallway",
+          "door_id": "door_wooden"
+        }
+      },
       "tags": [],
       "items": [
         "item_sword",
@@ -34,7 +40,22 @@
       "id": "loc_hallway",
       "name": "Long Hallway",
       "description": "You are in a long hallway.",
-      "exits": {},
+      "exits": {
+        "south": {
+          "type": "door",
+          "to": "loc_start",
+          "door_id": "door_wooden"
+        },
+        "east": {
+          "type": "door",
+          "to": "loc_treasure",
+          "door_id": "door_iron"
+        },
+        "up": {
+          "type": "open",
+          "to": "loc_tower"
+        }
+      },
       "tags": [],
       "items": [
         "item_potion"
@@ -56,7 +77,12 @@
       "id": "loc_tower",
       "name": "Tower Top",
       "description": "You are at the top of a tower.",
-      "exits": {},
+      "exits": {
+        "down": {
+          "type": "open",
+          "to": "loc_hallway"
+        }
+      },
       "tags": [],
       "items": [],
       "llm_context": {
@@ -76,7 +102,13 @@
       "id": "loc_treasure",
       "name": "Treasure Room",
       "description": "You are in a treasure room.",
-      "exits": {},
+      "exits": {
+        "west": {
+          "type": "door",
+          "to": "loc_hallway",
+          "door_id": "door_iron"
+        }
+      },
       "tags": [],
       "items": [
         "item_chest"
@@ -306,101 +338,5 @@
       "flags": {},
       "stats": {}
     }
-  },
-  "exits": [
-    {
-      "id": "exit_loc_start_north",
-      "name": "exit",
-      "location": "loc_start",
-      "connections": [
-        "exit_loc_hallway_south"
-      ],
-      "direction": "north",
-      "description": "",
-      "adjectives": [],
-      "synonyms": [],
-      "properties": {},
-      "behaviors": [],
-      "traits": {},
-      "door_id": "door_wooden"
-    },
-    {
-      "id": "exit_loc_hallway_east",
-      "name": "exit",
-      "location": "loc_hallway",
-      "connections": [
-        "exit_loc_treasure_west"
-      ],
-      "direction": "east",
-      "description": "",
-      "adjectives": [],
-      "synonyms": [],
-      "properties": {},
-      "behaviors": [],
-      "traits": {},
-      "door_id": "door_iron"
-    },
-    {
-      "id": "exit_loc_hallway_up",
-      "name": "exit",
-      "location": "loc_hallway",
-      "connections": [
-        "exit_loc_tower_down"
-      ],
-      "direction": "up",
-      "description": "",
-      "adjectives": [],
-      "synonyms": [],
-      "properties": {},
-      "behaviors": [],
-      "traits": {}
-    },
-    {
-      "id": "exit_loc_hallway_south",
-      "name": "exit",
-      "location": "loc_hallway",
-      "connections": [
-        "exit_loc_start_north"
-      ],
-      "direction": "south",
-      "description": "",
-      "adjectives": [],
-      "synonyms": [],
-      "properties": {},
-      "behaviors": [],
-      "traits": {},
-      "door_id": "door_wooden"
-    },
-    {
-      "id": "exit_loc_treasure_west",
-      "name": "exit",
-      "location": "loc_treasure",
-      "connections": [
-        "exit_loc_hallway_east"
-      ],
-      "direction": "west",
-      "description": "",
-      "adjectives": [],
-      "synonyms": [],
-      "properties": {},
-      "behaviors": [],
-      "traits": {},
-      "door_id": "door_iron"
-    },
-    {
-      "id": "exit_loc_tower_down",
-      "name": "exit",
-      "location": "loc_tower",
-      "connections": [
-        "exit_loc_hallway_up"
-      ],
-      "direction": "down",
-      "description": "",
-      "adjectives": [],
-      "synonyms": [],
-      "properties": {},
-      "behaviors": [],
-      "traits": {}
-    }
-  ]
+  }
 }

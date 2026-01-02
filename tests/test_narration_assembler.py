@@ -104,16 +104,14 @@ def create_test_state_with_exits() -> GameState:
                 name="north exit",
                 location=LocationId("location_room"),
                 direction="north",
-                connections=["exit_kitchen_south"],
-                properties={"type": "open"}
+                connections=["exit_kitchen_south"]
             ),
             Exit(
                 id="exit_kitchen_south",
                 name="south exit",
                 location=LocationId("location_kitchen"),
                 direction="south",
-                connections=["exit_room_north"],
-                properties={"type": "open"}
+                connections=["exit_room_north"]
             ),
             Exit(
                 id="exit_room_east",

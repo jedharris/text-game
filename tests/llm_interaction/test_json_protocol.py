@@ -1316,9 +1316,16 @@ class TestQueryMessages(unittest.TestCase):
 
     def test_location_query_includes_exit_llm_context(self):
         """Location query includes llm_context for exits that have it."""
-        # Add llm_context to an exit
-        loc = self.game_state.get_location("loc_hallway")
-        loc.exits["up"].llm_context = {
+        # Add llm_context to an exit - now stored in traits dict
+        # Find the "up" exit from loc_hallway
+        exit_entity = None
+        for exit_e in self.game_state.exits:
+            if exit_e.location == "loc_hallway" and exit_e.direction == "up":
+                exit_entity = exit_e
+                break
+
+        self.assertIsNotNone(exit_entity, "Should find 'up' exit from loc_hallway")
+        exit_entity.traits["llm_context"] = {
             "traits": ["spiral staircase", "worn stone steps"],
             "state_variants": {
                 "first_visit": "A winding stair leads upward."
@@ -1343,9 +1350,16 @@ class TestQueryMessages(unittest.TestCase):
 
     def test_location_query_omits_exit_llm_context_when_missing(self):
         """Location query omits llm_context for exits without it."""
-        # Ensure exit has no llm_context
-        loc = self.game_state.get_location("loc_start")
-        self.assertIsNone(loc.exits["north"].llm_context)
+        # Ensure exit has no llm_context - check traits dict
+        # Find the "north" exit from loc_start
+        exit_entity = None
+        for exit_e in self.game_state.exits:
+            if exit_e.location == "loc_start" and exit_e.direction == "north":
+                exit_entity = exit_e
+                break
+
+        self.assertIsNotNone(exit_entity, "Should find 'north' exit from loc_start")
+        self.assertNotIn("llm_context", exit_entity.traits)
 
         self.accessor.set_entity_where("player", "loc_start")
 
@@ -2141,9 +2155,17 @@ class TestTraitRandomization(unittest.TestCase):
 
     def test_exit_traits_randomized(self):
         """Verify exit llm_context traits are also randomized."""
-        loc = self.game_state.get_location("loc_hallway")
+        # Find the "up" exit from loc_hallway
+        exit_entity = None
+        for exit_e in self.game_state.exits:
+            if exit_e.location == "loc_hallway" and exit_e.direction == "up":
+                exit_entity = exit_e
+                break
+
+        self.assertIsNotNone(exit_entity, "Should find 'up' exit from loc_hallway")
+
         original_traits = [f"exit_trait_{i}" for i in range(15)]
-        loc.exits["up"].llm_context = {"traits": original_traits.copy()}
+        exit_entity.traits["llm_context"] = {"traits": original_traits.copy()}
 
         self.accessor.set_entity_where("player", "loc_hallway")
 

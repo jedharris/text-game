@@ -162,14 +162,13 @@ def _build_movement_message(
         Movement message string
     """
     exit_name = exit_entity.name or direction
-    passage = exit_entity.properties.get('passage')
-    door_at = exit_entity.properties.get('door_at')
-    exit_type = exit_entity.properties.get('type')
+    passage = exit_entity.passage
+    door_at = exit_entity.door_at
 
     # Case 1: No passage - simple exit
     if not passage:
         # For door-type exits, say "go through"; for open exits, use verb_phrase
-        if exit_type == "door":
+        if exit_entity.door_id:
             return f"You go through the {exit_name} to {destination_name}."
         else:
             return f"You {verb_phrase} {exit_name} to {destination_name}."
@@ -221,10 +220,9 @@ def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_entity, dire
         )
 
     # Check for door blocking
-    door_id = exit_entity.properties.get('door_id')
-    if door_id:
+    if exit_entity.door_id:
         # Try door item first (unified model)
-        door_item = accessor.get_door_item(door_id)
+        door_item = accessor.get_door_item(exit_entity.door_id)
         if door_item:
             if not door_item.door_open:
                 return HandlerResult(
@@ -361,13 +359,11 @@ def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_entity, dire
     # Add exit details if available
     if exit_entity.name:
         transition["via_exit_name"] = exit_entity.name
-    # Type is stored in properties for migrated exits
-    exit_type = exit_entity.properties.get('type')
-    if exit_type:
-        transition["via_exit_type"] = exit_type
-    passage = exit_entity.properties.get('passage')
-    if passage:
-        transition["via_passage"] = passage
+    # Exit type determined by presence of door_id
+    exit_type = "door" if exit_entity.door_id else "open"
+    transition["via_exit_type"] = exit_type
+    if exit_entity.passage:
+        transition["via_passage"] = exit_entity.passage
     llm_data["transition"] = transition
 
     return HandlerResult(

@@ -50,8 +50,7 @@ class TestOnEnterEvent(BaseTestCase):
                     location="room1",
                     direction="north",
                     connections=["exit_room2_south"],
-                    description="A simple doorway",
-                    properties={"type": "open"}
+                    description="A simple doorway"
                 ),
                 Exit(
                     id="exit_room2_south",
@@ -59,8 +58,7 @@ class TestOnEnterEvent(BaseTestCase):
                     location="room2",
                     direction="south",
                     connections=["exit_room1_north"],
-                    description="A simple doorway",
-                    properties={"type": "open"}
+                    description="A simple doorway"
                 ),
                 Exit(
                     id="exit_room1_up",
@@ -68,8 +66,7 @@ class TestOnEnterEvent(BaseTestCase):
                     location="room1",
                     direction="up",
                     connections=["exit_room3_down"],
-                    description="A wooden ladder",
-                    properties={"type": "open"}
+                    description="A wooden ladder"
                 ),
                 Exit(
                     id="exit_room3_down",
@@ -77,8 +74,7 @@ class TestOnEnterEvent(BaseTestCase):
                     location="room3",
                     direction="down",
                     connections=["exit_room1_up"],
-                    description="A wooden ladder",
-                    properties={"type": "open"}
+                    description="A wooden ladder"
                 )
             ],
             actors={"player": Actor(
@@ -167,8 +163,7 @@ class TestOnEnterEvent(BaseTestCase):
             location="room1",
             direction="northeast",
             connections=["exit_room2_stairs"],
-            description="Steep stairs",
-            properties={"type": "open"}
+            description="Steep stairs"
         )
         stairs_exit_back = Exit(
             id="exit_room2_stairs",
@@ -176,8 +171,7 @@ class TestOnEnterEvent(BaseTestCase):
             location="room2",
             direction="southwest",
             connections=["exit_room1_stairs"],
-            description="Steep stairs",
-            properties={"type": "open"}
+            description="Steep stairs"
         )
         self.game_state.exits.extend([stairs_exit, stairs_exit_back])
 

@@ -55,6 +55,10 @@ def serialize_location_for_llm(accessor, location, actor_id: ActorId) -> Dict[st
     behavior handler results. All entity serialization uses entity_to_dict()
     from entity_serializer for consistent llm_context handling.
 
+    Exit entities are serialized with type computed from door_id:
+    - If exit.door_id is present, type is "door"
+    - If exit.door_id is None, type is "open"
+
     Args:
         accessor: StateAccessor instance
         location: Location object to serialize
@@ -67,7 +71,7 @@ def serialize_location_for_llm(accessor, location, actor_id: ActorId) -> Dict[st
             "location": {"id": str, "name": str, "llm_context": {...}, ...},
             "items": [{"id": str, "name": str, ...}, ...],
             "doors": [{"id": str, "name": str, "direction": str, ...}, ...],
-            "exits": {"north": {"type": str, "to": str, ...}, ...},
+            "exits": {"north": {"type": "door"|"open", "to": str, "door_id": str?, ...}, ...},
             "actors": [{"id": str, "name": str, ...}, ...]
         }
     """
@@ -131,12 +135,12 @@ def serialize_location_for_llm(accessor, location, actor_id: ActorId) -> Dict[st
     # Serialize doors - pass player_context for perspective_variants
     doors = []
     seen_door_ids = set()
-    for direction, exit_desc in visible_exits.items():
-        # Handle both ExitDescriptor objects and plain strings (backward compatibility)
-        if hasattr(exit_desc, 'door_id') and exit_desc.door_id:
-            door = accessor.get_door_item(exit_desc.door_id)
-            if door and exit_desc.door_id not in seen_door_ids:
-                seen_door_ids.add(exit_desc.door_id)
+    for direction, exit_entity in visible_exits.items():
+        # Check if exit has a door (door_id is direct attribute)
+        if exit_entity.door_id:
+            door = accessor.get_door_item(exit_entity.door_id)
+            if door and exit_entity.door_id not in seen_door_ids:
+                seen_door_ids.add(exit_entity.door_id)
                 door_dict = entity_to_dict(door, player_context=player_context)
                 door_dict["direction"] = direction
                 doors.append(door_dict)
@@ -145,7 +149,6 @@ def serialize_location_for_llm(accessor, location, actor_id: ActorId) -> Dict[st
     # Serialize exits - pass player_context for perspective_variants
     exits = {}
     for direction, exit_entity in visible_exits.items():
-        # Exit entity object
         # Get destination by traversing connections
         destination_id = None
         if exit_entity.connections:
@@ -156,8 +159,11 @@ def serialize_location_for_llm(accessor, location, actor_id: ActorId) -> Dict[st
             except KeyError:
                 pass
 
+        # Compute exit type from door_id (not stored in properties)
+        exit_type = "door" if exit_entity.door_id else "open"
+
         exit_data = {
-            "type": exit_entity.properties.get("type", "passage"),
+            "type": exit_type,
             "to": destination_id
         }
         # Include name and description for LLM narration
@@ -165,9 +171,9 @@ def serialize_location_for_llm(accessor, location, actor_id: ActorId) -> Dict[st
             exit_data["name"] = exit_entity.name
         if exit_entity.description:
             exit_data["description"] = exit_entity.description
-        door_id = exit_entity.properties.get("door_id")
-        if door_id:
-            exit_data["door_id"] = door_id
+        # Include door_id if present (direct attribute)
+        if exit_entity.door_id:
+            exit_data["door_id"] = exit_entity.door_id
         # Include llm_context if present in traits - pass player_context for perspective_variants
         if "llm_context" in exit_entity.traits:
             exit_dict = entity_to_dict(exit_entity, player_context=player_context)

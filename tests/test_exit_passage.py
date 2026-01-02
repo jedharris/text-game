@@ -47,12 +47,9 @@ class TestExitPassageMovementMessages(BaseTestCase):
                     location="library",
                     direction="up",
                     connections=["exit_sanctum_down"],
-                    properties={
-                        "type": "door",
-                        "door_id": "door_sanctum",
-                        "passage": "narrow stone stairs",
-                        "door_at": "library"  # Door at library end
-                    }
+                    door_id="door_sanctum",  # Direct attribute
+                    passage="narrow stone stairs",  # Direct attribute
+                    door_at="library"  # Direct attribute - door at library end
                 ),
                 Exit(
                     id="exit_sanctum_down",
@@ -60,12 +57,9 @@ class TestExitPassageMovementMessages(BaseTestCase):
                     location="sanctum",
                     direction="down",
                     connections=["exit_library_up"],
-                    properties={
-                        "type": "door",
-                        "door_id": "door_sanctum",
-                        "passage": "narrow stone stairs",
-                        "door_at": "library"  # Same door, still at library end
-                    }
+                    door_id="door_sanctum",  # Direct attribute
+                    passage="narrow stone stairs",  # Direct attribute
+                    door_at="library"  # Direct attribute - same door, still at library end
                 )
             ],
             items=[
@@ -85,6 +79,8 @@ class TestExitPassageMovementMessages(BaseTestCase):
                 inventory=[]
             )}
         )
+        _build_whereabouts_index(self.game_state)
+        _build_connection_index(self.game_state)
 
         # Build indices
         _build_whereabouts_index(self.game_state)
@@ -195,6 +191,8 @@ class TestExitPassageMovementMessages(BaseTestCase):
                 inventory=[]
             )}
         )
+        _build_whereabouts_index(state)
+        _build_connection_index(state)
 
         # Build indices
         _build_whereabouts_index(state)

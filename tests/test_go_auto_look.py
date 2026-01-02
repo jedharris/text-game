@@ -104,16 +104,16 @@ class TestGoTransitionContext(SimpleGameTestCase):
             name="archway",
             location="loc_start",
             direction="north",
-            connections=["exit_hallway_south"],
-            properties={"type": "passage"}
+            connections=["exit_hallway_south"]
+            # No door_id, so type will be "open"
         )
         south_exit = Exit(
             id="exit_hallway_south",
             name="archway",
             location="loc_hallway",
             direction="south",
-            connections=["exit_start_north"],
-            properties={"type": "passage"}
+            connections=["exit_start_north"]
+            # No door_id, so type will be "open" (no longer using "passage" type)
         )
         self.game_state.exits.extend([north_exit, south_exit])
 
@@ -127,7 +127,7 @@ class TestGoTransitionContext(SimpleGameTestCase):
         self.assertTrue(result.success)
         transition = result.data["transition"]
         self.assertEqual(transition["via_exit_name"], "archway")
-        self.assertEqual(transition["via_exit_type"], "passage")
+        self.assertEqual(transition["via_exit_type"], "open")  # Type is now "open" or "door"
 
 
 if __name__ == "__main__":

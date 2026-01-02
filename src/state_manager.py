@@ -248,6 +248,10 @@ class Exit:
     Exits are first-class entities with dual participation:
     - Containment space: .location indicates where the exit is accessed from
     - Connection space: .connections indicates what this exit links to
+
+    Exit type ("open" vs "door") is determined by presence of door_id:
+    - If door_id is set, this is a door exit
+    - If door_id is None, this is an open exit
     """
     id: str
     name: str
@@ -255,6 +259,9 @@ class Exit:
     connections: List[str]  # Entity IDs this exit connects to (usually one paired exit)
     direction: Optional[str] = None  # Optional: "north", "south", etc.
     description: str = ""
+    door_id: Optional[str] = None  # Item ID of door blocking this exit (if any)
+    passage: Optional[str] = None  # Traversal structure beyond door (e.g., "narrow stairs")
+    door_at: Optional[str] = None  # Which end the door is at (location ID)
     adjectives: List[str] = field(default_factory=list)
     synonyms: List[str] = field(default_factory=list)
     properties: Dict[str, Any] = field(default_factory=dict)
@@ -1225,6 +1232,9 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
             connections=exit_data.get('connections', []),
             direction=exit_data.get('direction'),
             description=exit_data.get('description', ''),
+            door_id=exit_data.get('door_id'),  # Direct attribute
+            passage=exit_data.get('passage'),  # Direct attribute
+            door_at=exit_data.get('door_at'),  # Direct attribute
             adjectives=exit_data.get('adjectives', []),
             synonyms=exit_data.get('synonyms', []),
             properties=exit_data.get('properties', {}),

@@ -225,8 +225,7 @@ class TestEntityToDictExit(unittest.TestCase):
             location="loc_room",
             direction="north",
             connections=["exit_hallway_south"],
-            description="A worn stone archway leads north.",
-            properties={"type": "open"}
+            description="A worn stone archway leads north."
         )
 
         result = entity_to_dict(exit_entity)
@@ -248,7 +247,6 @@ class TestEntityToDictExit(unittest.TestCase):
             direction="north",
             connections=["exit_hallway_south"],
             description="A worn stone archway.",
-            properties={"type": "open"},
             traits={}  # llm_context would go here when supported
         )
 

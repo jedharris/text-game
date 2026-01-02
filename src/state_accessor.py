@@ -226,7 +226,7 @@ class StateAccessor:
         Get the door item for an exit, if any.
 
         Looks up the exit entity for the given direction and returns
-        the door item referenced by door_id in properties.
+        the door item referenced by door_id (direct attribute).
 
         Args:
             location_id: The location ID
@@ -243,12 +243,11 @@ class StateAccessor:
         if not exit_entity:
             return None
 
-        # Check for door_id in properties
-        door_id = exit_entity.properties.get('door_id')
-        if not door_id:
+        # Check for door_id (direct attribute)
+        if not exit_entity.door_id:
             return None
 
-        return self.get_door_item(door_id)
+        return self.get_door_item(exit_entity.door_id)
 
     def get_part(self, part_id: PartId) -> Optional[Part]:
         """
