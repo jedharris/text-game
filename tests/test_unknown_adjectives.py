@@ -48,6 +48,7 @@ class TestParserUnknownAdjectives(unittest.TestCase):
     def tearDown(self):
         """Clean up temp file."""
         Path(self.vocab_path).unlink()
+        super().tearDown()
 
     def test_single_unknown_word_before_noun_is_adjective(self):
         """Test that single unknown word before noun becomes adjective."""

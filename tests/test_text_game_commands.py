@@ -127,6 +127,7 @@ class TestParserCommands(unittest.TestCase):
     def tearDown(self):
         """Clean up temp file."""
         Path(self.temp_vocab_path).unlink(missing_ok=True)
+        super().tearDown()
 
     def test_look_command_parses(self):
         """Test that 'look' command is recognized."""

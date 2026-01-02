@@ -298,6 +298,30 @@ class BaseTestCase(unittest.TestCase):
         self.game_state = create_test_state()
         self.accessor = StateAccessor(self.game_state, None)
 
+    def tearDown(self):
+        """Clean up test state to prevent module cache pollution."""
+        super().tearDown()
+
+        # Delete references in reverse order of creation
+        # This ensures child objects release parent objects before cleanup
+        for attr in ['accessor', 'behavior_manager', 'game_state']:
+            if hasattr(self, attr):
+                delattr(self, attr)
+
+        # Remove all behaviors.* modules from sys.modules
+        import sys
+        to_remove = [k for k in list(sys.modules.keys())
+                     if k.startswith('behaviors.') or k == 'behaviors']
+        for key in to_remove:
+            del sys.modules[key]
+
+        # Remove game directories from sys.path
+        project_root = Path(__file__).parent.parent
+        for game_name in ['big_game', 'spatial_game', 'extended_game', 'actor_interaction_test']:
+            game_dir = str(project_root / "examples" / game_name)
+            while game_dir in sys.path:
+                sys.path.remove(game_dir)
+
 
 class BehaviorTestCase(unittest.TestCase):
     """
