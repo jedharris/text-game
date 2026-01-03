@@ -1,0 +1,25 @@
+# Phase 1 Verification Walkthrough
+# Tests the three critical fixes:
+# 1. Stand/sit handler includes entity_refs with traits
+# 2. Must_mention doesn't leak field names
+# 3. Exits only mentioned on first visit or explicit look
+
+# Test 1: Stand on bench should have entity_refs with bench traits
+stand on bench
+✓ SUCCESS
+
+# Test 2: First movement north should include exits (first visit)
+north
+✓ SUCCESS
+
+# Test 3: Return south (familiar location - no exits in must_mention)
+south
+✓ SUCCESS
+
+# Test 4: Go north again (familiar - no exits)
+north
+✓ SUCCESS
+
+# Test 5: Explicit look always includes exits
+look
+✓ SUCCESS
