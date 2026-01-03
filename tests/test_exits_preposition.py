@@ -117,6 +117,7 @@ class TestGoThroughPreposition(unittest.TestCase):
     def tearDown(self):
         """Clean up temp vocabulary file."""
         Path(self.vocab_path).unlink()
+        super().tearDown()
 
     def test_go_through_archway_traverses_exit(self):
         """Test 'go through archway' moves player to destination.

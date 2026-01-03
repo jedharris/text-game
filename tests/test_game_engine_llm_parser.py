@@ -4,9 +4,10 @@ import unittest
 from pathlib import Path
 
 from src.game_engine import GameEngine
-from src.shared_mlx import SharedMLXBackend
+from src.shared_mlx import SharedMLXBackend, HAS_MLX
 
 
+@unittest.skipIf(not HAS_MLX, "MLX not available (requires Apple Silicon and mlx-lm package)")
 class TestGameEngineLLMParser(unittest.TestCase):
     """Test that GameEngine can create and use LLM parser."""
 

@@ -3,79 +3,364 @@
 These tests play through actual game scenarios to catch bugs that
 unit tests miss. They test the full stack from command to output.
 
-Each test class runs in its own subprocess for complete isolation,
-avoiding Python module caching issues between test runs.
-
 The tests verify:
 - Magic staircase visibility based on having the magic star
 - Star retrieval puzzle (stand on bench -> climb tree -> take star)
 - Exit descriptions appearing in all locations
 - Full puzzle solution walkthrough
-"""
 
-import subprocess
+Module cleanup in BaseTestCase.tearDown() prevents isolation issues.
+"""
+from src.types import ActorId
+from typing import Any, Dict
+
 import sys
 import unittest
 from pathlib import Path
+from tests.conftest import BaseTestCase
+
+
+# Path to spatial_game - must be absolute before importing game modules
+SPATIAL_GAME_DIR = (Path(__file__).parent.parent / 'examples' / 'spatial_game').resolve()
+PROJECT_ROOT = Path(__file__).parent.parent.resolve()
+
+
+def get_result_message(result: Dict[str, Any]) -> str:
+    """
+    Extract message text from result, handling both old and new formats.
+
+    New format (Phase 4): result["narration"]["primary_text"]
+    Old format: result["message"] or result["error"]["message"]
+
+    For the new format, also concatenates secondary_beats.
+    """
+    # New format: NarrationResult
+    if "narration" in result:
+        narration = result["narration"]
+        parts = [narration.get("primary_text", "")]
+        if "secondary_beats" in narration:
+            parts.extend(narration["secondary_beats"])
+        return "\n".join(parts)
+
+    # Old format - success case
+    if result.get("success") and "message" in result:
+        return result["message"]
+
+    # Old format - error case
+    if "error" in result and "message" in result["error"]:
+        return result["error"]["message"]
+
+    return result.get("message", "")
+
+
+# No need for _setup_paths() - GameEngine handles sys.path manipulation
+# and BaseTestCase.tearDown() handles cleanup
 
 try:
-    import wx
-    WX_AVAILABLE = True
-except ModuleNotFoundError:
-    WX_AVAILABLE = False
-    wx = None  # noqa: F841 - imported for availability check
+    from src.game_engine import GameEngine
+    from src.text_game import format_command_result
+    WX_TEXT_GAME_AVAILABLE = True
+except ModuleNotFoundError as exc:
+    if exc.name == "wx":
+        WX_TEXT_GAME_AVAILABLE = False
+        GameEngine = None  # type: ignore[assignment,misc]
+        format_command_result = None  # type: ignore[assignment]
+    else:
+        raise
 
 
-# Path to the project root
-PROJECT_ROOT = Path(__file__).parent.parent
+@unittest.skipUnless(WX_TEXT_GAME_AVAILABLE, "wxPython not installed")
+class TestMagicStaircaseVisibility(BaseTestCase):
+    """Test the magic staircase visibility puzzle in spatial_game."""
+
+    def setUp(self):
+        """Set up spatial_game engine."""
+        self.engine = GameEngine(SPATIAL_GAME_DIR)
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
+
+    def _execute(self, verb, obj=None):
+        """Execute a command and return the response."""
+        action = {"verb": verb}
+        if obj:
+            action["object"] = obj
+        return self.engine.json_handler.handle_message({
+            "type": "command",
+            "action": action
+        })
+
+    def _look(self):
+        """Execute look and return formatted output."""
+        response = self._execute("look")
+        return format_command_result(response)
+
+    def test_staircase_hidden_without_star(self):
+        """Staircase should not appear in tower entrance without the star."""
+        self.player.location = 'loc_tower_entrance'
+        self.player.inventory = []
+
+        output = self._look()
+
+        self.assertIn("garden archway (south)", output)
+        self.assertIn("wooden door (east)", output)
+        self.assertNotIn("spiral staircase", output)
+        self.assertNotIn("up", output.split("Exits:")[1] if "Exits:" in output else "")
+
+    def test_staircase_visible_with_star(self):
+        """Staircase should appear in tower entrance when player has the star."""
+        self.player.location = 'loc_tower_entrance'
+        self.player.inventory = ['item_magic_star']
+
+        output = self._look()
+
+        self.assertIn("spiral staircase (up)", output)
+        self.assertIn("garden archway (south)", output)
+        self.assertIn("wooden door (east)", output)
+
+    def test_cannot_go_up_without_star(self):
+        """Player should not be able to go up without the star."""
+        self.player.location = 'loc_tower_entrance'
+        self.player.inventory = []
+
+        response = self._execute("up")
+
+        self.assertFalse(response.get("success"))
+        self.assertEqual(self.player.location, 'loc_tower_entrance')
+
+    def test_can_go_up_with_star(self):
+        """Player should be able to go up with the star."""
+        self.player.location = 'loc_tower_entrance'
+        self.player.inventory = ['item_magic_star']
+
+        response = self._execute("up")
+
+        self.assertTrue(response.get("success"))
+        self.assertEqual(self.player.location, 'loc_library')
 
 
-@unittest.skipUnless(WX_AVAILABLE, "wxPython not installed")
-class TestSpatialGameScenarios(unittest.TestCase):
-    """Run spatial_game scenario tests in isolated subprocesses."""
+@unittest.skipUnless(WX_TEXT_GAME_AVAILABLE, "wxPython not installed")
+class TestMagicStarPuzzle(BaseTestCase):
+    """Test the magic star retrieval puzzle."""
 
-    def _run_test_class(self, class_name: str) -> subprocess.CompletedProcess:
-        """Run a single test class in a subprocess."""
-        return subprocess.run(
-            [
-                sys.executable,
-                '-m', 'unittest',
-                f'tests._spatial_game_scenarios_impl.{class_name}',
-                '-v'
-            ],
-            capture_output=True,
-            text=True,
-            cwd=PROJECT_ROOT
-        )
+    def setUp(self):
+        """Set up spatial_game engine."""
+        self.engine = GameEngine(SPATIAL_GAME_DIR)
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
+        # Start in garden where the tree and bench are
+        self.player.location = 'loc_garden'
 
-    def test_magic_staircase_visibility(self):
-        """Test the magic staircase visibility puzzle."""
-        result = self._run_test_class('TestMagicStaircaseVisibility')
-        if result.returncode != 0:
-            print(result.stderr)
-        self.assertEqual(result.returncode, 0, f"Tests failed:\n{result.stderr}")
+    def _execute(self, verb, obj=None):
+        """Execute a command and return the response."""
+        from src.word_entry import WordEntry, WordType
+        action = {"verb": verb}
+        if obj:
+            if isinstance(obj, str):
+                action["object"] = WordEntry(obj, {WordType.NOUN}, [])
+            else:
+                action["object"] = obj
+        return self.engine.json_handler.handle_message({
+            "type": "command",
+            "action": action
+        })
 
-    def test_magic_star_puzzle(self):
-        """Test the magic star retrieval puzzle."""
-        result = self._run_test_class('TestMagicStarPuzzle')
-        if result.returncode != 0:
-            print(result.stderr)
-        self.assertEqual(result.returncode, 0, f"Tests failed:\n{result.stderr}")
+    def _get_message(self, response):
+        """Get message from response (handles both success and error formats).
 
-    def test_exit_descriptions(self):
-        """Test that exits are properly displayed in all locations."""
-        result = self._run_test_class('TestExitDescriptions')
-        if result.returncode != 0:
-            print(result.stderr)
-        self.assertEqual(result.returncode, 0, f"Tests failed:\n{result.stderr}")
+        Updated for Phase 4 (Narration API) to handle NarrationResult format.
+        """
+        # New format: NarrationResult with narration.primary_text
+        if "narration" in response:
+            narration = response["narration"]
+            parts = [narration.get("primary_text", "")]
+            if "secondary_beats" in narration:
+                parts.extend(narration["secondary_beats"])
+            return "\n".join(parts)
 
-    def test_full_puzzle_solution(self):
-        """Test playing through the complete star/staircase puzzle."""
-        result = self._run_test_class('TestFullPuzzleSolution')
-        if result.returncode != 0:
-            print(result.stderr)
-        self.assertEqual(result.returncode, 0, f"Tests failed:\n{result.stderr}")
+        # Old format
+        if response.get("success"):
+            return get_result_message(response)
+        else:
+            return get_result_message(response)
+
+    def test_cannot_take_star_from_ground(self):
+        """Cannot take star directly from ground - it's in the tree."""
+        response = self._execute("take", "star")
+
+        self.assertFalse(response.get("success"))
+        self.assertIn("tree", self._get_message(response).lower())
+
+    def test_cannot_climb_tree_from_ground(self):
+        """Cannot climb tree directly from ground - need to stand on bench."""
+        response = self._execute("climb", "tree")
+
+        self.assertFalse(response.get("success"))
+        self.assertIn("stand on", self._get_message(response).lower())
+
+    def test_can_stand_on_bench(self):
+        """Can stand on the bench."""
+        response = self._execute("stand", "bench")
+
+        self.assertTrue(response.get("success"))
+        self.assertEqual(self.player.properties.get("posture"), "on_surface")
+        self.assertEqual(self.player.properties.get("focused_on"), "item_garden_bench")
+
+    def test_can_climb_tree_from_bench(self):
+        """Can climb tree when standing on bench."""
+        # First stand on bench
+        self._execute("stand", "bench")
+
+        # Now climb tree
+        response = self._execute("climb", "tree")
+
+        self.assertTrue(response.get("success"))
+        self.assertEqual(self.player.properties.get("posture"), "climbing")
+        self.assertEqual(self.player.properties.get("focused_on"), "item_tree")
+
+    def test_can_take_star_when_climbing_tree(self):
+        """Can take star when climbing the tree."""
+        # Stand on bench
+        self._execute("stand", "bench")
+        # Climb tree
+        self._execute("climb", "tree")
+
+        # Take star
+        response = self._execute("take", "star")
+
+        self.assertTrue(response.get("success"))
+        self.assertIn("item_magic_star", self.player.inventory)
+
+    def test_dropped_star_can_be_picked_up_normally(self):
+        """Star dropped elsewhere can be picked up without climbing."""
+        # Give player the star and drop it
+        self.player.inventory = ['item_magic_star']
+        star = next(i for i in self.engine.game_state.items if i.id == 'item_magic_star')
+        star.location = 'loc_garden'  # On ground, not in tree
+        self.player.inventory = []
+
+        # Should be able to take it normally
+        response = self._execute("take", "star")
+
+        self.assertTrue(response.get("success"))
+        self.assertIn("item_magic_star", self.player.inventory)
+
+
+@unittest.skipUnless(WX_TEXT_GAME_AVAILABLE, "wxPython not installed")
+class TestExitDescriptions(BaseTestCase):
+    """Test that exits are properly displayed in all locations."""
+
+    def setUp(self):
+        """Set up spatial_game engine."""
+        self.engine = GameEngine(SPATIAL_GAME_DIR)
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
+
+    def _look(self):
+        """Execute look and return formatted output."""
+        response = self.engine.json_handler.handle_message({
+            "type": "command",
+            "action": {"verb": "look"}
+        })
+        return format_command_result(response)
+
+    def test_garden_shows_exits(self):
+        """Garden should show exit to tower entrance."""
+        self.player.location = 'loc_garden'
+
+        output = self._look()
+
+        self.assertIn("Exits:", output)
+        self.assertIn("stone path (north)", output)
+
+    def test_storage_shows_exits(self):
+        """Storage room should show exit back to entrance."""
+        self.player.location = 'loc_storage'
+
+        output = self._look()
+
+        self.assertIn("Exits:", output)
+        self.assertIn("wooden door (west)", output)
+
+    def test_library_shows_exits(self):
+        """Library should show exits up and down."""
+        self.player.location = 'loc_library'
+
+        output = self._look()
+
+        self.assertIn("Exits:", output)
+        self.assertIn("spiral staircase (down)", output)
+        self.assertIn("ornate door (up)", output)
+
+
+@unittest.skipUnless(WX_TEXT_GAME_AVAILABLE, "wxPython not installed")
+class TestFullPuzzleSolution(BaseTestCase):
+    """Test playing through the complete star/staircase puzzle."""
+
+    def setUp(self):
+        """Set up spatial_game engine."""
+        self.engine = GameEngine(SPATIAL_GAME_DIR)
+        self.player = self.engine.game_state.get_actor(ActorId('player'))
+        # Start in garden (the default start location)
+        self.player.location = 'loc_garden'
+
+    def _execute(self, verb, obj=None):
+        """Execute a command and return the response."""
+        from src.word_entry import WordEntry, WordType
+        action = {"verb": verb}
+        if obj:
+            if isinstance(obj, str):
+                action["object"] = WordEntry(obj, {WordType.NOUN}, [])
+            else:
+                action["object"] = obj
+        return self.engine.json_handler.handle_message({
+            "type": "command",
+            "action": action
+        })
+
+    def test_complete_puzzle_solution(self):
+        """Play through the complete puzzle: get star, reveal staircase, reach library."""
+        # 1. Go north to tower entrance
+        response = self._execute("north")
+        self.assertTrue(response.get("success"))
+        self.assertEqual(self.player.location, 'loc_tower_entrance')
+
+        # 2. Verify staircase is hidden
+        look_response = self._execute("look")
+        self.assertNotIn("spiral staircase", get_result_message(look_response))
+
+        # 3. Go back south to garden
+        response = self._execute("south")
+        self.assertTrue(response.get("success"))
+        self.assertEqual(self.player.location, 'loc_garden')
+
+        # 4. Stand on bench
+        response = self._execute("stand", "bench")
+        self.assertTrue(response.get("success"))
+
+        # 5. Climb tree
+        response = self._execute("climb", "tree")
+        self.assertTrue(response.get("success"))
+
+        # 6. Take star
+        response = self._execute("take", "star")
+        self.assertTrue(response.get("success"))
+        self.assertIn("item_magic_star", self.player.inventory)
+
+        # 7. Get down from tree
+        response = self._execute("down")
+        self.assertTrue(response.get("success"))
+
+        # 8. Go north to tower entrance
+        response = self._execute("north")
+        self.assertTrue(response.get("success"))
+        self.assertEqual(self.player.location, 'loc_tower_entrance')
+
+        # 9. Verify staircase is now visible
+        look_response = self._execute("look")
+        self.assertIn("spiral staircase", get_result_message(look_response))
+
+        # 10. Go up the staircase
+        response = self._execute("up")
+        self.assertTrue(response.get("success"))
+        self.assertEqual(self.player.location, 'loc_library')
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(verbosity=2)

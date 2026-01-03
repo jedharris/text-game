@@ -8,10 +8,11 @@ from pathlib import Path
 from typing import Dict, List
 
 from src.game_engine import GameEngine
-from src.shared_mlx import SharedMLXBackend
+from src.shared_mlx import SharedMLXBackend, HAS_MLX
 from src.llm_command_parser import LLMCommandParser
 
 
+@unittest.skipIf(not HAS_MLX, "MLX not available (requires Apple Silicon and mlx-lm package)")
 class TestLLMCommandParser(unittest.TestCase):
     """Test LLM command parser with real big_game."""
 

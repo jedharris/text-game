@@ -88,6 +88,7 @@ class TestFileDialogsHeadless(unittest.TestCase):
         # Stop any headless patches
         for patcher in reversed(getattr(self, "_patchers", [])):
             patcher.stop()
+        super().tearDown()
 
     @patch('wx.FileDialog.ShowModal')
     @patch('wx.FileDialog.GetPath')
@@ -509,6 +510,7 @@ class TestFileDialogErrorHandling(unittest.TestCase):
             self.app = None
         for patcher in reversed(getattr(self, "_patchers", [])):
             patcher.stop()
+        super().tearDown()
 
     @patch('wx.FileDialog.ShowModal')
     def test_dialog_exception_handling(self, mock_show_modal):

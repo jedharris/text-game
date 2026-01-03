@@ -9,11 +9,20 @@ import logging
 import os
 from typing import Tuple, Any
 
-import mlx.core as mx
-from mlx_lm import load
-from mlx_lm.models.cache import make_prompt_cache
-
 logger = logging.getLogger(__name__)
+
+# Check for MLX-LM availability
+try:
+    import mlx.core as mx
+    from mlx_lm import load
+    from mlx_lm.models.cache import make_prompt_cache
+    HAS_MLX = True
+except ImportError:
+    HAS_MLX = False
+    # Define dummy types for type checking when MLX not available
+    mx = None  # type: ignore
+    load = None  # type: ignore
+    make_prompt_cache = None  # type: ignore
 
 
 class SharedMLXBackend:
@@ -42,6 +51,12 @@ class SharedMLXBackend:
             ImportError: If mlx-lm is not installed
             Exception: If model loading fails
         """
+        if not HAS_MLX:
+            raise ImportError(
+                "MLX framework not available. Install with: pip install mlx-lm\n"
+                "Note: MLX requires Apple Silicon (M1/M2/M3)"
+            )
+
         self.model_path = model_path
 
         logger.info(f"Loading shared MLX model: {model_path}")

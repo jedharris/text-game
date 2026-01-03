@@ -21,10 +21,6 @@ from typing import Dict, Any, Optional
 from src.state_accessor import StateAccessor
 
 
-# Mock the mlx_lm import for testing
-sys.modules['mlx_lm'] = MagicMock()
-
-
 class MockMLXNarrator:
     """Narrator with mocked MLX responses for testing.
 
