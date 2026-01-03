@@ -8,6 +8,10 @@ from pathlib import Path
 # This function will be injected into every test module's namespace
 def _cleanup_test_module():
     """Clean up module cache pollution after all tests in a module complete."""
+    import sys
+    # DEBUG: Print when cleanup runs
+    # print(f"\n[CLEANUP] Running for current test module", file=sys.stderr)
+
     # Remove all behaviors.*, behavior_libraries.*, and examples.* modules from sys.modules
     # This includes both successfully imported modules and failed import attempts
     to_remove = [k for k in list(sys.modules.keys())
@@ -16,6 +20,17 @@ def _cleanup_test_module():
                     k.startswith('examples.') or k == 'examples']
     for key in to_remove:
         del sys.modules[key]
+
+    # Remove mlx_lm mocks (tests/llm_interaction/test_mlx_narrator.py sets sys.modules['mlx_lm'] = MagicMock())
+    # Also remove any mlx_lm.* submodules that might have been affected
+    mlx_modules_to_remove = [k for k in list(sys.modules.keys())
+                             if k == 'mlx_lm' or k.startswith('mlx_lm.')]
+    for key in mlx_modules_to_remove:
+        # Only remove if it's a MagicMock, not the real package
+        if key in sys.modules:
+            from unittest.mock import MagicMock
+            if isinstance(sys.modules[key], MagicMock):
+                del sys.modules[key]
 
     # Remove game directories from sys.path
     project_root = Path(__file__).parent.parent

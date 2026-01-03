@@ -346,10 +346,11 @@ class BaseTestCase(unittest.TestCase):
             if hasattr(self, attr):
                 delattr(self, attr)
 
-        # Remove all behaviors.* modules from sys.modules
+        # Remove all behaviors.* and examples.*.behaviors.* modules from sys.modules
         import sys
         to_remove = [k for k in list(sys.modules.keys())
-                     if k.startswith('behaviors.') or k == 'behaviors']
+                     if k.startswith('behaviors.') or k == 'behaviors' or
+                        k.startswith('examples.') or k == 'examples']
         for key in to_remove:
             del sys.modules[key]
 

@@ -85,15 +85,17 @@ class TestLLMParserAdapter(unittest.TestCase):
         # Adapter should reject unknown verb
         self.assertIsNone(result)
 
-    def test_hallucinated_object_returns_none_object(self):
-        """Hallucinated object creates command but with None object."""
+    def test_hallucinated_object_creates_word_entry(self):
+        """Hallucinated simple word creates WordEntry for dialogue topic support."""
         parser_output = self._make_parser_output("take", "unicorn")
         result = self.adapter.to_parsed_command(parser_output, "take unicorn")
 
-        # Adapter returns ParsedCommand, but direct_object is None
+        # Adapter returns ParsedCommand with a WordEntry for unknown simple words
+        # This allows dialogue topics and other dynamic content to work
         self.assertIsNotNone(result)
         self.assertIsNotNone(result.verb)
-        self.assertIsNone(result.direct_object)  # Not in vocabulary
+        self.assertIsNotNone(result.direct_object)  # Created for dialogue topic support
+        self.assertEqual(result.direct_object.word, "unicorn")
 
     def test_use_on_command(self):
         """Convert 'use X on Y' command."""

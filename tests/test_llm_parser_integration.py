@@ -8,12 +8,13 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from src.game_engine import GameEngine
-from src.shared_mlx import SharedMLXBackend
+from src.shared_mlx import SharedMLXBackend, HAS_MLX
 from src.llm_command_parser import LLMCommandParser
 from src.llm_parser_adapter import LLMParserAdapter
 from src.parsed_command import ParsedCommand
 
 
+@unittest.skipIf(not HAS_MLX, "MLX not available (requires Apple Silicon and mlx-lm package)")
 class TestLLMParserIntegration(unittest.TestCase):
     """Test full LLM parser + adapter integration with real big_game."""
 

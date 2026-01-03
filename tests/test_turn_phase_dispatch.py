@@ -31,6 +31,10 @@ class TestCommitmentTurnPhase(unittest.TestCase):
 
     def setUp(self):
         """Create minimal game state with commitment."""
+        # Ensure big_game is in sys.path (might have been removed by previous test cleanup)
+        if str(BIG_GAME_DIR) not in sys.path:
+            sys.path.insert(0, str(BIG_GAME_DIR))
+
         self.game_state = GameState(
             metadata={"title": "Test", "version": "0.1.2"},
             locations=[
@@ -84,6 +88,16 @@ class TestCommitmentTurnPhase(unittest.TestCase):
         behaviors_dir = Path(__file__).parent.parent / "examples" / "big_game" / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
+
+    def tearDown(self):
+        """Clean up behavior manager and module cache."""
+        # Remove behavior modules from sys.modules to prevent cross-test pollution
+        import sys
+        to_remove = [k for k in list(sys.modules.keys())
+                     if k.startswith('behaviors.') or k == 'behaviors' or
+                        k.startswith('examples.big_game.behaviors')]
+        for key in to_remove:
+            del sys.modules[key]
 
     def test_commitment_not_expired(self):
         """Commitment before deadline should return None feedback."""
@@ -157,6 +171,10 @@ class TestScheduledEventTurnPhase(unittest.TestCase):
 
     def setUp(self):
         """Create minimal game state with scheduled events."""
+        # Ensure big_game is in sys.path (might have been removed by previous test cleanup)
+        if str(BIG_GAME_DIR) not in sys.path:
+            sys.path.insert(0, str(BIG_GAME_DIR))
+
         self.game_state = GameState(
             metadata={"title": "Test", "version": "0.1.2"},
             locations=[
@@ -211,6 +229,15 @@ class TestScheduledEventTurnPhase(unittest.TestCase):
         behaviors_dir = Path(__file__).parent.parent / "examples" / "big_game" / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
+
+    def tearDown(self):
+        """Clean up behavior manager and module cache."""
+        import sys
+        to_remove = [k for k in list(sys.modules.keys())
+                     if k.startswith('behaviors.') or k == 'behaviors' or
+                        k.startswith('examples.big_game.behaviors')]
+        for key in to_remove:
+            del sys.modules[key]
 
     def test_event_not_triggered(self):
         """Event before trigger turn should return None feedback."""
@@ -269,6 +296,10 @@ class TestGossipTurnPhase(unittest.TestCase):
 
     def setUp(self):
         """Create minimal game state with gossip."""
+        # Ensure big_game is in sys.path (might have been removed by previous test cleanup)
+        if str(BIG_GAME_DIR) not in sys.path:
+            sys.path.insert(0, str(BIG_GAME_DIR))
+
         self.game_state = GameState(
             metadata={"title": "Test", "version": "0.1.2"},
             locations=[
@@ -314,6 +345,15 @@ class TestGossipTurnPhase(unittest.TestCase):
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
 
+    def tearDown(self):
+        """Clean up behavior manager and module cache."""
+        import sys
+        to_remove = [k for k in list(sys.modules.keys())
+                     if k.startswith('behaviors.') or k == 'behaviors' or
+                        k.startswith('examples.big_game.behaviors')]
+        for key in to_remove:
+            del sys.modules[key]
+
     def test_gossip_not_arrived(self):
         """Gossip before arrival should return None feedback."""
         from examples.big_game.behaviors.shared.infrastructure.gossip import (
@@ -353,6 +393,10 @@ class TestSpreadTurnPhase(unittest.TestCase):
 
     def setUp(self):
         """Create minimal game state with spread."""
+        # Ensure big_game is in sys.path (might have been removed by previous test cleanup)
+        if str(BIG_GAME_DIR) not in sys.path:
+            sys.path.insert(0, str(BIG_GAME_DIR))
+
         self.game_state = GameState(
             metadata={"title": "Test", "version": "0.1.2"},
             locations=[
@@ -416,6 +460,15 @@ class TestSpreadTurnPhase(unittest.TestCase):
         behaviors_dir = Path(__file__).parent.parent / "examples" / "big_game" / "behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
+
+    def tearDown(self):
+        """Clean up behavior manager and module cache."""
+        import sys
+        to_remove = [k for k in list(sys.modules.keys())
+                     if k.startswith('behaviors.') or k == 'behaviors' or
+                        k.startswith('examples.big_game.behaviors')]
+        for key in to_remove:
+            del sys.modules[key]
 
     def test_spread_before_milestone(self):
         """Spread before milestone should return None feedback."""

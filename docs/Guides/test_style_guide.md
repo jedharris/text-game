@@ -803,6 +803,275 @@ Don't use subprocess isolation for:
 
 ---
 
+## Avoiding sys.path and Module Cache Pollution
+
+### The Problem
+
+Tests that manipulate `sys.path` at module level (when the file is imported) create **timing-dependent failures** that are difficult to diagnose:
+
+1. During test discovery, Python imports all test modules (module-level code runs once)
+2. Test A runs, adds game directory to `sys.path` in `setUp`
+3. Test A completes, cleanup removes game directory from `sys.path`
+4. Test B runs, but its module-level imports already ran during discovery (step 1)
+5. Test B's `setUp` tries to load behaviors, but game directory is not in `sys.path`
+6. Imports fail silently, behaviors don't register, tests fail with cryptic errors
+
+### Rules to Prevent Pollution
+
+#### Rule 1: Never Rely on Module-Level sys.path Manipulation
+
+**❌ BAD - Module-level sys.path setup:**
+```python
+# At top of test file
+import sys
+from pathlib import Path
+
+# This only runs during test discovery, not during setUp!
+BIG_GAME_DIR = Path(__file__).parent.parent / 'examples' / 'big_game'
+sys.path.insert(0, str(BIG_GAME_DIR))
+
+from src.game_engine import GameEngine
+
+class TestMyFeature(unittest.TestCase):
+    def setUp(self):
+        # Problem: If previous test removed BIG_GAME_DIR from sys.path,
+        # this will fail to load behaviors because the module-level
+        # sys.path modification above won't run again
+        self.engine = GameEngine(BIG_GAME_DIR)
+```
+
+**✅ GOOD - Restore sys.path in setUp:**
+```python
+import sys
+from pathlib import Path
+import unittest
+
+BIG_GAME_DIR = Path(__file__).parent.parent / 'examples' / 'big_game'
+
+class TestMyFeature(unittest.TestCase):
+    def setUp(self):
+        # Restore sys.path every time setUp runs
+        # This ensures the path is available even if cleanup removed it
+        if str(BIG_GAME_DIR) not in sys.path:
+            sys.path.insert(0, str(BIG_GAME_DIR))
+
+        self.engine = GameEngine(BIG_GAME_DIR)
+
+    def tearDown(self):
+        # Clean up sys.path
+        while str(BIG_GAME_DIR) in sys.path:
+            sys.path.remove(str(BIG_GAME_DIR))
+```
+
+**✅ BEST - Use subprocess isolation:**
+```python
+# For tests that need game-specific behaviors, use the two-file
+# subprocess isolation pattern (see "When to Use Subprocess Isolation" above)
+```
+
+#### Rule 2: Never Use Module-Level Mocks
+
+**❌ BAD - Module-level mock:**
+```python
+# At top of test file
+from unittest.mock import MagicMock
+import sys
+
+# This pollutes sys.modules for ALL subsequent tests!
+sys.modules['mlx_lm'] = MagicMock()
+
+class TestMyFeature(unittest.TestCase):
+    def test_something(self):
+        # Tests using real mlx_lm will fail because sys.modules
+        # has a MagicMock instead of the real package
+        pass
+```
+
+**✅ GOOD - Mock in setUp/tearDown:**
+```python
+from unittest.mock import MagicMock, patch
+import sys
+
+class TestMyFeature(unittest.TestCase):
+    def setUp(self):
+        # Mock only for this test
+        self.mlx_mock = MagicMock()
+        sys.modules['mlx_lm'] = self.mlx_mock
+
+    def tearDown(self):
+        # Clean up mock
+        if 'mlx_lm' in sys.modules:
+            if isinstance(sys.modules['mlx_lm'], MagicMock):
+                del sys.modules['mlx_lm']
+```
+
+**✅ BETTER - Use patch decorator:**
+```python
+from unittest.mock import patch
+
+class TestMyFeature(unittest.TestCase):
+    @patch('module_under_test.mlx_lm')
+    def test_something(self, mock_mlx):
+        # Mock automatically cleaned up after test
+        pass
+```
+
+#### Rule 3: Always Clean Up sys.path in tearDown
+
+**❌ BAD - No cleanup:**
+```python
+class TestMyFeature(unittest.TestCase):
+    def setUp(self):
+        sys.path.insert(0, str(GAME_DIR))
+
+    # No tearDown - GAME_DIR stays in sys.path forever!
+```
+
+**✅ GOOD - Clean up in tearDown:**
+```python
+class TestMyFeature(unittest.TestCase):
+    def setUp(self):
+        if str(GAME_DIR) not in sys.path:
+            sys.path.insert(0, str(GAME_DIR))
+
+    def tearDown(self):
+        # Remove all occurrences (use while loop in case duplicates)
+        while str(GAME_DIR) in sys.path:
+            sys.path.remove(str(GAME_DIR))
+```
+
+#### Rule 4: Use BaseTestCase or Add Explicit Cleanup
+
+**✅ GOOD - BaseTestCase handles cleanup:**
+```python
+from tests.conftest import BaseTestCase
+
+class TestMyFeature(BaseTestCase):
+    def setUp(self):
+        super().setUp()  # Automatically cleans up module cache
+        # Your test setup
+```
+
+**✅ GOOD - Explicit module cache cleanup:**
+```python
+class TestMyFeature(unittest.TestCase):
+    def tearDown(self):
+        import sys
+        # Remove behavior modules that might have been imported
+        to_remove = [k for k in list(sys.modules.keys())
+                     if k.startswith('behaviors.') or k == 'behaviors' or
+                        k.startswith('examples.') or k == 'examples']
+        for key in to_remove:
+            del sys.modules[key]
+```
+
+#### Rule 5: Test in Combination, Not Just Isolation
+
+When debugging test failures:
+
+**❌ BAD - Only test individually:**
+```bash
+# This test passes alone
+python -m unittest tests.test_my_feature -v
+# Declare success!
+```
+
+**✅ GOOD - Test both ways:**
+```bash
+# Test individually
+python -m unittest tests.test_my_feature -v
+
+# Test in full suite (catches pollution)
+python -m unittest discover -s tests -v
+
+# Test after specific other test (if suspected pollution)
+python -m unittest tests.test_thermal_shock tests.test_my_feature -v
+```
+
+### Common Symptoms
+
+If you see these symptoms, check for sys.path or module cache pollution:
+
+1. **Test passes individually, fails in discovery**
+   - Cause: Module cache or sys.path pollution from previous tests
+   - Fix: Add sys.path restoration in `setUp`, clean up in `tearDown`
+
+2. **ImportError: No module named 'behaviors.xxx'**
+   - Cause: Game directory removed from sys.path by previous test cleanup
+   - Fix: Restore sys.path in `setUp` method (not at module level!)
+
+3. **AttributeError: 'MagicMock' object has no attribute 'xxx'**
+   - Cause: Module-level mock polluting sys.modules
+   - Fix: Move mock to setUp/tearDown or use @patch decorator
+
+4. **result.feedback is None (handlers not registered)**
+   - Cause: Behavior module imports failed silently, handlers didn't register
+   - Fix: Add sys.path restoration in `setUp`, check BehaviorManager logs
+
+5. **Wrong behavior implementation runs**
+   - Cause: sys.modules cached wrong behavior module from previous test
+   - Fix: Clean up sys.modules in tearDown, or use subprocess isolation
+
+### Debugging Checklist
+
+When investigating context-dependent test failures:
+
+1. **Verify the failure is context-dependent:**
+   ```bash
+   # Run test alone
+   python -m unittest tests.test_foo::TestClass::test_method -v
+
+   # Run test in discovery
+   python -m unittest discover -s tests -v
+   ```
+
+2. **Find which test pollutes the context:**
+   ```bash
+   # Run suspected polluter followed by failing test
+   python -m unittest tests.test_thermal_shock tests.test_foo -v
+   ```
+
+3. **Check sys.path manipulation:**
+   - Search for `sys.path.insert` or `sys.path.append` in test file
+   - Verify it's in `setUp` (not module level)
+   - Verify cleanup in `tearDown`
+
+4. **Check module-level mocks:**
+   - Search for `sys.modules[` at module level
+   - Move to `setUp/tearDown` or use `@patch`
+
+5. **Check module cache cleanup:**
+   - Verify test inherits from BaseTestCase, or
+   - Verify test has explicit tearDown that cleans sys.modules
+
+6. **Consider subprocess isolation:**
+   - If test uses GameEngine with game-specific behaviors
+   - Run `python tools/find_isolation_candidates.py` to check
+
+### Real-World Example
+
+From the test suite cleanup (January 2026):
+
+**Problem:** `test_turn_phase_dispatch.py` failed after `test_thermal_shock.py` ran:
+- test_thermal_shock completed, tearDown removed big_game from sys.path
+- test_turn_phase_dispatch had module-level constants (lines 13-15) that ran during discovery
+- test_turn_phase_dispatch setUp tried to load behaviors, but big_game was not in sys.path
+- BehaviorManager silently caught ImportError, handlers didn't register
+- Tests failed with `result.feedback is None`
+
+**Solution:** Added sys.path restoration in setUp for all 4 test classes in [test_turn_phase_dispatch.py](../../tests/test_turn_phase_dispatch.py):
+```python
+def setUp(self):
+    # Ensure big_game is in sys.path (might have been removed by previous test cleanup)
+    if str(BIG_GAME_DIR) not in sys.path:
+        sys.path.insert(0, str(BIG_GAME_DIR))
+
+    # Now setUp can safely load behaviors
+    self.game_state = GameState(...)
+```
+
+---
+
 ## Migration Strategy
 
 When updating existing tests:
