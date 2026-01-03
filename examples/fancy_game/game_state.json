@@ -711,8 +711,7 @@
       "adjectives": [],
       "synonyms": [],
       "properties": {
-        "type": "door",
-        "door_id": "door_wooden"
+        "type": "door"
       },
       "behaviors": [],
       "traits": {
@@ -750,7 +749,8 @@
             "door_closed": "The wooden door blocks the passage north."
           }
         }
-      }
+      },
+      "door_id": "door_wooden"
     },
     {
       "id": "exit_loc_hallway_up",
@@ -817,8 +817,7 @@
       "adjectives": [],
       "synonyms": [],
       "properties": {
-        "type": "door",
-        "door_id": "door_treasure"
+        "type": "door"
       },
       "behaviors": [],
       "traits": {
@@ -857,7 +856,8 @@
             "door_open": "The grand frame now welcomes entry to the treasures beyond."
           }
         }
-      }
+      },
+      "door_id": "door_treasure"
     },
     {
       "id": "exit_loc_hallway_south",
@@ -871,8 +871,7 @@
       "adjectives": [],
       "synonyms": [],
       "properties": {
-        "type": "door",
-        "door_id": "door_wooden"
+        "type": "door"
       },
       "behaviors": [],
       "traits": {
@@ -910,7 +909,8 @@
             "door_closed": "The wooden door bars the way back."
           }
         }
-      }
+      },
+      "door_id": "door_wooden"
     },
     {
       "id": "exit_loc_tower_down",
@@ -977,8 +977,7 @@
       "adjectives": [],
       "synonyms": [],
       "properties": {
-        "type": "door",
-        "door_id": "door_treasure"
+        "type": "door"
       },
       "behaviors": [],
       "traits": {
@@ -1016,7 +1015,8 @@
             "door_closed": "The heavy iron door seals the treasure room."
           }
         }
-      }
+      },
+      "door_id": "door_treasure"
     }
   ]
 }

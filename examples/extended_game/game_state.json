@@ -355,11 +355,11 @@
       "adjectives": [],
       "synonyms": [],
       "properties": {
-        "type": "door",
-        "door_id": "door_storage"
+        "type": "door"
       },
       "behaviors": [],
-      "traits": {}
+      "traits": {},
+      "door_id": "door_storage"
     },
     {
       "id": "exit_loc_library_up",
@@ -373,11 +373,11 @@
       "adjectives": [],
       "synonyms": [],
       "properties": {
-        "type": "door",
-        "door_id": "door_sanctum"
+        "type": "door"
       },
       "behaviors": [],
-      "traits": {}
+      "traits": {},
+      "door_id": "door_sanctum"
     },
     {
       "id": "exit_loc_tower_entrance_south",
@@ -425,11 +425,11 @@
       "adjectives": [],
       "synonyms": [],
       "properties": {
-        "type": "door",
-        "door_id": "door_storage"
+        "type": "door"
       },
       "behaviors": [],
-      "traits": {}
+      "traits": {},
+      "door_id": "door_storage"
     },
     {
       "id": "exit_loc_sanctum_down",
@@ -443,11 +443,11 @@
       "adjectives": [],
       "synonyms": [],
       "properties": {
-        "type": "door",
-        "door_id": "door_sanctum"
+        "type": "door"
       },
       "behaviors": [],
-      "traits": {}
+      "traits": {},
+      "door_id": "door_sanctum"
     }
   ]
 }

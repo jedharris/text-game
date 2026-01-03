@@ -438,6 +438,9 @@ class NarrationAssembler:
         """
         Format visible exits into prose text.
 
+        For exits blocked by closed doors, only show the exit name (e.g., "ornate door")
+        without the destination, since you can't see through a closed door.
+
         Args:
             exits: Dict of direction -> Exit entity
 
@@ -450,21 +453,31 @@ class NarrationAssembler:
         exit_parts: List[str] = []
 
         for direction, exit_entity in exits.items():
+            # Check if exit has a closed door
+            door_is_closed = self._is_door_closed(exit_entity)
+
             # Handle named exits
             if exit_entity.name:
-                # Get destination name if available
-                dest_name = self._get_destination_name(exit_entity)
+                # Get destination name if available and door is not closed
+                dest_name = None
+                if not door_is_closed:
+                    dest_name = self._get_destination_name(exit_entity)
+
                 if dest_name:
                     exit_parts.append(f"{direction} ({exit_entity.name} to {dest_name})")
                 else:
                     exit_parts.append(f"{direction} ({exit_entity.name})")
             else:
-                # Simple direction exit
-                dest_name = self._get_destination_name(exit_entity)
-                if dest_name:
-                    exit_parts.append(f"{direction} to {dest_name}")
-                else:
+                # Simple direction exit (no name)
+                # For unnamed exits with closed doors, show just direction
+                if door_is_closed:
                     exit_parts.append(direction)
+                else:
+                    dest_name = self._get_destination_name(exit_entity)
+                    if dest_name:
+                        exit_parts.append(f"{direction} to {dest_name}")
+                    else:
+                        exit_parts.append(direction)
 
         if len(exit_parts) == 1:
             return f"There is an exit {exit_parts[0]}."
@@ -501,6 +514,28 @@ class NarrationAssembler:
             return dest_location.name
 
         return None
+
+    def _is_door_closed(self, exit_entity: Any) -> bool:
+        """
+        Check if an exit is blocked by a closed door.
+
+        Args:
+            exit_entity: Exit entity
+
+        Returns:
+            True if exit has a door and door is closed, False otherwise
+        """
+        # Check if exit has a door_id attribute
+        if not hasattr(exit_entity, 'door_id') or not exit_entity.door_id:
+            return False
+
+        # Get the door item
+        door = self.accessor.get_door_item(exit_entity.door_id)
+        if not door:
+            return False
+
+        # Check if door is closed using the door_open property
+        return not door.door_open
 
     def _build_target_state(
         self,

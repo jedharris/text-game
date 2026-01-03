@@ -520,6 +520,126 @@ class TestNarrationAssemblerMustMention(unittest.TestCase):
         exits_text = plan["must_mention"]["exits_text"]
         self.assertIn("There is an exit", exits_text)
 
+    def test_closed_door_hides_destination(self) -> None:
+        """Closed doors hide destination name in exits text."""
+        # Add a door item that is closed
+        door = Item(
+            id=ItemId("door_library"),
+            name="ornate door",
+            description="An ornate door with runes",
+            location="exit:location_room:east",
+            _properties={
+                "portable": False,
+                "door": {"open": False, "locked": True}
+            },
+            behaviors=[]
+        )
+        self.game_state.items.append(door)
+
+        # Add a library location
+        library = Location(
+            id=LocationId("location_library"),
+            name="Library",
+            description="A grand library",
+            exits={},
+            items=[],
+            _properties={},
+            behaviors=[]
+        )
+        self.game_state.locations.append(library)
+
+        # Modify the east exit to have a door_id pointing to the closed door
+        for exit_obj in self.game_state.exits:
+            if exit_obj.id == "exit_room_east":
+                exit_obj.door_id = "door_library"
+                # Update connection to point to library
+                exit_obj.connections = ["exit_library_west"]
+
+        # Add the connecting exit from library
+        self.game_state.exits.append(
+            Exit(
+                id="exit_library_west",
+                name="ornate door",
+                location=LocationId("location_library"),
+                direction="west",
+                connections=["exit_room_east"],
+                door_id="door_library"
+            )
+        )
+
+        # Rebuild indices
+        _build_whereabouts_index(self.game_state)
+        _build_connection_index(self.game_state)
+
+        result = HandlerResult(success=True, primary="You look around.")
+        plan = self.assembler.assemble(result, "look", "full", "new")
+
+        exits_text = plan["must_mention"]["exits_text"]
+        # Should include "east (garden door)" but NOT "to Library"
+        self.assertIn("east", exits_text)
+        self.assertIn("garden door", exits_text)
+        self.assertNotIn("Library", exits_text)
+
+    def test_open_door_shows_destination(self) -> None:
+        """Open doors show destination name in exits text."""
+        # Add a door item that is OPEN
+        door = Item(
+            id=ItemId("door_library"),
+            name="ornate door",
+            description="An ornate door with runes",
+            location="exit:location_room:east",
+            _properties={
+                "portable": False,
+                "door": {"open": True, "locked": False}
+            },
+            behaviors=[]
+        )
+        self.game_state.items.append(door)
+
+        # Add a library location
+        library = Location(
+            id=LocationId("location_library"),
+            name="Library",
+            description="A grand library",
+            exits={},
+            items=[],
+            _properties={},
+            behaviors=[]
+        )
+        self.game_state.locations.append(library)
+
+        # Modify the east exit to have a door_id pointing to the OPEN door
+        for exit_obj in self.game_state.exits:
+            if exit_obj.id == "exit_room_east":
+                exit_obj.door_id = "door_library"
+                # Update connection to point to library
+                exit_obj.connections = ["exit_library_west"]
+
+        # Add the connecting exit from library
+        self.game_state.exits.append(
+            Exit(
+                id="exit_library_west",
+                name="ornate door",
+                location=LocationId("location_library"),
+                direction="west",
+                connections=["exit_room_east"],
+                door_id="door_library"
+            )
+        )
+
+        # Rebuild indices
+        _build_whereabouts_index(self.game_state)
+        _build_connection_index(self.game_state)
+
+        result = HandlerResult(success=True, primary="You look around.")
+        plan = self.assembler.assemble(result, "look", "full", "new")
+
+        exits_text = plan["must_mention"]["exits_text"]
+        # Should include "east (garden door to Library)"
+        self.assertIn("east", exits_text)
+        self.assertIn("garden door", exits_text)
+        self.assertIn("Library", exits_text)
+
 
 class TestNarrationAssemblerPrimaryText(unittest.TestCase):
     """Tests for primary_text handling."""

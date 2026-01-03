@@ -6271,13 +6271,13 @@
   "exits": [
     {
       "id": "exit_nexus_chamber_north",
-      "name": "exit",
+      "name": "",
       "location": "nexus_chamber",
       "connections": [
         "exit_frozen_pass_south"
       ],
       "direction": "north",
-      "description": "",
+      "description": "Narrow defile between ice walls where eternal winter grips, cold wind howling through pass, carrying snow flurries.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6288,13 +6288,13 @@
     },
     {
       "id": "exit_nexus_chamber_south",
-      "name": "exit",
+      "name": "",
       "location": "nexus_chamber",
       "connections": [
         "exit_forest_edge_north"
       ],
       "direction": "south",
-      "description": "",
+      "description": "Treeline marking civilization's boundary, path worn by hunters and travelers.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6305,13 +6305,13 @@
     },
     {
       "id": "exit_nexus_chamber_east",
-      "name": "exit",
+      "name": "",
       "location": "nexus_chamber",
       "connections": [
         "exit_flooded_plaza_west"
       ],
       "direction": "east",
-      "description": "",
+      "description": "Cobblestones submerged beneath water, statue tops breaking surface.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6322,13 +6322,13 @@
     },
     {
       "id": "exit_nexus_chamber_west",
-      "name": "exit",
+      "name": "",
       "location": "nexus_chamber",
       "connections": [
         "exit_cavern_entrance_east"
       ],
       "direction": "west",
-      "description": "",
+      "description": "Wide mouth of vast cavern system leading deeper, bioluminescent growths providing eerie illumination.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6339,13 +6339,13 @@
     },
     {
       "id": "exit_nexus_chamber_up",
-      "name": "exit",
+      "name": "",
       "location": "nexus_chamber",
       "connections": [
         "exit_observatory_platform_down"
       ],
       "direction": "up",
-      "description": "",
+      "description": "Circular stone platform open to perpetual twilight sky, telescope mounting in center, empty and waiting.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6356,13 +6356,13 @@
     },
     {
       "id": "exit_observatory_platform_east",
-      "name": "exit",
+      "name": "",
       "location": "observatory_platform",
       "connections": [
         "exit_keepers_quarters_west"
       ],
       "direction": "east",
-      "description": "",
+      "description": "Cozy chamber frozen in time, dust hanging motionless in air.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6373,13 +6373,13 @@
     },
     {
       "id": "exit_keepers_quarters_down",
-      "name": "exit",
+      "name": "",
       "location": "keepers_quarters",
       "connections": [
         "exit_crystal_garden_up"
       ],
       "direction": "down",
-      "description": "",
+      "description": "Serene grotto where crystalline formations grow from walls and floor, five pedestals holding shattered crystals.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6390,13 +6390,13 @@
     },
     {
       "id": "exit_crystal_garden_west",
-      "name": "exit",
+      "name": "",
       "location": "crystal_garden",
       "connections": [
         "exit_nexus_chamber_east"
       ],
       "direction": "west",
-      "description": "",
+      "description": "Vast domed chamber with impossible geometry, five doorways pulsing with different elemental energies.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6407,13 +6407,13 @@
     },
     {
       "id": "exit_frozen_pass_north",
-      "name": "exit",
+      "name": "",
       "location": "frozen_pass",
       "connections": [
         "exit_temple_sanctum_south"
       ],
       "direction": "north",
-      "description": "",
+      "description": "Vast chamber lined with frost-covered stone pillars, ancient carved faces watching from walls, expressions frozen.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6424,13 +6424,13 @@
     },
     {
       "id": "exit_frozen_pass_east",
-      "name": "exit",
+      "name": "",
       "location": "frozen_pass",
       "connections": [
         "exit_ice_caves_west"
       ],
       "direction": "east",
-      "description": "",
+      "description": "Crystal blue walls refracting light into dancing patterns, breath freezing instantly in frigid air.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6441,13 +6441,13 @@
     },
     {
       "id": "exit_frozen_pass_west",
-      "name": "exit",
+      "name": "",
       "location": "frozen_pass",
       "connections": [
         "exit_ice_field_east"
       ],
       "direction": "west",
-      "description": "",
+      "description": "Vast expanse of glacial ice, crevasses threatening unwary travelers.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6458,13 +6458,13 @@
     },
     {
       "id": "exit_frozen_pass_northwest",
-      "name": "exit",
+      "name": "",
       "location": "frozen_pass",
       "connections": [
         "exit_glacier_approach_southeast"
       ],
       "direction": "northwest",
-      "description": "",
+      "description": "Slope ascending toward massive glacier, snow packed hard by wind.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6475,13 +6475,13 @@
     },
     {
       "id": "exit_temple_sanctum_up",
-      "name": "exit",
+      "name": "",
       "location": "temple_sanctum",
       "connections": [
         "exit_frozen_observatory_down"
       ],
       "direction": "up",
-      "description": "",
+      "description": "Ancient structure encased in magical ice, great telescope pointing skyward through cracked dome.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6492,13 +6492,13 @@
     },
     {
       "id": "exit_temple_sanctum_north",
-      "name": "exit",
+      "name": "",
       "location": "temple_sanctum",
       "connections": [
         "exit_glacier_approach_south"
       ],
       "direction": "north",
-      "description": "",
+      "description": "Slope ascending toward massive glacier, snow packed hard by wind.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6509,13 +6509,13 @@
     },
     {
       "id": "exit_ice_caves_north",
-      "name": "exit",
+      "name": "",
       "location": "ice_caves",
       "connections": [
         "exit_ice_field_south"
       ],
       "direction": "north",
-      "description": "",
+      "description": "Vast expanse of glacial ice, crevasses threatening unwary travelers.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6526,13 +6526,13 @@
     },
     {
       "id": "exit_glacier_approach_north",
-      "name": "exit",
+      "name": "",
       "location": "glacier_approach",
       "connections": [
         "exit_glacier_surface_south"
       ],
       "direction": "north",
-      "description": "",
+      "description": "Ancient ice compressed to density, surface scored by wind and time.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6543,13 +6543,13 @@
     },
     {
       "id": "exit_ice_field_north",
-      "name": "exit",
+      "name": "",
       "location": "ice_field",
       "connections": [
         "exit_hot_springs_south"
       ],
       "direction": "north",
-      "description": "",
+      "description": "Steam rising from pools of heated water, sulfurous mist clinging to multicolored mineral deposits.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6560,7 +6560,7 @@
     },
     {
       "id": "exit_ice_field_west",
-      "name": "exit",
+      "name": "",
       "location": "ice_field",
       "connections": [],
       "direction": "west",
@@ -6575,13 +6575,13 @@
     },
     {
       "id": "exit_snow_forest_west",
-      "name": "exit",
+      "name": "",
       "location": "snow_forest",
       "connections": [
         "exit_ice_field_east"
       ],
       "direction": "west",
-      "description": "",
+      "description": "Vast expanse of glacial ice, crevasses threatening unwary travelers.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6592,13 +6592,13 @@
     },
     {
       "id": "exit_snow_forest_north",
-      "name": "exit",
+      "name": "",
       "location": "snow_forest",
       "connections": [
         "exit_wolf_den_south"
       ],
       "direction": "north",
-      "description": "",
+      "description": "Cave mouth dark and foreboding, bones scattered around entrance.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6609,7 +6609,7 @@
     },
     {
       "id": "exit_glacier_surface_north",
-      "name": "exit",
+      "name": "",
       "location": "glacier_surface",
       "connections": [],
       "direction": "north",
@@ -6624,13 +6624,13 @@
     },
     {
       "id": "exit_frozen_observatory_north",
-      "name": "exit",
+      "name": "",
       "location": "frozen_observatory",
       "connections": [
         "exit_glacier_surface_south"
       ],
       "direction": "north",
-      "description": "",
+      "description": "Ancient ice compressed to density, surface scored by wind and time.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6641,13 +6641,13 @@
     },
     {
       "id": "exit_forest_edge_south",
-      "name": "exit",
+      "name": "",
       "location": "forest_edge",
       "connections": [
         "exit_tangled_path_north"
       ],
       "direction": "south",
-      "description": "",
+      "description": "Undergrowth encroaching on trail, roots and vines creating obstacles.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6658,13 +6658,13 @@
     },
     {
       "id": "exit_forest_edge_east",
-      "name": "exit",
+      "name": "",
       "location": "forest_edge",
       "connections": [
         "exit_southern_trail_west"
       ],
       "direction": "east",
-      "description": "",
+      "description": "Well-worn path heading south, markers indicating regular use.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6675,13 +6675,13 @@
     },
     {
       "id": "exit_tangled_path_south",
-      "name": "exit",
+      "name": "",
       "location": "tangled_path",
       "connections": [
         "exit_predators_den_north"
       ],
       "direction": "south",
-      "description": "",
+      "description": "Cave worn smooth by occupation, prey remains scattered throughout.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6692,13 +6692,13 @@
     },
     {
       "id": "exit_tangled_path_east",
-      "name": "exit",
+      "name": "",
       "location": "tangled_path",
       "connections": [
         "exit_wolf_clearing_west"
       ],
       "direction": "east",
-      "description": "",
+      "description": "Open space among snow-laden trees, pack gathering ground.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6709,13 +6709,13 @@
     },
     {
       "id": "exit_tangled_path_west",
-      "name": "exit",
+      "name": "",
       "location": "tangled_path",
       "connections": [
         "exit_spider_thicket_east"
       ],
       "direction": "west",
-      "description": "",
+      "description": "Dense undergrowth woven with webs, silver threads everywhere catching light.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6726,13 +6726,13 @@
     },
     {
       "id": "exit_tangled_path_southwest",
-      "name": "exit",
+      "name": "",
       "location": "tangled_path",
       "connections": [
         "exit_ancient_grove_northeast"
       ],
       "direction": "southwest",
-      "description": "",
+      "description": "Trees impossibly old and massive, roots thick as houses breaking surface.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6743,13 +6743,13 @@
     },
     {
       "id": "exit_ancient_grove_east",
-      "name": "exit",
+      "name": "",
       "location": "ancient_grove",
       "connections": [
         "exit_bee_queen_clearing_west"
       ],
       "direction": "east",
-      "description": "",
+      "description": "Underground grove impossibly lit, massive hive structure dominating space.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6760,13 +6760,13 @@
     },
     {
       "id": "exit_spider_thicket_west",
-      "name": "exit",
+      "name": "",
       "location": "spider_thicket",
       "connections": [
         "exit_spider_matriarch_lair_east"
       ],
       "direction": "west",
-      "description": "",
+      "description": "Massive web architecture spanning space, egg sacs clustered in protected alcoves.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6777,13 +6777,13 @@
     },
     {
       "id": "exit_southern_trail_north",
-      "name": "exit",
+      "name": "",
       "location": "southern_trail",
       "connections": [
         "exit_predators_den_south"
       ],
       "direction": "north",
-      "description": "",
+      "description": "Cave worn smooth by occupation, prey remains scattered throughout.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6794,13 +6794,13 @@
     },
     {
       "id": "exit_southern_trail_south",
-      "name": "exit",
+      "name": "",
       "location": "southern_trail",
       "connections": [
         "exit_town_gate_north"
       ],
       "direction": "south",
-      "description": "",
+      "description": "Massive iron-bound gates standing ajar, guard towers flanking entrance, windows dark.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6811,13 +6811,13 @@
     },
     {
       "id": "exit_southern_trail_east",
-      "name": "exit",
+      "name": "",
       "location": "southern_trail",
       "connections": [
         "exit_hunters_camp_west"
       ],
       "direction": "east",
-      "description": "",
+      "description": "Campfire ring with split logs for seating, drying racks for meat and hides.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6828,13 +6828,13 @@
     },
     {
       "id": "exit_flooded_plaza_east",
-      "name": "exit",
+      "name": "",
       "location": "flooded_plaza",
       "connections": [
         "exit_flooded_chambers_west"
       ],
       "direction": "east",
-      "description": "",
+      "description": "Interior spaces partially submerged, furniture floating or waterlogged.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6845,13 +6845,13 @@
     },
     {
       "id": "exit_flooded_plaza_northwest",
-      "name": "exit",
+      "name": "",
       "location": "flooded_plaza",
       "connections": [
         "exit_survivor_camp_southeast"
       ],
       "direction": "northwest",
-      "description": "",
+      "description": "Makeshift shelters clustered on high ground, campfires smoking, laundry strung between poles.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6862,13 +6862,13 @@
     },
     {
       "id": "exit_flooded_plaza_south",
-      "name": "exit",
+      "name": "",
       "location": "flooded_plaza",
       "connections": [
         "exit_merchant_quarter_north"
       ],
       "direction": "south",
-      "description": "",
+      "description": "Streets lined with shop fronts, signs hanging still on brackets.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6879,13 +6879,13 @@
     },
     {
       "id": "exit_flooded_chambers_east",
-      "name": "exit",
+      "name": "",
       "location": "flooded_chambers",
       "connections": [
         "exit_tidal_passage_west"
       ],
       "direction": "east",
-      "description": "",
+      "description": "Corridor with water level rising and falling, tideline marks on walls showing rhythm.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6896,13 +6896,13 @@
     },
     {
       "id": "exit_tidal_passage_east",
-      "name": "exit",
+      "name": "",
       "location": "tidal_passage",
       "connections": [
         "exit_sea_caves_west"
       ],
       "direction": "east",
-      "description": "",
+      "description": "Caves carved by ocean waves, walls smooth from water's patience.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6913,13 +6913,13 @@
     },
     {
       "id": "exit_merchant_quarter_south",
-      "name": "exit",
+      "name": "",
       "location": "merchant_quarter",
       "connections": [
         "exit_merchant_warehouse_north"
       ],
       "direction": "south",
-      "description": "",
+      "description": "Large building for goods storage, crates and barrels stacked high.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6930,7 +6930,7 @@
     },
     {
       "id": "exit_deep_archive_up",
-      "name": "exit",
+      "name": "",
       "location": "deep_archive",
       "connections": [],
       "direction": "up",
@@ -6945,13 +6945,13 @@
     },
     {
       "id": "exit_cavern_entrance_down",
-      "name": "exit",
+      "name": "",
       "location": "cavern_entrance",
       "connections": [
         "exit_luminous_grotto_up"
       ],
       "direction": "down",
-      "description": "",
+      "description": "Bioluminescent fungi coating every surface, blue-green glow illuminating naturally.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6962,13 +6962,13 @@
     },
     {
       "id": "exit_luminous_grotto_down",
-      "name": "exit",
+      "name": "",
       "location": "luminous_grotto",
       "connections": [
         "exit_spore_heart_up"
       ],
       "direction": "down",
-      "description": "",
+      "description": "Massive pulsing fungal mass filling chamber, bioluminescence throbbing like heartbeat.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6979,13 +6979,13 @@
     },
     {
       "id": "exit_luminous_grotto_east",
-      "name": "exit",
+      "name": "",
       "location": "luminous_grotto",
       "connections": [
         "exit_myconid_sanctuary_west"
       ],
       "direction": "east",
-      "description": "",
+      "description": "Cavern of geometric precision, orderly rings of myconids standing in silent communion.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6996,13 +6996,13 @@
     },
     {
       "id": "exit_spore_heart_down",
-      "name": "exit",
+      "name": "",
       "location": "spore_heart",
       "connections": [
         "exit_deep_root_caverns_up"
       ],
       "direction": "down",
-      "description": "",
+      "description": "Absolute darkness swallowing all light, air toxic - unbreathable without protection.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7013,13 +7013,13 @@
     },
     {
       "id": "exit_town_gate_south",
-      "name": "exit",
+      "name": "",
       "location": "town_gate",
       "connections": [
         "exit_market_square_north"
       ],
       "direction": "south",
-      "description": "",
+      "description": "Cobblestone plaza with dry fountain centerpiece, merchant stalls standing empty, canopies tattered.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7030,13 +7030,13 @@
     },
     {
       "id": "exit_market_square_east",
-      "name": "exit",
+      "name": "",
       "location": "market_square",
       "connections": [
         "exit_healers_sanctuary_west"
       ],
       "direction": "east",
-      "description": "",
+      "description": "Building dedicated to healing arts, herb bundles hanging from rafters.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7047,13 +7047,13 @@
     },
     {
       "id": "exit_market_square_west",
-      "name": "exit",
+      "name": "",
       "location": "market_square",
       "connections": [
         "exit_council_hall_east"
       ],
       "direction": "west",
-      "description": "",
+      "description": "Circular chamber with tiered seating, council table of ancient oak.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7064,13 +7064,13 @@
     },
     {
       "id": "exit_market_square_south",
-      "name": "exit",
+      "name": "",
       "location": "market_square",
       "connections": [
         "exit_broken_statue_hall_north"
       ],
       "direction": "south",
-      "description": "",
+      "description": "Hall dominated by shattered stone construct - ancient guardian, broken but not destroyed completely.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7081,7 +7081,7 @@
     },
     {
       "id": "exit_healers_sanctuary_back",
-      "name": "exit",
+      "name": "",
       "location": "healers_sanctuary",
       "connections": [],
       "direction": "back",
@@ -7096,7 +7096,7 @@
     },
     {
       "id": "exit_healers_garden_front",
-      "name": "exit",
+      "name": "",
       "location": "healers_garden",
       "connections": [],
       "direction": "front",
@@ -7111,7 +7111,7 @@
     },
     {
       "id": "exit_undercity_entrance_up",
-      "name": "exit",
+      "name": "",
       "location": "undercity_entrance",
       "connections": [],
       "direction": "up",
@@ -7126,13 +7126,13 @@
     },
     {
       "id": "exit_undercity_entrance_down",
-      "name": "exit",
+      "name": "",
       "location": "undercity_entrance",
       "connections": [
         "exit_undercity_up"
       ],
       "direction": "down",
-      "description": "",
+      "description": "Ancient streets carved from living rock, buildings grown from stone rather than built.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7143,13 +7143,13 @@
     },
     {
       "id": "exit_frozen_pass_south",
-      "name": "exit",
+      "name": "",
       "location": "frozen_pass",
       "connections": [
         "exit_nexus_chamber_north"
       ],
       "direction": "south",
-      "description": "",
+      "description": "Vast domed chamber with impossible geometry, five doorways pulsing with different elemental energies.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7160,13 +7160,13 @@
     },
     {
       "id": "exit_forest_edge_north",
-      "name": "exit",
+      "name": "",
       "location": "forest_edge",
       "connections": [
         "exit_nexus_chamber_south"
       ],
       "direction": "north",
-      "description": "",
+      "description": "Vast domed chamber with impossible geometry, five doorways pulsing with different elemental energies.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7177,13 +7177,13 @@
     },
     {
       "id": "exit_flooded_plaza_west",
-      "name": "exit",
+      "name": "",
       "location": "flooded_plaza",
       "connections": [
         "exit_nexus_chamber_east"
       ],
       "direction": "west",
-      "description": "",
+      "description": "Vast domed chamber with impossible geometry, five doorways pulsing with different elemental energies.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7194,13 +7194,13 @@
     },
     {
       "id": "exit_cavern_entrance_east",
-      "name": "exit",
+      "name": "",
       "location": "cavern_entrance",
       "connections": [
         "exit_nexus_chamber_west"
       ],
       "direction": "east",
-      "description": "",
+      "description": "Vast domed chamber with impossible geometry, five doorways pulsing with different elemental energies.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7211,13 +7211,13 @@
     },
     {
       "id": "exit_observatory_platform_down",
-      "name": "exit",
+      "name": "",
       "location": "observatory_platform",
       "connections": [
         "exit_nexus_chamber_up"
       ],
       "direction": "down",
-      "description": "",
+      "description": "Vast domed chamber with impossible geometry, five doorways pulsing with different elemental energies.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7228,13 +7228,13 @@
     },
     {
       "id": "exit_keepers_quarters_west",
-      "name": "exit",
+      "name": "",
       "location": "keepers_quarters",
       "connections": [
         "exit_observatory_platform_east"
       ],
       "direction": "west",
-      "description": "",
+      "description": "Circular stone platform open to perpetual twilight sky, telescope mounting in center, empty and waiting.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7245,13 +7245,13 @@
     },
     {
       "id": "exit_crystal_garden_up",
-      "name": "exit",
+      "name": "",
       "location": "crystal_garden",
       "connections": [
         "exit_keepers_quarters_down"
       ],
       "direction": "up",
-      "description": "",
+      "description": "Cozy chamber frozen in time, dust hanging motionless in air.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7262,13 +7262,13 @@
     },
     {
       "id": "exit_temple_sanctum_south",
-      "name": "exit",
+      "name": "",
       "location": "temple_sanctum",
       "connections": [
         "exit_frozen_pass_north"
       ],
       "direction": "south",
-      "description": "",
+      "description": "Narrow defile between ice walls where eternal winter grips, cold wind howling through pass, carrying snow flurries.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7279,13 +7279,13 @@
     },
     {
       "id": "exit_ice_caves_west",
-      "name": "exit",
+      "name": "",
       "location": "ice_caves",
       "connections": [
         "exit_frozen_pass_east"
       ],
       "direction": "west",
-      "description": "",
+      "description": "Narrow defile between ice walls where eternal winter grips, cold wind howling through pass, carrying snow flurries.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7296,13 +7296,13 @@
     },
     {
       "id": "exit_ice_field_east",
-      "name": "exit",
+      "name": "",
       "location": "ice_field",
       "connections": [
         "exit_frozen_pass_west"
       ],
       "direction": "east",
-      "description": "",
+      "description": "Narrow defile between ice walls where eternal winter grips, cold wind howling through pass, carrying snow flurries.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7313,13 +7313,13 @@
     },
     {
       "id": "exit_glacier_approach_southeast",
-      "name": "exit",
+      "name": "",
       "location": "glacier_approach",
       "connections": [
         "exit_frozen_pass_northwest"
       ],
       "direction": "southeast",
-      "description": "",
+      "description": "Narrow defile between ice walls where eternal winter grips, cold wind howling through pass, carrying snow flurries.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7330,13 +7330,13 @@
     },
     {
       "id": "exit_frozen_observatory_down",
-      "name": "exit",
+      "name": "",
       "location": "frozen_observatory",
       "connections": [
         "exit_temple_sanctum_up"
       ],
       "direction": "down",
-      "description": "",
+      "description": "Vast chamber lined with frost-covered stone pillars, ancient carved faces watching from walls, expressions frozen.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7347,13 +7347,13 @@
     },
     {
       "id": "exit_glacier_approach_south",
-      "name": "exit",
+      "name": "",
       "location": "glacier_approach",
       "connections": [
         "exit_temple_sanctum_north"
       ],
       "direction": "south",
-      "description": "",
+      "description": "Vast chamber lined with frost-covered stone pillars, ancient carved faces watching from walls, expressions frozen.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7364,13 +7364,13 @@
     },
     {
       "id": "exit_ice_field_south",
-      "name": "exit",
+      "name": "",
       "location": "ice_field",
       "connections": [
         "exit_ice_caves_north"
       ],
       "direction": "south",
-      "description": "",
+      "description": "Crystal blue walls refracting light into dancing patterns, breath freezing instantly in frigid air.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7381,13 +7381,13 @@
     },
     {
       "id": "exit_glacier_surface_south",
-      "name": "exit",
+      "name": "",
       "location": "glacier_surface",
       "connections": [
         "exit_glacier_approach_north"
       ],
       "direction": "south",
-      "description": "",
+      "description": "Slope ascending toward massive glacier, snow packed hard by wind.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7398,13 +7398,13 @@
     },
     {
       "id": "exit_hot_springs_south",
-      "name": "exit",
+      "name": "",
       "location": "hot_springs",
       "connections": [
         "exit_ice_field_north"
       ],
       "direction": "south",
-      "description": "",
+      "description": "Vast expanse of glacial ice, crevasses threatening unwary travelers.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7415,13 +7415,13 @@
     },
     {
       "id": "exit_wolf_den_south",
-      "name": "exit",
+      "name": "",
       "location": "wolf_den",
       "connections": [
         "exit_snow_forest_north"
       ],
       "direction": "south",
-      "description": "",
+      "description": "Evergreens heavy with snow, branches bending under white burden.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7432,13 +7432,13 @@
     },
     {
       "id": "exit_tangled_path_north",
-      "name": "exit",
+      "name": "",
       "location": "tangled_path",
       "connections": [
         "exit_forest_edge_south"
       ],
       "direction": "north",
-      "description": "",
+      "description": "Treeline marking civilization's boundary, path worn by hunters and travelers.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7449,13 +7449,13 @@
     },
     {
       "id": "exit_southern_trail_west",
-      "name": "exit",
+      "name": "",
       "location": "southern_trail",
       "connections": [
         "exit_forest_edge_east"
       ],
       "direction": "west",
-      "description": "",
+      "description": "Treeline marking civilization's boundary, path worn by hunters and travelers.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7466,13 +7466,13 @@
     },
     {
       "id": "exit_predators_den_north",
-      "name": "exit",
+      "name": "",
       "location": "predators_den",
       "connections": [
         "exit_tangled_path_south"
       ],
       "direction": "north",
-      "description": "",
+      "description": "Undergrowth encroaching on trail, roots and vines creating obstacles.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7483,13 +7483,13 @@
     },
     {
       "id": "exit_wolf_clearing_west",
-      "name": "exit",
+      "name": "",
       "location": "wolf_clearing",
       "connections": [
         "exit_tangled_path_east"
       ],
       "direction": "west",
-      "description": "",
+      "description": "Undergrowth encroaching on trail, roots and vines creating obstacles.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7500,13 +7500,13 @@
     },
     {
       "id": "exit_spider_thicket_east",
-      "name": "exit",
+      "name": "",
       "location": "spider_thicket",
       "connections": [
         "exit_tangled_path_west"
       ],
       "direction": "east",
-      "description": "",
+      "description": "Undergrowth encroaching on trail, roots and vines creating obstacles.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7517,13 +7517,13 @@
     },
     {
       "id": "exit_ancient_grove_northeast",
-      "name": "exit",
+      "name": "",
       "location": "ancient_grove",
       "connections": [
         "exit_tangled_path_southwest"
       ],
       "direction": "northeast",
-      "description": "",
+      "description": "Undergrowth encroaching on trail, roots and vines creating obstacles.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7534,13 +7534,13 @@
     },
     {
       "id": "exit_bee_queen_clearing_west",
-      "name": "exit",
+      "name": "",
       "location": "bee_queen_clearing",
       "connections": [
         "exit_ancient_grove_east"
       ],
       "direction": "west",
-      "description": "",
+      "description": "Trees impossibly old and massive, roots thick as houses breaking surface.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7551,13 +7551,13 @@
     },
     {
       "id": "exit_spider_matriarch_lair_east",
-      "name": "exit",
+      "name": "",
       "location": "spider_matriarch_lair",
       "connections": [
         "exit_spider_thicket_west"
       ],
       "direction": "east",
-      "description": "",
+      "description": "Dense undergrowth woven with webs, silver threads everywhere catching light.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7568,13 +7568,13 @@
     },
     {
       "id": "exit_predators_den_south",
-      "name": "exit",
+      "name": "",
       "location": "predators_den",
       "connections": [
         "exit_southern_trail_north"
       ],
       "direction": "south",
-      "description": "",
+      "description": "Well-worn path heading south, markers indicating regular use.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7585,13 +7585,13 @@
     },
     {
       "id": "exit_town_gate_north",
-      "name": "exit",
+      "name": "",
       "location": "town_gate",
       "connections": [
         "exit_southern_trail_south"
       ],
       "direction": "north",
-      "description": "",
+      "description": "Well-worn path heading south, markers indicating regular use.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7602,13 +7602,13 @@
     },
     {
       "id": "exit_hunters_camp_west",
-      "name": "exit",
+      "name": "",
       "location": "hunters_camp",
       "connections": [
         "exit_southern_trail_east"
       ],
       "direction": "west",
-      "description": "",
+      "description": "Well-worn path heading south, markers indicating regular use.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7619,13 +7619,13 @@
     },
     {
       "id": "exit_flooded_chambers_west",
-      "name": "exit",
+      "name": "",
       "location": "flooded_chambers",
       "connections": [
         "exit_flooded_plaza_east"
       ],
       "direction": "west",
-      "description": "",
+      "description": "Cobblestones submerged beneath water, statue tops breaking surface.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7636,13 +7636,13 @@
     },
     {
       "id": "exit_survivor_camp_southeast",
-      "name": "exit",
+      "name": "",
       "location": "survivor_camp",
       "connections": [
         "exit_flooded_plaza_northwest"
       ],
       "direction": "southeast",
-      "description": "",
+      "description": "Cobblestones submerged beneath water, statue tops breaking surface.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7653,13 +7653,13 @@
     },
     {
       "id": "exit_merchant_quarter_north",
-      "name": "exit",
+      "name": "",
       "location": "merchant_quarter",
       "connections": [
         "exit_flooded_plaza_south"
       ],
       "direction": "north",
-      "description": "",
+      "description": "Cobblestones submerged beneath water, statue tops breaking surface.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7670,13 +7670,13 @@
     },
     {
       "id": "exit_tidal_passage_west",
-      "name": "exit",
+      "name": "",
       "location": "tidal_passage",
       "connections": [
         "exit_flooded_chambers_east"
       ],
       "direction": "west",
-      "description": "",
+      "description": "Interior spaces partially submerged, furniture floating or waterlogged.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7687,13 +7687,13 @@
     },
     {
       "id": "exit_sea_caves_west",
-      "name": "exit",
+      "name": "",
       "location": "sea_caves",
       "connections": [
         "exit_tidal_passage_east"
       ],
       "direction": "west",
-      "description": "",
+      "description": "Corridor with water level rising and falling, tideline marks on walls showing rhythm.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7704,13 +7704,13 @@
     },
     {
       "id": "exit_merchant_warehouse_north",
-      "name": "exit",
+      "name": "",
       "location": "merchant_warehouse",
       "connections": [
         "exit_merchant_quarter_south"
       ],
       "direction": "north",
-      "description": "",
+      "description": "Streets lined with shop fronts, signs hanging still on brackets.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7721,13 +7721,13 @@
     },
     {
       "id": "exit_luminous_grotto_up",
-      "name": "exit",
+      "name": "",
       "location": "luminous_grotto",
       "connections": [
         "exit_cavern_entrance_down"
       ],
       "direction": "up",
-      "description": "",
+      "description": "Wide mouth of vast cavern system leading deeper, bioluminescent growths providing eerie illumination.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7738,13 +7738,13 @@
     },
     {
       "id": "exit_spore_heart_up",
-      "name": "exit",
+      "name": "",
       "location": "spore_heart",
       "connections": [
         "exit_luminous_grotto_down"
       ],
       "direction": "up",
-      "description": "",
+      "description": "Bioluminescent fungi coating every surface, blue-green glow illuminating naturally.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7755,13 +7755,13 @@
     },
     {
       "id": "exit_myconid_sanctuary_west",
-      "name": "exit",
+      "name": "",
       "location": "myconid_sanctuary",
       "connections": [
         "exit_luminous_grotto_east"
       ],
       "direction": "west",
-      "description": "",
+      "description": "Bioluminescent fungi coating every surface, blue-green glow illuminating naturally.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7772,13 +7772,13 @@
     },
     {
       "id": "exit_deep_root_caverns_up",
-      "name": "exit",
+      "name": "",
       "location": "deep_root_caverns",
       "connections": [
         "exit_spore_heart_down"
       ],
       "direction": "up",
-      "description": "",
+      "description": "Massive pulsing fungal mass filling chamber, bioluminescence throbbing like heartbeat.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7789,13 +7789,13 @@
     },
     {
       "id": "exit_market_square_north",
-      "name": "exit",
+      "name": "",
       "location": "market_square",
       "connections": [
         "exit_town_gate_south"
       ],
       "direction": "north",
-      "description": "",
+      "description": "Massive iron-bound gates standing ajar, guard towers flanking entrance, windows dark.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7806,13 +7806,13 @@
     },
     {
       "id": "exit_healers_sanctuary_west",
-      "name": "exit",
+      "name": "",
       "location": "healers_sanctuary",
       "connections": [
         "exit_market_square_east"
       ],
       "direction": "west",
-      "description": "",
+      "description": "Cobblestone plaza with dry fountain centerpiece, merchant stalls standing empty, canopies tattered.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7823,13 +7823,13 @@
     },
     {
       "id": "exit_council_hall_east",
-      "name": "exit",
+      "name": "",
       "location": "council_hall",
       "connections": [
         "exit_market_square_west"
       ],
       "direction": "east",
-      "description": "",
+      "description": "Cobblestone plaza with dry fountain centerpiece, merchant stalls standing empty, canopies tattered.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7840,13 +7840,13 @@
     },
     {
       "id": "exit_broken_statue_hall_north",
-      "name": "exit",
+      "name": "",
       "location": "broken_statue_hall",
       "connections": [
         "exit_market_square_south"
       ],
       "direction": "north",
-      "description": "",
+      "description": "Cobblestone plaza with dry fountain centerpiece, merchant stalls standing empty, canopies tattered.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7857,13 +7857,13 @@
     },
     {
       "id": "exit_undercity_up",
-      "name": "exit",
+      "name": "",
       "location": "undercity",
       "connections": [
         "exit_undercity_entrance_down"
       ],
       "direction": "up",
-      "description": "",
+      "description": "Stairway descending into earth, carved from living rock.",
       "adjectives": [],
       "synonyms": [],
       "properties": {

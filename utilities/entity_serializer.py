@@ -80,7 +80,10 @@ def _compute_spatial_relation(entity: Any, player_context: Dict[str, Any]) -> Op
     # For elevated postures (on_surface, climbing), items on floor are "below"
     if posture in ("on_surface", "climbing"):
         # Items directly in a location (not in/on something) are on floor
-        if entity_location and not entity_location.startswith("item_"):
+        # But NOT items in player inventory - those are in hand, not below
+        # Check if location looks like an actor ID (doesn't start with "loc_" or "item_")
+        is_in_location = entity_location and entity_location.startswith("loc_")
+        if is_in_location:
             return "below"
 
     # Default for positioned player
