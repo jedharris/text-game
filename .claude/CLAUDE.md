@@ -15,7 +15,7 @@
 - For detailed information, consult:
   - `docs/Guides/authoring_guide.md` for utility routines, handler patterns, and common pitfalls
   - `docs/Guides/debugging_guide.md` for vocabulary, parsing, and error diagnosis
-  - `docs/Guides/test_authoring_guide.md` for test structure and patterns
+  - `docs/Guides/test_style_guide.md` for test structure and patterns
   - `user_docs/architectural_conventions.md` for type system and core architecture
 - Use existing utility functions from `utilities/handler_utils.py` and `utilities/utils.py` rather than writing custom code
 
