@@ -19,6 +19,14 @@ Design document for state variant selection in location narration.
 
 - **phase4_state_variant_design.md** - Design for Context Builder state variant selection based on environmental spreads, quest flags, and visit history
 
+### Virtual Entity Standardization (December 2025)
+
+Design documents for converting virtual entities (commitments, scheduled events, gossip, spreads) to first-class entities.
+
+- **virtual_entity_standardization.md** - Design for standardizing virtual entities with per-entity dispatch
+- **validation_checklist.md** - Validation status tracking during implementation
+- **validation_system_analysis.md** - Analysis of validation system gaps and implementation plan
+
 ### Why Archived?
 
 **Test Isolation Docs:**
@@ -34,6 +42,19 @@ Design document for state variant selection in location narration.
   - Used extensively in `examples/big_game/game_state.json` (106 occurrences)
 - **Reference available:** Code is self-documenting with comprehensive docstrings
 - **Design decisions preserved:** Module comments reference this design doc
+
+**Virtual Entity Standardization:**
+- **Fully Implemented:** All phases complete (Issue #290, closed Dec 29, 2025)
+  - Commitment, ScheduledEvent, Gossip, Spread dataclasses in `src/state_manager.py`
+  - Per-entity turn phase dispatch with `on_turn_*` events
+  - Migration tool for 0.1.1 → 0.1.2 game state conversion
+  - All 11 virtual entity tests passing
+- **Validation System:** Complete (Issue #323, closed Dec 29, 2025)
+  - 6 automated validation checks running on game load
+  - Entity behavior path validation with fuzzy matching
+  - Module import failure tracking with detailed diagnostics
+  - All validation integrated into `BehaviorManager.finalize_loading()`
+- **Reference available:** Architecture documented in code, patterns established
 
 ## Active Documentation
 
