@@ -1,0 +1,342 @@
+{
+  "metadata": {
+    "title": "LLM Test Game",
+    "author": "Test Suite",
+    "version": "0.04",
+    "description": "Test game for LLM interaction protocol",
+    "start_location": "loc_start"
+  },
+  "locations": [
+    {
+      "id": "loc_start",
+      "name": "Small Room",
+      "description": "You are in a small room.",
+      "exits": {
+        "north": {
+          "type": "door",
+          "to": "loc_hallway",
+          "door_id": "door_wooden"
+        }
+      },
+      "tags": [],
+      "items": [
+        "item_sword",
+        "item_key"
+      ],
+      "llm_context": {
+        "traits": [
+          "cramped stone walls",
+          "dim torchlight",
+          "dusty floor"
+        ],
+        "atmosphere": "confined, neglected",
+        "state_variants": {
+          "first_visit": "The room feels forgotten.",
+          "revisit": "The familiar small room."
+        }
+      }
+    },
+    {
+      "id": "loc_hallway",
+      "name": "Long Hallway",
+      "description": "You are in a long hallway.",
+      "exits": {
+        "south": {
+          "type": "door",
+          "to": "loc_start",
+          "door_id": "door_wooden"
+        },
+        "east": {
+          "type": "door",
+          "to": "loc_treasure",
+          "door_id": "door_iron"
+        },
+        "up": {
+          "type": "open",
+          "to": "loc_tower"
+        }
+      },
+      "tags": [],
+      "items": [
+        "item_potion"
+      ],
+      "llm_context": {
+        "traits": [
+          "high vaulted ceiling",
+          "stone floor worn smooth",
+          "echoing footsteps"
+        ],
+        "atmosphere": "transitional, mysterious",
+        "state_variants": {
+          "first_visit": "The hallway stretches before you.",
+          "revisit": "The familiar corridor."
+        }
+      }
+    },
+    {
+      "id": "loc_tower",
+      "name": "Tower Top",
+      "description": "You are at the top of a tower.",
+      "exits": {
+        "down": {
+          "type": "open",
+          "to": "loc_hallway"
+        }
+      },
+      "tags": [],
+      "items": [],
+      "llm_context": {
+        "traits": [
+          "open to sky",
+          "wind whipping past",
+          "panoramic view"
+        ],
+        "atmosphere": "exposed, exhilarating",
+        "state_variants": {
+          "first_visit": "The view takes your breath away.",
+          "revisit": "The tower top, as windswept as before."
+        }
+      }
+    },
+    {
+      "id": "loc_treasure",
+      "name": "Treasure Room",
+      "description": "You are in a treasure room.",
+      "exits": {
+        "west": {
+          "type": "door",
+          "to": "loc_hallway",
+          "door_id": "door_iron"
+        }
+      },
+      "tags": [],
+      "items": [
+        "item_chest"
+      ],
+      "llm_context": {
+        "traits": [
+          "glittering walls",
+          "smell of old gold",
+          "surprisingly small"
+        ],
+        "atmosphere": "rewarding, climactic",
+        "state_variants": {
+          "first_visit": "You've found it - the treasure room!",
+          "chest_opened": "The room feels less magical."
+        }
+      }
+    }
+  ],
+  "items": [
+    {
+      "id": "item_sword",
+      "name": "sword",
+      "description": "A rusty but serviceable sword.",
+      "location": "loc_start",
+      "properties": {
+        "type": "object",
+        "portable": true
+      },
+      "llm_context": {
+        "traits": [
+          "pitted blade",
+          "leather-wrapped hilt",
+          "still holds an edge"
+        ],
+        "state_variants": {
+          "in_location": "lies forgotten on the floor",
+          "in_inventory": "a reassuring weight at your side"
+        }
+      }
+    },
+    {
+      "id": "item_key",
+      "name": "key",
+      "description": "An iron key.",
+      "location": "loc_start",
+      "properties": {
+        "type": "object",
+        "portable": true
+      },
+      "llm_context": {
+        "traits": [
+          "solid iron",
+          "intricate teeth",
+          "cold and heavy"
+        ],
+        "state_variants": {
+          "in_location": "glints on the stone floor",
+          "in_inventory": "cold weight in your pocket"
+        }
+      }
+    },
+    {
+      "id": "item_potion",
+      "name": "potion",
+      "description": "A red potion that glows faintly.",
+      "location": "loc_hallway",
+      "properties": {
+        "type": "object",
+        "portable": true
+      },
+      "llm_context": {
+        "traits": [
+          "crimson liquid",
+          "glass vial",
+          "warm to touch"
+        ],
+        "state_variants": {
+          "in_location": "rests on a stone pedestal",
+          "in_inventory": "warm glow through your pack"
+        }
+      }
+    },
+    {
+      "id": "item_chest",
+      "name": "chest",
+      "description": "A large golden chest.",
+      "location": "loc_treasure",
+      "properties": {
+        "type": "object",
+        "portable": false
+      },
+      "llm_context": {
+        "traits": [
+          "ornate gold filigree",
+          "heavy oak construction",
+          "gemstone inlays"
+        ],
+        "state_variants": {
+          "closed": "sits mysteriously",
+          "open": "reveals treasures within"
+        }
+      }
+    },
+    {
+      "id": "item_lantern",
+      "name": "lantern",
+      "description": "A copper lantern with runes.",
+      "location": "loc_start",
+      "properties": {
+        "type": "object",
+        "portable": true,
+        "provides_light": true,
+        "states": {
+          "lit": false
+        }
+      },
+      "behaviors": [
+        "behaviors.core.light_sources"
+      ],
+      "llm_context": {
+        "traits": [
+          "hexagonal",
+          "hammered copper",
+          "rough runes around cap"
+        ],
+        "state_variants": {
+          "unlit": "dark and silent",
+          "lit": "sheds a helpful light"
+        }
+      }
+    },
+    {
+      "id": "door_wooden",
+      "name": "door",
+      "description": "A simple wooden door.",
+      "location": "exit:loc_start:north",
+      "door": {
+        "open": true,
+        "locked": false
+      },
+      "llm_context": {
+        "traits": [
+          "rough-hewn planks",
+          "iron hinges",
+          "creaks when moved"
+        ],
+        "state_variants": {
+          "open": "stands ajar",
+          "closed": "blocks the way"
+        }
+      }
+    },
+    {
+      "id": "door_iron",
+      "name": "door",
+      "description": "A heavy iron door with a sturdy lock.",
+      "location": "exit:loc_hallway:east",
+      "door": {
+        "open": false,
+        "locked": true,
+        "lock_id": "lock_treasure"
+      },
+      "llm_context": {
+        "traits": [
+          "thick iron plates",
+          "riveted construction",
+          "imposing presence"
+        ],
+        "state_variants": {
+          "locked": "sealed tight",
+          "unlocked": "the lock hangs open",
+          "open": "swung wide"
+        }
+      }
+    }
+  ],
+  "locks": [
+    {
+      "id": "lock_treasure",
+      "name": "Treasure Lock",
+      "description": "A sturdy lock.",
+      "properties": {
+        "opens_with": [
+          "item_key"
+        ],
+        "auto_unlock": true
+      },
+      "llm_context": {
+        "traits": [
+          "heavy iron mechanism",
+          "complex tumblers"
+        ],
+        "state_variants": {
+          "locked": "clicks firmly",
+          "unlocked": "mechanism disengaged"
+        }
+      }
+    }
+  ],
+  "npcs": [
+    {
+      "id": "npc_guard",
+      "name": "Ghostly Guard",
+      "description": "A translucent guard in ancient armor.",
+      "location": "loc_tower",
+      "llm_context": {
+        "traits": [
+          "translucent armor",
+          "hollow eyes",
+          "stern but not hostile"
+        ],
+        "speech_style": "archaic, formal",
+        "state_variants": {
+          "default": "watching, waiting",
+          "approached": "alert, questioning"
+        }
+      }
+    }
+  ],
+  "actors": {
+    "player": {
+      "id": "player",
+      "name": "Adventurer",
+      "description": "",
+      "location": "loc_start",
+      "inventory": [],
+      "flags": {},
+      "stats": {}
+    }
+  }
+}

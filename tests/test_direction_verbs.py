@@ -15,7 +15,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-from src.state_manager import GameState, Location, Actor, ExitDescriptor, Metadata
+from src.state_manager import GameState, Location, Actor, Exit, Metadata
 from src.state_accessor import StateAccessor
 from src.behavior_manager import BehaviorManager
 from src.parser import Parser
@@ -107,25 +107,27 @@ class TestDirectionHandlers(unittest.TestCase):
         self.game_state = GameState(
             metadata=Metadata(title="Test"),
             locations=[
-                Location(
-                    id="center",
-                    name="Center Room",
-                    description="A room with exits in all directions.",
-                    exits={
-                        "north": ExitDescriptor(type="open", to="north_room", name="north passage"),
-                        "south": ExitDescriptor(type="open", to="south_room", name="south passage"),
-                        "east": ExitDescriptor(type="open", to="east_room", name="east passage"),
-                        "west": ExitDescriptor(type="open", to="west_room", name="west passage"),
-                        "up": ExitDescriptor(type="open", to="upper_room", name="stairs up"),
-                        "down": ExitDescriptor(type="open", to="lower_room", name="stairs down"),
-                    }
-                ),
+                Location(id="center", name="Center Room", description="A room with exits in all directions.", exits={}),
                 Location(id="north_room", name="North Room", description="", exits={}),
                 Location(id="south_room", name="South Room", description="", exits={}),
                 Location(id="east_room", name="East Room", description="", exits={}),
                 Location(id="west_room", name="West Room", description="", exits={}),
                 Location(id="upper_room", name="Upper Room", description="", exits={}),
                 Location(id="lower_room", name="Lower Room", description="", exits={}),
+            ],
+            exits=[
+                Exit(id="exit_center_north", name="north passage", location="center", direction="north", connections=["exit_north_room_south"]),
+                Exit(id="exit_north_room_south", name="south passage", location="north_room", direction="south", connections=["exit_center_north"]),
+                Exit(id="exit_center_south", name="south passage", location="center", direction="south", connections=["exit_south_room_north"]),
+                Exit(id="exit_south_room_north", name="north passage", location="south_room", direction="north", connections=["exit_center_south"]),
+                Exit(id="exit_center_east", name="east passage", location="center", direction="east", connections=["exit_east_room_west"]),
+                Exit(id="exit_east_room_west", name="west passage", location="east_room", direction="west", connections=["exit_center_east"]),
+                Exit(id="exit_center_west", name="west passage", location="center", direction="west", connections=["exit_west_room_east"]),
+                Exit(id="exit_west_room_east", name="east passage", location="west_room", direction="east", connections=["exit_center_west"]),
+                Exit(id="exit_center_up", name="stairs up", location="center", direction="up", connections=["exit_upper_room_down"]),
+                Exit(id="exit_upper_room_down", name="stairs down", location="upper_room", direction="down", connections=["exit_center_up"]),
+                Exit(id="exit_center_down", name="stairs down", location="center", direction="down", connections=["exit_lower_room_up"]),
+                Exit(id="exit_lower_room_up", name="stairs up", location="lower_room", direction="up", connections=["exit_center_down"]),
             ],
             actors={"player": Actor(
                 id="player",
@@ -135,6 +137,10 @@ class TestDirectionHandlers(unittest.TestCase):
                 inventory=[]
             )}
         )
+        # Build indices
+        from src.state_manager import _build_whereabouts_index, _build_connection_index
+        _build_whereabouts_index(self.game_state)
+        _build_connection_index(self.game_state)
 
         self.manager = BehaviorManager()
         behaviors_dir = Path(__file__).parent.parent / "behaviors"

@@ -623,14 +623,15 @@ class LLMProtocolHandler:
         match entity_type:
             case "door":
                 seen_door_ids = set()
-                # Check for door items through exits
-                for direction, exit_desc in loc.exits.items():
-                    if exit_desc.door_id:
-                        door = self._get_door_by_id(exit_desc.door_id)
-                        if door and exit_desc.door_id not in seen_door_ids:
-                            seen_door_ids.add(exit_desc.door_id)
+                # Check for door items through exits (using Exit entities)
+                exits_here = [e for e in self.state.exits if e.location == loc.id]
+                for exit_entity in exits_here:
+                    if exit_entity.door_id:
+                        door = self._get_door_by_id(exit_entity.door_id)
+                        if door and exit_entity.door_id not in seen_door_ids:
+                            seen_door_ids.add(exit_entity.door_id)
                             door_dict = self._door_to_dict(door)
-                            door_dict["direction"] = direction
+                            door_dict["direction"] = exit_entity.direction
                             entities.append(door_dict)
             case "item":
                 for item in self.state.items:

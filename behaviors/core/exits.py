@@ -5,7 +5,7 @@ Exits can be referenced by direction (north, up) or by structure name
 (stairs, archway, corridor).
 """
 
-from typing import Dict, Any, cast
+from typing import Dict, Any, Optional, cast
 
 from src.action_types import ActionDict
 from src.behavior_manager import EventResult
@@ -110,8 +110,33 @@ vocabulary = {
 }
 
 
+def _get_destination_from_exit(accessor, exit_entity) -> Optional[str]:
+    """Get destination location ID from an Exit entity.
+
+    Traverses the exit's connections to find the connected exit,
+    then returns that exit's location (which is the destination).
+
+    Args:
+        accessor: StateAccessor instance
+        exit_entity: Exit entity
+
+    Returns:
+        Destination location ID, or None if no valid connection
+    """
+    if not exit_entity.connections:
+        return None
+
+    # Get first connected exit
+    connected_exit_id = exit_entity.connections[0]
+    try:
+        connected_exit = accessor.game_state.get_exit(connected_exit_id)
+        return connected_exit.location
+    except KeyError:
+        return None
+
+
 def _build_movement_message(
-    exit_descriptor,
+    exit_entity,
     direction: str,
     destination_name: str,
     source_location_id: str,
@@ -127,7 +152,7 @@ def _build_movement_message(
        and go through the ornate door to the Library."
 
     Args:
-        exit_descriptor: ExitDescriptor object (or plain string for backward compat)
+        exit_entity: Exit entity object
         direction: Direction being traveled (e.g., "up", "north")
         destination_name: Name of destination location
         source_location_id: ID of location being left
@@ -136,18 +161,14 @@ def _build_movement_message(
     Returns:
         Movement message string
     """
-    # Handle plain string destination (backward compatibility)
-    if not hasattr(exit_descriptor, 'name'):
-        return f"You go {direction} to {destination_name}."
-
-    exit_name = exit_descriptor.name or direction
-    passage = getattr(exit_descriptor, 'passage', None)
-    door_at = getattr(exit_descriptor, 'door_at', None)
+    exit_name = exit_entity.name or direction
+    passage = exit_entity.passage
+    door_at = exit_entity.door_at
 
     # Case 1: No passage - simple exit
     if not passage:
         # For door-type exits, say "go through"; for open exits, use verb_phrase
-        if exit_descriptor.type == "door":
+        if exit_entity.door_id:
             return f"You go through the {exit_name} to {destination_name}."
         else:
             return f"You {verb_phrase} {exit_name} to {destination_name}."
@@ -175,7 +196,7 @@ def _build_movement_message(
         )
 
 
-def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_descriptor, direction: str, verb_phrase: str) -> HandlerResult:
+def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_entity, direction: str, verb_phrase: str) -> HandlerResult:
     """
     Generic exit movement handler for go, climb, and similar movement verbs.
 
@@ -183,37 +204,39 @@ def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_descriptor, 
         accessor: StateAccessor instance
         actor: Actor entity
         actor_id: Actor ID string
-        exit_descriptor: ExitDescriptor object describing the exit
+        exit_entity: Exit entity describing the exit
         direction: Direction or exit name for messages
         verb_phrase: Verb phrase for message (e.g., "go", "climb the")
 
     Returns:
         HandlerResult with success flag and message
     """
-    # Handle both ExitDescriptor objects and plain strings (backward compatibility)
-    if hasattr(exit_descriptor, 'to'):
-        destination_id = exit_descriptor.to
-        # Check for door blocking
-        if exit_descriptor.type == 'door' and exit_descriptor.door_id:
-            # Try door item first (unified model)
-            door_item = accessor.get_door_item(exit_descriptor.door_id)
-            if door_item:
-                if not door_item.door_open:
-                    return HandlerResult(
-                        success=False,
-                        primary=f"The {door_item.name} is closed."
-                    )
-            else:
-                # Fall back to old-style Door entity during migration
-                door = accessor.get_door(exit_descriptor.door_id)
-                if door and not door.open:
-                    return HandlerResult(
-                        success=False,
-                        primary=f"The {door.description or 'door'} is closed."
-                    )
-    else:
-        # Plain string destination (backward compatibility)
-        destination_id = exit_descriptor
+    # Get destination from exit connections
+    destination_id = _get_destination_from_exit(accessor, exit_entity)
+    if not destination_id:
+        return HandlerResult(
+            success=False,
+            primary=f"INCONSISTENT STATE: Exit {exit_entity.id} has no valid destination"
+        )
+
+    # Check for door blocking
+    if exit_entity.door_id:
+        # Try door item first (unified model)
+        door_item = accessor.get_door_item(exit_entity.door_id)
+        if door_item:
+            if not door_item.door_open:
+                return HandlerResult(
+                    success=False,
+                    primary=f"The {door_item.name} is closed."
+                )
+        else:
+            # Fall back to old-style Door entity during migration
+            door = accessor.get_door(door_id)
+            if door and not door.open:
+                return HandlerResult(
+                    success=False,
+                    primary=f"The {door.description or 'door'} is closed."
+                )
 
     # Check for territorial NPCs blocking the exit
     source_location_id = actor.location
@@ -312,7 +335,7 @@ def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_descriptor, 
 
     # Build message with movement and auto-look
     movement_msg = _build_movement_message(
-        exit_descriptor, direction, destination.name, source_location_id, verb_phrase
+        exit_entity, direction, destination.name, source_location_id, verb_phrase
     )
     message_parts = [f"{movement_msg}\n"]
 
@@ -334,12 +357,13 @@ def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_descriptor, 
         "direction": direction,
     }
     # Add exit details if available
-    if hasattr(exit_descriptor, 'name') and exit_descriptor.name:
-        transition["via_exit_name"] = exit_descriptor.name
-    if hasattr(exit_descriptor, 'type'):
-        transition["via_exit_type"] = exit_descriptor.type
-    if hasattr(exit_descriptor, 'passage') and exit_descriptor.passage:
-        transition["via_passage"] = exit_descriptor.passage
+    if exit_entity.name:
+        transition["via_exit_name"] = exit_entity.name
+    # Exit type determined by presence of door_id
+    exit_type = "door" if exit_entity.door_id else "open"
+    transition["via_exit_type"] = exit_type
+    if exit_entity.passage:
+        transition["via_passage"] = exit_entity.passage
     llm_data["transition"] = transition
 
     return HandlerResult(

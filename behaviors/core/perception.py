@@ -315,7 +315,7 @@ def handle_examine(accessor, action):
         data = serialize_for_handler_result(exit_desc, accessor, actor_id)
         # Add exit-specific fields
         data["exit_direction"] = exit_direction
-        data["exit_type"] = exit_desc.type
+        data["exit_type"] = "door" if exit_desc.door_id else "open"
         if exit_desc.door_id:
             data["door_id"] = exit_desc.door_id
 

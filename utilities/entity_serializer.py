@@ -80,7 +80,10 @@ def _compute_spatial_relation(entity: Any, player_context: Dict[str, Any]) -> Op
     # For elevated postures (on_surface, climbing), items on floor are "below"
     if posture in ("on_surface", "climbing"):
         # Items directly in a location (not in/on something) are on floor
-        if entity_location and not entity_location.startswith("item_"):
+        # But NOT items in player inventory - those are in hand, not below
+        # Check if location looks like an actor ID (doesn't start with "loc_" or "item_")
+        is_in_location = entity_location and entity_location.startswith("loc_")
+        if is_in_location:
             return "below"
 
     # Default for positioned player
@@ -261,7 +264,8 @@ def _get_llm_context(entity: Any) -> Optional[Dict[str, Any]]:
     """Get llm_context from entity using appropriate accessor.
 
     Tries the llm_context property first (for Item, Location, ExitDescriptor
-    which have property accessors), then falls back to properties dict.
+    which have property accessors), then falls back to properties dict,
+    and finally checks traits dict for Exit entities.
 
     Args:
         entity: Entity to get llm_context from
@@ -278,7 +282,13 @@ def _get_llm_context(entity: Any) -> Optional[Dict[str, Any]]:
 
     # Fall back to properties dict (for entities that might store it differently)
     if hasattr(entity, 'properties') and isinstance(entity.properties, dict):
-        return cast(Optional[Dict[str, Any]], entity.properties.get('llm_context'))
+        llm_context = entity.properties.get('llm_context')
+        if llm_context:
+            return cast(Dict[str, Any], llm_context)
+
+    # For Exit entities, check traits dict
+    if hasattr(entity, 'traits') and isinstance(entity.traits, dict):
+        return cast(Optional[Dict[str, Any]], entity.traits.get('llm_context'))
 
     return None
 

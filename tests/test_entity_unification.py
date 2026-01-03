@@ -16,7 +16,7 @@ import sys
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.state_manager import Item, Location, ExitDescriptor, load_game_state
+from src.state_manager import Item, Location, Exit, load_game_state, _build_whereabouts_index, _build_connection_index
 from src.state_accessor import StateAccessor
 from src.behavior_manager import BehaviorManager
 from tests.conftest import make_word_entry, make_action
@@ -157,17 +157,31 @@ class TestStateAccessorDoorMethods(unittest.TestCase):
                     id="loc_room",
                     name="Room",
                     description="A room",
-                    exits={
-                        "north": ExitDescriptor(type="door", to="loc_other", door_id="door_1")
-                    }
+                    exits={}
                 ),
                 Location(
                     id="loc_other",
                     name="Other Room",
                     description="Another room",
-                    exits={
-                        "south": ExitDescriptor(type="door", to="loc_room", door_id="door_1")
-                    }
+                    exits={}
+                )
+            ],
+            exits=[
+                Exit(
+                    id="exit_room_north",
+                    name="doorway",
+                    location="loc_room",
+                    direction="north",
+                    connections=["exit_other_south"],
+                    door_id="door_1"
+                ),
+                Exit(
+                    id="exit_other_south",
+                    name="doorway",
+                    location="loc_other",
+                    direction="south",
+                    connections=["exit_room_north"],
+                    door_id="door_1"
                 )
             ],
             items=[
@@ -191,6 +205,8 @@ class TestStateAccessorDoorMethods(unittest.TestCase):
                 location="loc_room", inventory=[]
             )}
         )
+        _build_whereabouts_index(self.game_state)
+        _build_connection_index(self.game_state)
         self.behavior_manager = BehaviorManager()
         self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
@@ -220,9 +236,16 @@ class TestStateAccessorDoorMethods(unittest.TestCase):
     def test_get_door_for_exit_returns_none_for_open_exit(self):
         """get_door_for_exit returns None for exit without door."""
         # Add open exit
-        self.game_state.locations[0].exits["south"] = ExitDescriptor(
-            type="open", to="loc_south"
+        south_exit = Exit(
+            id="exit_room_south",
+            name="opening",
+            location="loc_room",
+            direction="south",
+            connections=[]
         )
+        self.game_state.exits.append(south_exit)
+        _build_whereabouts_index(self.game_state)
+        _build_connection_index(self.game_state)
         result = self.accessor.get_door_for_exit("loc_room", "south")
         self.assertIsNone(result)
 
@@ -251,23 +274,37 @@ class TestDoorVisibility(unittest.TestCase):
                     id="loc_room1",
                     name="Room 1",
                     description="First room",
-                    exits={
-                        "east": ExitDescriptor(type="door", to="loc_room2", door_id="door_connecting")
-                    }
+                    exits={}
                 ),
                 Location(
                     id="loc_room2",
                     name="Room 2",
                     description="Second room",
-                    exits={
-                        "west": ExitDescriptor(type="door", to="loc_room1", door_id="door_connecting")
-                    }
+                    exits={}
                 ),
                 Location(
                     id="loc_room3",
                     name="Room 3",
                     description="Third room with no connection",
                     exits={}
+                )
+            ],
+            exits=[
+                Exit(
+                    id="exit_room1_east",
+                    name="doorway",
+                    location="loc_room1",
+                    direction="east",
+                    connections=["exit_room2_west"],
+                    door_id="door_connecting"
+                ),
+                Exit(
+                    id="exit_room2_west",
+                    name="doorway",
+                    location="loc_room2",
+                    direction="west",
+                    connections=["exit_room1_east"],
+                    door_id="door_connecting"
                 )
             ],
             items=[
@@ -284,6 +321,8 @@ class TestDoorVisibility(unittest.TestCase):
                 location="loc_room1", inventory=[]
             )}
         )
+        _build_whereabouts_index(self.game_state)
+        _build_connection_index(self.game_state)
         self.behavior_manager = BehaviorManager()
         self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
@@ -349,10 +388,7 @@ class TestFindAccessibleItemWithDoors(unittest.TestCase):
                     id="loc_room",
                     name="Room",
                     description="A room",
-                    exits={
-                        "north": ExitDescriptor(type="door", to="loc_other", door_id="door_iron"),
-                        "south": ExitDescriptor(type="door", to="loc_other2", door_id="door_wooden")
-                    }
+                    exits={}
                 ),
                 Location(id="loc_other", name="Other", description="", exits={}),
                 Location(id="loc_other2", name="Other2", description="", exits={})
@@ -459,10 +495,7 @@ class TestHiddenDoors(unittest.TestCase):
                     id="loc_library",
                     name="Library",
                     description="A library",
-                    exits={
-                        "north": ExitDescriptor(type="door", to="loc_study", door_id="door_visible"),
-                        "east": ExitDescriptor(type="door", to="loc_secret", door_id="door_secret")
-                    }
+                    exits={}
                 ),
                 Location(id="loc_study", name="Study", description="", exits={}),
                 Location(id="loc_secret", name="Secret Room", description="", exits={})
@@ -538,17 +571,13 @@ class TestOpenCloseDoorItems(unittest.TestCase):
                     id="loc_room",
                     name="Room",
                     description="A room",
-                    exits={
-                        "north": ExitDescriptor(type="door", to="loc_other", door_id="door_1")
-                    }
+                    exits={}
                 ),
                 Location(
                     id="loc_other",
                     name="Other Room",
                     description="Another room",
-                    exits={
-                        "south": ExitDescriptor(type="door", to="loc_room", door_id="door_1")
-                    }
+                    exits={}
                 )
             ],
             items=[
@@ -636,9 +665,7 @@ class TestLockUnlockDoorItems(unittest.TestCase):
                     id="loc_room",
                     name="Room",
                     description="A room",
-                    exits={
-                        "north": ExitDescriptor(type="door", to="loc_other", door_id="door_1")
-                    }
+                    exits={}
                 ),
                 Location(id="loc_other", name="Other", description="", exits={})
             ],
@@ -741,17 +768,31 @@ class TestMovementThroughDoorItems(unittest.TestCase):
                     id="loc_room1",
                     name="Room 1",
                     description="First room",
-                    exits={
-                        "north": ExitDescriptor(type="door", to="loc_room2", door_id="door_1")
-                    }
+                    exits={}
                 ),
                 Location(
                     id="loc_room2",
                     name="Room 2",
                     description="Second room",
-                    exits={
-                        "south": ExitDescriptor(type="door", to="loc_room1", door_id="door_1")
-                    }
+                    exits={}
+                )
+            ],
+            exits=[
+                Exit(
+                    id="exit_room1_north",
+                    name="doorway",
+                    location="loc_room1",
+                    direction="north",
+                    connections=["exit_room2_south"],
+                    door_id="door_1"
+                ),
+                Exit(
+                    id="exit_room2_south",
+                    name="doorway",
+                    location="loc_room2",
+                    direction="south",
+                    connections=["exit_room1_north"],
+                    door_id="door_1"
                 )
             ],
             items=[
@@ -768,6 +809,8 @@ class TestMovementThroughDoorItems(unittest.TestCase):
                 location="loc_room1", inventory=[]
             )}
         )
+        _build_whereabouts_index(self.game_state)
+        _build_connection_index(self.game_state)
         self.behavior_manager = BehaviorManager()
         import behaviors.core.exits
         self.behavior_manager.load_module(behaviors.core.exits)

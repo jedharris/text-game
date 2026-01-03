@@ -2,7 +2,7 @@
   "metadata": {
     "title": "Invalid Locks Test",
     "author": "Test",
-    "version": "1.0",
+    "version": "0.05",
     "start_location": "loc_1"
   },
   "locations": [
@@ -10,25 +10,13 @@
       "id": "loc_1",
       "name": "Room One",
       "description": "First room.",
-      "exits": {
-        "north": {
-          "type": "door",
-          "to": "loc_2",
-          "door_id": "door_1"
-        }
-      }
+      "exits": {}
     },
     {
       "id": "loc_2",
       "name": "Room Two",
       "description": "Second room.",
-      "exits": {
-        "south": {
-          "type": "door",
-          "to": "loc_1",
-          "door_id": "door_1"
-        }
-      }
+      "exits": {}
     }
   ],
   "items": [

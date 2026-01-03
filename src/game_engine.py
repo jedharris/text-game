@@ -115,8 +115,21 @@ class GameEngine:
         from src.llm_command_parser import LLMCommandParser
         from src.llm_parser_adapter import LLMParserAdapter
 
-        # Extract verbs for parser
-        verbs = [v['word'] for v in self.merged_vocabulary.get('verbs', [])]
+        # Extract verbs for parser (including multi-type words from other sections)
+        verbs = []
+
+        # Get verbs from verbs section
+        for v in self.merged_vocabulary.get('verbs', []):
+            verbs.append(v['word'])
+
+        # Get multi-type words with verb type from nouns and adjectives sections
+        for section in ['nouns', 'adjectives']:
+            for entry in self.merged_vocabulary.get(section, []):
+                word_type = entry.get('word_type')
+                # Check if this entry has verb type
+                if isinstance(word_type, list) and 'verb' in word_type:
+                    if entry['word'] not in verbs:
+                        verbs.append(entry['word'])
 
         # Create parser and adapter
         parser = LLMCommandParser(shared_backend, verbs)
@@ -174,8 +187,12 @@ class GameEngine:
             item_name = getattr(item, 'name', item.id)
             inventory.append(item_name)
 
-        # Get exits (unchanged for now)
-        exits: List[str] = list(location.exits.keys()) if location.exits else []
+        # Get exits using index
+        exits: List[str] = []
+        exits_here = accessor.get_exits_from_location(location_id)
+        for exit_entity in exits_here:
+            if exit_entity.direction:
+                exits.append(exit_entity.direction)
 
         # Get dialogue topics (unchanged)
         topics: List[str] = []

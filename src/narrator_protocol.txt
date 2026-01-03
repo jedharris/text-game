@@ -54,7 +54,8 @@ Each input contains these fields:
 | Field | Description |
 |-------|-------------|
 | `visible` | Entities the player can perceive (name, traits) |
-| `exits` | Available directions and destinations |
+| `exits` | Available directions and destinations (see Exits Format below) |
+| `doors` | Door items visible in location (if any) |
 
 **For rich scenes (author-provided):**
 | Field | Description |
@@ -63,6 +64,53 @@ Each input contains these fields:
 | `hints` | Style guidance (e.g., "urgent", "trust-building") |
 | `context` | Author-defined scene context |
 | `reactions` | Other entities reacting to the action |
+
+---
+
+### EXITS FORMAT
+
+The `exits` field in location queries is a dictionary mapping direction names to exit objects:
+
+```json
+"exits": {
+  "north": {
+    "type": "open",
+    "to": "loc_hallway",
+    "name": "archway",
+    "description": "A stone archway"
+  },
+  "south": {
+    "type": "door",
+    "to": "loc_treasury",
+    "door_id": "door_iron",
+    "name": "iron door"
+  }
+}
+```
+
+**Exit fields:**
+- `type`: Either `"open"` (passage without door) or `"door"` (blocked by door item)
+- `to`: ID of destination location
+- `door_id`: (optional) ID of door item blocking this exit (only present when type is "door")
+- `name`: (optional) Name of the exit/passage (e.g., "archway", "spiral staircase")
+- `description`: (optional) Description of the exit
+- `llm_context`: (optional) Author-provided traits and narrative hints for the exit
+
+**The `doors` field** provides details about door items:
+```json
+"doors": [
+  {
+    "id": "door_iron",
+    "name": "iron door",
+    "description": "A heavy iron door with runes",
+    "direction": "south",
+    "open": false,
+    "locked": true
+  }
+]
+```
+
+When narrating exits, use the exit name if provided. When narrating doors, use details from the doors list.
 
 ---
 

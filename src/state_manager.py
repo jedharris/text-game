@@ -242,6 +242,34 @@ class ExitDescriptor:
 
 
 @dataclass
+class Exit:
+    """An exit entity that connects locations.
+
+    Exits are first-class entities with dual participation:
+    - Containment space: .location indicates where the exit is accessed from
+    - Connection space: .connections indicates what this exit links to
+
+    Exit type ("open" vs "door") is determined by presence of door_id:
+    - If door_id is set, this is a door exit
+    - If door_id is None, this is an open exit
+    """
+    id: str
+    name: str
+    location: str  # LocationId where this exit is accessed from
+    connections: List[str]  # Entity IDs this exit connects to (usually one paired exit)
+    direction: Optional[str] = None  # Optional: "north", "south", etc.
+    description: str = ""
+    door_id: Optional[str] = None  # Item ID of door blocking this exit (if any)
+    passage: Optional[str] = None  # Traversal structure beyond door (e.g., "narrow stairs")
+    door_at: Optional[str] = None  # Which end the door is at (location ID)
+    adjectives: List[str] = field(default_factory=list)
+    synonyms: List[str] = field(default_factory=list)
+    properties: Dict[str, Any] = field(default_factory=dict)
+    behaviors: List[str] = field(default_factory=list)
+    traits: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
 class Location:
     """Location in the game world."""
     id: LocationId
@@ -722,7 +750,7 @@ class Spread:
 
 
 # Entity type alias - union of all game entities
-Entity = Location | Item | Lock | Part | Actor | ExitDescriptor | Commitment | ScheduledEvent | Gossip | Spread
+Entity = Location | Item | Lock | Part | Actor | ExitDescriptor | Exit | Commitment | ScheduledEvent | Gossip | Spread
 """Union type for any game entity.
 
 Entities share a common structure:
@@ -744,6 +772,7 @@ class GameState:
     items: List[Item] = field(default_factory=list)
     locks: List[Lock] = field(default_factory=list)
     actors: Dict[ActorId, Actor] = field(default_factory=dict)
+    exits: List[Exit] = field(default_factory=list)
     parts: List[Part] = field(default_factory=list)
     commitments: List[Commitment] = field(default_factory=list)
     scheduled_events: List[ScheduledEvent] = field(default_factory=list)
@@ -755,6 +784,9 @@ class GameState:
     # Bidirectional containment index (whereabouts)
     _entities_at: Dict[str, set[str]] = field(default_factory=dict)  # where_id → set(entity_ids)
     _entity_where: Dict[str, str] = field(default_factory=dict)      # entity_id → where_id
+
+    # Connection index (exits)
+    _connected_to: Dict[str, set[str]] = field(default_factory=dict)  # exit_id → set(connected_exit_ids)
 
     def get_actor(self, actor_id: ActorId) -> Actor:
         """Get actor by ID."""
@@ -776,6 +808,13 @@ class GameState:
             if loc.id == location_id:
                 return loc
         raise KeyError(f"Location not found: {location_id}")
+
+    def get_exit(self, exit_id: str) -> Exit:
+        """Get exit by ID. Raises KeyError if not found (fail-fast pattern)."""
+        exit_entity = next((e for e in self.exits if e.id == exit_id), None)
+        if exit_entity is None:
+            raise KeyError(f"Exit not found: {exit_id}")
+        return exit_entity
 
     def get_lock(self, lock_id: LockId) -> Lock:
         """Get lock by ID."""
@@ -1087,7 +1126,7 @@ def _build_whereabouts_index(game_state: GameState) -> None:
     Populates _entities_at and _entity_where from:
     - Items with .location
     - Actors with .location
-    - Future: Exits with .location (Phase 3+)
+    - Exits with .location
 
     Excluded: Entities with .location starting with "__" (removed entities)
     """
@@ -1113,6 +1152,45 @@ def _build_whereabouts_index(game_state: GameState) -> None:
             game_state._entities_at[actor.location].add(actor_id)
             game_state._entity_where[actor_id] = actor.location
 
+    # Index all exits
+    for exit_entity in game_state.exits:
+        if hasattr(exit_entity, 'location') and exit_entity.location:
+            if exit_entity.location not in game_state._entities_at:
+                game_state._entities_at[exit_entity.location] = set()
+            game_state._entities_at[exit_entity.location].add(exit_entity.id)
+            game_state._entity_where[exit_entity.id] = exit_entity.location
+
+
+def _build_connection_index(game_state: GameState) -> None:
+    """Build connection index from Exit entities.
+
+    Populates _connected_to from Exit.connections lists.
+    Validates that all connection IDs reference existing exits.
+
+    Args:
+        game_state: GameState to build index for
+
+    Raises:
+        ValueError: If connection references non-existent exit
+    """
+    # Clear index
+    game_state._connected_to.clear()
+
+    # Build exit ID set for validation
+    exit_ids = {exit_entity.id for exit_entity in game_state.exits}
+
+    # Index all exit connections
+    for exit_entity in game_state.exits:
+        # Validate connections
+        for connected_id in exit_entity.connections:
+            if connected_id not in exit_ids:
+                raise ValueError(
+                    f"Exit {exit_entity.id} references exit {connected_id} which does not exist"
+                )
+
+        # Add to index
+        game_state._connected_to[exit_entity.id] = set(exit_entity.connections)
+
 
 def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
     """Load game state from file path or dict.
@@ -1129,10 +1207,11 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
 
     # Parse metadata and enforce minimum version
     metadata = _parse_metadata(data.get('metadata', {}))
-    if metadata.version and metadata.version < "0.04":
+    if metadata.version and metadata.version < "0.05":
         raise ValueError(
             f"game_state version {metadata.version} is unsupported; "
-            "please migrate to version 0.04 or later."
+            "please migrate to version 0.05 or later. "
+            "Version 0.05 requires Exit entities with direct door_id/passage/door_at attributes."
         )
 
     # Parse locations
@@ -1143,6 +1222,27 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
 
     # Parse locks
     locks = [_parse_lock(lock) for lock in data.get('locks', [])]
+
+    # Parse exits (new entity type - optional during migration)
+    exits = []
+    for exit_data in data.get('exits', []):
+        exit_entity = Exit(
+            id=exit_data['id'],
+            name=exit_data['name'],
+            location=exit_data['location'],
+            connections=exit_data.get('connections', []),
+            direction=exit_data.get('direction'),
+            description=exit_data.get('description', ''),
+            door_id=exit_data.get('door_id'),  # Direct attribute
+            passage=exit_data.get('passage'),  # Direct attribute
+            door_at=exit_data.get('door_at'),  # Direct attribute
+            adjectives=exit_data.get('adjectives', []),
+            synonyms=exit_data.get('synonyms', []),
+            properties=exit_data.get('properties', {}),
+            behaviors=_parse_behaviors(exit_data.get('behaviors', []), f"exit:{exit_data.get('id', '')}"),
+            traits=exit_data.get('traits', {})
+        )
+        exits.append(exit_entity)
 
     # Parse parts
     parts = []
@@ -1181,6 +1281,7 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
         items=items,
         locks=locks,
         actors=actors,
+        exits=exits,
         parts=parts,
         commitments=commitments,
         scheduled_events=scheduled_events,
@@ -1192,6 +1293,9 @@ def load_game_state(source: Union[str, Path, Dict[str, Any]]) -> GameState:
 
     # Build containment index
     _build_whereabouts_index(state)
+
+    # Build connection index
+    _build_connection_index(state)
 
     # Validate after loading
     from src.validators import validate_game_state

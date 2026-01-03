@@ -4,7 +4,7 @@ Tests for interaction handlers (use, read, climb, pull, push) - Phase C-8.
 from src.types import ActorId
 
 import unittest
-from src.state_manager import GameState, Location, Item, Actor, Metadata
+from src.state_manager import GameState, Location, Item, Actor, Metadata, Exit, _build_whereabouts_index, _build_connection_index
 from src.behavior_manager import BehaviorManager
 from src.state_accessor import StateAccessor
 from tests.conftest import make_action
@@ -620,8 +620,6 @@ class TestClimbExit(unittest.TestCase):
 
     def setUp(self):
         """Set up test state with an exit that has a name."""
-        from src.state_manager import ExitDescriptor
-
         self.game_state = GameState(
             metadata=Metadata(title="Test"),
             locations=[
@@ -629,28 +627,50 @@ class TestClimbExit(unittest.TestCase):
                     id="loc_hallway",
                     name="Long Hallway",
                     description="A long stone hallway.",
-                    exits={
-                        "up": ExitDescriptor(
-                            type="open",
-                            to="loc_tower",
-                            name="spiral staircase",
-                            description="A narrow spiral staircase winds upward."
-                        ),
-                        "north": ExitDescriptor(
-                            type="open",
-                            to="loc_courtyard"
-                        )
-                    }
+                    exits={}
                 ),
                 Location(
                     id="loc_tower",
                     name="Tower Room",
-                    description="A circular tower room."
+                    description="A circular tower room.",
+                    exits={}
                 ),
                 Location(
                     id="loc_courtyard",
                     name="Courtyard",
-                    description="An open courtyard."
+                    description="An open courtyard.",
+                    exits={}
+                )
+            ],
+            exits=[
+                Exit(
+                    id="exit_hallway_up",
+                    name="spiral staircase",
+                    location="loc_hallway",
+                    direction="up",
+                    connections=["exit_tower_down"],
+                    description="A narrow spiral staircase winds upward."
+                ),
+                Exit(
+                    id="exit_tower_down",
+                    name="spiral staircase",
+                    location="loc_tower",
+                    direction="down",
+                    connections=["exit_hallway_up"]
+                ),
+                Exit(
+                    id="exit_hallway_north",
+                    name="exit",
+                    location="loc_hallway",
+                    direction="north",
+                    connections=["exit_courtyard_south"]
+                ),
+                Exit(
+                    id="exit_courtyard_south",
+                    name="exit",
+                    location="loc_courtyard",
+                    direction="south",
+                    connections=["exit_hallway_north"]
                 )
             ],
             items=[],
@@ -664,6 +684,8 @@ class TestClimbExit(unittest.TestCase):
                 )
             }
         )
+        _build_whereabouts_index(self.game_state)
+        _build_connection_index(self.game_state)
         self.behavior_manager = BehaviorManager()
 
         import behaviors.core.interaction

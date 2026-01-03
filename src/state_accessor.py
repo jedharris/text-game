@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional, Union, cast, TYPE_CHECKING
 
 from src.types import LocationId, ActorId, ItemId, LockId, PartId, EntityId, EventName
 from src.state_manager import (
-    GameState, Location, Item, Actor, Lock, Part, ExitDescriptor, Entity
+    GameState, Location, Item, Actor, Lock, Part, ExitDescriptor, Exit, Entity
 )
 from src.narration_types import ReactionRef
 
@@ -225,8 +225,8 @@ class StateAccessor:
         """
         Get the door item for an exit, if any.
 
-        Looks up the exit descriptor for the given direction and returns
-        the door item referenced by door_id.
+        Looks up the exit entity for the given direction and returns
+        the door item referenced by door_id (direct attribute).
 
         Args:
             location_id: The location ID
@@ -235,13 +235,19 @@ class StateAccessor:
         Returns:
             Item (door) if exit has a door, None otherwise
         """
-        location = self.get_location(location_id)
-        if not location:
+        # Get all exits at this location
+        exits_here = self.get_exits_from_location(location_id)
+
+        # Find exit with matching direction
+        exit_entity = next((e for e in exits_here if e.direction == direction), None)
+        if not exit_entity:
             return None
-        exit_desc = location.exits.get(direction)
-        if not exit_desc or not exit_desc.door_id:
+
+        # Check for door_id (direct attribute)
+        if not exit_entity.door_id:
             return None
-        return self.get_door_item(exit_desc.door_id)
+
+        return self.get_door_item(exit_entity.door_id)
 
     def get_part(self, part_id: PartId) -> Optional[Part]:
         """
@@ -381,7 +387,7 @@ class StateAccessor:
 
         return None
 
-    def get_visible_exits(self, location_id: LocationId, actor_id: ActorId) -> Dict[str, ExitDescriptor]:
+    def get_visible_exits(self, location_id: LocationId, actor_id: ActorId) -> Dict[str, "Exit"]:
         """
         Get all visible exits for a location.
 
@@ -392,7 +398,7 @@ class StateAccessor:
             actor_id: The actor observing (for behavior context)
 
         Returns:
-            Dict of direction -> ExitDescriptor for visible exits only
+            Dict of direction -> Exit entity for visible exits only
         """
         from utilities.utils import is_observable
 
@@ -400,14 +406,17 @@ class StateAccessor:
         if not location:
             return {}
 
+        # Get all exits at this location
+        exits_here = self.get_exits_from_location(location_id)
+
         visible_exits = {}
-        for direction, exit_desc in location.exits.items():
+        for exit_entity in exits_here:
             visible, _ = is_observable(
-                exit_desc, self, self.behavior_manager,
+                exit_entity, self, self.behavior_manager,
                 actor_id=actor_id, method="look"
             )
-            if visible:
-                visible_exits[direction] = exit_desc
+            if visible and exit_entity.direction:
+                visible_exits[exit_entity.direction] = exit_entity
 
         return visible_exits
 
@@ -464,18 +473,18 @@ class StateAccessor:
 
         return actors
 
-    def get_entities_at(self, where_id: str, entity_type: Optional[str] = None) -> List[Union[Item, Actor]]:
+    def get_entities_at(self, where_id: str, entity_type: Optional[str] = None) -> List[Union[Item, Actor, Exit]]:
         """Get all entities at a location/container.
 
         Args:
             where_id: Location/container ID
-            entity_type: Optional filter: "item", "actor", "exit" (future)
+            entity_type: Optional filter: "item", "actor", "exit"
 
         Returns:
-            List of entity objects (Item, Actor, etc.)
+            List of entity objects (Item, Actor, Exit, etc.)
         """
         entity_ids = self.game_state._entities_at.get(where_id, set())
-        entities: List[Union[Item, Actor]] = []
+        entities: List[Union[Item, Actor, Exit]] = []
 
         for entity_id in entity_ids:
             # Try to get as item
@@ -492,7 +501,53 @@ class StateAccessor:
                     entities.append(actor)
                     continue
 
+            # Try to get as exit
+            if entity_type is None or entity_type == "exit":
+                exit_entity = next((e for e in self.game_state.exits if e.id == entity_id), None)
+                if exit_entity:
+                    entities.append(exit_entity)
+                    continue
+
         return entities
+
+    def get_exit_connections(self, exit_id: str) -> List[Exit]:
+        """Get all exits connected to this exit.
+
+        Args:
+            exit_id: Exit ID to query
+
+        Returns:
+            List of connected Exit entities
+        """
+        connected_ids = self.game_state._connected_to.get(exit_id, set())
+        exits: List[Exit] = []
+
+        for connected_id in connected_ids:
+            exit_entity = next((e for e in self.game_state.exits if e.id == connected_id), None)
+            if exit_entity:
+                exits.append(exit_entity)
+
+        return exits
+
+    def get_exits_from_location(self, location_id: str) -> List[Exit]:
+        """Get all exits accessible from a location.
+
+        Args:
+            location_id: Location ID to query
+
+        Returns:
+            List of Exit entities at this location
+        """
+        # Use containment index to find exits at location
+        entity_ids = self.game_state._entities_at.get(location_id, set())
+        exits: List[Exit] = []
+
+        for entity_id in entity_ids:
+            exit_entity = next((e for e in self.game_state.exits if e.id == entity_id), None)
+            if exit_entity:
+                exits.append(exit_entity)
+
+        return exits
 
     # Mutation methods
 
@@ -548,6 +603,60 @@ class StateAccessor:
             self.game_state._entities_at[new_where].add(entity_id)
             # Update reverse index
             self.game_state._entity_where[entity_id] = new_where
+
+    def connect_exits(self, exit_id_a: str, exit_id_b: str) -> None:
+        """Create bidirectional connection between exits.
+
+        Updates both Exit entities and the connection index.
+
+        Args:
+            exit_id_a: First exit ID
+            exit_id_b: Second exit ID
+
+        Raises:
+            ValueError: If either exit doesn't exist
+        """
+        # Find exits
+        exit_a = self.game_state.get_exit(exit_id_a)
+        exit_b = self.game_state.get_exit(exit_id_b)
+
+        # Add connections to Exit entities
+        if exit_id_b not in exit_a.connections:
+            exit_a.connections.append(exit_id_b)
+        if exit_id_a not in exit_b.connections:
+            exit_b.connections.append(exit_id_a)
+
+        # Update connection index
+        self.game_state._connected_to.setdefault(exit_id_a, set()).add(exit_id_b)
+        self.game_state._connected_to.setdefault(exit_id_b, set()).add(exit_id_a)
+
+    def disconnect_exits(self, exit_id_a: str, exit_id_b: str) -> None:
+        """Remove bidirectional connection between exits.
+
+        Updates both Exit entities and the connection index.
+
+        Args:
+            exit_id_a: First exit ID
+            exit_id_b: Second exit ID
+
+        Raises:
+            ValueError: If either exit doesn't exist
+        """
+        # Find exits
+        exit_a = self.game_state.get_exit(exit_id_a)
+        exit_b = self.game_state.get_exit(exit_id_b)
+
+        # Remove connections from Exit entities
+        if exit_id_b in exit_a.connections:
+            exit_a.connections.remove(exit_id_b)
+        if exit_id_a in exit_b.connections:
+            exit_b.connections.remove(exit_id_a)
+
+        # Update connection index
+        if exit_id_a in self.game_state._connected_to:
+            self.game_state._connected_to[exit_id_a].discard(exit_id_b)
+        if exit_id_b in self.game_state._connected_to:
+            self.game_state._connected_to[exit_id_b].discard(exit_id_a)
 
     def _set_path(self, entity: Any, path: str, value: Any) -> Optional[str]:
         """

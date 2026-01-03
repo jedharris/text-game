@@ -611,7 +611,7 @@ class TestHiddenExitsIntegration(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures with exits."""
-        from src.state_manager import GameState, Metadata, Location, Actor as StateActor
+        from src.state_manager import GameState, Metadata, Location, Actor as StateActor, Exit, _build_whereabouts_index, _build_connection_index
 
         self.game_state = GameState(
             metadata=Metadata(title="Hidden Exits Test"),
@@ -620,19 +620,7 @@ class TestHiddenExitsIntegration(unittest.TestCase):
                     id="room1",
                     name="Test Room",
                     description="A room for testing",
-                    exits={
-                        "north": ExitDescriptor(type="open", to="room2"),
-                        "south": ExitDescriptor(
-                            type="open",
-                            to="secret_room",
-                            _properties={"states": {"hidden": True}}
-                        ),
-                        "east": ExitDescriptor(
-                            type="door",
-                            to="room3",
-                            door_id="door_east"
-                        )
-                    }
+                    exits={}
                 ),
                 Location(
                     id="room2",
@@ -651,6 +639,53 @@ class TestHiddenExitsIntegration(unittest.TestCase):
                     name="East Room",
                     description="A room to the east",
                     exits={}
+                )
+            ],
+            exits=[
+                Exit(
+                    id="exit_room1_north",
+                    name="exit",
+                    location="room1",
+                    direction="north",
+                    connections=["exit_room2_south"]
+                ),
+                Exit(
+                    id="exit_room2_south",
+                    name="exit",
+                    location="room2",
+                    direction="south",
+                    connections=["exit_room1_north"]
+                ),
+                Exit(
+                    id="exit_room1_south",
+                    name="exit",
+                    location="room1",
+                    direction="south",
+                    connections=["exit_secret_north"],
+                    properties={"states": {"hidden": True}}
+                ),
+                Exit(
+                    id="exit_secret_north",
+                    name="exit",
+                    location="secret_room",
+                    direction="north",
+                    connections=["exit_room1_south"]
+                ),
+                Exit(
+                    id="exit_room1_east",
+                    name="exit",
+                    location="room1",
+                    direction="east",
+                    connections=["exit_room3_west"],
+                    door_id="door_east"
+                ),
+                Exit(
+                    id="exit_room3_west",
+                    name="exit",
+                    location="room3",
+                    direction="west",
+                    connections=["exit_room1_east"],
+                    door_id="door_east"
                 )
             ],
             items=[
@@ -673,6 +708,8 @@ class TestHiddenExitsIntegration(unittest.TestCase):
                 )
             }
         )
+        _build_whereabouts_index(self.game_state)
+        _build_connection_index(self.game_state)
 
         self.behavior_manager = BehaviorManager()
 
@@ -739,8 +776,8 @@ class TestHiddenExitsIntegration(unittest.TestCase):
         from behaviors.core.exits import handle_go
 
         # Reveal the hidden exit
-        hidden_exit = self.game_state.locations[0].exits["south"]
-        hidden_exit.states["hidden"] = False
+        hidden_exit = next(e for e in self.game_state.exits if e.id == "exit_room1_south")
+        hidden_exit.properties["states"]["hidden"] = False
 
         result = handle_go(
             self.accessor,

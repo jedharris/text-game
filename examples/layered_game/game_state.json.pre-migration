@@ -1,0 +1,497 @@
+{
+  "metadata": {
+    "title": "The Cavern of Trials",
+    "version": "0.1.2",
+    "description": "A three-tier behavior demonstration with puzzle mechanics.",
+    "start_location": "loc_entrance",
+    "author": "Layered Game Example",
+    "schema_version": "v_0.03"
+  },
+  "locations": [
+    {
+      "id": "loc_entrance",
+      "name": "Cavern Entrance",
+      "description": "You stand at the entrance to an ancient cavern system. The air is cool and damp. Passages lead north to a grotto, east to a stalactite cavern, south to a reflection chamber, west to a shrine, and down to an idol chamber.",
+      "exits": {
+        "north": {
+          "type": "open",
+          "to": "loc_mushroom_grotto",
+          "name": "passage",
+          "description": "A dark passage leads north, with a faint greenish glow visible in the distance."
+        },
+        "east": {
+          "type": "open",
+          "to": "loc_stalactites",
+          "name": "tunnel",
+          "description": "An echoing tunnel extends to the east."
+        },
+        "south": {
+          "type": "open",
+          "to": "loc_well",
+          "name": "corridor",
+          "description": "A smooth corridor leads south, where you hear the sound of dripping water."
+        },
+        "west": {
+          "type": "open",
+          "to": "loc_shrine",
+          "name": "archway",
+          "description": "An ornate archway opens to the west."
+        },
+        "down": {
+          "type": "open",
+          "to": "loc_idol_chamber",
+          "name": "stairs",
+          "description": "Stone stairs descend into darkness."
+        }
+      },
+      "items": [],
+      "tags": []
+    },
+    {
+      "id": "loc_mushroom_grotto",
+      "name": "Mushroom Grotto",
+      "description": "A cavern filled with bioluminescent mushrooms. Some glow dimly, others are dark. A bucket of water sits near the entrance. Strange symbols are carved into the ceiling, but it's too dark to read them clearly.",
+      "exits": {
+        "south": {
+          "type": "open",
+          "to": "loc_entrance",
+          "name": "passage",
+          "description": "The passage leads back south to the entrance."
+        }
+      },
+      "items": [
+        "item_bucket",
+        "item_mushroom_blue",
+        "item_mushroom_red",
+        "item_mushroom_green"
+      ],
+      "tags": [],
+      "states": {
+        "light_level": 0
+      }
+    },
+    {
+      "id": "loc_stalactites",
+      "name": "Singing Stalactites Cavern",
+      "description": "Massive stalactites hang from the ceiling, each a different size. A musical score is carved into the wall showing five notes. Crystal shards are visible embedded high in the ceiling.",
+      "exits": {
+        "west": {
+          "type": "open",
+          "to": "loc_entrance",
+          "name": "tunnel",
+          "description": "The tunnel leads back west."
+        }
+      },
+      "items": [
+        "item_stalactite_do",
+        "item_stalactite_re",
+        "item_stalactite_mi",
+        "item_stalactite_fa",
+        "item_stalactite_sol"
+      ],
+      "tags": []
+    },
+    {
+      "id": "loc_well",
+      "name": "Well of Reflections",
+      "description": "A circular chamber with a deep well at its center. The water glows with an eerie light. Looking into the well, you see... yourself. But something feels different each time you look.",
+      "exits": {
+        "north": {
+          "type": "open",
+          "to": "loc_entrance",
+          "name": "corridor",
+          "description": "The corridor leads back north."
+        }
+      },
+      "items": [
+        "item_well"
+      ],
+      "tags": []
+    },
+    {
+      "id": "loc_shrine",
+      "name": "Household Shrine",
+      "description": "A small shrine room with a stone altar. Incense burners line the walls. The air feels sacred and still.",
+      "exits": {
+        "east": {
+          "type": "open",
+          "to": "loc_entrance",
+          "name": "archway",
+          "description": "The archway leads back east."
+        }
+      },
+      "items": [
+        "item_shrine_altar"
+      ],
+      "tags": []
+    },
+    {
+      "id": "loc_idol_chamber",
+      "name": "Weighted Idol Chamber",
+      "description": "A square chamber with a pedestal in the center holding a golden idol. Pressure plates surround the pedestal. A sealed door is set into the north wall.",
+      "exits": {
+        "up": {
+          "type": "open",
+          "to": "loc_entrance",
+          "name": "stairs",
+          "description": "Stairs lead back up."
+        },
+        "north": {
+          "type": "door",
+          "to": "loc_treasure",
+          "door_id": "door_treasure",
+          "name": "sealed door",
+          "description": "A heavy sealed door with pressure-sensitive mechanisms."
+        }
+      },
+      "items": [
+        "item_pedestal",
+        "item_golden_idol"
+      ],
+      "tags": []
+    },
+    {
+      "id": "loc_treasure",
+      "name": "Treasure Chamber",
+      "description": "You've successfully navigated the trials! Ancient treasures glitter in the torchlight.",
+      "exits": {
+        "south": {
+          "type": "door",
+          "to": "loc_idol_chamber",
+          "door_id": "door_treasure",
+          "name": "door",
+          "description": "The door back to the idol chamber."
+        }
+      },
+      "items": [
+        "item_treasure_chest"
+      ],
+      "tags": []
+    }
+  ],
+  "items": [
+    {
+      "id": "item_bucket",
+      "name": "bucket",
+      "description": "A wooden bucket filled with clean water.",
+      "location": "loc_mushroom_grotto",
+      "properties": {
+        "type": "tool",
+        "portable": true
+      }
+    },
+    {
+      "id": "item_mushroom_blue",
+      "name": "mushroom",
+      "description": "A large bioluminescent mushroom with a blue cap.",
+      "location": "loc_mushroom_grotto",
+      "properties": {
+        "type": "plant",
+        "portable": false,
+        "color": "blue"
+      },
+      "behaviors": [
+        "behaviors.mushroom_grotto"
+      ],
+      "states": {
+        "watered": false
+      }
+    },
+    {
+      "id": "item_mushroom_red",
+      "name": "mushroom",
+      "description": "A large bioluminescent mushroom with a red cap.",
+      "location": "loc_mushroom_grotto",
+      "properties": {
+        "type": "plant",
+        "portable": false,
+        "color": "red"
+      },
+      "behaviors": [
+        "behaviors.mushroom_grotto"
+      ],
+      "states": {
+        "watered": false
+      }
+    },
+    {
+      "id": "item_mushroom_green",
+      "name": "mushroom",
+      "description": "A large bioluminescent mushroom with a green cap.",
+      "location": "loc_mushroom_grotto",
+      "properties": {
+        "type": "plant",
+        "portable": false,
+        "color": "green"
+      },
+      "behaviors": [
+        "behaviors.mushroom_grotto"
+      ],
+      "states": {
+        "watered": false
+      }
+    },
+    {
+      "id": "item_ceiling_sigil",
+      "name": "sigil",
+      "description": "Ancient symbols carved into the ceiling read: 'The path to wisdom lies in the sequence of learning: Do, Re, Mi, Fa, Sol.'",
+      "location": "loc_mushroom_grotto",
+      "properties": {
+        "type": "inscription",
+        "portable": false
+      },
+      "states": {
+        "hidden": true
+      }
+    },
+    {
+      "id": "item_stalactite_do",
+      "name": "stalactite",
+      "description": "A large stalactite. It looks sturdy enough to strike.",
+      "location": "loc_stalactites",
+      "properties": {
+        "type": "rock",
+        "portable": false,
+        "note": "do"
+      },
+      "behaviors": [
+        "behaviors.singing_stalactites"
+      ]
+    },
+    {
+      "id": "item_stalactite_re",
+      "name": "stalactite",
+      "description": "A medium stalactite. It looks sturdy enough to strike.",
+      "location": "loc_stalactites",
+      "properties": {
+        "type": "rock",
+        "portable": false,
+        "note": "re"
+      },
+      "behaviors": [
+        "behaviors.singing_stalactites"
+      ]
+    },
+    {
+      "id": "item_stalactite_mi",
+      "name": "stalactite",
+      "description": "A medium stalactite. It looks sturdy enough to strike.",
+      "location": "loc_stalactites",
+      "properties": {
+        "type": "rock",
+        "portable": false,
+        "note": "mi"
+      },
+      "behaviors": [
+        "behaviors.singing_stalactites"
+      ]
+    },
+    {
+      "id": "item_stalactite_fa",
+      "name": "stalactite",
+      "description": "A small stalactite. It looks sturdy enough to strike.",
+      "location": "loc_stalactites",
+      "properties": {
+        "type": "rock",
+        "portable": false,
+        "note": "fa"
+      },
+      "behaviors": [
+        "behaviors.singing_stalactites"
+      ]
+    },
+    {
+      "id": "item_stalactite_sol",
+      "name": "stalactite",
+      "description": "A small stalactite. It looks sturdy enough to strike.",
+      "location": "loc_stalactites",
+      "properties": {
+        "type": "rock",
+        "portable": false,
+        "note": "sol"
+      },
+      "behaviors": [
+        "behaviors.singing_stalactites"
+      ]
+    },
+    {
+      "id": "item_crystal_cache",
+      "name": "crystals",
+      "description": "Glittering crystal shards that fell from the ceiling. They might be valuable!",
+      "location": "loc_stalactites",
+      "properties": {
+        "type": "treasure",
+        "portable": true
+      },
+      "states": {
+        "hidden": true
+      }
+    },
+    {
+      "id": "item_well",
+      "name": "well",
+      "description": "A deep well with glowing water. Its surface reflects your choices.",
+      "location": "loc_well",
+      "properties": {
+        "type": "fixture",
+        "portable": false
+      },
+      "behaviors": [
+        "behaviors.well_of_reflections"
+      ]
+    },
+    {
+      "id": "item_flower",
+      "name": "flower",
+      "description": "A delicate white flower. It seems out of place in this cavern.",
+      "location": "loc_entrance",
+      "properties": {
+        "type": "plant",
+        "portable": true
+      }
+    },
+    {
+      "id": "item_rusty_sword",
+      "name": "sword",
+      "description": "An old, rusty sword. It's seen better days.",
+      "location": "loc_entrance",
+      "properties": {
+        "type": "weapon",
+        "portable": true
+      }
+    },
+    {
+      "id": "item_shrine_altar",
+      "name": "altar",
+      "description": "A stone altar with symbols of blessing and protection carved into its surface.",
+      "location": "loc_shrine",
+      "properties": {
+        "type": "furniture",
+        "portable": false
+      },
+      "behaviors": [
+        "behaviors.household_shrine"
+      ]
+    },
+    {
+      "id": "item_food_offering",
+      "name": "bread",
+      "description": "Fresh bread, suitable as an offering.",
+      "location": "loc_shrine",
+      "properties": {
+        "type": "food",
+        "portable": true
+      }
+    },
+    {
+      "id": "item_pedestal",
+      "name": "pedestal",
+      "description": "A stone pedestal with pressure plates around its base. The plates look sensitive to weight.",
+      "location": "loc_idol_chamber",
+      "properties": {
+        "type": "furniture",
+        "portable": false,
+        "container": {
+          "is_container": true,
+          "is_surface": true,
+          "capacity": 10
+        }
+      },
+      "behaviors": [
+        "behaviors.weighted_idol"
+      ],
+      "states": {
+        "target_weight": 3.5,
+        "tolerance": 0.2
+      }
+    },
+    {
+      "id": "item_golden_idol",
+      "name": "idol",
+      "description": "A heavy golden idol, about 3.5 kg. It sits on a pressure-sensitive pedestal.",
+      "location": "item_pedestal",
+      "properties": {
+        "type": "treasure",
+        "portable": true,
+        "weight": 3.5
+      }
+    },
+    {
+      "id": "item_stone_block",
+      "name": "block",
+      "description": "A carved stone block weighing about 2 kg.",
+      "location": "loc_idol_chamber",
+      "properties": {
+        "type": "object",
+        "portable": true,
+        "weight": 2.0
+      }
+    },
+    {
+      "id": "item_heavy_book",
+      "name": "book",
+      "description": "A thick tome weighing about 1.5 kg.",
+      "location": "loc_idol_chamber",
+      "properties": {
+        "type": "object",
+        "portable": true,
+        "weight": 1.5
+      }
+    },
+    {
+      "id": "item_metal_rod",
+      "name": "rod",
+      "description": "A metal rod weighing about 0.5 kg.",
+      "location": "loc_idol_chamber",
+      "properties": {
+        "type": "object",
+        "portable": true,
+        "weight": 0.5
+      }
+    },
+    {
+      "id": "door_treasure",
+      "name": "door",
+      "description": "A heavy sealed door controlled by the pressure plates.",
+      "location": "exit:loc_idol_chamber:north",
+      "door": {
+        "open": false,
+        "locked": true,
+        "lock_id": "lock_pressure"
+      }
+    },
+    {
+      "id": "item_treasure_chest",
+      "name": "chest",
+      "description": "An ornate treasure chest filled with ancient gold and jewels!",
+      "location": "loc_treasure",
+      "properties": {
+        "type": "container",
+        "portable": false
+      }
+    }
+  ],
+  "locks": [
+    {
+      "id": "lock_pressure",
+      "description": "A pressure-sensitive lock mechanism.",
+      "properties": {
+        "opens_with": [],
+        "auto_unlock": false
+      },
+      "name": "Pressure Lock"
+    }
+  ],
+  "actors": {
+    "player": {
+      "id": "player",
+      "name": "Mordecai",
+      "description": "A crusty old puzzle enthusiast who's seen more trick locks and hidden mechanisms than most people have seen sunrises. Spent decades solving puzzles, from simple sliding blocks to elaborate multi-room contraptions. Unimpressed by cheap gimmicks and theatrical nonsense. Heard about this place and came hoping for something that might actually present a challenge. Cautiously optimistic but prepared to be disappointed.",
+      "location": "loc_entrance",
+      "inventory": [],
+      "flags": {},
+      "stats": {},
+      "states": {}
+    }
+  }
+}

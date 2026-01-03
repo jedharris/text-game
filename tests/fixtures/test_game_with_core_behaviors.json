@@ -2,7 +2,7 @@
   "metadata": {
     "title": "Test Game with Core Behaviors",
     "author": "Test",
-    "version": "0.04",
+    "version": "0.05",
     "description": "A test game for core behavior modules",
     "start_location": "room1"
   },

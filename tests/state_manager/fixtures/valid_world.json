@@ -2,7 +2,7 @@
   "metadata": {
     "title": "Test Adventure",
     "author": "Test Author",
-    "version": "1.0",
+    "version": "0.05",
     "start_location": "loc_1"
   },
   "locations": [
@@ -17,17 +17,7 @@
       "items": [
         "item_1"
       ],
-      "exits": {
-        "north": {
-          "type": "door",
-          "to": "loc_2",
-          "door_id": "door_1"
-        },
-        "east": {
-          "type": "open",
-          "to": "loc_3"
-        }
-      }
+      "exits": {}
     },
     {
       "id": "loc_2",
@@ -40,13 +30,7 @@
       "items": [
         "item_2"
       ],
-      "exits": {
-        "south": {
-          "type": "door",
-          "to": "loc_1",
-          "door_id": "door_1"
-        }
-      }
+      "exits": {}
     },
     {
       "id": "loc_3",
@@ -56,12 +40,7 @@
         "indoor"
       ],
       "items": [],
-      "exits": {
-        "west": {
-          "type": "open",
-          "to": "loc_1"
-        }
-      }
+      "exits": {}
     }
   ],
   "items": [

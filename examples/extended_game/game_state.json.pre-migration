@@ -1,0 +1,368 @@
+{
+  "metadata": {
+    "title": "The Wizard's Tower",
+    "version": "0.1.2",
+    "description": "A custom game demonstrating engine extensibility.",
+    "start_location": "loc_garden",
+    "author": "Extended Game Example",
+    "schema_version": "v_0.03"
+  },
+  "locations": [
+    {
+      "id": "loc_garden",
+      "name": "Overgrown Garden",
+      "description": "You stand in an overgrown garden. Weeds choke the flowerbeds and ivy climbs the crumbling walls. A weathered stone path leads north to a tower entrance.",
+      "exits": {
+        "north": {
+          "type": "open",
+          "to": "loc_tower_entrance",
+          "name": "stone path",
+          "description": "A weathered stone path winds through the overgrown garden toward the tower entrance."
+        }
+      },
+      "items": [
+        "item_rusty_trowel",
+        "item_garden_bench"
+      ],
+      "tags": []
+    },
+    {
+      "id": "loc_tower_entrance",
+      "name": "Tower Entrance",
+      "description": "You are in the entrance hall of a tall stone tower. Dust motes dance in shafts of light from narrow windows. A spiral staircase leads up, and a wooden door leads east. The garden is to the south.",
+      "exits": {
+        "south": {
+          "type": "open",
+          "to": "loc_garden",
+          "name": "garden archway",
+          "description": "An ivy-covered archway leads back to the overgrown garden."
+        },
+        "up": {
+          "type": "open",
+          "to": "loc_library",
+          "name": "spiral staircase",
+          "description": "A worn spiral staircase of grey stone winds upward into the tower."
+        },
+        "east": {
+          "type": "door",
+          "to": "loc_storage",
+          "door_id": "door_storage",
+          "name": "wooden door",
+          "description": "A simple wooden door leads to what appears to be a storage area."
+        }
+      },
+      "items": [
+        "item_welcome_mat",
+        "item_umbrella_stand"
+      ],
+      "tags": []
+    },
+    {
+      "id": "loc_storage",
+      "name": "Storage Room",
+      "description": "A small dusty storage room. Old crates are stacked against the walls. A door leads west back to the entrance.",
+      "exits": {
+        "west": {
+          "type": "door",
+          "to": "loc_tower_entrance",
+          "door_id": "door_storage",
+          "name": "wooden door",
+          "description": "The wooden door leads back to the tower entrance hall."
+        }
+      },
+      "items": [
+        "item_crate",
+        "item_old_rope"
+      ],
+      "tags": []
+    },
+    {
+      "id": "loc_library",
+      "name": "Wizard's Library",
+      "description": "Towering bookshelves line the circular room. A large desk sits near the window. Stairs lead down and up.",
+      "exits": {
+        "down": {
+          "type": "open",
+          "to": "loc_tower_entrance",
+          "name": "spiral staircase",
+          "description": "The spiral staircase winds downward to the entrance hall below."
+        },
+        "up": {
+          "type": "door",
+          "to": "loc_sanctum",
+          "door_id": "door_sanctum",
+          "name": "ornate door",
+          "description": "An ornate door covered in glowing runes bars the way to the upper sanctum."
+        }
+      },
+      "items": [
+        "item_desk",
+        "item_crystal_ball"
+      ],
+      "tags": []
+    },
+    {
+      "id": "loc_sanctum",
+      "name": "Wizard's Sanctum",
+      "description": "The wizard's private sanctum at the top of the tower. Arcane symbols cover the floor. A large window overlooks the land below.",
+      "exits": {
+        "down": {
+          "type": "door",
+          "to": "loc_library",
+          "door_id": "door_sanctum",
+          "name": "ornate door",
+          "description": "The ornate rune-covered door leads back down to the library."
+        }
+      },
+      "items": [
+        "item_altar",
+        "item_magic_wand"
+      ],
+      "tags": []
+    }
+  ],
+  "items": [
+    {
+      "id": "item_rusty_trowel",
+      "name": "trowel",
+      "description": "A rusty garden trowel, still serviceable for digging.",
+      "location": "loc_garden",
+      "properties": {
+        "type": "tool",
+        "portable": true
+      }
+    },
+    {
+      "id": "item_garden_bench",
+      "name": "bench",
+      "description": "A weathered stone bench, covered in moss.",
+      "location": "loc_garden",
+      "properties": {
+        "type": "furniture",
+        "portable": false
+      }
+    },
+    {
+      "id": "item_welcome_mat",
+      "name": "mat",
+      "description": "A faded welcome mat with the words 'Speak Friend' barely visible.",
+      "location": "loc_tower_entrance",
+      "properties": {
+        "type": "object",
+        "portable": false
+      },
+      "behaviors": [
+        "behaviors.magic_mat"
+      ]
+    },
+    {
+      "id": "item_umbrella_stand",
+      "name": "stand",
+      "description": "A tall ceramic umbrella stand.",
+      "location": "loc_tower_entrance",
+      "properties": {
+        "type": "furniture",
+        "portable": false,
+        "container": {
+          "is_container": true,
+          "is_surface": false,
+          "capacity": 5,
+          "open": true
+        }
+      }
+    },
+    {
+      "id": "item_old_umbrella",
+      "name": "umbrella",
+      "description": "A dusty old umbrella with a carved handle.",
+      "location": "item_umbrella_stand",
+      "properties": {
+        "type": "object",
+        "portable": true
+      }
+    },
+    {
+      "id": "item_crate",
+      "name": "crate",
+      "description": "A wooden shipping crate, its lid pried open.",
+      "location": "loc_storage",
+      "properties": {
+        "type": "furniture",
+        "portable": false,
+        "container": {
+          "is_container": true,
+          "is_surface": false,
+          "capacity": 10,
+          "open": true
+        }
+      }
+    },
+    {
+      "id": "item_storage_key",
+      "name": "key",
+      "description": "A small iron key with 'STORAGE' etched on it.",
+      "location": "item_crate",
+      "properties": {
+        "type": "object",
+        "portable": true
+      }
+    },
+    {
+      "id": "item_old_rope",
+      "name": "rope",
+      "description": "A coil of old but sturdy hemp rope.",
+      "location": "loc_storage",
+      "properties": {
+        "type": "object",
+        "portable": true
+      }
+    },
+    {
+      "id": "item_desk",
+      "name": "desk",
+      "description": "A large oak desk covered in papers and strange instruments.",
+      "location": "loc_library",
+      "properties": {
+        "type": "furniture",
+        "portable": false,
+        "container": {
+          "is_container": true,
+          "is_surface": true,
+          "capacity": 10
+        }
+      }
+    },
+    {
+      "id": "item_spellbook",
+      "name": "spellbook",
+      "description": "A leather-bound spellbook. Arcane runes shimmer on its cover.",
+      "location": "item_desk",
+      "properties": {
+        "type": "object",
+        "portable": true,
+        "readable": true
+      },
+      "behaviors": [
+        "behaviors.spellbook"
+      ]
+    },
+    {
+      "id": "item_silver_stand",
+      "name": "stand",
+      "description": "An ornate silver stand with intricate engravings.",
+      "location": "loc_library",
+      "properties": {
+        "type": "furniture",
+        "portable": false,
+        "pushable": false,
+        "container": {
+          "is_container": true,
+          "is_surface": true,
+          "capacity": 1
+        }
+      }
+    },
+    {
+      "id": "item_crystal_ball",
+      "name": "ball",
+      "description": "A crystal ball. Mist swirls within its depths.",
+      "location": "item_silver_stand",
+      "properties": {
+        "type": "object",
+        "portable": true,
+        "magical": true
+      },
+      "behaviors": [
+        "behaviors.crystal_ball"
+      ]
+    },
+    {
+      "id": "item_sanctum_key",
+      "name": "key",
+      "description": "A golden key that glows faintly with magic.",
+      "location": "loc_library",
+      "properties": {
+        "type": "object",
+        "portable": true,
+        "magical": true
+      },
+      "states": {
+        "hidden": true
+      }
+    },
+    {
+      "id": "item_altar",
+      "name": "altar",
+      "description": "A stone altar with channels carved into its surface.",
+      "location": "loc_sanctum",
+      "properties": {
+        "type": "furniture",
+        "portable": false,
+        "container": {
+          "is_container": true,
+          "is_surface": true,
+          "capacity": 3
+        }
+      }
+    },
+    {
+      "id": "item_magic_wand",
+      "name": "wand",
+      "description": "A slender wand of pale wood, tipped with a glowing crystal.",
+      "location": "loc_sanctum",
+      "properties": {
+        "type": "weapon",
+        "portable": true,
+        "magical": true
+      },
+      "behaviors": [
+        "behaviors.magic_wand"
+      ]
+    },
+    {
+      "id": "door_storage",
+      "name": "door",
+      "description": "A simple wooden door.",
+      "location": "exit:loc_tower_entrance:east",
+      "door": {
+        "open": false,
+        "locked": false
+      }
+    },
+    {
+      "id": "door_sanctum",
+      "name": "door",
+      "description": "An ornate door covered in glowing runes.",
+      "location": "exit:loc_library:up",
+      "door": {
+        "open": false,
+        "locked": true,
+        "lock_id": "lock_sanctum"
+      }
+    }
+  ],
+  "locks": [
+    {
+      "id": "lock_sanctum",
+      "description": "A magical lock that pulses with energy.",
+      "properties": {
+        "opens_with": [
+          "item_sanctum_key"
+        ],
+        "auto_unlock": true
+      },
+      "name": "Sanctum Lock"
+    }
+  ],
+  "actors": {
+    "player": {
+      "id": "player",
+      "name": "Tam",
+      "description": "A teenage farmhand who stumbled upon the wizard's tower while taking a walk through the countryside. Never been inside a place like this before - everything is strange and exciting and maybe a little scary. Knows they probably shouldn't be here, but can't resist exploring.",
+      "location": "loc_garden",
+      "inventory": [],
+      "flags": {},
+      "stats": {}
+    }
+  }
+}

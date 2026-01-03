@@ -5,7 +5,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from src.state_manager import GameState, Location, Actor, ExitDescriptor, Metadata
+from src.state_manager import GameState, Location, Actor, Exit, Metadata, _build_whereabouts_index, _build_connection_index
 from src.state_accessor import StateAccessor
 from src.behavior_manager import BehaviorManager
 from src.parser import Parser
@@ -25,14 +25,7 @@ class TestGoThroughPreposition(unittest.TestCase):
                     id="room1",
                     name="First Room",
                     description="A room with an archway to the north.",
-                    exits={
-                        "north": ExitDescriptor(
-                            type="open",
-                            to="room2",
-                            name="stone archway",
-                            description="A grand stone archway"
-                        )
-                    }
+                    exits={}
                 ),
                 Location(
                     id="room2",
@@ -44,20 +37,51 @@ class TestGoThroughPreposition(unittest.TestCase):
                     id="room3",
                     name="Third Room",
                     description="A room with stairs down.",
-                    exits={
-                        "down": ExitDescriptor(
-                            type="open",
-                            to="room4",
-                            name="spiral staircase",
-                            description="A narrow spiral staircase"
-                        )
-                    }
+                    exits={}
                 ),
                 Location(
                     id="room4",
                     name="Fourth Room",
                     description="A room at the bottom of the stairs.",
                     exits={}
+                )
+            ],
+            exits=[
+                Exit(
+                    id="exit_room1_north",
+                    name="stone archway",
+                    location="room1",
+                    direction="north",
+                    connections=["exit_room2_south"],
+                    description="A grand stone archway",
+                    properties={"type": "open"}
+                ),
+                Exit(
+                    id="exit_room2_south",
+                    name="stone archway",
+                    location="room2",
+                    direction="south",
+                    connections=["exit_room1_north"],
+                    description="A grand stone archway",
+                    properties={"type": "open"}
+                ),
+                Exit(
+                    id="exit_room3_down",
+                    name="spiral staircase",
+                    location="room3",
+                    direction="down",
+                    connections=["exit_room4_up"],
+                    description="A narrow spiral staircase",
+                    properties={"type": "open"}
+                ),
+                Exit(
+                    id="exit_room4_up",
+                    name="spiral staircase",
+                    location="room4",
+                    direction="up",
+                    connections=["exit_room3_down"],
+                    description="A narrow spiral staircase",
+                    properties={"type": "open"}
                 )
             ],
             actors={"player": Actor(
@@ -68,6 +92,10 @@ class TestGoThroughPreposition(unittest.TestCase):
                 inventory=[]
             )}
         )
+
+        # Build indices
+        _build_whereabouts_index(self.game_state)
+        _build_connection_index(self.game_state)
         self.behavior_manager = BehaviorManager()
         import behaviors.core.exits
         self.behavior_manager.load_module(behaviors.core.exits)

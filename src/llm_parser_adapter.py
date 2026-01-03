@@ -43,6 +43,23 @@ class LLMParserAdapter:
             for synonym in verb_data.get('synonyms', []):
                 self.verb_lookup[synonym] = word_entry
 
+        # Also check nouns and adjectives for multi-type words with verb type
+        for section in ['nouns', 'adjectives']:
+            for entry_data in self.merged_vocabulary.get(section, []):
+                word_type = entry_data.get('word_type')
+                # Check if this entry has verb type (multi-type word)
+                if isinstance(word_type, list) and 'verb' in word_type:
+                    word = entry_data['word']
+                    # Only add if not already in verb_lookup (verbs section takes precedence)
+                    if word not in self.verb_lookup:
+                        word_entry = self._dict_to_word_entry(entry_data, WordType.VERB)
+                        self.verb_lookup[word] = word_entry
+
+                        # Also add synonyms
+                        for synonym in entry_data.get('synonyms', []):
+                            if synonym not in self.verb_lookup:
+                                self.verb_lookup[synonym] = word_entry
+
         # Noun lookup: word → WordEntry (includes entity names)
         self.noun_lookup: Dict[str, WordEntry] = {}
         for noun_data in self.merged_vocabulary.get('nouns', []):
@@ -171,6 +188,11 @@ class LLMParserAdapter:
             WordEntry if found, None otherwise
         """
         if not entity_id:
+            return None
+
+        # Filter out "none" - this is used in parser prompts to indicate empty lists
+        # and should not be treated as a real object
+        if entity_id.lower() == "none":
             return None
 
         # Try direct lookup (handles single-word entities)

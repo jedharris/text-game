@@ -1,0 +1,49 @@
+{
+  "metadata": {
+    "title": "Simple Exits Test",
+    "version": "0.05",
+    "start_location": "loc_a"
+  },
+  "locations": [
+    {
+      "id": "loc_a",
+      "name": "Room A",
+      "description": "A room with exits in all directions.",
+      "exits": {}
+    },
+    {
+      "id": "loc_b",
+      "name": "Room B",
+      "description": "North of Room A.",
+      "exits": {}
+    },
+    {
+      "id": "loc_c",
+      "name": "Room C",
+      "description": "South of Room A.",
+      "exits": {}
+    },
+    {
+      "id": "loc_d",
+      "name": "Room D",
+      "description": "East of Room A.",
+      "exits": {}
+    },
+    {
+      "id": "loc_e",
+      "name": "Room E",
+      "description": "West of Room A.",
+      "exits": {}
+    }
+  ],
+  "items": [],
+  "locks": [],
+  "actors": {
+    "player": {
+      "id": "player",
+      "name": "Player",
+      "description": "Test player",
+      "location": "loc_a"
+    }
+  }
+}
