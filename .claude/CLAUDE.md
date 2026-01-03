@@ -10,10 +10,12 @@
 - NEVER build vocabulary into the code, instead ALWAYS use the merged vocabulary and WordEntry.
 - NEVER add local heuristics for word matching or special vocabulary
 - Vocabulary handling rules apply to testing as well as normal code
-- **Primary reference**: `docs/quick_reference.md` - condensed guide for all coding patterns, utilities, and workflows
+- **Start here for new sessions**: `docs/Guides/claude_session_guide.md` - Critical gotchas, decision tree, essential patterns
+- **Primary reference**: `docs/Guides/quick_reference.md` - Condensed API reference, common utilities
 - For detailed information, consult:
-  - `docs/authoring_guide.md` for utility routines, handler patterns, and common pitfalls
-  - `docs/debugging_guide.md` for vocabulary, parsing, and error diagnosis
+  - `docs/Guides/authoring_guide.md` for utility routines, handler patterns, and common pitfalls
+  - `docs/Guides/debugging_guide.md` for vocabulary, parsing, and error diagnosis
+  - `docs/Guides/test_authoring_guide.md` for test structure and patterns
   - `user_docs/architectural_conventions.md` for type system and core architecture
 - Use existing utility functions from `utilities/handler_utils.py` and `utilities/utils.py` rather than writing custom code
 
