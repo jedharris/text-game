@@ -9,19 +9,18 @@ ASSERT actors.player.properties.health == 100
 
 go west
 go down
-go up
-go south
+go east
 
 # Part 2: Get breathing mask
 
-take breathing mask
+take mask
 
 # Verify mask in inventory
 inventory
 
 # Part 3: Equip breathing mask
 
-equip breathing mask
+use mask
 
 # Verify mask is equipped
 # ASSERT actors.player.properties.equipment.breathing_mask == true
@@ -29,7 +28,8 @@ equip breathing mask
 # Part 4: Test protection in medium spore zone (Cavern Entrance)
 
 # Navigate to cavern entrance (medium spores = 5/turn normally)
-go north
+go west
+go up
 
 # Spend several turns - should accumulate NO infection
 look
@@ -57,7 +57,6 @@ look
 
 # Part 6: Return to safe area
 
-go up
 go up
 go up
 go east

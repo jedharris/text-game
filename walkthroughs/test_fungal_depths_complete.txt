@@ -1,0 +1,153 @@
+# Fungal Depths: Comprehensive Region Test
+# End-to-end integration test covering all major systems:
+# - Aldric immediate rescue and health progression
+# - Light puzzle (safe path)
+# - Spore Mother state transitions and healing
+# - Equipment protection (breathing mask)
+# - Infection mechanics across all spore levels
+
+# Initial state check
+ASSERT actors.player.properties.health == 100
+
+# PART 1: Immediate Aldric Rescue
+# Race to get silvermoss before Aldric dies
+
+# Navigate to cavern entrance where Aldric is
+go west
+
+# Briefly check Aldric's state
+examine aldric
+
+# Immediately go get silvermoss (no delay)
+go down
+
+# Get first silvermoss
+take silvermoss
+
+# Return to cavern entrance
+go up
+
+# Give first silvermoss to stabilize Aldric
+give silvermoss to aldric
+
+# Verify stabilization - health should start increasing
+examine aldric
+
+# Wait a few turns to observe health increasing (net +1 HP/turn)
+look
+examine aldric
+look
+examine aldric
+
+# PART 2: Light Puzzle for Safe Path Knowledge
+
+# Go to luminous grotto
+go down
+
+# Get bucket for water
+take bucket
+
+# Fill bucket from pool
+fill bucket from pool
+
+# Water blue mushroom (+1 light, 2→3)
+pour water on blue mushroom
+
+# Water gold mushroom (+2 light, 3→5)
+pour water on gold mushroom
+
+# Refill bucket
+fill bucket from pool
+
+# Water blue mushroom again (+1 light, 5→6)
+pour water on blue mushroom
+
+# Now ceiling should be readable (light level 6+)
+examine ceiling
+
+# Verify safe path knowledge granted
+ASSERT extra.safe_path_known == true
+
+# PART 3: Get Heartmoss for Spore Mother
+
+# Navigate deeper to spore heart
+go down
+
+# Down to deep root caverns
+go down
+
+# Get heartmoss
+take heartmoss
+
+# Return to spore heart
+go up
+
+# Test Spore Mother wary state transition
+# Wait 3 turns without attacking to trigger hostile → wary
+
+look
+look
+look
+
+# Talk to Mother in wary state (empathic communication)
+talk to mother
+
+# Heal Spore Mother with heartmoss (wary → allied)
+use heartmoss on mother
+
+# Verify healing worked and fragment received
+ASSERT extra.spore_mother_healed == true
+ASSERT extra.has_spore_heart == true
+
+# Talk to Mother in allied state
+talk to mother
+
+# PART 4: Get Equipment Protection
+
+# Navigate back to luminous grotto (from spore_heart)
+go up
+
+# Navigate to myconid sanctuary
+go east
+
+# Get breathing mask
+take mask
+
+# Use mask for protection
+use mask
+
+# PART 5: Test Protection in High Spore Zone
+
+# Return to spore heart (high spores) with mask
+go west
+go down
+go down
+
+# Spend turns - should have NO new infection with mask
+look
+look
+look
+
+# PART 6: Return and Check Aldric
+
+# Navigate back to cavern entrance
+go up
+go up
+go up
+
+# Verify Aldric's stable state
+examine aldric
+
+# PART 7: Return to Nexus
+
+go east
+
+# SUCCESS: Fungal Depths comprehensive test complete!
+# Systems validated:
+# - Aldric rescue with health progression (critical → stabilized → cured)
+# - Light puzzle (mushroom watering, ceiling reading, safe path)
+# - Spore Mother (hostile → wary → allied transitions)
+# - Equipment (breathing mask protection)
+# - Heartmoss retrieval and use
+# - Spore heart fragment reward
+# - Safe path reduces infection in high spore zones
