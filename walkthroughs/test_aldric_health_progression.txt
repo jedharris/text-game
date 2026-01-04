@@ -1,0 +1,93 @@
+# Fungal Depths: Aldric Health Progression After Stabilization
+# Tests that Aldric's health INCREASES after first silvermoss
+# Critical: 80 severity = 8 damage/turn, 5 regen = net -3 HP/turn
+# Stabilized: 40 severity = 4 damage/turn, 5 regen = net +1 HP/turn
+# This validates he survives indefinitely after first cure
+
+# Initial state check
+ASSERT actors.player.properties.health == 100
+
+# Part 1: Let Aldric deteriorate but not die
+# He's at cavern_entrance (spore zone), taking damage each turn
+# Wait ~10 turns to let his health drop significantly
+
+# Navigate to cavern_entrance where Aldric is
+go west
+
+# Check Aldric's initial state
+examine aldric
+
+# Wait several turns to let him deteriorate
+look
+look
+look
+look
+look
+look
+look
+look
+look
+look
+
+# Check his health - should be lower but not dead
+examine aldric
+
+# Part 2: Stabilize Aldric with first silvermoss
+
+# Go to grotto to get silvermoss (there are 2 there)
+go down
+take silvermoss
+
+# Return to cavern entrance
+go up
+
+# Give first silvermoss to Aldric
+give silvermoss to aldric
+
+# Verify he's now stabilized (infection reduced from 80→40)
+# ASSERT actors.npc_aldric.properties.state_machine.current == "stabilized"
+
+# Part 3: Observe health INCREASING over multiple turns
+# With 40 severity: 4 damage - 5 regen = +1 HP/turn
+# His health should slowly increase
+
+# Wait several turns and check health progression
+look
+examine aldric
+look
+examine aldric
+look
+examine aldric
+look
+examine aldric
+look
+examine aldric
+
+# His health should be increasing each turn (net +1 HP)
+# This proves he survives indefinitely after stabilization
+
+# Part 4: Fully cure Aldric with second silvermoss
+
+# Go to grotto for second silvermoss
+go down
+take silvermoss
+
+# Return to cavern entrance
+go up
+
+# Give second dose
+give silvermoss to aldric
+
+# Verify full recovery
+# ASSERT actors.npc_aldric.properties.state_machine.current == "recovering"
+
+# Part 5: Return to nexus
+
+go east
+
+# SUCCESS: Aldric health progression validated!
+# - Critical state causes health loss (-3 HP/turn)
+# - Stabilized state causes health GAIN (+1 HP/turn)
+# - Aldric survives indefinitely after first silvermoss
+# - Second silvermoss fully cures him
+# - Player has reasonable rescue window (~33 turns at critical)

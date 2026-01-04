@@ -88,7 +88,7 @@ def on_item_used(
                 # Handler failed to load - fall through to data-driven
 
             # Data-driven processing
-            result = _check_target_reactions(target, item_lower, accessor, context)
+            result = _check_target_reactions(target, entity, item_lower, accessor, context)
             if result and result.feedback:
                 return result
 
@@ -113,6 +113,7 @@ def on_item_used(
 
 def _check_target_reactions(
     target: Any,
+    item_entity: Any,
     item_lower: str,
     accessor: Any,
     context: dict[str, Any],
@@ -141,7 +142,15 @@ def _check_target_reactions(
         if not all(state.extra.get(k) == v for k, v in required_flags.items()):
             continue
 
-        # Process the reaction
+        # Check for handler within this reaction
+        handler_path = reaction_config.get("handler")
+        if handler_path:
+            handler = load_handler(handler_path)
+            if handler:
+                return handler(item_entity, accessor, context)
+            # Handler failed to load - fall through to data-driven
+
+        # Process the reaction (data-driven)
         return _process_reaction(target, reaction_config, accessor)
 
     return None

@@ -203,9 +203,15 @@ def _handle_ritual(
         return EventResult(allow=True, feedback=None)
 
     # Check location (must be in temple)
-    player_loc = player.properties.get("location", "")
-    if "temple" not in player_loc.lower() and "sanctum" not in player_loc.lower():
-        return EventResult(allow=True, feedback=None)
+    # Get player's current location from target (golem's location)
+    golem_loc = context.get("target")
+    if golem_loc and hasattr(golem_loc, "location"):
+        loc_id = golem_loc.location
+        if "temple" not in loc_id.lower() and "sanctum" not in loc_id.lower():
+            return EventResult(allow=True, feedback=None)
+    else:
+        # Fallback: assume OK if we can't determine location
+        pass
 
     # Ritual succeeds
     _deactivate_golems(state, "passive")

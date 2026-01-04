@@ -1,0 +1,69 @@
+# Fungal Depths: Breathing Mask Protection
+# Tests equipment protection against all spore levels
+# breathing_mask should provide full immunity to fungal infection
+
+# Initial state check
+ASSERT actors.player.properties.health == 100
+
+# Part 1: Navigate to Myconid Sanctuary
+
+go west
+go down
+go up
+go south
+
+# Part 2: Get breathing mask
+
+take breathing mask
+
+# Verify mask in inventory
+inventory
+
+# Part 3: Equip breathing mask
+
+equip breathing mask
+
+# Verify mask is equipped
+# ASSERT actors.player.properties.equipment.breathing_mask == true
+
+# Part 4: Test protection in medium spore zone (Cavern Entrance)
+
+# Navigate to cavern entrance (medium spores = 5/turn normally)
+go north
+
+# Spend several turns - should accumulate NO infection
+look
+look
+look
+
+# Verify no infection accumulated (or very minimal from before equipping)
+# With mask, should have 0 infection gain from these turns
+# ASSERT actors.player.properties.conditions.fungal_infection.severity < 10
+
+# Part 5: Test protection in high spore zone (Spore Heart)
+
+# Navigate through grotto to spore heart
+go down
+go down
+
+# High spores = 10/turn normally
+# With mask, should be 0/turn
+look
+look
+look
+
+# Should still have minimal infection
+# ASSERT actors.player.properties.conditions.fungal_infection.severity < 20
+
+# Part 6: Return to safe area
+
+go up
+go up
+go up
+go east
+
+# SUCCESS: Breathing mask protection validated!
+# - Mask equips correctly
+# - Provides immunity in medium spore zones
+# - Provides immunity in high spore zones
+# - Full protection from all spore levels

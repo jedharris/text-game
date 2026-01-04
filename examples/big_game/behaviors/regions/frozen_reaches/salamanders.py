@@ -6,6 +6,7 @@ and companion recruitment mechanics.
 
 from typing import Any, Dict
 
+from behavior_libraries.companion_lib.activation import activate_companion_on_trust_threshold
 from src.behavior_manager import EventResult
 from src.infrastructure_utils import (
     apply_trust_change,
@@ -123,15 +124,20 @@ def on_receive_item(
             )
 
     if result["new_trust"] >= 3 and result["state_changed"] and result["new_state"] == "companion":
-        # Ready for companion - but needs invitation
-        return EventResult(
-            allow=True,
-            feedback=(
+        # Activate companion status using companion_lib
+        companion_result = activate_companion_on_trust_threshold(
+            actor=lead,
+            accessor=accessor,
+            trust_threshold=3,
+            companion_message=(
                 "The lead salamander's flame burns bright and steady. It nuzzles "
                 f"against you after accepting the {item_id}, clearly comfortable "
-                "in your presence. It seems willing to follow if you ask."
+                "in your presence. The bond is formed - it will follow wherever you go, "
+                "its warmth protecting you from the cold."
             ),
         )
+        if companion_result:
+            return companion_result
 
     return EventResult(
         allow=True,

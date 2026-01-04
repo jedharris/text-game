@@ -1760,6 +1760,64 @@
       }
     },
     {
+      "id": "spring_water",
+      "name": "spring water",
+      "description": "Sacred water from the hot springs, still warm to the touch. Combined with fire, this represents the ancient ritual of the temple founders.",
+      "location": "hot_springs",
+      "properties": {
+        "portable": true,
+        "water_aspected": true,
+        "ritual_component": true,
+        "synonyms": [
+          "water",
+          "sacred water"
+        ]
+      },
+      "llm_context": {
+        "traits": [
+          "warm water in simple vessel",
+          "steam rising from surface",
+          "mineral-rich clarity",
+          "sacred purpose evident",
+          "heat that cleanses"
+        ],
+        "state_variants": {
+          "in_location": "pooled in natural basin, ready for collection",
+          "in_inventory": "warm container of sacred spring water",
+          "examined": "spring water, warm and pure from geothermal source"
+        }
+      }
+    },
+    {
+      "id": "warm_coal",
+      "name": "warm coal",
+      "description": "A glowing ember from the hot springs' edge, radiating steady warmth. A salamander would find this delightful.",
+      "location": "hot_springs",
+      "properties": {
+        "portable": true,
+        "fire_aspected": true,
+        "synonyms": [
+          "coal",
+          "ember",
+          "glowing coal"
+        ]
+      },
+      "llm_context": {
+        "traits": [
+          "dull red glow",
+          "gentle heat radiating",
+          "volcanic origin evident",
+          "perfect salamander gift",
+          "heat that persists"
+        ],
+        "state_variants": {
+          "in_location": "glowing warmly among the stones",
+          "in_inventory": "warm coal, heat seeping through container",
+          "examined": "ember with steady inner heat, ideal for fire creatures"
+        }
+      }
+    },
+    {
       "id": "frost_lily",
       "name": "frost lily",
       "description": "A delicate flower that grows only in the deepest cold, its petals crystalline and shimmering. The Bee Queen would value this rare bloom.",
@@ -1991,7 +2049,8 @@
         "fire_aspected": true,
         "synonyms": [
           "fire",
-          "firewand"
+          "firewand",
+          "wand"
         ],
         "attacks": [
           {
@@ -6932,9 +6991,11 @@
       "id": "exit_deep_archive_up",
       "name": "",
       "location": "deep_archive",
-      "connections": [],
+      "connections": [
+        "exit_merchant_warehouse_down"
+      ],
       "direction": "up",
-      "description": "",
+      "description": "Merchant warehouse with crates and storage areas.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7080,12 +7141,31 @@
       "traits": {}
     },
     {
+      "id": "exit_market_square_down",
+      "name": "",
+      "location": "market_square",
+      "connections": [
+        "exit_undercity_entrance_up"
+      ],
+      "direction": "down",
+      "description": "Stairway descending into earth, carved from living rock.",
+      "adjectives": [],
+      "synonyms": [],
+      "properties": {
+        "type": "open"
+      },
+      "behaviors": [],
+      "traits": {}
+    },
+    {
       "id": "exit_healers_sanctuary_back",
       "name": "",
       "location": "healers_sanctuary",
-      "connections": [],
+      "connections": [
+        "exit_healers_garden_front"
+      ],
       "direction": "back",
-      "description": "",
+      "description": "Walled garden filled with medicinal herbs and healing plants.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7098,9 +7178,11 @@
       "id": "exit_healers_garden_front",
       "name": "",
       "location": "healers_garden",
-      "connections": [],
+      "connections": [
+        "exit_healers_sanctuary_back"
+      ],
       "direction": "front",
-      "description": "",
+      "description": "Interior of healer's sanctuary, quiet and filled with soft light.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7113,9 +7195,11 @@
       "id": "exit_undercity_entrance_up",
       "name": "",
       "location": "undercity_entrance",
-      "connections": [],
+      "connections": [
+        "exit_market_square_down"
+      ],
       "direction": "up",
-      "description": "",
+      "description": "Cobblestone square with merchant stalls and gathered townsfolk.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7711,6 +7795,23 @@
       ],
       "direction": "north",
       "description": "Streets lined with shop fronts, signs hanging still on brackets.",
+      "adjectives": [],
+      "synonyms": [],
+      "properties": {
+        "type": "open"
+      },
+      "behaviors": [],
+      "traits": {}
+    },
+    {
+      "id": "exit_merchant_warehouse_down",
+      "name": "",
+      "location": "merchant_warehouse",
+      "connections": [
+        "exit_deep_archive_up"
+      ],
+      "direction": "down",
+      "description": "Stairs descending into subterranean archive chamber.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
