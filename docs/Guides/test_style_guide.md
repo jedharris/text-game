@@ -1,8 +1,14 @@
 # Test Style Guide
 
-This guide defines the canonical structure for all test files in the text-game project.
+**Purpose:** Canonical reference for all test structure and patterns in this project.
 
-## Quick Reference
+---
+
+## Quick Start
+
+**For new tests or quick reference, start here. For troubleshooting or deep dives, see sections below.**
+
+### Template
 
 ```python
 """Test module docstring."""
@@ -29,9 +35,105 @@ class TestFeature(BaseTestCase):
         pass
 ```
 
+### Essential Principles
+
+1. **Inherit from base classes** - Use `BaseTestCase`, `BehaviorTestCase`, or `SimpleGameTestCase` from conftest.py
+2. **Always call `super().setUp()`** - Gets game_state, accessor, etc.
+3. **Consistent naming** - Use `self.behavior_manager` (never abbreviate to `self.manager`)
+4. **Setup order** - Create accessor AFTER loading behaviors
+5. **Use conftest helpers** - `make_action()`, `make_word_entry()`, etc.
+6. **No sys.path manipulation** - Unit tests don't need it; integration tests use subprocess isolation
+
+### Common Patterns
+
+```python
+# Setting up actor state
+def setUp(self):
+    super().setUp()
+    self.actor = self.game_state.actors[ActorId("player")]
+    self.accessor.set_entity_where(self.actor.id, "loc_garden")
+    self.actor.properties["posture"] = "standing"
+
+# Creating test actions
+from tests.conftest import make_action
+action = make_action(verb="take", object="sword")
+action = make_action(verb="put", object="key", preposition="in", indirect_object="box")
+
+# Extracting test results
+def _get_message(self, response):
+    narration = response.get("narration", {})
+    primary = narration.get("primary_text", "")
+    secondary = narration.get("secondary_beats", [])
+    return "\n".join([primary] + secondary)
+```
+
+### Top Anti-Patterns to Avoid
+
+```python
+# ❌ Duplicate BehaviorManager
+def setUp(self):
+    self.manager = BehaviorManager()  # First one
+    self.accessor = StateAccessor(self.game_state, self.manager)
+    self.behavior_manager = BehaviorManager()  # Second one - accessor uses wrong one!
+
+# ✅ Single manager with consistent naming
+def setUp(self):
+    super().setUp()
+    self.behavior_manager = BehaviorManager()
+    self.behavior_manager.load_modules(...)
+    self.accessor = StateAccessor(self.game_state, self.behavior_manager)
+
+# ❌ StateAccessor with None
+accessor = StateAccessor(game_state, None)  # Can't invoke behaviors!
+
+# ✅ Use BehaviorTestCase or provide real manager
+class TestFeature(BehaviorTestCase):
+    def test_something(self):
+        result = handler(self.accessor, ...)  # accessor has behavior_manager
+
+# ❌ Creating accessor in each test
+def test_one(self):
+    accessor = StateAccessor(self.game_state, self.behavior_manager)
+def test_two(self):
+    accessor = StateAccessor(self.game_state, self.behavior_manager)
+
+# ✅ Create once in setUp
+def setUp(self):
+    super().setUp()  # self.accessor available to all tests
+```
+
+### When to Use Subprocess Isolation
+
+Use the two-file subprocess pattern when **ALL** of these are true:
+1. Test manipulates `sys.path` (adds game directory)
+2. Test uses `GameEngine(GAME_DIR)` to load a game
+3. Game has custom behaviors in its `behaviors/` directory
+
+**Symptoms:** Test passes alone, fails in discovery due to module cache pollution.
+
+**Detection:** Run `python tools/find_isolation_candidates.py`
+
+**Don't use for:**
+- Unit tests of src/ modules
+- Tests using only behavior_libraries imports
+- Tests with absolute imports from examples/
+
+See [Integration Testing](#integration-testing) section for complete pattern.
+
+### Quick Checklist
+
+- [ ] Inherits from BaseTestCase/BehaviorTestCase/SimpleGameTestCase
+- [ ] Calls `super().setUp()` first
+- [ ] Uses `self.behavior_manager` (not `self.manager`)
+- [ ] Creates `self.accessor` in setUp (not in tests)
+- [ ] Uses conftest helpers (make_action, etc.)
+- [ ] No sys.path manipulation (unless integration test with isolation)
+- [ ] Docstrings for module, class, methods
+- [ ] Passes individually AND via `unittest discover`
+
 ---
 
-## Core Principles
+## Core Principles (Detailed)
 
 ### 1. Always Inherit from Base Classes
 
@@ -182,7 +284,7 @@ import unittest
 from src.state_manager import GameState
 ```
 
-**CRITICAL EXCEPTION**: Tests that manipulate sys.path AND use GameEngine with game-specific behaviors MUST use subprocess isolation (see "When to Use Subprocess Isolation" below).
+**CRITICAL EXCEPTION**: Tests that manipulate sys.path AND use GameEngine with game-specific behaviors MUST use subprocess isolation (see [Integration Testing](#integration-testing) below).
 
 ### 8. Consistent Import Order
 
@@ -326,7 +428,7 @@ Use subprocess isolation when:
 
 Create two files:
 
-1. **Implementation file** (`tests/_<game>_scenarios_impl.py`):
+**1. Implementation file** (`tests/_<game>_scenarios_impl.py`):
 ```python
 """Implementation of <game> scenario tests.
 
@@ -377,7 +479,7 @@ if __name__ == '__main__':
     unittest.main(verbosity=2)
 ```
 
-2. **Wrapper file** (`tests/test_<game>_scenarios.py`):
+**2. Wrapper file** (`tests/test_<game>_scenarios.py`):
 ```python
 """Integration tests for <game> scenarios.
 
@@ -647,40 +749,6 @@ def test_something(self):
 
 ---
 
-## Checklist for New Tests
-
-- [ ] Inherits from `BaseTestCase`, `BehaviorTestCase`, or `SimpleGameTestCase`
-- [ ] Calls `super().setUp()` in setUp method
-- [ ] Uses `self.behavior_manager` (not `self.manager`)
-- [ ] Creates `self.accessor` in setUp (not in individual tests)
-- [ ] Uses `conftest` helpers (`make_action`, `make_word_entry`, etc.)
-- [ ] No `sys.path` manipulation (unless integration test)
-- [ ] Consistent import ordering
-- [ ] Docstrings for module, class, and test methods
-- [ ] Passes when run individually
-- [ ] Passes when run via `unittest discover`
-
----
-
-## Reference: conftest.py Base Classes
-
-### BaseTestCase
-- **Provides**: `self.game_state`, `self.accessor` (no behaviors)
-- **Use for**: Unit tests that don't invoke behaviors
-- **Example**: Testing utility functions, state accessors
-
-### BehaviorTestCase
-- **Provides**: `self.game_state`, `self.behavior_manager`, `self.accessor`
-- **Use for**: Tests that invoke behavior handlers
-- **Example**: Testing behavior modules, handler functions
-
-### SimpleGameTestCase
-- **Provides**: Full simple_game state, `self.behavior_manager`, `self.accessor`
-- **Use for**: Integration tests using simple_game
-- **Example**: Multi-step puzzle tests, full command flow tests
-
----
-
 ## When to Use Subprocess Isolation
 
 ### The Problem
@@ -702,79 +770,6 @@ Use the two-file subprocess isolation pattern when ALL of these are true:
 2. ✅ Test uses `GameEngine(GAME_DIR)` to load a game
 3. ✅ Game has custom behaviors in its `behaviors/` directory
 
-### How to Use Subprocess Isolation
-
-Create two files:
-
-**`tests/test_<game>_scenarios.py`** (wrapper):
-```python
-"""Integration tests for <game> scenarios."""
-import subprocess
-import sys
-import unittest
-from pathlib import Path
-
-PROJECT_ROOT = Path(__file__).parent.parent
-
-class Test<Game>Scenarios(unittest.TestCase):
-    """Run <game> scenario tests in isolated subprocesses."""
-
-    def _run_test_class(self, class_name: str) -> subprocess.CompletedProcess:
-        """Run a single test class in a subprocess."""
-        return subprocess.run(
-            [
-                sys.executable,
-                '-m', 'unittest',
-                f'tests._<game>_scenarios_impl.{class_name}',
-                '-v'
-            ],
-            capture_output=True,
-            text=True,
-            cwd=PROJECT_ROOT
-        )
-
-    def test_feature_x(self):
-        """Test feature X."""
-        result = self._run_test_class('TestFeatureX')
-        if result.returncode != 0:
-            print(result.stderr)
-        self.assertEqual(result.returncode, 0, f"Tests failed:\n{result.stderr}")
-```
-
-**`tests/_<game>_scenarios_impl.py`** (implementation):
-```python
-"""Implementation of <game> scenario tests.
-
-DO NOT import this module directly - it will cause module pollution.
-Run via test_<game>_scenarios.py wrapper.
-"""
-import sys
-from pathlib import Path
-
-GAME_DIR = (Path(__file__).parent.parent / 'examples' / '<game>').resolve()
-PROJECT_ROOT = Path(__file__).parent.parent.resolve()
-
-def _setup_paths():
-    """Ensure game directory is first in sys.path."""
-    while '' in sys.path:
-        sys.path.remove('')
-    if str(GAME_DIR) not in sys.path:
-        sys.path.insert(0, str(GAME_DIR))
-    if str(PROJECT_ROOT) not in sys.path:
-        sys.path.insert(1, str(PROJECT_ROOT))
-
-_setup_paths()
-
-from src.game_engine import GameEngine
-
-class TestFeatureX(unittest.TestCase):
-    """Test feature X in <game>."""
-
-    def setUp(self):
-        self.engine = GameEngine(GAME_DIR)
-        # Test implementation
-```
-
 ### Detecting Tests That Need Isolation
 
 Run the isolation detector tool:
@@ -795,19 +790,13 @@ Don't use subprocess isolation for:
 - Tests using `GameEngine` with games that have no custom behaviors (e.g., simple_game)
 - Regular unit tests of src/ modules
 
-### Related Documentation
-
-- [integration_testing.md](integration_testing.md) - Full guide to integration test structure
-- [test_isolation_analysis.md](test_isolation_analysis.md) - Deep dive into isolation patterns
-- [test_isolation_root_cause.md](test_isolation_root_cause.md) - Technical details of module cache pollution
-
 ---
 
 ## Avoiding sys.path and Module Cache Pollution
 
 ### The Problem
 
-Tests that manipulate `sys.path` at module level (when the file is imported) create **timing-dependent failures** that are difficult to diagnose:
+Tests that manipulate `sys.path` at module level (when the file is imported) create **timing-dependent failures**:
 
 1. During test discovery, Python imports all test modules (module-level code runs once)
 2. Test A runs, adds game directory to `sys.path` in `setUp`
@@ -851,7 +840,6 @@ BIG_GAME_DIR = Path(__file__).parent.parent / 'examples' / 'big_game'
 class TestMyFeature(unittest.TestCase):
     def setUp(self):
         # Restore sys.path every time setUp runs
-        # This ensures the path is available even if cleanup removed it
         if str(BIG_GAME_DIR) not in sys.path:
             sys.path.insert(0, str(BIG_GAME_DIR))
 
@@ -866,7 +854,7 @@ class TestMyFeature(unittest.TestCase):
 **✅ BEST - Use subprocess isolation:**
 ```python
 # For tests that need game-specific behaviors, use the two-file
-# subprocess isolation pattern (see "When to Use Subprocess Isolation" above)
+# subprocess isolation pattern (see Integration Testing section)
 ```
 
 #### Rule 2: Never Use Module-Level Mocks
@@ -889,7 +877,7 @@ class TestMyFeature(unittest.TestCase):
 
 **✅ GOOD - Mock in setUp/tearDown:**
 ```python
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 import sys
 
 class TestMyFeature(unittest.TestCase):
@@ -1012,77 +1000,59 @@ If you see these symptoms, check for sys.path or module cache pollution:
    - Cause: sys.modules cached wrong behavior module from previous test
    - Fix: Clean up sys.modules in tearDown, or use subprocess isolation
 
-### Debugging Checklist
+---
 
-When investigating context-dependent test failures:
+## Checklist for New Tests
 
-1. **Verify the failure is context-dependent:**
-   ```bash
-   # Run test alone
-   python -m unittest tests.test_foo::TestClass::test_method -v
+- [ ] Inherits from `BaseTestCase`, `BehaviorTestCase`, or `SimpleGameTestCase`
+- [ ] Calls `super().setUp()` in setUp method
+- [ ] Uses `self.behavior_manager` (not `self.manager`)
+- [ ] Creates `self.accessor` in setUp (not in individual tests)
+- [ ] Uses `conftest` helpers (`make_action`, `make_word_entry`, etc.)
+- [ ] No `sys.path` manipulation (unless integration test with subprocess isolation)
+- [ ] Consistent import ordering
+- [ ] Docstrings for module, class, and test methods
+- [ ] Passes when run individually
+- [ ] Passes when run via `unittest discover`
 
-   # Run test in discovery
-   python -m unittest discover -s tests -v
-   ```
+---
 
-2. **Find which test pollutes the context:**
-   ```bash
-   # Run suspected polluter followed by failing test
-   python -m unittest tests.test_thermal_shock tests.test_foo -v
-   ```
+## Reference: conftest.py Base Classes
 
-3. **Check sys.path manipulation:**
-   - Search for `sys.path.insert` or `sys.path.append` in test file
-   - Verify it's in `setUp` (not module level)
-   - Verify cleanup in `tearDown`
+### BaseTestCase
+- **Provides**: `self.game_state`, `self.accessor` (no behaviors)
+- **Use for**: Unit tests that don't invoke behaviors
+- **Example**: Testing utility functions, state accessors
 
-4. **Check module-level mocks:**
-   - Search for `sys.modules[` at module level
-   - Move to `setUp/tearDown` or use `@patch`
+### BehaviorTestCase
+- **Provides**: `self.game_state`, `self.behavior_manager`, `self.accessor`
+- **Use for**: Tests that invoke behavior handlers
+- **Example**: Testing behavior modules, handler functions
 
-5. **Check module cache cleanup:**
-   - Verify test inherits from BaseTestCase, or
-   - Verify test has explicit tearDown that cleans sys.modules
+### SimpleGameTestCase
+- **Provides**: Full simple_game state, `self.behavior_manager`, `self.accessor`
+- **Use for**: Integration tests using simple_game
+- **Example**: Multi-step puzzle tests, full command flow tests
 
-6. **Consider subprocess isolation:**
-   - If test uses GameEngine with game-specific behaviors
-   - Run `python tools/find_isolation_candidates.py` to check
+---
 
-### Real-World Example
+## Running Tests
 
-From the test suite cleanup (January 2026):
+```bash
+# Run all tests
+python -m unittest discover -s tests
 
-**Problem:** `test_turn_phase_dispatch.py` failed after `test_thermal_shock.py` ran:
-- test_thermal_shock completed, tearDown removed big_game from sys.path
-- test_turn_phase_dispatch had module-level constants (lines 13-15) that ran during discovery
-- test_turn_phase_dispatch setUp tried to load behaviors, but big_game was not in sys.path
-- BehaviorManager silently caught ImportError, handlers didn't register
-- Tests failed with `result.feedback is None`
+# Run specific test file
+python -m unittest tests.test_parser
 
-**Solution:** Added sys.path restoration in setUp for all 4 test classes in [test_turn_phase_dispatch.py](../../tests/test_turn_phase_dispatch.py):
-```python
-def setUp(self):
-    # Ensure big_game is in sys.path (might have been removed by previous test cleanup)
-    if str(BIG_GAME_DIR) not in sys.path:
-        sys.path.insert(0, str(BIG_GAME_DIR))
-
-    # Now setUp can safely load behaviors
-    self.game_state = GameState(...)
+# Run specific test
+python -m unittest tests.test_parser.TestParserIntegration.test_full_game
 ```
 
 ---
 
-## Migration Strategy
+## Related Documentation
 
-When updating existing tests:
-
-1. **Fix critical bugs first** (duplicate managers, None accessor)
-2. **Standardize naming** (`self.manager` → `self.behavior_manager`)
-3. **Move to base classes** (inherit from BaseTestCase/BehaviorTestCase)
-4. **Add super().setUp() calls**
-5. **Use conftest helpers**
-6. **Remove sys.path manipulation** (unless test needs isolation)
-7. **Check if isolation needed** (run `tools/find_isolation_candidates.py`)
-8. **Validate** - run both individually and via discovery
-
-This can be done incrementally as you touch test files for other work.
+- **[claude_session_guide.md](claude_session_guide.md)** - Universal gotchas (accessor.game_state, state.get_item(), etc.)
+- **[quick_reference.md](quick_reference.md)** - API reference and common utilities
+- **[authoring_guide.md](authoring_guide.md)** - Handler patterns and walkthrough testing
