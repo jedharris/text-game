@@ -930,11 +930,16 @@ def _is_item_visible_in_location(
             return True
 
     # For doors: also check if any exit in this location references the door via door_id
+    # But only if the door is physically located in this location (door_at field)
     if item.is_door:
         exits_here = accessor.get_exits_from_location(location_id)
         for exit_entity in exits_here:
             if exit_entity.door_id == item.id:
-                return True
+                # Check if exit specifies where the door is physically located
+                door_at = getattr(exit_entity, 'door_at', None)
+                if door_at is None or door_at == location_id:
+                    # No door_at field (legacy) or door is in this location
+                    return True
 
     return False
 
@@ -1080,16 +1085,10 @@ def describe_location(accessor: "StateAccessor", location: "Location", actor_id:
         actor_names = ", ".join([a.name for a in contents["actors"]])
         message_parts.append(f"\nAlso here: {actor_names}")
 
-    # Add visible exits
-    visible_exits = accessor.get_visible_exits(location.id, actor_id)
-    if visible_exits:
-        exit_descriptions = []
-        for direction, exit_desc in visible_exits.items():
-            if hasattr(exit_desc, 'name') and exit_desc.name:
-                exit_descriptions.append(f"{exit_desc.name} ({direction})")
-            else:
-                exit_descriptions.append(direction)
-        message_parts.append(f"\nExits: {', '.join(exit_descriptions)}")
+    # NOTE: Exits are no longer included in primary_text.
+    # They are provided via must_mention.exits_text in the narration plan,
+    # which allows the narrator to integrate them naturally.
+    # This prevents duplication where exits appeared in both primary_text and must_mention.
 
     return message_parts
 
@@ -1201,6 +1200,40 @@ DIRECTION_ABBREVIATIONS = {
     "u": "up", "d": "down",
     "ne": "northeast", "nw": "northwest", "se": "southeast", "sw": "southwest"
 }
+
+
+def find_exit_for_door(
+    accessor: "StateAccessor",
+    door_id: str,
+    location_id: str,
+    actor_id: ActorId
+) -> Optional["Exit"]:
+    """
+    Find the exit entity (if any) that uses the given door in the current location.
+
+    This is used to provide perspective-aware descriptions when examining doors.
+    The exit entity contains the full spatial context (passage, direction, perspective)
+    while the door entity is just the lockable barrier.
+
+    Args:
+        accessor: StateAccessor instance
+        door_id: ID of the door item
+        location_id: Current location ID
+        actor_id: ID of the actor (for visibility checks)
+
+    Returns:
+        Exit entity if the door is part of a visible exit, None otherwise
+    """
+    visible_exits = accessor.get_visible_exits(location_id, actor_id)
+    if not visible_exits:
+        return None
+
+    # Check each visible exit to see if it uses this door
+    for direction, exit_entity in visible_exits.items():
+        if hasattr(exit_entity, 'door_id') and exit_entity.door_id == door_id:
+            return exit_entity
+
+    return None
 
 
 def find_exit_by_name(

@@ -170,6 +170,45 @@ def handle_examine(accessor, action):
     item = find_accessible_item(accessor, object_name, actor_id, item_adjective)
 
     if item:
+        # Special handling for doors: use exit description if available
+        if item.is_door:
+            from utilities.utils import find_exit_for_door
+            exit_entity = find_exit_for_door(accessor, item.id, location.id, actor_id)
+
+            if exit_entity:
+                # CRITICAL: Closed doors should NOT reveal what's beyond them
+                # Only open doors can show passage information
+                if item.door_open:
+                    # Open door - describe the door AND the passage beyond
+                    passage = exit_entity.passage if hasattr(exit_entity, 'passage') and exit_entity.passage else None
+                    if passage:
+                        # Combine door description + passage description
+                        desc = f"{item.description} Beyond it, {passage}."
+                    else:
+                        # No passage info, just use exit description
+                        desc = exit_entity.description if exit_entity.description else item.description
+                else:
+                    # Closed door - use only the door's description (player can't see through it)
+                    desc = item.description
+
+                data = serialize_for_handler_result(exit_entity, accessor, actor_id)
+                # Add door state as context for testing/debugging
+                context = {
+                    "is_door": True,
+                    "door_state": {
+                        "open": item.door_open,
+                        "locked": item.door_locked
+                    }
+                }
+
+                return HandlerResult(
+                    success=True,
+                    primary=desc,
+                    data=data,
+                    context=context
+                )
+
+        # Normal item handling (non-doors or doors not part of exits)
         # Try implicit positioning
         moved, move_message = try_implicit_positioning(accessor, actor_id, item)
 
@@ -177,7 +216,9 @@ def handle_examine(accessor, action):
         if move_message:
             message_parts.append(move_message)
 
-        message_parts.append(f"{item.name}: {item.description}")
+        # Don't include item name in primary text - it's already in entity_refs
+        # Including it creates redundancy that leads to "ball ball" type errors
+        message_parts.append(item.description)
 
         # If item is a container, show its contents
         container_props = item.properties.get("container", {})
@@ -227,6 +268,20 @@ def handle_examine(accessor, action):
 
         # Use unified serializer for llm_context with trait randomization
         data = serialize_for_handler_result(item, accessor, actor_id)
+
+        # If player has a posture (on_surface, climbing, etc.), include that entity too
+        # so narrator has context about player's position
+        posture = actor.properties.get("posture")
+        posture_entity_id = actor.properties.get("posture_entity")
+        if posture and posture_entity_id and posture_entity_id != item.id:
+            # Include the posture entity (bench, tree, etc.) in entity_refs
+            posture_entity = accessor.get_item(posture_entity_id)
+            if posture_entity:
+                # Add as additional entity in nested structure
+                if "items" not in data:
+                    data["items"] = []
+                posture_data = serialize_for_handler_result(posture_entity, accessor, actor_id)
+                data["items"].append(posture_data)
 
         return HandlerResult(
             success=True,
@@ -286,13 +341,48 @@ def handle_examine(accessor, action):
     door = find_door_with_adjective(accessor, object_name, door_adjective, location.id, actor_id, verb=verb)
 
     if door:
-        # Use unified serializer for llm_context with trait randomization
-        data = serialize_for_handler_result(door, accessor, actor_id)
+        # Check if this door is part of a visible exit
+        # If so, use the exit's perspective-aware description instead of the door's generic one
+        from utilities.utils import find_exit_for_door
+        exit_entity = find_exit_for_door(accessor, door.id, location.id, actor_id)
+
+        if exit_entity:
+            # CRITICAL: Closed doors should NOT reveal what's beyond them
+            # Only open doors can show passage information
+            if door.door_open:
+                # Open door - describe the door AND the passage beyond
+                passage = exit_entity.passage if hasattr(exit_entity, 'passage') and exit_entity.passage else None
+                if passage:
+                    # Combine door description + passage description
+                    desc = f"{door.description} Beyond it, {passage}."
+                else:
+                    # No passage info, just use exit description
+                    desc = exit_entity.description if exit_entity.description else door.description
+            else:
+                # Closed door - use only the door's description (player can't see through it)
+                desc = door.description
+
+            # Serialize the exit to get perspective variants and spatial context
+            data = serialize_for_handler_result(exit_entity, accessor, actor_id)
+            # Add door state as context for testing/debugging
+            context = {
+                "is_door": True,
+                "door_state": {
+                    "open": door.door_open,
+                    "locked": door.door_locked
+                }
+            }
+        else:
+            # Fallback to door's generic description (not part of an exit)
+            desc = door.description
+            data = serialize_for_handler_result(door, accessor, actor_id)
+            context = None
 
         return HandlerResult(
             success=True,
-            primary=f"{door.description}",
-            data=data
+            primary=desc,
+            data=data,
+            context=context
         )
 
     # If no door found, try to find an exit

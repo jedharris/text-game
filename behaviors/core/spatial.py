@@ -196,9 +196,12 @@ def _handle_positioning(accessor, action, object_field: str, required_property: 
     # Set or clear posture
     if posture:
         actor.properties["posture"] = posture
+        actor.properties["posture_entity"] = target.id  # Track which entity the posture is relative to
     elif "posture" in actor.properties:
         # Clear posture for simple movement
         del actor.properties["posture"]
+        if "posture_entity" in actor.properties:
+            del actor.properties["posture_entity"]
 
     # Build message
     if already_there:
@@ -364,6 +367,7 @@ def handle_climb(accessor, action):
     # Set climbing state
     actor.properties["focused_on"] = climbable.id
     actor.properties["posture"] = "climbing"
+    actor.properties["posture_entity"] = climbable.id  # Track which entity the posture is relative to
 
     # Build message - include behavior message if present
     base_message = f"You climb the {climbable.name}."
@@ -421,6 +425,7 @@ def handle_down(accessor, action):
 
     # Clear positioning state
     actor.properties.pop("posture", None)
+    actor.properties.pop("posture_entity", None)
     actor.properties.pop("focused_on", None)
 
     # Generate appropriate message based on previous posture

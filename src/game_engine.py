@@ -118,9 +118,13 @@ class GameEngine:
         # Extract verbs for parser (including multi-type words from other sections)
         verbs = []
 
-        # Get verbs from verbs section
+        # Get verbs from verbs section (including synonyms)
         for v in self.merged_vocabulary.get('verbs', []):
             verbs.append(v['word'])
+            # Include synonyms so LLM parser recognizes them
+            for synonym in v.get('synonyms', []):
+                if synonym not in verbs:
+                    verbs.append(synonym)
 
         # Get multi-type words with verb type from nouns and adjectives sections
         for section in ['nouns', 'adjectives']:
@@ -187,12 +191,32 @@ class GameEngine:
             item_name = getattr(item, 'name', item.id)
             inventory.append(item_name)
 
-        # Get exits using index
+        # Get exits and add their names/doors to location_objects
         exits: List[str] = []
         exits_here = accessor.get_exits_from_location(location_id)
         for exit_entity in exits_here:
+            # Add direction to exits list
             if exit_entity.direction:
                 exits.append(exit_entity.direction)
+
+            # Add exit name to location_objects (e.g., "spiral staircase")
+            # so players can "climb stairs" or "examine staircase"
+            if exit_entity.name and exit_entity.name not in location_objects:
+                location_objects.append(exit_entity.name)
+
+            # Add door name to location_objects for exits with doors
+            # BUT: Only if the door doesn't share a name with the exit
+            # This prevents "up" -> "climb door" confusion
+            if hasattr(exit_entity, 'door_id') and exit_entity.door_id:
+                door = accessor.get_item(exit_entity.door_id)
+                if door:
+                    # Only include if door is physically at this location
+                    door_at = getattr(exit_entity, 'door_at', None)
+                    if (door_at is None or door_at == location_id):
+                        door_name = getattr(door, 'name', door.id)
+                        # Only add if different from exit name (avoid "door" + "staircase" confusion)
+                        if door_name not in location_objects and door_name != exit_entity.name:
+                            location_objects.append(door_name)
 
         # Get dialogue topics (unchanged)
         topics: List[str] = []

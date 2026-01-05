@@ -8,6 +8,7 @@ from typing import Dict, Any, cast
 from src.state_accessor import HandlerResult
 from src.types import ActorId
 from utilities.utils import find_accessible_item
+from utilities.entity_serializer import serialize_for_handler_result
 
 
 # Vocabulary extension
@@ -88,7 +89,12 @@ def _handle_surface_action(accessor, action: Dict[str, Any], action_verb: str,
     # Set posture and focus
     actor.properties["focused_on"] = surface.id
     actor.properties["posture"] = posture
+    actor.properties["posture_entity"] = surface.id  # Track which entity the posture is relative to
 
     message = f"You {action_verb} the {surface.name}."
 
-    return HandlerResult(success=True, primary=message)
+    # Serialize surface for LLM consumption
+    data = serialize_for_handler_result(surface, accessor, actor_id)
+    data["posture"] = posture
+
+    return HandlerResult(success=True, primary=message, data=data)

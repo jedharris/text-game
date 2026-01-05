@@ -23,9 +23,10 @@ def on_climb(entity: Any, accessor: Any, context: Dict) -> EventResult:
     actor = accessor.get_actor(actor_id)
 
     posture = actor.properties.get("posture")
-    focused = actor.properties.get("focused_on")
 
-    if posture != "on_surface" or focused != "item_garden_bench":
+    # Check that player is standing on a surface (the bench)
+    # Don't check focused_on because examining the tree changes focus
+    if posture != "on_surface":
         return EventResult(
             allow=False,
             feedback="The tree is too tall to climb from the ground. You need something to stand on."

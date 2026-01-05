@@ -137,86 +137,92 @@ def main():
         if not command_text:
             continue
 
-        # Parse text command
-        result = parser.parse_command(command_text)
+        # Split on semicolons for command stacking
+        commands = [cmd.strip() for cmd in command_text.split(';') if cmd.strip()]
 
-        if result is None:
-            print("I don't understand that command.")
-            continue
+        for command_text in commands:
+            print(f"[DEBUG] Processing command: '{command_text}'")
+            # Parse text command
+            result = parser.parse_command(command_text)
+            print(f"[DEBUG] Parse result: {result}")
 
-        # Handle special commands
-        if result.verb:
-            verb = result.verb.word
-
-            # Help
-            if verb == "help":
-                print("Available commands:")
-                print("  Movement: north, south, east, west, up, down")
-                print("  Actions: take, drop, open, close, unlock, examine, look")
-                print("  Custom: read, peer/gaze, wave")
-                print("  Other: inventory, quit, help")
+            if result is None:
+                print("I don't understand that command.")
                 continue
 
-            # Look without object -> use command handler
-            if verb in ("look", "examine") and not result.direct_object:
-                response = json_handler.handle_message({
-                    "type": "command",
-                    "action": {"verb": "look"}
-                })
-                print(format_command_result(response))
-                continue
+            # Handle special commands
+            if result.verb:
+                verb = result.verb.word
 
-            # Inventory
-            if verb == "inventory":
-                response = json_handler.handle_message({
-                    "type": "query",
-                    "query_type": "inventory"
-                })
-                print(format_inventory_query(response))
-                continue
+                # Help
+                if verb == "help":
+                    print("Available commands:")
+                    print("  Movement: north, south, east, west, up, down")
+                    print("  Actions: take, drop, open, close, unlock, examine, look")
+                    print("  Custom: read, peer/gaze, wave")
+                    print("  Other: inventory, quit, help")
+                    continue
 
-        # Handle direction-only input
-        # Directions are now in direct_object as nouns
-        if result.direct_object and not result.verb:
-            json_cmd = {"type": "command", "action": {"verb": "go", "object": result.direct_object}}
-        else:
-            json_cmd = parsed_to_json(result)
+                # Look without object -> use command handler
+                if verb in ("look", "examine") and not result.direct_object:
+                    response = json_handler.handle_message({
+                        "type": "command",
+                        "action": {"verb": "look"}
+                    })
+                    print(format_command_result(response))
+                    continue
 
-        # Execute via JSON protocol
-        response = json_handler.handle_message(json_cmd)
+                # Inventory
+                if verb == "inventory":
+                    response = json_handler.handle_message({
+                        "type": "query",
+                        "query_type": "inventory"
+                    })
+                    print(format_inventory_query(response))
+                    continue
 
-        # Check for meta command signals (quit, save, load)
-        if response.get("success") and response.get("data", {}).get("signal"):
-            signal = response["data"]["signal"]
+            # Handle direction-only input
+            # Directions are now in direct_object as nouns
+            if result.direct_object and not result.verb:
+                json_cmd = {"type": "command", "action": {"verb": "go", "object": result.direct_object}}
+            else:
+                json_cmd = parsed_to_json(result)
 
-            if signal == "quit":
-                print(response.get("message", "Thanks for playing!"))
-                break
+            # Execute via JSON protocol
+            response = json_handler.handle_message(json_cmd)
 
-            # Note: extended_game doesn't have save/load functionality
-            # If needed in future, add signal handling here
+            # Check for meta command signals (quit, save, load)
+            if response.get("success") and response.get("data", {}).get("signal"):
+                signal = response["data"]["signal"]
 
-        # Normal command result
-        print(format_command_result(response))
-
-        # Check for win condition (getting to sanctum with the wand)
-        if response.get("success"):
-            actor = state.actors.get(ActorId("player"))
-            if actor and actor.location == "loc_sanctum":
-                # Check if player has the wand
-                wand = None
-                for item in state.items:
-                    if item.id == "item_magic_wand" and item.location == "player":
-                        wand = item
-                        break
-                if wand:
-                    print()
-                    print("=" * 60)
-                    print("CONGRATULATIONS!")
-                    print("You've claimed the wizard's wand and reached the sanctum!")
-                    print("The tower's magic is now yours to command.")
-                    print("=" * 60)
+                if signal == "quit":
+                    print(response.get("message", "Thanks for playing!"))
                     break
+
+                # Note: extended_game doesn't have save/load functionality
+                # If needed in future, add signal handling here
+
+            # Normal command result
+            print(format_command_result(response))
+
+            # Check for win condition (getting to sanctum with the wand)
+            if response.get("success"):
+                actor = state.actors.get(ActorId("player"))
+                if actor and actor.location == "loc_sanctum":
+                    # Check if player has the wand
+                    wand = None
+                    for item in state.items:
+                        if item.id == "item_magic_wand" and item.location == "player":
+                            wand = item
+                            break
+                    if wand:
+                        print()
+                        print("=" * 60)
+                        print("CONGRATULATIONS!")
+                        print("You've claimed the wizard's wand and reached the sanctum!")
+                        print("The tower's magic is now yours to command.")
+                        print("=" * 60)
+                        break
 
 
 if __name__ == '__main__':

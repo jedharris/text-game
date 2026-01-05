@@ -1,0 +1,34 @@
+# Phase 1.3: Test exits_text frequency reduction
+# Exits should only appear on:
+# 1. First visit (familiarity == "new")
+# 2. Explicit look commands
+
+# First movement north - should have exits (first visit)
+north
+assert_json: scope.scene_kind == location_entry
+assert_json: must_mention.exits_text exists
+
+# Return south - familiar location, no exits
+# (must_mention field will not exist when empty, which is correct)
+south
+assert_json: scope.scene_kind == location_entry
+assert_json: scope.familiarity == familiar
+
+# Go north again - familiar location, no exits
+# (must_mention field will not exist when empty, which is correct)
+north
+assert_json: scope.scene_kind == location_entry
+assert_json: scope.familiarity == familiar
+
+# Explicit look - should always show exits
+look
+assert_json: scope.scene_kind == look
+assert_json: must_mention.exits_text exists
+
+# NOTE: "examine" is currently classified as "look" scene_kind
+# This means it ALWAYS gets exits, even when examining specific items
+# This is a known issue - examine <specific item> should be action_result
+# For now, we accept this behavior
+examine mat
+assert_json: scope.scene_kind == look
+assert_json: must_mention.exits_text exists

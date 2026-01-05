@@ -76,7 +76,15 @@
       "location": "loc_garden",
       "properties": {
         "type": "tool",
-        "portable": true
+        "portable": true,
+        "llm_context": {
+          "traits": [
+            "rusty metal blade",
+            "worn wooden handle",
+            "serviceable condition",
+            "garden tool"
+          ]
+        }
       }
     },
     {
@@ -168,7 +176,16 @@
       "location": "loc_tower_entrance",
       "properties": {
         "type": "object",
-        "portable": false
+        "portable": false,
+        "llm_context": {
+          "traits": [
+            "woven fabric",
+            "faded welcome lettering",
+            "worn edges from foot traffic",
+            "dusty surface",
+            "barely visible words 'Speak Friend'"
+          ]
+        }
       },
       "behaviors": [
         "behaviors.magic_mat"
@@ -187,6 +204,14 @@
           "is_surface": false,
           "capacity": 5,
           "open": true
+        },
+        "llm_context": {
+          "traits": [
+            "tall ceramic construction",
+            "glazed finish",
+            "cylindrical shape",
+            "decorative pattern"
+          ]
         }
       }
     },
@@ -197,7 +222,15 @@
       "location": "item_umbrella_stand",
       "properties": {
         "type": "object",
-        "portable": true
+        "portable": true,
+        "llm_context": {
+          "traits": [
+            "dusty fabric canopy",
+            "carved wooden handle",
+            "old but intact",
+            "slightly tattered edges"
+          ]
+        }
       }
     },
     {
@@ -213,6 +246,14 @@
           "is_surface": false,
           "capacity": 10,
           "open": true
+        },
+        "llm_context": {
+          "traits": [
+            "rough wooden planks",
+            "pried-open lid",
+            "shipping labels faded",
+            "splinters on edges"
+          ]
         }
       }
     },
@@ -223,7 +264,15 @@
       "location": "item_crate",
       "properties": {
         "type": "object",
-        "portable": true
+        "portable": true,
+        "llm_context": {
+          "traits": [
+            "small iron construction",
+            "STORAGE etched on surface",
+            "tarnished metal",
+            "simple design"
+          ]
+        }
       }
     },
     {
@@ -233,7 +282,15 @@
       "location": "loc_storage",
       "properties": {
         "type": "object",
-        "portable": true
+        "portable": true,
+        "llm_context": {
+          "traits": [
+            "coiled hemp rope",
+            "frayed ends",
+            "sturdy despite age",
+            "rough texture"
+          ]
+        }
       }
     },
     {
@@ -248,18 +305,61 @@
           "is_container": true,
           "is_surface": true,
           "capacity": 10
+        },
+        "llm_context": {
+          "traits": [
+            "large oak construction",
+            "papers scattered across surface",
+            "strange instruments",
+            "aged wood",
+            "scholarly workspace"
+          ]
         }
       }
     },
     {
-      "id": "item_spellbook",
+      "id": "item_blue_spellbook",
       "name": "spellbook",
-      "description": "A leather-bound spellbook. Arcane runes shimmer on its cover.",
+      "description": "A blue leather-bound spellbook with silver trim.",
       "location": "item_desk",
+      "adjectives": ["blue"],
       "properties": {
         "type": "object",
         "portable": true,
-        "readable": true
+        "readable": true,
+        "llm_context": {
+          "traits": [
+            "blue leather binding",
+            "silver trim on edges",
+            "water magic symbols",
+            "cool to the touch",
+            "faint oceanic scent"
+          ]
+        }
+      },
+      "behaviors": [
+        "behaviors.spellbook"
+      ]
+    },
+    {
+      "id": "item_red_spellbook",
+      "name": "spellbook",
+      "description": "A red leather-bound spellbook with gold clasps.",
+      "location": "item_desk",
+      "adjectives": ["red"],
+      "properties": {
+        "type": "object",
+        "portable": true,
+        "readable": true,
+        "llm_context": {
+          "traits": [
+            "red leather binding",
+            "gold clasps gleaming",
+            "fire magic symbols",
+            "warm to the touch",
+            "faint sulfurous smell"
+          ]
+        }
       },
       "behaviors": [
         "behaviors.spellbook"
@@ -278,6 +378,15 @@
           "is_container": true,
           "is_surface": true,
           "capacity": 1
+        },
+        "llm_context": {
+          "traits": [
+            "ornate silver metal",
+            "intricate engravings",
+            "polished surface",
+            "arcane symbols",
+            "delicate craftsmanship"
+          ]
         }
       }
     },
@@ -290,7 +399,16 @@
         "type": "object",
         "portable": true,
         "magical": true,
-        "interaction_distance": "near"
+        "interaction_distance": "near",
+        "llm_context": {
+          "traits": [
+            "clear crystal sphere",
+            "swirling mist within",
+            "smooth glass surface",
+            "mysterious depths",
+            "magical artifact"
+          ]
+        }
       },
       "behaviors": [
         "behaviors.crystal_ball"
@@ -304,7 +422,16 @@
       "properties": {
         "type": "object",
         "portable": true,
-        "magical": true
+        "magical": true,
+        "llm_context": {
+          "traits": [
+            "gleaming golden metal",
+            "faint magical glow",
+            "warm to the touch",
+            "intricate runes etched along shaft",
+            "feels lighter than it should"
+          ]
+        }
       },
       "states": {
         "hidden": true
@@ -322,6 +449,15 @@
           "is_container": true,
           "is_surface": true,
           "capacity": 3
+        },
+        "llm_context": {
+          "traits": [
+            "carved stone",
+            "ritual channels",
+            "ancient construction",
+            "mystical purpose",
+            "smooth polished top"
+          ]
         }
       }
     },
@@ -333,7 +469,16 @@
       "properties": {
         "type": "weapon",
         "portable": true,
-        "magical": true
+        "magical": true,
+        "llm_context": {
+          "traits": [
+            "slender pale wood",
+            "glowing crystal tip",
+            "magical energy",
+            "perfectly balanced",
+            "warm to the touch"
+          ]
+        }
       },
       "behaviors": [
         "behaviors.magic_wand"
@@ -347,6 +492,16 @@
       "door": {
         "open": false,
         "locked": false
+      },
+      "properties": {
+        "llm_context": {
+          "traits": [
+            "simple wooden construction",
+            "plain surface",
+            "iron handle",
+            "slightly weathered"
+          ]
+        }
       }
     },
     {
@@ -358,6 +513,29 @@
         "open": false,
         "locked": true,
         "lock_id": "lock_sanctum"
+      },
+      "properties": {
+        "llm_context": {
+          "traits": [
+            "ornate carved wood",
+            "glowing arcane runes",
+            "pulsing with magical energy",
+            "ancient craftsmanship",
+            "faint humming sound"
+          ],
+          "perspective_variants": {
+            "open": [
+              "ornate carved wood",
+              "glowing arcane runes",
+              "pulsing with magical energy",
+              "ancient craftsmanship",
+              "faint humming sound",
+              "narrow stone stairs visible beyond",
+              "stairs wind upward into darkness",
+              "stone steps worn smooth by age"
+            ]
+          }
+        }
       }
     }
   ],
@@ -423,8 +601,8 @@
       ],
       "direction": "up",
       "description": "A worn spiral staircase of grey stone winds upward into the tower.",
-      "adjectives": [],
-      "synonyms": [],
+      "adjectives": ["spiral", "worn"],
+      "synonyms": ["stairs", "stairway", "staircase"],
       "properties": {
         "states": {
           "hidden": true
@@ -474,7 +652,7 @@
         "exit_loc_sanctum_down"
       ],
       "direction": "up",
-      "description": "An ornate door covered in glowing runes bars the way to the upper sanctum. Beyond it, narrow stone stairs wind upward.",
+      "description": "An ornate door covered in glowing runes.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -512,8 +690,8 @@
       ],
       "direction": "down",
       "description": "The spiral staircase winds downward to the entrance hall below.",
-      "adjectives": [],
-      "synonyms": [],
+      "adjectives": ["spiral", "worn"],
+      "synonyms": ["stairs", "stairway", "staircase"],
       "properties": {
         "llm_context": {
           "traits": [

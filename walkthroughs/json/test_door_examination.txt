@@ -1,0 +1,40 @@
+# Test door examination perspective fix
+# Verifies that examining a door uses the exit's perspective-aware description
+
+# Navigate to library via the revealed stairs
+# The star reveals invisible stairs at the tower entrance
+# Need to stand on bench to reach tree branches
+stand on bench
+climb tree
+take star
+down
+get off bench
+north
+up
+
+# Now in library - examine the sanctum door going up
+# Door is CLOSED and LOCKED - should NOT reveal stairs beyond it
+# Should show only the door description (no passage info)
+examine ornate door
+assert_json: primary_text == An ornate door covered in glowing runes.
+assert_json: context.is_door == true
+assert_json: context.door_state.locked == true
+assert_json: context.door_state.open == false
+
+# Same with direction adjective
+examine up door
+assert_json: primary_text == An ornate door covered in glowing runes.
+
+# Now unlock and open the door - THEN we should see the stairs
+# First reveal the key by peering into the crystal ball
+examine ball
+peer into ball
+take key
+unlock ornate door
+open ornate door
+
+# With door OPEN, examining should show the passage (stairs)
+examine ornate door
+assert_json: primary_text contains stairs
+assert_json: context.door_state.open == true
+assert_json: context.door_state.locked == false

@@ -111,7 +111,7 @@ class NarrationAssembler:
             plan["entity_refs"] = {}
 
         # 6. Build must_mention (exits_text for location scenes, available_topics for dialog)
-        must_mention = self._build_must_mention(scene_kind, handler_result)
+        must_mention = self._build_must_mention(scene_kind, handler_result, familiarity)
         if must_mention:
             plan["must_mention"] = must_mention
 
@@ -354,6 +354,16 @@ class NarrationAssembler:
             traits = llm_context.get("traits", [])
             if isinstance(traits, list) and traits:
                 entity_ref["traits"] = traits
+            elif entity_type in ("item", "container", "door", "tool", "weapon", "furniture", "object"):
+                # Warn about missing traits for physical entities
+                # (Locations and exits can be generic, actors may be described dynamically)
+                import sys
+                entity_id = data.get("id", "unknown")
+                print(
+                    f"WARNING: Entity '{name}' ({entity_id}) has no traits. "
+                    f"Narrator may hallucinate materials/details.",
+                    file=sys.stderr
+                )
 
         # Add spatial_relation if present
         spatial = data.get("spatial_relation")
@@ -395,7 +405,8 @@ class NarrationAssembler:
     def _build_must_mention(
         self,
         scene_kind: Literal["location_entry", "look", "action_result"],
-        handler_result: HandlerResult
+        handler_result: HandlerResult,
+        familiarity: Literal["new", "familiar"]
     ) -> Optional[MustMention]:
         """
         Build must_mention fields (exits_text for location scenes, dialog_topics for dialog).
@@ -403,14 +414,22 @@ class NarrationAssembler:
         Args:
             scene_kind: The type of scene
             handler_result: The handler result containing data
+            familiarity: "new" or "familiar" - whether actor has visited before
 
         Returns:
             MustMention dict or None if not applicable
         """
         result: Dict[str, Any] = {}
 
-        # Include exits_text for location-related scenes
-        if scene_kind in ("location_entry", "look"):
+        # Include exits_text only for:
+        # 1. First visit to location (familiarity == "new")
+        # 2. Explicit look commands (scene_kind == "look")
+        should_include_exits = (
+            scene_kind == "look" or
+            (scene_kind == "location_entry" and familiarity == "new")
+        )
+
+        if should_include_exits:
             actor = self.accessor.get_actor(self.actor_id)
             if actor:
                 location = self.accessor.get_location(actor.location)

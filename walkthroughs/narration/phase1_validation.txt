@@ -1,0 +1,54 @@
+# Phase 1 Narration Quality Validation
+# Tests critical fixes: entity_refs, exits frequency, perspective, traits
+
+# Test 1: Stand on bench - should use stone traits (not hallucinate wood)
+stand on bench
+
+# Test 2: Examine mat - should use fabric traits (not hallucinate wood)
+examine mat
+
+# Test 3: Climb tree - entity_refs should provide tree traits
+climb tree
+
+# Test 4: Take star - brief action, no exits spam
+take star
+
+# Test 5: Down from tree
+down
+
+# Test 6: North - first visit, should show exits
+north
+
+# Test 7: Look - explicit look always shows exits
+look
+
+# Test 8: South - returning to familiar location, no exits
+south
+
+# Test 9: North again - familiar location, no exits
+north
+
+# Test 10: Examine door - check traits usage
+examine door
+
+# Test 11: Up to library - first visit with star
+up
+
+# Test 12: Examine ornate door (closed) - should NOT reveal stairs
+examine ornate door
+
+# Test 13: Examine ball - position change for crystal ball
+examine ball
+
+# Test 14: Peer into ball - reveals golden key
+peer into ball
+
+# Test 15: Take key - should mention golden (not rusty)
+take key
+
+# Test 16: Unlock and open door
+unlock ornate door
+open ornate door
+
+# Test 17: Examine ornate door (open) - NOW should show stairs
+examine ornate door

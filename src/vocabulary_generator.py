@@ -84,6 +84,30 @@ def extract_nouns_from_state(state: GameState) -> List[Dict[str, Any]]:
             nouns.append({"word": name})
             seen_words.add(name)
 
+    # Extract exit names and synonyms
+    # Exits are first-class entities like items and should be in vocabulary
+    for exit_entity in state.exits:
+        name = getattr(exit_entity, 'name', None)
+        if name and name not in seen_words:
+            noun_entry = {"word": name}
+            # Add synonyms if present
+            synonyms = getattr(exit_entity, 'synonyms', None)
+            if synonyms:
+                noun_entry["synonyms"] = synonyms
+                # Also collect words from synonyms for plural expansion
+                for syn in synonyms:
+                    for word in syn.split():
+                        clean_word = word.lower().rstrip("'s").rstrip("'")
+                        if len(clean_word) >= 3:
+                            component_words.add(clean_word)
+            nouns.append(noun_entry)
+            seen_words.add(name)
+            # Collect individual words for plural expansion
+            for word in name.split():
+                clean_word = word.lower().rstrip("'s").rstrip("'")
+                if len(clean_word) >= 3:
+                    component_words.add(clean_word)
+
     # Add component words with plural synonyms
     # This allows "examine journals" to match items like "Keeper's Journal"
     seen_words_lower = {w.lower() for w in seen_words}

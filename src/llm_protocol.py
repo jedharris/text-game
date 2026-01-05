@@ -43,7 +43,10 @@ class LLMProtocolHandler:
         self.state_corrupted = False
 
         # Visit tracking for verbosity/familiarity determination
-        self.visited_locations: Set[LocationId] = set()
+        # Initialize with player's starting location
+        player = state.actors.get(ActorId("player"))
+        starting_location = player.location if player else None
+        self.visited_locations: Set[LocationId] = {starting_location} if starting_location else set()
         self.examined_entities: Set[ItemId] = set()
 
         # Auto-create behavior manager if not provided
@@ -421,9 +424,12 @@ class LLMProtocolHandler:
         if narration_mode == "brief":
             return "brief"
 
+        # Import here to avoid circular dependency
+        from src.narration_assembler import LOCATION_ENTRY_VERBS
+
         # Tracking mode: full on first occurrence, brief on subsequent
         # For go/movement: check if destination is new
-        if verb == "go" and success and data:
+        if verb in LOCATION_ENTRY_VERBS and success and data:
             loc_id = data.get("location", {}).get("id")
             if loc_id and loc_id not in self.visited_locations:
                 return "full"
@@ -466,8 +472,11 @@ class LLMProtocolHandler:
         if not success:
             return "familiar"
 
+        # Import here to avoid circular dependency
+        from src.narration_assembler import LOCATION_ENTRY_VERBS
+
         # For movement: check if destination was visited
-        if verb == "go" and data:
+        if verb in LOCATION_ENTRY_VERBS and data:
             loc_id = data.get("location", {}).get("id")
             if loc_id and loc_id not in self.visited_locations:
                 return "new"
@@ -498,8 +507,11 @@ class LLMProtocolHandler:
             verb: The verb that was executed
             data: Handler result data
         """
+        # Import here to avoid circular dependency
+        from src.narration_assembler import LOCATION_ENTRY_VERBS
+
         # Track visited locations on successful movement
-        if verb == "go" and data:
+        if verb in LOCATION_ENTRY_VERBS and data:
             loc_id = data.get("location", {}).get("id")
             if loc_id:
                 self.visited_locations.add(LocationId(loc_id))

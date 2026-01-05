@@ -68,6 +68,8 @@ def try_implicit_positioning(accessor, actor_id: ActorId, target_entity) -> Tupl
     # Clear posture when moving
     if "posture" in actor.properties:
         del actor.properties["posture"]
+    if "posture_entity" in actor.properties:
+        del actor.properties["posture_entity"]
 
     # Generate movement message
     entity_name = target_entity.name if hasattr(target_entity, 'name') else "it"
