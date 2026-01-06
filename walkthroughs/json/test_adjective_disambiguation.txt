@@ -1,0 +1,33 @@
+# Test adjective-based item disambiguation
+# Tests that red/blue spellbook adjectives work correctly
+
+# Navigate to library
+stand on bench
+climb tree
+take star
+down
+north
+read mat
+up
+
+# Test examining with adjective disambiguation
+examine red spellbook
+assert_json: entity_refs is not empty
+assert_json: entity_refs[*spellbook*] exists
+
+examine blue spellbook
+assert_json: entity_refs is not empty
+assert_json: entity_refs[*spellbook*] exists
+
+# Test reading with adjective disambiguation
+read red spellbook
+assert_json: action_verb == read
+
+read blue spellbook
+assert_json: action_verb == read
+
+# Verify examining without adjective still works (gets first match)
+examine spellbook
+
+# Test that invalid adjectives fail appropriately (should fail)
+# examine green spellbook

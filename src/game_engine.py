@@ -174,8 +174,33 @@ class GameEngine:
         # Get items at location
         items_here = accessor.get_entities_at(location_id, entity_type="item")
         for item in items_here:
+            # Skip hidden items (per parser context specification)
+            if hasattr(item, 'states') and item.states and item.states.get('hidden', False):
+                continue
+
             item_name = getattr(item, 'name', item.id)
             location_objects.append(item_name)
+
+            # Also include items from accessible containers/surfaces
+            # This allows LLM parser to see "spellbook" when it's on a desk
+            if hasattr(item, 'properties') and 'container' in item.properties:
+                container_props = item.properties['container']
+                is_surface = container_props.get('is_surface', False)
+                is_container = container_props.get('is_container', False)
+                is_open = item.states.get('open', True) if hasattr(item, 'states') and item.states else True
+
+                # Include contents if it's a surface or an open container
+                if is_surface or (is_container and is_open):
+                    container_items = accessor.get_entities_at(item.id, entity_type="item")
+                    for contained_item in container_items:
+                        # Skip hidden items (per parser context specification)
+                        if hasattr(contained_item, 'states') and contained_item.states and contained_item.states.get('hidden', False):
+                            continue
+
+                        # Avoid duplicates
+                        contained_name = getattr(contained_item, 'name', contained_item.id)
+                        if contained_name not in location_objects:
+                            location_objects.append(contained_name)
 
         # Get actors at location (excluding self)
         actors_here = accessor.get_entities_at(location_id, entity_type="actor")

@@ -560,11 +560,13 @@ def get_doors_in_location(accessor: "StateAccessor", location_id: str, actor_id:
 
 def _matches_adjective(adjective: str, entity: "Item") -> bool:
     """
-    Check if an adjective matches an entity's id, description, or state properties.
+    Check if an adjective matches an entity's explicit adjectives list, id, description, or state properties.
 
-    Matching is case-insensitive and looks for the adjective as a word
-    in the entity's id or description. For door items and containers, also
-    checks state properties: "locked", "unlocked", "open", "closed".
+    Matching is case-insensitive. Checks in this order:
+    1. Explicit adjectives field (exact match)
+    2. State-based adjectives for doors/containers (locked, unlocked, open, closed)
+    3. Adjective appears in entity id
+    4. Adjective appears in entity description
 
     Args:
         adjective: The adjective to match
@@ -575,7 +577,13 @@ def _matches_adjective(adjective: str, entity: "Item") -> bool:
     """
     adj_lower = adjective.lower()
 
-    # For door items, check state-based adjectives first
+    # Check explicit adjectives field first (exact match for disambiguation)
+    entity_adjectives = getattr(entity, 'adjectives', None) or []
+    for entity_adj in entity_adjectives:
+        if entity_adj.lower() == adj_lower:
+            return True
+
+    # For door items, check state-based adjectives
     if hasattr(entity, 'is_door') and entity.is_door:
         if adj_lower == "locked" and entity.door_locked:
             return True

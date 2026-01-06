@@ -125,7 +125,8 @@ def main():
     print()
 
     # Main game loop
-    while True:
+    should_quit = False
+    while not should_quit:
         try:
             command_text = input("> ").strip()
         except EOFError:
@@ -139,12 +140,12 @@ def main():
 
         # Split on semicolons for command stacking
         commands = [cmd.strip() for cmd in command_text.split(';') if cmd.strip()]
+        print(f"[DEBUG] Split into {len(commands)} commands: {commands}")
 
-        for command_text in commands:
-            print(f"[DEBUG] Processing command: '{command_text}'")
+        for cmd in commands:
+            print(f"[DEBUG] Processing command: '{cmd}'")
             # Parse text command
-            result = parser.parse_command(command_text)
-            print(f"[DEBUG] Parse result: {result}")
+            result = parser.parse_command(cmd)
 
             if result is None:
                 print("I don't understand that command.")
@@ -197,6 +198,7 @@ def main():
 
                 if signal == "quit":
                     print(response.get("message", "Thanks for playing!"))
+                    should_quit = True
                     break
 
                 # Note: extended_game doesn't have save/load functionality
@@ -222,7 +224,12 @@ def main():
                         print("You've claimed the wizard's wand and reached the sanctum!")
                         print("The tower's magic is now yours to command.")
                         print("=" * 60)
+                        should_quit = True
                         break
+
+        # If a stacked command triggered quit/win, exit outer loop
+        if should_quit:
+            break
 
 
 if __name__ == '__main__':

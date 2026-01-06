@@ -1,0 +1,19 @@
+# Test adjective-based item disambiguation with LLM parser
+# Tests that red/blue spellbook adjectives work correctly
+
+# Navigate to library
+stand on bench
+climb tree
+take star
+down
+north
+read mat
+up
+
+# Test examining with adjective disambiguation
+examine red spellbook
+examine blue spellbook
+
+# Test reading with adjective disambiguation
+read red spellbook
+read blue spellbook

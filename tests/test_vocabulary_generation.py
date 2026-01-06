@@ -150,7 +150,7 @@ class TestMergeVocabulary(unittest.TestCase):
             {"word": "sword"}
         ]
 
-        merged = merge_vocabulary(base_vocab, extracted_nouns)
+        merged = merge_vocabulary(base_vocab, extracted_nouns, [])
 
         noun_words = [n["word"] for n in merged["nouns"]]
         self.assertIn("door", noun_words)
@@ -166,7 +166,7 @@ class TestMergeVocabulary(unittest.TestCase):
         }
         extracted_nouns = [{"word": "lantern"}]
 
-        merged = merge_vocabulary(base_vocab, extracted_nouns)
+        merged = merge_vocabulary(base_vocab, extracted_nouns, [])
 
         # Verbs preserved
         self.assertEqual(len(merged["verbs"]), 1)
@@ -192,7 +192,7 @@ class TestMergeVocabulary(unittest.TestCase):
             {"word": "lantern"}
         ]
 
-        merged = merge_vocabulary(base_vocab, extracted_nouns)
+        merged = merge_vocabulary(base_vocab, extracted_nouns, [])
 
         noun_words = [n["word"] for n in merged["nouns"]]
         key_count = noun_words.count("key")
@@ -207,7 +207,7 @@ class TestMergeVocabulary(unittest.TestCase):
             "adjectives": []
         }
 
-        merged = merge_vocabulary(base_vocab, [])
+        merged = merge_vocabulary(base_vocab, [], [])
 
         self.assertEqual(len(merged["nouns"]), 1)
         self.assertEqual(merged["nouns"][0]["word"], "door")
@@ -221,7 +221,7 @@ class TestMergeVocabulary(unittest.TestCase):
         }
         extracted_nouns = [{"word": "lantern"}]
 
-        merged = merge_vocabulary(base_vocab, extracted_nouns)
+        merged = merge_vocabulary(base_vocab, extracted_nouns, [])
 
         self.assertEqual(len(merged["nouns"]), 1)
         self.assertEqual(merged["nouns"][0]["word"], "lantern")
@@ -257,7 +257,7 @@ class TestParserWithMergedVocabulary(unittest.TestCase):
         extracted_nouns = extract_nouns_from_state(state)
 
         # Merge vocabulary
-        merged = merge_vocabulary(base_vocab, extracted_nouns)
+        merged = merge_vocabulary(base_vocab, extracted_nouns, [])
 
         # Write to temp file and create parser
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
@@ -303,7 +303,7 @@ class TestParserWithMergedVocabulary(unittest.TestCase):
         }
         state = load_game_state(game_data)
         extracted_nouns = extract_nouns_from_state(state)
-        merged = merge_vocabulary(base_vocab, extracted_nouns)
+        merged = merge_vocabulary(base_vocab, extracted_nouns, [])
 
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
             json.dump(merged, f)

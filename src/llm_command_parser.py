@@ -121,8 +121,9 @@ RULES:
 2. Use EXACT entity IDs from the current turn's object list
 3. Multi-word entities use underscores: "ice wand" → ice_wand
 4. For commands with multiple objects (e.g., "take X and Y" or "take X, Y and Z"), use a LIST for "object": ["entity1", "entity2", ...]
-5. Output ONLY valid JSON, no explanation
-6. If you cannot parse the command, output: {{"type": "error", "message": "I don't understand."}}
+5. IMPORTANT: If the command includes an adjective (like "red spellbook"), put the BASE NOUN in "object" and the adjective in "adjective" field. DO NOT combine them into "red_spellbook"
+6. Output ONLY valid JSON, no explanation
+7. If you cannot parse the command, output: {{"type": "error", "message": "I don't understand."}}
 
 EXAMPLES:
 
@@ -153,6 +154,14 @@ Output: {{"type": "command", "action": {{"verb": "take", "object": ["notebook", 
 Available objects: fork, knife, spoon, plate
 Command: "take the fork, knife and spoon"
 Output: {{"type": "command", "action": {{"verb": "take", "object": ["fork", "knife", "spoon"]}}}}
+
+Available objects: spellbook, desk, stand
+Command: "examine red spellbook"
+Output: {{"type": "command", "action": {{"verb": "examine", "object": "spellbook", "adjective": "red"}}}}
+
+Available objects: spellbook, wand, key
+Command: "read blue spellbook"
+Output: {{"type": "command", "action": {{"verb": "read", "object": "spellbook", "adjective": "blue"}}}}
 """
 
     def _build_user_prompt(self, context: Dict[str, List[str]], command: str) -> str:
@@ -171,6 +180,8 @@ Exits: {exits}
 Conversation topics: {topics}
 
 Command: "{command}"
+
+IMPORTANT: Extract adjectives and prepositions ONLY from the command text above, NOT from the available objects list.
 
 Output JSON:"""
 

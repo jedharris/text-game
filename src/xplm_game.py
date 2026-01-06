@@ -36,6 +36,11 @@ _hf_cache = Path.home() / "jed.cache" / "huggingface"
 if _hf_cache.exists() and not os.environ.get("HF_HOME"):
     os.environ["HF_HOME"] = str(_hf_cache)
 
+# Use offline mode to skip HuggingFace Hub checks (faster startup)
+# Models are cached locally and don't need to be checked on every run
+if not os.environ.get("HF_HUB_OFFLINE"):
+    os.environ["HF_HUB_OFFLINE"] = "1"
+
 # Add project root to path when run as script (not when imported as module)
 if __name__ == '__main__':
     project_root = Path(__file__).parent.parent
@@ -164,53 +169,62 @@ def main(game_dir: str | None = None,
                 print("\nThanks for playing!")
                 break
 
-            # Build context for LLM parser
-            context = engine.build_parser_context()
-            logging.debug(f"Context: {context}")
+            # Split on semicolons for command stacking
+            commands = [cmd.strip() for cmd in player_input.split(';') if cmd.strip()]
 
-            # Parse command using LLM parser
-            parser_output = parser.parse_command(player_input, context)
-            logging.debug(f"Parser output: {parser_output}")
+            for cmd in commands:
+                # Check for quit in stacked commands
+                if cmd.lower() in ("quit", "exit", "q"):
+                    print("\nThanks for playing!")
+                    break
 
-            # Convert to ParsedCommand
-            parsed_command = adapter.to_parsed_command(parser_output, player_input)
+                # Build context for LLM parser
+                context = engine.build_parser_context()
+                logging.debug(f"Context: {context}")
 
-            if parsed_command is None:
-                print("\nI couldn't understand that command. Try rephrasing?")
-                continue
+                # Parse command using LLM parser
+                parser_output = parser.parse_command(cmd, context)
+                logging.debug(f"Parser output: {parser_output}")
 
-            # Convert ParsedCommand to JSON message format
-            json_cmd = parsed_to_json(parsed_command)
-            logging.debug(f"Parsed command: {parsed_command}")
-            logging.debug(f"JSON command: {json_cmd}")
+                # Convert to ParsedCommand
+                parsed_command = adapter.to_parsed_command(parser_output, cmd)
 
-            # Execute command via game engine
-            # Multi-item take is now handled inside the protocol handler
-            result = engine.json_handler.handle_message(json_cmd)
-            logging.debug(f"Result keys: {result.keys()}")
-            logging.debug(f"Result success: {result.get('success')}")
-            logging.debug(f"Result verbosity: {result.get('verbosity')}")
-            if 'narration' in result:
-                logging.debug(f"Narration keys: {result['narration'].keys()}")
+                if parsed_command is None:
+                    print("\nI couldn't understand that command. Try rephrasing?")
+                    continue
 
-            # Print traits if enabled
-            if show_traits:
-                narrator._print_traits(result)
+                # Convert ParsedCommand to JSON message format
+                json_cmd = parsed_to_json(parsed_command)
+                logging.debug(f"Parsed command: {parsed_command}")
+                logging.debug(f"JSON command: {json_cmd}")
 
-            # Build narration dict from result
-            narration_dict = {
-                "success": result.get("success", True),
-                "verbosity": result.get("verbosity", "full"),
-            }
-            if "narration" in result:
-                narration_dict.update(result["narration"])
+                # Execute command via game engine
+                # Multi-item take is now handled inside the protocol handler
+                result = engine.json_handler.handle_message(json_cmd)
+                logging.debug(f"Result keys: {result.keys()}")
+                logging.debug(f"Result success: {result.get('success')}")
+                logging.debug(f"Result verbosity: {result.get('verbosity')}")
+                if 'narration' in result:
+                    logging.debug(f"Narration keys: {result['narration'].keys()}")
 
-            logging.debug(f"Narration dict: {json.dumps(narration_dict, indent=2)}")
+                # Print traits if enabled
+                if show_traits:
+                    narrator._print_traits(result)
 
-            # Get narrative from LLM
-            narration_input = f"Narrate this result:\n{json.dumps(narration_dict, indent=2)}"
-            narrative = narrator._call_llm(narration_input)
-            print(f"\n{narrative}")
+                # Build narration dict from result
+                narration_dict = {
+                    "success": result.get("success", True),
+                    "verbosity": result.get("verbosity", "full"),
+                }
+                if "narration" in result:
+                    narration_dict.update(result["narration"])
+
+                logging.debug(f"Narration dict: {json.dumps(narration_dict, indent=2)}")
+
+                # Get narrative from LLM
+                narration_input = f"Narrate this result:\n{json.dumps(narration_dict, indent=2)}"
+                narrative = narrator._call_llm(narration_input)
+                print(f"\n{narrative}")
 
         except KeyboardInterrupt:
             print("\n\nGoodbye!")

@@ -80,7 +80,7 @@ class TestVocabularyMerging(unittest.TestCase):
             self.base_vocab = json.load(f)
 
         extracted_nouns = extract_nouns_from_state(self.game_state)
-        vocab_with_nouns = merge_vocabulary(self.base_vocab, extracted_nouns)
+        vocab_with_nouns = merge_vocabulary(self.base_vocab, extracted_nouns, [])
         self.merged_vocab = self.behavior_manager.get_merged_vocabulary(vocab_with_nouns)
 
     def test_merged_vocab_includes_prepositions(self):
@@ -114,7 +114,7 @@ class TestParserCommands(unittest.TestCase):
             base_vocab = json.load(f)
 
         extracted_nouns = extract_nouns_from_state(self.game_state)
-        vocab_with_nouns = merge_vocabulary(base_vocab, extracted_nouns)
+        vocab_with_nouns = merge_vocabulary(base_vocab, extracted_nouns, [])
         merged_vocab = self.behavior_manager.get_merged_vocabulary(vocab_with_nouns)
 
         # Write to temp file for parser

@@ -161,13 +161,16 @@ class LLMParserAdapter:
         prep_str = action.get('preposition')
         preposition = self.prep_lookup.get(prep_str) if prep_str else None
 
-        # For now, skip adjectives (LLM parser doesn't produce them yet)
-        # We could add adjective parsing later if needed
+        # Extract adjectives (used for disambiguation like "red spellbook" vs "blue spellbook")
+        direct_adjective = action.get('adjective')
+        indirect_adjective = action.get('indirect_adjective')
 
         return ParsedCommand(
             verb=verb,
             direct_object=direct_object,
+            direct_adjective=direct_adjective,  # Pass as string, handlers will use it
             indirect_object=indirect_object,
+            indirect_adjective=indirect_adjective,
             preposition=preposition,
             raw=raw_input,
             object_missing=False  # LLM parser handles this implicitly

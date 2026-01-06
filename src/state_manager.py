@@ -317,6 +317,7 @@ class Item:
     name: str
     description: str
     location: str  # Can be LocationId, ActorId, ItemId (container), or exit string
+    adjectives: List[str] = field(default_factory=list)
     _properties: Dict[str, Any] = field(default_factory=lambda: CoreFieldProtectingDict(
         {'id', 'name', 'description', 'location', 'behaviors'}
     ))
@@ -996,7 +997,7 @@ def _parse_properties(raw: Dict[str, Any], core_fields: set) -> Dict[str, Any]:
 
 def _parse_item(raw: Dict[str, Any]) -> Item:
     """Parse item from JSON dict."""
-    core_fields = {'id', 'name', 'description', 'location', 'behaviors'}
+    core_fields = {'id', 'name', 'description', 'location', 'behaviors', 'adjectives'}
 
     behaviors = _parse_behaviors(raw.get('behaviors', []), f"item:{raw.get('id', '')}")
 
@@ -1005,6 +1006,7 @@ def _parse_item(raw: Dict[str, Any]) -> Item:
         name=raw.get('name', ''),
         description=raw.get('description', ''),
         location=raw.get('location', ''),  # Keep as str - can be various ID types
+        adjectives=raw.get('adjectives', []),
         _properties=CoreFieldProtectingDict(core_fields, _parse_properties(raw, core_fields)),
         behaviors=behaviors
     )

@@ -170,7 +170,7 @@ class TestFullVocabularyMerging(unittest.TestCase):
         extracted_nouns = extract_nouns_from_state(state)
 
         # Step 2: Merge nouns into base vocab
-        vocab_with_nouns = merge_vocabulary(base_vocab, extracted_nouns)
+        vocab_with_nouns = merge_vocabulary(base_vocab, extracted_nouns, [])
 
         # Step 3: Load behavior modules and merge their vocabulary
         manager = BehaviorManager()
@@ -220,7 +220,7 @@ class TestFullVocabularyMerging(unittest.TestCase):
         # Full merge pipeline
         state = load_game_state(game_data)
         extracted_nouns = extract_nouns_from_state(state)
-        vocab_with_nouns = merge_vocabulary(base_vocab, extracted_nouns)
+        vocab_with_nouns = merge_vocabulary(base_vocab, extracted_nouns, [])
 
         manager = BehaviorManager()
         modules = manager.discover_modules(str(self.behaviors_dir))
