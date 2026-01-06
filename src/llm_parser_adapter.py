@@ -83,6 +83,17 @@ class LLMParserAdapter:
             )
             self.prep_lookup[prep_word] = word_entry
 
+        # Adjective lookup
+        self.adj_lookup: Dict[str, WordEntry] = {}
+        for adj_data in self.merged_vocabulary.get('adjectives', []):
+            word = adj_data['word']
+            word_entry = self._dict_to_word_entry(adj_data, WordType.ADJECTIVE)
+            self.adj_lookup[word] = word_entry
+
+            # Add synonyms
+            for synonym in adj_data.get('synonyms', []):
+                self.adj_lookup[synonym] = word_entry
+
     def _dict_to_word_entry(self, data: Dict[str, Any], word_type: WordType) -> WordEntry:
         """Convert vocabulary dict to WordEntry."""
         return WordEntry(
@@ -161,14 +172,17 @@ class LLMParserAdapter:
         prep_str = action.get('preposition')
         preposition = self.prep_lookup.get(prep_str) if prep_str else None
 
-        # Extract adjectives (used for disambiguation like "red spellbook" vs "blue spellbook")
-        direct_adjective = action.get('adjective')
-        indirect_adjective = action.get('indirect_adjective')
+        # Lookup adjectives (used for disambiguation like "red spellbook" vs "blue spellbook")
+        direct_adj_str = action.get('adjective')
+        direct_adjective = self.adj_lookup.get(direct_adj_str) if direct_adj_str else None
+
+        indirect_adj_str = action.get('indirect_adjective')
+        indirect_adjective = self.adj_lookup.get(indirect_adj_str) if indirect_adj_str else None
 
         return ParsedCommand(
             verb=verb,
             direct_object=direct_object,
-            direct_adjective=direct_adjective,  # Pass as string, handlers will use it
+            direct_adjective=direct_adjective,
             indirect_object=indirect_object,
             indirect_adjective=indirect_adjective,
             preposition=preposition,

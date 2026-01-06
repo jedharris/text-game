@@ -309,6 +309,12 @@ def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_entity, dire
             primary=f"INCONSISTENT STATE: Destination {destination_id} not found"
         )
 
+    # Clear any posture state before moving (climbing, cover, concealed)
+    # Moving to a new location implicitly ends these positioned states
+    actor.properties.pop("posture", None)
+    actor.properties.pop("posture_entity", None)
+    actor.properties.pop("focused_on", None)
+
     # Update actor location
     result = accessor.update(actor, {"location": destination_id})
 

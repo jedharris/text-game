@@ -507,7 +507,7 @@
     {
       "id": "door_sanctum",
       "name": "door",
-      "description": "An ornate door covered in glowing runes.",
+      "description": "An ornate door.",
       "location": "exit:loc_library:up",
       "door": {
         "open": false,
@@ -522,19 +522,7 @@
             "pulsing with magical energy",
             "ancient craftsmanship",
             "faint humming sound"
-          ],
-          "perspective_variants": {
-            "open": [
-              "ornate carved wood",
-              "glowing arcane runes",
-              "pulsing with magical energy",
-              "ancient craftsmanship",
-              "faint humming sound",
-              "narrow stone stairs visible beyond",
-              "stairs wind upward into darkness",
-              "stone steps worn smooth by age"
-            ]
-          }
+          ]
         }
       }
     }
@@ -583,7 +571,7 @@
         "exit_loc_tower_entrance_south"
       ],
       "direction": "north",
-      "description": "A weathered stone path winds through the overgrown garden toward the tower entrance.",
+      "description": "A weathered stone path.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -600,7 +588,7 @@
         "exit_loc_library_down"
       ],
       "direction": "up",
-      "description": "A worn spiral staircase of grey stone winds upward into the tower.",
+      "description": "A spiral staircase.",
       "adjectives": ["spiral", "worn"],
       "synonyms": ["stairs", "stairway", "staircase"],
       "properties": {
@@ -634,7 +622,7 @@
         "exit_loc_storage_west"
       ],
       "direction": "east",
-      "description": "A simple wooden door leads to what appears to be a storage area.",
+      "description": "A simple wooden door.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -652,7 +640,7 @@
         "exit_loc_sanctum_down"
       ],
       "direction": "up",
-      "description": "An ornate door covered in glowing runes.",
+      "description": "An ornate door.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -672,7 +660,7 @@
         "exit_loc_garden_north"
       ],
       "direction": "south",
-      "description": "An ivy-covered archway leads back to the overgrown garden.",
+      "description": "An ivy-covered archway.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -689,7 +677,7 @@
         "exit_loc_tower_entrance_up"
       ],
       "direction": "down",
-      "description": "The spiral staircase winds downward to the entrance hall below.",
+      "description": "A spiral staircase.",
       "adjectives": ["spiral", "worn"],
       "synonyms": ["stairs", "stairway", "staircase"],
       "properties": {
@@ -718,7 +706,7 @@
         "exit_loc_tower_entrance_east"
       ],
       "direction": "west",
-      "description": "The wooden door leads back to the tower entrance hall.",
+      "description": "A wooden door.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -736,7 +724,7 @@
         "exit_loc_library_up"
       ],
       "direction": "down",
-      "description": "Narrow stone stairs wind downward to the ornate rune-covered door that leads back to the library.",
+      "description": "An ornate door.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
