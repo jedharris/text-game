@@ -15,13 +15,7 @@ from src.infrastructure_utils import apply_trust_change
 # Note: Gossip reactions are handled by infrastructure/gossip_reactions.py
 # Echo must have appropriate reaction configurations
 vocabulary: Dict[str, Any] = {
-    "events": [
-        {
-            "event": "npc_take_action",
-            "handler": "npc_take_action",
-            "description": "Echo doesn't take combat actions"
-        }
-    ]
+    "events": []
 }
 
 

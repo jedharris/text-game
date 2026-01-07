@@ -1,0 +1,76 @@
+# Fungal Depths: Aldric Immediate Rescue and Health Progression
+# Tests immediate rescue (no delay) to verify health increases after stabilization
+# Critical: 80 severity = 8 damage/turn, 5 regen = net -3 HP/turn (dies in ~33 turns)
+# Stabilized: 40 severity = 4 damage/turn, 5 regen = net +1 HP/turn (survives indefinitely)
+
+# Initial state check
+ASSERT actors.player.properties.health == 100
+
+# Part 1: Immediate rescue - go straight to silvermoss
+
+# Go to cavern entrance (don't examine Aldric yet to save time)
+go west
+
+# Go to grotto
+go down
+
+# Take silvermoss immediately
+take silvermoss
+
+# Return to cavern entrance
+go up
+
+# Part 2: Give silvermoss to Aldric
+
+# Give first silvermoss to stabilize him
+give silvermoss to aldric
+
+# Examine him to see his current state
+examine aldric
+
+# Part 3: Wait and check if health is INCREASING
+
+# Wait 1 turn
+look
+
+# Check health again - should be higher if net +1 HP/turn is working
+examine aldric
+
+# Wait another turn
+look
+
+# Check health again - should continue increasing
+examine aldric
+
+# Wait more turns to confirm trend
+look
+examine aldric
+
+look
+examine aldric
+
+look
+examine aldric
+
+# Part 4: Give second silvermoss for full cure
+
+# Get second silvermoss
+go down
+take silvermoss
+go up
+
+# Give second dose
+give silvermoss to aldric
+
+# Verify full recovery
+examine aldric
+
+# Part 5: Return to nexus
+
+go east
+
+# SUCCESS: If this passes, Aldric's health progression is working!
+# Key observations to note:
+# - Does his health increase after first silvermoss?
+# - Does the increase happen every turn (+1 HP/turn)?
+# - Does second silvermoss fully cure him?

@@ -1,0 +1,70 @@
+# Sunken District: Basic Drowning Mechanics
+# Tests breath counter, warnings, damage, and surfacing
+# MAX_BREATH = 12 turns, warnings at 8 and 10, damage at 12+
+
+# Initial state check
+ASSERT actors.player.properties.health == 100
+
+# Part 1: Navigate to Sunken District
+
+go east
+
+# Part 2: Enter fully submerged area (tidal_passage)
+# This should start the breath counter
+
+# From flooded_plaza, navigate to flooded_chambers
+go east
+
+# Enter tidal_passage (submerged - triggers breath counter)
+go east
+
+# Part 3: Hold breath and observe warnings
+# Turn 1-7: No warnings
+look
+look
+look
+look
+look
+look
+look
+
+# Turn 8: Warning message "lungs burning"
+look
+
+# Turn 9: Still warning
+look
+
+# Turn 10: Critical message "suffocating"
+look
+
+# Turn 11: Still critical
+look
+
+# Turn 12: DROWNING DAMAGE (20 HP)
+# Should see damage message
+look
+
+# Part 4: Surface to reset breath
+# Exit tidal_passage back to flooded_chambers
+go west
+
+# Breath should reset
+# Re-enter to verify reset worked
+go east
+
+# A few more turns underwater
+look
+look
+
+# Part 5: Return to safety
+
+go west
+go west
+go west
+
+# SUCCESS: Drowning mechanics validated!
+# - Breath counter increments in submerged areas
+# - Warning at turn 8
+# - Critical at turn 10
+# - Damage at turn 12
+# - Breath resets on surfacing

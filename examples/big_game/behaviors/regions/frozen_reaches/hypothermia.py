@@ -11,6 +11,7 @@ from behavior_libraries.actor_lib.conditions import (
     get_condition,
     MAX_SEVERITY,
 )
+from behavior_libraries.companion_lib.activation import check_companion_benefit
 from src.behavior_manager import EventResult
 from src.infrastructure_utils import get_current_turn
 
@@ -24,13 +25,7 @@ vocabulary: Dict[str, Any] = {
             "description": "Apply hypothermia based on location temperature"
         }
     ],
-    "events": [
-        {
-            "event": "on_cold_zone_turn",
-            "hook": "turn_hypothermia",
-            "description": "Check player location and apply hypothermia (and cure at hot springs)"
-        }
-    ],
+    "events": [],
     # Add adjectives for multi-word item names
     "adjectives": [
         {"word": "cold", "synonyms": []},
@@ -116,11 +111,9 @@ def on_cold_zone_turn(
         return EventResult(allow=True, feedback=None)
 
     # Check for salamander companion (full immunity)
-    companions = player.properties.get("companions", [])
-    for comp in companions:
-        comp_id = comp.get("id", "") if isinstance(comp, dict) else str(comp)
-        if "salamander" in comp_id.lower():
-            return EventResult(allow=True, feedback=None)
+    # Uses companion_lib for standardized companion detection
+    if check_companion_benefit(accessor, "salamander"):
+        return EventResult(allow=True, feedback=None)
 
     # Check for cold resistance cloak
     equipment = player.properties.get("equipment", {})

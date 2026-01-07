@@ -25,13 +25,7 @@ vocabulary: Dict[str, Any] = {
             "description": "Called when an entity receives an item"
         }
     ],
-    "events": [
-        {
-            "event": "on_receive_item",
-            "hook": "entity_item_received",
-            "description": "Handle items given to Aldric (silvermoss healing)"
-        }
-    ]
+    "events": []
 }
 
 def on_receive_item(

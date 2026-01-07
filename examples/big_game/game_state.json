@@ -1770,6 +1770,64 @@
       }
     },
     {
+      "id": "spring_water",
+      "name": "spring water",
+      "description": "Sacred water from the hot springs, still warm to the touch. Combined with fire, this represents the ancient ritual of the temple founders.",
+      "location": "hot_springs",
+      "properties": {
+        "portable": true,
+        "water_aspected": true,
+        "ritual_component": true,
+        "synonyms": [
+          "water",
+          "sacred water"
+        ]
+      },
+      "llm_context": {
+        "traits": [
+          "warm water in simple vessel",
+          "steam rising from surface",
+          "mineral-rich clarity",
+          "sacred purpose evident",
+          "heat that cleanses"
+        ],
+        "state_variants": {
+          "in_location": "pooled in natural basin, ready for collection",
+          "in_inventory": "warm container of sacred spring water",
+          "examined": "spring water, warm and pure from geothermal source"
+        }
+      }
+    },
+    {
+      "id": "warm_coal",
+      "name": "warm coal",
+      "description": "A glowing ember from the hot springs' edge, radiating steady warmth. A salamander would find this delightful.",
+      "location": "hot_springs",
+      "properties": {
+        "portable": true,
+        "fire_aspected": true,
+        "synonyms": [
+          "coal",
+          "ember",
+          "glowing coal"
+        ]
+      },
+      "llm_context": {
+        "traits": [
+          "dull red glow",
+          "gentle heat radiating",
+          "volcanic origin evident",
+          "perfect salamander gift",
+          "heat that persists"
+        ],
+        "state_variants": {
+          "in_location": "glowing warmly among the stones",
+          "in_inventory": "warm coal, heat seeping through container",
+          "examined": "ember with steady inner heat, ideal for fire creatures"
+        }
+      }
+    },
+    {
       "id": "frost_lily",
       "name": "frost lily",
       "description": "A delicate flower that grows only in the deepest cold, its petals crystalline and shimmering. The Bee Queen would value this rare bloom.",
@@ -2001,7 +2059,8 @@
         "fire_aspected": true,
         "synonyms": [
           "fire",
-          "firewand"
+          "firewand",
+          "wand"
         ],
         "attacks": [
           {
@@ -2761,7 +2820,7 @@
         "fungal": true,
         "pulse_pattern": "steady",
         "item_use_reactions": {
-          "handler": "behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
+          "handler": "examples.big_game.behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
         }
       },
       "llm_context": {
@@ -2790,7 +2849,7 @@
         "fungal": true,
         "pulse_pattern": "irregular",
         "item_use_reactions": {
-          "handler": "behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
+          "handler": "examples.big_game.behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
         }
       },
       "llm_context": {
@@ -2819,7 +2878,7 @@
         "fungal": true,
         "pulse_pattern": "rapid",
         "item_use_reactions": {
-          "handler": "behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
+          "handler": "examples.big_game.behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
         }
       },
       "llm_context": {
@@ -2848,7 +2907,7 @@
         "fungal": true,
         "pulse_pattern": "none",
         "item_use_reactions": {
-          "handler": "behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
+          "handler": "examples.big_game.behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
         }
       },
       "llm_context": {
@@ -3208,11 +3267,11 @@
         },
         "appearance_cooldown": 0,
         "is_spectral": true,
-        "dialog_topics": {
-          "handler": "behaviors.regions.meridian_nexus.echo:on_echo_dialog"
+        "dialog_reactions": {
+          "handler": "examples.big_game.behaviors.regions.meridian_nexus.echo:on_echo_dialog"
         },
         "gossip_reactions": {
-          "handler": "behaviors.regions.meridian_nexus.echo:on_echo_gossip"
+          "handler": "examples.big_game.behaviors.regions.meridian_nexus.echo:on_echo_gossip"
         },
         "llm_context": {
           "traits": [
@@ -3367,9 +3426,11 @@
             "frost_wolf_1",
             "frost_wolf_2"
           ],
-          "handler": "behaviors.regions.beast_wilds.wolf_pack:on_wolf_state_change"
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.wolf_pack:on_wolf_state_change"
         },
-        "gift_reactions": {},
+        "gift_reactions": {
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.wolf_pack:on_receive_item"
+        },
         "llm_context": {
           "traits": [
             "massive grey form",
@@ -3632,11 +3693,17 @@
         },
         "pack_behavior": {
           "is_pack_leader": true,
-          "pack_follows_leader_state": true
+          "pack_follows_leader_state": true,
+          "followers": [
+            "steam_salamander_2",
+            "steam_salamander_3"
+          ]
         },
-        "gift_reactions": {},
-        "dialog_topics": {
-          "handler": "behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
+        "gift_reactions": {
+          "handler": "examples.big_game.behaviors.regions.frozen_reaches.salamanders:on_receive_item"
+        },
+        "dialog_reactions": {
+          "handler": "examples.big_game.behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
         }
       },
       "behaviors": [
@@ -3727,8 +3794,8 @@
           "pack_leader": "salamander",
           "pack_follows_leader_state": true
         },
-        "dialog_topics": {
-          "handler": "behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
+        "dialog_reactions": {
+          "handler": "examples.big_game.behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
         }
       },
       "behaviors": [
@@ -3819,8 +3886,8 @@
           "pack_leader": "salamander",
           "pack_follows_leader_state": true
         },
-        "dialog_topics": {
-          "handler": "behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
+        "dialog_reactions": {
+          "handler": "examples.big_game.behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
         }
       },
       "behaviors": [
@@ -3933,7 +4000,7 @@
         "threshold_pause": true,
         "linked_to": "stone_golem_2",
         "dialog_topics": {
-          "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_password"
+          "handler": "examples.big_game.behaviors.regions.frozen_reaches.golem_puzzle:on_golem_password"
         },
         "item_use_reactions": {
           "command_orb": {
@@ -3952,7 +4019,7 @@
           }
         },
         "death_reactions": {
-          "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_death"
+          "handler": "examples.big_game.behaviors.regions.frozen_reaches.golem_puzzle:on_golem_death"
         },
         "blocked_directions_by_state": {
           "guarding": [
@@ -4072,7 +4139,7 @@
         "threshold_pause": true,
         "linked_to": "stone_golem_1",
         "dialog_topics": {
-          "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_password"
+          "handler": "examples.big_game.behaviors.regions.frozen_reaches.golem_puzzle:on_golem_password"
         },
         "item_use_reactions": {
           "command_orb": {
@@ -4091,7 +4158,7 @@
           }
         },
         "death_reactions": {
-          "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_death"
+          "handler": "examples.big_game.behaviors.regions.frozen_reaches.golem_puzzle:on_golem_death"
         },
         "blocked_directions_by_state": {
           "guarding": [
@@ -4134,10 +4201,10 @@
         "hope_bonus": 5,
         "connected_to": "healer_elara",
         "encounter_reactions": {
-          "handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_encounter"
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.sira_rescue:on_sira_encounter"
         },
         "death_reactions": {
-          "handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_death",
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.sira_rescue:on_sira_death",
           "set_flags": {
             "sira_dead": true
           },
@@ -4269,7 +4336,7 @@
         "pack_id": "spider_brood",
         "pack_role": "alpha",
         "death_reactions": {
-          "handler": "behaviors.regions.beast_wilds.spider_nest:on_spider_queen_death",
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.spider_nest:on_spider_queen_death",
           "set_flags": {
             "spider_queen_dead": true
           }
@@ -4444,12 +4511,14 @@
           "water_bloom",
           "frost_lily"
         ],
-        "gift_reactions": {},
+        "gift_reactions": {
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.bee_queen:on_receive_item"
+        },
         "take_reactions": {
-          "handler": "behaviors.regions.beast_wilds.bee_queen:on_honey_theft"
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.bee_queen:on_honey_theft"
         },
         "dialog_topics": {
-          "handler": "behaviors.regions.beast_wilds.bee_queen:on_bee_queen_talk"
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.bee_queen:on_bee_queen_talk"
         },
         "llm_context": {
           "traits": [
@@ -4538,7 +4607,7 @@
         "commitment_target": true,
         "hunts_player": false,
         "encounter_reactions": {
-          "handler": "behaviors.regions.beast_wilds.bear_cubs:on_bear_encounter"
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.bear_cubs:on_bear_encounter"
         },
         "gift_reactions": {
           "healing_herbs": {
@@ -4795,10 +4864,13 @@
           ],
           "initial": "neutral"
         },
-        "trust": {
+        "trust_state": {
           "current": 0,
           "floor": -3,
           "ceiling": 5
+        },
+        "dialog_reactions": {
+          "default_response": "Mira surveys the camp with weary determination."
         },
         "llm_context": {
           "traits": [
@@ -4898,7 +4970,7 @@
         "base_timer": 5,
         "hope_extends": false,
         "death_reactions": {
-          "handler": "behaviors.regions.sunken_district.dual_rescue:on_npc_death",
+          "handler": "examples.big_game.behaviors.regions.sunken_district.dual_rescue:on_npc_death",
           "set_flags": {
             "garrett_died": true
           }
@@ -4985,10 +5057,10 @@
         "hope_extends": true,
         "hope_bonus": 3,
         "encounter_reactions": {
-          "handler": "behaviors.regions.sunken_district.dual_rescue:on_delvan_encounter"
+          "handler": "examples.big_game.behaviors.regions.sunken_district.dual_rescue:on_delvan_encounter"
         },
         "death_reactions": {
-          "handler": "behaviors.regions.sunken_district.dual_rescue:on_npc_death",
+          "handler": "examples.big_game.behaviors.regions.sunken_district.dual_rescue:on_npc_death",
           "set_flags": {
             "delvan_died": true
           }
@@ -5061,10 +5133,18 @@
           "initial": "guardian"
         },
         "is_spectral": true,
-        "trust": {
+        "trust_state": {
           "current": 0,
           "floor": -2,
           "ceiling": 5
+        },
+        "dialog_reactions": {
+          "guardian_response": {
+            "keywords": ["knowledge", "teach", "lore", "archive"],
+            "requires_state": ["guardian"],
+            "summary": "The Archivist regards you coldly. 'Knowledge is earned, not given.'"
+          },
+          "default_response": "The Archivist watches you with evaluating eyes."
         },
         "llm_context": {
           "traits": [
@@ -5357,7 +5437,7 @@
             "npc_sporeling_2",
             "npc_sporeling_3"
           ],
-          "handler": "behaviors.regions.fungal_depths.spore_mother:on_spore_mother_state_change"
+          "handler": "examples.big_game.behaviors.regions.fungal_depths.spore_mother:on_spore_mother_state_change"
         },
         "item_use_reactions": {
           "healing": {
@@ -5368,14 +5448,14 @@
           }
         },
         "death_reactions": {
-          "handler": "behaviors.regions.fungal_depths.spore_mother:on_spore_mother_death",
+          "handler": "examples.big_game.behaviors.regions.fungal_depths.spore_mother:on_spore_mother_death",
           "set_flags": {
             "spore_mother_dead": true,
             "has_killed_fungi": true
           }
         },
         "dialog_topics": {
-          "handler": "behaviors.regions.fungal_depths.spore_mother:on_spore_mother_talk"
+          "handler": "examples.big_game.behaviors.regions.fungal_depths.spore_mother:on_spore_mother_talk"
         }
       },
       "behaviors": []
@@ -5615,7 +5695,7 @@
         ],
         "fungal": true,
         "encounter_reactions": {
-          "handler": "behaviors.regions.fungal_depths.fungal_death_mark:on_myconid_first_meeting"
+          "handler": "examples.big_game.behaviors.regions.fungal_depths.fungal_death_mark:on_myconid_first_meeting"
         },
         "dialog_topics": {
           "greeting": {
@@ -5724,6 +5804,19 @@
           ],
           "initial": "suspicious"
         },
+        "dialog_reactions": {
+          "warnings": {
+            "keywords": ["frozen", "beast", "fungal", "sunken", "danger", "warn", "advice"],
+            "requires_state": ["neutral", "friendly"],
+            "summary": "The guard shares warnings about the dangerous regions beyond the town walls..."
+          },
+          "suspicious_response": {
+            "keywords": ["help", "information", "tell", "ask"],
+            "requires_state": ["suspicious"],
+            "summary": "The guard eyes you suspiciously. 'Move along.'"
+          },
+          "default_response": "The guard watches the horizon, alert."
+        },
         "llm_context": {
           "traits": [
             "young face trying to look stern",
@@ -5770,7 +5863,7 @@
       "location": "market_square",
       "inventory": [],
       "properties": {
-        "trust": {
+        "trust_state": {
           "current": 0,
           "floor": -3,
           "ceiling": 5
@@ -5780,10 +5873,17 @@
           "buy_plants",
           "teach_basic_herbalism"
         ],
-        "trust_state": {
-          "current": 0,
-          "floor": -5,
-          "ceiling": 5
+        "dialog_reactions": {
+          "trade": {
+            "keywords": ["buy", "sell", "trade", "herbs", "potion", "supplies"],
+            "summary": "Maren nods. 'Looking for supplies? I have herbs, potions, and alchemical ingredients.'"
+          },
+          "teaching": {
+            "keywords": ["teach", "learn", "herbalism", "training", "knowledge"],
+            "requires_trust": 2,
+            "summary": "Maren explains the properties of various herbs in detail..."
+          },
+          "default_response": "Maren tends her herb garden. 'Looking for supplies?'"
         }
       },
       "behaviors": [
@@ -5830,7 +5930,7 @@
           ],
           "initial": "guarded"
         },
-        "trust": {
+        "trust_state": {
           "current": 0,
           "floor": -3,
           "ceiling": 5
@@ -5839,7 +5939,7 @@
           "trade_rare_items",
           "reveal_undercity"
         ],
-        "dialog_topics": {
+        "dialog_reactions": {
           "wares": {
             "keywords": [
               "wares",
@@ -5964,7 +6064,13 @@
           "teach_advanced_herbalism"
         ],
         "connected_to": "hunter_sira",
-        "dialog_topics": {
+        "dialog_reactions": {
+          "handler": "examples.big_game.behaviors.regions.civilized_remnants.services:on_service_request"
+        },
+        "gossip_reactions": {
+          "handler": "examples.big_game.behaviors.regions.civilized_remnants.services:on_gossip_received"
+        },
+        "old_dialog_topics": {
           "healing": {
             "keywords": [
               "healing",
@@ -6156,6 +6262,33 @@
           "animator_crystal",
           "ritual_knowledge"
         ],
+        "item_use_reactions": {
+          "power_core": {
+            "accepted_items": ["power_core", "energy_crystal", "animator_crystal"],
+            "transition_to": "partially_awakened",
+            "response": "The guardian flickers to life, ancient systems coming online slowly..."
+          },
+          "repair": {
+            "accepted_items": ["repair_kit", "stone_chisel", "ancient_tools"],
+            "requires_state": ["partially_awakened"],
+            "transition_to": "functional",
+            "response": "You repair the damaged plating. The guardian's runes glow steadier."
+          },
+          "activation": {
+            "accepted_items": ["command_code", "activation_key", "ritual_knowledge"],
+            "requires_state": ["functional"],
+            "transition_to": "active",
+            "response": "The guardian rises to full power! 'Primary functions restored.'"
+          }
+        },
+        "dialog_reactions": {
+          "guardian_knowledge": {
+            "keywords": ["catastrophe", "waystone", "ancients", "history"],
+            "requires_state": ["active"],
+            "summary": "The guardian shares ancient records from before the catastrophe..."
+          },
+          "default_response": "The guardian remains still and silent."
+        },
         "llm_context": {
           "traits": [
             "massive stone construct cracked and broken",
@@ -6942,9 +7075,11 @@
       "id": "exit_deep_archive_up",
       "name": "",
       "location": "deep_archive",
-      "connections": [],
+      "connections": [
+        "exit_merchant_warehouse_down"
+      ],
       "direction": "up",
-      "description": "",
+      "description": "Merchant warehouse with crates and storage areas.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7090,12 +7225,31 @@
       "traits": {}
     },
     {
+      "id": "exit_market_square_down",
+      "name": "",
+      "location": "market_square",
+      "connections": [
+        "exit_undercity_entrance_up"
+      ],
+      "direction": "down",
+      "description": "Stairway descending into earth, carved from living rock.",
+      "adjectives": [],
+      "synonyms": [],
+      "properties": {
+        "type": "open"
+      },
+      "behaviors": [],
+      "traits": {}
+    },
+    {
       "id": "exit_healers_sanctuary_back",
       "name": "",
       "location": "healers_sanctuary",
-      "connections": [],
+      "connections": [
+        "exit_healers_garden_front"
+      ],
       "direction": "back",
-      "description": "",
+      "description": "Walled garden filled with medicinal herbs and healing plants.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7108,9 +7262,11 @@
       "id": "exit_healers_garden_front",
       "name": "",
       "location": "healers_garden",
-      "connections": [],
+      "connections": [
+        "exit_healers_sanctuary_back"
+      ],
       "direction": "front",
-      "description": "",
+      "description": "Interior of healer's sanctuary, quiet and filled with soft light.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7123,9 +7279,11 @@
       "id": "exit_undercity_entrance_up",
       "name": "",
       "location": "undercity_entrance",
-      "connections": [],
+      "connections": [
+        "exit_market_square_down"
+      ],
       "direction": "up",
-      "description": "",
+      "description": "Cobblestone square with merchant stalls and gathered townsfolk.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7721,6 +7879,23 @@
       ],
       "direction": "north",
       "description": "Streets lined with shop fronts, signs hanging still on brackets.",
+      "adjectives": [],
+      "synonyms": [],
+      "properties": {
+        "type": "open"
+      },
+      "behaviors": [],
+      "traits": {}
+    },
+    {
+      "id": "exit_merchant_warehouse_down",
+      "name": "",
+      "location": "merchant_warehouse",
+      "connections": [
+        "exit_deep_archive_up"
+      ],
+      "direction": "down",
+      "description": "Stairs descending into subterranean archive chamber.",
       "adjectives": [],
       "synonyms": [],
       "properties": {

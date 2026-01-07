@@ -12,18 +12,10 @@ from src.infrastructure_utils import (
     transition_state,
 )
 
-# Vocabulary: wire hooks to events
-# Note: Gift reactions (flower offers) are handled by infrastructure/gift_reactions.py
-# Note: Take reactions are handled by infrastructure/take_reactions.py
-# Bee Queen must have appropriate reaction configurations
+# Vocabulary removed - reactions now handled via property configs
+# Bee Queen has gift_reactions.handler and take_reactions.handler
 vocabulary: Dict[str, Any] = {
-    "events": [
-        {
-            "event": "on_receive_item",
-            "hook": "entity_item_received",
-            "description": "Handle flower offerings to Bee Queen"
-        }
-    ]
+    "events": []
 }
 
 # Valid flower types and their sources

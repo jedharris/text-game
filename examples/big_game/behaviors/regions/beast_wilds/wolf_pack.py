@@ -12,21 +12,12 @@ from src.infrastructure_utils import (
     transition_state,
 )
 from src.narrator_helpers import select_state_fragments
+from behavior_libraries.companion_lib.activation import make_companion
 
-# Vocabulary: wire hooks to events
-# Note: Pack state mirroring is handled by infrastructure/pack_mirroring.py
-# Note: Gift reactions are handled by infrastructure/gift_reactions.py
-# Wolves must have:
-#   - pack_behavior.pack_follows_leader_state=true for pack mirroring
-#   - gift_reactions configuration for feeding mechanics
+# Vocabulary removed - reactions now handled via gift_reactions property config
+# Alpha wolf has gift_reactions.handler pointing to on_receive_item below
 vocabulary: Dict[str, Any] = {
-    "events": [
-        {
-            "event": "on_receive_item",
-            "hook": "entity_item_received",
-            "description": "Handle feeding wolves to build trust"
-        }
-    ]
+    "events": []
 }
 
 
@@ -153,9 +144,14 @@ def on_receive_item(
                     player = state.actors.get("player")
                     if player and fang.id not in player.inventory:
                         player.inventory.append(fang.id)
+
+                # Activate wolf as companion
+                make_companion(accessor, alpha.id)
+
                 extra_feedback = (
                     " The alpha approaches and, with deliberate care, places something "
-                    "at your feet - a massive fang, freely given. A mark of pack bond."
+                    "at your feet - a massive fang, freely given. A mark of pack bond. "
+                    "The wolf will now follow you as a trusted companion."
                 )
 
             # Get previous state for context

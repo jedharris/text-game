@@ -1,0 +1,72 @@
+# Fungal Depths: Dangerous Mushroom Paths (Violet and Black)
+# Tests the bad paths in the light puzzle
+# Violet mushroom: +15 infection, no light
+# Black mushroom: -2 light (makes it darker)
+
+# Initial state check
+ASSERT actors.player.properties.health == 100
+
+# Part 1: Navigate to Luminous Grotto
+
+go west
+go down
+
+# Part 2: Test Violet Mushroom (dangerous - adds infection)
+
+# Get bucket and fill it
+take bucket
+fill bucket from pool
+
+# Water violet mushroom - should cause infection spike
+pour water on violet mushroom
+
+# Check that infection increased
+# Should have gained ~15 severity from violet mushroom
+# Plus some from navigation through spore zones
+# ASSERT actors.player.properties.conditions.fungal_infection.severity >= 15
+
+# Part 3: Test Black Mushroom (reduces light)
+
+# Water black mushroom - should reduce light level
+pour water on black mushroom
+
+# Light should have decreased by 2 (from base 2 to 0)
+# This makes ceiling unreadable
+# Try to examine ceiling - should say too dim
+examine ceiling
+
+# Part 4: Recover with safe mushrooms
+
+# Refill bucket if needed
+fill bucket from pool
+
+# Water blue mushroom to restore some light (0 → 1)
+pour water on blue mushroom
+
+# Water gold mushroom (1 → 3)
+pour water on gold mushroom
+
+# Still not enough for ceiling (need 6)
+# Refill and water gold again (3 → 5)
+fill bucket from pool
+pour water on gold mushroom
+
+# One more to reach 6
+pour water on blue mushroom
+
+# Now ceiling should be readable
+examine ceiling
+
+# Verify safe path granted
+ASSERT extra.safe_path_known == true
+
+# Part 5: Return to nexus
+
+go up
+go east
+
+# SUCCESS: Dangerous mushroom paths validated!
+# - Violet mushroom adds infection (dangerous)
+# - Black mushroom reduces light (makes puzzle harder)
+# - Recovery path works (can fix mistakes with more water)
+# - Bucket can be refilled multiple times

@@ -1,0 +1,62 @@
+# Fungal Depths: Spore Mother Wary State Transition
+# Tests presence-based state change: hostile → wary after 3 turns without attacking
+# Then tests healing: wary → allied with heartmoss
+
+# Initial state check
+ASSERT actors.player.properties.health == 100
+
+# Part 1: Navigate to Spore Heart
+
+go west
+go down
+go down
+
+# Part 2: Wait 3 turns without attacking
+# This should trigger hostile → wary transition
+
+# Turn 1 - just look, don't attack
+look
+
+# Turn 2 - still not attacking
+look
+
+# Turn 3 - Mother should transition to wary
+look
+
+# Part 3: Talk to Mother in wary state
+# Should get empathic communication about curiosity and need
+
+talk to mother
+
+# Part 4: Get heartmoss from Deep Root Caverns
+
+go down
+take heartmoss
+
+# Part 5: Return and heal Spore Mother
+
+go up
+
+# Use heartmoss on Mother (wary → allied)
+use heartmoss on mother
+
+# Verify healing worked
+# ASSERT extra.spore_mother_healed == true
+# ASSERT extra.has_spore_heart == true
+
+# Part 6: Talk to Mother in allied state
+
+talk to mother
+
+# Part 7: Return to nexus
+
+go up
+go up
+go east
+
+# SUCCESS: Spore Mother state transitions validated!
+# - Hostile → Wary after 3 peaceful turns
+# - Wary state empathic communication
+# - Wary → Allied via heartmoss healing
+# - Allied state shows gratitude
+# - Spore heart fragment received

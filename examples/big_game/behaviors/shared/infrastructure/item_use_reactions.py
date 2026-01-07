@@ -6,7 +6,7 @@ Supports two modes:
 1. Data-driven: Entity properties define accepted items, effects, messages
 2. Handler escape hatch: Entity properties specify a Python function to call
 
-Example data-driven config:
+Example data-driven config (target entity):
     "item_use_reactions": {
         "healing": {
             "accepted_items": ["silvermoss", "healing_potion"],
@@ -24,12 +24,10 @@ Example handler escape hatch:
 
 from typing import Any
 
+from behaviors.shared.infrastructure.reaction_interpreter import process_reaction
+from behaviors.shared.infrastructure.reaction_specs import ITEM_USE_SPEC
 from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import load_handler
 from src.behavior_manager import EventResult
-from src.infrastructure_utils import (
-    apply_trust_change,
-    transition_state,
-)
 
 # Vocabulary: wire hooks to events
 vocabulary = {
@@ -59,7 +57,7 @@ def on_item_used(
 
     Checks both the item and target for item_use_reactions configuration.
     If config has "handler" key, calls that Python function.
-    Otherwise, processes the data-driven config.
+    Otherwise, processes the data-driven config using unified interpreter.
 
     Args:
         entity: The item being used
@@ -69,12 +67,11 @@ def on_item_used(
     Returns:
         EventResult with reaction
     """
-    item_id = entity.id if hasattr(entity, "id") else str(entity)
-    item_lower = item_id.lower()
+    # Ensure item is in context for matching
+    if "item" not in context:
+        context["item"] = entity
 
-    state = accessor.game_state
-
-    # Check target entity for reactions
+    # Check target entity for reactions first
     target = context.get("target")
     if target and hasattr(target, "properties"):
         target_config = target.properties.get("item_use_reactions", {})
@@ -87,10 +84,11 @@ def on_item_used(
                     return handler(entity, accessor, context)
                 # Handler failed to load - fall through to data-driven
 
-            # Data-driven processing
-            result = _check_target_reactions(target, item_lower, accessor, context)
-            if result and result.feedback:
-                return result
+            # Use unified interpreter for data-driven processing
+            match = ITEM_USE_SPEC.match_strategy.find_match(target_config, context)
+            if match:
+                reaction_name, reaction_config = match
+                return process_reaction(target, reaction_config, accessor, context, ITEM_USE_SPEC)
 
     # Check item for self-reactions (e.g., using bucket to water)
     if hasattr(entity, "properties"):
@@ -104,112 +102,10 @@ def on_item_used(
                     return handler(entity, accessor, context)
                 # Handler failed to load - fall through to data-driven
 
-            result = _process_item_use(entity, item_config, accessor, context)
-            if result and result.feedback:
-                return result
+            # Use unified interpreter for item self-use
+            match = ITEM_USE_SPEC.match_strategy.find_match(item_config, context)
+            if match:
+                reaction_name, reaction_config = match
+                return process_reaction(entity, reaction_config, accessor, context, ITEM_USE_SPEC)
 
     return EventResult(allow=True, feedback=None)
-
-
-def _check_target_reactions(
-    target: Any,
-    item_lower: str,
-    accessor: Any,
-    context: dict[str, Any],
-) -> EventResult | None:
-    """Check target entity for item use reactions (data-driven mode)."""
-    target_config = target.properties.get("item_use_reactions", {})
-    if not target_config:
-        return None
-
-    state = accessor.game_state
-
-    # Find matching reaction
-    for reaction_name, reaction_config in target_config.items():
-        if reaction_name in ("handler", "_metadata"):
-            continue  # Skip special keys
-
-        if not isinstance(reaction_config, dict):
-            continue
-
-        accepted_items = reaction_config.get("accepted_items", [])
-        if not any(item.lower() in item_lower for item in accepted_items):
-            continue
-
-        # Check conditions
-        required_flags = reaction_config.get("requires_flags", {})
-        if not all(state.extra.get(k) == v for k, v in required_flags.items()):
-            continue
-
-        # Process the reaction
-        return _process_reaction(target, reaction_config, accessor)
-
-    return None
-
-
-def _process_item_use(
-    entity: Any,
-    config: dict[str, Any],
-    accessor: Any,
-    context: dict[str, Any],
-) -> EventResult | None:
-    """Process item's self-use reaction (data-driven mode)."""
-    state = accessor.game_state
-    target = context.get("target")
-    target_id = target.id if target and hasattr(target, "id") else ""
-
-    for reaction_name, reaction_config in config.items():
-        if reaction_name in ("handler", "_metadata"):
-            continue  # Skip special keys
-
-        if not isinstance(reaction_config, dict):
-            continue
-
-        # Check target requirements
-        target_types = reaction_config.get("target_types", [])
-        if target_types and not any(t.lower() in target_id.lower() for t in target_types):
-            continue
-
-        return _process_reaction(entity, reaction_config, accessor)
-
-    return None
-
-
-def _process_reaction(
-    entity: Any,
-    reaction_config: dict[str, Any],
-    accessor: Any,
-) -> EventResult:
-    """Process a matched item use reaction."""
-    state = accessor.game_state
-
-    # Set flags
-    flags = reaction_config.get("set_flags", {})
-    for flag_name, flag_value in flags.items():
-        state.extra[flag_name] = flag_value
-
-    # Apply trust changes
-    trust_delta = reaction_config.get("trust_delta", 0)
-    if trust_delta and hasattr(entity, "properties"):
-        # Initialize trust_state if missing
-        if "trust_state" not in entity.properties:
-            entity.properties["trust_state"] = {"current": 0}
-
-        transitions = reaction_config.get("trust_transitions", {})
-        apply_trust_change(
-            entity=entity,
-            delta=trust_delta,
-            transitions=transitions,
-        )
-
-    # State transitions
-    new_state = reaction_config.get("transition_to")
-    if new_state and hasattr(entity, "properties"):
-        sm = entity.properties.get("state_machine")
-        if sm:
-            transition_state(sm, new_state)
-
-    # Get response message
-    message = reaction_config.get("response", "")
-
-    return EventResult(allow=True, feedback=message if message else None)
