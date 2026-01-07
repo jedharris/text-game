@@ -112,7 +112,8 @@ def on_vex_gift(
 
     if curiosity:
         # Apply trust change
-        apply_trust_change(entity=vex, delta=curiosity["trust"])
+        trust_delta: int = curiosity["trust"]  # type: ignore[assignment]
+        apply_trust_change(entity=vex, delta=trust_delta)
 
         # Remove item from player
         player = state.actors.get("player")

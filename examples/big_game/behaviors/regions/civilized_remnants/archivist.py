@@ -99,7 +99,8 @@ def on_archivist_gift(
         current_state = sm.get("current", sm.get("initial", "guardian"))
 
         # Apply trust
-        apply_trust_change(entity=archivist, delta=artifact["trust"])
+        trust_delta: int = artifact["trust"]  # type: ignore[assignment]
+        apply_trust_change(entity=archivist, delta=trust_delta)
 
         # Transition states
         if current_state == "guardian" and archivist.properties.get("trust_state", {}).get("current", 0) >= 2:
