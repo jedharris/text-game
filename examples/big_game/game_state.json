@@ -1421,7 +1421,9 @@
         "state_variants": {
           "in_location": "jutting from ice or lying glittering",
           "in_inventory": "perpetual cold from crystal shard",
-          "examined": "frozen crystal, ice magic in physical form"
+          "examined": "frozen crystal, ice magic in physical form",
+          "restored": "frozen crystal blazing with restored power, light pulsing rhythmically",
+          "not_restored": "frozen crystal dim and dormant, awaiting restoration"
         }
       }
     },
@@ -1447,7 +1449,9 @@
         "state_variants": {
           "in_location": "half-buried in natural growth",
           "in_inventory": "vibrant energy thrumming through pack",
-          "examined": "wild crystal, primal magic in stone form"
+          "examined": "wild crystal, primal magic in stone form",
+          "restored": "wild crystal blazing with restored power, light pulsing rhythmically",
+          "not_restored": "wild crystal dim and dormant, awaiting restoration"
         }
       }
     },
@@ -1473,7 +1477,9 @@
         "state_variants": {
           "in_location": "lying in or near water, gleaming wet",
           "in_inventory": "coolness and sense of depths",
-          "examined": "sunken crystal, water magic preserved in stone"
+          "examined": "sunken crystal, water magic preserved in stone",
+          "restored": "sunken crystal blazing with restored power, light pulsing rhythmically",
+          "not_restored": "sunken crystal dim and dormant, awaiting restoration"
         }
       }
     },
@@ -1499,7 +1505,9 @@
         "state_variants": {
           "in_location": "growing from fungal substrate, half-organic",
           "in_inventory": "faint pulsing visible through pack",
-          "examined": "fungal crystal, life magic in strange fusion"
+          "examined": "fungal crystal, life magic in strange fusion",
+          "restored": "fungal crystal blazing with restored power, light pulsing rhythmically",
+          "not_restored": "fungal crystal dim and dormant, awaiting restoration"
         }
       }
     },
@@ -1525,7 +1533,9 @@
         "state_variants": {
           "in_location": "shard lying among debris",
           "in_inventory": "fragment of something once whole",
-          "examined": "remnant crystal, broken but still potent"
+          "examined": "remnant crystal, broken but still potent",
+          "restored": "remnant crystal blazing with restored power, light pulsing rhythmically",
+          "not_restored": "remnant crystal dim and dormant, awaiting restoration"
         }
       }
     },

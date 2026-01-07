@@ -391,7 +391,19 @@ class StateAccessor:
         """
         Get all visible exits for a location.
 
-        Filters out hidden exits using is_observable() check.
+        Filters out:
+        1. Hidden exits (is_observable() check)
+        2. Passages behind closed doors (only from door_at location)
+
+        An exit with both passage and door_id represents a passage BEYOND a door.
+
+        Visibility rules:
+        - From door_at location (where door physically is):
+          * If door closed: passage beyond is NOT visible (can't see through door)
+          * If door open: passage beyond IS visible
+        - From non-door_at location (other end of passage):
+          * Passage is ALWAYS visible (the stairs/passage itself doesn't disappear)
+          * Use state_variants to describe door state at far end
 
         Args:
             location_id: The location ID
@@ -411,11 +423,29 @@ class StateAccessor:
 
         visible_exits = {}
         for exit_entity in exits_here:
+            # Filter 1: Observability check (hidden state, etc.)
             visible, _ = is_observable(
                 exit_entity, self, self.behavior_manager,
                 actor_id=actor_id, method="look"
             )
-            if visible and exit_entity.direction:
+            if not visible:
+                continue
+
+            # Filter 2: Passage behind closed door (only at door_at location)
+            if exit_entity.passage and exit_entity.door_id and exit_entity.door_at:
+                # Only hide if we're AT the door location and door is closed
+                if exit_entity.door_at == location_id:
+                    try:
+                        door = self.get_door_item(exit_entity.door_id)
+                        if not door.door_open:
+                            # We're at the door location and it's closed - can't see passage beyond
+                            continue
+                    except KeyError:
+                        # Door doesn't exist - treat as open (fail gracefully)
+                        pass
+
+            # Exit is visible
+            if exit_entity.direction:
                 visible_exits[exit_entity.direction] = exit_entity
 
         return visible_exits

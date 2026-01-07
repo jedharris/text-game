@@ -29,9 +29,7 @@
         "item_welcome_mat",
         "item_umbrella_stand"
       ],
-      "behaviors": [
-        "behaviors.tower_entrance"
-      ],
+      "behaviors": [],
       "tags": []
     },
     {
@@ -177,14 +175,20 @@
       "properties": {
         "type": "object",
         "portable": false,
+        "examine_count": 0,
         "llm_context": {
           "traits": [
             "woven fabric",
             "faded welcome lettering",
             "worn edges from foot traffic",
-            "dusty surface",
-            "barely visible words 'Speak Friend'"
-          ]
+            "dusty surface"
+          ],
+          "state_variants": {
+            "unexamined": "barely visible words 'Speak Friend' are worn by countless feet",
+            "examined_once": "the words 'Speak Friend' are clearer upon closer inspection",
+            "examined_twice": "lifting the corner reveals words scratched into the stone beneath",
+            "fully_examined": "beneath the mat, a message is etched: 'The crystal holds the key to the sanctum'"
+          }
         }
       },
       "behaviors": [
@@ -500,7 +504,12 @@
             "plain surface",
             "iron handle",
             "slightly weathered"
-          ]
+          ],
+          "state_variants": {
+            "closed_locked": "door is closed and secured with an iron latch",
+            "closed_unlocked": "door is closed but the latch is unlatched",
+            "open": "door stands open, storage room visible beyond"
+          }
         }
       }
     },
@@ -518,11 +527,14 @@
         "llm_context": {
           "traits": [
             "ornate carved wood",
-            "glowing arcane runes",
-            "pulsing with magical energy",
             "ancient craftsmanship",
-            "faint humming sound"
-          ]
+            "faint magical aura"
+          ],
+          "state_variants": {
+            "closed_locked": "glowing arcane runes seal the door shut, pulsing with protective magic",
+            "closed_unlocked": "arcane runes have dimmed to faint outlines, seal broken but door remains closed",
+            "open": "door swings wide, revealing narrow stone stairs ascending into shadow"
+          }
         }
       }
     }
@@ -718,17 +730,28 @@
     },
     {
       "id": "exit_loc_sanctum_down",
-      "name": "ornate door",
+      "name": "narrow stone stairs",
       "location": "loc_sanctum",
       "connections": [
         "exit_loc_library_up"
       ],
       "direction": "down",
-      "description": "An ornate door.",
-      "adjectives": [],
-      "synonyms": [],
+      "description": "Narrow stone stairs descending.",
+      "adjectives": ["narrow", "stone"],
+      "synonyms": ["stairs", "stairway", "staircase"],
       "properties": {
-        "type": "door"
+        "type": "door",
+        "llm_context": {
+          "traits": [
+            "worn grey stone steps",
+            "spiral descent",
+            "narrow passage"
+          ],
+          "state_variants": {
+            "door_open": "stairs descend to an ornate door standing open at the bottom",
+            "door_closed": "stairs descend into shadow, ending at a closed door below"
+          }
+        }
       },
       "behaviors": [],
       "traits": {},

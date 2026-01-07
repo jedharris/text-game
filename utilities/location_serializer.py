@@ -129,20 +129,22 @@ def serialize_location_for_llm(accessor, location, actor_id: ActorId) -> Dict[st
 
     result["items"] = items
 
-    # Get visible exits once for both doors and exits
+    # Get visible exits for exit serialization
     visible_exits = accessor.get_visible_exits(location.id, actor_id)
 
-    # Serialize doors - pass player_context for perspective_variants
+    # Serialize doors - doors are ALWAYS visible even when passage beyond is hidden
+    # Get doors from ALL exits at this location, not just visible ones
     doors = []
     seen_door_ids = set()
-    for direction, exit_entity in visible_exits.items():
+    all_location_exits = [e for e in accessor.game_state.exits if e.location == location.id]
+    for exit_entity in all_location_exits:
         # Check if exit has a door (door_id is direct attribute)
         if exit_entity.door_id:
             door = accessor.get_door_item(exit_entity.door_id)
             if door and exit_entity.door_id not in seen_door_ids:
                 seen_door_ids.add(exit_entity.door_id)
                 door_dict = entity_to_dict(door, player_context=player_context)
-                door_dict["direction"] = direction
+                door_dict["direction"] = exit_entity.direction
                 doors.append(door_dict)
     result["doors"] = doors
 
@@ -171,17 +173,31 @@ def serialize_location_for_llm(accessor, location, actor_id: ActorId) -> Dict[st
             exit_data["name"] = exit_entity.name
         if exit_entity.description:
             exit_data["description"] = exit_entity.description
+        # Include passage if present (the physical passage/stairs beyond a door)
+        if exit_entity.passage:
+            exit_data["passage"] = exit_entity.passage
         # Include door_id if present (direct attribute)
         if exit_entity.door_id:
             exit_data["door_id"] = exit_entity.door_id
         # Include llm_context if present in traits - pass player_context for perspective_variants
         if "llm_context" in exit_entity.traits:
+            # Check for exit-specific state variants BEFORE entity_to_dict removes them
+            from utilities.entity_serializer import _select_exit_state_variant
+            state_note = _select_exit_state_variant(
+                exit_entity.traits['llm_context'],
+                exit_entity,
+                accessor
+            )
+
             exit_dict = entity_to_dict(exit_entity, player_context=player_context)
             if "llm_context" in exit_dict:
                 exit_data["llm_context"] = exit_dict["llm_context"]
             # Also include perspective_note if present
             if "perspective_note" in exit_dict:
                 exit_data["perspective_note"] = exit_dict["perspective_note"]
+            # Include state_note if selected
+            if state_note:
+                exit_data['state_note'] = state_note
         exits[direction] = exit_data
     result["exits"] = exits
 

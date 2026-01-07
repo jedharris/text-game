@@ -174,15 +174,151 @@ def _detect_entity_type(entity: Any) -> Optional[str]:
     return None
 
 
+def _select_item_state_variant(
+    llm_context: Dict[str, Any],
+    entity: Any
+) -> Optional[Any]:
+    """Select state variant for an item based on its properties.
+
+    Checks entity properties in priority order:
+    1. Door state (open, closed_locked, closed_unlocked)
+    2. Light state (lit, unlit)
+    3. Container state (open, closed)
+    4. Generic state properties (broken, active, etc.)
+
+    Returns:
+        - str: state_note text if variant is a string
+        - dict: traits dict if variant is a dict with "traits"
+        - None: if no matching variant
+
+    Examples:
+        # Door with string variant
+        state_variants = {
+            "open": "door swings wide revealing stairs beyond"
+        }
+        Returns: "door swings wide revealing stairs beyond"
+
+        # Torch with dict variant
+        state_variants = {
+            "lit": {"traits": ["flames dancing", "warm glow"]}
+        }
+        Returns: {"traits": ["flames dancing", "warm glow"]}
+    """
+    variants = llm_context.get('state_variants', {})
+    if not variants:
+        return None
+
+    # Priority 1: Door state
+    if hasattr(entity, 'door_open') or hasattr(entity, 'door_locked'):
+        state_key = _compute_door_state_key(entity)
+        if state_key and state_key in variants:
+            return variants[state_key]
+
+    # Priority 2: Light state
+    if hasattr(entity, 'states'):
+        states = entity.states
+        if isinstance(states, dict) and states.get('lit') is not None:
+            state_key = "lit" if states['lit'] else "unlit"
+            if state_key in variants:
+                return variants[state_key]
+
+    # Priority 3: Container state
+    if hasattr(entity, 'container'):
+        container = entity.container
+        if isinstance(container, dict) and 'open' in container:
+            state_key = "open" if container['open'] else "closed"
+            if state_key in variants:
+                return variants[state_key]
+
+    # Priority 4: Generic properties
+    # Check common state properties
+    if hasattr(entity, 'properties'):
+        props = entity.properties
+        if isinstance(props, dict):
+            for prop_name in ['broken', 'active', 'powered', 'sealed', 'restored', 'mat_state']:
+                if prop_name in props:
+                    # Boolean properties
+                    if isinstance(props[prop_name], bool):
+                        state_key = prop_name if props[prop_name] else f"not_{prop_name}"
+                        if state_key in variants:
+                            return variants[state_key]
+                    # String properties (e.g., "damaged", "intact", "examined_once")
+                    elif isinstance(props[prop_name], str):
+                        if props[prop_name] in variants:
+                            return variants[props[prop_name]]
+
+    return None
+
+
+def _compute_door_state_key(entity: Any) -> Optional[str]:
+    """Compute door state key: open | closed_locked | closed_unlocked.
+
+    Args:
+        entity: Entity with door_open and door_locked attributes
+
+    Returns:
+        State key string or None if not a door
+    """
+    if not hasattr(entity, 'door_open'):
+        return None
+
+    if entity.door_open:
+        return "open"
+    elif hasattr(entity, 'door_locked') and entity.door_locked:
+        return "closed_locked"
+    else:
+        return "closed_unlocked"
+
+
+def _select_exit_state_variant(
+    llm_context: Dict[str, Any],
+    exit_entity: Any,
+    accessor: Optional[Any]
+) -> Optional[str]:
+    """Select state variant for exit based on associated door state.
+
+    If exit has door_id, checks door state and selects variant:
+    - "door_open" if door is open
+    - "door_closed" if door is closed or locked
+
+    This allows exits (like stairs) to describe the door state at the far end.
+    For example: "stairs descend to a closed door at the bottom"
+
+    Args:
+        llm_context: Exit's llm_context with state_variants
+        exit_entity: Exit entity with door_id attribute
+        accessor: Optional StateAccessor for door lookup
+
+    Returns:
+        State note string or None
+    """
+    variants = llm_context.get('state_variants', {})
+    if not variants or not accessor:
+        return None
+
+    # Check if exit has associated door
+    if hasattr(exit_entity, 'door_id') and exit_entity.door_id:
+        try:
+            door = accessor.get_door_item(exit_entity.door_id)
+            state_key = "door_open" if door.door_open else "door_closed"
+            if state_key in variants:
+                return variants[state_key]
+        except (KeyError, AttributeError):
+            # Door doesn't exist or accessor missing method - fail gracefully
+            pass
+
+    return None
+
+
 def _add_llm_context(result: Dict[str, Any], entity: Any,
                      max_traits: Optional[int] = None,
                      player_context: Optional[Dict[str, Any]] = None) -> None:
-    """Add llm_context with randomized traits and perspective variant selection.
+    """Add llm_context with trait randomization, state variant, and perspective variant selection.
 
     Randomizes trait order to encourage varied LLM narration.
     Copies the llm_context to avoid mutating the original entity.
-    If player_context is provided and entity has perspective_variants,
-    selects the best matching variant and adds it as perspective_note.
+    Selects state variant based on entity properties (door state, light state, etc.).
+    Selects perspective variant based on player posture and focus.
 
     Args:
         result: Dict to add llm_context to
@@ -198,23 +334,47 @@ def _add_llm_context(result: Dict[str, Any], entity: Any,
     # Copy to avoid mutation of original
     context_copy = dict(llm_context)
 
-    # Randomize traits if present
-    if 'traits' in context_copy and isinstance(context_copy['traits'], list):
-        traits_copy = list(context_copy['traits'])
-        random.shuffle(traits_copy)
-        # Apply max_traits limit if specified
-        if max_traits is not None:
-            traits_copy = traits_copy[:max_traits]
-        context_copy['traits'] = traits_copy
+    # Select state variant for items (doors, lights, containers, etc.)
+    state_variant = _select_item_state_variant(context_copy, entity)
+
+    if state_variant:
+        # Check if variant is string (state_note) or dict (trait replacement)
+        if isinstance(state_variant, str):
+            # String variant: Add as state_note, keep existing traits
+            result['state_note'] = state_variant
+
+            # Randomize existing traits
+            if 'traits' in context_copy and isinstance(context_copy['traits'], list):
+                traits_copy = list(context_copy['traits'])
+                random.shuffle(traits_copy)
+                if max_traits is not None:
+                    traits_copy = traits_copy[:max_traits]
+                context_copy['traits'] = traits_copy
+
+        elif isinstance(state_variant, dict) and 'traits' in state_variant:
+            # Dict variant: Replace traits entirely
+            traits_copy = list(state_variant['traits'])
+            random.shuffle(traits_copy)
+            if max_traits is not None:
+                traits_copy = traits_copy[:max_traits]
+            context_copy['traits'] = traits_copy
+    else:
+        # No state variant: Use base traits
+        if 'traits' in context_copy and isinstance(context_copy['traits'], list):
+            traits_copy = list(context_copy['traits'])
+            random.shuffle(traits_copy)
+            if max_traits is not None:
+                traits_copy = traits_copy[:max_traits]
+            context_copy['traits'] = traits_copy
 
     # Select perspective variant if available
     perspective_note = _select_perspective_variant(context_copy, player_context)
     if perspective_note:
         result['perspective_note'] = perspective_note
 
-    # Remove perspective_variants from output - LLM should only see the selected note
-    # Otherwise the LLM may use text from non-selected variants
+    # Remove variant dicts from output - LLM should only see selected variants
     context_copy.pop('perspective_variants', None)
+    context_copy.pop('state_variants', None)
 
     result['llm_context'] = context_copy
 

@@ -141,6 +141,63 @@ Example:
 ✅ Good: "You see a mat on the floor and a heavy oak door with iron hinges."
 ❌ Bad: "You see an oak mat on the floor..." (borrowed "oak" from door)
 
+#### State-Dependent Details
+
+Entities may include a `state_note` field that describes their current state:
+
+```json
+"entity_refs": {
+  "door_sanctum": {
+    "name": "door",
+    "traits": ["ornate carved wood", "ancient craftsmanship"],
+    "state_note": "door stands open, narrow stairs visible beyond ascending into shadow"
+  }
+}
+```
+
+**Using state_note:**
+- The `state_note` provides state-specific description that complements the permanent traits
+- Integrate `state_note` naturally with `traits` to create a complete picture
+- State notes often describe relationships or dynamic conditions (doors open/closed, lights lit/unlit, etc.)
+
+Example narration:
+✅ Good: "An ornate door of ancient carved wood stands open before you, revealing narrow stone stairs ascending into shadow."
+
+**Common state_note patterns:**
+- Doors: "door stands open" vs "door is locked shut"
+- Lights: "flames dancing brightly" vs "cold and unlit"
+- Containers: "lid open, contents visible" vs "lid sealed tight"
+
+#### Passages and Newly-Revealed Context
+
+When an action reveals new context (e.g., opening a door reveals stairs beyond), the updated context appears in `entity_refs`:
+
+```json
+"entity_refs": {
+  "door_sanctum": {
+    "name": "ornate door",
+    "traits": ["carved wood", "ancient"],
+    "state_note": "door swings wide, revealing narrow stone stairs ascending into shadow"
+  },
+  "exit_up": {
+    "type": "exit",
+    "name": "stairs",
+    "passage": "narrow stone stairs",
+    "traits": ["worn grey stone", "spiral design"]
+  }
+}
+```
+
+**Weaving action and revelation together:**
+- When both the changed entity (door) and newly-visible context (exit/passage) are present in entity_refs, weave them into a unified narration
+- The `state_note` often hints at what's revealed; the `passage` field provides the physical description
+- Create natural prose that flows from action to revelation
+
+Example narration:
+✅ Good: "You open the ornate door. It swings wide, revealing narrow stone stairs of worn grey stone that spiral upward into shadow."
+✅ Good: "The ancient door opens with a creak, and narrow stone stairs become visible beyond, ascending into darkness."
+❌ Bad: "You open the door." (ignores the newly-visible stairs)
+
 ---
 
 ### FAILURE RENDERING

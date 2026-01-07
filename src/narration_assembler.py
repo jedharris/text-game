@@ -110,6 +110,14 @@ class NarrationAssembler:
         else:
             plan["entity_refs"] = {}
 
+        # 5b. Check for context changes and add updated location context
+        if handler_result.data and handler_result.data.get("_context_changed"):
+            context_changes = handler_result.data["_context_changed"]
+            if context_changes.get("exits"):
+                # Re-serialize location to get updated exits
+                location_context = self._get_updated_location_context()
+                plan["entity_refs"].update(location_context)
+
         # 6. Build must_mention (exits_text for location scenes, available_topics for dialog)
         must_mention = self._build_must_mention(scene_kind, handler_result, familiarity)
         if must_mention:
@@ -356,14 +364,27 @@ class NarrationAssembler:
                 entity_ref["traits"] = traits
             elif entity_type in ("item", "container", "door", "tool", "weapon", "furniture", "object"):
                 # Warn about missing traits for physical entities
-                # (Locations and exits can be generic, actors may be described dynamically)
-                import sys
-                entity_id = data.get("id", "unknown")
-                print(
-                    f"WARNING: Entity '{name}' ({entity_id}) has no traits. "
-                    f"Narrator may hallucinate materials/details.",
-                    file=sys.stderr
-                )
+                # (Locations and exits are directional/navigational, actors may be described dynamically)
+                # Check if this is actually an exit (has passage field) - exits don't need traits
+                is_exit = "passage" in data or data.get("id", "").startswith("exit_")
+                if not is_exit:
+                    import sys
+                    entity_id = data.get("id", "unknown")
+                    print(
+                        f"WARNING: Entity '{name}' ({entity_id}) has no traits. "
+                        f"Narrator may hallucinate materials/details.",
+                        file=sys.stderr
+                    )
+
+        # Add state_note if present (state-dependent descriptions)
+        state_note = data.get("state_note")
+        if state_note:
+            entity_ref["state_note"] = state_note
+
+        # Add passage if present (for exits - describes the physical passage)
+        passage = data.get("passage")
+        if passage:
+            entity_ref["passage"] = passage
 
         # Add spatial_relation if present
         spatial = data.get("spatial_relation")
@@ -401,6 +422,45 @@ class NarrationAssembler:
             "posture": actor.properties.get("posture"),
             "focused_on": actor.properties.get("focused_on")
         }
+
+    def _get_updated_location_context(self) -> Dict[str, EntityRef]:
+        """
+        Get updated location context (exits) after a state change.
+
+        When an action changes what's visible (e.g., opening a door reveals
+        a passage), this re-serializes the current location to get updated
+        exits and converts them to EntityRefs for the narrator.
+
+        Returns:
+            Dict mapping exit IDs to EntityRef (empty if no location)
+        """
+        from utilities.location_serializer import serialize_location_for_llm
+
+        entity_refs: Dict[str, EntityRef] = {}
+        player_context = self._get_player_context()
+
+        actor = self.accessor.get_actor(self.actor_id)
+        if not actor:
+            return entity_refs
+
+        location = self.accessor.get_location(actor.location)
+        if not location:
+            return entity_refs
+
+        # Re-serialize location with current state
+        location_data = serialize_location_for_llm(self.accessor, location, self.actor_id)
+
+        # Convert exits to EntityRefs
+        exits = location_data.get("exits", {})
+        for direction, exit_data in exits.items():
+            if isinstance(exit_data, dict):
+                # Create exit ref with passage info if present
+                exit_ref = self._build_entity_ref_from_data(exit_data, player_context)
+                if exit_ref:
+                    # Use direction as ID for exits
+                    entity_refs[f"exit_{direction}"] = exit_ref
+
+        return entity_refs
 
     def _build_must_mention(
         self,

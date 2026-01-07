@@ -604,6 +604,10 @@ def _handle_door_or_container_state_change(
         # Update door state
         item.door_open = target_state
         data = serialize_for_handler_result(item, accessor, actor_id)
+
+        # Signal that exits may have changed visibility
+        data["_context_changed"] = {"exits": True}
+
         return HandlerResult(
             success=True,
             primary=f"You {verb} the {item.name}.",

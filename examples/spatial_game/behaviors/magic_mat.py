@@ -2,7 +2,8 @@
 
 Demonstrates:
 - Reacting to standard verbs (examine) with custom behavior
-- Simple state tracking
+- State-dependent narration via state_variants
+- Progressive revelation through state changes
 """
 
 from typing import Dict, Any
@@ -14,7 +15,8 @@ def on_examine(entity: Any, accessor: Any, context: Dict) -> EventResult:
     """
     Entity behavior for being examined.
 
-    The mat has a hidden message that becomes clearer each time you examine it.
+    The mat progressively reveals its hidden message through state changes.
+    State variants in the item definition provide the narrative descriptions.
 
     Args:
         entity: The mat
@@ -22,35 +24,32 @@ def on_examine(entity: Any, accessor: Any, context: Dict) -> EventResult:
         context: Context dict with actor_id, verb
 
     Returns:
-        EventResult with allow and message
+        EventResult with allow and no message (state_variant provides description)
     """
-    # Track examination count
-    if not hasattr(entity, 'states') or entity.states is None:
-        entity.states = {}
+    # Get current examine count from properties
+    properties = entity.properties if hasattr(entity, 'properties') else {}
+    examine_count = properties.get("examine_count", 0)
 
-    examine_count = entity.states.get("examine_count", 0) + 1
-    entity.states["examine_count"] = examine_count
+    # Increment count and update state property
+    examine_count += 1
+    if not hasattr(entity, 'properties'):
+        entity.properties = {}
+    entity.properties["examine_count"] = examine_count
 
-    # Progressively reveal the hidden message
+    # Map count to state key for state_variant selection
     if examine_count == 1:
-        message = (
-            "You look more closely at the faded mat.\n"
-            "The words 'Speak Friend' are barely visible, worn by countless feet."
-        )
+        state_key = "examined_once"
     elif examine_count == 2:
-        message = (
-            "You bend down to examine the mat more carefully.\n"
-            "Wait - there's something underneath! You lift the corner..."
-        )
-    elif examine_count == 3:
-        message = (
-            "Under the mat, you find words scratched into the stone:\n"
-            "'The crystal holds the key to the sanctum.'"
-        )
+        state_key = "examined_twice"
+    elif examine_count >= 3:
+        state_key = "fully_examined"
     else:
-        message = (
-            "You've examined the mat thoroughly.\n"
-            "The message 'The crystal holds the key to the sanctum' is still there."
-        )
+        state_key = "unexamined"
 
-    return EventResult(allow=True, feedback=message)
+    # Store current state for state_variant selector
+    # The selector will use this to choose the appropriate variant
+    entity.properties["mat_state"] = state_key
+
+    # Return success with no message - let narrator compose from state_variant
+    # The entity serializer will select the appropriate state_variant based on mat_state
+    return EventResult(allow=True, feedback="")

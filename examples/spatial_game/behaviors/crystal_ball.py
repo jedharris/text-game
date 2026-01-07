@@ -38,8 +38,10 @@ def handle_peer(accessor, action: Dict) -> HandlerResult:
         action: Action dict with verb, object, actor_id
 
     Returns:
-        HandlerResult with success flag and message
+        HandlerResult with success flag and structured data
     """
+    from utilities.entity_serializer import serialize_for_handler_result
+
     actor_id = cast(ActorId, action.get("actor_id") or ActorId("player"))
     obj_name = action.get("object")
     adjective = action.get("adjective")
@@ -86,14 +88,20 @@ def handle_peer(accessor, action: Dict) -> HandlerResult:
     if not result.success:
         return HandlerResult(success=False, primary=result.detail)
 
-    # Build response message
-    base_message = f"You peer deeply into the {item.name}..."
-    if result.detail:
-        message = f"{base_message}\n{result.detail}"
-    else:
-        message = base_message
+    # Return structured data for narrator to compose
+    data = {
+        "crystal_ball": serialize_for_handler_result(item, accessor, actor_id)
+    }
 
-    return HandlerResult(success=True, primary=message)
+    # If behavior returned data (revealed key), include it
+    if hasattr(result, 'data') and result.data:
+        data.update(result.data)
+
+    return HandlerResult(
+        success=True,
+        primary=f"You peer deeply into the {item.name}.",
+        data=data
+    )
 
 
 def on_peer(entity: Any, accessor: Any, context: Dict) -> EventResult:
@@ -104,19 +112,29 @@ def on_peer(entity: Any, accessor: Any, context: Dict) -> EventResult:
     Reveals the hidden sanctum key by setting states.hidden = False
     and placing it on the same surface/container as the crystal ball.
 
+    Returns structured data for narrator to compose revelation prose.
+
     Args:
         entity: The crystal ball
         accessor: StateAccessor instance
         context: Context dict with actor_id, verb
 
     Returns:
-        EventResult with allow and message
+        EventResult with allow and structured data (no feedback message)
     """
+    from utilities.entity_serializer import serialize_for_handler_result
+
+    actor_id = context.get("actor_id")
+
     # Find the sanctum key (hidden in the same location as the crystal ball)
     sanctum_key = accessor.get_item("item_sanctum_key")
     if not sanctum_key:
-        message = "The mists swirl mysteriously but reveal nothing."
-        return EventResult(allow=True, feedback=message)
+        # No key to reveal - return minimal feedback
+        return EventResult(
+            allow=True,
+            feedback="",
+            data={"revelation": "nothing"}
+        )
 
     # Initialize states if needed
     if not hasattr(sanctum_key, 'states') or sanctum_key.states is None:
@@ -131,30 +149,31 @@ def on_peer(entity: Any, accessor: Any, context: Dict) -> EventResult:
         crystal_ball_location = entity.location
         accessor.set_entity_where(sanctum_key.id, crystal_ball_location)
 
-        # Determine the appropriate message based on where the crystal ball is
-        # Use get_entity since location could be an actor (inventory) or item (container/surface)
+        # Determine location type for narrator context
         location_entity = accessor.get_entity(crystal_ball_location)
+        location_type = "floor"
         if location_entity and hasattr(location_entity, 'properties'):
             container_props = location_entity.properties.get("container", {})
             if container_props.get("is_surface", False):
-                location_desc = f"on the {location_entity.name}"
+                location_type = "surface"
             elif container_props.get("is_container", False):
-                location_desc = f"in the {location_entity.name}"
-            else:
-                location_desc = "on the floor nearby"
-        else:
-            location_desc = "on the floor nearby"
+                location_type = "container"
 
-        message = (
-            "The mists within the crystal ball swirl and coalesce...\n"
-            "A golden light pulses from within!\n"
-            f"As you watch, a small golden key materializes {location_desc}!"
+        # Return structured data for narrator
+        return EventResult(
+            allow=True,
+            feedback="",  # No pre-composed prose
+            data={
+                "revelation": "key_appears",
+                "revealed_key": serialize_for_handler_result(sanctum_key, accessor, actor_id),
+                "location_entity": serialize_for_handler_result(location_entity, accessor, actor_id) if location_entity else None,
+                "location_type": location_type
+            }
         )
     else:
-        # Key already revealed
-        message = (
-            "The mists swirl and part, but the crystal ball is now empty.\n"
-            "You've already claimed what was hidden within."
+        # Key already revealed - return status
+        return EventResult(
+            allow=True,
+            feedback="",
+            data={"revelation": "already_claimed"}
         )
-
-    return EventResult(allow=True, feedback=message)
