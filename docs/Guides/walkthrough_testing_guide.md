@@ -4,6 +4,33 @@
 
 Walkthroughs are automated test scripts that validate game functionality by running sequences of commands and verifying results. They support setup commands, output validation, and state assertions.
 
+## CRITICAL: Verify Command Syntax Before Writing Walkthroughs
+
+**BEFORE writing any walkthrough, you MUST:**
+
+1. **Verify what commands actually exist** - Check which behavior libraries are loaded:
+   - Look at `game_state.json` to see what global behaviors are loaded
+   - Common libraries: `dialog_lib`, `combat_lib`, etc.
+   - Each library defines specific command vocabulary
+
+2. **Test commands manually first** - Run a quick test to verify syntax:
+   ```bash
+   python tools/walkthrough.py examples/big_game --file /dev/stdin <<'EOF'
+   # Try the command you want to use
+   ask maren about trade
+   EOF
+   ```
+
+3. **Check dialog_lib for NPC conversation syntax** - The standard dialog commands are:
+   - `ask <npc> about <topic>` - Ask NPC about a specific topic
+   - `talk to <npc>` - Show available topics
+   - **NOT** `talk to <npc> about <topic>` (this is not valid syntax)
+
+4. **Understand the vocabulary system** - Commands must be defined in loaded behavior modules:
+   - Global behaviors in `game_state.json` under `extra.behaviors`
+   - Entity-specific behaviors in actor/location `behaviors` arrays
+   - Vocabulary is merged from all loaded modules
+
 ## Writing Walkthroughs
 
 ### File Location
@@ -15,7 +42,8 @@ Place walkthrough files in `/walkthroughs/` with `.txt` extension.
 ```
 go north
 take sword
-talk to merchant about trade
+ask merchant about trade   # Correct dialog syntax
+talk to merchant           # Shows available topics
 ```
 
 **Comments:**
@@ -55,7 +83,7 @@ Value types:
 
 **@expect - Verify Output Text:**
 ```
-talk to maren about trade
+ask maren about trade
 @expect "shows you her wares"
 @expect "healing moss"
 ```
@@ -82,16 +110,22 @@ Supported operators:
 @set actors.player.properties.gold = 500
 
 # Navigate to herbalist location
-go north
+go south
 go east
+go south
+go south
 
-# Test 1: View shop menu
-talk to maren about trade
+# Test 1: View available topics
+talk to maren
+@expect "available topics"
+
+# Test 2: Ask about specific topic
+ask maren about trade
 @expect "shows you her wares"
 @expect "gold"
 
-# Test 2: Purchase item
-talk to maren about silvermoss
+# Test 3: Purchase item
+ask maren about silvermoss
 @expect "hands you"
 
 # Verify purchase
@@ -99,9 +133,9 @@ inventory
 @expect "silvermoss"
 @assert actors.player.properties.gold < 500
 
-# Test 3: Trust-based discount
+# Test 4: Trust-based discount
 @set actors.herbalist_maren.properties.trust_state.current = 3
-talk to maren about trade
+ask maren about trade
 @expect "discount"
 ```
 
@@ -164,18 +198,70 @@ Summary: 15/17 commands succeeded
     Actual: 50
 ```
 
+## Understanding Dialog System Integration
+
+### How Dialog Commands Work
+
+The dialog system has TWO layers:
+
+1. **Command Layer** (`dialog_lib`) - Defines the commands players can type:
+   - `ask <npc> about <topic>` - Implemented in `behavior_libraries/dialog_lib/handlers.py`
+   - `talk to <npc>` - Shows available topics
+   - These commands fire `entity_dialog` hooks on the target NPC
+
+2. **Handler Layer** (NPC behaviors) - Defines how NPCs respond:
+   - NPCs can have `dialog_reactions` in their properties
+   - Can be data-driven (keyword matching) OR handler-based (Python function)
+   - Handlers receive `context` dict with `keyword` extracted from the topic
+
+### Example Flow
+
+```
+Player types: "ask maren about trade"
+  ↓
+dialog_lib parses: npc="maren", topic="trade"
+  ↓
+dialog_lib fires: entity_dialog hook on herbalist_maren entity
+  ↓
+dialog_reactions.py receives: context={"keyword": "trade", ...}
+  ↓
+Handler checks: if "trade" in TRADE_KEYWORDS → call _handle_maren_trading()
+  ↓
+Response returned to player
+```
+
+### Why You Can't Just Make Up Commands
+
+**WRONG thinking:** "I need to test trading, so I'll write `buy item from merchant`"
+- ✗ This command doesn't exist in any loaded behavior library
+- ✗ Parser will fail with "Could not parse"
+- ✗ Your test will never reach the handler
+
+**RIGHT thinking:** "Let me check what commands exist, then write handlers that work with those commands"
+- ✓ Check `game_state.json` for loaded libraries
+- ✓ Read library code to see defined commands
+- ✓ Write handlers that respond to those commands
+- ✓ Write tests using verified command syntax
+
 ## Common Patterns
 
 ### Testing NPC Dialog
 ```
+# First, check what NPC is listening for - look at their dialog_reactions config
+# Example: Maren's handler checks for keywords in TRADE_KEYWORDS
+
 # Test dialog with trust gates
 @set actors.npc_id.properties.trust_state.current = 0
-talk to npc about secret
-@expect "don't trust you"  # EXPECT_FAIL or low trust response
+ask npc about secret
+@expect "don't trust you"  # Low trust response
 
 @set actors.npc_id.properties.trust_state.current = 3
-talk to npc about secret
+ask npc about secret
 @expect "reveals information"
+
+# Show available topics
+talk to npc
+@expect "You could ask about"
 ```
 
 ### Testing State Transitions
@@ -217,12 +303,12 @@ talk to mira about help
 ```
 @set actors.player.properties.gold = 1000
 
-talk to merchant about rare_item
+ask merchant about rare_item
 @expect "200 gold"
 
 # Check insufficient funds
 @set actors.player.properties.gold = 50
-talk to merchant about rare_item
+ask merchant about rare_item
 @expect "don't have enough"
 
 # Successful purchase
@@ -232,6 +318,50 @@ talk to merchant about rare_item
 ```
 
 ## Debugging Failed Walkthroughs
+
+### 0. Parse Errors - Command Not Recognized
+```
+PARSE ERROR: Could not parse 'talk to maren about trade'
+[⚠] ERROR: Could not parse: talk to maren about trade
+```
+
+**This is the MOST CRITICAL error - it means you're using invalid command syntax.**
+
+**Diagnosis:**
+1. The command format doesn't match any vocabulary in loaded behaviors
+2. You may have invented a command that doesn't exist
+3. You may be missing a required behavior library
+
+**Fix:**
+1. **Check loaded behaviors:**
+   ```bash
+   grep -A20 '"behaviors"' examples/big_game/game_state.json | head -30
+   ```
+   Look for `dialog_lib`, `combat_lib`, etc.
+
+2. **Verify correct syntax:**
+   - ✓ `ask <npc> about <topic>` (dialog_lib standard)
+   - ✓ `talk to <npc>` (shows topics)
+   - ✗ `talk to <npc> about <topic>` (NOT VALID - common mistake!)
+
+3. **Test the command manually:**
+   ```bash
+   python tools/walkthrough.py examples/big_game --file /dev/stdin <<'EOF'
+   go south
+   go east
+   go south
+   go south
+   ask maren about trade
+   EOF
+   ```
+
+4. **If dialog_lib is missing from game_state:**
+   - Add `"behavior_libraries.dialog_lib.handlers"` to `extra.behaviors`
+   - Or configure the NPC to load it in their behaviors array
+
+**Common cause:** Writing walkthroughs before verifying what commands actually exist in the vocabulary system.
+
+**Prevention:** ALWAYS run a quick manual test of your command syntax BEFORE writing a full walkthrough.
 
 ### 1. Path Errors
 ```
