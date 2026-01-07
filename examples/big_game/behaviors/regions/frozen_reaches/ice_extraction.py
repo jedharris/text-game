@@ -11,23 +11,7 @@ from utilities.utils import find_accessible_item
 
 # Vocabulary: wire on_take event to frozen items
 vocabulary: Dict[str, Any] = {
-    "events": [
-        {
-            "event": "on_take",
-            "handler": "on_take",
-            "description": "Handle taking frozen items from ice"
-        },
-        {
-            "event": "on_use",
-            "handler": "on_use",
-            "description": "Handle using heat sources on frozen items"
-        },
-        {
-            "event": "on_observe",
-            "handler": "on_observe",
-            "description": "Handle observe event (uses standard description)"
-        }
-    ],
+    "events": [],
     # Add extraction verbs
     "adjectives": [
         {"word": "frozen", "synonyms": ["iced", "frosted"]},

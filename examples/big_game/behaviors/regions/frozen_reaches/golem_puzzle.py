@@ -15,12 +15,7 @@ from src.infrastructure_utils import transition_state, get_current_state
 # Note: Death reactions are handled by infrastructure/death_reactions.py
 # Golems must have dialog_reactions, item_use_reactions, and death_reactions config
 vocabulary: Dict[str, Any] = {
-    "events": [
-        {
-            "event": "on_damage",
-            "description": "Called when a golem takes damage - transitions both to hostile"
-        }
-    ],
+    "events": [],
     # Add adjectives for multi-word item/NPC names
     "adjectives": [
         {"word": "stone", "synonyms": []},

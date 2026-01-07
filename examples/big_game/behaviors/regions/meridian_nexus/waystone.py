@@ -25,18 +25,7 @@ vocabulary: Dict[str, Any] = {
             "description": "Check game ending conditions each turn"
         }
     ],
-    "events": [
-        {
-            "event": "on_waystone_complete",
-            "hook": "entity_puzzle_solved",
-            "description": "Handle waystone completion for ending",
-        },
-        {
-            "event": "on_ending_check",
-            "hook": "turn_ending_check",
-            "description": "Check ending conditions each turn",
-        },
-    ]
+    "events": []
 }
 
 # Required waystone fragments

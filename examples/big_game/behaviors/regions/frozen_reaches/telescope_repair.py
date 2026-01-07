@@ -13,23 +13,7 @@ from src.state_accessor import IGNORE_EVENT
 
 # Vocabulary: wire repair-related verbs
 vocabulary: Dict[str, Any] = {
-    "events": [
-        {
-            "event": "on_use",
-            "handler": "on_use",
-            "description": "Handle using the telescope to observe"
-        },
-        {
-            "event": "on_examine",
-            "handler": "on_examine",
-            "description": "Handle examining the telescope"
-        },
-        {
-            "event": "on_observe",
-            "handler": "on_observe",
-            "description": "Handle observe event (uses standard description)"
-        }
-    ],
+    "events": [],
     "verbs": [
         {"word": "repair", "synonyms": ["fix", "restore"], "object_required": True},
         {"word": "install", "synonyms": ["attach", "mount"], "object_required": True},

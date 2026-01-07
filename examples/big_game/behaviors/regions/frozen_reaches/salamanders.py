@@ -13,21 +13,11 @@ from src.infrastructure_utils import (
     transition_state,
 )
 
-# Vocabulary: wire hooks to events
-# Note: Pack state mirroring is handled by infrastructure/pack_mirroring.py
-# Note: Gift reactions are handled by infrastructure/gift_reactions.py
-# Salamanders must have:
-#   - pack_behavior.pack_follows_leader_state=true for pack mirroring
-#   - gift_reactions configuration for fire gift mechanics
+# Vocabulary removed - reactions now handled via gift_reactions property config
+# Salamander has gift_reactions.handler pointing to on_receive_item below
+# Adjectives for parsing
 vocabulary: Dict[str, Any] = {
-    "events": [
-        {
-            "event": "on_receive_item",
-            "hook": "entity_item_received",
-            "description": "Handle fire gifts to salamanders"
-        }
-    ],
-    # Add adjectives for multi-word NPC and item names
+    "events": [],
     "adjectives": [
         {"word": "fire", "synonyms": []},
         {"word": "steam", "synonyms": []},

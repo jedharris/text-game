@@ -25,13 +25,7 @@ vocabulary: Dict[str, Any] = {
             "description": "Apply hypothermia based on location temperature"
         }
     ],
-    "events": [
-        {
-            "event": "on_cold_zone_turn",
-            "hook": "turn_hypothermia",
-            "description": "Check player location and apply hypothermia (and cure at hot springs)"
-        }
-    ],
+    "events": [],
     # Add adjectives for multi-word item names
     "adjectives": [
         {"word": "cold", "synonyms": []},
