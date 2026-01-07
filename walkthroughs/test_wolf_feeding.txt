@@ -8,10 +8,12 @@ go south
 take venison
 
 # Navigate to wolf clearing
-go north
-go west
+go south
+go east
 
-# Give venison to alpha wolf - should get reaction
+# Give venison to alpha wolf - should get reaction and trust +1
 give venison to alpha wolf
 
 # SUCCESS: Wolf feeding system validated!
+# Note: Full companion activation requires 5 feedings (trust 0→5 for allied state)
+# This test validates the feeding mechanism is working

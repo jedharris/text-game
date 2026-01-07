@@ -12,6 +12,7 @@ from src.infrastructure_utils import (
     transition_state,
 )
 from src.narrator_helpers import select_state_fragments
+from behavior_libraries.companion_lib.activation import make_companion
 
 # Vocabulary: wire hooks to events
 # Note: Pack state mirroring is handled by infrastructure/pack_mirroring.py
@@ -153,9 +154,14 @@ def on_receive_item(
                     player = state.actors.get("player")
                     if player and fang.id not in player.inventory:
                         player.inventory.append(fang.id)
+
+                # Activate wolf as companion
+                make_companion(accessor, alpha.id)
+
                 extra_feedback = (
                     " The alpha approaches and, with deliberate care, places something "
-                    "at your feet - a massive fang, freely given. A mark of pack bond."
+                    "at your feet - a massive fang, freely given. A mark of pack bond. "
+                    "The wolf will now follow you as a trusted companion."
                 )
 
             # Get previous state for context
