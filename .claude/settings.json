@@ -18,8 +18,19 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '=== Session Guide Loaded ===' && cat docs/Guides/claude_session_guide.md",
-            "statusMessage": "Loading session guide..."
+            "command": "echo '=== Current Focus ===' && cat current_focus.txt 2>/dev/null && echo '' && echo '=== Session Guide ===' && cat docs/Guides/claude_session_guide.md",
+            "statusMessage": "Loading session context..."
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'IMPORTANT: After compaction, refocus on current task:' && echo '' && cat current_focus.txt 2>/dev/null || echo 'No current focus set'",
+            "statusMessage": "Preserving task context..."
           }
         ]
       }
