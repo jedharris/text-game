@@ -28,10 +28,12 @@
     "environmental_spreads": {},
     "town_reputation": 0,
     "behaviors": [
-      "examples.big_game.behaviors.regions.frozen_reaches.hypothermia",
-      "examples.big_game.behaviors.regions.frozen_reaches.telescope_repair",
-      "examples.big_game.behaviors.regions.frozen_reaches.salamanders",
-      "examples.big_game.behaviors.shared.infrastructure.gift_reactions"
+      "behaviors.regions.frozen_reaches.hypothermia",
+      "behaviors.regions.frozen_reaches.telescope_repair",
+      "behaviors.regions.frozen_reaches.salamanders",
+      "behaviors.shared.infrastructure.gift_reactions",
+      "behaviors.shared.infrastructure.dialog_reactions",
+      "behaviors.shared.lib.dialog_lib.handlers"
     ]
   },
   "locations": [
@@ -1553,7 +1555,7 @@
               "mounting_bracket",
               "command_orb"
             ],
-            "handler": "behaviors.regions.frozen_reaches.telescope_repair:on_use_component_on_telescope"
+            "handler": "examples.big_game.behaviors.regions.frozen_reaches.telescope_repair:on_use_component_on_telescope"
           }
         }
       },
@@ -1876,7 +1878,7 @@
               "fire_wand",
               "salamander_heated_stone"
             ],
-            "handler": "behaviors.regions.frozen_reaches.ice_extraction:on_use"
+            "handler": "examples.big_game.behaviors.regions.frozen_reaches.ice_extraction:on_use"
           }
         }
       },
@@ -1919,7 +1921,7 @@
               "fire_wand",
               "salamander_heated_stone"
             ],
-            "handler": "behaviors.regions.frozen_reaches.ice_extraction:on_use"
+            "handler": "examples.big_game.behaviors.regions.frozen_reaches.ice_extraction:on_use"
           }
         }
       },
@@ -1963,7 +1965,7 @@
               "fire_wand",
               "salamander_heated_stone"
             ],
-            "handler": "behaviors.regions.frozen_reaches.ice_extraction:on_use"
+            "handler": "examples.big_game.behaviors.regions.frozen_reaches.ice_extraction:on_use"
           }
         }
       },
@@ -3142,7 +3144,7 @@
       "properties": {
         "description": "The high ceiling of the grotto, shrouded in darkness. Something appears to be carved up there.",
         "examine_reactions": {
-          "handler": "behaviors.regions.fungal_depths.light_puzzle:on_examine_ceiling"
+          "handler": "examples.big_game.behaviors.regions.fungal_depths.light_puzzle:on_examine_ceiling"
         }
       }
     },
@@ -3244,7 +3246,8 @@
       "location": "keepers_quarters",
       "inventory": [],
       "behaviors": [
-        "behaviors.regions.meridian_nexus.echo"
+        "behaviors.regions.meridian_nexus.echo",
+        "behaviors.shared.infrastructure.dialog_reactions"
       ],
       "properties": {
         "state_machine": {
@@ -3351,7 +3354,7 @@
               "water_bloom_fragment",
               "echo_essence_fragment"
             ],
-            "handler": "behaviors.regions.meridian_nexus.waystone:on_fragment_place"
+            "handler": "examples.big_game.behaviors.regions.meridian_nexus.waystone:on_fragment_place"
           }
         },
         "llm_context": {
@@ -3714,7 +3717,8 @@
         }
       },
       "behaviors": [
-        "behaviors.regions.frozen_reaches.salamanders"
+        "behaviors.regions.frozen_reaches.salamanders",
+        "behaviors.shared.infrastructure.dialog_reactions"
       ]
     },
     "steam_salamander_2": {
@@ -3807,7 +3811,8 @@
         }
       },
       "behaviors": [
-        "behaviors.regions.frozen_reaches.salamanders"
+        "behaviors.regions.frozen_reaches.salamanders",
+        "behaviors.shared.infrastructure.dialog_reactions"
       ]
     },
     "steam_salamander_3": {
@@ -3900,7 +3905,8 @@
         }
       },
       "behaviors": [
-        "behaviors.regions.frozen_reaches.salamanders"
+        "behaviors.regions.frozen_reaches.salamanders",
+        "behaviors.shared.infrastructure.dialog_reactions"
       ]
     },
     "stone_golem_1": {
@@ -4016,7 +4022,7 @@
             "accepted_items": [
               "command_orb"
             ],
-            "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_item_use"
+            "handler": "examples.big_game.behaviors.regions.frozen_reaches.golem_puzzle:on_golem_item_use"
           },
           "ritual": {
             "accepted_items": [
@@ -4024,7 +4030,7 @@
               "ancient_torch",
               "spring_water"
             ],
-            "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_item_use"
+            "handler": "examples.big_game.behaviors.regions.frozen_reaches.golem_puzzle:on_golem_item_use"
           }
         },
         "death_reactions": {
@@ -4155,7 +4161,7 @@
             "accepted_items": [
               "command_orb"
             ],
-            "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_item_use"
+            "handler": "examples.big_game.behaviors.regions.frozen_reaches.golem_puzzle:on_golem_item_use"
           },
           "ritual": {
             "accepted_items": [
@@ -4163,7 +4169,7 @@
               "ancient_torch",
               "spring_water"
             ],
-            "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_item_use"
+            "handler": "examples.big_game.behaviors.regions.frozen_reaches.golem_puzzle:on_golem_item_use"
           }
         },
         "death_reactions": {
@@ -4225,7 +4231,7 @@
               "bandages",
               "healing_herbs"
             ],
-            "handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
+            "handler": "examples.big_game.behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
           }
         },
         "dialog_topics": {
@@ -4634,7 +4640,7 @@
             "accepted_items": [
               "healing_herbs"
             ],
-            "handler": "behaviors.regions.beast_wilds.bear_cubs:on_cubs_healed"
+            "handler": "examples.big_game.behaviors.regions.beast_wilds.bear_cubs:on_cubs_healed"
           }
         },
         "llm_context": {
@@ -4736,7 +4742,7 @@
             "accepted_items": [
               "healing_herbs"
             ],
-            "handler": "behaviors.regions.beast_wilds.bear_cubs:on_cubs_healed"
+            "handler": "examples.big_game.behaviors.regions.beast_wilds.bear_cubs:on_cubs_healed"
           }
         },
         "llm_context": {
@@ -4818,7 +4824,7 @@
             "accepted_items": [
               "healing_herbs"
             ],
-            "handler": "behaviors.regions.beast_wilds.bear_cubs:on_cubs_healed"
+            "handler": "examples.big_game.behaviors.regions.beast_wilds.bear_cubs:on_cubs_healed"
           }
         },
         "llm_context": {
@@ -4943,7 +4949,8 @@
         }
       },
       "behaviors": [
-        "behaviors.regions.civilized_remnants.mira"
+        "behaviors.regions.civilized_remnants.mira",
+        "behaviors.shared.infrastructure.dialog_reactions"
       ]
     },
     "old_swimmer_jek": {
@@ -5004,7 +5011,7 @@
         },
         "condition_reactions": {
           "drowning_stopped": {
-            "handler": "behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
+            "handler": "examples.big_game.behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
           }
         },
         "llm_context": {
@@ -5094,7 +5101,7 @@
         },
         "condition_reactions": {
           "bleeding_stopped": {
-            "handler": "behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
+            "handler": "examples.big_game.behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
           }
         },
         "llm_context": {
@@ -5209,7 +5216,8 @@
         }
       },
       "behaviors": [
-        "behaviors.regions.civilized_remnants.archivist"
+        "behaviors.regions.civilized_remnants.archivist",
+        "behaviors.shared.infrastructure.dialog_reactions"
       ]
     },
     "predatory_fish": {
@@ -5355,7 +5363,7 @@
             "requires_state": [
               "critical"
             ],
-            "handler": "behaviors.regions.fungal_depths.aldric_rescue:on_aldric_commitment"
+            "handler": "examples.big_game.behaviors.regions.fungal_depths.aldric_rescue:on_aldric_commitment"
           },
           "teaching": {
             "keywords": [
@@ -5366,7 +5374,7 @@
               "stabilized",
               "recovering"
             ],
-            "handler": "behaviors.regions.fungal_depths.aldric_rescue:on_aldric_teach"
+            "handler": "examples.big_game.behaviors.regions.fungal_depths.aldric_rescue:on_aldric_teach"
           }
         },
         "item_use_reactions": {
@@ -5374,7 +5382,7 @@
             "accepted_items": [
               "silvermoss"
             ],
-            "handler": "behaviors.regions.fungal_depths.aldric_rescue:on_aldric_heal"
+            "handler": "examples.big_game.behaviors.regions.fungal_depths.aldric_rescue:on_aldric_heal"
           }
         },
         "regeneration": 5
@@ -5471,7 +5479,7 @@
             "accepted_items": [
               "heartmoss"
             ],
-            "handler": "behaviors.regions.fungal_depths.spore_mother:on_spore_mother_heal"
+            "handler": "examples.big_game.behaviors.regions.fungal_depths.spore_mother:on_spore_mother_heal"
           }
         },
         "death_reactions": {
@@ -5914,7 +5922,9 @@
           }
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.shared.infrastructure.dialog_reactions"
+      ]
     },
     "herbalist_maren": {
       "id": "herbalist_maren",
@@ -5933,12 +5943,13 @@
           "buy_plants",
           "teach_basic_herbalism"
         ],
-        "dialog_reactions": {
+        "dialog_topics": {
           "handler": "examples.big_game.behaviors.regions.civilized_remnants.services:on_service_request"
         }
       },
       "behaviors": [
-        "behaviors.regions.civilized_remnants.services"
+        "behaviors.regions.civilized_remnants.services",
+        "behaviors.shared.infrastructure.dialog_reactions"
       ]
     },
     "weaponsmith_toran": {
@@ -6034,7 +6045,8 @@
         }
       },
       "behaviors": [
-        "behaviors.regions.civilized_remnants.vex"
+        "behaviors.regions.civilized_remnants.vex",
+        "behaviors.shared.infrastructure.dialog_reactions"
       ]
     },
     "healer_elara": {
@@ -6157,7 +6169,8 @@
         }
       },
       "behaviors": [
-        "behaviors.regions.civilized_remnants.services"
+        "behaviors.regions.civilized_remnants.services",
+        "behaviors.shared.infrastructure.dialog_reactions"
       ]
     },
     "councilor_hurst": {
@@ -6357,7 +6370,9 @@
           }
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.shared.infrastructure.dialog_reactions"
+      ]
     },
     "the_fence": {
       "id": "the_fence",

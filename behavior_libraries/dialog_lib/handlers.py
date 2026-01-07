@@ -144,6 +144,21 @@ def handle_ask(accessor, action: Dict) -> HandlerResult:
     # Serialize NPC for narrator context (even for failures, narrator needs context)
     npc_data = serialize_for_handler_result(npc, accessor, actor_id)
 
+    # Fire entity_dialog hook first - allows dialog_reactions infrastructure to respond
+    topic_str = topic.word if isinstance(topic, WordEntry) else str(topic)
+    context = {"keyword": topic_str, "dialog_text": topic_str, "speaker": actor_id}
+    hook_result = accessor.behavior_manager.invoke_behavior(
+        npc, "entity_dialog", accessor, context
+    )
+
+    # If hook provided feedback, use it
+    if hook_result and hook_result.feedback:
+        return HandlerResult(
+            success=hook_result.allow,
+            primary=hook_result.feedback,
+            data=npc_data
+        )
+
     # Check if NPC has dialog topics
     if 'dialog_topics' not in npc.properties:
         return HandlerResult(
@@ -211,6 +226,20 @@ def handle_talk(accessor, action: Dict) -> HandlerResult:
 
     # Serialize NPC for narrator context (even for failures, narrator needs context)
     npc_data = serialize_for_handler_result(npc, accessor, actor_id)
+
+    # Fire entity_dialog hook first with empty keyword (general talk)
+    context = {"keyword": "", "dialog_text": "", "speaker": actor_id}
+    hook_result = accessor.behavior_manager.invoke_behavior(
+        npc, "entity_dialog", accessor, context
+    )
+
+    # If hook provided feedback, use it
+    if hook_result and hook_result.feedback:
+        return HandlerResult(
+            success=hook_result.allow,
+            primary=hook_result.feedback,
+            data=npc_data
+        )
 
     # Check if NPC has dialog topics
     if 'dialog_topics' not in npc.properties:
