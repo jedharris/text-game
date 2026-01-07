@@ -4854,10 +4854,13 @@
           ],
           "initial": "neutral"
         },
-        "trust": {
+        "trust_state": {
           "current": 0,
           "floor": -3,
           "ceiling": 5
+        },
+        "dialog_reactions": {
+          "default_response": "Mira surveys the camp with weary determination."
         },
         "llm_context": {
           "traits": [
@@ -5120,10 +5123,18 @@
           "initial": "guardian"
         },
         "is_spectral": true,
-        "trust": {
+        "trust_state": {
           "current": 0,
           "floor": -2,
           "ceiling": 5
+        },
+        "dialog_reactions": {
+          "guardian_response": {
+            "keywords": ["knowledge", "teach", "lore", "archive"],
+            "requires_state": ["guardian"],
+            "summary": "The Archivist regards you coldly. 'Knowledge is earned, not given.'"
+          },
+          "default_response": "The Archivist watches you with evaluating eyes."
         },
         "llm_context": {
           "traits": [
@@ -5909,7 +5920,7 @@
           ],
           "initial": "guarded"
         },
-        "trust": {
+        "trust_state": {
           "current": 0,
           "floor": -3,
           "ceiling": 5
@@ -5918,7 +5929,7 @@
           "trade_rare_items",
           "reveal_undercity"
         ],
-        "dialog_topics": {
+        "dialog_reactions": {
           "wares": {
             "keywords": [
               "wares",
@@ -6241,6 +6252,33 @@
           "animator_crystal",
           "ritual_knowledge"
         ],
+        "item_use_reactions": {
+          "power_core": {
+            "accepted_items": ["power_core", "energy_crystal", "animator_crystal"],
+            "transition_to": "partially_awakened",
+            "response": "The guardian flickers to life, ancient systems coming online slowly..."
+          },
+          "repair": {
+            "accepted_items": ["repair_kit", "stone_chisel", "ancient_tools"],
+            "requires_state": ["partially_awakened"],
+            "transition_to": "functional",
+            "response": "You repair the damaged plating. The guardian's runes glow steadier."
+          },
+          "activation": {
+            "accepted_items": ["command_code", "activation_key", "ritual_knowledge"],
+            "requires_state": ["functional"],
+            "transition_to": "active",
+            "response": "The guardian rises to full power! 'Primary functions restored.'"
+          }
+        },
+        "dialog_reactions": {
+          "guardian_knowledge": {
+            "keywords": ["catastrophe", "waystone", "ancients", "history"],
+            "requires_state": ["active"],
+            "summary": "The guardian shares ancient records from before the catastrophe..."
+          },
+          "default_response": "The guardian remains still and silent."
+        },
         "llm_context": {
           "traits": [
             "massive stone construct cracked and broken",
