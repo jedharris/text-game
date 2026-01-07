@@ -22,7 +22,7 @@ from src.behavior_manager import EventResult
 
 vocabulary = {
     "hook_definitions": [{"hook_id": "entity_trade_initiated", "invocation": "entity"}],
-    "events": [{"event": "on_trade", "hook": "entity_trade_initiated"}]
+    "events": [{"event": "on_trade", "hook": "trade_initiated"}]
 }
 
 

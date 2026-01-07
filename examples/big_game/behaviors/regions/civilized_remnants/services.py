@@ -19,6 +19,7 @@ vocabulary: Dict[str, Any] = {
 
 # Service keywords
 HEAL_KEYWORDS = ["heal", "cure", "medicine", "treatment", "help"]
+TRADE_KEYWORDS = ["buy", "sell", "trade", "herbs", "potion", "supplies", "purchase"]
 
 
 def on_service_request(
@@ -48,6 +49,11 @@ def on_service_request(
     if "elara" in actor_id.lower():
         if any(k in keyword for k in HEAL_KEYWORDS):
             return _handle_elara_healing(entity, accessor)
+
+    # Maren - Herbalist/Trader
+    if "maren" in actor_id.lower():
+        if any(k in keyword for k in TRADE_KEYWORDS):
+            return _handle_maren_trading(entity, accessor, context)
 
     return EventResult(allow=True, feedback=None)
 
@@ -165,6 +171,95 @@ def on_confession(
             )
 
     return EventResult(allow=True, feedback=None)
+
+
+def _handle_maren_trading(entity: Any, accessor: Any, context: dict[str, Any]) -> EventResult:
+    """Handle Maren's trading service.
+
+    Maren sells healing items with trust-based pricing.
+    """
+    state = accessor.game_state
+    maren = entity
+    player = state.actors.get("player")
+
+    if not player:
+        return EventResult(allow=True, feedback=None)
+
+    trust_state = maren.properties.get("trust_state", {"current": 0})
+    trust = trust_state.get("current", 0)
+
+    # Base prices
+    ITEMS_FOR_SALE = {
+        "silvermoss": {"price": 50, "description": "potent healing moss"},
+        "healing_herbs": {"price": 30, "description": "basic medicinal herbs"},
+        "warm_cloak": {"price": 100, "description": "thick wool cloak"},
+    }
+
+    keyword = context.get("keyword", "").lower()
+
+    # Check if player is asking about a specific item
+    requested_item = None
+    for item_id in ITEMS_FOR_SALE.keys():
+        if item_id.replace("_", " ") in keyword or item_id in keyword:
+            requested_item = item_id
+            break
+
+    if not requested_item:
+        # Show shop menu
+        items_list = []
+        for item_id, info in ITEMS_FOR_SALE.items():
+            base_price = info["price"]
+            discount = min(trust * 0.1, 0.3)  # Max 30% discount at trust 3+
+            final_price = int(base_price * (1.0 - discount))
+            items_list.append(f"{info['description']} ({final_price} gold)")
+
+        feedback = "Maren shows you her wares:\n" + "\n".join(f"  - {item}" for item in items_list)
+        if trust >= 1:
+            feedback += f"\n\nMaren smiles. 'For a friend, I offer a {int(discount * 100)}% discount.'"
+
+        return EventResult(allow=True, feedback=feedback)
+
+    # Handle specific item purchase
+    item_info = ITEMS_FOR_SALE[requested_item]
+    base_price = item_info["price"]
+    discount = min(trust * 0.1, 0.3)
+    final_price = int(base_price * (1.0 - discount))
+
+    # Check player gold
+    player_gold = player.properties.get("gold", 0)
+
+    if player_gold < final_price:
+        return EventResult(
+            allow=True,
+            feedback=f"Maren shakes her head. 'That'll be {final_price} gold. You don't have enough.'"
+        )
+
+    # Complete purchase
+    player.properties["gold"] = player_gold - final_price
+
+    # Create item instance
+    item_template = next((item for item in state.items if item.id == requested_item), None)
+    if not item_template:
+        return EventResult(
+            allow=True,
+            feedback=f"[ERROR: Item {requested_item} not found in game state]"
+        )
+
+    # Add to player inventory
+    from src.types import ItemId
+    if ItemId(requested_item) not in player.inventory:
+        player.inventory.append(ItemId(requested_item))
+
+    # Update item location
+    for item in state.items:
+        if item.id == requested_item:
+            item.location = "player"
+            break
+
+    return EventResult(
+        allow=True,
+        feedback=f"Maren hands you the {item_info['description']}. 'That'll be {final_price} gold.'"
+    )
 
 
 def _handle_elara_healing(entity: Any, accessor: Any) -> EventResult:

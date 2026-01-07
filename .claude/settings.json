@@ -11,6 +11,18 @@
   "ask": []
   },
   "model": "opusplan",
-  "enableAllProjectMcpServers": true
+  "enableAllProjectMcpServers": true,
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat docs/Guides/claude_session_guide.md"
+          }
+        ]
+      }
+    ]
+  }
 }
   

@@ -1,0 +1,28 @@
+# Salamander Pack Mirroring Walkthrough
+# Tests: Pack behavior for salamanders
+
+# Go to hot springs
+go north
+go north
+go east
+
+# Test 1: Check pack configuration
+@assert steam_salamander_2.properties.pack_behavior.leader == "salamander"
+@assert steam_salamander_3.properties.pack_behavior.leader == "salamander"
+
+# Test 2: Interact with leader salamander
+talk to salamander
+@expect "salamander" OR "gesture"
+
+# Test 3: Give gift to leader
+@set player.inventory += ["warm_coal"]
+
+give warm_coal to salamander
+@expect "coal" OR "warmth"
+
+# Test 4: Verify trust change
+@assert salamander.properties.trust_state.current > 0
+
+# Test 5: Check followers mirror leader state
+@assert steam_salamander_2.properties.state_machine.current == salamander.properties.state_machine.current
+@assert steam_salamander_3.properties.state_machine.current == salamander.properties.state_machine.current

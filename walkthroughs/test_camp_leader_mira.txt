@@ -1,0 +1,62 @@
+# Camp Leader Mira Quest System Walkthrough
+# Tests: Dialog reactions, commitment system, quest success/failure, state transitions
+
+# Go to survivor camp
+go north
+go east
+go west
+
+# Test 1: Initial dialog
+talk to mira
+@expect "holding together"
+@expect "barely"
+
+# Test 2: Ask about quest/help
+talk to mira about help
+@expect "survivors trapped"
+@expect "20 turns"
+
+# Test 3: Check quest was created
+@assert extra.mira_quest_active == true
+
+# Test 4: Check quest status
+talk to mira about progress
+@expect "turns left"
+
+# Test 5: Try to get another quest (should be rejected)
+talk to mira about quest
+@expect "already have a task"
+
+# Test 6: Simulate quest completion (manual trigger)
+# In real game, player would rescue survivors and trigger on_quest_complete
+@set extra.mira_quest_active = false
+@set extra.mira_quest_completed = true
+@set camp_leader_mira.properties.state_machine.current = "allied"
+@set camp_leader_mira.properties.trust_state.current = 2
+
+# Test 7: Verify success dialog
+talk to mira
+@expect "one of us now"
+
+# Test 8: Quest completion check
+talk to mira about progress
+@expect "brought them back safely"
+
+# --- Test failure path (new game state needed) ---
+# Reset for failure test
+@set extra.mira_quest_completed = false
+@set extra.mira_quest_failed = false
+@set extra.mira_quest_active = true
+@set extra.mira_quest_offered_turn = 0
+@set camp_leader_mira.properties.state_machine.current = "neutral"
+
+# Advance turns past deadline
+@set current_turn = 25
+
+# Test 9: Quest auto-fails when deadline passes
+# (commitment system should handle this, verify state change)
+talk to mira
+@expect "disappointed" OR @expect "failed"
+
+# Test 10: Trust decreased on failure
+@assert camp_leader_mira.properties.trust_state.current < 0

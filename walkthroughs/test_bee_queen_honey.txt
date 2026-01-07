@@ -1,0 +1,26 @@
+# Bee Queen Take Reactions Walkthrough
+# Tests: Take reactions, honey theft, trust/state changes
+
+# Go to hive chamber
+go north
+go west
+go south
+
+# Test 1: Try to take royal honey without permission
+take royal_honey
+@expect "buzzing" OR "attack" OR "bees"
+
+# Test 2: Check hostile flag set
+@assert extra.bees_hostile == true OR extra.honey_theft_detected == true
+
+# Test 3: Build trust with bee queen first (via gifts or dialog)
+@set bee_queen.properties.trust_state.current = 3
+@set extra.queen_permission_granted = true
+
+# Test 4: Now try to take honey with permission
+take royal_honey
+# Should succeed without attack
+
+# Test 5: Verify honey in inventory
+inventory
+@expect "royal_honey"

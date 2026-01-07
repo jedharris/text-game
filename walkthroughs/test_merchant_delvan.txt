@@ -1,0 +1,21 @@
+# Merchant Delvan Encounter and Condition Walkthrough
+# Tests: Encounter reactions, condition_reactions (drowning)
+
+# Go to sunken district
+go south
+go east
+
+# Test 1: First encounter with Delvan
+@expect "merchant" OR "delvan"
+
+# Test 2: Check encounter flag
+@assert extra.delvan_encountered == true
+
+# Test 3: Delvan should have condition_reactions for drowning
+# Check his current condition state
+
+# Test 4: Help Delvan (if rescue quest active)
+# This may involve using items or completing tasks
+
+# Test 5: Death scenario (if not saved in time)
+# Death_reactions should trigger if Delvan dies

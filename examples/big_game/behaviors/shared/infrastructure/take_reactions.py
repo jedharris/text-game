@@ -17,8 +17,8 @@ from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import l
 from src.behavior_manager import EventResult
 
 vocabulary = {
-    "hook_definitions": [{"hook_id": "item_taken", "invocation": "entity"}],
-    "events": [{"event": "on_take", "hook": "item_taken"}]
+    "hook_definitions": [{"hook_id": "entity_item_taken", "invocation": "entity"}],
+    "events": [{"event": "on_take", "hook": "entity_item_taken"}]
 }
 
 

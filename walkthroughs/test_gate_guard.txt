@@ -1,0 +1,26 @@
+# Gate Guard Dialog Walkthrough
+# Tests: Dialog reactions, region warnings
+
+# Go to town gate
+go north
+go east
+
+# Test 1: Talk to gate guard
+talk to guard
+@expect "guard" OR "gate"
+
+# Test 2: Ask about regions
+talk to guard about frozen reaches
+@expect "cold" OR "warning" OR "dangerous"
+
+# Test 3: Ask about beast wilds
+talk to guard about beast wilds
+@expect "dangerous" OR "creatures"
+
+# Test 4: Ask about fungal depths
+talk to guard about fungal
+@expect "spores" OR "warning"
+
+# Test 5: General conversation
+talk to guard about city
+@expect response

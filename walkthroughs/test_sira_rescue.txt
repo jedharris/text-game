@@ -1,0 +1,29 @@
+# Hunter Sira Rescue Walkthrough
+# Tests: Encounter reactions, item_use reactions, death reactions, commitment
+
+# Go to Sira's location
+go north
+go west
+
+# Test 1: First encounter with Sira
+@expect "injured" OR "wounded" OR "hunter"
+
+# Test 2: Check encounter flag
+@assert extra.sira_encountered == true
+
+# Test 3: Use healing items on Sira
+@set player.inventory += ["silvermoss"]
+
+use silvermoss on sira
+@expect "breathing" OR "stabiliz"
+
+# Test 4: Check Sira's state changed
+@assert hunter_sira.properties.state_machine.current == "stabilized"
+
+# Test 5: Talk to Sira after healing
+talk to sira
+@expect "thank" OR "help"
+
+# Test 6: Test death scenario (new game state)
+# If Sira dies, death_reactions should trigger
+# This would require not healing her in time

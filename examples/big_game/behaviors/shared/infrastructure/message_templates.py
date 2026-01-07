@@ -1,0 +1,1 @@
+../../../../../behaviors/shared/infrastructure/message_templates.py

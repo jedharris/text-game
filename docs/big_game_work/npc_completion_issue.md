@@ -4,21 +4,37 @@ Issue #398 completed the unified reaction system migration and configured reacti
 
 ## Status Summary
 
-**Fully Functional (7 NPCs):**
+**Fully Functional - Handlers Exist (9 NPCs):**
 - ✅ The Echo - Full handlers in echo.py (dialog, gossip, trust)
 - ✅ Healer Elara - Service handler in services.py (healing, gossip)
-- ✅ Wolf Pack (alpha_wolf, frost_wolf_1/2) - Pack behavior + feeding in wolf_pack.py
-- ✅ Salamanders (salamander, steam_salamander_2/3) - Pack behavior + gifts in salamanders.py
-- ✅ Sporelings (spore_mother, sporelings 1/2/3) - Pack behavior in spore_mother.py
-- ✅ Spiders (spider_matriarch, giant_spider_1/2) - Pack behavior + death in spider_nest.py
+- ✅ Alpha Wolf - Gift reactions handler in wolf_pack.py
+- ✅ Salamander (leader) - Gift + dialog handlers in salamanders.py
+- ✅ Spore Mother - Item use + death handlers in spore_mother.py
+- ✅ Spider Matriarch - Death handler in spider_nest.py
+- ✅ Hunter Sira - Encounter + death handlers in sira_rescue.py
+- ✅ Dire Bear - Encounter handler in bear_cubs.py
+- ✅ Bee Queen - Take reactions handler in bee_queen.py
 
-**Partially Implemented (10 NPCs):**
+**Fully Functional - Data-Driven (6 NPCs/Items):**
+- ✅ Bear Cubs (2) - Item use reactions (healing) - data-driven
+- ✅ Damaged Guardian - Item use + dialog reactions - data-driven
+- ✅ Stone Golems (2) - Death handlers in golem_puzzle.py
+- ✅ Merchant Delvan - Encounter + death handlers in dual_rescue.py
+- ✅ Sailor Garrett - Death handler (condition_reactions data-driven)
+- ✅ Myconid Elder - Encounter handler in fungal_death_mark.py
+
+**Pack Followers - Need Testing (8 NPCs):**
+- ⚠️ Frost Wolves (2) - No reactions configured (should mirror alpha_wolf via pack_behavior)
+- ⚠️ Steam Salamanders (2) - Dialog handlers exist but pack mirroring not configured
+- ⚠️ Sporelings (3) - No reactions configured (should mirror spore_mother via pack_behavior)
+- ⚠️ Giant Spiders (2) - No reactions configured (should mirror matriarch via pack_behavior)
+
+**Missing Implementation (5 NPCs):**
 - ⚠️ Gate Guard - Dialog stub only, no region warnings implementation
 - ⚠️ Herbalist Maren - Dialog stub only, no trading handler
 - ⚠️ Camp Leader Mira - Dialog stub only, no quest/commitment system
 - ⚠️ The Archivist - Dialog stub only, no lore trading or state transitions
 - ⚠️ Curiosity Dealer Vex - Dialog configured but no trading handler
-- ⚠️ Damaged Guardian - Item_use reactions configured (should work) but untested
 
 ---
 
@@ -130,11 +146,37 @@ Issue #398 completed the unified reaction system migration and configured reacti
 
 ---
 
+## Pack Behavior Configuration Issues
+
+Analysis shows pack followers are **not configured with pack_behavior properties**:
+- Frost wolves, steam salamanders, sporelings, and giant spiders have no `pack_behavior` in their properties
+- They have state machines matching their leaders but no mirroring mechanism
+- Pack mirroring requires explicit `pack_behavior: {pack_id, leader, role}` configuration
+
+**Action Required:**
+1. Add `pack_behavior` properties to all pack followers in game_state.json
+2. Verify pack_mirroring.py hooks properly handle state/trust propagation
+3. Create walkthroughs testing pack mirroring behavior
+
 ## Required Walkthrough Testing
 
-All 17 NPCs need comprehensive walkthrough files in `walkthroughs/npcs/`:
+**Existing Walkthroughs (Coverage Check):**
+- ✅ Wolf feeding - EXISTS (test_wolf_feeding.txt)
+- ✅ Salamander - EXISTS (4 files: communication, companion, gestures, trust)
+- ✅ Fungal depths - EXISTS (6 files covering spore mother, aldric, mushrooms)
+- ✅ Frozen reaches - EXISTS (8 files covering golems, telescope, hypothermia)
+- ✅ Gift reactions - EXISTS (test_gift_reaction.txt)
+- ❌ The Echo - MISSING
+- ❌ Healer Elara - MISSING
+- ❌ Bear cubs commitment - MISSING (mentioned in git status as "test_bear_cubs_commitment.txt" untracked)
+- ❌ Bee Queen - MISSING
+- ❌ Hunter Sira - MISSING
+- ❌ Damaged Guardian - MISSING
+- ❌ Gate Guard - MISSING
+- ❌ All town NPCs (Maren, Mira, Archivist, Vex) - MISSING
+- ❌ Pack followers mirroring - MISSING
 
-See npc_authoring_plan.md for full testing requirements for each NPC.
+All NPCs need comprehensive walkthrough files. See npc_authoring_plan.md for full testing requirements for each NPC.
 
 **Minimum Coverage:**
 - Dialog system (all keywords, trust gates, state gates)
@@ -173,11 +215,37 @@ After implementing handlers and creating walkthroughs:
 
 ---
 
+## Additional Findings from Code Analysis
+
+### Reaction Infrastructure Status
+- ✅ All 11+ reaction type handlers implemented in behaviors/shared/infrastructure/
+- ✅ Core interpreter (reaction_interpreter.py) complete
+- ✅ Effect handlers (reaction_effects.py) and conditions (reaction_conditions.py) complete
+- ✅ Mypy type errors previously reported are now FIXED
+
+### Reaction Distribution in Game State
+- **48 total reaction configs** across actors, items, and locations
+- **Gift reactions**: 4 entities (3 handler-based, 1 data-driven)
+- **Dialog reactions**: 11 entities (5 handler-based, 6 data-driven)
+- **Item use reactions**: 17 entities (4 handler-based, 13 data-driven)
+- **Encounter reactions**: 4 entities (all handler-based)
+- **Death reactions**: 7 entities (all handler-based)
+- **Take reactions**: 1 entity (handler-based)
+- **Gossip reactions**: 2 entities (all handler-based)
+- **Condition reactions**: 2 entities (all data-driven)
+
+### Pack Behavior Files Exist But Not Configured
+- `pack_mirroring.py` infrastructure exists in shared/infrastructure/
+- `packs.py` library exists in shared/lib/actor_lib/
+- BUT pack followers lack `pack_behavior` property configuration in game_state.json
+
 ## Success Criteria
 
 - [ ] All 5 missing handler files created and implemented
 - [ ] Gate Guard warnings enhanced (handler or data-driven)
-- [ ] All 17 walkthrough files created
+- [ ] **Pack behavior properties added to 8 pack followers**
+- [ ] **Pack mirroring tested and working**
+- [ ] All 17+ walkthrough files created (including pack followers)
 - [ ] All walkthroughs execute successfully
 - [ ] Validation shows 0 errors
 - [ ] All NPCs respond correctly to player interactions
@@ -216,14 +284,32 @@ After implementing handlers and creating walkthroughs:
 - Create Archivist walkthrough
 - Test and debug
 
-**Phase 5: Walkthroughs for Working NPCs (1 day)**
-- Create walkthroughs for: Echo, Elara, wolf pack, salamanders, sporelings, spiders
-- Create walkthrough for damaged_guardian
-- Create walkthrough for gate_guard (stub)
+**Phase 5: Configure Pack Behaviors (0.5 days)**
+- Add pack_behavior properties to frost_wolf_1, frost_wolf_2
+- Add pack_behavior properties to steam_salamander_2, steam_salamander_3
+- Add pack_behavior properties to npc_sporeling_1, npc_sporeling_2, npc_sporeling_3
+- Add pack_behavior properties to giant_spider_1, giant_spider_2
+- Verify pack_mirroring.py infrastructure
+- Test pack mirroring manually
+
+**Phase 6: Walkthroughs for Working NPCs (2 days)**
+- Create walkthrough: test_echo_dialog.txt (Echo dialog + gossip)
+- Create walkthrough: test_healer_elara.txt (Elara healing service)
+- Create walkthrough: test_bear_cubs_commitment.txt (Bear encounter + cubs + commitment)
+- Create walkthrough: test_bee_queen_honey.txt (Bee queen take reactions)
+- Create walkthrough: test_sira_rescue.txt (Sira encounter + rescue)
+- Create walkthrough: test_damaged_guardian.txt (Guardian item use reactions)
+- Create walkthrough: test_gate_guard.txt (Gate guard dialog stub)
+- Create walkthrough: test_pack_wolves.txt (Wolf pack mirroring)
+- Create walkthrough: test_pack_salamanders.txt (Salamander pack mirroring)
+- Create walkthrough: test_pack_sporelings.txt (Sporeling pack mirroring)
+- Create walkthrough: test_pack_spiders.txt (Spider pack mirroring)
+- Create walkthrough: test_merchant_delvan.txt (Delvan encounter + condition)
+- Create walkthrough: test_myconid_elder.txt (Elder encounter)
 - Execute all walkthroughs
 - Fix any issues discovered
 
-**Phase 6: Integration Testing (0.5 days)**
+**Phase 7: Integration Testing (0.5 days)**
 - Test cross-NPC interactions
 - Test edge cases
 - Final validation

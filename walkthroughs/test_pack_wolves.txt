@@ -1,0 +1,32 @@
+# Wolf Pack Mirroring Walkthrough
+# Tests: Pack behavior, state mirroring, trust mirroring
+
+# Go to wolf clearing
+go north
+go west
+go east
+
+# Test 1: Check initial pack states match
+@assert frost_wolf_1.properties.state_machine.current == alpha_wolf.properties.state_machine.current
+@assert frost_wolf_2.properties.state_machine.current == alpha_wolf.properties.state_machine.current
+
+# Test 2: Give food to alpha wolf (increases trust)
+@set player.inventory += ["venison"]
+
+give venison to alpha_wolf
+@expect "takes the" OR "devours"
+
+# Test 3: Verify alpha trust increased
+@assert alpha_wolf.properties.trust_state.current > -2
+
+# Test 4: Verify pack followers mirror alpha's trust
+# Pack mirroring should sync states
+@assert frost_wolf_1.properties.state_machine.current == alpha_wolf.properties.state_machine.current
+
+# Test 5: Continue feeding to reach allied state
+@set alpha_wolf.properties.trust_state.current = 5
+@set alpha_wolf.properties.state_machine.current = "allied"
+
+# Test 6: Verify followers also allied
+@assert frost_wolf_1.properties.state_machine.current == "allied"
+@assert frost_wolf_2.properties.state_machine.current == "allied"

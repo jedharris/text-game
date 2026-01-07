@@ -1,0 +1,61 @@
+# Herbalist Maren Trading System Walkthrough
+# Tests: Dialog reactions, trading handler, trust-based pricing
+
+# Setup: Give player gold for purchases
+@set player.properties.gold = 500
+
+# Go to herbalist location
+go north
+go east
+
+# Test 1: Dialog with Maren shows shop menu
+talk to maren about trade
+@expect "Maren shows you her wares"
+@expect "healing moss"
+@expect "gold"
+
+# Test 2: Try to buy specific item
+talk to maren about silvermoss
+@expect "50 gold"
+
+# Test 3: Check insufficient gold (set low gold temporarily)
+@set player.properties.gold = 10
+talk to maren about silvermoss
+@expect "don't have enough"
+
+# Test 4: Successful purchase
+@set player.properties.gold = 500
+talk to maren about silvermoss
+@expect "hands you"
+@expect "silvermoss"
+
+# Verify item added to inventory
+inventory
+@expect "silvermoss"
+
+# Verify gold deducted
+@assert player.properties.gold < 500
+
+# Test 5: Trust-based pricing
+# Increase trust and check for discount
+@set herbalist_maren.properties.trust_state.current = 3
+
+talk to maren about trade
+@expect "discount"
+
+# Check that prices are lower with higher trust
+talk to maren about healing_herbs
+# Should see reduced price due to trust discount
+
+# Test 6: Multiple purchases
+talk to maren about warm_cloak
+@expect "hands you"
+
+# Verify both items in inventory
+inventory
+@expect "silvermoss"
+@expect "warm_cloak"
+
+# Test 7: Teaching dialog (requires trust)
+talk to maren about teaching
+@expect "explains the properties"

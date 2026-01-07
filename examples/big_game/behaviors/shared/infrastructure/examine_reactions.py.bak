@@ -21,7 +21,7 @@ from src.behavior_manager import EventResult
 
 vocabulary = {
     "hook_definitions": [{"hook_id": "entity_entity_examined", "invocation": "entity"}],
-    "events": [{"event": "on_examine", "hook": "entity_entity_examined"}]
+    "events": [{"event": "on_examine", "hook": "entity_examined"}]
 }
 
 

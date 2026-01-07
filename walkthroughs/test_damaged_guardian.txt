@@ -1,0 +1,32 @@
+# Damaged Guardian Item Use Walkthrough
+# Tests: Item_use reactions, state transitions, repair sequences
+
+# Go to guardian location
+go north
+go east
+go south
+
+# Test 1: Examine guardian in non-functional state
+examine guardian
+@expect "damaged" OR "non_functional"
+
+# Test 2: Try to talk (should get minimal response)
+talk to guardian
+@expect "damaged" OR "no response"
+
+# Test 3: Use repair items (check what's configured)
+# Based on game state, should have specific item_use_reactions
+@set player.inventory += ["ancient_tools"]
+
+use ancient_tools on guardian
+@expect "repair" OR "awakens"
+
+# Test 4: Check state changed
+@assert damaged_guardian.properties.state_machine.current == "partially_awakened"
+
+# Test 5: Continue repair sequence if needed
+# Guardian may require multiple items to fully activate
+
+# Test 6: Dialog with awakened guardian
+talk to guardian
+@expect "functional" OR "active"
