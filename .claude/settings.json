@@ -18,7 +18,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cat docs/Guides/claude_session_guide.md"
+            "command": "echo '=== Session Guide Loaded ===' && cat docs/Guides/claude_session_guide.md",
+            "statusMessage": "Loading session guide..."
           }
         ]
       }

@@ -4008,9 +4008,6 @@
         "territorial": true,
         "threshold_pause": true,
         "linked_to": "stone_golem_2",
-        "dialog_topics": {
-          "handler": "examples.big_game.behaviors.regions.frozen_reaches.golem_puzzle:on_golem_password"
-        },
         "item_use_reactions": {
           "command_orb": {
             "accepted_items": [
@@ -4039,6 +4036,9 @@
             "up",
             "south"
           ]
+        },
+        "dialog_reactions": {
+          "handler": "examples.big_game.behaviors.regions.frozen_reaches.golem_puzzle:on_golem_password"
         }
       }
     },
@@ -4147,9 +4147,6 @@
         "territorial": true,
         "threshold_pause": true,
         "linked_to": "stone_golem_1",
-        "dialog_topics": {
-          "handler": "examples.big_game.behaviors.regions.frozen_reaches.golem_puzzle:on_golem_password"
-        },
         "item_use_reactions": {
           "command_orb": {
             "accepted_items": [
@@ -4178,6 +4175,9 @@
             "up",
             "south"
           ]
+        },
+        "dialog_reactions": {
+          "handler": "examples.big_game.behaviors.regions.frozen_reaches.golem_puzzle:on_golem_password"
         }
       }
     },
@@ -4228,7 +4228,53 @@
             "handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
           }
         },
-        "dialog_topics": {
+        "llm_context": {
+          "traits": [
+            "weathered features",
+            "lean muscle beneath torn clothing",
+            "forest-stained hands",
+            "sharp watchful eyes",
+            "calloused archer's fingers",
+            "determined set of jaw"
+          ],
+          "state_fragments": {
+            "injured": [
+              "pale and sweating",
+              "blood-soaked bandages",
+              "labored breathing",
+              "gripping wound tightly",
+              "fighting to stay conscious",
+              "voice weak but urgent"
+            ],
+            "stabilized": [
+              "color returning to cheeks",
+              "breathing more steadily",
+              "sitting upright with effort",
+              "grateful but still weak",
+              "assessing own damage",
+              "cautious movements"
+            ],
+            "mobile": [
+              "testing injured leg carefully",
+              "regaining strength visibly",
+              "eyes sharp and alert again",
+              "planning next move",
+              "stretching carefully",
+              "hunter's focus returning"
+            ],
+            "dead": [
+              "still and peaceful",
+              "struggle finally ended",
+              "hands relaxed at last"
+            ]
+          }
+        },
+        "trust_state": {
+          "current": 0,
+          "floor": -5,
+          "ceiling": 5
+        },
+        "dialog_reactions": {
           "injury": {
             "keywords": [
               "injury",
@@ -4275,52 +4321,6 @@
             },
             "summary": "'Elara... she's in the town. We grew up together. She could help me - if you could get word to her...'"
           }
-        },
-        "llm_context": {
-          "traits": [
-            "weathered features",
-            "lean muscle beneath torn clothing",
-            "forest-stained hands",
-            "sharp watchful eyes",
-            "calloused archer's fingers",
-            "determined set of jaw"
-          ],
-          "state_fragments": {
-            "injured": [
-              "pale and sweating",
-              "blood-soaked bandages",
-              "labored breathing",
-              "gripping wound tightly",
-              "fighting to stay conscious",
-              "voice weak but urgent"
-            ],
-            "stabilized": [
-              "color returning to cheeks",
-              "breathing more steadily",
-              "sitting upright with effort",
-              "grateful but still weak",
-              "assessing own damage",
-              "cautious movements"
-            ],
-            "mobile": [
-              "testing injured leg carefully",
-              "regaining strength visibly",
-              "eyes sharp and alert again",
-              "planning next move",
-              "stretching carefully",
-              "hunter's focus returning"
-            ],
-            "dead": [
-              "still and peaceful",
-              "struggle finally ended",
-              "hands relaxed at last"
-            ]
-          }
-        },
-        "trust_state": {
-          "current": 0,
-          "floor": -5,
-          "ceiling": 5
         }
       },
       "behaviors": []
@@ -4537,9 +4537,6 @@
         "take_reactions": {
           "handler": "examples.big_game.behaviors.regions.beast_wilds.bee_queen:on_honey_theft"
         },
-        "dialog_topics": {
-          "handler": "examples.big_game.behaviors.regions.beast_wilds.bee_queen:on_bee_queen_talk"
-        },
         "llm_context": {
           "traits": [
             "larger than a human",
@@ -4586,6 +4583,9 @@
               "no trade only threat"
             ]
           }
+        },
+        "dialog_reactions": {
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.bee_queen:on_bee_queen_talk"
         }
       },
       "behaviors": [
@@ -5303,7 +5303,16 @@
         "base_timer": 50,
         "hope_extends": true,
         "hope_bonus": 10,
-        "dialog_topics": {
+        "item_use_reactions": {
+          "healing": {
+            "accepted_items": [
+              "silvermoss"
+            ],
+            "handler": "behaviors.regions.fungal_depths.aldric_rescue:on_aldric_heal"
+          }
+        },
+        "regeneration": 5,
+        "dialog_reactions": {
           "infection": {
             "keywords": [
               "infection",
@@ -5368,16 +5377,7 @@
             ],
             "handler": "behaviors.regions.fungal_depths.aldric_rescue:on_aldric_teach"
           }
-        },
-        "item_use_reactions": {
-          "healing": {
-            "accepted_items": [
-              "silvermoss"
-            ],
-            "handler": "behaviors.regions.fungal_depths.aldric_rescue:on_aldric_heal"
-          }
-        },
-        "regeneration": 5
+        }
       },
       "behaviors": [
         "behaviors.regions.fungal_depths.aldric_rescue"
@@ -5481,7 +5481,7 @@
             "has_killed_fungi": true
           }
         },
-        "dialog_topics": {
+        "dialog_reactions": {
           "handler": "examples.big_game.behaviors.regions.fungal_depths.spore_mother:on_spore_mother_talk"
         }
       },
@@ -5739,7 +5739,43 @@
         "encounter_reactions": {
           "handler": "examples.big_game.behaviors.regions.fungal_depths.fungal_death_mark:on_myconid_first_meeting"
         },
-        "dialog_topics": {
+        "llm_context": {
+          "traits": [
+            "towering mushroom form",
+            "bioluminescent spots pulsing",
+            "ancient weathered cap",
+            "swaying gently in stillness",
+            "mycelium tendrils trailing",
+            "deep patient presence"
+          ],
+          "state_fragments": {
+            "neutral": [
+              "spores drifting lazily",
+              "gentle blue luminescence",
+              "tendrils relaxed on stone",
+              "cap tilted in consideration",
+              "peaceful emanation",
+              "unhurried ancient patience"
+            ],
+            "trusting": [
+              "warm golden glow pulsing",
+              "spores carrying rich meaning",
+              "tendrils reaching gently",
+              "cap inclined welcomingly",
+              "deep wisdom flowing freely",
+              "ancient kindness visible"
+            ],
+            "distrusting": [
+              "spores dimming to grey",
+              "cap tilted away",
+              "tendrils withdrawn tightly",
+              "slow wary movements",
+              "watchful guarded stillness",
+              "luminescence flickering coldly"
+            ]
+          }
+        },
+        "dialog_reactions": {
           "greeting": {
             "keywords": [
               "hello",
@@ -5790,42 +5826,6 @@
               "frozen"
             ],
             "summary": "Silver spores glitter. 'Ice-crystal cools the cure-making. Without cold, the cleansing burns too fierce. Bring ice from the frozen heights.'"
-          }
-        },
-        "llm_context": {
-          "traits": [
-            "towering mushroom form",
-            "bioluminescent spots pulsing",
-            "ancient weathered cap",
-            "swaying gently in stillness",
-            "mycelium tendrils trailing",
-            "deep patient presence"
-          ],
-          "state_fragments": {
-            "neutral": [
-              "spores drifting lazily",
-              "gentle blue luminescence",
-              "tendrils relaxed on stone",
-              "cap tilted in consideration",
-              "peaceful emanation",
-              "unhurried ancient patience"
-            ],
-            "trusting": [
-              "warm golden glow pulsing",
-              "spores carrying rich meaning",
-              "tendrils reaching gently",
-              "cap inclined welcomingly",
-              "deep wisdom flowing freely",
-              "ancient kindness visible"
-            ],
-            "distrusting": [
-              "spores dimming to grey",
-              "cap tilted away",
-              "tendrils withdrawn tightly",
-              "slow wary movements",
-              "watchful guarded stillness",
-              "luminescence flickering coldly"
-            ]
           }
         }
       },
