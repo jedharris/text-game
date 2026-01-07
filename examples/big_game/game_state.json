@@ -3683,12 +3683,16 @@
         },
         "pack_behavior": {
           "is_pack_leader": true,
-          "pack_follows_leader_state": true
+          "pack_follows_leader_state": true,
+          "followers": [
+            "steam_salamander_2",
+            "steam_salamander_3"
+          ]
         },
         "gift_reactions": {
           "handler": "examples.big_game.behaviors.regions.frozen_reaches.salamanders:on_receive_item"
         },
-        "dialog_topics": {
+        "dialog_reactions": {
           "handler": "examples.big_game.behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
         }
       },
@@ -3780,7 +3784,7 @@
           "pack_leader": "salamander",
           "pack_follows_leader_state": true
         },
-        "dialog_topics": {
+        "dialog_reactions": {
           "handler": "examples.big_game.behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
         }
       },
@@ -3872,7 +3876,7 @@
           "pack_leader": "salamander",
           "pack_follows_leader_state": true
         },
-        "dialog_topics": {
+        "dialog_reactions": {
           "handler": "examples.big_game.behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
         }
       },
