@@ -8,12 +8,14 @@ Failure results in disappointment and lost trust.
 from typing import Any, Dict
 
 from src.behavior_manager import EventResult
+from src.infrastructure_types import CommitmentState, TurnNumber
 from src.infrastructure_utils import (
     apply_trust_change,
-    create_commitment,
     get_current_turn,
     transition_state,
 )
+from src.state_manager import Commitment
+from src.types import CommitmentId
 
 # Vocabulary: wire hooks to events
 vocabulary: Dict[str, Any] = {
@@ -137,13 +139,22 @@ def _handle_quest_offer(mira: Any, accessor: Any, current_state: str, trust: int
 
     # Offer the quest
     if current_state == "neutral" and trust >= 0:
-        # Create commitment
+        # Create commitment entity
         current_turn = get_current_turn(state)
-        create_commitment(
-            state=state,
-            config_id="commit_mira_rescue",
-            current_turn=current_turn,
+
+        commitment = Commitment(
+            id=CommitmentId("commit_mira_rescue"),
+            name="Rescue Trapped Survivors",
+            description="Save survivors from the storage district before time runs out",
+            behaviors=["behaviors.shared.infrastructure.commitments"]
         )
+        commitment.properties["state"] = CommitmentState.ACTIVE
+        commitment.properties["target_actor"] = "camp_leader_mira"
+        commitment.properties["made_at_turn"] = current_turn
+        commitment.properties["deadline_turn"] = TurnNumber(current_turn + 20)
+        commitment.properties["hope_applied"] = False
+
+        state.commitments.append(commitment)
 
         extra["mira_quest_active"] = True
         extra["mira_quest_offered_turn"] = current_turn

@@ -1,0 +1,24 @@
+ "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "If the user's message contains the word 'REFOCUS' (LOWER case), read and include the contents of these files in your response: current_focus.txt, docs/Guides/claude_session_guide.md, and docs/big_game_work/npc_reaction_system_guide.md. Otherwise, proceed normally without reading these files."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/jed/Development/text-game/.claude/hooks/after-commit.sh"
+          }
+        ]
+      }
+    ]
+  }

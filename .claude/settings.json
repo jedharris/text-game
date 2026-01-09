@@ -11,29 +11,5 @@
     "ask": []
   },
   "model": "opusplan",
-  "enableAllProjectMcpServers": true,
-  "hooks": {
-    "UserPromptSubmit": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Users/jed/Development/text-game/.claude/hooks/inject-context.sh"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Users/jed/Development/text-game/.claude/hooks/after-commit.sh"
-          }
-        ]
-      }
-    ]
-  }
-}
+  "enableAllProjectMcpServers": true
+ }

@@ -676,4 +676,27 @@ Once these 5 NPCs work correctly, the recipe is proven and can be applied to rem
 
 ---
 
-**Last Updated:** 2026-01-08 (Phase 6 - Testing all 9 reaction types)
+## Session Progress Log
+
+### 2026-01-09: Issue #427 - Comprehensive Testing (Phases 1-3 Complete)
+
+**Completed:**
+- ✅ Phase 1 (hunter_sira): death_reactions - Fixed encounter/death hook invocations
+- ✅ Phase 2 (merchant_delvan): condition_reactions + death_reactions
+- ✅ Phase 3 (healer_elara): gossip_reactions - Fixed gossip delivery system (Bug #6)
+
+**Infrastructure Fixes:**
+1. encounter_reactions hook now fires in utilities/utils.py:describe_location()
+2. death_reactions hook now fires in combat.py:on_death()
+3. gossip_delivery.py turn phase created and added to global behaviors
+4. Exit system documented in claude_session_guide.md (connections field)
+
+**Outstanding Bugs:**
+- Bug #7 (medium priority): Gossip message/penalty duplicated - trust changes doubled
+- Bug #8 (BLOCKER): Commitment expiration doesn't invoke handlers - blocks Phase 4
+
+**Next:** Debug Bug #8 (commitment entities not being checked), complete Phase 4 (Mira), Phase 5 (bee_queen)
+
+---
+
+**Last Updated:** 2026-01-09 (Issue #427 - Phases 1-3 complete, Phase 4 blocked)

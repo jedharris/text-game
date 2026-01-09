@@ -1,0 +1,11 @@
+# Refocus Documents
+# Edit this file to control which documents are loaded when you type "refocus"
+# One file path per line, relative to repo root
+# Lines starting with # are ignored
+
+# Always load these:
+current_focus.txt
+docs/Guides/claude_session_guide.md
+
+# Task-specific (update as needed):
+docs/big_game_work/npc_reaction_system_guide.md
