@@ -1,0 +1,24 @@
+# Test bee_queen partial trade sequence with dialog checks
+# Scenario: Give 1-2 flowers, check trading state dialog
+
+# Navigate to bee_queen_clearing
+go south
+go south
+go east
+go west
+
+# Give first flower
+@set actors.player.inventory = ["moonpetal"]
+give moonpetal to queen
+@expect "2 more flower type(s)"
+@assert extra.bee_queen_flowers_traded contains "moonpetal"
+@assert actors.bee_queen.properties.trust_state.current == 1
+
+# Give second flower
+@set actors.player.inventory = ["frost_lily"]
+give frost lily to queen
+@expect "1 more flower type(s)"
+@assert extra.bee_queen_flowers_traded contains "frost_lily"
+@assert actors.bee_queen.properties.trust_state.current == 2
+
+# Success - partial trade state verified with dialog

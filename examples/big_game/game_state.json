@@ -1833,6 +1833,9 @@
         "synonyms": [
           "lily",
           "flower"
+        ],
+        "adjectives": [
+          "frost"
         ]
       },
       "llm_context": {
@@ -3042,7 +3045,14 @@
         "portable": true,
         "rare_flower": true,
         "export_item": true,
-        "export_to": "beast_wilds"
+        "export_to": "beast_wilds",
+        "adjectives": [
+          "water"
+        ],
+        "synonyms": [
+          "bloom",
+          "flower"
+        ]
       },
       "llm_context": {
         "traits": [

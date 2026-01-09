@@ -11,5 +11,18 @@
     "ask": []
   },
   "model": "opusplan",
-  "enableAllProjectMcpServers": true
- }
+  "enableAllProjectMcpServers": true,
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/jed/Development/text-game/.claude/hooks/inject-context.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

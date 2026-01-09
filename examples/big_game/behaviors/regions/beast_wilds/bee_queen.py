@@ -12,10 +12,13 @@ from src.infrastructure_utils import (
     transition_state,
 )
 
-# Vocabulary removed - reactions now handled via property configs
-# Bee Queen has gift_reactions.handler and take_reactions.handler
+# Vocabulary: add adjectives for multi-word flower names
 vocabulary: Dict[str, Any] = {
-    "events": []
+    "events": [],
+    "adjectives": [
+        {"word": "frost", "synonyms": []},
+        {"word": "water", "synonyms": []}
+    ]
 }
 
 # Valid flower types and their sources

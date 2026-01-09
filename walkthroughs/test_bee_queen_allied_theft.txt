@@ -1,0 +1,27 @@
+# Test bee_queen post-alliance honey access
+# Scenario: After alliance, honey is freely available
+
+# Navigate to bee_queen_clearing
+go south
+go south
+go east
+go west
+
+# Complete 3-flower sequence to achieve allied state
+@set actors.player.inventory = ["moonpetal"]
+give moonpetal to queen
+@set actors.player.inventory = ["frost_lily"]
+give frost lily to queen
+@set actors.player.inventory = ["water_bloom"]
+give water bloom to queen
+@expect "completes the exchange"
+
+# Verify allied state
+@assert actors.bee_queen.properties.trust_state.current == 3
+
+# Take honey multiple times - should succeed without hostility
+take honey
+take honey  # EXPECTED_FAILURE - already taken
+take honey  # EXPECTED_FAILURE - already taken
+
+# Success - allied state allows honey access without hostile reaction

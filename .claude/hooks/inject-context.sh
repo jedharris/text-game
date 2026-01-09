@@ -1,5 +1,5 @@
 #!/bin/bash
-# Refocus hook - loads documents when user types "refocus"
+# Refocus hook - instructs Claude to reload context after compaction
 
 # Read stdin (the prompt submission JSON)
 INPUT=$(cat)
@@ -9,38 +9,14 @@ USER_PROMPT=$(echo "$INPUT" | jq -r '.prompt // empty')
 
 # Only trigger if prompt contains "refocus" (case insensitive)
 if ! echo "$USER_PROMPT" | grep -qi "refocus"; then
+    # Not a refocus command, pass through unchanged
+    echo "$INPUT"
     exit 0
 fi
 
-# Load documents from refocus-docs.txt
-CONFIG_FILE=".claude/refocus-docs.txt"
+# Replace prompt with instruction to read refocus-docs.txt and listed files
+NEW_PROMPT="The session has been compacted. Read refocus-docs.txt and then read all the files listed in it. Acknowledge when done and continue working based on current_focus.txt."
 
-if [ ! -f "$CONFIG_FILE" ]; then
-    echo "ERROR: $CONFIG_FILE not found"
-    exit 1
-fi
-
-echo "=== REFOCUSING - Loading Context ===" >&2
-echo "" >&2
-
-# Read config file, skip comments and empty lines
-while IFS= read -r filepath || [ -n "$filepath" ]; do
-    # Skip comments and empty lines
-    [[ "$filepath" =~ ^[[:space:]]*# ]] && continue
-    [[ -z "${filepath// }" ]] && continue
-
-    # Trim whitespace
-    filepath=$(echo "$filepath" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-
-    if [ -f "$filepath" ]; then
-        echo "--- $filepath ---" >&2
-        cat "$filepath" >&2
-        echo "" >&2
-    else
-        echo "WARNING: File not found: $filepath" >&2
-        echo "" >&2
-    fi
-done < "$CONFIG_FILE"
-
-echo "=== END REFOCUS ===" >&2
-exit 2
+# Output modified JSON with replacement prompt
+echo "$INPUT" | jq --arg newprompt "$NEW_PROMPT" '.prompt = $newprompt'
+exit 0

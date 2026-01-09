@@ -498,6 +498,60 @@ def on_dialog(
 - ❌ NO command parsing
 - ❌ NO HandlerResult (only EventResult)
 
+**CRITICAL: Hook Name Must Match Core Engine**
+
+The `hook_id` in vocabulary MUST exactly match what the game engine expects:
+- ❌ WRONG: `"hook_id": "entity_item_taken"` (won't fire)
+- ✅ CORRECT: `"hook_id": "entity_take"` (matches core)
+
+**How to verify correct hook name:**
+1. Check `docs/big_game_work/npc_reaction_system_guide.md` for authoritative hook names
+2. If adding new reaction type, coordinate with core engine team on hook naming
+3. Test with debug output: `return EventResult(allow=True, feedback="DEBUG: handler called!")`
+
+**Common Hook Name Bugs:**
+- `entity_item_taken` vs `entity_take` (WRONG vs RIGHT)
+- `entity_gift_given` vs `entity_gift` (varies by implementation)
+- `entity_dialog` vs `entity_talk` (check guide!)
+
+**Global Registration Requirement:**
+
+Infrastructure modules defining entity hooks MUST be registered in TWO places:
+
+1. **Top-level behaviors** (global registration - ensures hook exists at startup):
+```json
+{
+  "extra": {
+    "behaviors": [
+      "examples.big_game.behaviors.shared.infrastructure.gift_reactions",
+      "examples.big_game.behaviors.shared.infrastructure.take_reactions",
+      "examples.big_game.behaviors.shared.infrastructure.dialog_reactions"
+    ]
+  }
+}
+```
+
+2. **Entity behaviors** (entity-specific - ensures handler fires for that entity):
+```json
+{
+  "id": "royal_honey",
+  "behaviors": [
+    "behaviors.shared.infrastructure.take_reactions"
+  ],
+  "properties": {
+    "take_reactions": {
+      "handler": "behaviors.regions.beast_wilds.bee_queen:on_honey_theft"
+    }
+  }
+}
+```
+
+**Why both?**
+- Global registration: Hook definition is loaded at game startup
+- Entity registration: Handler gets invoked when hook fires for that specific entity
+- Missing global registration → hook doesn't exist, handlers never fire
+- Missing entity registration → hook exists but entity's handler not called
+
 ### 3. Unified Interpreter (behavior_libraries/reaction_lib/)
 
 **Already exists** - see reaction_system_design.md for full spec.
@@ -875,6 +929,153 @@ def validate_architecture():
 
 ---
 
+## Troubleshooting
+
+### Handler Not Firing - Diagnostic Steps
+
+**Symptom:** Handler exists, config looks correct, but nothing happens when command is issued.
+
+**Step 1: Verify handler is being called**
+```python
+def on_honey_theft(entity, accessor, context):
+    # Add debug at top of handler
+    return EventResult(allow=True, feedback="DEBUG: handler called!")
+
+    # ... rest of handler
+```
+
+If you see "DEBUG: handler called!" → handler IS firing, bug is in handler logic.
+If you DON'T see it → hook infrastructure problem, proceed to Step 2.
+
+**Step 2: Check hook name**
+```bash
+# Check what hook name your infrastructure uses
+grep "hook_id" examples/big_game/behaviors/shared/infrastructure/take_reactions.py
+
+# Compare to authoritative guide
+grep "take_reactions" docs/big_game_work/npc_reaction_system_guide.md
+```
+
+Common mismatches:
+- `entity_item_taken` (WRONG) vs `entity_take` (RIGHT)
+- Infrastructure file has one name, guide has different name
+- Fix: Change infrastructure to match guide
+
+**Step 3: Verify global registration**
+```bash
+# Check if infrastructure is in top-level behaviors
+grep -A10 '"behaviors":' examples/big_game/game_state.json | head -15
+```
+
+Should see:
+```json
+"behaviors": [
+  "examples.big_game.behaviors.shared.infrastructure.take_reactions",
+  ...
+]
+```
+
+If missing → add to top-level behaviors, restart game.
+
+**Step 4: Verify entity registration**
+```bash
+# Check entity has infrastructure in its behaviors list
+# Example for royal_honey:
+jq '.items[] | select(.id=="royal_honey") | .behaviors' game_state.json
+```
+
+Should include: `"behaviors.shared.infrastructure.take_reactions"`
+
+If missing → add to entity.behaviors.
+
+**Step 5: Check handler path**
+```python
+# In entity properties:
+"take_reactions": {
+  "handler": "behaviors.regions.beast_wilds.bee_queen:on_honey_theft"
+  # ✓ Use relative path (behaviors.*)
+  # ✗ NOT absolute (examples.big_game.behaviors.*)
+}
+```
+
+**Step 6: Verify context contents**
+
+Common issue: Handler expects data not in context.
+
+```python
+def on_honey_theft(entity, accessor, context):
+    # Debug what context contains
+    import json
+    return EventResult(
+        allow=True,
+        feedback=f"DEBUG context: {json.dumps(context, default=str)}"
+    )
+```
+
+**Example: take_reactions context issue**
+- Handler expected: `context.get("location")` → None (not provided!)
+- Solution: Use `entity.location` instead (entity is the item being taken)
+- Lesson: Don't assume context contents, check what's actually passed
+
+**Common Context Contents by Hook:**
+- `entity_take`: `{"actor_id": str}` (NO location!)
+- `entity_gift_given`: `{"item": Entity, "item_id": str, "giver_id": str}`
+- `entity_dialog`: `{"keyword": str, "dialog_text": str, "speaker": str}`
+- `entity_gossip_received`: `{"content": str, "source_npc": str, "gossip_id": str}`
+
+**Step 7: Check Python caching**
+
+If you changed handler code but see old behavior:
+```bash
+# Clear Python cache
+find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null
+find . -name "*.pyc" -delete
+
+# Restart game
+```
+
+### Handler Fires But Returns Wrong Data
+
+**Symptom:** "DEBUG: handler called!" appears, but handler logic doesn't work.
+
+**Check 1: Entity parameter**
+```python
+# What IS the entity parameter?
+def on_honey_theft(entity, accessor, context):
+    return EventResult(
+        allow=True,
+        feedback=f"DEBUG entity: id={entity.id}, type={type(entity).__name__}"
+    )
+```
+
+For take_reactions: entity = item being taken (e.g., royal_honey)
+For gift_reactions: entity = recipient NPC (e.g., bee_queen)
+For dialog_reactions: entity = NPC being talked to
+
+**Check 2: Location checks**
+```python
+# Common bug: checking context.get("location") when it doesn't exist
+# FIX: Use entity.location instead
+
+# WRONG:
+location = context.get("location")  # Often None!
+
+# RIGHT:
+location = entity.location  # Entity knows where it is
+```
+
+**Check 3: State machine access**
+```python
+# State machine "current" field only exists at runtime
+sm = entity.properties.get("state_machine")
+current = sm.get("current", sm.get("initial"))  # Fallback to initial
+
+# NOT:
+current = sm["current"]  # KeyError if not set yet!
+```
+
+---
+
 ## Usage
 
 **For Implementation:**
@@ -894,3 +1095,10 @@ def validate_architecture():
 2. Check success criteria
 3. Verify old systems deleted
 4. Test integration end-to-end
+
+**For Debugging:**
+1. Start with troubleshooting steps above
+2. Use debug output to narrow down issue layer
+3. Check hook names against authoritative guide
+4. Verify both global AND entity registration
+5. Don't assume context contents - debug what's actually there
