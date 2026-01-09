@@ -20,6 +20,12 @@
         "description": "Rescue trapped survivors from storage district",
         "deadline_turns": 20,
         "target_actor": "camp_leader_mira"
+      },
+      "commit_sira_rescue": {
+        "id": "commit_sira_rescue",
+        "description": "Save Hunter Sira from her injuries",
+        "deadline_turns": 8,
+        "target_actor": "hunter_sira"
       }
     },
     "gossip_queue": [],

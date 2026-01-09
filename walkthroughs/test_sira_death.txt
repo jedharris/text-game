@@ -1,0 +1,41 @@
+# Hunter Sira Death Test
+# Tests: death_reactions when Sira dies
+
+# Navigate to Hunter's Camp (Beast Wilds)
+go south
+go east
+go east
+
+# Look at Sira
+look
+@expect "Sira"
+
+# WORKAROUND: Encounter system doesn't fire (missing hook invocation)
+# Manually set up the scenario as if encounter happened
+@set extra.sira_commitment_created = true
+@set extra.sira_first_encounter_turn = 1
+
+# Give Sira lethal damage via conditions
+# Set bleeding to cause death (simulate not healing her)
+@set actors.hunter_sira.properties.conditions = {"bleeding": {"severity": 100, "damage_per_turn": 50}}
+
+# Advance turns to trigger death
+@advance 3 turns
+# Sira dies at turn 6: "Hunter Sira has been slain!"
+
+# Summary: death_reactions testing
+# ✓ Death occurs correctly (conditions tick, health depletes)
+# ✓ Death is detected and announced
+# ⚠️  BLOCKER FOUND: Encounter hook never fires
+#    - encounter_reactions infrastructure exists
+#    - on_sira_encounter handler exists
+#    - But nothing calls entity_encounter hook
+#    - This blocks testing full encounter→timer→death flow
+# ⚠️  BUG FOUND: Config/handler mismatch
+#    - death_reactions config says set_flags: {sira_dead: true}
+#    - But handler sets sira_died_with_player instead
+#    - Handler escape hatch prevents data-driven config from running
+# ⚠️  BUG FOUND: Wrong actor ID in handler
+#    - Handler checks for "npc_hunter_sira"
+#    - But actual actor ID is "hunter_sira"
+#    - Handler never runs, no gossip created, no flags set
