@@ -436,6 +436,58 @@ from src.infrastructure_utils import (
 
 ---
 
+## Workflows (A, B, C)
+
+All work must follow one of three documented workflows. See ~/.claude/CLAUDE.md for full details.
+
+**Workflow A** - Small/moderate changes (single feature, bug fix):
+1. Create issue describing problem
+2. Add comment with design
+3. Implement using TDD
+4. Comment describing work done
+5. Close issue
+
+**Workflow B** - Large changes with phases (architecture changes, major features):
+1. Create parent issue
+2. Design with phasing
+3. Create sub-issue per phase
+4. Implement each phase with TDD
+5. Close phase sub-issues as completed
+6. Close parent when all phases done
+
+**Workflow C** - Systematic testing of multiple similar entities (NEW):
+1. Create parent issue with testing plan
+2. For EACH entity (one at a time):
+   - Create sub-issue
+   - Fix entity following guide
+   - Create walkthrough, run until 100% success
+   - Commit with sub-issue reference
+   - Close sub-issue
+   - Update current_focus.txt
+3. Close parent when all entities complete
+
+**When to use:**
+- Workflow A: Bug fixes, small features, single-entity changes
+- Workflow B: Architecture changes, multi-phase projects, design-heavy work
+- Workflow C: Systematic testing/fixing of multiple NPCs, items, or locations
+
+**GitHub Sub-Issues:**
+For Workflows B & C, link sub-issues to parent:
+```bash
+# Get internal ID (not issue number!)
+gh api /repos/jedharris/text-game/issues/ISSUE_NUM --jq .id
+
+# Link sub-issue to parent
+GH_TOKEN=$(gh auth token)
+curl -X POST \
+  -H "Authorization: token $GH_TOKEN" \
+  -H "Accept: application/vnd.github+json" \
+  https://api.github.com/repos/jedharris/text-game/issues/PARENT_NUM/sub_issues \
+  -d '{"sub_issue_id": CHILD_INTERNAL_ID}'
+```
+
+---
+
 ## Workflow Checklist
 
 ### Before Implementation
