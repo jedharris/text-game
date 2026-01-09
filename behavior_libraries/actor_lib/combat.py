@@ -347,13 +347,30 @@ def on_death(entity, accessor, context):
             accessor.set_entity_where(item_id, death_location)
         entity.inventory.clear()
 
+    # Invoke entity_actor_died hook for death_reactions
+    from src.types import HookName
+    event = accessor.behavior_manager.get_event_for_hook(HookName("entity_actor_died"))
+    death_reaction_feedback = None
+    if event and hasattr(entity, 'behaviors') and entity.behaviors:
+        death_context = {"actor_id": entity.id, "location_id": death_location}
+        behavior_result = accessor.behavior_manager.invoke_behavior(
+            entity, event, accessor, death_context
+        )
+        if behavior_result and behavior_result.feedback:
+            death_reaction_feedback = behavior_result.feedback
+
     # Remove actor from game
     if entity.id in accessor.game_state.actors:
         del accessor.game_state.actors[entity.id]
 
+    # Build feedback with death_reactions message if present
+    feedback_parts = [f"{entity.name} has been slain!"]
+    if death_reaction_feedback:
+        feedback_parts.append(death_reaction_feedback)
+
     return EventResult(
         allow=True,
-        feedback=f"{entity.name} has been slain!"
+        feedback="\n".join(feedback_parts)
     )
 
 
