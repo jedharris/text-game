@@ -46,7 +46,7 @@ def on_sira_encounter(
     """
     # Check if this is Sira
     actor_id = entity.id if hasattr(entity, "id") else None
-    if actor_id != "npc_hunter_sira":
+    if actor_id != "hunter_sira":
         return EventResult(allow=True, feedback=None)
 
     state = accessor.game_state
@@ -96,7 +96,7 @@ def on_sira_death(
         EventResult allowing the death
     """
     actor_id = entity.id if hasattr(entity, "id") else None
-    if actor_id != "npc_hunter_sira":
+    if actor_id != "hunter_sira":
         return EventResult(allow=True, feedback=None)
 
     state = accessor.game_state
@@ -142,7 +142,7 @@ def on_sira_healed(
         EventResult with healing result
     """
     actor_id = entity.id if hasattr(entity, "id") else None
-    if actor_id != "npc_hunter_sira":
+    if actor_id != "hunter_sira":
         return EventResult(allow=True, feedback=None)
 
     condition_type = context.get("condition_type")
