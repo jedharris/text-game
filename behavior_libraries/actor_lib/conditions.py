@@ -198,6 +198,13 @@ def tick_conditions(actor) -> List[str]:
     messages = []
     conditions_to_remove = []
 
+    # Validate conditions format
+    if not isinstance(conditions, dict):
+        raise TypeError(
+            f"Actor {actor.id} has invalid conditions format. "
+            f"Expected dict, got {type(conditions).__name__}: {conditions}"
+        )
+
     # Process condition effects
     for condition_name, condition_data in conditions.items():
         # Apply damage

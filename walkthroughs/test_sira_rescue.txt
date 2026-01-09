@@ -12,13 +12,13 @@ go west
 @assert extra.sira_encountered == true
 
 # Test 3: Use healing items on Sira
-@set player.inventory += ["silvermoss"]
+@set actors.player.inventory = ["silvermoss"]
 
 use silvermoss on sira
 @expect "breathing" OR "stabiliz"
 
 # Test 4: Check Sira's state changed
-@assert hunter_sira.properties.state_machine.current == "stabilized"
+@assert actors.hunter_sira.properties.state_machine.current == "stabilized"
 
 # Test 5: Talk to Sira after healing
 talk to sira

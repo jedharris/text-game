@@ -1,0 +1,32 @@
+# Minimal Reaction Infrastructure Test
+# Tests that all 9 reaction types can be triggered via their infrastructure modules
+
+# === Test 1: Dialog Reactions (Maren) ===
+go south
+go east
+go south
+go south
+
+ask maren about trade
+@expect "wares" OR "gold"
+
+# === Test 2: Dialog Reactions (Elara) ===
+go west
+
+talk to elara
+@expect "heal" OR "sanctuary"
+
+# === Test 3: Dialog Reactions (Mira) ===
+go north
+go west
+
+talk to mira
+@expect "camp" OR "survivors"
+
+# === Test 4: Commitment Reactions (Mira) ===
+ask mira about help
+@expect "rescue" OR "task"
+
+# === Summary ===
+# If all 4 commands above succeed, dialog_reactions and commitment_reactions infrastructure are working
+# The other reaction types (gift, take, encounter, death, item_use, gossip, condition) require more complex setup

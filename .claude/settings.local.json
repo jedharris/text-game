@@ -1,15 +1,3 @@
 {
-  "includeCoAuthoredBy": true,
-  "permissions": {
-  "allow": [
-    "Bash",
-    "mcp__claude-context",
-    "Gh :*",
-    "Bash(gh :*)"
-  ],
-  "deny": [],
-  "ask": []
-  },
-  "model": "opusplan",
-  "enableAllProjectMcpServers": true
+ 
 }

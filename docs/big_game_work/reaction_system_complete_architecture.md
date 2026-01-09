@@ -37,8 +37,9 @@ Layer 1: COMMANDS (behavior_libraries/command_lib/)
 
 Layer 2: HOOKS (engine infrastructure)
   - Hook definitions in vocabulary
-  - Broadcast to subscribers
+  - Dispatch to entity-specific behaviors
   - Invoke behavior: invoke_behavior(entity, hook_id, accessor, context)
+  - Checks entity.behaviors list for modules that handle the event
 
 Layer 3: REACTIONS (game-specific infrastructure)
   - Subscribe to hooks via vocabulary events
@@ -53,6 +54,8 @@ Layer 3: REACTIONS (game-specific infrastructure)
 2. **Reaction infrastructure is general-purpose** → `behavior_libraries/reaction_lib/`
 3. **Hook subscriptions are game-specific** → `examples/big_game/behaviors/shared/infrastructure/`
 4. **Entity handlers are game-specific** → `examples/big_game/behaviors/regions/`
+5. **Infrastructure modules go in entity.behaviors** → Each entity references the infrastructure it needs
+6. **extra.behaviors is for global-only events** → Turn phases, global systems (entity=None events only)
 
 ---
 
@@ -214,7 +217,8 @@ examples/big_game/behaviors/regions/   # GAME-SPECIFIC HANDLERS
 ┌─────────────────────────────────────────────────────────────┐
 │ 4. HOOK DISPATCH (engine core)                             │
 │    invoke_behavior(maren, "entity_dialog", context):       │
-│      - Find modules subscribing to "entity_dialog" hook    │
+│      - Check maren.behaviors list for modules              │
+│      - Find modules that define "on_dialog" event handler  │
 │      - Call each: on_dialog(maren, accessor, context)      │
 └─────────────────────────────────────────────────────────────┘
                             ↓
@@ -271,6 +275,41 @@ examples/big_game/behaviors/regions/   # GAME-SPECIFIC HANDLERS
 3. **Reaction → Handler**: Reaction infrastructure MUST load and call handler
 4. **Handler → Interpreter**: Handler MAY delegate to interpreter for data-driven configs
 5. **EventResult → HandlerResult**: Command handler MUST convert result types
+
+### entity.behaviors vs extra.behaviors
+
+**entity.behaviors** (e.g., maren.behaviors):
+- Contains modules that handle events for THIS specific entity
+- Checked when invoke_behavior(entity, event_name) is called with entity != None
+- Entity-specific events (dialog, combat, take, etc.)
+- O(1) complexity - only the target entity's behaviors are invoked
+
+**extra.behaviors** (game_state.extra.behaviors):
+- Contains modules that handle GLOBAL events (entity=None)
+- Checked when invoke_behavior(None, event_name) is called
+- Global events like turn phases, scheduled events, gossip propagation
+- O(1) complexity - invoked once per turn, not per entity
+
+**Example:**
+```json
+{
+  "actors": {
+    "herbalist_maren": {
+      "behaviors": [
+        "examples.big_game.behaviors.shared.infrastructure.dialog_reactions",
+        "examples.big_game.behaviors.regions.civilized_remnants.services"
+      ]
+    }
+  },
+  "extra": {
+    "behaviors": [
+      "examples.big_game.behaviors.shared.infrastructure.scheduled_events",
+      "examples.big_game.behaviors.shared.infrastructure.gossip",
+      "examples.big_game.behaviors.regions.frozen_reaches.hypothermia"
+    ]
+  }
+}
+```
 
 ---
 
@@ -610,19 +649,33 @@ For each entity using old system:
    python tools/walkthrough.py --file walkthroughs/npcs/${npc}.txt
    ```
 
-### Phase 3: Update Global Configuration
+### Phase 3: Add Infrastructure to Entity Behaviors
+
+Each NPC with dialog_reactions config must have dialog_reactions infrastructure in its behaviors list:
 
 ```json
 {
-  "extra": {
-    "behaviors": [
-      "behavior_libraries.command_lib.dialog",
-      "examples.big_game.behaviors.shared.infrastructure.dialog_reactions",
-      ...
-    ]
+  "id": "herbalist_maren",
+  "name": "Herbalist Maren",
+  "location": "market_square",
+  "behaviors": [
+    "examples.big_game.behaviors.shared.infrastructure.dialog_reactions",
+    "examples.big_game.behaviors.regions.civilized_remnants.services"
+  ],
+  "properties": {
+    "dialog_reactions": {
+      "handler": "examples.big_game.behaviors.regions.civilized_remnants.services:on_service_request"
+    }
   }
 }
 ```
+
+**Pattern:** Infrastructure modules (dialog_reactions, combat_reactions, etc.) go in entity.behaviors for entities that use them.
+
+**Note:** Infrastructure modules are NOT in extra.behaviors because:
+- Dialog is entity-specific (O(1), not O(n))
+- Only the target NPC should process dialog events
+- extra.behaviors is for global events (entity=None), like turn phases
 
 ### Phase 4: Validate Complete
 

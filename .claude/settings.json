@@ -1,40 +1,39 @@
 {
   "includeCoAuthoredBy": true,
   "permissions": {
-  "allow": [
-    "Bash",
-    "mcp__claude-context",
-    "Gh :*",
-    "Bash(gh :*)"
+    "allow": [
+      "Bash",
+      "mcp__claude-context",
+      "Gh :*",
+      "Bash(gh :*)"
     ],
-  "deny": [],
-  "ask": []
+    "deny": [],
+    "ask": []
   },
   "model": "opusplan",
   "enableAllProjectMcpServers": true,
   "hooks": {
-    "SessionStart": [
+    "UserPromptSubmit": [
       {
+        "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "echo '=== Current Focus ===' && cat current_focus.txt 2>/dev/null && echo '' && echo '=== Session Guide ===' && cat docs/Guides/claude_session_guide.md",
-            "statusMessage": "Loading session context..."
+            "command": "/Users/jed/Development/text-game/.claude/hooks/inject-context.sh"
           }
         ]
       }
     ],
-    "PreCompact": [
+    "PostToolUse": [
       {
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "echo 'IMPORTANT: After compaction, refocus on current task:' && echo '' && cat current_focus.txt 2>/dev/null || echo 'No current focus set'",
-            "statusMessage": "Preserving task context..."
+            "command": "/Users/jed/Development/text-game/.claude/hooks/after-commit.sh"
           }
         ]
       }
     ]
   }
 }
-  

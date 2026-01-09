@@ -72,7 +72,7 @@ def handle_ask(accessor, action: Dict) -> HandlerResult:
     }
 
     result = accessor.behavior_manager.invoke_behavior(
-        npc, "entity_dialog", accessor, context
+        npc, "on_dialog", accessor, context
     )
 
     # Serialize NPC for narrator
@@ -128,7 +128,7 @@ def handle_talk(accessor, action: Dict) -> HandlerResult:
     }
 
     result = accessor.behavior_manager.invoke_behavior(
-        npc, "entity_dialog", accessor, context
+        npc, "on_dialog", accessor, context
     )
 
     npc_data = serialize_for_handler_result(npc, accessor, actor_id)

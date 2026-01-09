@@ -1,0 +1,32 @@
+# Reaction Infrastructure Smoke Test
+# Tests that infrastructure modules load and dispatch correctly for all 9 reaction types
+
+# === Test 1: Dialog Reactions (herbalist_maren) ===
+# Path: nexus -> south -> east -> south -> south
+go south
+go east
+go south
+go south
+
+ask maren about trade
+@expect "wares"
+
+# === Test 2: Dialog Reactions (healer_elara) ===
+# From market_square, go east to healers_sanctuary
+go east
+
+ask elara about healing
+@expect "heal" OR "wounds" OR "sanctuary"
+
+# === Test 3: Dialog Reactions (camp_leader_mira) ===
+# From healers_sanctuary, need to navigate to survivor_camp
+# Go back to market_square, then find path to survivor_camp
+go west
+go west
+
+ask mira about camp
+@expect "survivors" OR "camp" OR "holding"
+
+# === SUCCESS ===
+# If above 3 NPCs respond to dialog, dialog_reactions infrastructure works
+# Other reaction types require more complex scenarios (combat, item use, gifts, etc.)

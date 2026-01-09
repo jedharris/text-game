@@ -11,10 +11,10 @@ take royal_honey
 @expect "buzzing" OR "attack" OR "bees"
 
 # Test 2: Check hostile flag set
-@assert extra.bees_hostile == true OR extra.honey_theft_detected == true
+@assert extra.bees_hostile == true OR @assert extra.honey_theft_detected == true
 
 # Test 3: Build trust with bee queen first (via gifts or dialog)
-@set bee_queen.properties.trust_state.current = 3
+@set actors.bee_queen.properties.trust_state.current = 3
 @set extra.queen_permission_granted = true
 
 # Test 4: Now try to take honey with permission
