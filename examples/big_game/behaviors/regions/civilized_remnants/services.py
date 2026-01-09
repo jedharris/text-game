@@ -283,16 +283,16 @@ def _handle_elara_healing(entity: Any, accessor: Any) -> EventResult:
     player = state.actors.get("player")
     if player:
         # Clear negative conditions
-        conditions = player.properties.get("conditions", [])
+        conditions = player.properties.get("conditions", {})
         healable = ["bleeding", "fungal_infection", "poison"]
         healed = []
-        remaining = []
+        remaining = {}
 
-        for cond in conditions:
-            if cond.get("type") in healable:
-                healed.append(cond.get("type"))
+        for cond_name, cond_data in conditions.items():
+            if cond_name in healable:
+                healed.append(cond_name)
             else:
-                remaining.append(cond)
+                remaining[cond_name] = cond_data
 
         player.properties["conditions"] = remaining
 
