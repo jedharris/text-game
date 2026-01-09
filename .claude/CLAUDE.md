@@ -2,7 +2,7 @@
 ## Minimizing Session Token Consumption
 - BE EXTREMELY TERSE
 - DON'T NARRATE YOUR ACTIONS AS YOU WORK
-- ONLY DISCUSS WITH USER TO PROVIDE REQUESTED REPORTS OR DISCUSSION
+- ONLY DISCUSS WITH USER TO PROVIDE REQUESTED INTERACTION
 
 ## Design priorities
 - Always maximize author capability and player agency, especially when they don't conflict

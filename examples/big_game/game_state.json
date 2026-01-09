@@ -6052,7 +6052,7 @@
           "handler": "examples.big_game.behaviors.regions.civilized_remnants.services:on_service_request"
         },
         "gossip_reactions": {
-          "handler": "examples.big_game.behaviors.regions.civilized_remnants.services:on_gossip_received"
+          "handler": "examples.big_game.behaviors.regions.civilized_remnants.services:handle_gossip_for_services"
         },
         "old_dialog_topics": {
           "healing": {

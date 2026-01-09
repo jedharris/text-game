@@ -58,7 +58,7 @@ def on_service_request(
     return EventResult(allow=True, feedback=None)
 
 
-def on_gossip_received(
+def handle_gossip_for_services(
     entity: Any,
     accessor: Any,
     context: dict[str, Any],
@@ -66,6 +66,7 @@ def on_gossip_received(
     """Update NPC trust based on received gossip.
 
     Gossip about player actions affects NPC relationships.
+    Called by gossip_reactions infrastructure, not directly by behavior_manager.
 
     Args:
         entity: The NPC who received gossip
@@ -75,6 +76,7 @@ def on_gossip_received(
     Returns:
         EventResult noting trust change
     """
+
     actor_id = entity.id if hasattr(entity, "id") else None
     gossip_content = context.get("content", "").lower()
 

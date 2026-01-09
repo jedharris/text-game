@@ -24,14 +24,10 @@ go east
 @advance 1 turn
 
 # Verify gossip_reactions fired and trust decreased
-# BUG #7 (minor): Gossip message appears twice, trust penalty applied twice (-4 instead of -2)
-# This is cosmetic - gossip_reactions IS firing correctly, just duplicate invocation
-@assert actors.healer_elara.properties.trust_state.current == -4
+@assert actors.healer_elara.properties.trust_state.current == -2
 
 # Summary: Elara gossip_reactions WORKING (100% success)
 # ✓ gossip_reactions: Handler fires on gossip delivery
-# ✓ Trust system: Penalties applied correctly
+# ✓ Trust system: Penalty applied correctly (-2 for un-confessed death)
 # ✓ Gossip delivery: Turn phase processes queue
 # ✓ Navigation: Proper path via forest_edge → southern_trail → town_gate → market_square → healers_sanctuary
-#
-# Known issue: Message/penalty duplicated (Bug #7 - investigate duplicate invocation)
