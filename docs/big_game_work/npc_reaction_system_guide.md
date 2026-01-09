@@ -732,11 +732,14 @@ state.commitments.append(commitment)
 4. Exit system documented in claude_session_guide.md (connections field)
 5. **Commitment system migrated from dicts to entities** (Issue #432)
 
-**Outstanding Bugs:**
-- Bug #7 (medium priority): Gossip message/penalty duplicated - trust changes doubled
+**Bugs Resolved:**
+- ✅ Bug #7: Gossip handler duplicate invocation (function name collision) - FIXED
+  - Problem: Both services.py and gossip_reactions.py had on_gossip_received()
+  - Solution: Renamed services handler to handle_gossip_for_services()
+  - Result: Trust penalties now correct (-2 not -4), message appears once
 
-**Next:** Phase 5 (bee_queen: gift_reactions + take_reactions)
+**Next:** Phase 5 (bee_queen) - navigation and item setup needed
 
 ---
 
-**Last Updated:** 2026-01-09 (Issue #427 - Phases 1-4 complete)
+**Last Updated:** 2026-01-09 (Issue #427 - Phases 1-4 complete, Bug #7 fixed)
