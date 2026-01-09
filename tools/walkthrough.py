@@ -503,8 +503,16 @@ def run_walkthrough(
                     else:
                         value = int(value_str)
                 except ValueError:
+                    # Check for JSON objects/arrays first (dicts and lists)
+                    if (value_str.startswith("{") and value_str.endswith("}")) or \
+                       (value_str.startswith("[") and value_str.endswith("]")):
+                        import json
+                        try:
+                            value = json.loads(value_str)
+                        except json.JSONDecodeError as e:
+                            raise ValueError(f"Invalid JSON: {e}")
                     # Check for bool/None
-                    if value_str.lower() == "true":
+                    elif value_str.lower() == "true":
                         value = True
                     elif value_str.lower() == "false":
                         value = False
@@ -515,10 +523,6 @@ def run_walkthrough(
                         value = value_str[1:-1]
                     elif value_str.startswith("'") and value_str.endswith("'"):
                         value = value_str[1:-1]
-                    # Check for list syntax
-                    elif value_str.startswith("[") and value_str.endswith("]"):
-                        import json
-                        value = json.loads(value_str)
 
                 # Set the value
                 set_field_path(engine.game_state, field_path, value)

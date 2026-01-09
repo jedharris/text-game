@@ -20,8 +20,8 @@ if [ ! -f "$CONFIG_FILE" ]; then
     exit 1
 fi
 
-echo "=== REFOCUSING - Loading Context ==="
-echo ""
+echo "=== REFOCUSING - Loading Context ===" >&2
+echo "" >&2
 
 # Read config file, skip comments and empty lines
 while IFS= read -r filepath || [ -n "$filepath" ]; do
@@ -33,13 +33,14 @@ while IFS= read -r filepath || [ -n "$filepath" ]; do
     filepath=$(echo "$filepath" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
     if [ -f "$filepath" ]; then
-        echo "--- $filepath ---"
-        cat "$filepath"
-        echo ""
+        echo "--- $filepath ---" >&2
+        cat "$filepath" >&2
+        echo "" >&2
     else
-        echo "WARNING: File not found: $filepath"
-        echo ""
+        echo "WARNING: File not found: $filepath" >&2
+        echo "" >&2
     fi
 done < "$CONFIG_FILE"
 
-echo "=== END REFOCUS ==="
+echo "=== END REFOCUS ===" >&2
+exit 2
