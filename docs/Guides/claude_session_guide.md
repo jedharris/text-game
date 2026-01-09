@@ -171,6 +171,35 @@ for exit_entity in exits_here:
 
 **Background:** Exits were migrated from embedded dicts to first-class entities (see [exit_migration_implementation.md](../../docs/Archive/exit_migration_implementation.md)).
 
+**Exit Connections - Use `connections` field:**
+
+```python
+# Exit entities connect via the 'connections' field
+# Example exit from nexus going north:
+{
+  "id": "exit_nexus_chamber_north",
+  "location": "nexus_chamber",
+  "direction": "north",
+  "connections": ["exit_frozen_pass_south"]  # ✓ Links to paired exit
+}
+
+# The paired exit at the destination:
+{
+  "id": "exit_frozen_pass_south",
+  "location": "frozen_pass",
+  "direction": "south",
+  "connections": ["exit_nexus_chamber_north"]  # ✓ Links back
+}
+
+# Code retrieves destination like this:
+def _get_destination_from_exit(accessor, exit_entity):
+    connected_exit_id = exit_entity.connections[0]
+    connected_exit = accessor.game_state.get_exit(connected_exit_id)
+    return connected_exit.location  # Returns "frozen_pass"
+```
+
+**Finding navigation paths:** To find how to reach a location, trace `connections` backward through the exit graph from your target to accessible locations.
+
 ### 12. Reaction Infrastructure - Must Be in entity.behaviors ❌
 
 ```python
