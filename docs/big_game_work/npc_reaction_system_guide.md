@@ -261,7 +261,17 @@ ask maren about help
 @expect "I can brew healing potions"
 ```
 
-**Step 6: Run Walkthrough**
+**Step 6: Add Required Items/Setup**
+
+If walkthrough needs items not in game_state.json:
+- Add them to appropriate location/inventory in game_state.json
+- Use existing items as templates for structure
+- Prefer simple items for testing (complexity can be added later)
+- If no obvious location exists, create issue to track proper placement
+
+Example: Testing gift reactions needs giftable items, combat needs weapons, etc.
+
+**Step 7: Run Walkthrough**
 
 ```bash
 python tools/walkthrough.py examples/big_game --file walkthroughs/test_herbalist_maren.txt
