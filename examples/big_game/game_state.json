@@ -44,6 +44,7 @@
       "examples.big_game.behaviors.regions.frozen_reaches.telescope_repair",
       "examples.big_game.behaviors.regions.frozen_reaches.salamanders",
       "examples.big_game.behaviors.shared.infrastructure.gift_reactions",
+      "examples.big_game.behaviors.shared.infrastructure.take_reactions",
       "examples.big_game.behaviors.shared.infrastructure.gossip_delivery",
       "examples.big_game.behaviors.shared.infrastructure.commitments"
     ]
@@ -533,9 +534,9 @@
           "description": "A path leads west to a clearing filled with buzzing"
         },
         {
-          "direction": "west",
+          "direction": "east",
           "target": "tangled_path",
-          "description": "The tangled path continues west"
+          "description": "The tangled path continues east"
         }
       ]
     },
@@ -2450,7 +2451,7 @@
       "id": "royal_honey",
       "name": "royal honey",
       "description": "A golden comb of the Bee Queen's finest honey. Its scent alone is intoxicating. Consuming it grants full healing and cures most conditions.",
-      "location": null,
+      "location": "bee_queen_clearing",
       "properties": {
         "portable": true,
         "curative": true,
@@ -2460,8 +2461,14 @@
           "honey",
           "queen honey",
           "queens honey"
-        ]
+        ],
+        "take_reactions": {
+          "handler": "behaviors.regions.beast_wilds.bee_queen:on_honey_theft"
+        }
       },
+      "behaviors": [
+        "behaviors.shared.infrastructure.take_reactions"
+      ],
       "llm_context": {
         "traits": [
           "golden honey glowing with magic",
@@ -4532,10 +4539,7 @@
           "frost_lily"
         ],
         "gift_reactions": {
-          "handler": "examples.big_game.behaviors.regions.beast_wilds.bee_queen:on_receive_item"
-        },
-        "take_reactions": {
-          "handler": "examples.big_game.behaviors.regions.beast_wilds.bee_queen:on_honey_theft"
+          "handler": "behaviors.regions.beast_wilds.bee_queen:on_receive_item"
         },
         "llm_context": {
           "traits": [
@@ -6873,10 +6877,10 @@
       "name": "",
       "location": "tangled_path",
       "connections": [
-        "exit_wolf_clearing_west"
+        "exit_ancient_grove_west"
       ],
       "direction": "east",
-      "description": "Open space among snow-laden trees, pack gathering ground.",
+      "description": "An ancient grove lies to the east.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6920,14 +6924,31 @@
       "traits": {}
     },
     {
+      "id": "exit_ancient_grove_west",
+      "name": "",
+      "location": "ancient_grove",
+      "connections": [
+        "exit_bee_queen_clearing_east"
+      ],
+      "direction": "west",
+      "description": "A path leads west to a clearing filled with buzzing.",
+      "adjectives": [],
+      "synonyms": [],
+      "properties": {
+        "type": "open"
+      },
+      "behaviors": [],
+      "traits": {}
+    },
+    {
       "id": "exit_ancient_grove_east",
       "name": "",
       "location": "ancient_grove",
       "connections": [
-        "exit_bee_queen_clearing_west"
+        "exit_tangled_path_east"
       ],
       "direction": "east",
-      "description": "Underground grove impossibly lit, massive hive structure dominating space.",
+      "description": "The tangled path continues east.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7736,14 +7757,14 @@
       "traits": {}
     },
     {
-      "id": "exit_bee_queen_clearing_west",
+      "id": "exit_bee_queen_clearing_east",
       "name": "",
       "location": "bee_queen_clearing",
       "connections": [
-        "exit_ancient_grove_east"
+        "exit_ancient_grove_west"
       ],
-      "direction": "west",
-      "description": "Trees impossibly old and massive, roots thick as houses breaking surface.",
+      "direction": "east",
+      "description": "The grove lies to the east.",
       "adjectives": [],
       "synonyms": [],
       "properties": {

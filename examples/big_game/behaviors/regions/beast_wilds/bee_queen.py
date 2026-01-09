@@ -167,10 +167,10 @@ def on_honey_theft(
     if "honey" not in item_id.lower():
         return EventResult(allow=True, feedback=None)
 
-    # Check if in bee grove
-    location = context.get("location")
-    loc_id = location.id if location and hasattr(location, "id") else str(location) if location else ""
-    if "beehive" not in loc_id.lower():
+    # Check if in bee queen's clearing
+    # Entity is the item being taken, check its location
+    loc_id = entity.location if hasattr(entity, "location") else ""
+    if not loc_id or "bee" not in str(loc_id).lower():
         return EventResult(allow=True, feedback=None)
 
     state = accessor.game_state
