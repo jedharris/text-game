@@ -281,6 +281,17 @@ python tools/walkthrough.py examples/big_game --file walkthroughs/test_herbalist
 
 All commands must behave as expected (including `# EXPECT_FAIL` commands).
 
+**Step 8: Document Omitted Tests**
+
+If you simplified testing by omitting complex mechanics:
+- **REQUIRED:** Add comment to issue #423 describing what was omitted and why
+- Include: what needs testing, why it was hard, suggested approach for follow-up
+- **Everything must eventually be tested** - #423 tracks deferred work
+
+Example omissions: death scenarios, dynamic spawning, state machine flows.
+
+---
+
 ### Example: Complete Fix for herbalist_maren
 
 **Before (broken):**
