@@ -676,27 +676,67 @@ Once these 5 NPCs work correctly, the recipe is proven and can be applied to rem
 
 ---
 
+## Critical Lessons: Commitment System
+
+### Legacy vs. Entity Architecture
+
+**Problem Pattern:** Two commitment systems existed:
+1. **Commitment entities** (`state.commitments`) - First-class entity system ✓
+2. **ActiveCommitment dicts** (`state.extra["active_commitments"]`) - Legacy dict system ✗
+
+Turn phase iterated entities but handlers created dicts → handlers never fired.
+
+**Solution:** Eliminate all legacy code, use Commitment entities only.
+
+**Creating Commitments:**
+```python
+from src.state_manager import Commitment
+from src.types import CommitmentId  # NOT src.infrastructure_types!
+from src.infrastructure_types import CommitmentState, TurnNumber
+
+commitment = Commitment(
+    id=CommitmentId("commit_mira_rescue"),
+    name="Rescue Trapped Survivors",
+    description="Save survivors before time runs out",
+    behaviors=["behaviors.shared.infrastructure.commitments"]  # Use behaviors.* path
+)
+commitment.properties["state"] = CommitmentState.ACTIVE
+commitment.properties["target_actor"] = "camp_leader_mira"
+commitment.properties["made_at_turn"] = current_turn
+commitment.properties["deadline_turn"] = TurnNumber(current_turn + 20)
+
+state.commitments.append(commitment)
+```
+
+**Critical Details:**
+- Use `behaviors.shared.*` paths, NOT `examples.big_game.behaviors.*`
+- Import CommitmentId from `src.types`, NOT `src.infrastructure_types`
+- Clear `__pycache__` if changes don't take effect (Python caching issue)
+
+---
+
 ## Session Progress Log
 
-### 2026-01-09: Issue #427 - Comprehensive Testing (Phases 1-3 Complete)
+### 2026-01-09: Issue #427 - Comprehensive Testing (Phases 1-4)
 
 **Completed:**
 - ✅ Phase 1 (hunter_sira): death_reactions - Fixed encounter/death hook invocations
 - ✅ Phase 2 (merchant_delvan): condition_reactions + death_reactions
 - ✅ Phase 3 (healer_elara): gossip_reactions - Fixed gossip delivery system (Bug #6)
+- ✅ Phase 4 (camp_leader_mira): commitment_reactions - Fixed legacy commitment system (Bug #8)
 
 **Infrastructure Fixes:**
 1. encounter_reactions hook now fires in utilities/utils.py:describe_location()
 2. death_reactions hook now fires in combat.py:on_death()
 3. gossip_delivery.py turn phase created and added to global behaviors
 4. Exit system documented in claude_session_guide.md (connections field)
+5. **Commitment system migrated from dicts to entities** (Issue #432)
 
 **Outstanding Bugs:**
 - Bug #7 (medium priority): Gossip message/penalty duplicated - trust changes doubled
-- Bug #8 (BLOCKER): Commitment expiration doesn't invoke handlers - blocks Phase 4
 
-**Next:** Debug Bug #8 (commitment entities not being checked), complete Phase 4 (Mira), Phase 5 (bee_queen)
+**Next:** Phase 5 (bee_queen: gift_reactions + take_reactions)
 
 ---
 
-**Last Updated:** 2026-01-09 (Issue #427 - Phases 1-3 complete, Phase 4 blocked)
+**Last Updated:** 2026-01-09 (Issue #427 - Phases 1-4 complete)
