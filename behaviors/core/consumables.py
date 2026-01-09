@@ -139,8 +139,14 @@ def on_drink(entity: Any, accessor: Any, context: Dict) -> EventResult:
     """
     Handle drink event for drinkable items.
 
-    Heals the player and removes the item from inventory.
+    Applies effects (healing, buffs, etc.) and removes the item from inventory.
+    Returns structured data for narrator composition.
     Returns IGNORE_EVENT for non-drinkable entities.
+
+    Following narration architecture:
+    - Behavior manages state (applies effects, removes item)
+    - Returns structured data for narrator
+    - Item definitions provide narrative descriptions via traits
 
     Args:
         entity: The entity being drunk
@@ -150,11 +156,14 @@ def on_drink(entity: Any, accessor: Any, context: Dict) -> EventResult:
     Returns:
         EventResult if entity is drinkable, IGNORE_EVENT otherwise
     """
+    from utilities.entity_serializer import serialize_for_handler_result
+
     # Check if entity is drinkable
     if not entity.properties.get("drinkable", False):
         return IGNORE_EVENT
 
-    player = accessor.actors.get("player")
+    actor_id = context.get("actor_id", "player")
+    player = accessor.get_actor(actor_id)
     if not player:
         return EventResult(allow=True, feedback="No player found.")
 
@@ -165,17 +174,27 @@ def on_drink(entity: Any, accessor: Any, context: Dict) -> EventResult:
     # Mark as consumed
     accessor.set_entity_where(entity.id, "__consumed_by_player__")
 
-    # Heal player
-    current_health = player.stats.get("health", 100)
-    max_health = player.stats.get("max_health", 100)
-    heal_amount = 20
+    # Apply effects
+    effects = entity.properties.get("effects", {})
+    effects_applied = {}
 
-    new_health = min(current_health + heal_amount, max_health)
-    player.stats["health"] = new_health
+    if "heal" in effects:
+        heal_amount = effects["heal"]
+        current_health = player.stats.get("health", 100)
+        max_health = player.stats.get("max_health", 100)
+        new_health = min(current_health + heal_amount, max_health)
+        player.stats["health"] = new_health
+        effects_applied["heal"] = heal_amount
 
+    # Return structured data for narrator
     return EventResult(
         allow=True,
-        feedback="You drink the glowing red potion. Warmth spreads through your body as your wounds heal."
+        feedback="",  # No pre-composed prose
+        data={
+            "consumable": serialize_for_handler_result(entity, accessor, actor_id),
+            "action": "drink",
+            "effects_applied": effects_applied
+        }
     )
 
 
@@ -183,8 +202,14 @@ def on_eat(entity: Any, accessor: Any, context: Dict) -> EventResult:
     """
     Handle eat event for food items.
 
-    Removes the food from inventory and provides a satisfying message.
+    Removes the food from inventory and applies any effects.
+    Returns structured data for narrator composition.
     Returns IGNORE_EVENT for non-food entities.
+
+    Following narration architecture:
+    - Behavior manages state (removes item, applies effects)
+    - Returns structured data for narrator
+    - Item definitions provide narrative descriptions via traits
 
     Args:
         entity: The entity being eaten
@@ -194,11 +219,14 @@ def on_eat(entity: Any, accessor: Any, context: Dict) -> EventResult:
     Returns:
         EventResult if entity is edible, IGNORE_EVENT otherwise
     """
+    from utilities.entity_serializer import serialize_for_handler_result
+
     # Check if entity is edible
     if not entity.properties.get("edible", False):
         return IGNORE_EVENT
 
-    player = accessor.actors.get("player")
+    actor_id = context.get("actor_id", "player")
+    player = accessor.get_actor(actor_id)
     if not player:
         return EventResult(allow=True, feedback="No player found.")
 
@@ -209,7 +237,25 @@ def on_eat(entity: Any, accessor: Any, context: Dict) -> EventResult:
     # Mark as consumed
     accessor.set_entity_where(entity.id, "__consumed_by_player__")
 
+    # Apply effects if any
+    effects = entity.properties.get("effects", {})
+    effects_applied = {}
+
+    if "heal" in effects:
+        heal_amount = effects["heal"]
+        current_health = player.stats.get("health", 100)
+        max_health = player.stats.get("max_health", 100)
+        new_health = min(current_health + heal_amount, max_health)
+        player.stats["health"] = new_health
+        effects_applied["heal"] = heal_amount
+
+    # Return structured data for narrator
     return EventResult(
         allow=True,
-        feedback="You eat the food. It's delicious and satisfying."
+        feedback="",  # No pre-composed prose
+        data={
+            "consumable": serialize_for_handler_result(entity, accessor, actor_id),
+            "action": "eat",
+            "effects_applied": effects_applied
+        }
     )

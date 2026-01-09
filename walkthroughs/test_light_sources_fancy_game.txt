@@ -1,0 +1,22 @@
+# Test light_sources behavior refactoring in fancy_game
+# This walkthrough tests that the narrator composes proper prose
+# from state_variants when the lantern is taken and dropped
+
+# Start: player in loc_meadow
+# Lantern is on table in loc_cottage
+
+# Go to cottage
+go north
+
+# Take the lantern - should trigger on_take, light it
+# Narrator should compose prose using "lit" state_variant
+take lantern
+
+# Drop the lantern - should trigger on_drop, extinguish it
+# Narrator should compose prose using "unlit" state_variant
+drop lantern
+
+# Take it again to verify repeatable
+take lantern
+
+# Success if no errors and narration flows naturally

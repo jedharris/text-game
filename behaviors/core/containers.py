@@ -77,7 +77,13 @@ def on_open(entity: Any, accessor: Any, context: Dict) -> EventResult:
     Handle open event for treasure chest - win condition.
 
     Sets the 'won' flag in player flags to trigger game end.
+    Returns structured data for narrator composition.
     Returns IGNORE_EVENT if entity is not a treasure chest, allowing other handlers.
+
+    Following narration architecture:
+    - Behavior manages state (sets won flag)
+    - Returns structured data for narrator
+    - Item definitions provide narrative descriptions via traits
 
     Args:
         entity: The entity being opened
@@ -87,15 +93,35 @@ def on_open(entity: Any, accessor: Any, context: Dict) -> EventResult:
     Returns:
         EventResult if entity is treasure chest, IGNORE_EVENT otherwise
     """
+    from utilities.entity_serializer import serialize_for_handler_result
+
     # Only handle treasure chest
     if entity.id != "treasure_chest":
         return IGNORE_EVENT
 
-    player = accessor.actors.get("player")
+    actor_id = context.get("actor_id", "player")
+    player = accessor.get_actor(actor_id)
     if player:
         player.flags["won"] = True
 
+    # Check if this is a victory item
+    is_victory = entity.properties.get("victory_item", False)
+
+    # Get treasure contents if container
+    treasure_items = []
+    if hasattr(entity, 'container') and entity.container:
+        for item_id in entity.container.items:
+            item = accessor.get_item(item_id)
+            if item:
+                treasure_items.append(serialize_for_handler_result(item, accessor, actor_id))
+
+    # Return structured data for narrator
     return EventResult(
         allow=True,
-        feedback="You open the chest and find glittering treasure! You win!"
+        feedback="",  # No pre-composed prose
+        data={
+            "container": serialize_for_handler_result(entity, accessor, actor_id),
+            "contents": treasure_items,
+            "victory": is_victory
+        }
     )

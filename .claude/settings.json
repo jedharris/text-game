@@ -4,8 +4,7 @@
   "allow": [
     "Bash",
     "mcp__claude-context",
-    "Gh :*",
-    "Bash(gh :*)"
+    "Gh",
     ],
   "deny": [],
   "ask": []

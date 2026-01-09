@@ -29,6 +29,8 @@ class EventResult:
         feedback: Optional feedback text describing behavior's response.
                   Semantic type: FeedbackText
                   Examples: "The door creaks open.", "The sword is stuck to the altar."
+        data: Optional structured data for narration (serialized entities, state changes, etc.).
+              Passed through to HandlerResult for narrator composition.
         context: Author-defined narrator context (passed through to NarrationPlan).
                  Can include npc_state, communication, relationship, etc.
         hints: Author-defined style hints (e.g., ["urgent", "rescue"]).
@@ -40,6 +42,7 @@ class EventResult:
     """
     allow: bool
     feedback: Optional[str] = None
+    data: Optional[Dict[str, Any]] = None
     context: Optional[Dict[str, Any]] = None
     hints: list[str] = field(default_factory=list)
     fragments: Optional[Dict[str, Any]] = None
@@ -65,9 +68,11 @@ class UpdateResult:
         detail: Error message if update failed, or behavior feedback on success.
                 Semantic type: DetailText
                 Examples: "Item moved to inventory.", "Field 'location' not found."
+        data: Optional structured data from behavior for narration.
     """
     success: bool
     detail: Optional[str] = None
+    data: Optional[Dict[str, Any]] = None
 
 
 @dataclass
@@ -849,6 +854,8 @@ class StateAccessor:
             events = self.behavior_manager.get_events_for_verb(verb)
 
             behavior_message = None
+            behavior_result = None
+            behavior_data = None
             last_deny = False  # Track if all tiers denied
 
             if events:
@@ -886,10 +893,13 @@ class StateAccessor:
                 # After trying all tiers, if last result was deny, return failure
                 if last_deny:
                     return UpdateResult(success=False, detail=behavior_message)
-            else:
-                behavior_message = None
+
+                # Extract behavior data if available
+                if behavior_result and hasattr(behavior_result, 'data'):
+                    behavior_data = behavior_result.data
         else:
             behavior_message = None
+            behavior_data = None
 
         # Apply each change
         for path, value in changes.items():
@@ -900,5 +910,5 @@ class StateAccessor:
                 return UpdateResult(success=False, detail=error)
 
         # All changes applied successfully
-        # Return behavior message if present, otherwise None
-        return UpdateResult(success=True, detail=behavior_message)
+        # Return behavior message and data if present
+        return UpdateResult(success=True, detail=behavior_message, data=behavior_data)

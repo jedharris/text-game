@@ -20,6 +20,7 @@ from utilities.handler_utils import (
     find_and_validate_container,
     build_action_result,
 )
+from utilities.entity_serializer import serialize_for_handler_result
 
 
 # Vocabulary extension - adds take and drop verbs
@@ -200,10 +201,17 @@ def handle_take(accessor, action):
     if error:
         return error
 
+    # Build result data, merging behavior data if present
+    result_data = serialize_for_handler_result(item, accessor, actor_id)
+    if result.data:
+        # Merge behavior data into result data
+        result_data.update(result.data)
+
     return build_action_result(
         item,
         f"You take the {item.name}.",
         beats=[move_msg, result.detail],
+        data=result_data,
         accessor=accessor,
         actor_id=actor_id
     )
