@@ -29,6 +29,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from src.game_engine import GameEngine
+from src.types import ActorId
 
 
 class FailureCategory(Enum):
@@ -219,6 +220,36 @@ def parse_expect_command(line: str) -> Optional[str]:
         expected = expected[1:-1]
 
     return expected
+
+
+def parse_advance_command(line: str) -> Optional[int]:
+    """Parse @advance command to advance game turns.
+
+    Args:
+        line: Advance command like "@advance 10 turns" or "@advance 5"
+
+    Returns:
+        Number of turns to advance, or None if not an advance command
+
+    Examples:
+        "@advance 10 turns" -> 10
+        "@advance 5" -> 5
+        "@advance 1 turn" -> 1
+    """
+    line = line.strip()
+    if not line.startswith("@advance "):
+        return None
+
+    # Remove @advance prefix
+    advance_expr = line[9:].strip()
+
+    # Extract number (may have "turns" or "turn" suffix)
+    parts = advance_expr.split()
+    try:
+        num_turns = int(parts[0])
+        return num_turns
+    except (ValueError, IndexError):
+        raise ValueError(f"Invalid @advance syntax (expected number): {line}")
 
 
 def parse_assertion(line: str) -> Optional[Tuple[str, str, str]]:
@@ -496,6 +527,50 @@ def run_walkthrough(
                 print(f"[✗] Failed to set {field_path}: {e}")
                 if stop_on_error:
                     print(f"\n⚠️  Stopped at line {i} due to @set failure")
+                    break
+
+            continue
+
+        # Check if this is an @advance command
+        advance_turns = parse_advance_command(line)
+        if advance_turns is not None:
+            print(f"\n{'='*60}")
+            print(f"@advance {advance_turns} turns")
+            print("-" * 60)
+
+            try:
+                # Import turn_executor and types
+                from src import turn_executor
+                from src.state_accessor import StateAccessor
+                from src.types import ActorId as ActorIdType
+
+                # Create accessor for turn processing
+                accessor = StateAccessor(
+                    game_state=engine.game_state,
+                    behavior_manager=engine.behavior_manager
+                )
+
+                # Advance turns and execute turn phases
+                for turn_num in range(advance_turns):
+                    # Execute turn phases (this also increments turn_count internally)
+                    # Pass empty action since this is just time passing
+                    turn_messages = turn_executor.execute_turn_phases(
+                        engine.game_state,
+                        engine.behavior_manager,
+                        accessor,
+                        {"verb": "wait", "actor_id": ActorIdType("player")}
+                    )
+
+                    # Print turn messages if any
+                    if turn_messages:
+                        for msg in turn_messages:
+                            print(f"  Turn {engine.game_state.turn_count}: {msg}")
+
+                print(f"[✓] Advanced to turn {engine.game_state.turn_count}")
+            except Exception as e:
+                print(f"[✗] Failed to advance turns: {e}")
+                if stop_on_error:
+                    print(f"\n⚠️  Stopped at line {i} due to @advance failure")
                     break
 
             continue
