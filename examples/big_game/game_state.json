@@ -26,6 +26,12 @@
         "description": "Save Hunter Sira from her injuries",
         "deadline_turns": 8,
         "target_actor": "hunter_sira"
+      },
+      "commit_delvan_rescue": {
+        "id": "commit_delvan_rescue",
+        "description": "Rescue Merchant Delvan from the warehouse",
+        "deadline_turns": 10,
+        "target_actor": "merchant_delvan"
       }
     },
     "gossip_queue": [],
