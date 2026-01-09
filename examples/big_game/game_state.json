@@ -495,7 +495,14 @@
           "revisit": "The tangled path, growth ever persistent.",
           "path_cleared": "Recent clearing has made passage easier, though still challenging."
         }
-      }
+      },
+      "connections": [
+        {
+          "direction": "east",
+          "target": "ancient_grove",
+          "description": "An ancient grove lies to the east"
+        }
+      ]
     },
     {
       "id": "ancient_grove",
@@ -518,7 +525,19 @@
           "first_visit": "These trees were old when the town was young. What have they witnessed?",
           "revisit": "The timeless grove, ancient and enduring."
         }
-      }
+      },
+      "connections": [
+        {
+          "direction": "west",
+          "target": "bee_queen_clearing",
+          "description": "A path leads west to a clearing filled with buzzing"
+        },
+        {
+          "direction": "west",
+          "target": "tangled_path",
+          "description": "The tangled path continues west"
+        }
+      ]
     },
     {
       "id": "bee_queen_clearing",
@@ -543,7 +562,14 @@
           "queen_friendly": "The bees acknowledge your presence without aggression.",
           "queen_hostile": "The bees swarm defensively, queen's territory threatened."
         }
-      }
+      },
+      "connections": [
+        {
+          "direction": "east",
+          "target": "ancient_grove",
+          "description": "The grove lies to the east"
+        }
+      ]
     },
     {
       "id": "spider_thicket",
