@@ -45,8 +45,13 @@ def on_service_request(
 
     keyword = context.get("keyword", "").lower()
 
-    # Elara - Healer
+    # Elara - Healer and Confession
     if "elara" in actor_id.lower():
+        # Check for confession first
+        confession_keywords = ["confess", "admit", "tell you", "must know", "truth"]
+        if any(k in keyword for k in confession_keywords):
+            return on_confession(entity, accessor, context)
+
         if any(k in keyword for k in HEAL_KEYWORDS):
             return _handle_elara_healing(entity, accessor)
 
@@ -155,7 +160,7 @@ def on_confession(
             state.extra["player_confessed_sira"] = True
 
             # Apply reduced penalty
-            elara = state.actors.get("npc_healer_elara")
+            elara = state.actors.get("healer_elara")
             if elara:
                 # Initialize trust_state if missing
                 if "trust_state" not in elara.properties:

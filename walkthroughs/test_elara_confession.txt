@@ -1,0 +1,22 @@
+# Test healer_elara confession before gossip
+# Scenario: Confession → reduced penalty (-1 vs -2)
+
+# Simulate Sira's death
+@set extra.sira_died_with_player = true
+@set extra.current_turn = 5
+
+# Navigate to Elara in healers_sanctuary
+go south
+go east
+go south
+go south
+go east
+
+# Confess to Elara BEFORE gossip arrives
+ask elara about confess
+@expect "telling me yourself"
+@expect "takes courage"
+@assert extra.player_confessed_sira == true
+@assert actors.healer_elara.properties.trust_state.current == -1
+
+# Success - confession applied -1 penalty, not -2 from gossip
