@@ -3,7 +3,11 @@
 Provides use command. Pure hook dispatch - NO game logic.
 """
 
-from typing import Any, Dict, Optional
+from typing import Dict, Optional, Union, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from src.item import Item
+    from src.actor import Actor
 from src.state_accessor import HandlerResult
 from src.word_entry import WordEntry
 from src.types import ActorId
@@ -54,7 +58,7 @@ def handle_use(accessor, action: Dict) -> HandlerResult:
         )
 
     # Find target (can be actor, item, or location feature)
-    target: Optional[Any] = None  # Duck-typed - could be Item, Actor, or None
+    target: Optional[Union["Item", "Actor"]] = None
     target_data = None
 
     if target_name and isinstance(target_name, WordEntry):
