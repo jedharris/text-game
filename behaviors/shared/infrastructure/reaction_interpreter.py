@@ -65,17 +65,26 @@ def process_reaction(
             )
 
     # PHASE 2: Apply all effects (in deterministic order)
+    effect_feedback = []
     for effect_key in EFFECT_ORDER:
         if effect_key not in config:
             continue
 
         handler = EFFECT_REGISTRY.get(effect_key)
         if handler:
-            handler(config, state, entity, context)
+            feedback = handler(config, state, entity, context)
+            if feedback:  # Collect non-None feedback from effects
+                effect_feedback.append(feedback)
 
     # PHASE 3: Generate feedback
     message = get_message(config, spec)
     if message:
         message = substitute_templates(message, context)
+
+    # Combine main message with effect feedback (e.g., from condition_reactions handlers)
+    if effect_feedback:
+        all_feedback = [message] if message else []
+        all_feedback.extend(effect_feedback)
+        message = " ".join(all_feedback)
 
     return EventResult(allow=True, feedback=message)

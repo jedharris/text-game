@@ -4,14 +4,15 @@ Effects define WHAT a reaction does. They are applied in deterministic order
 after all conditions pass.
 """
 
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 
 # Type alias for effect handler functions
-EffectHandler = Callable[[Dict[str, Any], Any, Any, Dict[str, Any]], None]
+# Returns Optional[str] - feedback from downstream hooks (e.g., condition_reactions)
+EffectHandler = Callable[[Dict[str, Any], Any, Any, Dict[str, Any]], Optional[str]]
 
 
-def _unset_flags(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
+def _unset_flags(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> Optional[str]:
     """Remove flags from game state.
 
     Args:
@@ -19,6 +20,9 @@ def _unset_flags(config: Dict[str, Any], state: Any, entity: Any, context: Dict[
         state: GameState instance
         entity: Entity being modified
         context: Event context
+
+    Returns:
+        None (no feedback from this effect)
     """
     flags_to_unset = config.get("unset_flags", [])
     extra = state.extra if hasattr(state, "extra") else {}
@@ -26,8 +30,10 @@ def _unset_flags(config: Dict[str, Any], state: Any, entity: Any, context: Dict[
     for flag_name in flags_to_unset:
         extra.pop(flag_name, None)
 
+    return None
 
-def _set_flags(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
+
+def _set_flags(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> Optional[str]:
     """Set game state flags.
 
     Args:
@@ -35,6 +41,9 @@ def _set_flags(config: Dict[str, Any], state: Any, entity: Any, context: Dict[st
         state: GameState instance
         entity: Entity being modified
         context: Event context
+
+    Returns:
+        None (no feedback from this effect)
     """
     flags = config.get("set_flags", {})
     extra = state.extra if hasattr(state, "extra") else {}
@@ -42,8 +51,10 @@ def _set_flags(config: Dict[str, Any], state: Any, entity: Any, context: Dict[st
     for flag_name, flag_value in flags.items():
         extra[flag_name] = flag_value
 
+    return None
 
-def _remove_condition(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
+
+def _remove_condition(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> Optional[str]:
     """Remove status effect from entity.
 
     Args:
@@ -51,10 +62,13 @@ def _remove_condition(config: Dict[str, Any], state: Any, entity: Any, context: 
         state: GameState instance
         entity: Entity being modified
         context: Event context
+
+    Returns:
+        Feedback from condition_reactions handler if provided, else None
     """
     condition_type = config.get("remove_condition")
     if not condition_type or not hasattr(entity, "properties"):
-        return
+        return None
 
     # Use library function which fires hooks
     from behavior_libraries.actor_lib.conditions import remove_condition
@@ -64,11 +78,16 @@ def _remove_condition(config: Dict[str, Any], state: Any, entity: Any, context: 
     if not accessor:
         raise ValueError("remove_condition effect requires accessor in context")
 
-    # This will fire entity_condition_change hook if condition exists
-    remove_condition(entity, condition_type, accessor)
+    # This will fire entity_condition_change hook and return handler feedback
+    message = remove_condition(entity, condition_type, accessor)
+    # Return message only if it's from a handler (not default library message)
+    # Default messages like "X's bleeding has been removed" are redundant with item_use response
+    if message and not message.endswith("has been removed."):
+        return message
+    return None
 
 
-def _apply_condition(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
+def _apply_condition(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> Optional[str]:
     """Apply status effect to entity.
 
     Args:
@@ -104,7 +123,7 @@ def _apply_condition(config: Dict[str, Any], state: Any, entity: Any, context: D
     # The condition system should detect condition changes and fire hooks
 
 
-def _modify_property(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
+def _modify_property(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> Optional[str]:
     """Modify property using game-agnostic Tier 1 primitive.
 
     Args:
@@ -125,7 +144,7 @@ def _modify_property(config: Dict[str, Any], state: Any, entity: Any, context: D
         _apply_property_modification(mod, state, entity)
 
 
-def _apply_property_modification(mod: Dict[str, Any], state: Any, entity: Any) -> None:
+def _apply_property_modification(mod: Dict[str, Any], state: Any, entity: Any) -> Optional[str]:
     """Apply a single property modification.
 
     Args:
@@ -187,7 +206,7 @@ def _apply_property_modification(mod: Dict[str, Any], state: Any, entity: Any) -
         current[key].update(mod["merge"])
 
 
-def _apply_damage(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
+def _apply_damage(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> Optional[str]:
     """Deal damage (DEPRECATED - use modify_property).
 
     Args:
@@ -203,7 +222,7 @@ def _apply_damage(config: Dict[str, Any], state: Any, entity: Any, context: Dict
         context["damage_dealt"] = damage
 
 
-def _heal_entity(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
+def _heal_entity(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> Optional[str]:
     """Restore health (DEPRECATED - use modify_property).
 
     Args:
@@ -220,7 +239,7 @@ def _heal_entity(config: Dict[str, Any], state: Any, entity: Any, context: Dict[
         context["heal_amount"] = heal_amount
 
 
-def _apply_trust_delta(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
+def _apply_trust_delta(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> Optional[str]:
     """Modify trust (Tier 2 convenience - compiles to modify_property).
 
     Args:
@@ -246,7 +265,7 @@ def _apply_trust_delta(config: Dict[str, Any], state: Any, entity: Any, context:
     context["trust"] = new_trust
 
 
-def _apply_trust_transitions(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
+def _apply_trust_transitions(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> Optional[str]:
     """Auto-transition based on trust thresholds (Tier 2 convenience).
 
     Args:
@@ -278,7 +297,7 @@ def _apply_trust_transitions(config: Dict[str, Any], state: Any, entity: Any, co
             context["new_state"] = target_state
 
 
-def _transition_state(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
+def _transition_state(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> Optional[str]:
     """Transition entity state (Tier 2 convenience).
 
     Args:
@@ -297,7 +316,7 @@ def _transition_state(config: Dict[str, Any], state: Any, entity: Any, context: 
         context["new_state"] = target_state
 
 
-def _consume_item(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
+def _consume_item(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> Optional[str]:
     """Remove item from player inventory.
 
     Args:
@@ -326,7 +345,7 @@ def _consume_item(config: Dict[str, Any], state: Any, entity: Any, context: Dict
         item.location = None
 
 
-def _grant_items(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
+def _grant_items(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> Optional[str]:
     """Add items to player inventory (Tier 3 common operation).
 
     Args:
@@ -353,7 +372,7 @@ def _grant_items(config: Dict[str, Any], state: Any, entity: Any, context: Dict[
             item.location = "player"
 
 
-def _spawn_items(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
+def _spawn_items(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> Optional[str]:
     """Create items in current location.
 
     Args:
@@ -366,7 +385,7 @@ def _spawn_items(config: Dict[str, Any], state: Any, entity: Any, context: Dict[
     # Implementation deferred - needs item template system
 
 
-def _grant_knowledge(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
+def _grant_knowledge(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> Optional[str]:
     """Add knowledge flags (DEPRECATED - use modify_property with append).
 
     Args:
@@ -391,7 +410,7 @@ def _grant_knowledge(config: Dict[str, Any], state: Any, entity: Any, context: D
             player.properties["knowledge"].append(item)
 
 
-def _add_to_collection(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
+def _add_to_collection(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> Optional[str]:
     """Add to collection (Tier 1 game-agnostic).
 
     Args:
@@ -422,7 +441,7 @@ def _add_to_collection(config: Dict[str, Any], state: Any, entity: Any, context:
             extra[path].append(value)
 
 
-def _remove_from_collection(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
+def _remove_from_collection(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> Optional[str]:
     """Remove from collection (Tier 1 game-agnostic).
 
     Args:
@@ -450,7 +469,7 @@ def _remove_from_collection(config: Dict[str, Any], state: Any, entity: Any, con
             extra[path].remove(value)
 
 
-def _invoke_system(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
+def _invoke_system(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> Optional[str]:
     """Invoke game system (Tier 1 game-agnostic).
 
     Args:
@@ -463,7 +482,7 @@ def _invoke_system(config: Dict[str, Any], state: Any, entity: Any, context: Dic
     # Implementation deferred - needs system registry
 
 
-def _track_in_list(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
+def _track_in_list(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> Optional[str]:
     """Track in list (DEPRECATED - use add_to_collection).
 
     Args:
@@ -489,7 +508,7 @@ def _track_in_list(config: Dict[str, Any], state: Any, entity: Any, context: Dic
         extra[list_name].append(item_id)
 
 
-def _increment_counter(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
+def _increment_counter(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> Optional[str]:
     """Increment counter (DEPRECATED - use modify_property with delta).
 
     Args:

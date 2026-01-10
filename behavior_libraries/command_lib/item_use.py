@@ -3,7 +3,7 @@
 Provides use command. Pure hook dispatch - NO game logic.
 """
 
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 from src.state_accessor import HandlerResult
 from src.word_entry import WordEntry
 from src.types import ActorId
@@ -54,7 +54,7 @@ def handle_use(accessor, action: Dict) -> HandlerResult:
         )
 
     # Find target (can be actor, item, or location feature)
-    target = None  # Duck-typed - could be Item, Actor, or None
+    target: Optional[Any] = None  # Duck-typed - could be Item, Actor, or None
     target_data = None
 
     if target_name and isinstance(target_name, WordEntry):
@@ -67,7 +67,7 @@ def handle_use(accessor, action: Dict) -> HandlerResult:
         target = find_accessible_item(accessor, target_name, actor_id, indirect_adj)
         if not target:
             # Try finding as actor
-            target = find_actor_by_name(accessor, target_name, actor_id)  # type: ignore[assignment]
+            target = find_actor_by_name(accessor, target_name, actor_id)
 
         if not target:
             # Build display name for error
