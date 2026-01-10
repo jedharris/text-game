@@ -4,8 +4,11 @@
 # Navigate to bee queen clearing
 go south
 go south
-go southwest
 go east
+go west
+
+# Set up inventory before interactions
+@set actors.player.inventory = ["frost_lily"]
 
 # Test dialog_reactions: Ask queen about honey
 look
@@ -13,7 +16,6 @@ ask queen about honey
 @expect "Queen"
 
 # Test gift_reactions: Give flower to build trust
-@set actors.player.inventory = ["frost_lily"]
 give frost lily to queen
 @expect "accepts"
 

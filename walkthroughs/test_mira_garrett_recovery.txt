@@ -1,0 +1,42 @@
+# Camp Leader Mira - Garrett Recovery Tracking
+# Tests: Dialog varies based on Garrett's recovery state after rescue
+# Scenario: camp_leader_mira.md scenario 10
+
+# Setup: Simulate Garrett rescued and some turns passed
+@set extra.garrett_rescued = true
+@set extra.garrett_rescue_turn = 1
+
+# Navigate to survivor_camp
+go south
+go south
+go east
+go east
+
+# Verify we're at survivor camp
+look
+@expect "Mira"
+
+# Ask about Garrett immediately after rescue (turn ~5)
+# He should still be recovering
+ask mira about garrett
+@expect "recovering" or "resting" or "weak"
+
+# Advance time (simulate waiting)
+@set extra.garrett_rescue_turn = 1
+wait
+wait
+wait
+wait
+wait
+
+# Now ask again - Garrett should be recovered (5+ turns)
+ask mira about garrett
+@expect "recovered" or "better" or "teaching" or "swimming"
+
+# Mira should acknowledge he can now help
+@expect "teach" or "lessons" or "ready"
+
+# Summary: Garrett recovery tracking verified
+# - Early dialog shows recovering state
+# - After 5 turns, dialog shows recovered state
+# - Mira mentions he can teach swimming when recovered

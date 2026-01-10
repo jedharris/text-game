@@ -1,0 +1,41 @@
+# Healer Elara - Garden Access Control
+# Tests: Garden access granted at trust 3+
+# Scenario: healer_elara.md scenario 9
+
+# Navigate to healer_elara location
+go south
+go south
+go east
+go south
+
+# Verify we're at the right location
+look
+@expect "Elara"
+
+# Try to access garden without trust (should be denied)
+go east
+@expect "private" or "not allowed" or "permission"
+
+# Build trust to level 3
+@set actors.healer_elara.trust_state.current = 3
+
+# Ask about the garden
+ask elara about garden
+@expect "herbs" or "plants" or "welcome"
+
+# Now try to access garden with sufficient trust
+go east
+@expect "garden" or "herbs" or "plants"
+
+# Verify we're in the garden
+look
+@expect "garden"
+
+# Verify flag is set
+@inspect extra.has_garden_access
+@expect true
+
+# Summary: Garden access control verified
+# - Access denied below trust 3
+# - Access granted at trust 3+
+# - has_garden_access flag set

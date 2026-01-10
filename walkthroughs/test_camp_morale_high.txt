@@ -1,0 +1,34 @@
+# Camp Leader Mira - High Morale Effects
+# Tests: High camp morale provides bonuses
+# Scenario: camp_leader_mira.md scenario 8
+
+# Setup: Set camp morale to high
+@set extra.camp_morale = 80
+
+# Navigate to survivor_camp (Sunken District)
+go south
+go south
+go east
+go east
+
+# Verify we're at survivor camp
+look
+@expect "Mira"
+
+# Talk to Mira - should reflect high morale
+talk to mira
+@expect "thriving" or "hope" or "strong" or "good spirits"
+
+# Ask about camp status
+ask mira about camp
+@expect "doing well" or "safe" or "prospering"
+
+# High morale should provide benefits
+# Better prices, more helpful NPCs, etc.
+ask mira about supplies
+@expect "plenty" or "share" or "generous"
+
+# Summary: High morale effects verified
+# - Mira dialog reflects high morale
+# - Camp status positive
+# - Benefits available

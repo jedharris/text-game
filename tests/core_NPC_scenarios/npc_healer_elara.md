@@ -70,10 +70,50 @@
    - Verify: Feedback "You seem well"
    - Verify: No errors, graceful handling
 
+### Skill Teaching Paths
+8. **Basic Herbalism Teaching (Trust 2+)**
+   - Build trust to 2+ (positive actions, no gossip penalties)
+   - Pay 50g OR provide rare herb
+   - Verify: basic_herbalism skill granted
+   - Verify: Can identify dangerous plants
+   - Verify: Supervised garden access unlocked
+
+9. **Advanced Herbalism Teaching (Trust 3+)**
+   - Build trust to 3+
+   - Complete basic herbalism first
+   - Pay 100g OR provide rare herb
+   - Verify: advanced_herbalism skill granted
+   - Verify: Can safely handle all herbs including nightshade
+   - Verify: Can create healing items (potions, salves)
+   - Verify: Unsupervised garden access
+
+10. **Garden Access**
+    - Basic herbalism OR trust 2+ with Maren
+    - Verify: Can enter healer's garden (supervised)
+    - Advanced herbalism OR trust 3+
+    - Verify: Can harvest garden freely
+
+### Trust Recovery
+11. **Recovery from Gossip Penalty**
+    - Have trust penalty from gossip
+    - Perform positive actions (help NPCs, bring rare herbs)
+    - Verify: Trust can recover over time
+    - Verify: Rate limited (not instant)
+
+12. **Aldric Rescue Bonus**
+    - Save npc_aldric from Fungal Depths
+    - Return to Civilized Remnants
+    - Verify: Elara trust +1 (saved_aldric flag)
+    - Verify: Dialog acknowledges rescue
+
 ## Dependencies
-- **Items**: None directly (Elara provides service, doesn't trade items)
+- **Items**:
+  - Rare herbs (payment for teaching)
+  - Gold (alternative payment)
 - **NPCs**:
   - hunter_sira (gossip source about death)
+  - npc_aldric (trust bonus if saved)
+  - herbalist_maren (alternative basic herbalism source)
   - Potentially other NPCs that generate gossip to Elara
 - **Mechanics**:
   - gossip_reactions infrastructure
@@ -82,13 +122,15 @@
   - trust_state tracking with thresholds
   - Service gating based on trust
   - Condition removal (healing mechanic)
+  - Skill teaching system (basic → advanced herbalism)
+  - Garden access control
 
 ## Walkthrough Files
-- `test_elara_gossip.txt` (scenario 2) - EXISTS, PASSING (gossip without confession)
-- `test_elara_confession.txt` (scenario 1) - NEEDS CREATION (confession before gossip)
-- `test_elara_healing.txt` (scenarios 6-7) - NEEDS CREATION (healing service)
-- `test_elara_trust_gate.txt` (scenario 3) - COULD ADD (service blocked by trust)
-- `test_elara_confession_timing.txt` (scenario 4) - COULD ADD (late confession)
+- `test_elara_gossip.txt` (scenario 2) - ✅ EXISTS, PASSING (gossip without confession)
+- `test_elara_confession.txt` (scenario 1) - ✅ EXISTS, PASSING (confession before gossip)
+- `test_healer_elara.txt` - ✅ EXISTS, PASSING (general dialog)
+- `test_elara_healing.txt` (scenarios 6-7) - COULD ADD (healing service edge cases)
+- `test_elara_trust_gate.txt` (scenario 3) - COULD ADD (service blocked, not critical)
 
 ## Implementation Status
 - [x] Gossip reactions handler (services.py:61-123)
@@ -98,6 +140,19 @@
 - [x] Trust-gated healing service (services.py:267-313)
 - [x] Condition removal (healable list: bleeding, fungal_infection, poison)
 - [x] Gossip penalty tested (-2 trust)
-- [ ] Confession timing walkthrough (before gossip)
-- [ ] Healing service walkthrough
-- [ ] Trust gate walkthrough (service blocked)
+- [x] Confession timing walkthrough (VERIFIED - test_elara_confession.txt)
+- [x] Core gossip/confession mechanics complete
+- [ ] Basic herbalism teaching (trust 2+)
+- [ ] Advanced herbalism teaching (trust 3+)
+- [ ] Garden access control
+- [ ] Aldric rescue trust bonus
+
+## Reference Implementation
+
+**See:** [npc_reaction_system_guide.md](../../docs/Guides/npc_reaction_system_guide.md#healer-elara-gossip--confession) for config examples and flow diagrams.
+
+This NPC demonstrates:
+- **gossip_reactions**: Delayed gossip delivery with confession checks
+- **dialog_reactions**: Confession keywords trigger trust-modifying handlers
+- **Trust-based service gating**: Healing available only at trust >= 0
+- **Confession mechanics**: Early confession mitigates (but doesn't prevent) trust penalty

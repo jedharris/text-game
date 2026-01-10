@@ -71,10 +71,11 @@
   - trust_state tracking
 
 ## Walkthrough Files
-- `test_bee_queen.txt` (scenarios 2-4) - EXISTS, PASSING (infrastructure only)
-- `test_bee_queen_alliance.txt` (scenario 1) - NEEDS CREATION (success path)
-- `test_bee_queen_partial.txt` (scenario 5) - NEEDS CREATION (edge cases)
-- `test_bee_queen_allied_theft.txt` (scenario 6) - NEEDS CREATION (post-alliance)
+- `test_bee_queen.txt` (scenarios 2-4) - ✅ EXISTS, PASSING (rejections, theft before alliance)
+- `test_bee_queen_alliance.txt` (scenario 1) - ✅ EXISTS, PASSING (success path, 3-flower alliance)
+- `test_bee_queen_partial.txt` (scenario 5) - ✅ EXISTS, PASSING (partial trade edge case)
+- `test_bee_queen_allied_theft.txt` (scenario 6) - ✅ EXISTS, PASSING (post-alliance honey access)
+- `test_bee_queen_honey.txt` - ✅ EXISTS, PASSING (dialog + gift flow)
 
 ## Implementation Status
 - [x] gift_reactions: Flower acceptance (bee_queen.py:29-145)
@@ -86,6 +87,16 @@
 - [x] take_reactions: Theft detection when not allied (bee_queen.py:148-200)
 - [x] take_reactions: Theft allowed when allied (bee_queen.py:178-183)
 - [x] Dialog reactions: State-based responses (bee_queen.py:203-296)
-- [ ] Success walkthrough: 3-flower → allied → theft allowed
-- [ ] Edge case walkthrough: Partial trade states
-- [ ] Post-alliance walkthrough: Free honey access
+- [x] Success walkthrough: 3-flower → allied → theft allowed (VERIFIED)
+- [x] Edge case walkthrough: Partial trade states (VERIFIED)
+- [x] Post-alliance walkthrough: Free honey access (VERIFIED)
+
+## Reference Implementation
+
+**See:** [npc_reaction_system_guide.md](../../docs/Guides/npc_reaction_system_guide.md#bee-queen-gifttake--state-machine) for config examples and flow diagrams.
+
+This NPC demonstrates:
+- **gift_reactions**: Item acceptance with unique_only constraint
+- **take_reactions**: Theft prevention with state-gating (requires_state)
+- **State machine**: neutral → trading → allied transitions based on player actions
+- **Trust tracking**: Incremental progress toward alliance goal

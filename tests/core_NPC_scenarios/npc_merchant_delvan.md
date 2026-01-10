@@ -79,6 +79,29 @@
    - Verify: Gratitude dialog
    - Verify: Potential services unlocked (if designed)
 
+### Post-Rescue Services
+8. **Undercity Access (Alternative to Vex)**
+   - Rescue Delvan
+   - Build gratitude through conversation
+   - Ask about "connections" or "black market"
+   - Verify: Delvan reveals undercity entrance
+   - Verify: Alternative path to undercity (not requiring Vex trust 3)
+   - Verify: knows_undercity_entrance flag set
+
+9. **Black Market Contacts (Knowledge Fragment)**
+   - Rescue Delvan
+   - Ask about "contacts" or "network"
+   - Verify: delvan_contacts knowledge fragment obtained
+   - Verify: Can be given to the_archivist for knowledge quest
+   - Verify: Alternative fragment source (vs requiring other NPCs)
+
+10. **Trade Services**
+    - Rescue Delvan
+    - Wait for recovery (returns to camp or Civilized Remnants)
+    - Verify: Trade services available
+    - Verify: Better prices than normal merchants (gratitude discount)
+    - Verify: Access to unusual/rare items
+
 ## Dependencies
 - **Items**:
   - bandages or healing items (to stop bleeding)
@@ -87,6 +110,8 @@
   - sailor_garrett (dual rescue mechanic, competing commitment)
   - echo (gossip target for ending calculations)
   - healer_elara (gossip target)
+  - curiosity_dealer_vex (alternative undercity path)
+  - the_archivist (delvan_contacts as knowledge fragment)
 - **Mechanics**:
   - encounter_reactions infrastructure
   - condition_reactions infrastructure (bleeding removal)
@@ -96,10 +121,11 @@
   - Dual rescue design (impossible choice)
 
 ## Walkthrough Files
-- `test_merchant_delvan.txt` (scenario 2) - EXISTS, PASSING (death path)
-- `test_delvan_rescue_success.txt` (scenario 1) - NEEDS CREATION (success path)
-- `test_delvan_garrett_choice.txt` (scenarios 3-4) - NEEDS CREATION (dual rescue)
-- `test_delvan_partial_timer.txt` (scenario 6) - COULD ADD (timing variation)
+- `test_merchant_delvan.txt` (scenario 2) - ✅ EXISTS, PASSING (death path)
+- `test_delvan_rescue_success.txt` (scenario 1) - ✅ EXISTS, PASSING (success path)
+- `test_delvan_infection.txt` - ✅ EXISTS, PASSING (infection mechanic)
+- `test_delvan_garrett_choice.txt` (scenarios 3-4) - NEEDS CREATION (dual rescue impossible choice)
+- `test_delvan_partial_timer.txt` (scenario 6) - COULD ADD (timing edge case, not critical)
 
 ## Implementation Status
 - [x] Encounter creates commitment (dual_rescue.py:29-74)
@@ -108,8 +134,19 @@
 - [x] Bleeding condition removal tracked
 - [x] Garrett parallel mechanics (dual rescue)
 - [x] Death walkthrough exists and passing
-- [ ] **VERIFY**: Condition removal triggers rescue success correctly
-- [ ] **VERIFY**: Commitment completion on rescue
-- [ ] Success walkthrough created
-- [ ] Dual rescue walkthrough created (impossible choice)
-- [ ] Success path verified end-to-end
+- [x] Condition removal triggers rescue success correctly (Issue #437 - VERIFIED)
+- [x] Commitment completion on rescue (extra.delvan_rescued flag set)
+- [x] Success walkthrough created and passing
+- [ ] Dual rescue walkthrough (impossible choice mechanic not yet tested)
+- [ ] Post-rescue undercity access dialog
+- [ ] delvan_contacts knowledge fragment
+- [ ] Post-rescue trade services
+
+## Reference Implementation
+
+**See:** [npc_reaction_system_guide.md](../../docs/Guides/npc_reaction_system_guide.md#merchant-delvan-encounter--condition-reactions) for config examples.
+
+This NPC demonstrates:
+- **Auto-triggering commitments**: encounter_reactions on first look at location
+- **Single-step rescue**: One condition removal completes rescue
+- **Dual rescue impossible choice**: Delvan vs Garrett timing conflict (designed trap)

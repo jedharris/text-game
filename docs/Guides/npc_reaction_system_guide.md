@@ -794,6 +794,527 @@ grep -rn "entity_condition_change" behaviors/ examples/
 
 ---
 
+## Debugging Workflow: Infrastructure-First Approach
+
+When an NPC's reactions don't work as expected, follow this systematic debugging order:
+
+### Phase 1: Architecture Verification (CHECK FIRST)
+
+Before debugging config, verify the reaction system architecture is complete:
+
+**1. Check for Competing Implementations**
+```bash
+# Look for duplicate handlers that might shadow each other
+grep -r "def handle_use" behaviors/ behavior_libraries/
+grep -r "\"use\":" behaviors/ behavior_libraries/  # Vocabulary entries
+
+# Common problem: OLD handler in behaviors/core shadows NEW handler in behavior_libraries
+```
+
+**Example from Issue #437:** Two "use" handlers existed - OLD one in `behaviors/core/interaction.py` manually checked reactions (broken), NEW one in `behavior_libraries/command_lib/item_use.py` fired hooks correctly (shadowed).
+
+**Fix:** Delete OLD handler entirely to avoid future shadowing.
+
+**2. Verify Symlinks and Module Paths**
+```bash
+# Check symlinks exist in game directory
+ls -la examples/big_game/behaviors/core      # Should -> ../../../behaviors/core
+ls -la examples/big_game/behaviors/lib       # Should -> ../../../behavior_libraries
+
+# Check for stale directories that shadow symlinks
+find examples/big_game/behaviors -type d -name "lib"  # Should be empty
+
+# Verify handler paths in game_state.json
+grep "handler.*:" examples/big_game/game_state.json | head -5
+# Paths should be "behaviors.shared.infrastructure.X" NOT "examples.big_game.behaviors.X"
+```
+
+**Common mistakes:**
+- Missing symlinks cause "No module named 'src.item'" errors
+- Stale directories shadow symlinks, loading outdated code
+- Wrong path prefixes (`examples.big_game.*`) fail module loading
+
+**3. Test Hook Invocation (Before Config Debugging)**
+```bash
+# Add debug output to verify hook firing
+# In command handler (e.g., item_use.py):
+
+event_name = accessor.behavior_manager.get_event_for_hook("entity_item_used")
+print(f"DEBUG: Firing event '{event_name}' for hook 'entity_item_used'")
+
+result = accessor.behavior_manager.invoke_behavior(
+    item, event_name, accessor, context
+)
+print(f"DEBUG: Result - allow={result.allow}, feedback={result.feedback}")
+```
+
+**What to verify:**
+- Hook → Event name conversion happens (e.g., `entity_item_used` → `on_item_used`)
+- invoke_behavior is called with EVENT name, not HOOK name
+- Result is not `_ignored=True` (means no handler found)
+- Feedback is not None (means handler ran and returned message)
+
+**4. Check Hook vs Event Name Confusion**
+
+**CRITICAL:** `invoke_behavior()` expects EVENT names, not HOOK names.
+
+```python
+# ❌ WRONG - This won't find handlers
+result = accessor.behavior_manager.invoke_behavior(
+    entity, "entity_item_used", accessor, context  # Hook name!
+)
+
+# ✓ RIGHT - Convert hook → event first
+event_name = accessor.behavior_manager.get_event_for_hook("entity_item_used")
+result = accessor.behavior_manager.invoke_behavior(
+    entity, event_name, accessor, context  # Event name (e.g., "on_item_used")
+)
+```
+
+**Why this matters:**
+- Vocabulary maps hooks (`entity_item_used`) to events (`on_item_used`)
+- Behavior functions are named after events (`def on_item_used()`)
+- Passing hook name → no handler found → `_ignored=True`
+
+**Where this occurs:**
+- Command handlers firing primary hooks ([item_use.py:100-106](../../behavior_libraries/command_lib/item_use.py#L100))
+- Effect handlers firing downstream hooks ([conditions.py:358-365](../../behavior_libraries/actor_lib/conditions.py#L358))
+
+### Phase 2: Data Flow Tracing
+
+**5. Trace Feedback Flow Through All Layers**
+
+When messages don't appear, trace the return path through each layer:
+
+```
+Layer 1: Effect handler returns Optional[str]
+         ↓
+Layer 2: reaction_interpreter collects effect feedback
+         ↓
+Layer 3: Infrastructure appends to main message
+         ↓
+Layer 4: invoke_behavior returns EventResult(feedback=combined)
+         ↓
+Layer 5: Command handler extracts result.feedback
+         ↓
+Layer 6: HandlerResult(primary=feedback) returned to engine
+         ↓
+Layer 7: Engine displays to user
+```
+
+**Debugging at each layer:**
+```python
+# Layer 1: Effect handler
+def _remove_condition(...) -> Optional[str]:
+    message = remove_condition(entity, condition_type, accessor)
+    print(f"DEBUG Layer 1: Effect returned '{message}'")
+    return message
+
+# Layer 2: reaction_interpreter
+effect_feedback = handler(config, state, entity, context)
+print(f"DEBUG Layer 2: Collected '{effect_feedback}'")
+
+# Layer 3: Infrastructure
+message = get_message(config, spec)
+if effect_feedback:
+    message = f"{message} {effect_feedback}"
+print(f"DEBUG Layer 3: Combined '{message}'")
+
+# Layer 5: Command handler
+if result and result.feedback:
+    print(f"DEBUG Layer 5: Got feedback '{result.feedback}'")
+    return HandlerResult(success=True, primary=result.feedback)
+```
+
+If message disappears at any layer, that's where the bug is.
+
+**6. Verify Accessor Passing**
+
+Effect handlers need `accessor` in context to fire downstream hooks:
+
+```python
+# ❌ WRONG - Context missing accessor
+context = {
+    "item": item,
+    "target": target,
+    "actor_id": actor_id
+}
+
+# ✓ RIGHT - Include accessor for effect handlers
+context = {
+    "item": item,
+    "target": target,
+    "actor_id": actor_id,
+    "accessor": accessor  # Needed by remove_condition effect
+}
+```
+
+### Phase 3: Configuration Debugging
+
+Only after verifying architecture, check config:
+
+**7. Verify Property Names Match NPCs**
+```bash
+# Find what property names NPCs actually use
+grep -r "\"conditions\"" examples/big_game/game_state.json
+grep -r "\"active_conditions\"" examples/big_game/game_state.json
+
+# Find what property names effects use
+grep "properties.get" behaviors/shared/infrastructure/reaction_effects.py
+
+# Do they match? If not, that's the bug.
+```
+
+**8. Verify Handler Paths**
+```bash
+# Handler path format: "module.path:function_name"
+# Module path uses behaviors.* not examples.big_game.behaviors.*
+
+# ✓ CORRECT
+"handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
+
+# ❌ WRONG
+"handler": "examples.big_game.behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
+```
+
+**9. Check Vocabulary Alignment**
+```bash
+# Item names must match vocabulary
+grep -A5 "\"healing_herbs\"" game_state.json  # Item ID
+grep -A10 "\"vocabulary\"" game_state.json | grep -A3 "healing_herbs"  # Vocab
+
+# Command must use parseable form
+# ❌ use healing_herbs on sira  (fails - underscore not in vocabulary)
+# ✓ use herbs on sira            (works - "herbs" is noun, "healing" is adjective)
+```
+
+### Summary: Debugging Order
+
+**Start here (5 minutes):**
+1. Check for competing implementations (grep for duplicates)
+2. Verify symlinks and module paths
+3. Add debug output to confirm hooks fire
+4. Check hook vs event name pattern
+
+**If hooks fire but no effect (10 minutes):**
+5. Trace feedback flow through all 7 layers
+6. Verify accessor in context for effect handlers
+7. Check property name mismatches
+
+**Only if architecture verified (5 minutes):**
+8. Check handler paths in config
+9. Verify vocabulary alignment for parsing
+
+**Total debugging time with this approach: 20 minutes vs 2+ hours**
+
+---
+
+## Reference Examples: Working Template NPCs
+
+The 5 template NPCs provide complete, tested reference implementations for all 9 reaction types. Use these as copy-paste starting points when fixing other NPCs.
+
+### Quick Lookup Table
+
+| Reaction Type | Example NPC | What It Demonstrates |
+|---------------|-------------|----------------------|
+| **encounter_reactions** | hunter_sira, merchant_delvan | Auto-triggering commitment on first encounter |
+| **death_reactions** | hunter_sira | Gossip creation, confession mechanics |
+| **dialog_reactions** | All 5 NPCs | Keyword-based responses, state-gated dialog |
+| **item_use_reactions** | hunter_sira | Two-phase reaction chains (see below) |
+| **condition_reactions** | hunter_sira, merchant_delvan | Healing tracking, rescue triggers |
+| **gift_reactions** | bee_queen | Item acceptance, trust building |
+| **take_reactions** | bee_queen | Theft prevention, alliance-gated items |
+| **commitment_reactions** | camp_leader_mira | Quest success/failure handlers |
+| **gossip_reactions** | healer_elara | Gossip delivery, confession vs no-confession |
+
+### hunter_sira: Two-Phase Reaction Chains
+
+**Demonstrates:** item_use → remove_condition → entity_condition_change → condition_reactions
+
+**Handler:** [sira_rescue.py](../../examples/big_game/behaviors/regions/beast_wilds/sira_rescue.py)
+
+**Config Pattern:**
+```json
+{
+  "id": "hunter_sira",
+  "behaviors": [
+    "behaviors.shared.infrastructure.encounter_reactions",
+    "behaviors.shared.infrastructure.death_reactions",
+    "behaviors.shared.infrastructure.item_use_reactions",
+    "behaviors.shared.infrastructure.condition_reactions",
+    "behaviors.regions.beast_wilds.sira_rescue"
+  ],
+  "properties": {
+    "conditions": {
+      "bleeding": {...},
+      "broken_leg": {...}
+    },
+    "item_use_reactions": {
+      "stop_bleeding": {
+        "accepted_items": ["bandages"],
+        "remove_condition": "bleeding",
+        "response": "You wrap the bandages around Sira's wounds. The bleeding slows, then stops."
+      },
+      "heal_leg": {
+        "accepted_items": ["healing_herbs"],
+        "remove_condition": "broken_leg",
+        "response": "You carefully set and splint the broken leg using the herbs' natural binding properties."
+      }
+    },
+    "condition_reactions": {
+      "bleeding": {
+        "handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
+      },
+      "broken_leg": {
+        "handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
+      }
+    },
+    "encounter_reactions": {
+      "handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_encounter"
+    },
+    "death_reactions": {
+      "handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_death"
+    }
+  }
+}
+```
+
+**Flow:**
+1. Player: `use bandages on sira`
+2. item_use.py fires `entity_item_used` hook
+3. item_use_reactions infrastructure matches "stop_bleeding" config
+4. Unified interpreter applies `remove_condition` effect
+5. Effect calls `remove_condition()` library function ([conditions.py:336-365](../../behavior_libraries/actor_lib/conditions.py#L336))
+6. Library function fires `entity_condition_change` hook
+7. condition_reactions infrastructure invokes `on_sira_healed` handler
+8. Handler sets `extra.sira_bleeding_stopped = true`
+9. User sees: item response + handler feedback combined
+
+**Key Pattern:** Effects fire downstream hooks, enabling multi-stage reactions.
+
+**Walkthroughs:**
+- [test_sira_rescue.txt](../../walkthroughs/test_sira_rescue.txt) - Success path
+- [test_sira_death.txt](../../walkthroughs/test_sira_death.txt) - Failure + gossip
+
+### merchant_delvan: Encounter + Condition Reactions
+
+**Demonstrates:** Auto-commitment creation, single-step rescue
+
+**Handler:** [dual_rescue.py](../../examples/big_game/behaviors/regions/sunken_district/dual_rescue.py)
+
+**Config Pattern:**
+```json
+{
+  "id": "merchant_delvan",
+  "behaviors": [
+    "behaviors.shared.infrastructure.encounter_reactions",
+    "behaviors.shared.infrastructure.condition_reactions",
+    "behaviors.regions.sunken_district.dual_rescue"
+  ],
+  "properties": {
+    "conditions": {
+      "bleeding": {...}
+    },
+    "encounter_reactions": {
+      "handler": "behaviors.regions.sunken_district.dual_rescue:on_delvan_encounter"
+    },
+    "condition_reactions": {
+      "bleeding": {
+        "handler": "behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
+      }
+    }
+  }
+}
+```
+
+**Flow:**
+1. Player enters merchant_warehouse (first time)
+2. describe_location() calls encounter hook ([utils.py:543](../../utilities/utils.py#L543))
+3. encounter_reactions infrastructure invokes on_delvan_encounter
+4. Handler creates commitment with 10-turn deadline
+5. Later: `use bandages on delvan` removes bleeding condition
+6. condition_reactions handler sets `extra.delvan_rescued = true`
+
+**Key Pattern:** encounter_reactions auto-triggers (no player action needed).
+
+**Walkthrough:** [test_delvan_rescue_success.txt](../../walkthroughs/test_delvan_rescue_success.txt)
+
+### bee_queen: Gift/Take + State Machine
+
+**Demonstrates:** Item acceptance, theft prevention, state transitions
+
+**Handler:** [bee_queen.py](../../examples/big_game/behaviors/regions/beast_wilds/bee_queen.py)
+
+**Config Pattern:**
+```json
+{
+  "id": "bee_queen",
+  "behaviors": [
+    "behaviors.shared.infrastructure.gift_reactions",
+    "behaviors.shared.infrastructure.take_reactions",
+    "behaviors.shared.infrastructure.dialog_reactions",
+    "behaviors.regions.beast_wilds.bee_queen"
+  ],
+  "properties": {
+    "state_machine": {
+      "current": "neutral",
+      "states": ["neutral", "trading", "allied", "hostile"]
+    },
+    "trust_state": {"current": 0, "min": -5, "max": 5},
+    "gift_reactions": {
+      "flowers": {
+        "accepted_items": ["moonpetal", "frost_lily", "water_bloom"],
+        "unique_only": true,
+        "handler": "behaviors.regions.beast_wilds.bee_queen:on_flower_gift"
+      }
+    },
+    "take_reactions": {
+      "royal_honey": {
+        "requires_state": ["allied"],
+        "handler": "behaviors.regions.beast_wilds.bee_queen:on_honey_theft"
+      }
+    },
+    "dialog_reactions": {
+      "honey": {...},
+      "help": {...}
+    }
+  }
+}
+```
+
+**Flow (Gift):**
+1. Player: `give moonpetal to queen`
+2. give.py fires `entity_item_gift` hook
+3. gift_reactions infrastructure matches "flowers" config
+4. Handler checks if flower already received (unique_only)
+5. Handler increments trust, tracks flower in extra.bee_queen_flowers_traded
+6. When 3 flowers traded → state transitions to "allied"
+
+**Flow (Take):**
+1. Player: `take royal_honey` (before allied)
+2. take.py checks take_reactions config
+3. requires_state check fails (not allied)
+4. Handler invoked, sets state to "hostile"
+5. Future trades blocked
+
+**Key Pattern:** State machine gates access, trust tracks progress.
+
+**Walkthroughs:**
+- [test_bee_queen_alliance.txt](../../walkthroughs/test_bee_queen_alliance.txt) - Success
+- [test_bee_queen_allied_theft.txt](../../walkthroughs/test_bee_queen_allied_theft.txt) - Post-alliance
+
+### healer_elara: Gossip + Confession
+
+**Demonstrates:** Delayed gossip delivery, trust-based service gating
+
+**Handlers:** [services.py](../../examples/big_game/behaviors/regions/civilized_remnants/services.py)
+
+**Config Pattern:**
+```json
+{
+  "id": "healer_elara",
+  "behaviors": [
+    "behaviors.shared.infrastructure.gossip_reactions",
+    "behaviors.shared.infrastructure.dialog_reactions",
+    "behaviors.regions.civilized_remnants.services"
+  ],
+  "properties": {
+    "trust_state": {"current": 0, "min": -5, "max": 5},
+    "gossip_reactions": {
+      "gossip_sira_death": {
+        "handler": "behaviors.regions.civilized_remnants.services:on_sira_gossip"
+      }
+    },
+    "dialog_reactions": {
+      "confession": {
+        "keywords": ["confess", "sira", "died", "failed"],
+        "handler": "behaviors.regions.civilized_remnants.services:on_confession"
+      },
+      "healing": {
+        "keywords": ["heal", "help", "injured"],
+        "requires_trust_min": 0,
+        "response": "Elara examines your wounds carefully..."
+      }
+    }
+  }
+}
+```
+
+**Flow (Gossip):**
+1. Sira dies → death_reactions handler creates gossip
+2. Gossip configured with 12-turn delay, 12-turn confession_window
+3. gossip_delivery turn phase delivers after delay
+4. gossip_reactions handler checks if player confessed first
+5. Trust penalty: -2 if no confession, -1 if confessed
+
+**Flow (Confession):**
+1. Player: `ask elara about sira` (with confession keywords)
+2. dialog_reactions infrastructure matches "confession" config
+3. Handler sets extra.player_confessed_sira = true
+4. Immediate trust penalty -1 applied
+5. When gossip arrives later, penalty already applied
+
+**Key Pattern:** Confession mitigates but doesn't prevent trust loss.
+
+**Walkthroughs:**
+- [test_elara_confession.txt](../../walkthroughs/test_elara_confession.txt) - Confession before gossip
+- [test_elara_gossip.txt](../../walkthroughs/test_elara_gossip.txt) - Gossip without confession
+
+### camp_leader_mira: Commitment Reactions
+
+**Demonstrates:** Quest success/failure handlers, turn tracking
+
+**Handler:** [mira.py](../../examples/big_game/behaviors/regions/civilized_remnants/mira.py)
+
+**Config Pattern:**
+```json
+{
+  "id": "camp_leader_mira",
+  "behaviors": [
+    "behaviors.shared.infrastructure.commitment_reactions",
+    "behaviors.shared.infrastructure.dialog_reactions",
+    "behaviors.regions.civilized_remnants.mira"
+  ],
+  "properties": {
+    "commitment_reactions": {
+      "commit_rescue_survivors": {
+        "COMPLETED": {
+          "handler": "behaviors.regions.civilized_remnants.mira:on_quest_success"
+        },
+        "ABANDONED": {
+          "handler": "behaviors.regions.civilized_remnants.mira:on_quest_failure"
+        }
+      }
+    },
+    "dialog_reactions": {
+      "progress": {
+        "keywords": ["progress", "time", "deadline"],
+        "handler": "behaviors.regions.civilized_remnants.mira:on_progress_check"
+      }
+    }
+  }
+}
+```
+
+**Flow (Success):**
+1. Player completes rescue objectives (Garrett + Delvan)
+2. Handler sets commitment state to COMPLETED
+3. commitment_reactions infrastructure detects state change
+4. Invokes on_quest_success handler
+5. Handler provides reward, updates trust
+
+**Flow (Failure):**
+1. Deadline turn reached without completion
+2. Commitment system transitions to ABANDONED
+3. commitment_reactions infrastructure invokes on_quest_failure
+4. Handler provides failure feedback, trust penalty
+
+**Key Pattern:** commitment_reactions fires on state transitions (COMPLETED, ABANDONED).
+
+**Walkthrough:** [test_camp_leader_mira.txt](../../walkthroughs/test_camp_leader_mira.txt)
+
+---
+
 ## Quick Reference: Fix Checklist
 
 For each broken NPC:

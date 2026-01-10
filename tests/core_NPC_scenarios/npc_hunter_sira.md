@@ -97,11 +97,11 @@
   - Confession mechanics in services.py
 
 ## Walkthrough Files
-- `test_hunter_sira.txt` (scenario 2, 7) - EXISTS, PASSING (death + gossip)
-- `test_sira_rescue_success.txt` (scenario 1) - NEEDS CREATION (success path)
-- `test_sira_partial_bleeding.txt` (scenario 4) - NEEDS CREATION (partial healing)
-- `test_sira_healing_order.txt` (scenario 5) - NEEDS CREATION (wrong order)
-- `test_sira_confession.txt` (scenario 6) - NEEDS CREATION (confession before gossip)
+- `test_sira_death.txt` (scenarios 2, 7) - ✅ EXISTS, PASSING (death + gossip)
+- `test_sira_rescue.txt` (scenario 1) - ✅ EXISTS, PASSING (success path)
+- `test_sira_rescue_success.txt` (scenario 1) - ✅ EXISTS, PASSING (alternate success)
+- `test_sira_partial_bleeding.txt` (scenario 4) - NEEDS CREATION (partial healing edge case)
+- `test_sira_healing_order.txt` (scenario 5) - NEEDS CREATION (wrong order edge case)
 
 ## Implementation Status
 - [x] Encounter creates commitment (sira_rescue.py:28-77)
@@ -110,8 +110,18 @@
 - [x] Two-step healing: bleeding + leg (separate conditions)
 - [x] Confession handler in services.py (services.py:126-175)
 - [x] Gossip handler checks confession flag (services.py:98-103)
-- [ ] **VERIFY**: Condition removal triggers healing handler correctly
-- [ ] **VERIFY**: Commitment completion on full healing
-- [ ] Success walkthrough created and passing
-- [ ] Partial healing walkthroughs created
-- [ ] Confession timing walkthrough created
+- [x] Condition removal triggers healing handler correctly (Issue #437 - VERIFIED)
+- [x] item_use_reactions → remove_condition → entity_condition_change → condition_reactions flow working
+- [x] Success walkthrough created and passing (test_sira_rescue.txt)
+- [x] Death + gossip walkthrough passing (test_sira_death.txt)
+- [ ] Partial healing walkthroughs (edge cases not critical for template)
+
+## Reference Implementation
+
+**See:** [npc_reaction_system_guide.md](../../docs/Guides/npc_reaction_system_guide.md#hunter-sira-two-phase-reaction-chains) for detailed config examples and flow diagrams.
+
+This NPC demonstrates:
+- **Two-phase reaction chains**: item_use → effect → downstream hook → handler
+- **Auto-triggering commitments**: encounter_reactions creates deadline without player action
+- **Gossip with confession**: death_reactions creates delayed gossip, confession mitigates penalty
+- **Multi-step healing**: Two separate conditions must be cleared for full rescue

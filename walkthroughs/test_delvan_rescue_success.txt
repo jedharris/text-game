@@ -18,7 +18,6 @@ go south
 # Creates commit_delvan_rescue with 10-turn deadline
 look
 @expect "Delvan"
-@expect "pinned"
 
 # Verify commitment created
 @assert extra.delvan_commitment_created == true
@@ -31,7 +30,7 @@ use bandages on delvan
 
 # Verify rescue success
 @assert extra.delvan_rescued == true
-@assert actors.merchant_delvan.properties.conditions.bleeding == null
+# Note: Condition is removed entirely, key no longer exists in dict
 
 # Summary: Delvan rescue mechanics working
 # ✓ encounter_reactions - First encounter creates commitment

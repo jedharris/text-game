@@ -184,8 +184,9 @@ For each scenario, document:
 2. Implement missing mechanics
 3. Create walkthroughs for all scenarios
 4. Run walkthroughs until 100% success
-5. Check off items in "Implementation Status"
-6. NPC phase complete when ALL scenarios verified
+5. **If walkthrough fails:** Follow [Debugging Workflow](npc_reaction_system_guide.md#debugging-workflow-infrastructure-first-approach)
+6. Check off items in "Implementation Status"
+7. NPC phase complete when ALL scenarios verified
 
 ### Completion Criteria
 An NPC is complete when:
@@ -234,45 +235,9 @@ Together these cover all core reaction infrastructure.
 
 **Problem:** Config can look perfect and match architecture spec, but fail if infrastructure is incomplete.
 
-**Example from Issue #437 (hunter_sira healing):**
-```json
-// This config looks perfect and matches the architecture doc
-{
-  "item_use_reactions": {
-    "stop_bleeding": {
-      "accepted_items": ["bandages"],
-      "remove_condition": "bleeding",  // Effect exists in spec!
-      "response": "The bleeding stops."
-    }
-  },
-  "condition_reactions": {
-    "bleeding": {
-      "handler": "path:to:on_sira_healed"  // Handler exists!
-    }
-  }
-}
-```
+**Solution:** When walkthroughs fail unexpectedly, follow the **Debugging Workflow: Infrastructure-First Approach** in [npc_reaction_system_guide.md](npc_reaction_system_guide.md#debugging-workflow-infrastructure-first-approach).
 
-**Reality:** Test shows "Nothing special happens" because:
-1. `remove_condition` effect used wrong property name (`active_conditions` vs `conditions`)
-2. Effect didn't fire `entity_condition_change` hook
-3. `condition_reactions` handler never got notified
-
-**Verification Checklist:**
-```bash
-# 1. Check effect implementation matches NPCs
-grep -n "remove_condition" behaviors/shared/infrastructure/reaction_effects.py
-grep -r "\"conditions\"" examples/big_game/game_state.json  # What NPCs actually use
-
-# 2. Verify effect fires required hooks
-# In reaction_effects.py, check if _remove_condition calls invoke_behavior()
-
-# 3. Trace complete chain
-# Command → Hook → Infrastructure → Effect → Hook → Handler
-# Verify each step exists and connects to next
-```
-
-**Fix:** Don't assume architecture is complete. Verify infrastructure before blaming config.
+**Key insight from Issue #437:** "Nothing special happens" was caused by competing implementations (OLD handler shadowed NEW handler), not config issues. Debugging architecture FIRST would have found this in 5 minutes instead of 2+ hours.
 
 ### 7. Assuming Architecture Spec Matches Implementation
 ❌ "Architecture doc says this works, so my config is correct"
@@ -280,44 +245,19 @@ grep -r "\"conditions\"" examples/big_game/game_state.json  # What NPCs actually
 
 **Root Cause:** Architecture documents describe *intended* design, not always *current* implementation.
 
-**Symptoms:**
-- Config perfectly matches spec examples
-- No obvious typos or path errors
-- Still doesn't work
+**Debugging Order:**
+1. **Architecture Verification** (5 min) - Check for competing implementations, verify symlinks
+2. **Data Flow Tracing** (10 min) - Test hook invocation, trace feedback through layers
+3. **Configuration Debugging** (5 min) - Only after architecture verified
 
-**Debugging Approach:**
-1. **Verify property names:** Do effects use same property names as NPCs?
-   ```bash
-   # Find what NPCs use
-   grep -r "\"conditions\"" game_state.json
-   # Find what effect uses
-   grep "properties.get" reaction_effects.py
-   # Do they match?
-   ```
+**See:** [Debugging Workflow](npc_reaction_system_guide.md#debugging-workflow-infrastructure-first-approach) for complete systematic approach.
 
-2. **Verify hook firing:** Is hook defined but never invoked?
-   ```bash
-   # Find hook definition
-   grep "hook_id.*entity_condition_change" behaviors/
-   # Find hook invocations
-   grep "invoke_behavior.*entity_condition_change" behaviors/ examples/
-   # Second search should return results!
-   ```
-
-3. **Trace complete flow:** Follow data through all 7 layers
-   ```
-   1. Command fires hook
-   2. Engine checks target.behaviors
-   3. Infrastructure subscribes to hook
-   4. Handler processes properties config
-   5. Unified interpreter applies effect
-   6. Effect fires notification hook
-   7. Downstream handler receives notification
-   ```
-
-   If ANY layer is missing, data-driven pattern breaks.
-
-**Solution:** Fix infrastructure gaps, document them, update architecture spec if needed.
+**Common architectural gaps:**
+- Competing implementations shadow each other
+- Missing symlinks or stale directories
+- Hook vs event name confusion
+- Effects don't fire downstream hooks
+- Accessor not passed through context
 
 ## Usage for New NPCs
 

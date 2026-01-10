@@ -1,0 +1,38 @@
+# Camp Leader Mira - Low Morale Effects
+# Tests: Low camp morale affects dialog and services
+# Scenario: camp_leader_mira.md scenario 8
+
+# Setup: Set camp morale to low
+@set extra.camp_morale = 20
+
+# Navigate to survivor_camp (Sunken District)
+go south
+go south
+go east
+go east
+
+# Verify we're at survivor camp
+look
+@expect "Mira"
+
+# Talk to Mira - should reflect low morale
+talk to mira
+@expect "worried" or "struggling" or "desperate" or "difficult"
+
+# Ask about camp status
+ask mira about camp
+@expect "hard" or "scarce" or "trouble" or "concern"
+
+# Low morale should reduce benefits
+ask mira about supplies
+@expect "short" or "can't spare" or "need" or "limited"
+
+# Mira should hint at ways to improve morale
+ask mira about help
+@expect "rescue" or "food" or "hope" or "need"
+
+# Summary: Low morale effects verified
+# - Mira dialog reflects low morale
+# - Camp status negative
+# - Services restricted
+# - Hints at improvement

@@ -75,6 +75,35 @@
    - Verify Mira's dialog reflects allied status
    - Verify can't get quest again (already completed)
 
+### Camp Services (Post-Success)
+7. **Camp Services Unlocked**
+   - Complete dual rescue (both Garrett and Delvan)
+   - Verify: extra.camp_services_unlocked = true
+   - Available services:
+     - Safe rest (full heal)
+     - Information about Sunken District locations
+     - Swimming lessons referral to Jek
+   - Verify: Mira dialog mentions available help
+
+8. **Camp Morale**
+   - Rescue Garrett: +1 camp morale
+   - Rescue Delvan: +1 camp morale
+   - Let either die: -1 camp morale
+   - Verify: Morale affects camp dialog and atmosphere
+   - Verify: Low morale may affect service availability
+
+### Cross-NPC Interactions
+9. **Jek Connection**
+   - Ask Mira about swimming
+   - Verify: Mira refers player to old_swimmer_jek
+   - Verify: "Jek can teach you. He's the best swimmer in camp."
+
+10. **Garrett Recovery at Camp**
+    - Rescue Garrett
+    - Wait 5 turns at camp
+    - Verify: Garrett recovered enough to teach advanced swimming
+    - Verify: Mira acknowledges Garrett's recovery
+
 ## Dependencies
 - **Items**:
   - air_bladder (for Garrett rescue - breathing underwater)
@@ -93,14 +122,13 @@
   - **GAP**: Rescue completion trigger (how does Mira know rescues succeeded?)
 
 ## Walkthrough Files
-- `test_mira_commitment.txt` (scenario 2) - EXISTS, PASSING (failure path)
-- `test_mira_single_rescue.txt` (scenario 1) - NEEDS CREATION (Garrett OR Delvan)
-- `test_mira_dual_rescue.txt` (scenario 2) - NEEDS CREATION (both rescues)
-- `test_mira_quest_progress.txt` (scenario 4) - COULD ADD (progress tracking)
-- `test_mira_post_failure.txt` (scenario 5) - COULD ADD (post-failure state)
+- `test_mira_commitment.txt` (scenario 2) - ✅ EXISTS, PASSING (failure path)
+- `test_camp_leader_mira.txt` - ✅ EXISTS, PASSING (quest dialog, progress tracking)
+- `test_mira_single_rescue.txt` (scenario 1) - NEEDS CREATION (Garrett OR Delvan success trigger)
+- `test_mira_dual_rescue.txt` (scenario 2) - NEEDS CREATION (both rescues - ideal outcome)
 - `test_mira_post_success.txt` (scenario 6) - COULD ADD (post-success services)
 
-**Note:** Before creating Mira walkthroughs, must verify Garrett and Delvan rescue mechanics work independently.
+**Note:** Delvan rescue verified working (Issue #437). Success path implementation depends on automatic vs manual trigger design.
 
 ## Implementation Status
 - [x] Quest offer dialog (mira.py:109-175)
@@ -110,9 +138,21 @@
 - [x] State transitions on success/failure
 - [x] Trust changes on success/failure
 - [x] Garrett rescue mechanics (dual_rescue.py - Sunken District)
-- [x] Delvan rescue mechanics (dual_rescue.py - Sunken District)
-- [ ] **GAP**: commitment_reactions.completed config missing in game_state.json
-- [ ] **GAP**: Rescue completion trigger (manual vs automatic)
-- [ ] **BLOCKER**: Must verify Delvan rescue works first (dependency)
-- [ ] Success walkthrough created
-- [ ] Success path verified end-to-end
+- [x] Delvan rescue mechanics (dual_rescue.py - Sunken District - VERIFIED Issue #437)
+- [x] Failure path tested (commitment abandonment)
+- [ ] commitment_reactions.COMPLETED config (needs success trigger design decision)
+- [ ] Success walkthrough (blocked on trigger implementation)
+- [ ] Camp services implementation (safe rest, information)
+- [ ] Camp morale system
+- [ ] Jek referral dialog
+- [ ] Garrett recovery tracking
+
+## Reference Implementation
+
+**See:** [npc_reaction_system_guide.md](../../docs/Guides/npc_reaction_system_guide.md#camp-leader-mira-commitment-reactions) for config examples and flow diagrams.
+
+This NPC demonstrates:
+- **commitment_reactions**: Handlers for COMPLETED and ABANDONED state transitions
+- **dialog_reactions**: Quest progress tracking, deadline reporting
+- **Multi-objective quests**: Rescue Delvan AND/OR Garrett
+- **Quest completion**: commitment_reactions fires when commitment state changes
