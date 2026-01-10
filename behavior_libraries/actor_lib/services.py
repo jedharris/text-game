@@ -206,7 +206,7 @@ def execute_service(
         cure_amount = service["cure_amount"]
         conditions = list(customer.properties.get("conditions", {}).keys())
         for condition_name in conditions:
-            remove_condition(customer, condition_name)
+            remove_condition(customer, condition_name, accessor)
         if conditions:
             messages.append("conditions treated")
 

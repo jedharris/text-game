@@ -203,10 +203,11 @@ def on_aldric_heal(
         state.extra["aldric_helped"] = True
         state.extra["aldric_fully_healed"] = True
 
-        # Clear infection
+        # Clear infection using library function (fires hook)
+        from behavior_libraries.actor_lib.conditions import remove_condition
         conditions = aldric.properties.get("conditions", {})
         if "fungal_infection" in conditions:
-            del conditions["fungal_infection"]
+            remove_condition(aldric, "fungal_infection", accessor)
 
         # Increase trust for teaching
         # Initialize trust_state if missing

@@ -174,7 +174,7 @@ def apply_condition(actor, condition_name: str, condition_data: dict) -> str:
         return f"{actor.name} is afflicted with {condition_name} (severity {severity})."
 
 
-def tick_conditions(actor) -> List[str]:
+def tick_conditions(actor, accessor) -> List[str]:
     """
     Progress all conditions on an actor for one turn.
 
@@ -187,6 +187,7 @@ def tick_conditions(actor) -> List[str]:
 
     Args:
         actor: The Actor object
+        accessor: StateAccessor for firing hooks when conditions expire
 
     Returns:
         List of messages describing what happened
@@ -258,9 +259,17 @@ def tick_conditions(actor) -> List[str]:
             else:
                 condition_data["damage_per_turn"] = 0
 
-    # Remove expired conditions
+    # Remove expired conditions and fire hooks
     for condition_name in conditions_to_remove:
         del conditions[condition_name]
+
+        # Fire entity_condition_change hook for expiration
+        accessor.behavior_manager.invoke_behavior(
+            actor,
+            "entity_condition_change",
+            accessor,
+            {"condition_type": condition_name, "change": "expired"}
+        )
 
     # Apply health regeneration (default 5 HP/turn for living actors)
     # Constructs/undead (immune to poison+disease) don't regenerate unless explicit
@@ -281,16 +290,17 @@ def tick_conditions(actor) -> List[str]:
     return messages
 
 
-def treat_condition(actor, condition_name: str, amount: int) -> str:
+def treat_condition(actor, condition_name: str, amount: int, accessor) -> str:
     """
     Reduce the severity of a condition.
 
-    If severity drops to 0 or below, the condition is removed.
+    If severity drops to 0 or below, the condition is removed and hook is fired.
 
     Args:
         actor: The Actor object
         condition_name: Name of the condition to treat
         amount: Amount to reduce severity by
+        accessor: StateAccessor for firing hooks
 
     Returns:
         Message describing the result
@@ -308,19 +318,31 @@ def treat_condition(actor, condition_name: str, amount: int) -> str:
 
     if new_severity <= 0:
         del conditions[condition_name]
+
+        # Fire entity_condition_change hook
+        accessor.behavior_manager.invoke_behavior(
+            actor,
+            "entity_condition_change",
+            accessor,
+            {"condition_type": condition_name, "change": "removed"}
+        )
+
         return f"{actor.name}'s {condition_name} has been cured!"
     else:
         condition["severity"] = new_severity
         return f"{actor.name}'s {condition_name} is reduced (severity {new_severity})."
 
 
-def remove_condition(actor, condition_name: str) -> str:
+def remove_condition(actor, condition_name: str, accessor) -> str:
     """
     Completely remove a condition from an actor.
+
+    Fires entity_condition_change hook when condition is removed.
 
     Args:
         actor: The Actor object
         condition_name: Name of the condition to remove
+        accessor: StateAccessor for firing hooks
 
     Returns:
         Message describing the result
@@ -332,6 +354,15 @@ def remove_condition(actor, condition_name: str) -> str:
 
     if condition_name in conditions:
         del conditions[condition_name]
+
+        # Fire entity_condition_change hook
+        accessor.behavior_manager.invoke_behavior(
+            actor,
+            "entity_condition_change",
+            accessor,
+            {"condition_type": condition_name, "change": "removed"}
+        )
+
         return f"{actor.name}'s {condition_name} has been removed."
     else:
         return f"{actor.name} does not have {condition_name}."
@@ -396,7 +427,7 @@ def on_condition_tick(entity, accessor, context):
 
     # Tick conditions on all actors
     for actor_id, actor in accessor.game_state.actors.items():
-        messages = tick_conditions(actor)
+        messages = tick_conditions(actor, accessor)
         all_messages.extend(messages)
 
     if all_messages:

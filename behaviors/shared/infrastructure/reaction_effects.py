@@ -56,12 +56,16 @@ def _remove_condition(config: Dict[str, Any], state: Any, entity: Any, context: 
     if not condition_type or not hasattr(entity, "properties"):
         return
 
-    conditions = entity.properties.get("conditions", {})
-    if condition_type in conditions:
-        del conditions[condition_type]
+    # Use library function which fires hooks
+    from behavior_libraries.actor_lib.conditions import remove_condition
+    from src.state_accessor import StateAccessor
 
-        # TODO: Hook firing should happen at engine level, not in effect handler
-        # The condition system should detect condition changes and fire hooks
+    # Construct accessor from state
+    # Note: Effect handlers receive state but not accessor, so we construct it
+    accessor = StateAccessor(state, state.behavior_manager)
+
+    # This will fire entity_condition_change hook if condition exists
+    remove_condition(entity, condition_type, accessor)
 
 
 def _apply_condition(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
