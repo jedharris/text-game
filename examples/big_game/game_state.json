@@ -3012,7 +3012,18 @@
       },
       "behaviors": [
         "behaviors.shared.infrastructure.item_use_reactions"
-      ]
+      ],
+      "vocabulary": {
+        "nouns": [
+          {
+            "word": "herbs",
+            "adjectives": [
+              "healing",
+              "medicinal"
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "nightshade",
@@ -4256,10 +4267,10 @@
         },
         "condition_reactions": {
           "bleeding": {
-            "handler": "examples.big_game.behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
+            "handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
           },
           "broken_leg": {
-            "handler": "examples.big_game.behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
+            "handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
           }
         },
         "llm_context": {

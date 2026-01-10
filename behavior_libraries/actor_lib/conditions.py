@@ -361,14 +361,18 @@ def remove_condition(actor, condition_name: str, accessor) -> str:
         # Fire entity_condition_change hook
         # Note: invoke_behavior expects EVENT name, not hook name
         event_name = accessor.behavior_manager.get_event_for_hook("entity_condition_change")
+        hook_result = None
         if event_name:
-            accessor.behavior_manager.invoke_behavior(
+            hook_result = accessor.behavior_manager.invoke_behavior(
                 actor,
                 event_name,
                 accessor,
                 {"condition_type": condition_name, "change": "removed"}
             )
 
+        # Return handler feedback if provided, otherwise default message
+        if hook_result and hook_result.feedback:
+            return hook_result.feedback
         return f"{actor.name}'s {condition_name} has been removed."
     else:
         return f"{actor.name} does not have {condition_name}."
