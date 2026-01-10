@@ -6056,8 +6056,7 @@
           "ceiling": 5
         },
         "services": [
-          "trade_rare_items",
-          "reveal_undercity"
+          "trade_rare_items"
         ],
         "dialog_reactions": {
           "handler": "examples.big_game.behaviors.regions.civilized_remnants.vex:on_vex_dialog"
