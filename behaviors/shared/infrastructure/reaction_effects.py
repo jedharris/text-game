@@ -56,8 +56,12 @@ def _remove_condition(config: Dict[str, Any], state: Any, entity: Any, context: 
     if not condition_type or not hasattr(entity, "properties"):
         return
 
-    active = entity.properties.get("active_conditions", {})
-    active.pop(condition_type, None)
+    conditions = entity.properties.get("conditions", {})
+    if condition_type in conditions:
+        del conditions[condition_type]
+
+        # TODO: Hook firing should happen at engine level, not in effect handler
+        # The condition system should detect condition changes and fire hooks
 
 
 def _apply_condition(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
@@ -69,22 +73,31 @@ def _apply_condition(config: Dict[str, Any], state: Any, entity: Any, context: D
         entity: Entity being modified
         context: Event context
     """
-    condition_spec = config.get("apply_condition")
-    if not condition_spec or not hasattr(entity, "properties"):
+    condition_config = config.get("apply_condition")
+    if not condition_config or not hasattr(entity, "properties"):
         return
 
-    # Ensure active_conditions exists
-    if "active_conditions" not in entity.properties:
-        entity.properties["active_conditions"] = {}
+    # Ensure conditions dict exists
+    if "conditions" not in entity.properties:
+        entity.properties["conditions"] = {}
 
-    active = entity.properties["active_conditions"]
-    condition_type = condition_spec.get("type")
+    conditions = entity.properties["conditions"]
 
-    if condition_type:
-        active[condition_type] = {
-            "severity": condition_spec.get("severity", 1),
-            "duration": condition_spec.get("duration", -1),
-        }
+    # condition_config can be string (name) or dict (name + details)
+    condition_name = None
+    if isinstance(condition_config, str):
+        condition_name = condition_config
+        conditions[condition_name] = {"severity": 50}  # Default severity
+    elif isinstance(condition_config, dict):
+        condition_name = condition_config.get("name") or condition_config.get("type")
+        if condition_name:
+            conditions[condition_name] = {
+                "severity": condition_config.get("severity", 50),
+                **{k: v for k, v in condition_config.items() if k not in ["name", "type"]}
+            }
+
+    # TODO: Hook firing should happen at engine level, not in effect handler
+    # The condition system should detect condition changes and fire hooks
 
 
 def _modify_property(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:

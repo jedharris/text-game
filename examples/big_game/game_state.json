@@ -46,7 +46,8 @@
       "examples.big_game.behaviors.shared.infrastructure.gift_reactions",
       "examples.big_game.behaviors.shared.infrastructure.take_reactions",
       "examples.big_game.behaviors.shared.infrastructure.gossip_delivery",
-      "examples.big_game.behaviors.shared.infrastructure.commitments"
+      "examples.big_game.behaviors.shared.infrastructure.commitments",
+      "examples.big_game.behaviors.shared.infrastructure.condition_reactions"
     ]
   },
   "locations": [
@@ -3008,7 +3009,10 @@
           "in_inventory": "herbal scent seeping from pack",
           "examined": "quality healing herbs, properly dried and potent"
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     },
     {
       "id": "nightshade",
@@ -3143,7 +3147,10 @@
           "in_inventory": "medical supplies taking little space",
           "examined": "clean bandages, ready for emergency"
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     }
   ],
   "parts": [
@@ -4232,11 +4239,26 @@
           "message": "Hunter Sira's struggle has ended."
         },
         "item_use_reactions": {
-          "healing": {
+          "stop_bleeding": {
             "accepted_items": [
-              "bandages",
+              "bandages"
+            ],
+            "remove_condition": "bleeding",
+            "response": "You apply pressure with the bandages. The bleeding slows, then stops."
+          },
+          "heal_leg": {
+            "accepted_items": [
               "healing_herbs"
             ],
+            "remove_condition": "broken_leg",
+            "response": "You carefully set and splint the broken leg."
+          }
+        },
+        "condition_reactions": {
+          "bleeding": {
+            "handler": "examples.big_game.behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
+          },
+          "broken_leg": {
             "handler": "examples.big_game.behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
           }
         },
@@ -4339,7 +4361,9 @@
         "behaviors.shared.infrastructure.dialog_reactions",
         "behaviors.shared.infrastructure.item_use_reactions",
         "behaviors.shared.infrastructure.encounter_reactions",
-        "behaviors.shared.infrastructure.death_reactions"
+        "behaviors.shared.infrastructure.death_reactions",
+        "behaviors.shared.infrastructure.condition_reactions",
+        "behaviors.regions.beast_wilds.sira_rescue"
       ]
     },
     "spider_matriarch": {

@@ -10,3 +10,4 @@ docs/Guides/claude_session_guide.md
 # Task-specific (update as needed):
 docs/big_game_work/npc_reaction_system_guide.md
 docs/Guides/core_NPC_scenarios_testing.md
+docs/big_game_work/reaction_system_complete_architecture.md

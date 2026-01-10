@@ -1,5 +1,5 @@
 # Hunter Sira Rescue Walkthrough
-# Tests: encounter_reactions, item_use_reactions, dialog_reactions
+# Tests: encounter_reactions, item_use_reactions, condition_reactions, dialog_reactions
 
 # Navigate to Hunter's Camp (Beast Wilds)
 go south
@@ -9,13 +9,23 @@ go east
 # Test encounter_reactions: First look triggers encounter with Sira
 look
 @expect "Sira"
+@expect "clock is now ticking"
 
-# Give player healing item for item_use test
-@set actors.player.inventory = ["silvermoss"]
+# Give player healing items
+@set actors.player.inventory = ["bandages", "healing_herbs"]
 
-# Test item_use_reactions: Use healing item on wounded Sira
-use silvermoss on sira
-@expect "silvermoss"
+# Test item_use_reactions + condition_reactions: Use bandages to stop bleeding
+use bandages on sira
+@expect "bleeding slows, then stops"
+ASSERT extra.sira_bleeding_stopped == true
+ASSERT actors.hunter_sira.properties.conditions.bleeding == null
+
+# Test item_use_reactions + condition_reactions: Use herbs to heal leg (triggers fully healed)
+use healing_herbs on sira
+@expect "saved my life"
+ASSERT extra.sira_leg_healed == true
+ASSERT extra.sira_healed == true
+ASSERT actors.hunter_sira.properties.conditions.broken_leg == null
 
 # Test dialog_reactions: Ask Sira about help
 ask sira about help
@@ -25,8 +35,9 @@ ask sira about help
 ask sira about wolves
 @expect "pack"
 
-# Summary: 3 of 4 reaction types tested successfully
-# encounter_reactions ✓ - First look showed Sira
-# item_use_reactions ✓ - Used silvermoss on Sira
+# Summary: All reaction types tested successfully
+# encounter_reactions ✓ - First look showed Sira, started timer
+# item_use_reactions ✓ - Bandages and herbs removed conditions
+# condition_reactions ✓ - Handlers tracked healing progress
 # dialog_reactions ✓ - Asked about help and wolves
-# death_reactions - Would require separate test where Sira dies
+# death_reactions - Tested separately in test_sira_death.txt
