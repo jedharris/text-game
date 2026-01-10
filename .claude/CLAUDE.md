@@ -52,7 +52,7 @@ When authoring or updating game content (regions, behaviors, items, NPCs), follo
 - ALWAYS create a comprehensive walkthrough test file BEFORE claiming completion
 - The walkthrough must cover all new/modified mechanics, items, NPCs, and interactions
 - Include EXPECTED FAILURES in walkthrough comments where mechanics intentionally block actions
-- 100% success means all expected behaviors occur (including expected failures), not all actions succeeding
+- 100% success means the GAME WORKS, not just the test passes. @set is for test setup ONLY - using it to bypass broken mechanics is UNACCEPTABLE. Fix the actual code.
 - Run the walkthrough using `tools/walkthrough.py` and verify results
 - NEVER declare completion without a successful walkthrough run
 

@@ -4237,7 +4237,7 @@
               "bandages",
               "healing_herbs"
             ],
-            "handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
+            "handler": "examples.big_game.behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
           }
         },
         "llm_context": {

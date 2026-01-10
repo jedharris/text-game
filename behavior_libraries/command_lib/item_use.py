@@ -29,7 +29,7 @@ vocabulary = {
 def handle_use(accessor, action: Dict) -> HandlerResult:
     """Handle 'use <item> on <target>' command.
 
-    Fires entity_item_use hook - ALL logic in reaction infrastructure.
+    Fires entity_item_used hook - ALL logic in reaction infrastructure.
 
     Args:
         accessor: StateAccessor with game_state and behavior_manager
@@ -77,7 +77,7 @@ def handle_use(accessor, action: Dict) -> HandlerResult:
     }
 
     result = accessor.behavior_manager.invoke_behavior(
-        item, "entity_item_use", accessor, context
+        item, "entity_item_used", accessor, context
     )
 
     # Serialize item for narrator
