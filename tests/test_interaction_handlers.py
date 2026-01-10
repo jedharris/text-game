@@ -94,7 +94,7 @@ class TestHandleUse(unittest.TestCase):
 
     def test_use_no_object(self):
         """Test use without specifying object."""
-        from behaviors.core.interaction import handle_use
+        from behavior_libraries.command_lib.item_use import handle_use
 
         action = {"actor_id": "player"}
         result = handle_use(self.accessor, action)
@@ -104,7 +104,7 @@ class TestHandleUse(unittest.TestCase):
 
     def test_use_item_not_found(self):
         """Test using non-existent item."""
-        from behaviors.core.interaction import handle_use
+        from behavior_libraries.command_lib.item_use import handle_use
 
         action = make_action(object="wand", actor_id="player")
         result = handle_use(self.accessor, action)
@@ -114,7 +114,7 @@ class TestHandleUse(unittest.TestCase):
 
     def test_use_item_success(self):
         """Test using a usable item."""
-        from behaviors.core.interaction import handle_use
+        from behavior_libraries.command_lib.item_use import handle_use
 
         action = make_action(verb="use", object="key", actor_id="player")
         result = handle_use(self.accessor, action)
@@ -592,7 +592,7 @@ class TestUseWithAdjective(unittest.TestCase):
 
     def test_use_with_adjective_selects_correct_item(self):
         """Test that use with adjective selects correct item."""
-        from behaviors.core.interaction import handle_use
+        from behavior_libraries.command_lib.item_use import handle_use
 
         action = make_action(verb="use", object="key", adjective="gold", actor_id="player")
         result = handle_use(self.accessor, action)
@@ -604,7 +604,7 @@ class TestUseWithAdjective(unittest.TestCase):
 
     def test_use_with_different_adjective_selects_other_item(self):
         """Test that use with different adjective selects other item."""
-        from behaviors.core.interaction import handle_use
+        from behavior_libraries.command_lib.item_use import handle_use
 
         action = make_action(verb="use", object="key", adjective="silver", actor_id="player")
         result = handle_use(self.accessor, action)

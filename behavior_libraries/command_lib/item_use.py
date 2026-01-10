@@ -3,10 +3,12 @@
 Provides use command. Pure hook dispatch - NO game logic.
 """
 
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 from src.state_accessor import HandlerResult
 from src.word_entry import WordEntry
 from src.types import ActorId
+from src.item import Item
+from src.actor import Actor
 from utilities.utils import find_item_in_inventory
 from utilities.handler_utils import get_display_name, find_action_target
 from utilities.entity_serializer import serialize_for_handler_result
@@ -54,14 +56,29 @@ def handle_use(accessor, action: Dict) -> HandlerResult:
         )
 
     # Find target (can be actor, item, or location feature)
-    target = None
+    target: Optional[Union[Item, Actor]] = None
     target_data = None
 
     if target_name and isinstance(target_name, WordEntry):
-        # Try to find target using find_action_target
-        target, error = find_action_target(accessor, action)
-        if error:
-            return error
+        # Find target - could be item or actor
+        from utilities.utils import find_accessible_item, find_actor_by_name
+
+        # Get adjective for indirect object if present
+        indirect_adj = action.get("indirect_adjective")
+
+        target = find_accessible_item(accessor, target_name, actor_id, indirect_adj)
+        if not target:
+            # Try finding as actor
+            target = find_actor_by_name(accessor, target_name, actor_id)
+
+        if not target:
+            # Build display name for error
+            display_name = get_display_name(target_name)
+            return HandlerResult(
+                success=False,
+                primary=f"You don't see any {display_name} here."
+            )
+
         target_data = serialize_for_handler_result(target, accessor, actor_id)
     else:
         # No target specified - some items can be used without target
@@ -73,11 +90,17 @@ def handle_use(accessor, action: Dict) -> HandlerResult:
         "item_id": item.id,
         "target": target,
         "target_id": target.id if target else None,
-        "actor_id": actor_id
+        "actor_id": actor_id,
+        "accessor": accessor  # Needed by effect handlers
     }
 
+    # Get event name from hook
+    event_name = accessor.behavior_manager.get_event_for_hook("entity_item_used")
+    if not event_name:
+        event_name = "on_item_used"  # Fallback
+
     result = accessor.behavior_manager.invoke_behavior(
-        item, "entity_item_used", accessor, context
+        item, event_name, accessor, context
     )
 
     # Serialize item for narrator

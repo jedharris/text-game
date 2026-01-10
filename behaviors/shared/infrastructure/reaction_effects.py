@@ -58,11 +58,11 @@ def _remove_condition(config: Dict[str, Any], state: Any, entity: Any, context: 
 
     # Use library function which fires hooks
     from behavior_libraries.actor_lib.conditions import remove_condition
-    from src.state_accessor import StateAccessor
 
-    # Construct accessor from state
-    # Note: Effect handlers receive state but not accessor, so we construct it
-    accessor = StateAccessor(state, state.behavior_manager)
+    # Get accessor from context (added by reaction_interpreter)
+    accessor = context.get("accessor")
+    if not accessor:
+        raise ValueError("remove_condition effect requires accessor in context")
 
     # This will fire entity_condition_change hook if condition exists
     remove_condition(entity, condition_type, accessor)

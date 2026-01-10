@@ -5127,17 +5127,26 @@
         "hope_extends": true,
         "hope_bonus": 3,
         "encounter_reactions": {
-          "handler": "examples.big_game.behaviors.regions.sunken_district.dual_rescue:on_delvan_encounter"
+          "handler": "behaviors.regions.sunken_district.dual_rescue:on_delvan_encounter"
         },
         "death_reactions": {
-          "handler": "examples.big_game.behaviors.regions.sunken_district.dual_rescue:on_npc_death",
+          "handler": "behaviors.regions.sunken_district.dual_rescue:on_npc_death",
           "set_flags": {
             "delvan_died": true
           }
         },
         "condition_reactions": {
-          "bleeding_stopped": {
+          "bleeding": {
             "handler": "behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
+          }
+        },
+        "item_use_reactions": {
+          "stop_bleeding": {
+            "accepted_items": [
+              "bandages"
+            ],
+            "remove_condition": "bleeding",
+            "response": "You apply pressure with the bandages. Delvan's bleeding slows, then stops."
           }
         },
         "llm_context": {
@@ -5188,7 +5197,8 @@
       "behaviors": [
         "behaviors.shared.infrastructure.encounter_reactions",
         "behaviors.shared.infrastructure.death_reactions",
-        "behaviors.shared.infrastructure.condition_reactions"
+        "behaviors.shared.infrastructure.condition_reactions",
+        "behaviors.shared.infrastructure.item_use_reactions"
       ]
     },
     "the_archivist": {

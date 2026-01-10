@@ -1,0 +1,39 @@
+# Delvan Rescue Success Walkthrough
+# Tests: encounter_reactions, condition_reactions (bleeding removal triggers rescue)
+
+# Navigate to Sunken District (flooded_plaza)
+go east
+
+# Navigate south to merchant quarter
+go south
+
+# Navigate south to merchant warehouse (Delvan's location)
+go south
+
+# Give player bandages for rescue
+@set actors.player.inventory = ["bandages"]
+
+# Encounter Delvan (triggers commitment)
+# This should fire encounter_reactions → on_delvan_encounter
+# Creates commit_delvan_rescue with 10-turn deadline
+look
+@expect "Delvan"
+@expect "pinned"
+
+# Verify commitment created
+@assert extra.delvan_commitment_created == true
+
+# Test condition_reactions: Use bandages to stop bleeding
+# Flow: use bandages → remove_condition effect → entity_condition_change hook → on_rescue_success
+use bandages on delvan
+@expect "stop Delvan's bleeding"
+@expect "You came"
+
+# Verify rescue success
+@assert extra.delvan_rescued == true
+@assert actors.merchant_delvan.properties.conditions.bleeding == null
+
+# Summary: Delvan rescue mechanics working
+# ✓ encounter_reactions - First encounter creates commitment
+# ✓ condition_reactions - Bleeding removal triggers rescue handler
+# ✓ Rescue flag set correctly

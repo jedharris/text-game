@@ -320,12 +320,15 @@ def treat_condition(actor, condition_name: str, amount: int, accessor) -> str:
         del conditions[condition_name]
 
         # Fire entity_condition_change hook
-        accessor.behavior_manager.invoke_behavior(
-            actor,
-            "entity_condition_change",
-            accessor,
-            {"condition_type": condition_name, "change": "removed"}
-        )
+        # Note: invoke_behavior expects EVENT name, not hook name
+        event_name = accessor.behavior_manager.get_event_for_hook("entity_condition_change")
+        if event_name:
+            accessor.behavior_manager.invoke_behavior(
+                actor,
+                event_name,
+                accessor,
+                {"condition_type": condition_name, "change": "removed"}
+            )
 
         return f"{actor.name}'s {condition_name} has been cured!"
     else:
@@ -356,12 +359,15 @@ def remove_condition(actor, condition_name: str, accessor) -> str:
         del conditions[condition_name]
 
         # Fire entity_condition_change hook
-        accessor.behavior_manager.invoke_behavior(
-            actor,
-            "entity_condition_change",
-            accessor,
-            {"condition_type": condition_name, "change": "removed"}
-        )
+        # Note: invoke_behavior expects EVENT name, not hook name
+        event_name = accessor.behavior_manager.get_event_for_hook("entity_condition_change")
+        if event_name:
+            accessor.behavior_manager.invoke_behavior(
+                actor,
+                event_name,
+                accessor,
+                {"condition_type": condition_name, "change": "removed"}
+            )
 
         return f"{actor.name}'s {condition_name} has been removed."
     else:

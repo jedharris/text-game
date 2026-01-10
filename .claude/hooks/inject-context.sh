@@ -15,7 +15,7 @@ if ! echo "$USER_PROMPT" | grep -qi "refocus"; then
 fi
 
 # Replace prompt with instruction to read refocus-docs.txt and listed files
-NEW_PROMPT="The session has been compacted. Read refocus-docs.txt and then read all the files listed in it. Acknowledge when done and continue working based on current_focus.txt."
+NEW_PROMPT="REFOCUS PROTOCOL: Read refocus-docs.txt. Then read EVERY file listed in it (no exceptions). Do NOT skip files. Do NOT respond until ALL files are read. After reading all files, acknowledge completion and continue work based on current_focus.txt."
 
 # Output modified JSON with replacement prompt
 echo "$INPUT" | jq --arg newprompt "$NEW_PROMPT" '.prompt = $newprompt'

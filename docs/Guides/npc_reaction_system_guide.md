@@ -393,15 +393,59 @@ print(f"DEBUG: invoke_behavior returned: {result}")  # ← Add this
 - Does handler path point to existing function?
 - Does handler have correct signature?
 
-### Step 4: Common Issues Checklist
+### Step 4: Verify Infrastructure Completeness
+
+Before assuming data-driven patterns work, verify the underlying infrastructure:
+
+**Check property names used by effects:**
+```bash
+# Find all condition property access in reaction effects
+grep -n "properties\[" behaviors/shared/infrastructure/reaction_effects.py
+
+# Common issue: Old code may use "active_conditions" but all NPCs use "conditions"
+# Verify NPCs use consistent property names:
+grep -r "\"conditions\"" examples/big_game/game_state.json | wc -l
+grep -r "\"active_conditions\"" examples/big_game/game_state.json | wc -l
+# First should be > 0, second should be 0
+```
+
+**Verify effect handlers fire hooks:**
+```python
+# Check if remove_condition effect fires entity_condition_change hook
+# In behaviors/shared/infrastructure/reaction_effects.py
+def _remove_condition(config, state, entity, context):
+    # After removing condition, should fire hook:
+    accessor.behavior_manager.invoke_behavior(
+        entity, "entity_condition_change", accessor,
+        {**context, "condition_type": condition_type, "change": "removed"}
+    )
+```
+
+**Trace complete hook invocation chain:**
+```
+1. Command fires hook (e.g., item_use.py calls entity_item_use)
+2. Engine checks target.behaviors for infrastructure modules
+3. Infrastructure module's vocabulary.events subscribes to hook
+4. Event handler (e.g., on_item_use) processes entity.properties config
+5. Data-driven: Unified interpreter applies effects (remove_condition)
+6. Effect handler manipulates state AND fires condition_change hook
+7. condition_reactions handler receives notification, updates flags
+```
+
+If ANY step is missing, data-driven pattern won't work. Verify each layer.
+
+### Step 5: Common Issues Checklist
 
 - [ ] Infrastructure module in `extra.behaviors` instead of `entity.behaviors`
 - [ ] Hook name vs event name mismatch (`entity_dialog` vs `on_dialog`)
 - [ ] Handler path typo or wrong module
 - [ ] Handler function signature wrong (missing `context` arg)
 - [ ] Property name typo (`dialog_reaction` vs `dialog_reactions`)
+- [ ] Property name mismatch (effect uses `active_conditions`, NPCs use `conditions`)
+- [ ] Effect handler incomplete (removes condition but doesn't fire hook)
 - [ ] Module path doesn't match symlink structure
 - [ ] Function not in module scope (nested in class or function)
+- [ ] Assumed data-driven pattern works without verifying infrastructure
 
 ---
 
@@ -632,6 +676,121 @@ use healing moss on elara
 ```
 
 **Fix:** For each NPC, test ALL reaction types they have configured.
+
+### Mistake 6: Property Name Mismatches
+
+**Symptom:** Data-driven config looks correct but "Nothing special happens."
+
+**Root Cause:** Effect handler uses different property name than NPCs.
+
+**Example from Issue #437:**
+```python
+# In reaction_effects.py - WRONG
+def _remove_condition(config, state, entity, context):
+    active = entity.properties.get("active_conditions", {})  # ❌
+    del active[condition_type]
+
+# All NPCs in game_state.json use "conditions" not "active_conditions"
+{
+  "hunter_sira": {
+    "properties": {
+      "conditions": {"bleeding": {...}}  // ✓ This is what NPCs use
+    }
+  }
+}
+```
+
+**Fix:** Inventory actual property usage across all NPCs, update effect handlers to match:
+```bash
+# Find what property name NPCs actually use
+grep -r "\"conditions\"" examples/big_game/game_state.json
+grep -r "\"active_conditions\"" examples/big_game/game_state.json
+
+# Update effect handler to use correct name
+def _remove_condition(config, state, entity, context):
+    conditions = entity.properties.get("conditions", {})  # ✓ Matches NPCs
+```
+
+### Mistake 7: Incomplete Effect Implementations
+
+**Symptom:** Condition removed but condition_reactions handler never fires.
+
+**Root Cause:** Effect handler manipulates state but doesn't fire notification hook.
+
+**Wrong (before Issue #437 fix):**
+```python
+def _remove_condition(config, state, entity, context):
+    conditions = entity.properties.get("conditions", {})
+    del conditions[condition_type]
+    # ❌ Effect complete but nothing notified condition_reactions!
+```
+
+**Right (after fix):**
+```python
+def _remove_condition(config, state, entity, context):
+    conditions = entity.properties.get("conditions", {})
+    del conditions[condition_type]
+
+    # ✓ Fire hook so condition_reactions can respond
+    from src.state_accessor import StateAccessor
+    accessor = StateAccessor(state, state.behavior_manager)
+    accessor.behavior_manager.invoke_behavior(
+        entity, "entity_condition_change", accessor,
+        {**context, "condition_type": condition_type, "change": "removed"}
+    )
+```
+
+**Why This Matters:** Data-driven architecture often chains reactions:
+1. `item_use_reactions` → `remove_condition` effect
+2. Effect fires → `entity_condition_change` hook
+3. Hook triggers → `condition_reactions` handler tracks success
+
+If step 2 is missing, step 3 never happens.
+
+### Mistake 8: Assuming Data-Driven Patterns Are Complete
+
+**Symptom:** Config matches architecture doc perfectly but doesn't work.
+
+**Root Cause:** Architecture doc describes *intended* design, not *current* implementation.
+
+**Wrong Assumption:**
+```json
+// "This matches the spec, so it must work"
+{
+  "item_use_reactions": {
+    "heal": {
+      "accepted_items": ["bandages"],
+      "remove_condition": "bleeding"  // Spec says this should work!
+    }
+  }
+}
+```
+
+**Reality Check:**
+```python
+# Check if effect is actually implemented
+grep -n "remove_condition" behaviors/shared/infrastructure/reaction_effects.py
+# Does it exist? Does it use correct property names? Does it fire hooks?
+
+# Check if hook is actually fired
+grep -rn "entity_condition_change" behaviors/ examples/
+# Is hook invoked anywhere? Or just defined but never called?
+```
+
+**Fix:** Before using data-driven patterns, verify:
+1. Effect handler exists and is registered in EFFECT_REGISTRY
+2. Effect uses correct property names (matches NPCs in game_state.json)
+3. Effect fires appropriate hooks for downstream reactions
+4. Hook is actually invoked somewhere (not just defined in vocabulary)
+
+**Debugging Workflow:**
+```
+1. Config looks right but doesn't work
+2. Trace each layer of architecture (Commands → Hooks → Reactions)
+3. Find missing piece (property mismatch, hook not fired, etc.)
+4. Fix infrastructure, THEN retry config
+5. Document the gap so next person doesn't assume it works
+```
 
 ---
 

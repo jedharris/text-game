@@ -3,24 +3,36 @@
 ## Core Mechanics
 - dialog_reactions: Quest offer, progress updates, state-based responses
 - commitment_reactions: Success (on_quest_complete) and failure (on_quest_failed)
-- commitment: 20-turn deadline for survivor rescue
-- state_machine: neutral → friendly/allied (success) OR disappointed (failure)
-- trust_state: +2 on success, -3 on failure
+- commitment: 20-turn deadline for dual rescue (Garrett and/or Delvan)
+- state_machine: neutral → friendly (1 rescued) → allied (both rescued) OR disappointed (failure)
+- trust_state: +2 per rescue on success, -3 on failure
+- Dual rescue design: Rescue sailor_garrett and/or merchant_delvan from Sunken District
+- Region: Sunken District (survivor_camp location)
 
 ## Required Scenarios
 
 ### Success Path
-1. **Survivor Rescue Success**
-   - Talk to Mira with quest keyword → quest offered
+1. **Single Rescue Success (Garrett OR Delvan)**
+   - Talk to Mira about missing people → quest offered
    - Verify: Commitment "commit_mira_rescue" created
    - Verify: extra.mira_quest_active = true
    - Verify: 20-turn deadline set
-   - Navigate to storage district / survivor location
-   - Perform rescue action (trigger on_quest_complete)
-   - Return to Mira or trigger completion
+   - Navigate to sea_caves (Garrett) OR merchant_warehouse (Delvan)
+   - Complete rescue (see npc_sailor_garrett.md or npc_merchant_delvan.md)
+   - Verify: extra.garrett_rescued = true OR extra.delvan_rescued = true
+   - Return to Mira at survivor_camp
    - Verify: extra.mira_quest_completed = true
-   - Verify: mira.state_machine.current = allied
+   - Verify: mira.state_machine.current = friendly
    - Verify: mira.trust_state.current = +2
+   - Verify: Success feedback mentions rescued person
+
+2. **Dual Rescue Success (Both Garrett AND Delvan)**
+   - Accept quest from Mira
+   - Rescue both Garrett and Delvan within deadline
+   - Verify: extra.garrett_rescued = true AND extra.delvan_rescued = true
+   - Return to Mira
+   - Verify: mira.state_machine.current = allied
+   - Verify: mira.trust_state.current = +4 (both rescues)
    - Verify: extra.camp_services_unlocked = true
    - Verify: Success feedback "You did it. You actually did it."
 
@@ -65,24 +77,30 @@
 
 ## Dependencies
 - **Items**:
-  - Items needed for rescue (depends on implementation)
-  - May need fungal clearing items, healing supplies, etc.
+  - air_bladder (for Garrett rescue - breathing underwater)
+  - bandages or healing items (for Delvan rescue - stop bleeding)
+  - lever (for Delvan rescue - free from cargo)
 - **NPCs**:
-  - Survivors (may be NPCs or abstract goal)
-  - Possibly related to storage district / fungal growth area
+  - sailor_garrett (rescue target, see npc_sailor_garrett.md)
+  - merchant_delvan (rescue target, see npc_merchant_delvan.md)
+  - Both NPCs have their own rescue mechanics and timers
 - **Mechanics**:
   - dialog_reactions infrastructure
-  - commitment_reactions infrastructure
+  - commitment_reactions infrastructure (BOTH success and failure handlers)
   - Commitment system with ACTIVE→ABANDONED→COMPLETED states
   - State machine transitions
-  - **MISSING**: Rescue trigger mechanism (how player completes quest)
+  - **GAP**: Missing commitment_reactions.completed config in game_state.json
+  - **GAP**: Rescue completion trigger (how does Mira know rescues succeeded?)
 
 ## Walkthrough Files
 - `test_mira_commitment.txt` (scenario 2) - EXISTS, PASSING (failure path)
-- `test_mira_rescue_success.txt` (scenario 1) - NEEDS CREATION (success path)
-- `test_mira_quest_progress.txt` (scenario 4) - NEEDS CREATION (progress tracking)
+- `test_mira_single_rescue.txt` (scenario 1) - NEEDS CREATION (Garrett OR Delvan)
+- `test_mira_dual_rescue.txt` (scenario 2) - NEEDS CREATION (both rescues)
+- `test_mira_quest_progress.txt` (scenario 4) - COULD ADD (progress tracking)
 - `test_mira_post_failure.txt` (scenario 5) - COULD ADD (post-failure state)
 - `test_mira_post_success.txt` (scenario 6) - COULD ADD (post-success services)
+
+**Note:** Before creating Mira walkthroughs, must verify Garrett and Delvan rescue mechanics work independently.
 
 ## Implementation Status
 - [x] Quest offer dialog (mira.py:109-175)
@@ -91,7 +109,10 @@
 - [x] Failure handler exists + tested (mira.py:268-312)
 - [x] State transitions on success/failure
 - [x] Trust changes on success/failure
-- [ ] **CRITICAL GAP**: Rescue trigger implementation (HOW does player complete rescue?)
-- [ ] **CRITICAL GAP**: Survivor NPCs or rescue location mechanics
+- [x] Garrett rescue mechanics (dual_rescue.py - Sunken District)
+- [x] Delvan rescue mechanics (dual_rescue.py - Sunken District)
+- [ ] **GAP**: commitment_reactions.completed config missing in game_state.json
+- [ ] **GAP**: Rescue completion trigger (manual vs automatic)
+- [ ] **BLOCKER**: Must verify Delvan rescue works first (dependency)
 - [ ] Success walkthrough created
 - [ ] Success path verified end-to-end

@@ -44,6 +44,9 @@ def process_reaction(
     # PHASE 0: Enrich context
     context = spec.context_enrichment(context, config)
 
+    # Add accessor to context so effect handlers can use it
+    context["accessor"] = accessor
+
     # PHASE 1: Evaluate all conditions
     for condition_key in CONDITION_ORDER:
         if condition_key not in config:
