@@ -616,8 +616,163 @@ The following content was removed from the active codebase and is preserved here
 - actors.shadow
 - persistent_effects.undercity_reputation
 
-### A.3 From game_state.json
-- (None - undercity was never implemented)
+### A.3 From game_state.json (removed 2026-01-10)
+
+**Locations removed:**
+```json
+{
+  "id": "undercity_entrance",
+  "name": "Undercity Entrance",
+  "description": "A concealed trapdoor beneath the dry fountain leads to worn stone steps descending into darkness. The smell of secrets rises from below.",
+  "properties": {
+    "hidden": true,
+    "lighting": "dark",
+    "region": "civilized_remnants"
+  },
+  "llm_context": {
+    "traits": [
+      "stairway descending into earth",
+      "carved from living rock",
+      "ancient construction evident",
+      "threshold to buried civilization",
+      "darkness below beckoning",
+      "portal to forgotten past"
+    ],
+    "atmosphere": "descent, threshold to depths, gateway to ancient",
+    "state_variants": {
+      "first_visit": "The stairs descend deep, ancient city waiting below.",
+      "revisit": "The undercity entrance, darkness waiting below."
+    }
+  }
+},
+{
+  "id": "undercity",
+  "name": "The Undercity",
+  "description": "A network of cellars and tunnels beneath the town, home to those who operate outside the law. Dim lanterns cast long shadows. Here, anything can be bought or sold - for a price.",
+  "properties": {
+    "illegal": true,
+    "lighting": "dim",
+    "region": "civilized_remnants"
+  },
+  "llm_context": {
+    "traits": [
+      "ancient streets carved from living rock",
+      "buildings grown from stone rather than built",
+      "bioluminescent lichen providing dim illumination",
+      "silence broken by distant water dripping",
+      "sense of civilization predating surface",
+      "alien architecture with its own logic"
+    ],
+    "atmosphere": "buried city, ancient mysteries beneath the known",
+    "state_variants": {
+      "first_visit": "This place predates everything above. What civilization built this?",
+      "revisit": "The ancient undercity, secrets in stone.",
+      "lights_restored": "Ancient mechanisms hum to life, proper lighting flooding the streets for the first time in ages."
+    }
+  }
+}
+```
+
+**NPCs removed:**
+```json
+"the_fence": {
+  "id": "the_fence",
+  "name": "The Fence",
+  "description": "A figure in shadows who deals in items of questionable origin.",
+  "location": "undercity",
+  "inventory": [],
+  "properties": {
+    "services": ["buy_stolen", "sell_contraband"],
+    "llm_context": {
+      "traits": [
+        "nondescript appearance cultivated carefully",
+        "fingers quick and light",
+        "eyes that assess value instantly",
+        "clothing chosen for blend not style",
+        "smile friendly but calculating",
+        "connections hidden but extensive"
+      ]
+    }
+  },
+  "behaviors": []
+},
+"whisper": {
+  "id": "whisper",
+  "name": "Whisper",
+  "description": "A nondescript person who seems to know everything about everyone.",
+  "location": "undercity",
+  "inventory": [],
+  "properties": {
+    "services": ["sell_npc_secrets", "sell_location_secrets"],
+    "llm_context": {
+      "traits": [
+        "barely tangible presence",
+        "voice soft as breath on skin",
+        "secrets carried like currency",
+        "appearing without announcement",
+        "speaking truths uncomfortable to hear",
+        "gone before questions can form"
+      ]
+    }
+  },
+  "behaviors": []
+},
+"shadow": {
+  "id": "shadow",
+  "name": "Shadow",
+  "description": "You're not sure you've ever seen their face clearly.",
+  "location": "undercity",
+  "inventory": [],
+  "properties": {
+    "services": ["assassination_contracts"],
+    "discovery_chance": 0.2,
+    "delay_turns": 3,
+    "llm_context": {
+      "traits": [
+        "darkness given form and purpose",
+        "edges indistinct and shifting",
+        "presence felt more than seen",
+        "voice like whispers in empty rooms",
+        "slipping between light and dark",
+        "observer from hidden vantage"
+      ]
+    }
+  },
+  "behaviors": []
+}
+```
+
+**Exits removed:**
+```json
+{
+  "id": "exit_market_square_down",
+  "location": "market_square",
+  "connections": ["exit_undercity_entrance_up"],
+  "direction": "down",
+  "description": "Stairway descending into earth, carved from living rock."
+},
+{
+  "id": "exit_undercity_entrance_up",
+  "location": "undercity_entrance",
+  "connections": ["exit_market_square_down"],
+  "direction": "up",
+  "description": "Cobblestone square with merchant stalls and gathered townsfolk."
+},
+{
+  "id": "exit_undercity_entrance_down",
+  "location": "undercity_entrance",
+  "connections": ["exit_undercity_up"],
+  "direction": "down",
+  "description": "Ancient streets carved from living rock, buildings grown from stone rather than built."
+},
+{
+  "id": "exit_undercity_up",
+  "location": "undercity",
+  "connections": ["exit_undercity_entrance_down"],
+  "direction": "up",
+  "description": "Stairway descending into earth, carved from living rock."
+}
+```
 
 ### A.4 From NPC scenarios
 - npc_the_fence.md (entire file)
@@ -636,3 +791,4 @@ The following content was removed from the active codebase and is preserved here
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0 | 2026-01-10 | Initial version - consolidated from multiple sources for deferral |
+| 1.1 | 2026-01-10 | Removed all undercity content from game_state.json, documented in Appendix A.3 |

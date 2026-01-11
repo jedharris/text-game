@@ -23,6 +23,17 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/jed/Development/text-game/.claude/hooks/session-start.sh"
+          }
+        ]
+      }
     ]
   }
 }

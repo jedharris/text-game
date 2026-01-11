@@ -147,7 +147,6 @@
   - keepers_journal (backstory source)
 - **NPCs**:
   - All major NPCs (commitment tracking)
-  - shadow (assassination awareness)
 - **Locations**:
   - keepers_quarters (primary location)
   - nexus_chamber (waystone location)

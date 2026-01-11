@@ -49,8 +49,7 @@
 ### Special: Branded Player Repair
 5. **Asha Mercy Mechanism**
    - Player is branded
-   - Access repair via back tunnel from undercity
-   - Complete Guardian repair
+   - Complete Guardian repair despite brand
    - Verify: Asha conflicted
    - Verify: Town Seal awarded despite brand
    - Verify: "I don't understand you. I don't forgive you. But I cannot deny what you've done."
@@ -93,7 +92,6 @@
   - Multi-step repair quest
   - Commitment without timer
   - Town Seal waystone fragment
-  - Back tunnel undercity access
 
 ## Walkthrough Files
 - `test_guardian_repair.txt` - NEEDS CREATION

@@ -80,22 +80,14 @@
    - Verify: Potential services unlocked (if designed)
 
 ### Post-Rescue Services
-8. **Undercity Access (Alternative to Vex)**
-   - Rescue Delvan
-   - Build gratitude through conversation
-   - Ask about "connections" or "black market"
-   - Verify: Delvan reveals undercity entrance
-   - Verify: Alternative path to undercity (not requiring Vex trust 3)
-   - Verify: knows_undercity_entrance flag set
-
-9. **Black Market Contacts (Knowledge Fragment)**
+8. **Black Market Contacts (Knowledge Fragment)**
    - Rescue Delvan
    - Ask about "contacts" or "network"
    - Verify: delvan_contacts knowledge fragment obtained
    - Verify: Can be given to the_archivist for knowledge quest
    - Verify: Alternative fragment source (vs requiring other NPCs)
 
-10. **Trade Services**
+9. **Trade Services**
     - Rescue Delvan
     - Wait for recovery (returns to camp or Civilized Remnants)
     - Verify: Trade services available
@@ -110,7 +102,6 @@
   - sailor_garrett (dual rescue mechanic, competing commitment)
   - echo (gossip target for ending calculations)
   - healer_elara (gossip target)
-  - curiosity_dealer_vex (alternative undercity path)
   - the_archivist (delvan_contacts as knowledge fragment)
 - **Mechanics**:
   - encounter_reactions infrastructure
@@ -138,7 +129,6 @@
 - [x] Commitment completion on rescue (extra.delvan_rescued flag set)
 - [x] Success walkthrough created and passing
 - [ ] Dual rescue walkthrough (impossible choice mechanic not yet tested)
-- [ ] Post-rescue undercity access dialog
 - [ ] delvan_contacts knowledge fragment
 - [ ] Post-rescue trade services
 

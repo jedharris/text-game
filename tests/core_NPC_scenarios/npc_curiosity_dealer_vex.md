@@ -1,10 +1,10 @@
 # NPC: curiosity_dealer_vex
 
 ## Core Mechanics
-- dialog_reactions: Cryptic conversation, hints about "deeper market"
-- services: Trade rare items, reveal undercity access
+- dialog_reactions: Cryptic conversation about rare items and secrets
+- services: Trade rare items, sell information
 - trust_state: Based on rare item trades
-- undercity_gatekeeper: Reveals entrance at trust 3+
+- gift_reactions: Accepts curiosities for trust
 
 ## Required Scenarios
 
@@ -14,68 +14,65 @@
    - Talk to curiosity_dealer_vex
    - Verify: Basic trades available
    - Verify: No rare items offered
-   - Verify: No undercity hints
+   - Verify: Limited information available
 
 2. **Rare Item Trade (Trust 2+)**
    - Build trust to 2 through transactions
    - Sell spider_silk, venom_sacs, ice_crystals, or ancient_artifacts
    - Verify: Trust increases +1 per rare item
    - Verify: Rare items become available for purchase
-   - Verify: Hints about "deeper market" in dialog
+   - Verify: More information available for sale
 
-3. **Undercity Access (Trust 3+)**
-   - Build trust to 3
-   - Verify: Vex reveals undercity entrance location
-   - Verify: Knock pattern provided (3-pause-2)
-   - Verify: knows_undercity_entrance flag set
-   - Verify: Hidden exit to undercity now visible in market_square
+3. **Information Broker (Trust 2+)**
+   - Build trust to 2
+   - Ask about "information" or "secrets"
+   - Verify: Can purchase information about NPCs, locations, weaknesses
+   - Verify: Information costs gold
 
 ### Edge Cases
 4. **Trust Progression from Purchases**
    - Make purchases without selling rare items
    - Verify: Trust increases +0.25 per transaction
-   - Verify: Slower path to trust 3
+   - Verify: Slower path to trust 2+
 
 5. **Multiple Rare Item Sales**
    - Sell spider_silk (+1 trust)
    - Sell venom_sacs (+1 trust)
    - Sell ice_crystals (+1 trust)
    - Verify: Trust 3+ achieved
-   - Verify: Undercity access available
+   - Verify: All services available
 
-6. **Delvan Connection**
-   - If merchant_delvan rescued in Sunken District
-   - Verify: Vex may mention Delvan as mutual contact
-   - Verify: Alternative undercity access path via Delvan
+6. **Gift Curiosities**
+   - Give strange_artifact or mysterious_object to Vex
+   - Verify: Trust increases based on item rarity
+   - Verify: Appropriate gratitude dialog
 
 ## Dependencies
 - **Items**:
   - spider_silk, venom_sacs, ice_crystals, ancient_artifacts (accepts)
+  - strange_artifact, mysterious_object (gift items)
   - Unusual rare items (sells at trust 2+)
-- **NPCs**:
-  - merchant_delvan (alternative undercity connection)
-  - the_fence, whisper, shadow (undercity NPCs)
+- **NPCs**: None required
 - **Mechanics**:
   - Trust progression system
-  - Hidden exit reveal
-  - knows_undercity_entrance flag
+  - Gift reactions
+  - Information selling
 
 ## Walkthrough Files
 - `test_vex_rare_trades.txt` - NEEDS CREATION
-- `test_vex_undercity_access.txt` - NEEDS CREATION
+- `test_vex_information.txt` - NEEDS CREATION
 
 ## Implementation Status
-- [ ] Basic trade at trust 0-1
-- [ ] Rare item trades at trust 2+
-- [ ] Undercity location reveal at trust 3+
-- [ ] Trust from rare item sales (+1)
-- [ ] Trust from purchases (+0.25)
-- [ ] knows_undercity_entrance flag
+- [x] Basic trade at trust 0-1 (vex.py)
+- [x] Rare item trades at trust 2+ (vex.py)
+- [x] Information broker at trust 2+ (vex.py)
+- [x] Trust from rare item sales (+1) (vex.py)
+- [x] Trust from purchases (+0.25) (vex.py)
+- [x] Gift reactions for curiosities (vex.py)
 
 ## Reference Implementation
 
 This NPC demonstrates:
 - **Tiered trust access**: Different services at different trust levels
-- **Gatekeeper role**: Controls access to hidden area
 - **Rare item economy**: Rewards exploration with trust currency
-- **Cross-NPC connection**: Links to Delvan from Sunken District
+- **Information broker**: Sells secrets for gold (trust-gated)
