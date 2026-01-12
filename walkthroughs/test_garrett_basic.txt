@@ -1,0 +1,29 @@
+# Sailor Garrett - Basic Encounter Test
+# Tests: Can we find and encounter Garrett?
+
+# Navigate to sea_caves (Sunken District)
+# From starting location, navigate to sea caves
+go south
+go south
+go east
+go east
+
+# Check current location
+look
+@expect "survivor" or "camp"
+
+# Try to navigate to sea caves (may require swimming)
+# EXPECT_FAIL if swimming not available
+go sea caves
+
+# If we can reach sea caves, look for Garrett
+look
+@expect "Garrett" or "drowning"
+
+# Try basic interaction
+ask garrett about help
+
+# Try to examine
+examine garrett
+
+# Summary: Basic encounter verification

@@ -4,7 +4,7 @@
 # Lines starting with # are ignored
 
 # Always load these:
-docs/Guides/claude_session_guide.md
+docs/Guides/session_guide.md
 
 # Task-specific (update as needed):
 docs/Guides/npc_reaction_system_guide.md

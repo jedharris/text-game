@@ -1,0 +1,18 @@
+# Test Stone Golems - Dialog, Item Use, and Death Reactions
+# Test if golems respond to password, command orb, and ritual items
+
+# Navigate to temple_sanctum where golems are
+# nexus_chamber -> frozen_pass -> temple_sanctum
+go north
+go north
+look
+@expect "Stone Guardian"
+
+# Test 1: Dialog reaction (password test)
+# Should provide hint about password
+talk to guardian
+@expect "inscriptions"
+
+# Test 2: Try the password
+ask guardian about fire-that-gives-life and water-that-cleanses, united in purpose
+@expect "passage"

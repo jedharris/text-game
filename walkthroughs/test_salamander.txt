@@ -1,0 +1,34 @@
+# Test Fire Salamander - Gift and Dialog Reactions
+# Test if salamander responds to fire gifts and dialog
+
+# Get to hot springs where salamander is
+# nexus_chamber -> frozen_pass -> ice_field -> hot_springs
+go north
+go west
+go north
+look
+@expect "Fire Salamander"
+
+# Test 1: Talk to salamander (dialog_reactions)
+talk to salamander
+@expect "salamander"
+
+# Test 2: Get fire item first
+# Go back to get ancient torch from frozen_pass
+go south
+go east
+go south
+take preserved supplies
+look at supplies
+get torch from supplies
+look
+
+# Return to hot springs
+go north
+go west
+go north
+look
+
+# Test 3: Give fire item to salamander (gift_reactions)
+give torch to salamander
+@expect "flame"

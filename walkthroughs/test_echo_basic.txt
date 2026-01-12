@@ -1,0 +1,19 @@
+# The Echo Basic Dialog Test
+# Tests: Navigation to keepers_quarters, basic dialog with Echo
+
+# Navigate from nexus_chamber to keepers_quarters
+go up
+look
+go east
+look
+
+# Verify Echo is present
+look at echo
+
+# Test basic dialog
+talk to echo
+
+# Test dialog about specific topics (if dialog system supports it)
+ask echo about nexus
+ask echo about disaster
+ask echo about waystone

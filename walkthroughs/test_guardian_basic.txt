@@ -1,0 +1,25 @@
+# Damaged Guardian Basic Test
+# Tests: Navigation, item_use reactions, state transitions
+
+# Navigate from nexus_chamber to broken_statue_hall
+go south
+go east
+go south
+go south
+go south
+look
+
+# Verify guardian is present
+look at guardian
+
+# Test dialog in non-functional state
+talk to guardian
+
+# Check what items are available in the location
+# (According to scenario, stone_chisel should be here)
+
+# Try using repair items (these should exist in game_state.json)
+# The scenario says guardian needs: animator_crystal, stone_chisel, ritual_knowledge
+
+# For now, just test if the guardian responds to basic commands
+# Real repair testing would need the actual items

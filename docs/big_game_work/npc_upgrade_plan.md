@@ -90,41 +90,7 @@ Create `tests/core_NPC_scenarios/npc_councilor_<name>.md` for each (asha, hurst,
 
 **Estimated Effort:** 3-4 phases (1 for quest preference infrastructure, 1 per councilor, 1 for integration testing)
 
-### 2.2 Undercity NPCs (shadow, the_fence, whisper)
-
-**Design:** civilized_remnants_detailed_design.md (complete spec)
-
-**Role:** Black market services (assassination contracts, stolen goods trading, information brokering)
-
-**Implementation Requirements:**
-- dialog_reactions: Service-specific dialog topics
-- Service systems:
-  - **shadow:** Assassination contracts (target, price, delayed completion)
-  - **the_fence:** Buy/sell stolen goods (reputation gates, fencing mechanics)
-  - **whisper:** Information sales (NPC secrets, location secrets, valuable secrets)
-- Price negotiation: Reputation affects pricing
-- Morality flags: Using these services may affect other NPCs' trust
-
-**Dependencies:**
-- Trading system enhancements (stolen goods flagging)
-- Contract/delayed task system
-- Secret/information delivery system
-
-**Testing (Scenario Documents):**
-Create `tests/core_NPC_scenarios/npc_<name>.md` for each (shadow, the_fence, whisper) defining:
-- Success: Complete transaction successfully
-- Failure: Transaction blocked by reputation gate
-- Edge: Morality consequences detected by other NPCs
-- Verification: Items/gold exchanged, flags set, reputation effects
-
-**Success Criteria:**
-- Scenario document for each undercity NPC
-- All scenarios have walkthroughs
-- All walkthroughs pass 100%
-
-**Estimated Effort:** 4-5 phases (1 for trading/contract infrastructure, 1 per NPC, 1 for integration testing)
-
-### 2.3 weaponsmith_toran
+### 2.2 weaponsmith_toran
 
 **Design:** civilized_remnants_detailed_design.md (complete spec)
 
@@ -153,7 +119,7 @@ Create `tests/core_NPC_scenarios/npc_weaponsmith_toran.md` defining:
 
 **Estimated Effort:** 1-2 phases (depends on existing vendor system completeness)
 
-### 2.4 predatory_fish
+### 2.3 predatory_fish
 
 **Design:** sunken_district_detailed_design.md (complete spec)
 
@@ -341,15 +307,10 @@ Create `tests/core_NPC_scenarios/npc_predatory_fish.md` defining:
 - **Scope:** Accept quest from one NPC locks out others, track active preference
 - **Priority:** HIGH (needed for Phase 2.1)
 
-### Trading/Contract System Enhancements
-- **Needed by:** Undercity NPCs (shadow, the_fence, whisper)
-- **Scope:** Stolen goods flagging, delayed task completion, contract tracking
-- **Priority:** HIGH (needed for Phase 2.2)
-
 ### Environmental Hazard System
 - **Needed by:** predatory_fish, potentially other non-combat dangers
 - **Scope:** Non-combat entities can trigger attacks/conditions without combat mechanics
-- **Priority:** MEDIUM (needed for Phase 2.4)
+- **Priority:** MEDIUM (needed for Phase 2.3)
 
 ### Empathic Communication System
 - **Needed by:** Sporelings (and potentially Spore Mother enhancement)
@@ -443,7 +404,7 @@ The scenario document is written BEFORE implementation and updated as work progr
 
 **Phase 1 (CRITICAL):** old_swimmer_jek blocks entire dual rescue quest, must be done first.
 
-**Phase 2 (HIGH):** Well-documented NPCs with complete specs can be implemented immediately, provide high value (council quests, undercity services).
+**Phase 2 (HIGH):** Well-documented NPCs with complete specs can be implemented immediately, provide high value (council quests, vendor services).
 
 **Phase 3 (MEDIUM):** "Complete" NPCs may have subtle gaps, validation ensures no regressions when other NPCs reference them.
 
@@ -486,7 +447,7 @@ The scenario document is written BEFORE implementation and updated as work progr
 - [placeholder_npc_specifications.md](placeholder_npc_specifications.md) - Full specs for low-doc NPCs
 - [core_NPC_scenarios_testing.md](../docs/Guides/core_NPC_scenarios_testing.md) - Testing methodology
 - [npc_reaction_system_guide.md](../docs/Guides/npc_reaction_system_guide.md) - Reference examples and patterns
-- civilized_remnants_detailed_design.md - Council + undercity + toran specs
+- civilized_remnants_detailed_design.md - Council + toran specs
 - sunken_district_detailed_design.md - Jek + predatory_fish specs
 - beast_wilds_detailed_design.md - Spider pack specs
 - fungal_depths_detailed_design.md - Sporeling specs

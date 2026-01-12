@@ -1,0 +1,18 @@
+# Navigate to damaged_guardian at broken_statue_hall
+# Region: civilized_remnants
+
+# Try going south from nexus (toward civilization)
+go south
+look
+
+# Continue exploring to find broken_statue_hall
+go north
+go west
+look
+
+# If we find market_square, go south to broken_statue_hall
+go south
+look
+
+# Check if guardian is here
+look at guardian
