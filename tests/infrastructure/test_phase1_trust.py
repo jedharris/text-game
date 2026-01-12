@@ -1,7 +1,7 @@
 """
 Phase 1 Trust Operation Tests
 
-Tests for trust modification, threshold checking, and recovery operations.
+Tests for trust threshold checking and recovery operations.
 """
 
 import unittest
@@ -11,49 +11,7 @@ from src.infrastructure_utils import (
     attempt_trust_recovery,
     calculate_recovery_amount,
     check_trust_threshold,
-    # modify_trust is now private (_modify_trust). Use apply_trust_change() instead.
 )
-
-
-class TestModifyTrust(unittest.TestCase):
-    """Test trust modification function."""
-
-    def test_modify_trust_positive_delta(self) -> None:
-        """Positive delta increases trust."""
-        result = modify_trust(5, 3)
-        self.assertEqual(result, 8)
-
-    def test_modify_trust_negative_delta(self) -> None:
-        """Negative delta decreases trust."""
-        result = modify_trust(5, -3)
-        self.assertEqual(result, 2)
-
-    def test_modify_trust_respects_floor(self) -> None:
-        """Trust doesn't go below floor."""
-        result = modify_trust(5, -10, floor=0)
-        self.assertEqual(result, 0)
-
-    def test_modify_trust_respects_ceiling(self) -> None:
-        """Trust doesn't go above ceiling."""
-        result = modify_trust(5, 10, ceiling=10)
-        self.assertEqual(result, 10)
-
-    def test_modify_trust_both_bounds(self) -> None:
-        """Trust respects both floor and ceiling."""
-        result = modify_trust(5, -10, floor=-5, ceiling=10)
-        self.assertEqual(result, -5)
-        result = modify_trust(5, 20, floor=-5, ceiling=10)
-        self.assertEqual(result, 10)
-
-    def test_modify_trust_no_bounds(self) -> None:
-        """Trust can go negative without floor."""
-        result = modify_trust(5, -10)
-        self.assertEqual(result, -5)
-
-    def test_modify_trust_zero_delta(self) -> None:
-        """Zero delta leaves trust unchanged."""
-        result = modify_trust(5, 0)
-        self.assertEqual(result, 5)
 
 
 class TestCheckTrustThreshold(unittest.TestCase):

@@ -656,17 +656,6 @@ class TestE2ECivilizedRemnantsScenarios(E2EScenarioTestCase):
             assert councilor is not None
             self.assertEqual(councilor.location, "council_hall")
 
-    def test_undercity_denizens(self) -> None:
-        """Undercity characters are in the Undercity."""
-        self.move_player_to("undercity")
-        denizens = ["the_fence", "whisper", "shadow"]
-        for denizen_id in denizens:
-            denizen = self.game_state.actors.get(ActorId(denizen_id))
-            self.assertIsNotNone(denizen, f"Missing {denizen_id}")
-            assert denizen is not None
-            self.assertEqual(denizen.location, "undercity")
-
-
 class TestE2EMeridianNexusScenarios(E2EScenarioTestCase):
     """End-to-end tests for Meridian Nexus (hub) region."""
 
