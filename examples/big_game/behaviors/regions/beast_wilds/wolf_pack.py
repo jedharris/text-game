@@ -87,8 +87,12 @@ def on_receive_item(
     Returns:
         EventResult with feeding result message
     """
-    # When called via on_receive_item, entity is the wolf
-    wolf = entity
+    # When called via gift_reactions infrastructure, entity is the item
+    # The target NPC is in context
+    wolf = context.get("target_actor")
+    if not wolf:
+        return EventResult(allow=True, feedback=None)
+
     wolf_id = wolf.id if hasattr(wolf, "id") else str(wolf)
 
     # Check if this is a wolf

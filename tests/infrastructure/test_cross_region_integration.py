@@ -2,19 +2,48 @@
 
 These tests verify that entity configurations in game_state.json
 are properly wired to infrastructure dispatchers.
+
+Uses the proper behavior architecture: adds game directory to sys.path
+and imports via `behaviors.*` (symlinked paths), just like GameEngine does.
 """
+from pathlib import Path
 from src.types import ActorId
 from typing import Any
 
+import sys
 import unittest
 from unittest.mock import MagicMock, patch
 
-from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
-from examples.big_game.behaviors.shared.infrastructure.gift_reactions import on_gift_given
-from examples.big_game.behaviors.shared.infrastructure.item_use_reactions import on_item_used
-from examples.big_game.behaviors.shared.infrastructure.death_reactions import on_entity_death
-from examples.big_game.behaviors.shared.infrastructure.pack_mirroring import on_leader_state_change
 from src.behavior_manager import EventResult
+
+
+_PROJECT_ROOT = Path(__file__).parent.parent.parent
+_GAME_DIR = _PROJECT_ROOT / "examples" / "big_game"
+
+
+def _ensure_game_path():
+    """Ensure game directory is in sys.path for behaviors.* imports."""
+    if str(_GAME_DIR) not in sys.path:
+        sys.path.insert(0, str(_GAME_DIR))
+
+
+def setUpModule():
+    """Add game directory to sys.path for behaviors.* imports."""
+    _ensure_game_path()
+
+
+def tearDownModule():
+    """Clean up imported modules and sys.path to prevent pollution of other tests."""
+    # Remove imported modules
+    to_remove = [k for k in list(sys.modules.keys())
+                 if k.startswith('behaviors.') or k.startswith('behavior_libraries.')]
+    for key in to_remove:
+        del sys.modules[key]
+
+    # Remove game directory from sys.path
+    game_dir = str(_GAME_DIR)
+    while game_dir in sys.path:
+        sys.path.remove(game_dir)
 
 
 class MockEntity:
@@ -46,6 +75,17 @@ class TestBeastWildsIntegration(unittest.TestCase):
 
     def setUp(self) -> None:
         """Set up test fixtures."""
+        # Ensure path is set up (may have been removed by other tests)
+        _ensure_game_path()
+        # Import via behaviors.* (symlinked architecture)
+        from behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
+        from behaviors.shared.infrastructure.gift_reactions import on_gift_given
+        from behaviors.shared.infrastructure.pack_mirroring import on_leader_state_change
+
+        self.clear_handler_cache = clear_handler_cache
+        self.on_gift_given = on_gift_given
+        self.on_leader_state_change = on_leader_state_change
+
         clear_handler_cache()
         self.accessor = MockAccessor()
 
@@ -61,7 +101,8 @@ class TestBeastWildsIntegration(unittest.TestCase):
                 },
                 "trust_state": {"current": 0, "floor": -3, "ceiling": 5},
                 "gift_reactions": {
-                    "handler": "examples.big_game.behaviors.regions.beast_wilds.bee_queen:on_flower_offer"
+                    # Handler path uses behaviors.* (symlinked path)
+                    "handler": "behaviors.regions.beast_wilds.bee_queen:on_receive_item"
                 },
             },
         )
@@ -73,7 +114,7 @@ class TestBeastWildsIntegration(unittest.TestCase):
         context = {"target_actor": bee_queen, "item": flower}
 
         # Call dispatcher - handler should be invoked
-        result = on_gift_given(flower, self.accessor, context)
+        result = self.on_gift_given(flower, self.accessor, context)
 
         # Verify handler was called and returned a message
         self.assertTrue(result.allow)
@@ -126,7 +167,7 @@ class TestBeastWildsIntegration(unittest.TestCase):
         context = {"new_state": "wary"}
 
         # Call pack mirroring dispatcher with data-driven config (no handler)
-        result = on_leader_state_change(alpha_wolf, self.accessor, context)
+        result = self.on_leader_state_change(alpha_wolf, self.accessor, context)
 
         self.assertTrue(result.allow)
         # Verify follower states changed
@@ -139,6 +180,13 @@ class TestFungalDepthsIntegration(unittest.TestCase):
 
     def setUp(self) -> None:
         """Set up test fixtures."""
+        _ensure_game_path()
+        from behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
+        from behaviors.shared.infrastructure.pack_mirroring import on_leader_state_change
+
+        self.clear_handler_cache = clear_handler_cache
+        self.on_leader_state_change = on_leader_state_change
+
         clear_handler_cache()
         self.accessor = MockAccessor()
 
@@ -187,7 +235,7 @@ class TestFungalDepthsIntegration(unittest.TestCase):
         context = {"new_state": "wary"}
 
         # Call pack mirroring with data-driven config
-        result = on_leader_state_change(spore_mother, self.accessor, context)
+        result = self.on_leader_state_change(spore_mother, self.accessor, context)
 
         self.assertTrue(result.allow)
         # Verify sporeling states changed
@@ -200,6 +248,13 @@ class TestSunkenDistrictIntegration(unittest.TestCase):
 
     def setUp(self) -> None:
         """Set up test fixtures."""
+        _ensure_game_path()
+        from behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
+        from behaviors.shared.infrastructure.death_reactions import on_entity_death
+
+        self.clear_handler_cache = clear_handler_cache
+        self.on_entity_death = on_entity_death
+
         clear_handler_cache()
         self.accessor = MockAccessor()
 
@@ -214,7 +269,7 @@ class TestSunkenDistrictIntegration(unittest.TestCase):
                     "initial": "trapped",
                 },
                 "death_reactions": {
-                    "handler": "examples.big_game.behaviors.regions.sunken_district.dual_rescue:on_npc_death",
+                    "handler": "behaviors.regions.sunken_district.dual_rescue:on_npc_death",
                     "set_flags": {"delvan_died": True},
                 },
             },
@@ -223,7 +278,7 @@ class TestSunkenDistrictIntegration(unittest.TestCase):
         context: dict[str, Any] = {}
 
         # Call death reactions dispatcher
-        result = on_entity_death(delvan, self.accessor, context)
+        result = self.on_entity_death(delvan, self.accessor, context)
 
         self.assertTrue(result.allow)
         # Handler should return a message and set flags
@@ -236,6 +291,13 @@ class TestFrozenReachesIntegration(unittest.TestCase):
 
     def setUp(self) -> None:
         """Set up test fixtures."""
+        _ensure_game_path()
+        from behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
+        from behaviors.shared.infrastructure.gift_reactions import on_gift_given
+
+        self.clear_handler_cache = clear_handler_cache
+        self.on_gift_given = on_gift_given
+
         clear_handler_cache()
         self.accessor = MockAccessor()
 
@@ -251,7 +313,7 @@ class TestFrozenReachesIntegration(unittest.TestCase):
                 },
                 "trust_state": {"current": 0, "floor": 0, "ceiling": 5},
                 "gift_reactions": {
-                    "handler": "examples.big_game.behaviors.regions.frozen_reaches.salamanders:on_fire_gift"
+                    "handler": "behaviors.regions.frozen_reaches.salamanders:on_receive_item"
                 },
             },
         )
@@ -263,7 +325,7 @@ class TestFrozenReachesIntegration(unittest.TestCase):
         context = {"target_actor": salamander, "item": fire_item}
 
         # Call gift dispatcher
-        result = on_gift_given(fire_item, self.accessor, context)
+        result = self.on_gift_given(fire_item, self.accessor, context)
 
         self.assertTrue(result.allow)
         # Handler should return a message about fire gift
@@ -277,6 +339,13 @@ class TestHandlerLoadFallback(unittest.TestCase):
 
     def setUp(self) -> None:
         """Set up test fixtures."""
+        _ensure_game_path()
+        from behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
+        from behaviors.shared.infrastructure.gift_reactions import on_gift_given
+
+        self.clear_handler_cache = clear_handler_cache
+        self.on_gift_given = on_gift_given
+
         clear_handler_cache()
         self.accessor = MockAccessor()
 
@@ -300,7 +369,7 @@ class TestHandlerLoadFallback(unittest.TestCase):
         context = {"target_actor": entity, "item": item}
 
         # Call dispatcher - should fall through to data-driven
-        result = on_gift_given(item, self.accessor, context)
+        result = self.on_gift_given(item, self.accessor, context)
 
         self.assertTrue(result.allow)
         # Data-driven response should be returned

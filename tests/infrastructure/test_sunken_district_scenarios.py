@@ -230,10 +230,10 @@ class TestDrowningScenarios(ScenarioTestCase):
         player = self.game_state.get_actor(ActorId("player"))
         player.properties["underwater"] = True
 
-        # Initialize breath close to warning
-        player.properties["conditions"] = [
-            {"type": "held_breath", "current": WARNING_BREATH - 1, "max": MAX_BREATH}
-        ]
+        # Initialize breath close to warning (using breath_state, not conditions)
+        player.properties["breath_state"] = {
+            "current": WARNING_BREATH - 1, "max": MAX_BREATH
+        }
 
         result = on_underwater_turn(None, self.accessor, {})
 
@@ -245,10 +245,10 @@ class TestDrowningScenarios(ScenarioTestCase):
         player = self.game_state.get_actor(ActorId("player"))
         player.properties["underwater"] = True
 
-        # Initialize breath close to critical
-        player.properties["conditions"] = [
-            {"type": "held_breath", "current": CRITICAL_BREATH - 1, "max": MAX_BREATH}
-        ]
+        # Initialize breath close to critical (using breath_state, not conditions)
+        player.properties["breath_state"] = {
+            "current": CRITICAL_BREATH - 1, "max": MAX_BREATH
+        }
 
         result = on_underwater_turn(None, self.accessor, {})
 
@@ -261,10 +261,10 @@ class TestDrowningScenarios(ScenarioTestCase):
         player.properties["underwater"] = True
         player.properties["health"] = 100
 
-        # Initialize breath at max
-        player.properties["conditions"] = [
-            {"type": "held_breath", "current": MAX_BREATH - 1, "max": MAX_BREATH}
-        ]
+        # Initialize breath at max (using breath_state, not conditions)
+        player.properties["breath_state"] = {
+            "current": MAX_BREATH - 1, "max": MAX_BREATH
+        }
 
         result = on_underwater_turn(None, self.accessor, {})
 
@@ -276,9 +276,9 @@ class TestDrowningScenarios(ScenarioTestCase):
         """Reaching surface resets breath counter."""
         player = self.game_state.get_actor(ActorId("player"))
         player.properties["underwater"] = True
-        player.properties["conditions"] = [
-            {"type": "held_breath", "current": 8, "max": MAX_BREATH}
-        ]
+        player.properties["breath_state"] = {
+            "current": 8, "max": MAX_BREATH
+        }
 
         result = on_surface(player, self.accessor, {"destination": self.surface})
 
@@ -287,9 +287,8 @@ class TestDrowningScenarios(ScenarioTestCase):
         self.assertFalse(player.properties.get("underwater"))
 
         # Breath should be reset
-        for cond in player.properties["conditions"]:
-            if cond.get("type") == "held_breath":
-                self.assertEqual(cond["current"], 0)
+        breath = player.properties.get("breath_state", {})
+        self.assertEqual(breath.get("current", 0), 0)
 
 
 class TestDualRescueImpossibleChoiceScenarios(ScenarioTestCase):

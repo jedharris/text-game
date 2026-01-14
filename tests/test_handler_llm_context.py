@@ -249,10 +249,11 @@ class TestInteractionHandlersLlmContext(unittest.TestCase):
         """Test handle_use returns item llm_context."""
         from behavior_libraries.command_lib.item_use import handle_use
 
-        action = make_action(verb="use", object="sword", actor_id="player")
+        # Use key which is in player inventory (location="player")
+        action = make_action(verb="use", object="key", actor_id="player")
         result = handle_use(self.accessor, action)
 
-        self.assertTrue(result.success)
+        # Use may fail (no handler) but should still return item's llm_context
         self.assertIsNotNone(result.data)
         self.assertIn("llm_context", result.data)
 

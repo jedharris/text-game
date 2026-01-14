@@ -301,7 +301,10 @@ class TestDeathReactionsHandlerEscapeHatch(unittest.TestCase):
             "examples.big_game.behaviors.shared.infrastructure.death_reactions.load_handler",
             return_value=mock_handler,
         ):
-            result = on_entity_death(entity, self.accessor, context)
+            # Re-import inside patch context to ensure we get the patched version
+            # (module may have been reimported after conftest cleanup)
+            from examples.big_game.behaviors.shared.infrastructure.death_reactions import on_entity_death as patched_func
+            result = patched_func(entity, self.accessor, context)
 
         self.assertEqual(result.feedback, "Handler response")
         mock_handler.assert_called_once_with(entity, self.accessor, context)

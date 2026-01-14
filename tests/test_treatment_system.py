@@ -131,6 +131,7 @@ class TestTreatCondition(unittest.TestCase):
             name="Test",
             description="Test"
         )
+        self.accessor = Mock()
 
     def test_treat_removes_condition(self):
         """Treatment removes condition completely."""
@@ -145,7 +146,7 @@ class TestTreatCondition(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, Mock())
 
         result = apply_treatment(accessor, self.antidote, self.actor)
 
@@ -176,7 +177,7 @@ class TestTreatCondition(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, Mock())
 
         result = apply_treatment(accessor, weak_antidote, self.actor)
 
@@ -201,7 +202,7 @@ class TestTreatCondition(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, Mock())
 
         result = apply_treatment(accessor, self.antidote, self.actor)
 
@@ -233,7 +234,7 @@ class TestTreatCondition(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, Mock())
 
         result = apply_treatment(accessor, healing_staff, self.actor)
 
@@ -260,7 +261,7 @@ class TestTreatCondition(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, Mock())
 
         result = apply_treatment(accessor, self.antidote, self.actor)
 
@@ -298,7 +299,7 @@ class TestTreatCondition(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, Mock())
 
         # Only treat poison
         result = apply_treatment(accessor, universal_cure, self.actor, "poison")
@@ -339,7 +340,7 @@ class TestTreatCondition(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, Mock())
 
         result = apply_treatment(accessor, universal_cure, self.actor)
 
@@ -408,7 +409,7 @@ class TestOnReceiveTreatment(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, Mock())
         context = {"item_id": "item_antifungal"}
 
         result = on_receive_treatment(actor, accessor, context)
@@ -449,7 +450,7 @@ class TestOnReceiveTreatment(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, Mock())
         context = {"item_id": "item_antidote"}
 
         result = on_receive_treatment(actor, accessor, context)
@@ -491,7 +492,7 @@ class TestOnReceiveTreatment(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, Mock())
         context = {"item_id": "item_sword"}
 
         result = on_receive_treatment(actor, accessor, context)

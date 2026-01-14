@@ -47,8 +47,12 @@ def on_receive_item(
     Returns:
         EventResult with trade result
     """
-    # When called via on_receive_item, entity is the bee queen
-    bee_queen = entity
+    # When called via gift_reactions infrastructure, entity is the item
+    # The target NPC is in context
+    bee_queen = context.get("target_actor")
+    if not bee_queen:
+        return EventResult(allow=True, feedback=None)
+
     bee_queen_id = bee_queen.id if hasattr(bee_queen, "id") else str(bee_queen)
 
     # Check if this is the bee queen

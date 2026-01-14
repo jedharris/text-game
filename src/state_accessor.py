@@ -247,7 +247,7 @@ class StateAccessor:
         if not exit_entity.door_id:
             return None
 
-        return self.get_door_item(exit_entity.door_id)
+        return self.get_door_item(ItemId(exit_entity.door_id))
 
     def get_part(self, part_id: PartId) -> Optional[Part]:
         """

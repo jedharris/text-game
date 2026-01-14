@@ -1,22 +1,28 @@
 #!/bin/bash
-# Refocus hook - instructs Claude to reload context after compaction
+# Refocus hook - when prompt is exactly "refocus", output instructions to read files from refocus-docs.txt
 
-# Read stdin (the prompt submission JSON)
 INPUT=$(cat)
-
-# Extract the user's prompt from JSON
 USER_PROMPT=$(echo "$INPUT" | jq -r '.prompt // empty')
+TRIMMED=$(echo "$USER_PROMPT" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | tr '[:upper:]' '[:lower:]')
 
-# Only trigger if prompt contains "refocus" (case insensitive)
-if ! echo "$USER_PROMPT" | grep -qi "refocus"; then
-    # Not a refocus command, pass through unchanged
-    echo "$INPUT"
+if [ "$TRIMMED" != "refocus" ]; then
     exit 0
 fi
 
-# Replace prompt with instruction to read refocus-docs.txt and listed files
-NEW_PROMPT="REFOCUS PROTOCOL: Read refocus-docs.txt. Then read EVERY file listed in it (no exceptions). Do NOT skip files. Do NOT respond until ALL files are read. After reading all files, acknowledge completion and continue work based on current_focus.txt."
+# Read refocus-docs.txt and build file list
+REFOCUS_DOCS="/Users/jed/Development/text-game/refocus-docs.txt"
+if [ ! -f "$REFOCUS_DOCS" ]; then
+    exit 0
+fi
 
-# Output modified JSON with replacement prompt
-echo "$INPUT" | jq --arg newprompt "$NEW_PROMPT" '.prompt = $newprompt'
+# Parse file list (skip comments and empty lines), prepend repo root
+FILES=$(grep -v '^#' "$REFOCUS_DOCS" | grep -v '^[[:space:]]*$' | while read -r line; do
+    echo "/Users/jed/Development/text-game/$line"
+done)
+
+# Output instructions for Claude to read the files
+echo "REFOCUS: You must now read ALL of these files in order before responding:"
+echo "$FILES" | nl
+echo ""
+echo "Read each file using the Read tool. After reading ALL files, summarize what you learned and continue work based on current_focus.txt."
 exit 0

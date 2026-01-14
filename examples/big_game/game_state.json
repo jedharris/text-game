@@ -6673,9 +6673,11 @@
       "id": "exit_ice_field_west",
       "name": "",
       "location": "ice_field",
-      "connections": [],
+      "connections": [
+        "exit_snow_forest_east"
+      ],
       "direction": "west",
-      "description": "",
+      "description": "Snow-laden forest, ancient pines heavy with frost.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6685,13 +6687,13 @@
       "traits": {}
     },
     {
-      "id": "exit_snow_forest_west",
+      "id": "exit_snow_forest_east",
       "name": "",
       "location": "snow_forest",
       "connections": [
-        "exit_ice_field_east"
+        "exit_ice_field_west"
       ],
-      "direction": "west",
+      "direction": "east",
       "description": "Vast expanse of glacial ice, crevasses threatening unwary travelers.",
       "adjectives": [],
       "synonyms": [],
@@ -6722,9 +6724,11 @@
       "id": "exit_glacier_surface_north",
       "name": "",
       "location": "glacier_surface",
-      "connections": [],
+      "connections": [
+        "exit_frozen_observatory_south"
+      ],
       "direction": "north",
-      "description": "",
+      "description": "Ancient observatory rising from the ice.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6734,13 +6738,13 @@
       "traits": {}
     },
     {
-      "id": "exit_frozen_observatory_north",
+      "id": "exit_frozen_observatory_south",
       "name": "",
       "location": "frozen_observatory",
       "connections": [
-        "exit_glacier_surface_south"
+        "exit_glacier_surface_north"
       ],
-      "direction": "north",
+      "direction": "south",
       "description": "Ancient ice compressed to density, surface scored by wind and time.",
       "adjectives": [],
       "synonyms": [],

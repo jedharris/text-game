@@ -30,7 +30,9 @@ from libcst_transformers import (
     ReplaceDictLocationAssignment,
     AddAccessorToSetUp,
     FixDuplicateManagers,
-    RenameSelfManager
+    RenameSelfManager,
+    AddAccessorToConditionCalls,
+    AddMockAccessorToSetUp,
 )
 
 
@@ -869,6 +871,9 @@ def create_transformer() -> cst.CSTTransformer:
     - ReplaceLocationIdAssignment: variable.location = LocationId(...) → accessor.set_entity_where(...)
     - ReplaceDictLocationAssignment: dict[ActorId(...)].location = ... → accessor.set_entity_where(...)
 
+    Condition System API Update:
+    - AddAccessorToConditionCalls: Add self.accessor to tick_conditions, treat_condition, remove_condition
+
     General Purpose:
     - RenameFunction: Rename function calls and definitions
     - ChangeMethodCall: Change method names on specific objects
@@ -879,8 +884,15 @@ def create_transformer() -> cst.CSTTransformer:
     To compose multiple transformers, use SequenceTransformer (see examples in script).
     """
 
+    # Condition system API update: Add self.accessor to condition function calls
+    # Also add self.accessor = Mock() to setUp methods that need it
+    return CompositeTransformer([
+        AddMockAccessorToSetUp(),
+        AddAccessorToConditionCalls(),
+    ])
+
     # Test standardization: Rename self.manager to self.behavior_manager
-    return RenameSelfManager()
+    # return RenameSelfManager()
 
     # Step 2: Transform dict[ActorId(...)].location assignments
     # return ReplaceDictLocationAssignment()

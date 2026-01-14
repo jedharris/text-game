@@ -53,6 +53,26 @@ class MockState:
         self.extra: dict = {}
         self.actors: dict = {}
         self.locations: list = []
+        self.items: list = []
+
+    def get_item(self, item_id: str) -> Any:
+        """Get item by ID (returns None if not found)."""
+        for item in self.items:
+            if hasattr(item, 'id') and item.id == item_id:
+                return item
+        return None
+
+
+class MockBehaviorManager:
+    """Mock behavior manager for testing."""
+
+    def get_event_for_hook(self, hook_name: str) -> str | None:
+        """Return event name for hook (simplified mock)."""
+        return f"on_{hook_name.replace('entity_', '')}"
+
+    def invoke_behavior(self, entity: Any, event_name: str, accessor: Any, context: dict) -> Any:
+        """Mock invoke_behavior that does nothing."""
+        return None
 
 
 class MockAccessor:
@@ -60,6 +80,7 @@ class MockAccessor:
 
     def __init__(self, state: MockState) -> None:
         self.game_state = state
+        self.behavior_manager = MockBehaviorManager()
 
 
 # =============================================================================
@@ -293,7 +314,7 @@ class TestLightPuzzle(unittest.TestCase):
 
         self.assertTrue(result.allow)
         self.assertEqual(state.extra["grotto_light_level"], 4)
-        self.assertEqual(state.extra["bucket_water_charges"], 2)
+        # Note: bucket_water_charges is decremented by handle_water, not this handler
 
     def test_examining_ceiling_requires_light(self) -> None:
         """Ceiling cannot be read without enough light."""

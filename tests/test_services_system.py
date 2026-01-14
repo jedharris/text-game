@@ -304,7 +304,10 @@ class TestExecuteService(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        # Mock behavior_manager for condition hooks
+        mock_behavior_manager = Mock()
+        mock_behavior_manager.get_event_for_hook.return_value = None  # No event registered
+        accessor = StateAccessor(game_state, mock_behavior_manager)
 
         result = execute_service(accessor, self.customer, self.npc, "cure", self.gold)
 

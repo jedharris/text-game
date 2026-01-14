@@ -126,6 +126,13 @@ class ScenarioState:
         self.items.append(item)
         return item
 
+    def get_item(self, item_id: str) -> MockItem | None:
+        """Get item by ID."""
+        for item in self.items:
+            if item.id == item_id:
+                return item
+        return None
+
     def add_location(
         self,
         loc_id: str,
@@ -157,11 +164,34 @@ class ScenarioState:
         }
 
 
+class MockBehaviorManager:
+    """Mock behavior manager for scenario testing."""
+
+    def get_event_for_hook(self, hook_name: str) -> str | None:
+        """Return None to skip hook invocation in tests."""
+        return None
+
+    def invoke_behavior(
+        self,
+        event_name: str,
+        entity: Any,
+        accessor: Any,
+        context: dict[str, Any] | None = None,
+    ) -> Any:
+        """No-op invoke for tests."""
+        return None
+
+
 class ScenarioAccessor:
     """Mock accessor for scenario testing."""
 
     def __init__(self, state: ScenarioState) -> None:
         self.game_state = state
+        self.behavior_manager = MockBehaviorManager()
+
+    def get_actor(self, actor_id: str) -> MockEntity | None:
+        """Get actor by ID."""
+        return self.game_state.actors.get(actor_id)
 
 
 class ScenarioTestCase(unittest.TestCase):

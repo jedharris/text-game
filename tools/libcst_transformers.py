@@ -789,10 +789,13 @@ class AddIndexBuildingCalls(cst.CSTTransformer):
             return updated_node
 
         target = stmt.targets[0].target
+        var_expr: cst.Attribute | cst.Name
         if isinstance(target, cst.Attribute):
             # self.game_state
             if m.matches(target, m.Attribute(value=m.Name("self"), attr=m.Name("game_state"))):
                 var_expr = target
+            else:
+                return updated_node
         elif isinstance(target, cst.Name):
             # state
             var_expr = target
@@ -842,3 +845,183 @@ class AddIndexBuildingCalls(cst.CSTTransformer):
             whereabouts_call,
             connection_call
         ])
+
+
+class AddAccessorToConditionCalls(cst.CSTTransformer):
+    """
+    Add self.accessor as the last argument to condition system function calls.
+
+    Functions affected:
+    - tick_conditions(actor) → tick_conditions(actor, self.accessor)
+    - treat_condition(actor, name, amount) → treat_condition(actor, name, amount, self.accessor)
+    - remove_condition(actor, name) → remove_condition(actor, name, self.accessor)
+
+    Only transforms calls that don't already have the accessor argument.
+    """
+
+    CONDITION_FUNCTIONS = {"tick_conditions", "treat_condition", "remove_condition"}
+
+    def __init__(self):
+        self.changes = 0
+
+    def leave_Call(self, original_node: cst.Call, updated_node: cst.Call) -> cst.Call:
+        """Add self.accessor to condition function calls."""
+        # Check if this is one of our target functions
+        func_name = None
+        if isinstance(updated_node.func, cst.Name):
+            func_name = updated_node.func.value
+        elif isinstance(updated_node.func, cst.Attribute):
+            func_name = updated_node.func.attr.value
+
+        if func_name not in self.CONDITION_FUNCTIONS:
+            return updated_node
+
+        # Check if last argument is already self.accessor or accessor
+        if updated_node.args:
+            last_arg = updated_node.args[-1]
+            if isinstance(last_arg.value, cst.Attribute):
+                if (isinstance(last_arg.value.value, cst.Name) and
+                    last_arg.value.value.value == "self" and
+                    last_arg.value.attr.value == "accessor"):
+                    # Already has self.accessor
+                    return updated_node
+            elif isinstance(last_arg.value, cst.Name):
+                if last_arg.value.value == "accessor":
+                    # Already has accessor
+                    return updated_node
+
+        # Add self.accessor as the last argument
+        new_args = list(updated_node.args) + [
+            cst.Arg(value=cst.Attribute(
+                value=cst.Name("self"),
+                attr=cst.Name("accessor")
+            ))
+        ]
+
+        self.changes += 1
+        return updated_node.with_changes(args=new_args)
+
+
+class AddMockAccessorToSetUp(cst.CSTTransformer):
+    """
+    Add self.accessor = Mock() to test setUp methods that don't have an accessor.
+
+    Also ensures Mock is imported from unittest.mock.
+
+    Example:
+        def setUp(self):
+            self.actor = Actor(...)
+            # ← Inserts: self.accessor = Mock()
+    """
+
+    def __init__(self):
+        self.changes = 0
+        self.needs_mock_import = False
+        self.has_mock_import = False
+
+    def visit_Module(self, node: cst.Module) -> bool:
+        """Check if Mock is already imported."""
+        for item in node.body:
+            if isinstance(item, cst.SimpleStatementLine):
+                for stmt in item.body:
+                    if isinstance(stmt, cst.ImportFrom):
+                        if stmt.module:
+                            module_str = cst.Module([]).code_for_node(stmt.module)
+                            if module_str == "unittest.mock":
+                                if isinstance(stmt.names, cst.ImportStar):
+                                    self.has_mock_import = True
+                                elif not isinstance(stmt.names, cst.ImportStar):
+                                    for name in stmt.names:
+                                        if isinstance(name, cst.ImportAlias):
+                                            if name.name.value in ("Mock", "MagicMock"):
+                                                self.has_mock_import = True
+        return True
+
+    def leave_FunctionDef(
+        self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
+    ) -> cst.FunctionDef:
+        """Add self.accessor = Mock() to setUp methods if not already present."""
+        # Only process setUp methods
+        if updated_node.name.value != "setUp":
+            return updated_node
+
+        # Check if accessor already exists
+        for stmt in updated_node.body.body:
+            if isinstance(stmt, cst.SimpleStatementLine):
+                for s in stmt.body:
+                    if isinstance(s, cst.Assign):
+                        for target in s.targets:
+                            if m.matches(
+                                target.target,
+                                m.Attribute(value=m.Name("self"), attr=m.Name("accessor"))
+                            ):
+                                # Already has accessor
+                                return updated_node
+
+        # Build the accessor assignment: self.accessor = Mock()
+        accessor_stmt = cst.SimpleStatementLine(
+            body=[
+                cst.Assign(
+                    targets=[
+                        cst.AssignTarget(
+                            target=cst.Attribute(value=cst.Name("self"), attr=cst.Name("accessor"))
+                        )
+                    ],
+                    value=cst.Call(func=cst.Name("Mock"), args=[])
+                )
+            ]
+        )
+
+        # Insert at the end of setUp
+        new_body_list = list(updated_node.body.body) + [accessor_stmt]
+
+        self.changes += 1
+        self.needs_mock_import = True
+
+        return updated_node.with_changes(
+            body=updated_node.body.with_changes(body=tuple(new_body_list))
+        )
+
+    def leave_Module(self, original_node: cst.Module, updated_node: cst.Module) -> cst.Module:
+        """Add Mock import if needed and not present."""
+        if not self.needs_mock_import or self.has_mock_import:
+            return updated_node
+
+        # Add Mock import
+        mock_import = cst.SimpleStatementLine(
+            body=[
+                cst.ImportFrom(
+                    module=cst.Attribute(
+                        value=cst.Name("unittest"),
+                        attr=cst.Name("mock")
+                    ),
+                    names=[cst.ImportAlias(name=cst.Name("Mock"))]
+                )
+            ]
+        )
+
+        # Find the last import statement
+        last_import_index = -1
+        for i, item in enumerate(updated_node.body):
+            if isinstance(item, cst.SimpleStatementLine):
+                for stmt in item.body:
+                    if isinstance(stmt, (cst.Import, cst.ImportFrom)):
+                        last_import_index = i
+
+        if last_import_index == -1:
+            # No imports found, add at the beginning after docstring
+            insert_index = 0
+            if (len(updated_node.body) > 0 and
+                isinstance(updated_node.body[0], cst.SimpleStatementLine) and
+                len(updated_node.body[0].body) > 0 and
+                isinstance(updated_node.body[0].body[0], cst.Expr) and
+                isinstance(updated_node.body[0].body[0].value, cst.SimpleString)):
+                insert_index = 1
+        else:
+            insert_index = last_import_index + 1
+
+        # Insert import
+        new_body_list = list(updated_node.body)
+        new_body_list.insert(insert_index, mock_import)
+
+        return updated_node.with_changes(body=tuple(new_body_list))

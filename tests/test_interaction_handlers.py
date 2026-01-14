@@ -67,7 +67,7 @@ def create_test_state():
                 name="Adventurer",
                 description="The player",
                 location="loc1",
-                inventory=[]
+                inventory=["item_key"]  # Key in inventory for use tests
             ),
             "npc_guard": Actor(
                 id="npc_guard",
@@ -103,24 +103,25 @@ class TestHandleUse(unittest.TestCase):
         self.assertIn("what", result.primary.lower())
 
     def test_use_item_not_found(self):
-        """Test using non-existent item."""
+        """Test using item not in inventory."""
         from behavior_libraries.command_lib.item_use import handle_use
 
         action = make_action(object="wand", actor_id="player")
         result = handle_use(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.primary.lower())
+        self.assertIn("don't have", result.primary.lower())
 
-    def test_use_item_success(self):
-        """Test using a usable item."""
+    def test_use_item_no_handler(self):
+        """Test using item with no handler returns failure."""
         from behavior_libraries.command_lib.item_use import handle_use
 
         action = make_action(verb="use", object="key", actor_id="player")
         result = handle_use(self.accessor, action)
 
-        self.assertTrue(result.success)
-        self.assertIn("use", result.primary.lower())
+        # Without a use reaction handler loaded, use returns "can't use"
+        self.assertFalse(result.success)
+        self.assertIn("can't use", result.primary.lower())
 
 
 class TestHandleRead(unittest.TestCase):
@@ -572,6 +573,12 @@ class TestUseWithAdjective(unittest.TestCase):
 
         self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
+        # Remove the base item_key to avoid conflicts with our test keys
+        self.game_state.items = [i for i in self.game_state.items if i.id != "item_key"]
+        # Also remove from inventory if present
+        if "item_key" in self.game_state.actors["player"].inventory:
+            self.game_state.actors["player"].inventory.remove("item_key")
+
         # Add two key items with different adjectives
         gold_key = Item(
             id="key_gold",
@@ -591,28 +598,32 @@ class TestUseWithAdjective(unittest.TestCase):
         self.game_state.items.append(silver_key)
 
     def test_use_with_adjective_selects_correct_item(self):
-        """Test that use with adjective selects correct item."""
+        """Test that use with adjective selects correct item from inventory."""
         from behavior_libraries.command_lib.item_use import handle_use
+
+        # Add gold key to player inventory
+        self.game_state.actors["player"].inventory.append("key_gold")
 
         action = make_action(verb="use", object="key", adjective="gold", actor_id="player")
         result = handle_use(self.accessor, action)
 
-        self.assertTrue(result.success)
-        # Verify we got the gold key
-        if result.data and "id" in result.data:
-            self.assertEqual(result.data["id"], "key_gold")
+        # Without a handler, use fails, but we can verify the right item was found
+        # by checking the result data contains the gold key
+        self.assertEqual(result.data["id"], "key_gold")
 
     def test_use_with_different_adjective_selects_other_item(self):
-        """Test that use with different adjective selects other item."""
+        """Test that use with different adjective selects other item from inventory."""
         from behavior_libraries.command_lib.item_use import handle_use
+
+        # Add silver key to player inventory
+        self.game_state.actors["player"].inventory.append("key_silver")
 
         action = make_action(verb="use", object="key", adjective="silver", actor_id="player")
         result = handle_use(self.accessor, action)
 
-        self.assertTrue(result.success)
-        # Verify we got the silver key
-        if result.data and "id" in result.data:
-            self.assertEqual(result.data["id"], "key_silver")
+        # Without a handler, use fails, but we can verify the right item was found
+        # by checking the result data contains the silver key
+        self.assertEqual(result.data["id"], "key_silver")
 
 
 class TestClimbExit(unittest.TestCase):

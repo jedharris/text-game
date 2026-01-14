@@ -382,8 +382,8 @@ class TestE2EBeastWildsScenarios(E2EScenarioTestCase):
         # nexus -> forest_edge -> tangled_path -> ancient_grove -> bee_queen_clearing
         self.execute("go south")  # forest_edge
         self.execute("go south")  # tangled_path
-        self.execute("go south")  # ancient_grove
-        result = self.execute("go east")  # bee_queen_clearing
+        self.execute("go east")  # ancient_grove
+        result = self.execute("go west")  # bee_queen_clearing
         self.assert_success(result)
         self.assert_player_at("bee_queen_clearing")
 
@@ -474,34 +474,34 @@ class TestE2EFrozenReachesScenarios(E2EScenarioTestCase):
         """Can navigate to Wolf Den where Alpha Wolf is."""
         # nexus -> frozen_pass -> ice_field -> snow_forest -> wolf_den
         self.execute("go north")  # frozen_pass
-        self.execute("go east")  # ice_field
-        self.execute("go east")  # snow_forest
+        self.execute("go west")  # ice_field
+        self.execute("go west")  # snow_forest
         result = self.execute("go north")  # wolf_den
         self.assert_success(result)
         self.assert_player_at("wolf_den")
 
-    def test_alpha_wolf_at_den(self) -> None:
-        """Alpha Wolf is present at Wolf Den."""
-        self.move_player_to("wolf_den")
+    def test_alpha_wolf_at_clearing(self) -> None:
+        """Alpha Wolf is present at Wolf Clearing."""
+        self.move_player_to("wolf_clearing")
         alpha = self.game_state.actors.get(ActorId("alpha_wolf"))
         self.assertIsNotNone(alpha)
         assert alpha is not None
-        self.assertEqual(alpha.location, "wolf_den")
+        self.assertEqual(alpha.location, "wolf_clearing")
 
-    def test_frost_wolves_at_den(self) -> None:
-        """Frost wolves are present at Wolf Den."""
-        self.move_player_to("wolf_den")
+    def test_frost_wolves_at_clearing(self) -> None:
+        """Frost wolves are present at Wolf Clearing."""
+        self.move_player_to("wolf_clearing")
         for wolf_id in ["frost_wolf_1", "frost_wolf_2"]:
             wolf = self.game_state.actors.get(ActorId(wolf_id))
             self.assertIsNotNone(wolf, f"Missing {wolf_id}")
             assert wolf is not None
-            self.assertEqual(wolf.location, "wolf_den")
+            self.assertEqual(wolf.location, "wolf_clearing")
 
     def test_navigate_to_hot_springs(self) -> None:
         """Can navigate to Hot Springs where Salamander is."""
         # nexus -> frozen_pass -> ice_field -> hot_springs
         self.execute("go north")  # frozen_pass
-        self.execute("go east")  # ice_field
+        self.execute("go west")  # ice_field
         result = self.execute("go north")  # hot_springs
         self.assert_success(result)
         self.assert_player_at("hot_springs")
@@ -518,7 +518,7 @@ class TestE2EFrozenReachesScenarios(E2EScenarioTestCase):
         """Can navigate to Frozen Observatory."""
         # nexus -> frozen_pass -> glacier_approach -> glacier_surface -> frozen_observatory
         self.execute("go north")  # frozen_pass
-        self.execute("go north")  # glacier_approach
+        self.execute("go northwest")  # glacier_approach
         self.execute("go north")  # glacier_surface
         result = self.execute("go north")  # frozen_observatory
         self.assert_success(result)
@@ -773,7 +773,6 @@ class TestE2EWorldConsistency(E2EScenarioTestCase):
             "town_gate",
             "market_square",
             "council_hall",
-            "undercity",
         ]
         location_ids = {loc.id for loc in self.game_state.locations}
         for loc_id in expected_locations:

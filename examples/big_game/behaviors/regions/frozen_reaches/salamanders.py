@@ -48,15 +48,19 @@ def on_receive_item(
     transition salamanders to friendly/companion state.
 
     Args:
-        entity: The salamander receiving the gift (when called via on_receive_item)
+        entity: The item being given (when called via gift_reactions infrastructure)
         accessor: StateAccessor instance
-        context: Context with item, item_id, giver_id
+        context: Context with target_actor, item, item_id, giver_id
 
     Returns:
         EventResult with gift result
     """
-    # When called via on_receive_item, entity is the salamander
-    salamander = entity
+    # When called via gift_reactions infrastructure, entity is the item
+    # The target NPC is in context
+    salamander = context.get("target_actor")
+    if not salamander:
+        return EventResult(allow=True, feedback=None)
+
     salamander_id = salamander.id if hasattr(salamander, "id") else str(salamander)
 
     # Check if this is a salamander

@@ -119,7 +119,7 @@ def apply_treatment(
 
         if cond_name in target_conditions:
             # Use the condition system's treat_condition function
-            msg = treat_condition(target_actor, cond_name, cure_amount)
+            msg = treat_condition(target_actor, cond_name, cure_amount, accessor)
             conditions_treated.append(cond_name)
 
     if not conditions_treated:

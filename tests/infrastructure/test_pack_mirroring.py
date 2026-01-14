@@ -333,7 +333,9 @@ class TestPackMirroringHandlerEscapeHatch(unittest.TestCase):
             "examples.big_game.behaviors.shared.infrastructure.pack_mirroring.load_handler",
             return_value=mock_handler,
         ):
-            result = on_leader_state_change(entity, self.accessor, context)
+            # Re-import inside patch context to ensure we get the patched version
+            from examples.big_game.behaviors.shared.infrastructure.pack_mirroring import on_leader_state_change as patched_func
+            result = patched_func(entity, self.accessor, context)
 
         self.assertEqual(result.feedback, "Handler response")
         mock_handler.assert_called_once_with(entity, self.accessor, context)

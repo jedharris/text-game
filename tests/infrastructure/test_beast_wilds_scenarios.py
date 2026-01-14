@@ -55,7 +55,7 @@ class TestSiraRescueScenarios(ScenarioTestCase):
 
         # Create Sira with bleeding and leg injury
         self.sira = self.game_state.add_actor(
-            "npc_hunter_sira",
+            "hunter_sira",
             name="Hunter Sira",
             properties={
                 "state_machine": {
@@ -122,7 +122,7 @@ class TestSiraRescueScenarios(ScenarioTestCase):
 
         # Then heal leg
         result = on_sira_healed(
-            self.sira, self.accessor, {"condition_type": "leg_injury"}
+            self.sira, self.accessor, {"condition_type": "broken_leg"}
         )
 
         self.assertTrue(result.allow)
@@ -163,7 +163,7 @@ class TestBearCubsScenarios(ScenarioTestCase):
 
         # Create dire bear
         self.bear = self.game_state.add_actor(
-            "npc_dire_bear",
+            "dire_bear",
             name="Dire Bear",
             properties={
                 "state_machine": {
@@ -178,13 +178,13 @@ class TestBearCubsScenarios(ScenarioTestCase):
 
         # Create sick cubs
         self.cub1 = self.game_state.add_actor(
-            "npc_bear_cub_1",
+            "bear_cub_1",
             name="Bear Cub",
             properties={"sick": True},
             location="loc_beast_wilds_den",
         )
         self.cub2 = self.game_state.add_actor(
-            "npc_bear_cub_2",
+            "bear_cub_2",
             name="Bear Cub",
             properties={"sick": True},
             location="loc_beast_wilds_den",
@@ -253,9 +253,9 @@ class TestBearCubsScenarios(ScenarioTestCase):
         self.assertFalse(self.cub1.properties.get("sick"))
 
         # Bear should be grateful
-        self.assert_actor_state("npc_dire_bear", "grateful")
+        self.assert_actor_state("dire_bear", "grateful")
         # Trust should increase
-        trust = self.get_actor_trust("npc_dire_bear")
+        trust = self.get_actor_trust("dire_bear")
         self.assertGreater(trust, -2)
 
     def test_commitment_failure_kills_cubs(self) -> None:
@@ -269,9 +269,9 @@ class TestBearCubsScenarios(ScenarioTestCase):
         self.assert_flag_set("cubs_died")
 
         # Bear should be vengeful
-        self.assert_actor_state("npc_dire_bear", "vengeful")
+        self.assert_actor_state("dire_bear", "vengeful")
         # Trust should be minimum
-        self.assert_actor_trust("npc_dire_bear", -5)
+        self.assert_actor_trust("dire_bear", -5)
         # Bear should hunt player
         self.assertTrue(self.bear.properties.get("hunts_player"))
 
@@ -286,7 +286,7 @@ class TestWolfPackScenarios(ScenarioTestCase):
 
         # Create alpha wolf
         self.alpha = self.game_state.add_actor(
-            "npc_alpha_wolf",
+            "alpha_wolf",
             name="Alpha Wolf",
             properties={
                 "state_machine": {
@@ -334,7 +334,7 @@ class TestWolfPackScenarios(ScenarioTestCase):
 
     def test_feeding_wolf_increases_trust(self) -> None:
         """Giving meat to wolf increases trust."""
-        initial_trust = self.get_actor_trust("npc_alpha_wolf")
+        initial_trust = self.get_actor_trust("alpha_wolf")
 
         result = on_wolf_feed(
             self.meat, self.accessor, {"target_actor": self.alpha, "item": self.meat}
@@ -342,7 +342,7 @@ class TestWolfPackScenarios(ScenarioTestCase):
 
         self.assertTrue(result.allow)
         self.assertIn("accepts", (result.feedback or "").lower())
-        self.assertGreater(self.get_actor_trust("npc_alpha_wolf"), initial_trust)
+        self.assertGreater(self.get_actor_trust("alpha_wolf"), initial_trust)
 
     def test_feeding_transitions_state_at_threshold(self) -> None:
         """Feeding enough times transitions alpha from hostile to wary."""
@@ -355,7 +355,7 @@ class TestWolfPackScenarios(ScenarioTestCase):
         )
 
         # Should transition to wary at trust 1
-        self.assert_actor_state("npc_alpha_wolf", "wary")
+        self.assert_actor_state("alpha_wolf", "wary")
 
     def test_feeding_non_food_rejected(self) -> None:
         """Non-food items don't affect wolf."""
@@ -380,8 +380,8 @@ class TestWolfPackScenarios(ScenarioTestCase):
         )
 
         # Should be neutral now (transition at trust 2 when wary)
-        self.assert_actor_state("npc_alpha_wolf", "neutral")
-        self.assertEqual(self.get_actor_trust("npc_alpha_wolf"), 2)
+        self.assert_actor_state("alpha_wolf", "neutral")
+        self.assertEqual(self.get_actor_trust("alpha_wolf"), 2)
 
         # Feed again to reach trust 3
         on_wolf_feed(
@@ -389,8 +389,8 @@ class TestWolfPackScenarios(ScenarioTestCase):
         )
 
         # Should be friendly now (transition at trust 3 when neutral)
-        self.assert_actor_state("npc_alpha_wolf", "friendly")
-        self.assertEqual(self.get_actor_trust("npc_alpha_wolf"), 3)
+        self.assert_actor_state("alpha_wolf", "friendly")
+        self.assertEqual(self.get_actor_trust("alpha_wolf"), 3)
 
 
 class TestBeeQueenScenarios(ScenarioTestCase):
@@ -503,11 +503,13 @@ class TestBeeQueenScenarios(ScenarioTestCase):
 
     def test_honey_theft_makes_hostile(self) -> None:
         """Taking honey without permission makes queen hostile."""
-        honey = self.game_state.add_item("item_royal_honey", name="Royal Honey")
+        honey = self.game_state.add_item(
+            "item_royal_honey", name="Royal Honey", location="loc_beehive_chamber"
+        )
         beehive = self.game_state.add_location("loc_beehive_chamber", name="Beehive Chamber")
 
         result = on_honey_theft(
-            honey, self.accessor, {"location": beehive}
+            honey, self.accessor, {}
         )
 
         self.assertTrue(result.allow)
@@ -522,11 +524,13 @@ class TestBeeQueenScenarios(ScenarioTestCase):
         sm = self.queen.properties["state_machine"]
         sm["current"] = "allied"
 
-        honey = self.game_state.add_item("item_royal_honey", name="Royal Honey")
+        honey = self.game_state.add_item(
+            "item_royal_honey", name="Royal Honey", location="loc_beehive_chamber"
+        )
         beehive = self.game_state.add_location("loc_beehive_chamber", name="Beehive Chamber")
 
         result = on_honey_theft(
-            honey, self.accessor, {"location": beehive}
+            honey, self.accessor, {}
         )
 
         self.assertTrue(result.allow)
@@ -558,7 +562,7 @@ class TestSpiderNestScenarios(ScenarioTestCase):
 
         # Create some spiders
         self.spider1 = self.game_state.add_actor(
-            "npc_giant_spider_1",
+            "giant_spider_1",
             name="Giant Spider",
             properties={
                 "state_machine": {
@@ -570,7 +574,7 @@ class TestSpiderNestScenarios(ScenarioTestCase):
             },
         )
         self.spider2 = self.game_state.add_actor(
-            "npc_giant_spider_2",
+            "giant_spider_2",
             name="Giant Spider",
             properties={
                 "state_machine": {

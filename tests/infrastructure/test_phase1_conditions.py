@@ -5,6 +5,7 @@ Tests for condition creation, modification, and querying.
 """
 
 import unittest
+from typing import Any
 
 from src.infrastructure_types import ConditionInstance, ConditionType
 from src.infrastructure_utils import (
@@ -151,20 +152,21 @@ class TestGetActorConditions(unittest.TestCase):
 
         actor = MockActor()
         conditions = get_actor_conditions(actor)  # type: ignore[arg-type]
-        self.assertEqual(conditions, [])
+        self.assertEqual(conditions, {})  # Returns empty dict, not list
         self.assertIn("conditions", actor.properties)
 
     def test_get_conditions_returns_existing(self) -> None:
-        """Getting conditions returns existing list."""
+        """Getting conditions returns existing dict."""
         class MockActor:
-            properties = {
-                "conditions": [{"type": "injured", "severity": 20}]
+            properties: dict[str, Any] = {
+                "conditions": {"injured": {"severity": 20}}
             }
 
         actor = MockActor()
         conditions = get_actor_conditions(actor)  # type: ignore[arg-type]
         self.assertEqual(len(conditions), 1)
-        self.assertEqual(conditions[0]["type"], "injured")
+        self.assertIn("injured", conditions)
+        self.assertEqual(conditions["injured"]["severity"], 20)
 
 
 if __name__ == "__main__":

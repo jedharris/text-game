@@ -16,9 +16,10 @@ from src.types import ActorId, ItemId, LocationId
 
 
 # Automatic module cleanup for all test modules
-# This function will be injected into every test module's namespace
 def _cleanup_test_module():
     """Clean up module cache pollution after all tests in a module complete."""
+    import importlib
+
     # Remove all behaviors.*, behavior_libraries.*, and examples.* modules from sys.modules
     # This includes both successfully imported modules and failed import attempts
     to_remove = [k for k in list(sys.modules.keys())
@@ -30,14 +31,39 @@ def _cleanup_test_module():
 
     # Remove game directories from sys.path
     project_root = Path(__file__).parent.parent
-    for game_name in ['big_game', 'spatial_game', 'extended_game', 'actor_interaction_test']:
+    for game_name in ['big_game', 'spatial_game', 'extended_game', 'actor_interaction_test', 'simple_game']:
         game_dir = str(project_root / "examples" / game_name)
         while game_dir in sys.path:
             sys.path.remove(game_dir)
 
+    # Invalidate import caches so Python will search sys.path fresh
+    importlib.invalidate_caches()
 
-# Hook into unittest's module loading to inject tearDownModule
+
+# Track last module to detect module transitions
+_last_test_module = None
+
+
+def pytest_runtest_teardown(item, nextitem):
+    """Clean up module cache when moving to a different test module.
+
+    This ensures behaviors loaded by one test module don't pollute another.
+    """
+    global _last_test_module
+
+    current_module = item.module.__name__ if hasattr(item, 'module') else None
+
+    # If next item is in a different module (or there's no next item), cleanup
+    next_module = nextitem.module.__name__ if nextitem and hasattr(nextitem, 'module') else None
+
+    if current_module != next_module:
+        _cleanup_test_module()
+        _last_test_module = next_module
+
+
+# Also keep unittest support for running tests via unittest runner
 _original_load_tests_from_module = unittest.TestLoader.loadTestsFromModule
+
 
 def _patched_load_tests_from_module(self, module, *args, **kwargs):
     """Patched loader that injects tearDownModule into test modules."""
@@ -47,6 +73,7 @@ def _patched_load_tests_from_module(self, module, *args, **kwargs):
 
     # Call original loader
     return _original_load_tests_from_module(self, module, *args, **kwargs)
+
 
 # Apply the patch
 unittest.TestLoader.loadTestsFromModule = _patched_load_tests_from_module  # type: ignore[method-assign]

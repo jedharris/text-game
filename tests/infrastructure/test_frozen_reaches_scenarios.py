@@ -107,7 +107,7 @@ class TestSalamanderScenarios(ScenarioTestCase):
         )
 
         self.assertTrue(result.allow)
-        self.assertIn("willing to follow", (result.feedback or "").lower())
+        self.assertIn("will follow", (result.feedback or "").lower())
         self.assertEqual(self.get_actor_trust("salamander"), 3)
 
 
@@ -118,7 +118,7 @@ class TestHypothermiaScenarios(ScenarioTestCase):
         """Set up hypothermia test fixtures."""
         super().setUp()
         player = self.setup_player(location="loc_frozen_entrance")
-        player.properties["conditions"] = []
+        player.properties["conditions"] = {}
 
         # Create locations with different temperatures
         self.warm = self.game_state.add_location(
@@ -150,7 +150,7 @@ class TestHypothermiaScenarios(ScenarioTestCase):
     def test_warm_zone_no_hypothermia(self) -> None:
         """Warm zones don't cause hypothermia."""
         player = self.game_state.get_actor(ActorId("player"))
-        player.properties["location"] = "loc_frozen_entrance"
+        player.location = "loc_frozen_entrance"
 
         result = on_cold_zone_turn(None, self.accessor, {})
 
@@ -160,19 +160,15 @@ class TestHypothermiaScenarios(ScenarioTestCase):
     def test_cold_zone_causes_hypothermia(self) -> None:
         """Cold zones cause gradual hypothermia."""
         player = self.game_state.get_actor(ActorId("player"))
-        player.properties["location"] = "loc_frozen_path"
+        player.location = "loc_frozen_path"
 
         # Run multiple turns to accumulate hypothermia
         for _ in range(5):
             on_cold_zone_turn(None, self.accessor, {})
 
         # Check hypothermia severity
-        conditions = player.properties.get("conditions", [])
-        hypothermia = None
-        for cond in conditions:
-            if cond.get("type") == "hypothermia":
-                hypothermia = cond
-                break
+        conditions = player.properties.get("conditions", {})
+        hypothermia = conditions.get("hypothermia")
 
         self.assertIsNotNone(hypothermia)
         assert hypothermia is not None
@@ -181,7 +177,7 @@ class TestHypothermiaScenarios(ScenarioTestCase):
     def test_cold_gear_reduces_hypothermia(self) -> None:
         """Cold weather gear reduces hypothermia rate."""
         player = self.game_state.get_actor(ActorId("player"))
-        player.properties["location"] = "loc_frozen_depths"
+        player.location = "loc_frozen_depths"
         player.properties["equipment"] = {"body": "cold_weather_gear"}
 
         # Run turns
@@ -189,12 +185,8 @@ class TestHypothermiaScenarios(ScenarioTestCase):
             on_cold_zone_turn(None, self.accessor, {})
 
         # Check severity - should be lower than without gear
-        conditions = player.properties.get("conditions", [])
-        hypothermia = None
-        for cond in conditions:
-            if cond.get("type") == "hypothermia":
-                hypothermia = cond
-                break
+        conditions = player.properties.get("conditions", {})
+        hypothermia = conditions.get("hypothermia")
 
         # With 50% reduction, 4 turns * 10 * 0.5 = 20
         self.assertIsNotNone(hypothermia)
@@ -204,7 +196,7 @@ class TestHypothermiaScenarios(ScenarioTestCase):
     def test_cloak_grants_cold_immunity(self) -> None:
         """Cold resistance cloak grants immunity in cold zones."""
         player = self.game_state.get_actor(ActorId("player"))
-        player.properties["location"] = "loc_frozen_path"
+        player.location = "loc_frozen_path"
         player.properties["equipment"] = {"cloak": "cold_resistance_cloak"}
 
         # Run turns
@@ -212,20 +204,23 @@ class TestHypothermiaScenarios(ScenarioTestCase):
             result = on_cold_zone_turn(None, self.accessor, {})
 
         # Should have no hypothermia
-        conditions = player.properties.get("conditions", [])
-        hypothermia = None
-        for cond in conditions:
-            if cond.get("type") == "hypothermia":
-                hypothermia = cond
-                break
+        conditions = player.properties.get("conditions", {})
+        hypothermia = conditions.get("hypothermia")
 
         self.assertIsNone(hypothermia)
 
     def test_salamander_companion_grants_immunity(self) -> None:
         """Salamander companion grants full hypothermia immunity."""
         player = self.game_state.get_actor(ActorId("player"))
-        player.properties["location"] = "loc_frozen_observatory"  # Extreme cold
-        player.properties["companions"] = [{"id": "salamander", "state": "following"}]
+        player.location = "loc_frozen_observatory"  # Extreme cold
+
+        # Create salamander companion at same location
+        salamander = self.game_state.add_actor(
+            "salamander",
+            name="Fire Salamander",
+            properties={"is_companion": True},
+            location="loc_frozen_observatory",
+        )
 
         # Run turns in extreme cold
         for _ in range(3):
@@ -235,7 +230,7 @@ class TestHypothermiaScenarios(ScenarioTestCase):
     def test_hypothermia_severity_warnings(self) -> None:
         """Different severity levels show different warnings."""
         player = self.game_state.get_actor(ActorId("player"))
-        player.properties["location"] = "loc_frozen_observatory"  # 20 per turn
+        player.location = "loc_frozen_observatory"  # 20 per turn
 
         # First turn - severity 20
         result = on_cold_zone_turn(None, self.accessor, {})
@@ -257,7 +252,7 @@ class TestHotSpringsScenarios(ScenarioTestCase):
         """Set up hot springs test fixtures."""
         super().setUp()
         player = self.setup_player(location="loc_frozen_path")
-        player.properties["conditions"] = []
+        player.properties["conditions"] = {}
 
         self.hot_springs = self.game_state.add_location(
             "loc_hot_springs",
@@ -269,10 +264,10 @@ class TestHotSpringsScenarios(ScenarioTestCase):
         """Hot springs instantly cure hypothermia."""
         player = self.game_state.get_actor(ActorId("player"))
 
-        # Give player hypothermia
-        player.properties["conditions"] = [
-            {"type": "hypothermia", "severity": 60}
-        ]
+        # Give player hypothermia (dict format)
+        player.properties["conditions"] = {
+            "hypothermia": {"severity": 60}
+        }
 
         result = on_enter_hot_springs(
             player, self.accessor, {"destination": self.hot_springs}
@@ -283,12 +278,9 @@ class TestHotSpringsScenarios(ScenarioTestCase):
 
         # Check hypothermia cured
         conditions = player.properties["conditions"]
-        hypothermia = None
-        for cond in conditions:
-            if cond.get("type") == "hypothermia":
-                hypothermia = cond
-                break
+        hypothermia = conditions.get("hypothermia")
 
+        self.assertIsNotNone(hypothermia)
         assert hypothermia is not None
         self.assertEqual(hypothermia["severity"], 0)
 
@@ -311,7 +303,7 @@ class TestCombinedFrozenScenarios(ScenarioTestCase):
         """Set up combined scenario fixtures."""
         super().setUp()
         player = self.setup_player(location="loc_frozen_entrance")
-        player.properties["conditions"] = []
+        player.properties["conditions"] = {}
 
         # Create salamander
         self.salamander = self.game_state.add_actor(
@@ -347,11 +339,12 @@ class TestCombinedFrozenScenarios(ScenarioTestCase):
                 {"target_actor": self.salamander, "item": torch},
             )
 
-        # Add salamander as companion
-        player.properties["companions"] = [{"id": "salamander", "state": "following"}]
+        # Make salamander a companion and move to extreme cold location
+        self.salamander.properties["is_companion"] = True
+        self.salamander.location = "loc_frozen_observatory"
 
         # Enter extreme cold
-        player.properties["location"] = "loc_frozen_observatory"
+        player.location = "loc_frozen_observatory"
 
         # Should survive without hypothermia
         for _ in range(5):
@@ -359,12 +352,8 @@ class TestCombinedFrozenScenarios(ScenarioTestCase):
             self.assertIsNone(result.feedback)
 
         # No hypothermia condition
-        conditions = player.properties.get("conditions", [])
-        hypothermia = None
-        for cond in conditions:
-            if cond.get("type") == "hypothermia":
-                hypothermia = cond
-                break
+        conditions = player.properties.get("conditions", {})
+        hypothermia = conditions.get("hypothermia")
 
         self.assertIsNone(hypothermia)
 

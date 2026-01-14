@@ -6,25 +6,17 @@ demonstrating how actions in one region affect others:
 - Death mark effects (fungal kills affecting Myconid trust)
 - Echo commentary on player choices
 - Bee Queen flower collection across regions
+
+Uses proper behavior architecture: adds game directory to sys.path
+and imports via `behaviors.*` (symlinked paths).
 """
+from pathlib import Path
 from src.types import ActorId
 
+import sys
 import unittest
 from typing import Any
 
-from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
-from examples.big_game.behaviors.regions.beast_wilds.bee_queen import on_receive_item as on_flower_offer
-from examples.big_game.behaviors.regions.beast_wilds.sira_rescue import on_sira_death, on_sira_encounter
-from examples.big_game.behaviors.regions.fungal_depths.fungal_death_mark import (
-    on_fungal_kill,
-    on_myconid_first_meeting,
-)
-from examples.big_game.behaviors.regions.fungal_depths.spore_mother import on_spore_mother_death
-from examples.big_game.behaviors.regions.meridian_nexus.echo import on_echo_dialog, on_echo_gossip
-from examples.big_game.behaviors.regions.sunken_district.dual_rescue import (
-    on_delvan_encounter,
-    on_npc_death,
-)
 from src.behavior_manager import EventResult
 from src.infrastructure_utils import get_pending_gossip_about
 from tests.infrastructure.test_scenario_framework import (
@@ -37,17 +29,51 @@ from tests.infrastructure.test_scenario_framework import (
 )
 
 
+_PROJECT_ROOT = Path(__file__).parent.parent.parent
+_GAME_DIR = _PROJECT_ROOT / "examples" / "big_game"
+
+
+def setUpModule():
+    """Add game directory to sys.path for behaviors.* imports."""
+    if str(_GAME_DIR) not in sys.path:
+        sys.path.insert(0, str(_GAME_DIR))
+
+
+def tearDownModule():
+    """Clean up imported modules and sys.path to prevent pollution of other tests."""
+    to_remove = [k for k in list(sys.modules.keys())
+                 if k.startswith('behaviors.') or k.startswith('behavior_libraries.')]
+    for key in to_remove:
+        del sys.modules[key]
+
+    game_dir = str(_GAME_DIR)
+    while game_dir in sys.path:
+        sys.path.remove(game_dir)
+
+
 class TestGossipPropagationScenarios(ScenarioTestCase):
     """Tests for cross-region gossip propagation."""
 
     def setUp(self) -> None:
         """Set up gossip test fixtures."""
         super().setUp()
+
+        # Import handlers via behaviors.* (symlinked architecture)
+        from behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
+        from behaviors.regions.beast_wilds.sira_rescue import on_sira_death, on_sira_encounter
+        from behaviors.regions.sunken_district.dual_rescue import on_delvan_encounter, on_npc_death
+
+        self.on_sira_encounter = on_sira_encounter
+        self.on_sira_death = on_sira_death
+        self.on_delvan_encounter = on_delvan_encounter
+        self.on_npc_death = on_npc_death
+        clear_handler_cache()
+
         self.setup_player(location="loc_beast_wilds")
 
         # Create Sira in Beast Wilds
         self.sira = self.game_state.add_actor(
-            "npc_hunter_sira",
+            "hunter_sira",
             name="Hunter Sira",
             properties={
                 "state_machine": {
@@ -92,10 +118,10 @@ class TestGossipPropagationScenarios(ScenarioTestCase):
     def test_sira_death_gossip_reaches_elara(self) -> None:
         """Sira dying creates gossip that targets Elara."""
         # Player encounters Sira (starts commitment)
-        on_sira_encounter(self.sira, self.accessor, {})
+        self.on_sira_encounter(self.sira, self.accessor, {})
 
         # Sira dies
-        result = on_sira_death(self.sira, self.accessor, {})
+        result = self.on_sira_death(self.sira, self.accessor, {})
 
         self.assertTrue(result.allow)
         self.assert_flag_set("sira_died_with_player")
@@ -118,10 +144,10 @@ class TestGossipPropagationScenarios(ScenarioTestCase):
     def test_delvan_death_gossip_reaches_echo(self) -> None:
         """Delvan dying creates gossip that targets Echo."""
         # Player encounters Delvan
-        on_delvan_encounter(self.delvan, self.accessor, {})
+        self.on_delvan_encounter(self.delvan, self.accessor, {})
 
         # Delvan dies
-        result = on_npc_death(self.delvan, self.accessor, {})
+        result = self.on_npc_death(self.delvan, self.accessor, {})
 
         self.assertTrue(result.allow)
         self.assert_flag_set("delvan_died")
@@ -134,6 +160,20 @@ class TestDeathMarkCrossRegionScenarios(ScenarioTestCase):
     def setUp(self) -> None:
         """Set up death mark test fixtures."""
         super().setUp()
+
+        # Import handlers
+        from behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
+        from behaviors.regions.fungal_depths.fungal_death_mark import (
+            on_fungal_kill,
+            on_myconid_first_meeting,
+        )
+        from behaviors.regions.fungal_depths.spore_mother import on_spore_mother_death
+
+        self.on_fungal_kill = on_fungal_kill
+        self.on_myconid_first_meeting = on_myconid_first_meeting
+        self.on_spore_mother_death = on_spore_mother_death
+        clear_handler_cache()
+
         self.setup_player(location="loc_fungal_depths")
 
         # Create fungal creatures
@@ -185,12 +225,12 @@ class TestDeathMarkCrossRegionScenarios(ScenarioTestCase):
         player = self.game_state.get_actor(ActorId("player"))
 
         # Kill a fungal creature
-        on_fungal_kill(self.shambler, self.accessor, {"killer": player})
+        self.on_fungal_kill(self.shambler, self.accessor, {"killer": player})
 
         self.assert_flag_set("has_killed_fungi")
 
         # Now meet Myconid Elder
-        result = on_myconid_first_meeting(self.myconid, self.accessor, {})
+        result = self.on_myconid_first_meeting(self.myconid, self.accessor, {})
 
         self.assertTrue(result.allow)
         self.assertIn("death of our kin", (result.feedback or "").lower())
@@ -199,7 +239,7 @@ class TestDeathMarkCrossRegionScenarios(ScenarioTestCase):
     def test_kill_spore_mother_gossip_reaches_echo(self) -> None:
         """Killing Spore Mother creates gossip to Echo."""
         # Kill Spore Mother
-        result = on_spore_mother_death(self.spore_mother, self.accessor, {})
+        result = self.on_spore_mother_death(self.spore_mother, self.accessor, {})
 
         self.assertTrue(result.allow)
         self.assert_flag_set("spore_mother_dead")
@@ -226,6 +266,15 @@ class TestEchoCrossRegionCommentaryScenarios(ScenarioTestCase):
     def setUp(self) -> None:
         """Set up Echo commentary fixtures."""
         super().setUp()
+
+        # Import handlers
+        from behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
+        from behaviors.regions.meridian_nexus.echo import on_echo_dialog, on_echo_gossip
+
+        self.on_echo_dialog = on_echo_dialog
+        self.on_echo_gossip = on_echo_gossip
+        clear_handler_cache()
+
         self.setup_player(location="loc_meridian_nexus")
 
         # Create Echo
@@ -253,7 +302,7 @@ class TestEchoCrossRegionCommentaryScenarios(ScenarioTestCase):
     def test_echo_comments_on_spore_mother_healed(self) -> None:
         """Echo provides positive commentary when Spore Mother is healed."""
         # Gossip content must contain both "spore_mother" and "healed"
-        result = on_echo_gossip(
+        result = self.on_echo_gossip(
             self.echo,
             self.accessor,
             {"content": "spore_mother healed by the player"},
@@ -269,7 +318,7 @@ class TestEchoCrossRegionCommentaryScenarios(ScenarioTestCase):
     def test_echo_comments_on_spore_mother_killed(self) -> None:
         """Echo provides negative commentary when Spore Mother is killed."""
         # Gossip content must contain both "spore_mother" and "killed"
-        result = on_echo_gossip(
+        result = self.on_echo_gossip(
             self.echo,
             self.accessor,
             {"content": "spore_mother killed by player"},
@@ -285,7 +334,7 @@ class TestEchoCrossRegionCommentaryScenarios(ScenarioTestCase):
     def test_echo_comments_on_sira_death(self) -> None:
         """Echo comments on Sira's death."""
         # Gossip content must contain "sira" and "died"
-        result = on_echo_gossip(
+        result = self.on_echo_gossip(
             self.echo,
             self.accessor,
             {"content": "hunter sira died in the beast wilds"},
@@ -299,7 +348,7 @@ class TestEchoCrossRegionCommentaryScenarios(ScenarioTestCase):
     def test_echo_comments_on_salamander_death(self) -> None:
         """Echo comments negatively on salamander deaths."""
         # Gossip content must contain "salamander" and "killed" or "died"
-        result = on_echo_gossip(
+        result = self.on_echo_gossip(
             self.echo,
             self.accessor,
             {"content": "salamander killed by the player"},
@@ -314,7 +363,7 @@ class TestEchoCrossRegionCommentaryScenarios(ScenarioTestCase):
 
     def test_echo_provides_hints(self) -> None:
         """Echo provides hints about urgent situations."""
-        result = on_echo_dialog(
+        result = self.on_echo_dialog(
             self.echo,
             self.accessor,
             {"keyword": "help"},
@@ -331,7 +380,7 @@ class TestEchoCrossRegionCommentaryScenarios(ScenarioTestCase):
         self.game_state.extra["aldric_died"] = True
         self.game_state.extra["waystone_fragments"] = ["fragment_1", "fragment_2"]
 
-        result = on_echo_dialog(
+        result = self.on_echo_dialog(
             self.echo,
             self.accessor,
             {"keyword": "status"},
@@ -349,6 +398,14 @@ class TestBeeQueenCrossRegionCollectionScenarios(ScenarioTestCase):
     def setUp(self) -> None:
         """Set up Bee Queen collection fixtures."""
         super().setUp()
+
+        # Import handlers
+        from behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
+        from behaviors.regions.beast_wilds.bee_queen import on_receive_item as on_flower_offer
+
+        self.on_flower_offer = on_flower_offer
+        clear_handler_cache()
+
         self.setup_player(location="loc_bee_grove")
 
         # Create Bee Queen
@@ -386,7 +443,7 @@ class TestBeeQueenCrossRegionCollectionScenarios(ScenarioTestCase):
     def test_trading_flowers_from_all_regions(self) -> None:
         """Trading flowers from all three regions creates alliance."""
         # Trade moonpetal (from Civilized Remnants)
-        result1 = on_flower_offer(
+        result1 = self.on_flower_offer(
             self.moonpetal,
             self.accessor,
             {"target_actor": self.bee_queen, "item": self.moonpetal},
@@ -395,7 +452,7 @@ class TestBeeQueenCrossRegionCollectionScenarios(ScenarioTestCase):
         self.assert_actor_state("bee_queen", "trading")
 
         # Trade frost lily (from Frozen Reaches)
-        result2 = on_flower_offer(
+        result2 = self.on_flower_offer(
             self.frost_lily,
             self.accessor,
             {"target_actor": self.bee_queen, "item": self.frost_lily},
@@ -403,7 +460,7 @@ class TestBeeQueenCrossRegionCollectionScenarios(ScenarioTestCase):
         self.assertIn("1 more", result2.feedback or "")
 
         # Trade water bloom (from Sunken District) - completes collection
-        result3 = on_flower_offer(
+        result3 = self.on_flower_offer(
             self.water_bloom,
             self.accessor,
             {"target_actor": self.bee_queen, "item": self.water_bloom},
@@ -418,7 +475,7 @@ class TestBeeQueenCrossRegionCollectionScenarios(ScenarioTestCase):
     def test_flowers_must_be_unique_types(self) -> None:
         """Same flower type cannot be traded twice."""
         # Trade moonpetal once
-        on_flower_offer(
+        self.on_flower_offer(
             self.moonpetal,
             self.accessor,
             {"target_actor": self.bee_queen, "item": self.moonpetal},
@@ -426,7 +483,7 @@ class TestBeeQueenCrossRegionCollectionScenarios(ScenarioTestCase):
 
         # Try to trade another moonpetal
         moonpetal2 = self.game_state.add_item("item_moonpetal_2", name="Moonpetal Flower")
-        result = on_flower_offer(
+        result = self.on_flower_offer(
             moonpetal2,
             self.accessor,
             {"target_actor": self.bee_queen, "item": moonpetal2},
@@ -444,6 +501,18 @@ class TestMultiRegionConsequenceChainScenarios(ScenarioTestCase):
     def setUp(self) -> None:
         """Set up multi-region scenario."""
         super().setUp()
+
+        # Import handlers
+        from behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
+        from behaviors.regions.fungal_depths.fungal_death_mark import on_myconid_first_meeting
+        from behaviors.regions.fungal_depths.spore_mother import on_spore_mother_death
+        from behaviors.regions.meridian_nexus.echo import on_echo_gossip
+
+        self.on_myconid_first_meeting = on_myconid_first_meeting
+        self.on_spore_mother_death = on_spore_mother_death
+        self.on_echo_gossip = on_echo_gossip
+        clear_handler_cache()
+
         self.setup_player(location="loc_fungal_depths")
 
         # Spore Mother (Fungal Depths)
@@ -481,7 +550,7 @@ class TestMultiRegionConsequenceChainScenarios(ScenarioTestCase):
         initial_myconid_trust = self.get_actor_trust("npc_myconid_elder")
 
         # Kill Spore Mother
-        on_spore_mother_death(self.spore_mother, self.accessor, {})
+        self.on_spore_mother_death(self.spore_mother, self.accessor, {})
 
         # 1. Sets death mark
         self.assert_flag_set("has_killed_fungi")
@@ -495,7 +564,7 @@ class TestMultiRegionConsequenceChainScenarios(ScenarioTestCase):
 
         # 4. When Echo receives gossip, trust drops
         # Need to match pattern "spore_mother" + "killed"
-        result = on_echo_gossip(
+        result = self.on_echo_gossip(
             self.echo, self.accessor, {"content": "spore_mother killed"}
         )
 
@@ -506,18 +575,18 @@ class TestMultiRegionConsequenceChainScenarios(ScenarioTestCase):
     def test_violent_path_accumulates_negative_trust(self) -> None:
         """Taking violent path in multiple regions accumulates penalties."""
         # Kill Spore Mother
-        on_spore_mother_death(self.spore_mother, self.accessor, {})
+        self.on_spore_mother_death(self.spore_mother, self.accessor, {})
 
         # Meet Myconid with death mark
-        on_myconid_first_meeting(self.myconid, self.accessor, {})
+        self.on_myconid_first_meeting(self.myconid, self.accessor, {})
 
         # Echo hears about killing (must use correct pattern)
-        on_echo_gossip(
+        self.on_echo_gossip(
             self.echo, self.accessor, {"content": "spore_mother killed"}
         )
 
         # Echo hears about salamander death (must use correct pattern)
-        on_echo_gossip(
+        self.on_echo_gossip(
             self.echo, self.accessor, {"content": "salamander killed"}
         )
 

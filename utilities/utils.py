@@ -12,7 +12,7 @@ parameter and use it correctly. Never hardcode "player" - use the actor_id varia
 from typing import Optional, List, Tuple, Dict, Any, Union, TYPE_CHECKING, cast, Callable
 
 from src.state_accessor import EventResult
-from src.types import ActorId, LocationId, LockId, HookName
+from src.types import ActorId, ItemId, LocationId, LockId, HookName
 from src.word_entry import WordEntry
 from utilities.entity_serializer import serialize_for_handler_result
 
@@ -1169,15 +1169,22 @@ def find_lock_by_context(
         # Expand abbreviation if needed
         dir_expanded = DIRECTION_ABBREVIATIONS.get(direction.lower(), direction.lower())
 
-        # Check if there's an exit in that direction
-        if dir_expanded not in location.exits:
+        # Find exit entity in that direction (exits are now entities, not embedded dicts)
+        from src.state_manager import Exit
+        exits_here = accessor.get_entities_at(location_id, entity_type="exit")
+        exit_entity: Optional[Exit] = None
+        for ex in exits_here:
+            if isinstance(ex, Exit) and ex.direction == dir_expanded:
+                exit_entity = ex
+                break
+
+        if not exit_entity:
             return None
 
-        exit_desc = location.exits[dir_expanded]
-        if not exit_desc.door_id:
+        if not exit_entity.door_id:
             return None
 
-        door = accessor.get_door_item(exit_desc.door_id)
+        door = accessor.get_door_item(ItemId(exit_entity.door_id))
         if not door or not door.door_lock_id:
             return None
 

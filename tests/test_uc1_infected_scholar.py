@@ -32,6 +32,7 @@ PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 from src.game_engine import GameEngine
 from src.state_manager import Actor
 from src.state_accessor import StateAccessor
+from unittest.mock import Mock
 
 
 def _create_accessor(engine):
@@ -46,6 +47,7 @@ class TestUC1Infection(BaseTestCase):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
         self.player = self.engine.game_state.get_actor(ActorId('player'))
+        self.accessor = Mock()
 
     def test_spore_exposure_low_level(self):
         """Low spore exposure applies low severity infection."""
@@ -128,6 +130,7 @@ class TestUC1Resistance(BaseTestCase):
         """Set up game engine."""
         self.engine = GameEngine(GAME_DIR)
         self.player = self.engine.game_state.get_actor(ActorId('player'))
+        self.accessor = Mock()
         # Player has 30% disease resistance per game_state.json
 
     def test_resistance_reduces_severity(self):
@@ -192,6 +195,7 @@ class TestUC1Cure(BaseTestCase):
         self.engine = GameEngine(GAME_DIR)
         self.player = self.engine.game_state.get_actor(ActorId('player'))
         self.scholar = self.engine.game_state.get_actor(ActorId('npc_scholar'))
+        self.accessor = Mock()
 
     def test_scholar_starts_infected(self):
         """Scholar starts with fungal_infection condition."""
@@ -269,6 +273,7 @@ class TestUC1Contagion(BaseTestCase):
         self.engine = GameEngine(GAME_DIR)
         self.player = self.engine.game_state.get_actor(ActorId('player'))
         self.scholar = self.engine.game_state.get_actor(ActorId('npc_scholar'))
+        self.accessor = Mock()
 
     def test_contagion_requires_focus(self):
         """Contagion only spreads when focused on infected actor."""
@@ -345,6 +350,7 @@ class TestUC1Progression(BaseTestCase):
         self.engine = GameEngine(GAME_DIR)
         self.player = self.engine.game_state.get_actor(ActorId('player'))
         self.scholar = self.engine.game_state.get_actor(ActorId('npc_scholar'))
+        self.accessor = Mock()
 
     def test_condition_tick_applies_damage(self):
         """Condition tick applies damage_per_turn to health (net with regeneration)."""
@@ -354,7 +360,7 @@ class TestUC1Progression(BaseTestCase):
         damage_per_turn = self.scholar.properties['conditions']['fungal_infection']['damage_per_turn']
         default_regen = 5  # Living actors get default 5 HP/turn
 
-        tick_conditions(self.scholar)
+        tick_conditions(self.scholar, self.accessor)
 
         # Net effect: damage - regen
         expected_health = initial_health - damage_per_turn + default_regen
@@ -370,7 +376,7 @@ class TestUC1Progression(BaseTestCase):
         initial_severity = self.scholar.properties['conditions']['fungal_infection']['severity']
         progression_rate = self.scholar.properties['conditions']['fungal_infection']['progression_rate']
 
-        tick_conditions(self.scholar)
+        tick_conditions(self.scholar, self.accessor)
 
         self.assertEqual(
             self.scholar.properties['conditions']['fungal_infection']['severity'],
@@ -384,13 +390,13 @@ class TestUC1Progression(BaseTestCase):
         initial_health = self.scholar.properties['health']
 
         # Single tick
-        tick_conditions(self.scholar)
+        tick_conditions(self.scholar, self.accessor)
         health_after_one = self.scholar.properties['health']
         change_after_one = health_after_one - initial_health
 
         # Two more ticks
-        tick_conditions(self.scholar)
-        tick_conditions(self.scholar)
+        tick_conditions(self.scholar, self.accessor)
+        tick_conditions(self.scholar, self.accessor)
         health_after_three = self.scholar.properties['health']
         total_change = health_after_three - initial_health
 

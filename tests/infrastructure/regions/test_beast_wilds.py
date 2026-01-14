@@ -30,8 +30,9 @@ class MockActor:
 class MockItem:
     """Mock item for testing."""
 
-    def __init__(self, item_id: str) -> None:
+    def __init__(self, item_id: str, location: str = "") -> None:
         self.id = item_id
+        self.location = location
 
 
 class MockState:
@@ -62,18 +63,17 @@ class TestWolfFeed(unittest.TestCase):
         """Feeding the alpha wolf increases trust."""
         state = MockState()
         alpha = MockActor(
-            "npc_alpha_wolf",
+            "alpha_wolf",
             {
                 "trust_state": {"current": 0, "floor": -3, "ceiling": 6},
                 "state_machine": {"states": ["hostile", "wary"], "initial": "hostile"},
             },
         )
-        state.actors[ActorId("npc_alpha_wolf")] = alpha
+        state.actors["alpha_wolf"] = alpha
         accessor = MockAccessor(state)
 
         item = MockItem("item_venison")
-        target = MockActor("npc_alpha_wolf", {})
-        context = {"target_actor": target, "item": item}
+        context = {"target_actor": alpha, "item": item}
 
         result = on_wolf_feed(item, accessor, context)
 
@@ -98,7 +98,7 @@ class TestWolfFeed(unittest.TestCase):
         """First feeding transitions hostile wolf to wary."""
         state = MockState()
         alpha = MockActor(
-            "npc_alpha_wolf",
+            "alpha_wolf",
             {
                 "trust_state": {"current": 0, "floor": -3, "ceiling": 6},
                 "state_machine": {
@@ -107,12 +107,11 @@ class TestWolfFeed(unittest.TestCase):
                 },
             },
         )
-        state.actors[ActorId("npc_alpha_wolf")] = alpha
+        state.actors["alpha_wolf"] = alpha
         accessor = MockAccessor(state)
 
         item = MockItem("item_venison")
-        target = alpha
-        context = {"target_actor": target, "item": item}
+        context = {"target_actor": alpha, "item": item}
 
         on_wolf_feed(item, accessor, context)
 
@@ -136,7 +135,7 @@ class TestSiraEncounter(unittest.TestCase):
         state.extra["commitment_configs"] = {
             "commit_sira_rescue": {
                 "id": "commit_sira_rescue",
-                "target_npc": "npc_hunter_sira",
+                "target_npc": "hunter_sira",
                 "goal": "Stop Sira's bleeding and heal her leg",
                 "base_timer": 8,
                 "hope_bonus": 4,
@@ -145,7 +144,7 @@ class TestSiraEncounter(unittest.TestCase):
         state.extra["active_commitments"] = []
         accessor = MockAccessor(state)
 
-        sira = MockActor("npc_hunter_sira", {})
+        sira = MockActor("hunter_sira", {})
         context: dict[str, Any] = {}
 
         result = on_sira_encounter(sira, accessor, context)
@@ -160,7 +159,7 @@ class TestSiraEncounter(unittest.TestCase):
         state.extra["sira_commitment_created"] = True
         accessor = MockAccessor(state)
 
-        sira = MockActor("npc_hunter_sira", {})
+        sira = MockActor("hunter_sira", {})
         context: dict[str, Any] = {}
 
         result = on_sira_encounter(sira, accessor, context)
@@ -179,7 +178,7 @@ class TestSiraDeath(unittest.TestCase):
         state.extra["sira_commitment_created"] = True
         accessor = MockAccessor(state)
 
-        sira = MockActor("npc_hunter_sira", {})
+        sira = MockActor("hunter_sira", {})
         context: dict[str, Any] = {}
 
         result = on_sira_death(sira, accessor, context)
@@ -205,7 +204,7 @@ class TestBearCommitment(unittest.TestCase):
         state.extra["commitment_configs"] = {
             "commit_bear_cubs": {
                 "id": "commit_bear_cubs",
-                "target_npc": "npc_dire_bear",
+                "target_npc": "dire_bear",
                 "goal": "Give healing_herbs to bear cubs",
                 "base_timer": 30,
                 "hope_bonus": 5,
@@ -214,8 +213,8 @@ class TestBearCommitment(unittest.TestCase):
         state.extra["active_commitments"] = []
         accessor = MockAccessor(state)
 
-        bear = MockActor("npc_dire_bear", {})
-        state.actors[ActorId("npc_dire_bear")] = bear
+        bear = MockActor("dire_bear", {})
+        state.actors["dire_bear"] = bear
         context = {"keyword": "I'll find medicine for them"}
 
         result = on_bear_commitment(bear, accessor, context)
@@ -228,7 +227,7 @@ class TestBearCommitment(unittest.TestCase):
         state = MockState()
         accessor = MockAccessor(state)
 
-        bear = MockActor("npc_dire_bear", {})
+        bear = MockActor("dire_bear", {})
         context = {"keyword": "hello there"}
 
         result = on_bear_commitment(bear, accessor, context)
@@ -244,17 +243,17 @@ class TestCubsHealed(unittest.TestCase):
         """Using healing herbs on cubs heals them."""
         state = MockState()
         bear = MockActor(
-            "npc_dire_bear",
+            "dire_bear",
             {
                 "state_machine": {"states": ["hostile", "grateful"], "initial": "hostile"},
                 "trust_state": {"current": 0, "floor": -5, "ceiling": 5},
             },
         )
-        cub1 = MockActor("npc_bear_cub_1", {"sick": True})
-        cub2 = MockActor("npc_bear_cub_2", {"sick": True})
-        state.actors[ActorId("npc_dire_bear")] = bear
-        state.actors[ActorId("npc_bear_cub_1")] = cub1
-        state.actors[ActorId("npc_bear_cub_2")] = cub2
+        cub1 = MockActor("bear_cub_1", {"sick": True})
+        cub2 = MockActor("bear_cub_2", {"sick": True})
+        state.actors["dire_bear"] = bear
+        state.actors["bear_cub_1"] = cub1
+        state.actors["bear_cub_2"] = cub2
         accessor = MockAccessor(state)
 
         item = MockItem("item_healing_herbs")
@@ -275,7 +274,7 @@ class TestCubsDied(unittest.TestCase):
         """Cubs dying makes bear vengeful."""
         state = MockState()
         bear = MockActor(
-            "npc_dire_bear",
+            "dire_bear",
             {
                 "state_machine": {
                     "states": ["hostile", "vengeful"],
@@ -284,11 +283,11 @@ class TestCubsDied(unittest.TestCase):
                 "trust_state": {"current": 0, "floor": -5, "ceiling": 5},
             },
         )
-        cub1 = MockActor("npc_bear_cub_1", {})
-        cub2 = MockActor("npc_bear_cub_2", {})
-        state.actors[ActorId("npc_dire_bear")] = bear
-        state.actors[ActorId("npc_bear_cub_1")] = cub1
-        state.actors[ActorId("npc_bear_cub_2")] = cub2
+        cub1 = MockActor("bear_cub_1", {})
+        cub2 = MockActor("bear_cub_2", {})
+        state.actors["dire_bear"] = bear
+        state.actors["bear_cub_1"] = cub1
+        state.actors["bear_cub_2"] = cub2
         accessor = MockAccessor(state)
 
         entity = MagicMock()
@@ -323,7 +322,7 @@ class TestFlowerOffer(unittest.TestCase):
                 "trust_state": {"current": 0},
             },
         )
-        state.actors[ActorId("bee_queen")] = queen
+        state.actors["bee_queen"] = queen
         accessor = MockAccessor(state)
 
         item = MockItem("item_moonpetal")
@@ -340,7 +339,7 @@ class TestFlowerOffer(unittest.TestCase):
         """Non-flower items are rejected."""
         state = MockState()
         queen = MockActor("bee_queen", {})
-        state.actors[ActorId("bee_queen")] = queen
+        state.actors["bee_queen"] = queen
         accessor = MockAccessor(state)
 
         item = MockItem("item_rock")
@@ -366,7 +365,7 @@ class TestFlowerOffer(unittest.TestCase):
                 "trust_state": {"current": 2},
             },
         )
-        state.actors[ActorId("bee_queen")] = queen
+        state.actors["bee_queen"] = queen
         accessor = MockAccessor(state)
 
         item = MockItem("item_water_bloom")
@@ -393,12 +392,11 @@ class TestHoneyTheft(unittest.TestCase):
                 },
             },
         )
-        state.actors[ActorId("bee_queen")] = queen
+        state.actors["bee_queen"] = queen
         accessor = MockAccessor(state)
 
-        item = MockItem("item_royal_honey")
-        location = MockActor("loc_beehive_grove", {})  # Using MockActor for location
-        context = {"location": location}
+        item = MockItem("item_royal_honey", "loc_beehive_grove")
+        context: dict[str, Any] = {}
 
         result = on_honey_theft(item, accessor, context)
 
@@ -419,12 +417,11 @@ class TestHoneyTheft(unittest.TestCase):
                 },
             },
         )
-        state.actors[ActorId("bee_queen")] = queen
+        state.actors["bee_queen"] = queen
         accessor = MockAccessor(state)
 
-        item = MockItem("item_royal_honey")
-        location = MockActor("loc_beehive_grove", {})
-        context = {"location": location}
+        item = MockItem("item_royal_honey", "loc_beehive_grove")
+        context: dict[str, Any] = {}
 
         result = on_honey_theft(item, accessor, context)
 
