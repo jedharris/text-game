@@ -20,6 +20,7 @@ vocabulary: Dict[str, Any] = {
 # Service keywords
 HEAL_KEYWORDS = ["heal", "cure", "medicine", "treatment", "help"]
 TRADE_KEYWORDS = ["buy", "sell", "trade", "herbs", "potion", "supplies", "purchase"]
+HERBALISM_KEYWORDS = ["herbalism", "teach", "training", "learn", "plants", "lesson"]
 
 
 def on_service_request(
@@ -47,6 +48,14 @@ def on_service_request(
 
     # Elara - Healer and Confession
     if "elara" in actor_id.lower():
+        # Check for Aldric topic
+        if "aldric" in keyword:
+            return _handle_elara_aldric_topic(entity, accessor)
+
+        # Check for herbalism teaching
+        if any(k in keyword for k in HERBALISM_KEYWORDS):
+            return _handle_elara_herbalism_teaching(entity, accessor)
+
         # Check for confession first
         confession_keywords = ["confess", "admit", "tell you", "must know", "truth"]
         if any(k in keyword for k in confession_keywords):
@@ -178,6 +187,146 @@ def on_confession(
             )
 
     return EventResult(allow=True, feedback=None)
+
+
+def _handle_elara_aldric_topic(entity: Any, accessor: Any) -> EventResult:
+    """Handle Elara's dialog about Aldric.
+
+    If Aldric was rescued, grants a one-time trust bonus.
+    """
+    state = accessor.game_state
+    elara = entity
+
+    # Check if Aldric was saved
+    aldric_saved = state.extra.get("aldric_saved", False)
+
+    if not aldric_saved:
+        return EventResult(
+            allow=True,
+            feedback=(
+                "Elara's expression softens. 'Aldric? He's a scholar who was studying "
+                "in the Fungal Depths. I worry about him... the spores down there are dangerous.'"
+            ),
+        )
+
+    # Aldric was saved - check if bonus already applied
+    bonus_applied = state.extra.get("elara_aldric_bonus_applied", False)
+
+    if bonus_applied:
+        return EventResult(
+            allow=True,
+            feedback=(
+                "Elara smiles warmly. 'I'm still so grateful you helped Aldric. "
+                "He's recovering well thanks to you.'"
+            ),
+        )
+
+    # Apply trust bonus (one-time)
+    if "trust_state" not in elara.properties:
+        elara.properties["trust_state"] = {"current": 0}
+
+    apply_trust_change(entity=elara, delta=1)
+    state.extra["elara_aldric_bonus_applied"] = True
+
+    return EventResult(
+        allow=True,
+        feedback=(
+            "Elara's eyes light up. 'You saved Aldric! He told me what you did - "
+            "braving those spore-filled tunnels to bring him back. I won't forget this.' "
+            "Her demeanor warms noticeably toward you."
+        ),
+    )
+
+
+def _handle_elara_herbalism_teaching(entity: Any, accessor: Any) -> EventResult:
+    """Handle Elara's herbalism teaching service.
+
+    Basic herbalism requires trust >= 2.
+    Advanced herbalism requires trust >= 3 AND basic_herbalism skill.
+    """
+    state = accessor.game_state
+    elara = entity
+    player = state.actors.get("player")
+
+    if not player:
+        return EventResult(allow=True, feedback=None)
+
+    # Get trust level
+    trust_state = elara.properties.get("trust_state", {"current": 0})
+    trust = trust_state.get("current", 0)
+
+    # Get player skills
+    skills = player.properties.get("skills", [])
+    if skills is None:
+        skills = []
+
+    has_basic = "basic_herbalism" in skills
+    has_advanced = "advanced_herbalism" in skills
+
+    # Already has advanced - nothing more to teach
+    if has_advanced:
+        return EventResult(
+            allow=True,
+            feedback=(
+                "Elara smiles proudly. 'You've already mastered everything I can teach you. "
+                "Now it's about practice and experience - and perhaps finding rare specimens "
+                "in the deeper wilds.'"
+            ),
+        )
+
+    # Has basic, check if can learn advanced
+    if has_basic:
+        if trust < 3:
+            return EventResult(
+                allow=True,
+                feedback=(
+                    "Elara nods approvingly. 'You've learned the basics well. "
+                    "Advanced techniques require deeper trust between us. "
+                    "Continue helping the community, and perhaps...'"
+                ),
+            )
+
+        # Can learn advanced
+        if "skills" not in player.properties:
+            player.properties["skills"] = []
+        player.properties["skills"].append("advanced_herbalism")
+
+        return EventResult(
+            allow=True,
+            feedback=(
+                "Elara takes you deeper into her garden. 'Now for the advanced techniques - "
+                "identifying rare specimens, proper extraction methods, creating compounds.' "
+                "She spends hours teaching you the subtle arts of herbalism. "
+                "'You have a gift for this,' she says finally. 'Use it wisely.'"
+            ),
+        )
+
+    # No skills yet - check trust for basic
+    if trust < 2:
+        return EventResult(
+            allow=True,
+            feedback=(
+                "Elara considers your request carefully. 'Teaching herbalism takes time "
+                "and trust. Help me, help the community, and we can discuss lessons later.' "
+                "She gestures to the various tasks around the sanctuary."
+            ),
+        )
+
+    # Can learn basic
+    if "skills" not in player.properties:
+        player.properties["skills"] = []
+    player.properties["skills"].append("basic_herbalism")
+
+    return EventResult(
+        allow=True,
+        feedback=(
+            "Elara nods slowly. 'Very well. I'll teach you the fundamentals.' "
+            "She leads you through her herb garden, naming each plant. "
+            "'This is silvermoss - excellent for wounds. And here, moonpetal - "
+            "calms the nerves.' By the end, you've learned to identify and "
+            "harvest the basic medicinal plants."
+        ),
+    )
 
 
 def _handle_maren_trading(entity: Any, accessor: Any, context: dict[str, Any]) -> EventResult:
@@ -316,5 +465,87 @@ def _handle_elara_healing(entity: Any, accessor: Any) -> EventResult:
         allow=True,
         feedback="Elara examines you. 'You seem well. Come back if you need healing.'",
     )
+
+
+def on_garden_herb_take(
+    entity: Any,
+    accessor: Any,
+    context: dict[str, Any],
+) -> EventResult:
+    """Handle taking herbs from Elara's garden.
+
+    Requires appropriate herbalism skill to harvest safely.
+    - healing_herbs: basic_herbalism
+    - nightshade: advanced_herbalism
+    - moonpetal: no skill required (for Bee Queen quest)
+
+    Args:
+        entity: The item being taken
+        accessor: StateAccessor instance
+        context: Context dict
+
+    Returns:
+        EventResult allowing or blocking the take action
+    """
+    item_id = entity.id if hasattr(entity, "id") else None
+    if not item_id:
+        return EventResult(allow=True, feedback=None)
+
+    state = accessor.game_state
+    player = state.actors.get("player")
+
+    if not player:
+        return EventResult(allow=True, feedback=None)
+
+    # Get player skills
+    skills = player.properties.get("skills", [])
+    if skills is None:
+        skills = []
+
+    # Get required skill from item properties
+    required_skill = entity.properties.get("requires_herbalism")
+
+    if not required_skill:
+        # No skill required
+        return EventResult(allow=True, feedback=None)
+
+    # Map skill level to skill name
+    skill_map = {
+        "basic": "basic_herbalism",
+        "advanced": "advanced_herbalism"
+    }
+    required_skill_name = skill_map.get(required_skill, required_skill)
+
+    # Check if player has the required skill
+    has_skill = required_skill_name in skills
+
+    # For advanced items, also accept if they have advanced (supersedes basic)
+    if required_skill == "basic" and "advanced_herbalism" in skills:
+        has_skill = True
+
+    if not has_skill:
+        item_name = entity.name if hasattr(entity, "name") else "this plant"
+
+        if required_skill == "basic":
+            return EventResult(
+                allow=False,
+                feedback=(
+                    f"You reach for the {item_name}, but hesitate. Without proper training, "
+                    "you might damage the plant or take the wrong parts. "
+                    "Perhaps Elara could teach you herbalism basics first."
+                ),
+            )
+        elif required_skill == "advanced":
+            return EventResult(
+                allow=False,
+                feedback=(
+                    f"The {item_name} is clearly dangerous - you recognize the warning signs. "
+                    "Handling it without advanced training could be fatal. "
+                    "You'll need to master advanced herbalism before attempting this."
+                ),
+            )
+
+    # Player has the required skill
+    return EventResult(allow=True, feedback=None)
 
 

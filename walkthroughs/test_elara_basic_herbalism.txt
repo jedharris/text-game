@@ -3,33 +3,29 @@
 # Scenario: healer_elara.md scenario 8
 
 # Setup: Build trust to level 2
-@set actors.healer_elara.trust_state.current = 2
+@set actors.healer_elara.properties.trust_state.current = 2
 
-# Navigate to healer_elara location
-go south
+# Navigate to healer_elara location (correct path)
 go south
 go east
 go south
+go south
+go east
 
 # Verify we're at the right location
 look
 @expect "Elara"
 
-# Check we don't have herbalism skill
-@inspect extra.skills.herbalism
-@expect null
-
 # Ask about learning herbalism
 ask elara about herbalism
-@expect "teach" or "learn" or "plants"
+@expect "teach"
 
-# Request teaching
-ask elara to teach herbalism
-@expect "basic" or "fundamentals" or "identify"
+# Verify basic_herbalism skill was granted
+@assert actors.player.properties.skills contains "basic_herbalism"
 
-# Verify skill granted
-@inspect extra.skills.herbalism
-@expect "basic"
+# Ask again - should acknowledge we know basics but need more trust for advanced
+ask elara about herbalism
+@expect "basics"
 
 # Summary: Basic herbalism teaching verified
 # - Trust 2+ required

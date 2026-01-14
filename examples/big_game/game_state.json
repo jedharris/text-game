@@ -2943,7 +2943,10 @@
       "properties": {
         "portable": true,
         "curative": true,
-        "requires_herbalism": "basic"
+        "requires_herbalism": "basic",
+        "take_reactions": {
+          "handler": "behaviors.regions.civilized_remnants.services:on_garden_herb_take"
+        }
       },
       "llm_context": {
         "traits": [
@@ -2960,7 +2963,9 @@
         }
       },
       "behaviors": [
-        "behaviors.shared.infrastructure.item_use_reactions"
+        "behaviors.shared.infrastructure.item_use_reactions",
+        "behaviors.regions.civilized_remnants.services",
+        "behaviors.shared.infrastructure.take_reactions"
       ],
       "vocabulary": {
         "nouns": [
@@ -2983,7 +2988,10 @@
         "portable": true,
         "dangerous": true,
         "poisonous": true,
-        "requires_herbalism": "advanced"
+        "requires_herbalism": "advanced",
+        "take_reactions": {
+          "handler": "behaviors.regions.civilized_remnants.services:on_garden_herb_take"
+        }
       },
       "llm_context": {
         "traits": [
@@ -2998,7 +3006,11 @@
           "in_inventory": "sealed container for dangerous plant",
           "examined": "nightshade, poison requiring expert use"
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.regions.civilized_remnants.services",
+        "behaviors.shared.infrastructure.take_reactions"
+      ]
     },
     {
       "id": "moonpetal",
@@ -5152,13 +5164,18 @@
               "another victim of rising water"
             ]
           }
+        },
+        "dialog_reactions": {
+          "handler": "behaviors.regions.sunken_district.dual_rescue:on_delvan_dialog"
         }
       },
       "behaviors": [
+        "behaviors.regions.sunken_district.dual_rescue",
         "behaviors.shared.infrastructure.encounter_reactions",
         "behaviors.shared.infrastructure.death_reactions",
         "behaviors.shared.infrastructure.condition_reactions",
-        "behaviors.shared.infrastructure.item_use_reactions"
+        "behaviors.shared.infrastructure.item_use_reactions",
+        "behaviors.shared.infrastructure.dialog_reactions"
       ]
     },
     "the_archivist": {

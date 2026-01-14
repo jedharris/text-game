@@ -1,38 +1,32 @@
 # Camp Leader Mira - Safe Rest Service
-# Tests: Camp provides safe rest with health/morale recovery
+# Tests: Mira provides safe rest service when in allied state
 # Scenario: camp_leader_mira.md scenario 7
 
-# Navigate to survivor_camp (Sunken District)
-go south
-go south
+# Setup: Set Mira to allied state and reduce player health
+@set actors.camp_leader_mira.properties.state_machine.current = "allied"
+@set actors.player.properties.health = 50
+@set actors.player.properties.max_health = 100
+
+# Navigate to survivor_camp
 go east
-go east
+go northwest
 
 # Verify we're at survivor camp
 look
 @expect "Mira"
 
-# Set player to low health/stamina state
-@set extra.player_health = 50
-@set extra.player_stamina = 30
-
-# Ask about resting at camp
+# Ask Mira about resting
 ask mira about rest
-@expect "safe" or "welcome" or "recover"
+@expect "rest"
 
-# Request to rest
-rest
-@expect "recover" or "restored" or "rested"
+# Verify health restored to max (100)
+@assert actors.player.properties.health == 100
 
-# Verify health recovered
-@inspect extra.player_health
-@expect 100
-
-# Verify stamina recovered
-@inspect extra.player_stamina
-@expect 100
+# Ask about rest again - should acknowledge already rested
+ask mira about rest
+@expect "rested"
 
 # Summary: Camp safe rest service verified
-# - Camp provides safe rest
-# - Health fully restored
-# - Stamina fully restored
+# - Allied state required
+# - Health restored to max_health
+# - Works via dialog with Mira

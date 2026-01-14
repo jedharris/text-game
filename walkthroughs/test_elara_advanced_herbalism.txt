@@ -1,39 +1,38 @@
 # Healer Elara - Advanced Herbalism Teaching
-# Tests: Elara teaches advanced herbalism at trust 4+ with basic prereq
+# Tests: Elara teaches advanced herbalism at trust 3+ with basic prereq
 # Scenario: healer_elara.md scenario 8
 
-# Setup: Build trust to level 4 and have basic herbalism
-@set actors.healer_elara.trust_state.current = 4
-@set extra.skills.herbalism = "basic"
+# Setup: Build trust to level 3 and have basic herbalism
+@set actors.healer_elara.properties.trust_state.current = 3
+@set actors.player.properties.skills = ["basic_herbalism"]
 
 # Navigate to healer_elara location
 go south
-go south
 go east
 go south
+go south
+go east
 
 # Verify we're at the right location
 look
 @expect "Elara"
 
 # Check we have basic herbalism
-@inspect extra.skills.herbalism
-@expect "basic"
+@assert actors.player.properties.skills contains "basic_herbalism"
 
-# Ask about advanced training
-ask elara about advanced herbalism
-@expect "ready" or "more" or "deeper"
-
-# Request advanced teaching
-ask elara to teach advanced herbalism
-@expect "potion" or "compound" or "mixture" or "craft"
-
-# Verify skill upgraded
-@inspect extra.skills.herbalism
+# Ask about advanced training - should teach since we have prereq and trust
+ask elara about herbalism
 @expect "advanced"
 
+# Verify advanced_herbalism skill was granted
+@assert actors.player.properties.skills contains "advanced_herbalism"
+
+# Ask again - should acknowledge we've mastered everything
+ask elara about herbalism
+@expect "mastered"
+
 # Summary: Advanced herbalism teaching verified
-# - Trust 4+ required
-# - Basic herbalism prerequisite
+# - Trust 3+ required
+# - Basic herbalism prerequisite required
 # - Elara teaches advanced herbalism
-# - Skill upgraded to advanced
+# - Skill granted after teaching

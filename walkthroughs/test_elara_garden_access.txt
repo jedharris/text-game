@@ -1,41 +1,39 @@
-# Healer Elara - Garden Access Control
-# Tests: Garden access granted at trust 3+
-# Scenario: healer_elara.md scenario 9
+# Healer Elara - Garden Access Control (Soft-Block)
+# Tests: Players without herbalism skill cannot take herbs from garden
+# Scenario: healer_elara.md scenario 9 (design spec says soft-block via take_reactions)
 
-# Navigate to healer_elara location
-go south
+# Navigate to healers_garden (via healers_sanctuary)
 go south
 go east
 go south
-
-# Verify we're at the right location
-look
-@expect "Elara"
-
-# Try to access garden without trust (should be denied)
+go south
 go east
-@expect "private" or "not allowed" or "permission"
-
-# Build trust to level 3
-@set actors.healer_elara.trust_state.current = 3
-
-# Ask about the garden
-ask elara about garden
-@expect "herbs" or "plants" or "welcome"
-
-# Now try to access garden with sufficient trust
-go east
-@expect "garden" or "herbs" or "plants"
+go back
 
 # Verify we're in the garden
 look
 @expect "garden"
 
-# Verify flag is set
-@inspect extra.has_garden_access
-@expect true
+# Verify healing_herbs are present
+@expect "herbs"
 
-# Summary: Garden access control verified
-# - Access denied below trust 3
-# - Access granted at trust 3+
-# - has_garden_access flag set
+# Try to take herbs without herbalism skill - should be blocked
+# EXPECTED_FAILURE: Blocked Action - player lacks basic_herbalism skill
+get herbs
+@expect "training"
+
+# Verify herbs still in garden (blocked action shouldn't remove item)
+look
+@expect "herbs"
+
+# Now give player basic herbalism skill
+@set actors.player.properties.skills = ["basic_herbalism"]
+
+# Try again - should succeed now
+get herbs
+@expect "You take"
+
+# Summary: Garden soft-block verified
+# - Players can enter garden (no hard block)
+# - Players without basic_herbalism cannot take healing herbs
+# - Players with basic_herbalism can take herbs

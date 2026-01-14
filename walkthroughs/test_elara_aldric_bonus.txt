@@ -5,32 +5,35 @@
 # Setup: Simulate Aldric being saved (flag normally set by Fungal Depths rescue)
 @set extra.aldric_saved = true
 
-# Navigate to healer_elara location
-go south
+# Navigate to healer_elara location (nexus_chamber -> healers_sanctuary)
 go south
 go east
 go south
+go south
+go east
 
 # Verify we're at the right location
 look
 @expect "Elara"
 
 # Check initial trust (should be 0)
-@inspect actors.healer_elara.trust_state.current
+@assert actors.healer_elara.properties.trust_state.current == 0
 
-# Talk to Elara - should recognize Aldric was saved
-talk to elara
+# Talk to Elara about Aldric - should recognize he was saved and grant bonus
+ask elara about aldric
 @expect "Aldric"
 
-# The trust bonus should be applied
-# Either through automatic check on first interaction, or through specific dialog
-ask elara about aldric
-@expect "saved" or "rescued" or "alive"
-
 # Verify trust increased by +1
-@inspect actors.healer_elara.trust_state.current
-@expect 1
+@assert actors.healer_elara.properties.trust_state.current == 1
+
+# Verify the flag is set so bonus isn't applied twice
+@assert extra.elara_aldric_bonus_applied == true
+
+# Ask again - should NOT grant another bonus
+ask elara about aldric
+@assert actors.healer_elara.properties.trust_state.current == 1
 
 # Summary: Aldric rescue trust bonus verified
 # - Dialog acknowledges rescue
-# - Trust +1 applied
+# - Trust +1 applied once
+# - Flag prevents duplicate bonus

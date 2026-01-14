@@ -2,41 +2,41 @@
 # Tests: Dialog varies based on Garrett's recovery state after rescue
 # Scenario: camp_leader_mira.md scenario 10
 
-# Setup: Simulate Garrett rescued and some turns passed
+# Setup: Simulate Garrett rescued recently (turn 1)
 @set extra.garrett_rescued = true
 @set extra.garrett_rescue_turn = 1
 
-# Navigate to survivor_camp
-go south
-go south
+# Navigate to survivor_camp (nexus_chamber -> flooded_plaza -> survivor_camp)
 go east
-go east
+go northwest
 
 # Verify we're at survivor camp
 look
 @expect "Mira"
 
-# Ask about Garrett immediately after rescue (turn ~5)
-# He should still be recovering
+# Ask about Garrett immediately after rescue
+# He should still be recovering (turns_since_rescue < 5)
 ask mira about garrett
-@expect "recovering" or "resting" or "weak"
+@expect "weak"
 
-# Advance time (simulate waiting)
-@set extra.garrett_rescue_turn = 1
-wait
-wait
-wait
-wait
-wait
+# Test intermediate state by changing rescue turn to simulate more time passed
+@set extra.garrett_rescue_turn = -5
 
-# Now ask again - Garrett should be recovered (5+ turns)
+# Ask again - Garrett should be getting stronger (5-10 turns)
 ask mira about garrett
-@expect "recovered" or "better" or "teaching" or "swimming"
+@expect "stronger"
 
-# Mira should acknowledge he can now help
-@expect "teach" or "lessons" or "ready"
+# Test fully recovered state
+@set extra.garrett_rescue_turn = -15
+
+# Now ask again - Garrett should be fully recovered (10+ turns)
+ask mira about garrett
+@expect "recovered"
+
+# Should mention he can help with swimming lessons
+@expect "Jek"
 
 # Summary: Garrett recovery tracking verified
 # - Early dialog shows recovering state
-# - After 5 turns, dialog shows recovered state
-# - Mira mentions he can teach swimming when recovered
+# - Intermediate shows getting stronger
+# - After 10 turns, dialog shows recovered and helping Jek

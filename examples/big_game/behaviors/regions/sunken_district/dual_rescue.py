@@ -26,6 +26,113 @@ vocabulary: Dict[str, Any] = {
 }
 
 
+# Dialog keywords for Delvan
+UNDERCITY_KEYWORDS = ["undercity", "underground", "black market", "connections", "contacts", "smuggler", "fence"]
+TRADE_KEYWORDS = ["trade", "buy", "sell", "goods", "supplies", "business"]
+
+
+def on_delvan_dialog(
+    entity: Any,
+    accessor: Any,
+    context: dict[str, Any],
+) -> EventResult:
+    """Handle dialog with Delvan.
+
+    Post-rescue, Delvan can reveal undercity entrance as alternative to Vex.
+
+    Args:
+        entity: Delvan NPC
+        accessor: StateAccessor instance
+        context: Context with keyword
+
+    Returns:
+        EventResult with dialog response
+    """
+    actor_id = entity.id if hasattr(entity, "id") else None
+    if actor_id != "merchant_delvan":
+        return EventResult(allow=True, feedback=None)
+
+    state = accessor.game_state
+    extra = state.extra
+    keyword = context.get("keyword", "").lower()
+
+    # Get Delvan's current state
+    sm = entity.properties.get("state_machine", {})
+    current_state = sm.get("current", sm.get("initial", "trapped"))
+
+    # If still trapped, limited dialog
+    if current_state == "trapped":
+        return EventResult(
+            allow=True,
+            feedback=(
+                "Delvan gasps between pained breaths. 'Please... help me first... "
+                "we can talk later...'"
+            ),
+        )
+
+    # Check for undercity/connections keywords (only available if rescued)
+    if any(kw in keyword for kw in UNDERCITY_KEYWORDS):
+        if not extra.get("delvan_rescued"):
+            return EventResult(
+                allow=True,
+                feedback="Delvan shakes his head. 'I don't know what you mean.'",
+            )
+
+        # Reveal undercity entrance
+        if not extra.get("knows_undercity_entrance"):
+            extra["knows_undercity_entrance"] = True
+            return EventResult(
+                allow=True,
+                feedback=(
+                    "Delvan lowers his voice conspiratorially. 'You saved my life, so I'll "
+                    "share something valuable. The Undercity - there's a hidden entrance "
+                    "in the old cistern. Look for the drainage grate with the merchant's mark.' "
+                    "He traces a symbol in the dust. 'This gets you in without dealing with Vex.'"
+                ),
+            )
+        else:
+            return EventResult(
+                allow=True,
+                feedback=(
+                    "Delvan nods. 'The cistern entrance - you remember the symbol I showed you? "
+                    "That's your way in. Be careful down there.'"
+                ),
+            )
+
+    # Check for trade keywords (only if rescued)
+    if any(kw in keyword for kw in TRADE_KEYWORDS):
+        if not extra.get("delvan_rescued"):
+            return EventResult(
+                allow=True,
+                feedback="Delvan is in no condition to discuss business.",
+            )
+
+        return EventResult(
+            allow=True,
+            feedback=(
+                "Delvan's merchant instincts return despite his ordeal. 'Once I recover, "
+                "I'll be back in business. Good salvage from the flooded areas, if you "
+                "can get it to me. I pay fair prices - better than most.'"
+            ),
+        )
+
+    # Default post-rescue dialog
+    if extra.get("delvan_rescued"):
+        return EventResult(
+            allow=True,
+            feedback=(
+                "Delvan regards you with genuine gratitude. 'I owe you my life. "
+                "If there's anything I can help you with - information, connections - "
+                "just ask.'"
+            ),
+        )
+
+    return EventResult(
+        allow=True,
+        feedback="Delvan seems preoccupied with his injuries.",
+    )
+
+
 def on_delvan_encounter(
     entity: Any,
     accessor: Any,

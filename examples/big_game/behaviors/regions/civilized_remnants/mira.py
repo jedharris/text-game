@@ -25,6 +25,9 @@ vocabulary: Dict[str, Any] = {
 # Quest keywords
 QUEST_KEYWORDS = ["help", "quest", "survivors", "mission", "task", "assist"]
 PROGRESS_KEYWORDS = ["progress", "update", "status", "how"]
+SWIMMING_KEYWORDS = ["swimming", "swim", "water", "dive", "tidal"]
+GARRETT_KEYWORDS = ["garrett", "wounded", "injured", "recovering"]
+REST_KEYWORDS = ["rest", "sleep", "recover", "tired", "exhausted"]
 
 
 def on_mira_dialog(
@@ -55,6 +58,18 @@ def on_mira_dialog(
     current_state = sm.get("current", sm.get("initial", "neutral"))
     trust_state = mira.properties.get("trust_state", {"current": 0})
     trust = trust_state.get("current", 0)
+
+    # Check for swimming/Jek referral keywords
+    if any(kw in keyword for kw in SWIMMING_KEYWORDS):
+        return _handle_jek_referral(mira, accessor)
+
+    # Check for Garrett recovery keywords
+    if any(kw in keyword for kw in GARRETT_KEYWORDS):
+        return _handle_garrett_recovery(mira, accessor)
+
+    # Check for rest keywords (only available when allied)
+    if any(kw in keyword for kw in REST_KEYWORDS):
+        return _handle_safe_rest(mira, accessor, current_state)
 
     # Check for quest-related keywords
     if any(kw in keyword for kw in QUEST_KEYWORDS):
@@ -103,6 +118,122 @@ def on_mira_dialog(
     return EventResult(
         allow=True,
         feedback="Mira tends to the camp's needs, her face lined with exhaustion."
+    )
+
+
+def _handle_jek_referral(mira: Any, accessor: Any) -> EventResult:
+    """Handle Mira referring player to Jek for swimming lessons."""
+    return EventResult(
+        allow=True,
+        feedback=(
+            "Mira nods thoughtfully. 'If you need to learn to swim, you should talk to Jek. "
+            "Old Swimmer Jek, we call him. He's the best swimmer in the district - "
+            "been navigating these flooded tunnels since before the catastrophe.' "
+            "She gestures toward the flooded areas. 'You'll find him near the water. "
+            "He can teach you what you need to know.'"
+        )
+    )
+
+
+def _handle_garrett_recovery(mira: Any, accessor: Any) -> EventResult:
+    """Handle dialog about Garrett's recovery status."""
+    state = accessor.game_state
+    extra = state.extra
+
+    # Check if Garrett was rescued
+    garrett_rescued = extra.get("garrett_rescued", False)
+
+    if not garrett_rescued:
+        return EventResult(
+            allow=True,
+            feedback=(
+                "Mira's expression turns grave. 'Garrett? He's one of our people - "
+                "trapped in the storage district with the others. If you're asking about him... "
+                "please, we need to get them out.'"
+            )
+        )
+
+    # Check recovery progress based on turns since rescue
+    rescue_turn = extra.get("garrett_rescue_turn", 0)
+    current_turn = get_current_turn(state)
+    turns_since_rescue = current_turn - rescue_turn
+
+    if turns_since_rescue < 5:
+        return EventResult(
+            allow=True,
+            feedback=(
+                "Mira glances toward the infirmary. 'Garrett's still weak from his ordeal. "
+                "The fungal exposure took a lot out of him. But he's recovering - "
+                "thanks to you getting him out of there.'"
+            )
+        )
+    elif turns_since_rescue < 10:
+        return EventResult(
+            allow=True,
+            feedback=(
+                "Mira smiles slightly. 'Garrett's getting stronger every day. "
+                "He's been asking about you - wants to thank you properly once "
+                "he's back on his feet.'"
+            )
+        )
+    else:
+        # Garrett could now teach swimming as advanced path
+        return EventResult(
+            allow=True,
+            feedback=(
+                "Mira nods approvingly. 'Garrett's fully recovered now. "
+                "He's even been helping Jek with the swimming lessons - "
+                "those two make quite a team. If you want to learn advanced techniques, "
+                "they can teach you together.'"
+            )
+        )
+
+
+def _handle_safe_rest(mira: Any, accessor: Any, current_state: str) -> EventResult:
+    """Handle safe rest service at the camp.
+
+    Only available when Mira is in allied state.
+    Restores player health to max.
+    """
+    state = accessor.game_state
+    extra = state.extra
+    player = state.actors.get("player")
+
+    if not player:
+        return EventResult(allow=True, feedback=None)
+
+    # Check if already rested recently
+    if extra.get("camp_rested_recently"):
+        return EventResult(
+            allow=True,
+            feedback=(
+                "Mira nods. 'You've already rested - you look much better. "
+                "Save your strength for when you need it.'"
+            ),
+        )
+
+    # Check state requirement
+    if current_state != "allied":
+        return EventResult(
+            allow=True,
+            feedback=(
+                "Mira looks at you appraisingly. 'The camp beds are for our people. "
+                "Prove yourself a true ally, and you'll be welcome to rest here.'"
+            ),
+        )
+
+    # Restore player health
+    max_health = player.properties.get("max_health", 100)
+    player.properties["health"] = max_health
+    extra["camp_rested_recently"] = True
+
+    return EventResult(
+        allow=True,
+        feedback=(
+            "Mira gestures to a quiet corner of the camp. 'Rest here - you've earned it.' "
+            "You find a dry bedroll and sleep deeply, protected by the camp's watchful guards. "
+            "When you wake, you feel fully restored."
+        ),
     )
 
 

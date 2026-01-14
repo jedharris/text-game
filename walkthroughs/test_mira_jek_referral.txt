@@ -2,11 +2,9 @@
 # Tests: Dialog reaction refers player to old_swimmer_jek for swimming lessons
 # Scenario: camp_leader_mira.md scenario 9
 
-# Navigate to survivor_camp (Sunken District)
-go south
-go south
+# Navigate to survivor_camp (nexus_chamber -> flooded_plaza -> survivor_camp)
 go east
-go east
+go northwest
 
 # Verify we're at survivor camp
 look
@@ -17,11 +15,11 @@ ask mira about swimming
 @expect "Jek"
 
 # Should mention Jek can teach swimming
-@expect "teach" or "lessons" or "best swimmer"
+@expect "teach"
 
 # Alternative phrasing
 ask mira about water
-@expect "Jek" or "swimmer"
+@expect "Jek"
 
 # Summary: Jek referral dialog verified
 # - Mira refers player to Jek for swimming lessons
