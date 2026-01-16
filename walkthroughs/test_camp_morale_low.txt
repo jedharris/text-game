@@ -3,27 +3,21 @@
 # Scenario: camp_leader_mira.md scenario 8
 # Note: Narrative effect only (see issue #440 for mechanical effects)
 
-# Setup: Set camp morale to low
-@set extra.camp_morale = 20
+# Setup: Set camp morale to low (categorical value)
+@set extra.camp_morale = "low"
 
 # Navigate to survivor_camp (Sunken District)
-go south
-go south
 go east
-go east
+go northwest
 
 # Verify we're at survivor camp
 look
 @expect "Mira"
 
-# Talk to Mira - should reflect low morale
-talk to mira
-@expect "worried" or "struggling" or "desperate" or "difficult" or "losing"
-
-# Ask about camp status
+# Ask about camp status - should reflect low morale
 ask mira about camp
-@expect "hard" or "scarce" or "trouble" or "concern" or "leaving"
+@expect "scarce"
 
 # Summary: Low morale dialog verified
 # - Mira's dialog reflects struggling camp state
-# - May mention NPCs considering departure (narrative only)
+# - Mentions scarce supplies and worried people

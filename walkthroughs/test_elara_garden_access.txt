@@ -18,8 +18,7 @@ look
 @expect "herbs"
 
 # Try to take herbs without herbalism skill - should be blocked
-# EXPECTED_FAILURE: Blocked Action - player lacks basic_herbalism skill
-get herbs
+get herbs  # EXPECTED_FAILURE: player lacks basic_herbalism skill
 @expect "training"
 
 # Verify herbs still in garden (blocked action shouldn't remove item)

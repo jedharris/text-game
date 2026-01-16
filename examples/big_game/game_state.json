@@ -48,7 +48,8 @@
       "examples.big_game.behaviors.shared.infrastructure.gossip_delivery",
       "examples.big_game.behaviors.shared.infrastructure.commitments",
       "examples.big_game.behaviors.shared.infrastructure.condition_reactions"
-    ]
+    ],
+    "camp_morale": "neutral"
   },
   "locations": [
     {
@@ -2539,6 +2540,32 @@
       }
     },
     {
+      "id": "delvan_contacts",
+      "name": "Delvan's contacts list",
+      "description": "A coded list of merchant contacts and trade network connections throughout the Sunken District. The cipher is simple but the information is invaluable.",
+      "location": "merchant_delvan",
+      "properties": {
+        "portable": true,
+        "readable": true,
+        "knowledge_fragment": true,
+        "fragment_type": "sunken_district",
+        "archivist_value": true
+      },
+      "llm_context": {
+        "traits": [
+          "water-stained parchment",
+          "coded merchant symbols",
+          "trade network mapped",
+          "merchant routes and contacts",
+          "pre-disaster trade knowledge"
+        ],
+        "state_variants": {
+          "in_inventory": "folded list of names and locations, cipher key memorized",
+          "examined": "Delvan's contacts - a network of survivors and traders"
+        }
+      }
+    },
+    {
       "id": "water_bloom",
       "name": "water bloom",
       "description": "A rare aquatic flower that blooms in the deep archive. The Bee Queen prizes these.",
@@ -3218,6 +3245,8 @@
         "health": 100,
         "max_health": 100,
         "armor": 0,
+        "gold": 10,
+        "skills": {},
         "attacks": [
           {
             "name": "sword slash",
@@ -4967,9 +4996,25 @@
       "description": "An elderly man with weathered skin and webbed fingers - a birth defect that made him legendary.",
       "location": "survivor_camp",
       "inventory": [],
+      "behaviors": [
+        "behaviors.shared.infrastructure.dialog_reactions",
+        "behaviors.shared.infrastructure.service_reactions",
+        "behaviors.regions.sunken_district.jek_teaching"
+      ],
       "properties": {
         "teaches": "basic_swimming",
         "teaching_cost": 5,
+        "dialog_reactions": {
+          "handler": "behaviors.regions.sunken_district.jek_teaching:on_jek_dialog"
+        },
+        "services": {
+          "teach_swimming": {
+            "handler": "behaviors.regions.sunken_district.jek_teaching:on_jek_teach",
+            "cost": 5,
+            "cost_type": "gold_or_food",
+            "description": "Learn basic swimming"
+          }
+        },
         "llm_context": {
           "traits": [
             "ancient weathered face like driftwood",
@@ -4980,8 +5025,7 @@
             "moving with water's own rhythm"
           ]
         }
-      },
-      "behaviors": []
+      }
     },
     "sailor_garrett": {
       "id": "sailor_garrett",

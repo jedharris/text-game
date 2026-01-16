@@ -1,0 +1,140 @@
+# Test Old Swimmer Jek - Swimming Lessons
+# Tests dialog and teaching mechanics for Jek
+# Issue #453
+
+# Setup - Start at nexus_chamber, navigate to survivor_camp
+look
+@assert actors.player.location == "nexus_chamber"
+@assert actors.player.properties.gold == 10
+
+# Navigate to Sunken District
+go east
+@assert actors.player.location == "flooded_plaza"
+
+go northwest
+@assert actors.player.location == "survivor_camp"
+
+# Find Jek
+look
+@expect "Jek"
+
+# ============================================================
+# SECTION 1: Dialog Tests (before learning)
+# ============================================================
+
+# Test dialog - swimming topic
+ask jek about swimming
+@expect "water isn't your enemy"
+@expect "Five gold"
+
+# Test dialog - price topic
+ask jek about price
+@expect "Five gold"
+@expect "eat"
+@expect "Garrett"
+
+# Test dialog - favor topic (Garrett not yet rescued)
+ask jek about favor
+@expect "Find Garrett"
+@expect "apprentice"
+
+# Test dialog - webbed fingers
+ask jek about fingers
+@expect "webbing"
+@expect "legendary"
+
+# ============================================================
+# SECTION 2: Teaching Service - Gold Payment
+# ============================================================
+
+# Verify player has gold before teaching
+@assert actors.player.properties.gold == 10
+
+# Learn swimming for gold
+learn from jek
+@expect "accepts the 5 gold"
+@expect "breath will hold longer"
+
+# Verify gold deducted
+@assert actors.player.properties.gold == 5
+
+# Verify skill acquired
+@assert actors.player.properties.skills.basic_swimming != null
+
+# Try to learn again - should say already knows
+learn from jek
+@expect "already know"
+
+# Dialog should now reflect that player knows basics
+ask jek about swimming
+@expect "already know the basics"
+@expect "Garrett"
+
+# ============================================================
+# SECTION 3: Garrett Death Path
+# ============================================================
+
+# Reset skill for death path test
+@set actors.player.properties.skills = {}
+@set extra.jek_confronted_about_garrett = false
+
+# Simulate Garrett's death
+@set extra.garrett_died = true
+
+# First interaction after death triggers bitter confrontation
+ask jek about swimming
+@expect "SPOKE to him"
+@expect "left"
+
+# Subsequent dialog about favor should be bitter
+ask jek about favor
+@expect "no favor anymore"
+@expect "drowned with him"
+
+# ============================================================
+# SECTION 4: Garrett Rescued Path
+# ============================================================
+
+# Reset for rescued path
+@set extra.garrett_died = false
+@set extra.garrett_rescued = true
+
+# Dialog about favor should offer free teaching
+ask jek about favor
+@expect "saved Garrett"
+@expect "No charge"
+
+# Dialog about price should confirm free
+ask jek about price
+@expect "No price"
+@expect "brought Garrett back"
+
+# Reset gold and skill to test free teaching
+@set actors.player.properties.gold = 0
+@set actors.player.properties.skills = {}
+
+# Learn for free (Garrett rescued)
+learn from jek
+@expect "For Garrett's life"
+@expect "bringing him back"
+
+# Verify skill acquired without gold cost
+@assert actors.player.properties.gold == 0
+@assert actors.player.properties.skills.basic_swimming != null
+
+# ============================================================
+# SECTION 5: No Payment Available
+# ============================================================
+
+# Reset everything
+@set actors.player.properties.skills = {}
+@set actors.player.properties.gold = 0
+@set extra.garrett_rescued = false
+@set extra.garrett_died = false
+
+# Try to learn without payment
+learn from jek
+@expect "need something in return"
+
+# Final success check
+@assert actors.player.location == "survivor_camp"

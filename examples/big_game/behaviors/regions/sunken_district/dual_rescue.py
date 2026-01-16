@@ -27,7 +27,7 @@ vocabulary: Dict[str, Any] = {
 
 
 # Dialog keywords for Delvan
-UNDERCITY_KEYWORDS = ["undercity", "underground", "black market", "connections", "contacts", "smuggler", "fence"]
+CONTACTS_KEYWORDS = ["contact", "connection", "network", "merchant", "route", "information"]
 TRADE_KEYWORDS = ["trade", "buy", "sell", "goods", "supplies", "business"]
 
 
@@ -70,32 +70,41 @@ def on_delvan_dialog(
             ),
         )
 
-    # Check for undercity/connections keywords (only available if rescued)
-    if any(kw in keyword for kw in UNDERCITY_KEYWORDS):
+    # Check for contacts/network keywords (only available if rescued)
+    if any(kw in keyword for kw in CONTACTS_KEYWORDS):
         if not extra.get("delvan_rescued"):
             return EventResult(
                 allow=True,
                 feedback="Delvan shakes his head. 'I don't know what you mean.'",
             )
 
-        # Reveal undercity entrance
-        if not extra.get("knows_undercity_entrance"):
-            extra["knows_undercity_entrance"] = True
+        # Give contacts list knowledge fragment
+        if not extra.get("has_delvan_contacts"):
+            # Give player the contacts list knowledge fragment
+            contacts_item = state.get_item("delvan_contacts")
+            if contacts_item:
+                player = state.actors.get("player")
+                if player:
+                    contacts_item.location = "player"
+                    if contacts_item.id not in player.inventory:
+                        player.inventory.append(contacts_item.id)
+                    extra["has_delvan_contacts"] = True
+
             return EventResult(
                 allow=True,
                 feedback=(
-                    "Delvan lowers his voice conspiratorially. 'You saved my life, so I'll "
-                    "share something valuable. The Undercity - there's a hidden entrance "
-                    "in the old cistern. Look for the drainage grate with the merchant's mark.' "
-                    "He traces a symbol in the dust. 'This gets you in without dealing with Vex.'"
+                    "Delvan lowers his voice. 'You saved my life, so I'll share something valuable. "
+                    "My merchant network - contacts throughout the district, trade routes, safe houses.' "
+                    "He presses a folded parchment into your hand. 'Names, locations, cipher key. "
+                    "This knowledge survived the disaster. Use it well.'"
                 ),
             )
         else:
             return EventResult(
                 allow=True,
                 feedback=(
-                    "Delvan nods. 'The cistern entrance - you remember the symbol I showed you? "
-                    "That's your way in. Be careful down there.'"
+                    "Delvan nods. 'You have my contacts list. Those merchants and traders - "
+                    "they're good people. They'll help you if you mention my name.'"
                 ),
             )
 
@@ -229,6 +238,30 @@ def on_garrett_encounter(
     )
 
 
+def _improve_camp_morale(state: Any) -> None:
+    """Increase camp morale by one level (rescue success)."""
+    morale_levels = ["desperate", "low", "neutral", "hopeful", "thriving"]
+    current = state.extra.get("camp_morale", "neutral")
+    try:
+        idx = morale_levels.index(current)
+        if idx < len(morale_levels) - 1:
+            state.extra["camp_morale"] = morale_levels[idx + 1]
+    except ValueError:
+        state.extra["camp_morale"] = "neutral"
+
+
+def _worsen_camp_morale(state: Any) -> None:
+    """Decrease camp morale by one level (rescue failure/death)."""
+    morale_levels = ["desperate", "low", "neutral", "hopeful", "thriving"]
+    current = state.extra.get("camp_morale", "neutral")
+    try:
+        idx = morale_levels.index(current)
+        if idx > 0:
+            state.extra["camp_morale"] = morale_levels[idx - 1]
+    except ValueError:
+        state.extra["camp_morale"] = "neutral"
+
+
 def on_rescue_success(
     entity: Any,
     accessor: Any,
@@ -251,6 +284,7 @@ def on_rescue_success(
 
     if actor_id == "merchant_delvan" and condition_type == "bleeding":
         state.extra["delvan_rescued"] = True
+        _improve_camp_morale(state)
         return EventResult(
             allow=True,
             feedback=(
@@ -262,6 +296,7 @@ def on_rescue_success(
 
     if actor_id == "sailor_garrett" and condition_type == "drowning":
         state.extra["garrett_rescued"] = True
+        _improve_camp_morale(state)
         return EventResult(
             allow=True,
             feedback=(
@@ -280,7 +315,7 @@ def on_npc_death(
 ) -> EventResult:
     """Handle rescue failure when NPC dies.
 
-    Creates gossip and affects ending calculations.
+    Creates gossip, affects ending calculations, and worsens camp morale.
 
     Args:
         entity: The NPC who died
@@ -295,6 +330,7 @@ def on_npc_death(
 
     if actor_id == "merchant_delvan":
         state.extra["delvan_died"] = True
+        _worsen_camp_morale(state)
 
         create_gossip(
             state=state,
@@ -315,6 +351,7 @@ def on_npc_death(
 
     if actor_id == "sailor_garrett":
         state.extra["garrett_died"] = True
+        _worsen_camp_morale(state)
 
         create_gossip(
             state=state,

@@ -28,6 +28,7 @@ PROGRESS_KEYWORDS = ["progress", "update", "status", "how"]
 SWIMMING_KEYWORDS = ["swimming", "swim", "water", "dive", "tidal"]
 GARRETT_KEYWORDS = ["garrett", "wounded", "injured", "recovering"]
 REST_KEYWORDS = ["rest", "sleep", "recover", "tired", "exhausted"]
+CAMP_KEYWORDS = ["camp", "morale", "people", "community", "spirits"]
 
 
 def on_mira_dialog(
@@ -70,6 +71,10 @@ def on_mira_dialog(
     # Check for rest keywords (only available when allied)
     if any(kw in keyword for kw in REST_KEYWORDS):
         return _handle_safe_rest(mira, accessor, current_state)
+
+    # Check for camp status keywords
+    if any(kw in keyword for kw in CAMP_KEYWORDS):
+        return _handle_camp_morale_dialog(mira, accessor)
 
     # Check for quest-related keywords
     if any(kw in keyword for kw in QUEST_KEYWORDS):
@@ -235,6 +240,68 @@ def _handle_safe_rest(mira: Any, accessor: Any, current_state: str) -> EventResu
             "When you wake, you feel fully restored."
         ),
     )
+
+
+def _handle_camp_morale_dialog(mira: Any, accessor: Any) -> EventResult:
+    """Handle dialog about camp morale.
+
+    Mira's response varies based on camp_morale level:
+    - desperate: Dark, mentions people leaving, little hope
+    - low: Worried, struggling, mentions concerns
+    - neutral: Pragmatic, focused on survival
+    - hopeful: Optimistic, good news, people rallying
+    - thriving: Proud, camp doing well, spirits high
+    """
+    state = accessor.game_state
+    morale = state.extra.get("camp_morale", "neutral")
+
+    if morale == "desperate":
+        return EventResult(
+            allow=True,
+            feedback=(
+                "Mira's face is haggard, her voice hollow. 'The camp? We're barely holding on. "
+                "People are losing hope. Some have already left, took their chances out there alone.' "
+                "She stares at the ground. 'I don't know how much longer we can keep this together.'"
+            ),
+        )
+    elif morale == "low":
+        return EventResult(
+            allow=True,
+            feedback=(
+                "Mira sighs heavily. 'It's hard here. Supplies are scarce, and people are worried. "
+                "I see it in their faces - the fear, the doubt.' She straightens her shoulders. "
+                "'But we haven't given up yet. We just need... we need something to go right for once.'"
+            ),
+        )
+    elif morale == "neutral":
+        return EventResult(
+            allow=True,
+            feedback=(
+                "Mira surveys the camp with tired but steady eyes. 'We're surviving. Not thriving, "
+                "but surviving. People are scared, but they're also strong.' She nods slowly. "
+                "'If we can just keep things together a bit longer, we might make it through this.'"
+            ),
+        )
+    elif morale == "hopeful":
+        return EventResult(
+            allow=True,
+            feedback=(
+                "Mira's expression softens with cautious hope. 'Things are looking up. "
+                "People are starting to believe we might actually make it. The rescues helped - "
+                "showed everyone that we look out for each other.' She almost smiles. "
+                "'It's been a while since I've seen this kind of spirit in the camp.'"
+            ),
+        )
+    else:  # thriving
+        return EventResult(
+            allow=True,
+            feedback=(
+                "Mira beams with genuine pride. 'The camp is thriving - as much as anywhere can "
+                "in these times. Spirits are high, people are working together.' She gestures "
+                "at the bustling activity around you. 'This is what hope looks like. "
+                "Whatever happens, we've built something real here.'"
+            ),
+        )
 
 
 def _handle_quest_offer(mira: Any, accessor: Any, current_state: str, trust: int) -> EventResult:

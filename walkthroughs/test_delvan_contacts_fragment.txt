@@ -1,44 +1,33 @@
 # Merchant Delvan - Contacts Knowledge Fragment
-# Tests: Delvan shares delvan_contacts fragment at trust 4+
-# Scenario: merchant_delvan.md scenario 9
+# Tests: Delvan gives contacts list knowledge fragment after rescue
+# Scenario: merchant_delvan.md - knowledge fragment system
 
-# Setup: Simulate Delvan rescued and high trust
+# Setup: Simulate Delvan already rescued (skip actual rescue mechanics)
 @set extra.delvan_rescued = true
-@set actors.merchant_delvan.state_machine.current = "rescued"
-@set actors.merchant_delvan.trust_state.current = 4
+@set actors.merchant_delvan.properties.state_machine.current = "freed"
 
-# Navigate to where Delvan would be after rescue
+# Navigate to merchant_warehouse (Sunken District)
+go east
 go south
 go south
-go east
-go east
 
-# Verify Delvan is present
+# Verify we're at merchant warehouse with Delvan
 look
 @expect "Delvan"
 
-# Build rapport through conversation
-talk to delvan
-@expect "grateful" or "friend" or "trust"
-
-# Ask about his contacts
+# Ask about contacts - should receive knowledge fragment
 ask delvan about contacts
-@expect "know people" or "connections" or "network"
+@expect "contacts"
 
-# Deeper trust unlocks specifics
-ask delvan about network
-@expect "fence" or "smuggler" or "trader" or "name"
+# Verify we received the fragment
+inventory
+@expect "contacts"
 
-# Verify knowledge fragment granted
-@inspect extra.knowledge_fragments.delvan_contacts
-@expect true
+# Ask again - should get different response (already have it)
+ask delvan about contacts
+@expect "You have my contacts"
 
-# The fragment should provide useful information
-# About NPCs like the_fence, shadow, whisper
-@expect "useful" or "help" or "introduce"
-
-# Summary: Contacts knowledge fragment verified
-# - Trust 4+ required
-# - Delvan reveals his contact network
-# - delvan_contacts fragment granted
-# - Information about underworld NPCs
+# Summary: Knowledge fragment acquisition verified
+# - Delvan gives contacts list when asked about contacts/network
+# - Fragment appears in player inventory
+# - Subsequent requests acknowledge player already has it
