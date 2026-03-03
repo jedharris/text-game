@@ -91,8 +91,9 @@ def on_commitment_check(
     Called once per commitment per turn as part of the turn phase sequence.
     When a commitment expires:
     - Commitment transitions to ABANDONED state
-    - Target NPC may die (if dying and not stabilized)
-    - Echo trust decreases
+    - Target NPC's commitment_reactions handler is invoked
+    - NPC may die (if dying and hope was keeping them alive)
+    - Echo trust may decrease
 
     Args:
         entity: The Commitment entity being checked
@@ -104,6 +105,11 @@ def on_commitment_check(
     """
     current_turn = context.get("current_turn", 0)
 
+    # Check if commitment is still active
+    commitment_state = entity.properties.get("state")
+    if commitment_state != CommitmentState.ACTIVE:
+        return EventResult(allow=True, feedback=None)
+
     # Check if this commitment has a deadline
     deadline = entity.properties.get("deadline_turn")
     if not deadline:
@@ -113,18 +119,38 @@ def on_commitment_check(
     if current_turn < deadline:
         return EventResult(allow=True, feedback=None)
 
-    # Check if commitment is still active
-    state = entity.properties.get("state")
-    if state != CommitmentState.ACTIVE:
-        return EventResult(allow=True, feedback=None)
-
     # Deadline passed - transition to abandoned
     entity.properties["state"] = CommitmentState.ABANDONED
 
-    # Build message for narration
+    # Build default message
     message = f"Your commitment to {entity.name} has expired."
 
-    # TODO: Handle NPC death if applicable
-    # TODO: Apply Echo trust penalty
+    # Invoke entity_commitment_state_change hook on target NPC
+    from src.types import HookName, EventName
+
+    game_state = accessor.game_state
+    target_actor_id = entity.properties.get("target_actor")
+
+    if target_actor_id:
+        target_npc = game_state.actors.get(target_actor_id)
+        if target_npc:
+            event = accessor.behavior_manager.get_event_for_hook(
+                HookName("entity_commitment_state_change")
+            )
+            if event:
+                commitment_context = {
+                    "commitment_id": entity.id,
+                    "state_change": "abandoned",  # StateChangeMatchStrategy requires this
+                    "deadline_turn": deadline,
+                    "current_turn": current_turn,
+                }
+                result = accessor.behavior_manager.invoke_behavior(
+                    target_npc, event, accessor, commitment_context
+                )
+                if result and result.feedback:
+                    message = result.feedback
+
+    # TODO: Handle NPC death if hope_applied and NPC is dying
+    # TODO: Apply Echo trust penalty if configured
 
     return EventResult(allow=True, feedback=message)

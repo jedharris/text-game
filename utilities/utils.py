@@ -1093,6 +1093,25 @@ def describe_location(accessor: "StateAccessor", location: "Location", actor_id:
         actor_names = ", ".join([a.name for a in contents["actors"]])
         message_parts.append(f"\nAlso here: {actor_names}")
 
+        # Fire entity_encounter hooks for each actor (first encounter reactions)
+        event = accessor.behavior_manager.get_event_for_hook(HookName("entity_encounter"))
+        if event:
+            for other_actor in contents["actors"]:
+                # Check if this is first encounter
+                encounter_key = f"encountered_{other_actor.id}"
+                if not accessor.game_state.extra.get(encounter_key):
+                    # Mark as encountered
+                    accessor.game_state.extra[encounter_key] = True
+
+                    # Invoke encounter hook if actor has behaviors
+                    if hasattr(other_actor, 'behaviors') and other_actor.behaviors:
+                        context = {"actor_id": actor_id, "location_id": location.id}
+                        behavior_result = accessor.behavior_manager.invoke_behavior(
+                            other_actor, event, accessor, context
+                        )
+                        if behavior_result and behavior_result.feedback:
+                            message_parts.append(f"\n{behavior_result.feedback}")
+
     # NOTE: Exits are no longer included in primary_text.
     # They are provided via must_mention.exits_text in the narration plan,
     # which allows the narrator to integrate them naturally.

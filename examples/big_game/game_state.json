@@ -14,17 +14,40 @@
       "ceiling": 6
     },
     "active_commitments": [],
-    "commitment_configs": {},
+    "commitment_configs": {
+      "commit_mira_rescue": {
+        "id": "commit_mira_rescue",
+        "description": "Rescue trapped survivors from storage district",
+        "deadline_turns": 20,
+        "target_actor": "camp_leader_mira"
+      },
+      "commit_sira_rescue": {
+        "id": "commit_sira_rescue",
+        "description": "Save Hunter Sira from her injuries",
+        "deadline_turns": 8,
+        "target_actor": "hunter_sira"
+      },
+      "commit_delvan_rescue": {
+        "id": "commit_delvan_rescue",
+        "description": "Rescue Merchant Delvan from the warehouse",
+        "deadline_turns": 10,
+        "target_actor": "merchant_delvan"
+      }
+    },
     "gossip_queue": [],
     "scheduled_events": [],
     "companions": [],
     "environmental_spreads": {},
     "town_reputation": 0,
     "behaviors": [
-      "examples.big_game.game_behaviors.regions.frozen_reaches.hypothermia",
-      "examples.big_game.game_behaviors.regions.frozen_reaches.telescope_repair",
-      "examples.big_game.game_behaviors.regions.frozen_reaches.salamanders",
-      "examples.big_game.game_behaviors.shared.infrastructure.gift_reactions"
+      "examples.big_game.behaviors.regions.frozen_reaches.hypothermia",
+      "examples.big_game.behaviors.regions.frozen_reaches.telescope_repair",
+      "examples.big_game.behaviors.regions.frozen_reaches.salamanders",
+      "examples.big_game.behaviors.shared.infrastructure.gift_reactions",
+      "examples.big_game.behaviors.shared.infrastructure.take_reactions",
+      "examples.big_game.behaviors.shared.infrastructure.gossip_delivery",
+      "examples.big_game.behaviors.shared.infrastructure.commitments",
+      "examples.big_game.behaviors.shared.infrastructure.condition_reactions"
     ]
   },
   "locations": [
@@ -32,7 +55,6 @@
       "id": "nexus_chamber",
       "name": "Nexus Chamber",
       "description": "The central hub connecting all five devastated regions.",
-      "exits": {},
       "properties": {
         "safe_zone": true,
         "no_combat": true,
@@ -65,7 +87,6 @@
       "id": "observatory_platform",
       "name": "Observatory Platform",
       "description": "An elevated observation platform high above the nexus chamber.",
-      "exits": {},
       "properties": {
         "safe_zone": true,
         "elevation": "high",
@@ -95,7 +116,6 @@
       "id": "keepers_quarters",
       "name": "Keeper's Quarters",
       "description": "The meridian keeper's personal chambers, frozen in temporal stasis.",
-      "exits": {},
       "properties": {
         "safe_zone": true,
         "temporal_stasis": true,
@@ -125,7 +145,6 @@
       "id": "crystal_garden",
       "name": "Crystal Garden",
       "description": "A grotto holding five pedestals for regional resonance crystals.",
-      "exits": {},
       "properties": {
         "safe_zone": true,
         "magical_resonance": "high",
@@ -153,7 +172,6 @@
       "id": "frozen_pass",
       "name": "Frozen Pass",
       "description": "The northern passage from the nexus into the Frozen Reaches.",
-      "exits": {},
       "properties": {
         "temperature_zone": "cold",
         "hypothermia_rate": 5,
@@ -184,7 +202,6 @@
       "id": "temple_sanctum",
       "name": "Temple Sanctum",
       "description": "An ancient temple sanctum deep in the frozen peaks.",
-      "exits": {},
       "properties": {
         "temperature_zone": "cold",
         "hypothermia_rate": 2.5,
@@ -215,7 +232,6 @@
       "id": "ice_caves",
       "name": "Ice Caves",
       "description": "A labyrinth of ice chambers carved deep within the glacier.",
-      "exits": {},
       "properties": {
         "temperature_zone": "freezing",
         "hypothermia_rate": 10,
@@ -251,7 +267,6 @@
       "id": "glacier_approach",
       "name": "Glacier Approach",
       "description": "A treacherous path winding between massive ice formations. The glacier looms ahead, its surface scarred by deep crevasses. The cold here is intense, threatening hypothermia to the unprepared.",
-      "exits": {},
       "properties": {
         "temperature_zone": "freezing",
         "hypothermia_rate": 5,
@@ -276,7 +291,6 @@
       "id": "ice_field",
       "name": "Ice Field",
       "description": "A vast expanse of snow and ice stretching to the horizon. The wind whips across the open terrain, making progress difficult. Snow drifts hide treacherous footing.",
-      "exits": {},
       "properties": {
         "temperature_zone": "freezing",
         "hypothermia_rate": 5,
@@ -304,7 +318,6 @@
       "id": "hot_springs",
       "name": "Hot Springs",
       "description": "A geothermal oasis of warmth in the frozen landscape.",
-      "exits": {},
       "properties": {
         "temperature_zone": "warm",
         "hypothermia_effect": "instant_cure",
@@ -334,7 +347,6 @@
       "id": "snow_forest",
       "name": "Snow Forest",
       "description": "Skeletal trees rise from deep snowdrifts, their branches heavy with ice. The forest provides some shelter from the wind but visibility is poor among the close-packed trunks.",
-      "exits": {},
       "properties": {
         "temperature_zone": "cold",
         "hypothermia_rate": 3,
@@ -360,7 +372,6 @@
       "id": "wolf_den",
       "name": "Wolf Den",
       "description": "A sheltered cave in a rocky outcropping, clearly used as a den by the local wolf pack. Bones and scraps litter the entrance. The pack's scent marks the territory.",
-      "exits": {},
       "properties": {
         "temperature_zone": "cold",
         "wolf_territory": true,
@@ -388,7 +399,6 @@
       "id": "glacier_surface",
       "name": "Glacier Surface",
       "description": "The surface of the ancient glacier, a landscape of blue ice and white snow. Crevasses yawn open without warning. The cold here is brutal, sapping strength with every breath.",
-      "exits": {},
       "properties": {
         "temperature_zone": "extreme_cold",
         "hypothermia_rate": 8,
@@ -416,7 +426,6 @@
       "id": "frozen_observatory",
       "name": "Frozen Observatory",
       "description": "An astronomical observatory frozen in magical ice.",
-      "exits": {},
       "properties": {
         "temperature_zone": "extreme_cold",
         "hypothermia_rate": 20,
@@ -448,7 +457,6 @@
       "id": "forest_edge",
       "name": "Forest Edge",
       "description": "The boundary where the nexus gives way to wild woodland. The Beast Wilds stretch beyond, a tangled mass of overgrown forest where nature has run rampant since the catastrophe. Animal sounds echo from the darkness beneath the canopy.",
-      "exits": {},
       "properties": {
         "region": "beast_wilds"
       },
@@ -471,7 +479,6 @@
       "id": "tangled_path",
       "name": "Tangled Path",
       "description": "A narrow trail winding through dense undergrowth. Vines and roots make progress difficult. The sounds of the wild are louder here - rustling, growling, the snap of branches. Paths branch in several directions.",
-      "exits": {},
       "properties": {
         "difficult_terrain": true,
         "region": "beast_wilds"
@@ -490,13 +497,19 @@
           "revisit": "The tangled path, growth ever persistent.",
           "path_cleared": "Recent clearing has made passage easier, though still challenging."
         }
-      }
+      },
+      "connections": [
+        {
+          "direction": "east",
+          "target": "ancient_grove",
+          "description": "An ancient grove lies to the east"
+        }
+      ]
     },
     {
       "id": "ancient_grove",
       "name": "Ancient Grove",
       "description": "A clearing dominated by massive ancient trees, their trunks wider than houses. The air is thick with the hum of bees from somewhere nearby. This place feels sacred, untouched by the catastrophe.",
-      "exits": {},
       "properties": {
         "region": "beast_wilds"
       },
@@ -514,13 +527,24 @@
           "first_visit": "These trees were old when the town was young. What have they witnessed?",
           "revisit": "The timeless grove, ancient and enduring."
         }
-      }
+      },
+      "connections": [
+        {
+          "direction": "west",
+          "target": "bee_queen_clearing",
+          "description": "A path leads west to a clearing filled with buzzing"
+        },
+        {
+          "direction": "east",
+          "target": "tangled_path",
+          "description": "The tangled path continues east"
+        }
+      ]
     },
     {
       "id": "bee_queen_clearing",
       "name": "Bee Queen's Clearing",
       "description": "A sun-dappled clearing dominated by an enormous hive in the branches of a great oak. Bees swarm around the hive in organized patterns, and at the center of their activity, something larger moves.",
-      "exits": {},
       "properties": {
         "region": "beast_wilds"
       },
@@ -540,13 +564,19 @@
           "queen_friendly": "The bees acknowledge your presence without aggression.",
           "queen_hostile": "The bees swarm defensively, queen's territory threatened."
         }
-      }
+      },
+      "connections": [
+        {
+          "direction": "east",
+          "target": "ancient_grove",
+          "description": "The grove lies to the east"
+        }
+      ]
     },
     {
       "id": "spider_thicket",
       "name": "Spider Thicket",
       "description": "Webs span between trees, creating a maze of silk. The spiders here have grown large since the catastrophe. They watch from the shadows, their many eyes glittering.",
-      "exits": {},
       "properties": {
         "difficult_terrain": true,
         "web_hazard": true,
@@ -572,7 +602,6 @@
       "id": "spider_matriarch_lair",
       "name": "Spider Matriarch's Lair",
       "description": "A cavern hung with ancient webs, thick as curtains. In the center, surrounded by her brood, sits the Spider Matriarch - a creature of terrifying size and alien intelligence.",
-      "exits": {},
       "properties": {
         "region": "beast_wilds"
       },
@@ -597,7 +626,6 @@
       "id": "southern_trail",
       "name": "Southern Trail",
       "description": "A worn path leading south toward signs of civilization. The forest thins here, and the sounds of human activity occasionally drift on the wind. A dark cave mouth is visible to the north.",
-      "exits": {},
       "properties": {
         "region": "beast_wilds"
       },
@@ -620,7 +648,6 @@
       "id": "hunters_camp",
       "name": "Hunter's Camp",
       "description": "A small clearing with signs of recent habitation - a fire pit, crude shelter, scattered belongings. Someone has been living here, hunting the beasts of the wilds.",
-      "exits": {},
       "properties": {
         "region": "beast_wilds"
       },
@@ -644,7 +671,6 @@
       "id": "wolf_clearing",
       "name": "Wolf Clearing",
       "description": "A rocky clearing surrounded by dense forest. Claw marks score the trees at the perimeter - territorial warnings. In the center, a shallow depression serves as a gathering place for the pack. Yellow eyes watch from the shadows.",
-      "exits": {},
       "properties": {
         "region": "beast_wilds",
         "wolf_territory": true,
@@ -671,7 +697,6 @@
       "id": "predators_den",
       "name": "Predator's Den",
       "description": "A dark cave mouth opens in a rocky hillside. Deep growling echoes from within, a warning that brooks no argument. Near the back of the cave, small shapes huddle together - bear cubs, clearly unwell.",
-      "exits": {},
       "properties": {
         "region": "beast_wilds",
         "danger_level": "extreme",
@@ -698,7 +723,6 @@
       "id": "flooded_plaza",
       "name": "Flooded Plaza",
       "description": "Once a grand plaza of the Sunken District, now partially submerged. Water laps at crumbling columns and the remnants of ancient fountains. The flooding gets deeper further east.",
-      "exits": {},
       "properties": {
         "water_level": "ankle_to_waist",
         "breathable": true,
@@ -726,7 +750,6 @@
       "id": "survivor_camp",
       "name": "Survivor Camp",
       "description": "An elevated area of dry ground where the survivors have made camp. A crude map scratched on flat stone shows safe paths through the flooded streets. The smell of smoke and damp clothes fills the air.",
-      "exits": {},
       "properties": {
         "water_level": "dry",
         "breathable": true,
@@ -755,7 +778,6 @@
       "id": "flooded_chambers",
       "name": "Flooded Chambers",
       "description": "The old guildhall, now flooded to chest height. Pillars rise from the murky water like drowning fingers. Shadows move between the columns - fish, grown predatory since the disaster.",
-      "exits": {},
       "properties": {
         "water_level": "chest",
         "breathable": true,
@@ -783,7 +805,6 @@
       "id": "tidal_passage",
       "name": "Tidal Passage",
       "description": "A fully submerged tunnel, once a street, now a twenty-foot underwater passage. Murky water obscures the distance, and the current tugs at anything that enters. Light is visible at the far end.",
-      "exits": {},
       "properties": {
         "water_level": "submerged",
         "breathable": false,
@@ -812,7 +833,6 @@
       "id": "sea_caves",
       "name": "Sea Caves",
       "description": "Natural caves where the flooded streets meet the sea. Rock shelves rise above the water, creating islands of safety. Daylight filters through cracks in the ceiling, casting shifting light patterns.",
-      "exits": {},
       "properties": {
         "water_level": "mixed",
         "breathable": true,
@@ -839,7 +859,6 @@
       "id": "merchant_quarter",
       "name": "Merchant Quarter",
       "description": "Deep water covers what was once the commercial heart of the district. Dark windows stare from water-stained buildings. A faint rhythmic tapping echoes from somewhere to the south.",
-      "exits": {},
       "properties": {
         "water_level": "over_head",
         "breathable": false,
@@ -868,7 +887,6 @@
       "id": "merchant_warehouse",
       "name": "Merchant Warehouse",
       "description": "A multi-level building with a flooded ground floor and dry upper stories. The merchant's sign is still visible above the waterline. Tapping comes from a second-floor window.",
-      "exits": {},
       "properties": {
         "multi_level": true,
         "region": "sunken_district"
@@ -894,7 +912,6 @@
       "id": "deep_archive",
       "name": "Deep Archive",
       "description": "A magically sealed archive deep beneath the sunken district.",
-      "exits": {},
       "properties": {
         "water_level": "dry",
         "breathable": true,
@@ -927,7 +944,6 @@
       "id": "cavern_entrance",
       "name": "Cavern Entrance",
       "description": "The western entrance to the vast Fungal Depths cavern system.",
-      "exits": {},
       "properties": {
         "spore_level": "none",
         "breathable": true,
@@ -957,7 +973,6 @@
       "id": "luminous_grotto",
       "name": "Luminous Grotto",
       "description": "A cavern lit by soft multicolored bioluminescence from mushrooms of every hue. A crystal-clear pool reflects impossible colors. The ceiling is too dark to read, but something is carved up there.",
-      "exits": {},
       "properties": {
         "spore_level": "medium",
         "infection_rate": 5,
@@ -987,7 +1002,6 @@
       "id": "spore_heart",
       "name": "Spore Heart",
       "description": "The living core of the fungal corruption.",
-      "exits": {},
       "properties": {
         "spore_level": "high",
         "infection_rate": 10,
@@ -1018,7 +1032,6 @@
       "id": "myconid_sanctuary",
       "name": "Myconid Sanctuary",
       "description": "A mushroom-folk community deep in the fungal caverns.",
-      "exits": {},
       "properties": {
         "spore_level": "none",
         "breathable": true,
@@ -1050,7 +1063,6 @@
       "id": "deep_root_caverns",
       "name": "Deep Root Caverns",
       "description": "A deadly cavern deep beneath the spore heart.",
-      "exits": {},
       "properties": {
         "spore_level": "none",
         "breathable": false,
@@ -1082,7 +1094,6 @@
       "id": "town_gate",
       "name": "Town Gate",
       "description": "The entrance to the Civilized Remnants, a settlement of survivors who have rebuilt some semblance of civilization. Guards in patched armor examine everyone who enters, checking for infection and dangerous companions.",
-      "exits": {},
       "properties": {
         "checkpoint": true,
         "companion_filter": true,
@@ -1110,7 +1121,6 @@
       "id": "market_square",
       "name": "Market Square",
       "description": "The bustling heart of the settlement, where merchants hawk their wares around a dry fountain. The smell of cooking food and forge smoke fills the air. Militia patrol the corners, keeping watch.",
-      "exits": {},
       "properties": {
         "commercial": true,
         "lighting": "daylight",
@@ -1137,7 +1147,6 @@
       "id": "healers_sanctuary",
       "name": "Healer's Sanctuary",
       "description": "A quiet building filled with the scent of dried herbs. Bundles hang from every rafter, and the sound of mortar and pestle provides a steady rhythm. This is where the town's healer practices her art.",
-      "exits": {},
       "properties": {
         "healing_available": true,
         "lighting": "bright",
@@ -1163,7 +1172,6 @@
       "id": "healers_garden",
       "name": "Healer's Garden",
       "description": "An orderly garden of medicinal plants, both curative and deadly. Warning markers indicate the most dangerous beds. The healer carefully controls access to protect the unwary.",
-      "exits": {},
       "properties": {
         "skill_gated": true,
         "lighting": "daylight",
@@ -1189,7 +1197,6 @@
       "id": "council_hall",
       "name": "Council Hall",
       "description": "Where the town's three councilors debate the impossible decisions of survival. The air is thick with tension and exhaustion. These are people trying to do right with no good options.",
-      "exits": {},
       "properties": {
         "political": true,
         "lighting": "dim",
@@ -1216,7 +1223,6 @@
       "id": "broken_statue_hall",
       "name": "Broken Statue Hall",
       "description": "A hall containing the shattered remains of an ancient stone guardian.",
-      "exits": {},
       "properties": {
         "lighting": "dim",
         "region": "civilized_remnants"
@@ -1235,59 +1241,6 @@
         "state_variants": {
           "first_visit": "The destruction here was deliberate. Someone wanted to erase what these statues represented.",
           "revisit": "The broken statues, silent witnesses to past violence."
-        }
-      }
-    },
-    {
-      "id": "undercity_entrance",
-      "name": "Undercity Entrance",
-      "description": "A concealed trapdoor beneath the dry fountain leads to worn stone steps descending into darkness. The smell of secrets rises from below.",
-      "exits": {},
-      "properties": {
-        "hidden": true,
-        "lighting": "dark",
-        "region": "civilized_remnants"
-      },
-      "llm_context": {
-        "traits": [
-          "stairway descending into earth",
-          "carved from living rock",
-          "ancient construction evident",
-          "threshold to buried civilization",
-          "darkness below beckoning",
-          "portal to forgotten past"
-        ],
-        "atmosphere": "descent, threshold to depths, gateway to ancient",
-        "state_variants": {
-          "first_visit": "The stairs descend deep, ancient city waiting below.",
-          "revisit": "The undercity entrance, darkness waiting below."
-        }
-      }
-    },
-    {
-      "id": "undercity",
-      "name": "The Undercity",
-      "description": "A network of cellars and tunnels beneath the town, home to those who operate outside the law. Dim lanterns cast long shadows. Here, anything can be bought or sold - for a price.",
-      "exits": {},
-      "properties": {
-        "illegal": true,
-        "lighting": "dim",
-        "region": "civilized_remnants"
-      },
-      "llm_context": {
-        "traits": [
-          "ancient streets carved from living rock",
-          "buildings grown from stone rather than built",
-          "bioluminescent lichen providing dim illumination",
-          "silence broken by distant water dripping",
-          "sense of civilization predating surface",
-          "alien architecture with its own logic"
-        ],
-        "atmosphere": "buried city, ancient mysteries beneath the known",
-        "state_variants": {
-          "first_visit": "This place predates everything above. What civilization built this?",
-          "revisit": "The ancient undercity, secrets in stone.",
-          "lights_restored": "Ancient mechanisms hum to life, proper lighting flooding the streets for the first time in ages."
         }
       }
     }
@@ -1421,9 +1374,7 @@
         "state_variants": {
           "in_location": "jutting from ice or lying glittering",
           "in_inventory": "perpetual cold from crystal shard",
-          "examined": "frozen crystal, ice magic in physical form",
-          "restored": "frozen crystal blazing with restored power, light pulsing rhythmically",
-          "not_restored": "frozen crystal dim and dormant, awaiting restoration"
+          "examined": "frozen crystal, ice magic in physical form"
         }
       }
     },
@@ -1449,9 +1400,7 @@
         "state_variants": {
           "in_location": "half-buried in natural growth",
           "in_inventory": "vibrant energy thrumming through pack",
-          "examined": "wild crystal, primal magic in stone form",
-          "restored": "wild crystal blazing with restored power, light pulsing rhythmically",
-          "not_restored": "wild crystal dim and dormant, awaiting restoration"
+          "examined": "wild crystal, primal magic in stone form"
         }
       }
     },
@@ -1477,9 +1426,7 @@
         "state_variants": {
           "in_location": "lying in or near water, gleaming wet",
           "in_inventory": "coolness and sense of depths",
-          "examined": "sunken crystal, water magic preserved in stone",
-          "restored": "sunken crystal blazing with restored power, light pulsing rhythmically",
-          "not_restored": "sunken crystal dim and dormant, awaiting restoration"
+          "examined": "sunken crystal, water magic preserved in stone"
         }
       }
     },
@@ -1505,9 +1452,7 @@
         "state_variants": {
           "in_location": "growing from fungal substrate, half-organic",
           "in_inventory": "faint pulsing visible through pack",
-          "examined": "fungal crystal, life magic in strange fusion",
-          "restored": "fungal crystal blazing with restored power, light pulsing rhythmically",
-          "not_restored": "fungal crystal dim and dormant, awaiting restoration"
+          "examined": "fungal crystal, life magic in strange fusion"
         }
       }
     },
@@ -1533,9 +1478,7 @@
         "state_variants": {
           "in_location": "shard lying among debris",
           "in_inventory": "fragment of something once whole",
-          "examined": "remnant crystal, broken but still potent",
-          "restored": "remnant crystal blazing with restored power, light pulsing rhythmically",
-          "not_restored": "remnant crystal dim and dormant, awaiting restoration"
+          "examined": "remnant crystal, broken but still potent"
         }
       }
     },
@@ -1556,12 +1499,12 @@
               "mounting_bracket",
               "command_orb"
             ],
-            "handler": "game_behaviors.regions.frozen_reaches.telescope_repair:on_use_component_on_telescope"
+            "handler": "behaviors.regions.frozen_reaches.telescope_repair:on_use_component_on_telescope"
           }
         }
       },
       "behaviors": [
-        "game_behaviors.regions.frozen_reaches.telescope_repair"
+        "behaviors.regions.frozen_reaches.telescope_repair"
       ],
       "llm_context": {
         "traits": [
@@ -1600,7 +1543,7 @@
         ]
       },
       "behaviors": [
-        "game_behaviors.regions.frozen_reaches.ice_extraction"
+        "behaviors.regions.frozen_reaches.ice_extraction"
       ],
       "llm_context": {
         "traits": [
@@ -1840,6 +1783,9 @@
         "synonyms": [
           "lily",
           "flower"
+        ],
+        "adjectives": [
+          "frost"
         ]
       },
       "llm_context": {
@@ -1879,12 +1825,12 @@
               "fire_wand",
               "salamander_heated_stone"
             ],
-            "handler": "game_behaviors.regions.frozen_reaches.ice_extraction:on_use"
+            "handler": "behaviors.regions.frozen_reaches.ice_extraction:on_use"
           }
         }
       },
       "behaviors": [
-        "game_behaviors.regions.frozen_reaches.ice_extraction"
+        "behaviors.regions.frozen_reaches.ice_extraction"
       ],
       "llm_context": {
         "traits": [
@@ -1922,12 +1868,12 @@
               "fire_wand",
               "salamander_heated_stone"
             ],
-            "handler": "game_behaviors.regions.frozen_reaches.ice_extraction:on_use"
+            "handler": "behaviors.regions.frozen_reaches.ice_extraction:on_use"
           }
         }
       },
       "behaviors": [
-        "game_behaviors.regions.frozen_reaches.ice_extraction"
+        "behaviors.regions.frozen_reaches.ice_extraction"
       ],
       "llm_context": {
         "traits": [
@@ -1966,12 +1912,12 @@
               "fire_wand",
               "salamander_heated_stone"
             ],
-            "handler": "game_behaviors.regions.frozen_reaches.ice_extraction:on_use"
+            "handler": "behaviors.regions.frozen_reaches.ice_extraction:on_use"
           }
         }
       },
       "behaviors": [
-        "game_behaviors.regions.frozen_reaches.ice_extraction"
+        "behaviors.regions.frozen_reaches.ice_extraction"
       ],
       "llm_context": {
         "traits": [
@@ -2071,7 +2017,7 @@
         ]
       },
       "behaviors": [
-        "game_behaviors.regions.frozen_reaches.ice_extraction"
+        "behaviors.regions.frozen_reaches.ice_extraction"
       ],
       "llm_context": {
         "traits": [
@@ -2236,7 +2182,7 @@
         ]
       },
       "behaviors": [
-        "game_behaviors.regions.frozen_reaches.ice_extraction"
+        "behaviors.regions.frozen_reaches.ice_extraction"
       ],
       "llm_context": {
         "traits": [
@@ -2458,7 +2404,7 @@
       "id": "royal_honey",
       "name": "royal honey",
       "description": "A golden comb of the Bee Queen's finest honey. Its scent alone is intoxicating. Consuming it grants full healing and cures most conditions.",
-      "location": null,
+      "location": "bee_queen_clearing",
       "properties": {
         "portable": true,
         "curative": true,
@@ -2468,8 +2414,14 @@
           "honey",
           "queen honey",
           "queens honey"
-        ]
+        ],
+        "take_reactions": {
+          "handler": "behaviors.regions.beast_wilds.bee_queen:on_honey_theft"
+        }
       },
+      "behaviors": [
+        "behaviors.shared.infrastructure.take_reactions"
+      ],
       "llm_context": {
         "traits": [
           "golden honey glowing with magic",
@@ -2820,7 +2772,7 @@
         "fungal": true,
         "pulse_pattern": "steady",
         "item_use_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
+          "handler": "examples.big_game.behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
         }
       },
       "llm_context": {
@@ -2849,7 +2801,7 @@
         "fungal": true,
         "pulse_pattern": "irregular",
         "item_use_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
+          "handler": "examples.big_game.behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
         }
       },
       "llm_context": {
@@ -2878,7 +2830,7 @@
         "fungal": true,
         "pulse_pattern": "rapid",
         "item_use_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
+          "handler": "examples.big_game.behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
         }
       },
       "llm_context": {
@@ -2907,7 +2859,7 @@
         "fungal": true,
         "pulse_pattern": "none",
         "item_use_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
+          "handler": "examples.big_game.behaviors.regions.fungal_depths.light_puzzle:on_water_mushroom"
         }
       },
       "llm_context": {
@@ -3006,6 +2958,20 @@
           "in_inventory": "herbal scent seeping from pack",
           "examined": "quality healing herbs, properly dried and potent"
         }
+      },
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ],
+      "vocabulary": {
+        "nouns": [
+          {
+            "word": "herbs",
+            "adjectives": [
+              "healing",
+              "medicinal"
+            ]
+          }
+        ]
       }
     },
     {
@@ -3043,7 +3009,14 @@
         "portable": true,
         "rare_flower": true,
         "export_item": true,
-        "export_to": "beast_wilds"
+        "export_to": "beast_wilds",
+        "adjectives": [
+          "water"
+        ],
+        "synonyms": [
+          "bloom",
+          "flower"
+        ]
       },
       "llm_context": {
         "traits": [
@@ -3134,7 +3107,10 @@
           "in_inventory": "medical supplies taking little space",
           "examined": "clean bandages, ready for emergency"
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     }
   ],
   "parts": [
@@ -3145,7 +3121,7 @@
       "properties": {
         "description": "The high ceiling of the grotto, shrouded in darkness. Something appears to be carved up there.",
         "examine_reactions": {
-          "handler": "game_behaviors.regions.fungal_depths.light_puzzle:on_examine_ceiling"
+          "handler": "behaviors.regions.fungal_depths.light_puzzle:on_examine_ceiling"
         }
       }
     },
@@ -3247,7 +3223,7 @@
       "location": "keepers_quarters",
       "inventory": [],
       "behaviors": [
-        "game_behaviors.regions.meridian_nexus.echo"
+        "behaviors.regions.meridian_nexus.echo"
       ],
       "properties": {
         "state_machine": {
@@ -3268,10 +3244,10 @@
         "appearance_cooldown": 0,
         "is_spectral": true,
         "dialog_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.meridian_nexus.echo:on_echo_dialog"
+          "handler": "examples.big_game.behaviors.regions.meridian_nexus.echo:on_echo_dialog"
         },
         "gossip_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.meridian_nexus.echo:on_echo_gossip"
+          "handler": "examples.big_game.behaviors.regions.meridian_nexus.echo:on_echo_gossip"
         },
         "llm_context": {
           "traits": [
@@ -3354,7 +3330,7 @@
               "water_bloom_fragment",
               "echo_essence_fragment"
             ],
-            "handler": "game_behaviors.regions.meridian_nexus.waystone:on_fragment_place"
+            "handler": "behaviors.regions.meridian_nexus.waystone:on_fragment_place"
           }
         },
         "llm_context": {
@@ -3421,15 +3397,15 @@
           "ceiling": 5
         },
         "pack_behavior": {
-          "pack_follows_leader_state": true,
+          "pack_id": "wolf_pack",
+          "role": "leader",
           "followers": [
             "frost_wolf_1",
             "frost_wolf_2"
-          ],
-          "handler": "examples.big_game.game_behaviors.regions.beast_wilds.wolf_pack:on_wolf_state_change"
+          ]
         },
         "gift_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.beast_wilds.wolf_pack:on_receive_item"
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.wolf_pack:on_receive_item"
         },
         "llm_context": {
           "traits": [
@@ -3485,7 +3461,7 @@
         }
       },
       "behaviors": [
-        "game_behaviors.regions.beast_wilds.wolf_pack"
+        "behaviors.regions.beast_wilds.wolf_pack"
       ]
     },
     "frost_wolf_1": {
@@ -3543,6 +3519,11 @@
               "responsive to group"
             ]
           }
+        },
+        "pack_behavior": {
+          "pack_id": "wolf_pack",
+          "leader": "alpha_wolf",
+          "role": "follower"
         }
       },
       "behaviors": []
@@ -3602,6 +3583,11 @@
               "comfortable with group"
             ]
           }
+        },
+        "pack_behavior": {
+          "pack_id": "wolf_pack",
+          "leader": "alpha_wolf",
+          "role": "follower"
         }
       },
       "behaviors": []
@@ -3692,22 +3678,22 @@
           "ceiling": 5
         },
         "pack_behavior": {
-          "is_pack_leader": true,
-          "pack_follows_leader_state": true,
+          "pack_id": "salamander_pack",
+          "role": "leader",
           "followers": [
             "steam_salamander_2",
             "steam_salamander_3"
           ]
         },
         "gift_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.frozen_reaches.salamanders:on_receive_item"
+          "handler": "examples.big_game.behaviors.regions.frozen_reaches.salamanders:on_receive_item"
         },
         "dialog_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
+          "handler": "examples.big_game.behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
         }
       },
       "behaviors": [
-        "game_behaviors.regions.frozen_reaches.salamanders"
+        "behaviors.regions.frozen_reaches.salamanders"
       ]
     },
     "steam_salamander_2": {
@@ -3791,15 +3777,16 @@
         "fire_creature": true,
         "heat_aura": true,
         "pack_behavior": {
-          "pack_leader": "salamander",
-          "pack_follows_leader_state": true
+          "pack_id": "salamander_pack",
+          "leader": "salamander",
+          "role": "follower"
         },
         "dialog_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
+          "handler": "examples.big_game.behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
         }
       },
       "behaviors": [
-        "game_behaviors.regions.frozen_reaches.salamanders"
+        "behaviors.regions.frozen_reaches.salamanders"
       ]
     },
     "steam_salamander_3": {
@@ -3883,15 +3870,16 @@
         "fire_creature": true,
         "heat_aura": true,
         "pack_behavior": {
-          "pack_leader": "salamander",
-          "pack_follows_leader_state": true
+          "pack_id": "salamander_pack",
+          "leader": "salamander",
+          "role": "follower"
         },
         "dialog_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
+          "handler": "examples.big_game.behaviors.regions.frozen_reaches.salamanders:on_salamander_talk"
         }
       },
       "behaviors": [
-        "game_behaviors.regions.frozen_reaches.salamanders"
+        "behaviors.regions.frozen_reaches.salamanders"
       ]
     },
     "stone_golem_1": {
@@ -3901,8 +3889,8 @@
       "location": "temple_sanctum",
       "inventory": [],
       "behaviors": [
-        "game_behaviors.regions.frozen_reaches.golem_puzzle",
-        "game_behaviors.regions.frozen_reaches.thermal_shock"
+        "behaviors.regions.frozen_reaches.golem_puzzle",
+        "behaviors.regions.frozen_reaches.thermal_shock"
       ],
       "properties": {
         "state_machine": {
@@ -3999,15 +3987,12 @@
         "territorial": true,
         "threshold_pause": true,
         "linked_to": "stone_golem_2",
-        "dialog_topics": {
-          "handler": "examples.big_game.game_behaviors.regions.frozen_reaches.golem_puzzle:on_golem_password"
-        },
         "item_use_reactions": {
           "command_orb": {
             "accepted_items": [
               "command_orb"
             ],
-            "handler": "game_behaviors.regions.frozen_reaches.golem_puzzle:on_golem_item_use"
+            "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_item_use"
           },
           "ritual": {
             "accepted_items": [
@@ -4015,11 +4000,11 @@
               "ancient_torch",
               "spring_water"
             ],
-            "handler": "game_behaviors.regions.frozen_reaches.golem_puzzle:on_golem_item_use"
+            "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_item_use"
           }
         },
         "death_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.frozen_reaches.golem_puzzle:on_golem_death"
+          "handler": "examples.big_game.behaviors.regions.frozen_reaches.golem_puzzle:on_golem_death"
         },
         "blocked_directions_by_state": {
           "guarding": [
@@ -4030,6 +4015,9 @@
             "up",
             "south"
           ]
+        },
+        "dialog_reactions": {
+          "handler": "examples.big_game.behaviors.regions.frozen_reaches.golem_puzzle:on_golem_password"
         }
       }
     },
@@ -4040,8 +4028,8 @@
       "location": "temple_sanctum",
       "inventory": [],
       "behaviors": [
-        "game_behaviors.regions.frozen_reaches.golem_puzzle",
-        "game_behaviors.regions.frozen_reaches.thermal_shock"
+        "behaviors.regions.frozen_reaches.golem_puzzle",
+        "behaviors.regions.frozen_reaches.thermal_shock"
       ],
       "properties": {
         "state_machine": {
@@ -4138,15 +4126,12 @@
         "territorial": true,
         "threshold_pause": true,
         "linked_to": "stone_golem_1",
-        "dialog_topics": {
-          "handler": "examples.big_game.game_behaviors.regions.frozen_reaches.golem_puzzle:on_golem_password"
-        },
         "item_use_reactions": {
           "command_orb": {
             "accepted_items": [
               "command_orb"
             ],
-            "handler": "game_behaviors.regions.frozen_reaches.golem_puzzle:on_golem_item_use"
+            "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_item_use"
           },
           "ritual": {
             "accepted_items": [
@@ -4154,11 +4139,11 @@
               "ancient_torch",
               "spring_water"
             ],
-            "handler": "game_behaviors.regions.frozen_reaches.golem_puzzle:on_golem_item_use"
+            "handler": "behaviors.regions.frozen_reaches.golem_puzzle:on_golem_item_use"
           }
         },
         "death_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.frozen_reaches.golem_puzzle:on_golem_death"
+          "handler": "examples.big_game.behaviors.regions.frozen_reaches.golem_puzzle:on_golem_death"
         },
         "blocked_directions_by_state": {
           "guarding": [
@@ -4169,6 +4154,9 @@
             "up",
             "south"
           ]
+        },
+        "dialog_reactions": {
+          "handler": "examples.big_game.behaviors.regions.frozen_reaches.golem_puzzle:on_golem_password"
         }
       }
     },
@@ -4201,70 +4189,37 @@
         "hope_bonus": 5,
         "connected_to": "healer_elara",
         "encounter_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.beast_wilds.sira_rescue:on_sira_encounter"
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.sira_rescue:on_sira_encounter"
         },
         "death_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.beast_wilds.sira_rescue:on_sira_death",
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.sira_rescue:on_sira_death",
           "set_flags": {
             "sira_dead": true
           },
           "message": "Hunter Sira's struggle has ended."
         },
         "item_use_reactions": {
-          "healing": {
+          "stop_bleeding": {
             "accepted_items": [
-              "bandages",
+              "bandages"
+            ],
+            "remove_condition": "bleeding",
+            "response": "You apply pressure with the bandages. The bleeding slows, then stops."
+          },
+          "heal_leg": {
+            "accepted_items": [
               "healing_herbs"
             ],
-            "handler": "game_behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
+            "remove_condition": "broken_leg",
+            "response": "You carefully set and splint the broken leg."
           }
         },
-        "dialog_topics": {
-          "injury": {
-            "keywords": [
-              "injury",
-              "hurt",
-              "wound",
-              "happened"
-            ],
-            "trust_delta": 1,
-            "summary": "'Beast attack,' she manages through gritted teeth. 'Pack of wolves... or what used to be wolves. Something's wrong with them.'"
+        "condition_reactions": {
+          "bleeding": {
+            "handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
           },
-          "tracking": {
-            "keywords": [
-              "tracking",
-              "hunt",
-              "teach",
-              "skills"
-            ],
-            "requires_state": [
-              "stabilized",
-              "mobile"
-            ],
-            "summary": "'I could teach you to read the forest... if I survive this. Help me, and I'll share what I know.'"
-          },
-          "beasts": {
-            "keywords": [
-              "beasts",
-              "wolves",
-              "spiders",
-              "creatures",
-              "dangers"
-            ],
-            "summary": "'The beasts here aren't natural anymore. Something corrupts them. The wolves especially... they hunt in packs, coordinated. Dangerous.'"
-          },
-          "elara": {
-            "keywords": [
-              "elara",
-              "healer",
-              "help",
-              "medicine"
-            ],
-            "unlocks_after": "injury",
-            "sets_flags": {
-              "knows_elara_connection": true
-            },
-            "summary": "'Elara... she's in the town. We grew up together. She could help me - if you could get word to her...'"
+          "broken_leg": {
+            "handler": "behaviors.regions.beast_wilds.sira_rescue:on_sira_healed"
           }
         },
         "llm_context": {
@@ -4312,9 +4267,64 @@
           "current": 0,
           "floor": -5,
           "ceiling": 5
+        },
+        "dialog_reactions": {
+          "injury": {
+            "keywords": [
+              "injury",
+              "hurt",
+              "wound",
+              "happened"
+            ],
+            "trust_delta": 1,
+            "summary": "'Beast attack,' she manages through gritted teeth. 'Pack of wolves... or what used to be wolves. Something's wrong with them.'"
+          },
+          "tracking": {
+            "keywords": [
+              "tracking",
+              "hunt",
+              "teach",
+              "skills"
+            ],
+            "requires_state": [
+              "stabilized",
+              "mobile"
+            ],
+            "summary": "'I could teach you to read the forest... if I survive this. Help me, and I'll share what I know.'"
+          },
+          "beasts": {
+            "keywords": [
+              "beasts",
+              "wolves",
+              "spiders",
+              "creatures",
+              "dangers"
+            ],
+            "summary": "'The beasts here aren't natural anymore. Something corrupts them. The wolves especially... they hunt in packs, coordinated. Dangerous.'"
+          },
+          "elara": {
+            "keywords": [
+              "elara",
+              "healer",
+              "help",
+              "medicine"
+            ],
+            "unlocks_after": "injury",
+            "sets_flags": {
+              "knows_elara_connection": true
+            },
+            "summary": "'Elara... she's in the town. We grew up together. She could help me - if you could get word to her...'"
+          }
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.shared.infrastructure.dialog_reactions",
+        "behaviors.shared.infrastructure.item_use_reactions",
+        "behaviors.shared.infrastructure.encounter_reactions",
+        "behaviors.shared.infrastructure.death_reactions",
+        "behaviors.shared.infrastructure.condition_reactions",
+        "behaviors.regions.beast_wilds.sira_rescue"
+      ]
     },
     "spider_matriarch": {
       "id": "spider_matriarch",
@@ -4336,13 +4346,14 @@
         "pack_id": "spider_brood",
         "pack_role": "alpha",
         "death_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.beast_wilds.spider_nest:on_spider_queen_death",
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.spider_nest:on_spider_queen_death",
           "set_flags": {
             "spider_queen_dead": true
           }
         },
         "pack_behavior": {
-          "pack_follows_leader_state": true,
+          "pack_id": "spider_pack",
+          "role": "leader",
           "followers": [
             "giant_spider_1",
             "giant_spider_2"
@@ -4438,6 +4449,11 @@
               "venom pooling beneath"
             ]
           }
+        },
+        "pack_behavior": {
+          "pack_id": "spider_pack",
+          "leader": "spider_matriarch",
+          "role": "follower"
         }
       },
       "behaviors": []
@@ -4480,6 +4496,11 @@
               "threat ended"
             ]
           }
+        },
+        "pack_behavior": {
+          "pack_id": "spider_pack",
+          "leader": "spider_matriarch",
+          "role": "follower"
         }
       },
       "behaviors": []
@@ -4512,13 +4533,7 @@
           "frost_lily"
         ],
         "gift_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.beast_wilds.bee_queen:on_receive_item"
-        },
-        "take_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.beast_wilds.bee_queen:on_honey_theft"
-        },
-        "dialog_topics": {
-          "handler": "examples.big_game.game_behaviors.regions.beast_wilds.bee_queen:on_bee_queen_talk"
+          "handler": "behaviors.regions.beast_wilds.bee_queen:on_receive_item"
         },
         "llm_context": {
           "traits": [
@@ -4566,10 +4581,16 @@
               "no trade only threat"
             ]
           }
+        },
+        "dialog_reactions": {
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.bee_queen:on_bee_queen_talk"
         }
       },
       "behaviors": [
-        "game_behaviors.regions.beast_wilds.bee_queen"
+        "behaviors.regions.beast_wilds.bee_queen",
+        "behaviors.shared.infrastructure.dialog_reactions",
+        "behaviors.shared.infrastructure.gift_reactions",
+        "behaviors.shared.infrastructure.take_reactions"
       ]
     },
     "dire_bear": {
@@ -4607,14 +4628,14 @@
         "commitment_target": true,
         "hunts_player": false,
         "encounter_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.beast_wilds.bear_cubs:on_bear_encounter"
+          "handler": "examples.big_game.behaviors.regions.beast_wilds.bear_cubs:on_bear_encounter"
         },
         "gift_reactions": {
           "healing_herbs": {
             "accepted_items": [
               "healing_herbs"
             ],
-            "handler": "game_behaviors.regions.beast_wilds.bear_cubs:on_cubs_healed"
+            "handler": "behaviors.regions.beast_wilds.bear_cubs:on_cubs_healed"
           }
         },
         "llm_context": {
@@ -4681,7 +4702,7 @@
         }
       },
       "behaviors": [
-        "game_behaviors.regions.beast_wilds.bear_cubs"
+        "behaviors.regions.beast_wilds.bear_cubs"
       ]
     },
     "bear_cub_1": {
@@ -4716,7 +4737,7 @@
             "accepted_items": [
               "healing_herbs"
             ],
-            "handler": "game_behaviors.regions.beast_wilds.bear_cubs:on_cubs_healed"
+            "handler": "behaviors.regions.beast_wilds.bear_cubs:on_cubs_healed"
           }
         },
         "llm_context": {
@@ -4798,7 +4819,7 @@
             "accepted_items": [
               "healing_herbs"
             ],
-            "handler": "game_behaviors.regions.beast_wilds.bear_cubs:on_cubs_healed"
+            "handler": "behaviors.regions.beast_wilds.bear_cubs:on_cubs_healed"
           }
         },
         "llm_context": {
@@ -4870,7 +4891,7 @@
           "ceiling": 5
         },
         "dialog_reactions": {
-          "default_response": "Mira surveys the camp with weary determination."
+          "handler": "examples.big_game.behaviors.regions.civilized_remnants.mira:on_mira_dialog"
         },
         "llm_context": {
           "traits": [
@@ -4915,9 +4936,18 @@
               "regretting extended faith"
             ]
           }
+        },
+        "commitment_reactions": {
+          "abandoned": {
+            "handler": "examples.big_game.behaviors.regions.civilized_remnants.mira:on_quest_failed"
+          }
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.regions.civilized_remnants.mira",
+        "behaviors.shared.infrastructure.dialog_reactions",
+        "behaviors.shared.infrastructure.commitment_reactions"
+      ]
     },
     "old_swimmer_jek": {
       "id": "old_swimmer_jek",
@@ -4970,14 +5000,14 @@
         "base_timer": 5,
         "hope_extends": false,
         "death_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.sunken_district.dual_rescue:on_npc_death",
+          "handler": "examples.big_game.behaviors.regions.sunken_district.dual_rescue:on_npc_death",
           "set_flags": {
             "garrett_died": true
           }
         },
         "condition_reactions": {
           "drowning_stopped": {
-            "handler": "game_behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
+            "handler": "behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
           }
         },
         "llm_context": {
@@ -5057,17 +5087,26 @@
         "hope_extends": true,
         "hope_bonus": 3,
         "encounter_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.sunken_district.dual_rescue:on_delvan_encounter"
+          "handler": "behaviors.regions.sunken_district.dual_rescue:on_delvan_encounter"
         },
         "death_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.sunken_district.dual_rescue:on_npc_death",
+          "handler": "behaviors.regions.sunken_district.dual_rescue:on_npc_death",
           "set_flags": {
             "delvan_died": true
           }
         },
         "condition_reactions": {
-          "bleeding_stopped": {
-            "handler": "game_behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
+          "bleeding": {
+            "handler": "behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
+          }
+        },
+        "item_use_reactions": {
+          "stop_bleeding": {
+            "accepted_items": [
+              "bandages"
+            ],
+            "remove_condition": "bleeding",
+            "response": "You apply pressure with the bandages. Delvan's bleeding slows, then stops."
           }
         },
         "llm_context": {
@@ -5115,7 +5154,12 @@
           }
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.shared.infrastructure.encounter_reactions",
+        "behaviors.shared.infrastructure.death_reactions",
+        "behaviors.shared.infrastructure.condition_reactions",
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     },
     "the_archivist": {
       "id": "the_archivist",
@@ -5139,12 +5183,7 @@
           "ceiling": 5
         },
         "dialog_reactions": {
-          "guardian_response": {
-            "keywords": ["knowledge", "teach", "lore", "archive"],
-            "requires_state": ["guardian"],
-            "summary": "The Archivist regards you coldly. 'Knowledge is earned, not given.'"
-          },
-          "default_response": "The Archivist watches you with evaluating eyes."
+          "handler": "examples.big_game.behaviors.regions.civilized_remnants.archivist:on_archivist_dialog"
         },
         "llm_context": {
           "traits": [
@@ -5181,9 +5220,14 @@
               "united in pursuit of truth"
             ]
           }
+        },
+        "gift_reactions": {
+          "handler": "examples.big_game.behaviors.regions.civilized_remnants.archivist:on_archivist_gift"
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.regions.civilized_remnants.archivist"
+      ]
     },
     "predatory_fish": {
       "id": "predatory_fish",
@@ -5276,7 +5320,16 @@
         "base_timer": 50,
         "hope_extends": true,
         "hope_bonus": 10,
-        "dialog_topics": {
+        "item_use_reactions": {
+          "healing": {
+            "accepted_items": [
+              "silvermoss"
+            ],
+            "handler": "behaviors.regions.fungal_depths.aldric_rescue:on_aldric_heal"
+          }
+        },
+        "regeneration": 5,
+        "dialog_reactions": {
           "infection": {
             "keywords": [
               "infection",
@@ -5328,7 +5381,7 @@
             "requires_state": [
               "critical"
             ],
-            "handler": "game_behaviors.regions.fungal_depths.aldric_rescue:on_aldric_commitment"
+            "handler": "behaviors.regions.fungal_depths.aldric_rescue:on_aldric_commitment"
           },
           "teaching": {
             "keywords": [
@@ -5339,21 +5392,12 @@
               "stabilized",
               "recovering"
             ],
-            "handler": "game_behaviors.regions.fungal_depths.aldric_rescue:on_aldric_teach"
+            "handler": "behaviors.regions.fungal_depths.aldric_rescue:on_aldric_teach"
           }
-        },
-        "item_use_reactions": {
-          "healing": {
-            "accepted_items": [
-              "silvermoss"
-            ],
-            "handler": "game_behaviors.regions.fungal_depths.aldric_rescue:on_aldric_heal"
-          }
-        },
-        "regeneration": 5
+        }
       },
       "behaviors": [
-        "game_behaviors.regions.fungal_depths.aldric_rescue"
+        "behaviors.regions.fungal_depths.aldric_rescue"
       ]
     },
     "npc_spore_mother": {
@@ -5431,31 +5475,31 @@
           }
         },
         "pack_behavior": {
-          "pack_follows_leader_state": true,
+          "pack_id": "sporeling_pack",
+          "role": "leader",
           "followers": [
             "npc_sporeling_1",
             "npc_sporeling_2",
             "npc_sporeling_3"
-          ],
-          "handler": "examples.big_game.game_behaviors.regions.fungal_depths.spore_mother:on_spore_mother_state_change"
+          ]
         },
         "item_use_reactions": {
           "healing": {
             "accepted_items": [
               "heartmoss"
             ],
-            "handler": "game_behaviors.regions.fungal_depths.spore_mother:on_spore_mother_heal"
+            "handler": "behaviors.regions.fungal_depths.spore_mother:on_spore_mother_heal"
           }
         },
         "death_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.fungal_depths.spore_mother:on_spore_mother_death",
+          "handler": "examples.big_game.behaviors.regions.fungal_depths.spore_mother:on_spore_mother_death",
           "set_flags": {
             "spore_mother_dead": true,
             "has_killed_fungi": true
           }
         },
-        "dialog_topics": {
-          "handler": "examples.big_game.game_behaviors.regions.fungal_depths.spore_mother:on_spore_mother_talk"
+        "dialog_reactions": {
+          "handler": "examples.big_game.behaviors.regions.fungal_depths.spore_mother:on_spore_mother_talk"
         }
       },
       "behaviors": []
@@ -5524,6 +5568,11 @@
               "whimpering in distress"
             ]
           }
+        },
+        "pack_behavior": {
+          "pack_id": "sporeling_pack",
+          "leader": "npc_spore_mother",
+          "role": "follower"
         }
       },
       "behaviors": []
@@ -5592,6 +5641,11 @@
               "whimpering in distress"
             ]
           }
+        },
+        "pack_behavior": {
+          "pack_id": "sporeling_pack",
+          "leader": "npc_spore_mother",
+          "role": "follower"
         }
       },
       "behaviors": []
@@ -5660,6 +5714,11 @@
               "whimpering in distress"
             ]
           }
+        },
+        "pack_behavior": {
+          "pack_id": "sporeling_pack",
+          "leader": "npc_spore_mother",
+          "role": "follower"
         }
       },
       "behaviors": []
@@ -5695,9 +5754,45 @@
         ],
         "fungal": true,
         "encounter_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.fungal_depths.fungal_death_mark:on_myconid_first_meeting"
+          "handler": "examples.big_game.behaviors.regions.fungal_depths.fungal_death_mark:on_myconid_first_meeting"
         },
-        "dialog_topics": {
+        "llm_context": {
+          "traits": [
+            "towering mushroom form",
+            "bioluminescent spots pulsing",
+            "ancient weathered cap",
+            "swaying gently in stillness",
+            "mycelium tendrils trailing",
+            "deep patient presence"
+          ],
+          "state_fragments": {
+            "neutral": [
+              "spores drifting lazily",
+              "gentle blue luminescence",
+              "tendrils relaxed on stone",
+              "cap tilted in consideration",
+              "peaceful emanation",
+              "unhurried ancient patience"
+            ],
+            "trusting": [
+              "warm golden glow pulsing",
+              "spores carrying rich meaning",
+              "tendrils reaching gently",
+              "cap inclined welcomingly",
+              "deep wisdom flowing freely",
+              "ancient kindness visible"
+            ],
+            "distrusting": [
+              "spores dimming to grey",
+              "cap tilted away",
+              "tendrils withdrawn tightly",
+              "slow wary movements",
+              "watchful guarded stillness",
+              "luminescence flickering coldly"
+            ]
+          }
+        },
+        "dialog_reactions": {
           "greeting": {
             "keywords": [
               "hello",
@@ -5749,42 +5844,6 @@
             ],
             "summary": "Silver spores glitter. 'Ice-crystal cools the cure-making. Without cold, the cleansing burns too fierce. Bring ice from the frozen heights.'"
           }
-        },
-        "llm_context": {
-          "traits": [
-            "towering mushroom form",
-            "bioluminescent spots pulsing",
-            "ancient weathered cap",
-            "swaying gently in stillness",
-            "mycelium tendrils trailing",
-            "deep patient presence"
-          ],
-          "state_fragments": {
-            "neutral": [
-              "spores drifting lazily",
-              "gentle blue luminescence",
-              "tendrils relaxed on stone",
-              "cap tilted in consideration",
-              "peaceful emanation",
-              "unhurried ancient patience"
-            ],
-            "trusting": [
-              "warm golden glow pulsing",
-              "spores carrying rich meaning",
-              "tendrils reaching gently",
-              "cap inclined welcomingly",
-              "deep wisdom flowing freely",
-              "ancient kindness visible"
-            ],
-            "distrusting": [
-              "spores dimming to grey",
-              "cap tilted away",
-              "tendrils withdrawn tightly",
-              "slow wary movements",
-              "watchful guarded stillness",
-              "luminescence flickering coldly"
-            ]
-          }
         }
       },
       "behaviors": []
@@ -5806,13 +5865,31 @@
         },
         "dialog_reactions": {
           "warnings": {
-            "keywords": ["frozen", "beast", "fungal", "sunken", "danger", "warn", "advice"],
-            "requires_state": ["neutral", "friendly"],
+            "keywords": [
+              "frozen",
+              "beast",
+              "fungal",
+              "sunken",
+              "danger",
+              "warn",
+              "advice"
+            ],
+            "requires_state": [
+              "neutral",
+              "friendly"
+            ],
             "summary": "The guard shares warnings about the dangerous regions beyond the town walls..."
           },
           "suspicious_response": {
-            "keywords": ["help", "information", "tell", "ask"],
-            "requires_state": ["suspicious"],
+            "keywords": [
+              "help",
+              "information",
+              "tell",
+              "ask"
+            ],
+            "requires_state": [
+              "suspicious"
+            ],
             "summary": "The guard eyes you suspiciously. 'Move along.'"
           },
           "default_response": "The guard watches the horizon, alert."
@@ -5874,20 +5951,12 @@
           "teach_basic_herbalism"
         ],
         "dialog_reactions": {
-          "trade": {
-            "keywords": ["buy", "sell", "trade", "herbs", "potion", "supplies"],
-            "summary": "Maren nods. 'Looking for supplies? I have herbs, potions, and alchemical ingredients.'"
-          },
-          "teaching": {
-            "keywords": ["teach", "learn", "herbalism", "training", "knowledge"],
-            "requires_trust": 2,
-            "summary": "Maren explains the properties of various herbs in detail..."
-          },
-          "default_response": "Maren tends her herb garden. 'Looking for supplies?'"
+          "handler": "examples.big_game.behaviors.regions.civilized_remnants.services:on_service_request"
         }
       },
       "behaviors": [
-        "game_behaviors.regions.civilized_remnants.services"
+        "behaviors.regions.civilized_remnants.services",
+        "behaviors.shared.infrastructure.dialog_reactions"
       ]
     },
     "weaponsmith_toran": {
@@ -5932,66 +6001,14 @@
         },
         "trust_state": {
           "current": 0,
-          "floor": -3,
+          "floor": 0,
           "ceiling": 5
         },
         "services": [
-          "trade_rare_items",
-          "reveal_undercity"
+          "trade_rare_items"
         ],
         "dialog_reactions": {
-          "wares": {
-            "keywords": [
-              "wares",
-              "buy",
-              "sell",
-              "trade",
-              "items",
-              "goods"
-            ],
-            "summary": "'Looking for something... unusual?' Vex's eyes glitter. 'I deal in curiosities. Things the other merchants won't touch. Show me what you have, and perhaps we can arrange something.'"
-          },
-          "crystals": {
-            "keywords": [
-              "crystals",
-              "ice",
-              "spider",
-              "silk",
-              "rare"
-            ],
-            "trust_delta": 1,
-            "summary": "'Ah, rare materials.' They lean forward slightly. 'Ice crystals, spider silk, fungal extracts... I pay well for such things. Very well indeed.'"
-          },
-          "private": {
-            "keywords": [
-              "private",
-              "secret",
-              "quietly",
-              "discrete"
-            ],
-            "requires_trust": 2,
-            "sets_flags": {
-              "vex_hinted_at_secrets": true
-            },
-            "summary": "'Some transactions require... privacy.' Vex glances around carefully. 'Perhaps we could discuss certain matters more quietly. If you've proven yourself reliable.'"
-          },
-          "undercity": {
-            "keywords": [
-              "undercity",
-              "below",
-              "hidden",
-              "underground",
-              "beneath"
-            ],
-            "requires_trust": 2,
-            "requires_flags": {
-              "vex_hinted_at_secrets": true
-            },
-            "sets_flags": {
-              "knows_undercity_entrance": true
-            },
-            "summary": "Vex's smile widens. 'So you've heard whispers. Yes, there are places beneath the market... for those who know where to look.' They gesture subtly toward a shadowed corner. 'The trapdoor behind the broken crates. Tell them Vex sent you.'"
-          }
+          "handler": "examples.big_game.behaviors.regions.civilized_remnants.vex:on_vex_dialog"
         },
         "llm_context": {
           "traits": [
@@ -6029,13 +6046,13 @@
             ]
           }
         },
-        "trust_state": {
-          "current": 0,
-          "floor": 0,
-          "ceiling": 5
+        "gift_reactions": {
+          "handler": "examples.big_game.behaviors.regions.civilized_remnants.vex:on_vex_gift"
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.regions.civilized_remnants.vex"
+      ]
     },
     "healer_elara": {
       "id": "healer_elara",
@@ -6065,10 +6082,10 @@
         ],
         "connected_to": "hunter_sira",
         "dialog_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.civilized_remnants.services:on_service_request"
+          "handler": "examples.big_game.behaviors.regions.civilized_remnants.services:on_service_request"
         },
         "gossip_reactions": {
-          "handler": "examples.big_game.game_behaviors.regions.civilized_remnants.services:on_gossip_received"
+          "handler": "examples.big_game.behaviors.regions.civilized_remnants.services:handle_gossip_for_services"
         },
         "old_dialog_topics": {
           "healing": {
@@ -6157,7 +6174,9 @@
         }
       },
       "behaviors": [
-        "game_behaviors.regions.civilized_remnants.services"
+        "behaviors.regions.civilized_remnants.services",
+        "behaviors.shared.infrastructure.dialog_reactions",
+        "behaviors.shared.infrastructure.gossip_reactions"
       ]
     },
     "councilor_hurst": {
@@ -6226,7 +6245,6 @@
           "floor": -3,
           "ceiling": 5
         },
-        "has_undercity_connections": true,
         "llm_context": {
           "traits": [
             "thin scholarly figure bent from study",
@@ -6264,27 +6282,50 @@
         ],
         "item_use_reactions": {
           "power_core": {
-            "accepted_items": ["power_core", "energy_crystal", "animator_crystal"],
+            "accepted_items": [
+              "power_core",
+              "energy_crystal",
+              "animator_crystal"
+            ],
             "transition_to": "partially_awakened",
             "response": "The guardian flickers to life, ancient systems coming online slowly..."
           },
           "repair": {
-            "accepted_items": ["repair_kit", "stone_chisel", "ancient_tools"],
-            "requires_state": ["partially_awakened"],
+            "accepted_items": [
+              "repair_kit",
+              "stone_chisel",
+              "ancient_tools"
+            ],
+            "requires_state": [
+              "partially_awakened"
+            ],
             "transition_to": "functional",
             "response": "You repair the damaged plating. The guardian's runes glow steadier."
           },
           "activation": {
-            "accepted_items": ["command_code", "activation_key", "ritual_knowledge"],
-            "requires_state": ["functional"],
+            "accepted_items": [
+              "command_code",
+              "activation_key",
+              "ritual_knowledge"
+            ],
+            "requires_state": [
+              "functional"
+            ],
             "transition_to": "active",
             "response": "The guardian rises to full power! 'Primary functions restored.'"
           }
         },
         "dialog_reactions": {
           "guardian_knowledge": {
-            "keywords": ["catastrophe", "waystone", "ancients", "history"],
-            "requires_state": ["active"],
+            "keywords": [
+              "catastrophe",
+              "waystone",
+              "ancients",
+              "history"
+            ],
+            "requires_state": [
+              "active"
+            ],
             "summary": "The guardian shares ancient records from before the catastrophe..."
           },
           "default_response": "The guardian remains still and silent."
@@ -6332,79 +6373,6 @@
               "guardian restored to duty"
             ]
           }
-        }
-      },
-      "behaviors": []
-    },
-    "the_fence": {
-      "id": "the_fence",
-      "name": "The Fence",
-      "description": "A figure in shadows who deals in items of questionable origin.",
-      "location": "undercity",
-      "inventory": [],
-      "properties": {
-        "services": [
-          "buy_stolen",
-          "sell_contraband"
-        ],
-        "llm_context": {
-          "traits": [
-            "nondescript appearance cultivated carefully",
-            "fingers quick and light",
-            "eyes that assess value instantly",
-            "clothing chosen for blend not style",
-            "smile friendly but calculating",
-            "connections hidden but extensive"
-          ]
-        }
-      },
-      "behaviors": []
-    },
-    "whisper": {
-      "id": "whisper",
-      "name": "Whisper",
-      "description": "A nondescript person who seems to know everything about everyone.",
-      "location": "undercity",
-      "inventory": [],
-      "properties": {
-        "services": [
-          "sell_npc_secrets",
-          "sell_location_secrets"
-        ],
-        "llm_context": {
-          "traits": [
-            "barely tangible presence",
-            "voice soft as breath on skin",
-            "secrets carried like currency",
-            "appearing without announcement",
-            "speaking truths uncomfortable to hear",
-            "gone before questions can form"
-          ]
-        }
-      },
-      "behaviors": []
-    },
-    "shadow": {
-      "id": "shadow",
-      "name": "Shadow",
-      "description": "You're not sure you've ever seen their face clearly.",
-      "location": "undercity",
-      "inventory": [],
-      "properties": {
-        "services": [
-          "assassination_contracts"
-        ],
-        "discovery_chance": 0.2,
-        "delay_turns": 3,
-        "llm_context": {
-          "traits": [
-            "darkness given form and purpose",
-            "edges indistinct and shifting",
-            "presence felt more than seen",
-            "voice like whispers in empty rooms",
-            "slipping between light and dark",
-            "observer from hidden vantage"
-          ]
         }
       },
       "behaviors": []
@@ -6838,10 +6806,10 @@
       "name": "",
       "location": "tangled_path",
       "connections": [
-        "exit_wolf_clearing_west"
+        "exit_ancient_grove_west"
       ],
       "direction": "east",
-      "description": "Open space among snow-laden trees, pack gathering ground.",
+      "description": "An ancient grove lies to the east.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6885,14 +6853,31 @@
       "traits": {}
     },
     {
+      "id": "exit_ancient_grove_west",
+      "name": "",
+      "location": "ancient_grove",
+      "connections": [
+        "exit_bee_queen_clearing_east"
+      ],
+      "direction": "west",
+      "description": "A path leads west to a clearing filled with buzzing.",
+      "adjectives": [],
+      "synonyms": [],
+      "properties": {
+        "type": "open"
+      },
+      "behaviors": [],
+      "traits": {}
+    },
+    {
       "id": "exit_ancient_grove_east",
       "name": "",
       "location": "ancient_grove",
       "connections": [
-        "exit_bee_queen_clearing_west"
+        "exit_tangled_path_east"
       ],
       "direction": "east",
-      "description": "Underground grove impossibly lit, massive hive structure dominating space.",
+      "description": "The tangled path continues east.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7225,23 +7210,6 @@
       "traits": {}
     },
     {
-      "id": "exit_market_square_down",
-      "name": "",
-      "location": "market_square",
-      "connections": [
-        "exit_undercity_entrance_up"
-      ],
-      "direction": "down",
-      "description": "Stairway descending into earth, carved from living rock.",
-      "adjectives": [],
-      "synonyms": [],
-      "properties": {
-        "type": "open"
-      },
-      "behaviors": [],
-      "traits": {}
-    },
-    {
       "id": "exit_healers_sanctuary_back",
       "name": "",
       "location": "healers_sanctuary",
@@ -7267,40 +7235,6 @@
       ],
       "direction": "front",
       "description": "Interior of healer's sanctuary, quiet and filled with soft light.",
-      "adjectives": [],
-      "synonyms": [],
-      "properties": {
-        "type": "open"
-      },
-      "behaviors": [],
-      "traits": {}
-    },
-    {
-      "id": "exit_undercity_entrance_up",
-      "name": "",
-      "location": "undercity_entrance",
-      "connections": [
-        "exit_market_square_down"
-      ],
-      "direction": "up",
-      "description": "Cobblestone square with merchant stalls and gathered townsfolk.",
-      "adjectives": [],
-      "synonyms": [],
-      "properties": {
-        "type": "open"
-      },
-      "behaviors": [],
-      "traits": {}
-    },
-    {
-      "id": "exit_undercity_entrance_down",
-      "name": "",
-      "location": "undercity_entrance",
-      "connections": [
-        "exit_undercity_up"
-      ],
-      "direction": "down",
-      "description": "Ancient streets carved from living rock, buildings grown from stone rather than built.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -7701,14 +7635,14 @@
       "traits": {}
     },
     {
-      "id": "exit_bee_queen_clearing_west",
+      "id": "exit_bee_queen_clearing_east",
       "name": "",
       "location": "bee_queen_clearing",
       "connections": [
-        "exit_ancient_grove_east"
+        "exit_ancient_grove_west"
       ],
-      "direction": "west",
-      "description": "Trees impossibly old and massive, roots thick as houses breaking surface.",
+      "direction": "east",
+      "description": "The grove lies to the east.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -8032,23 +7966,6 @@
       ],
       "direction": "north",
       "description": "Cobblestone plaza with dry fountain centerpiece, merchant stalls standing empty, canopies tattered.",
-      "adjectives": [],
-      "synonyms": [],
-      "properties": {
-        "type": "open"
-      },
-      "behaviors": [],
-      "traits": {}
-    },
-    {
-      "id": "exit_undercity_up",
-      "name": "",
-      "location": "undercity",
-      "connections": [
-        "exit_undercity_entrance_down"
-      ],
-      "direction": "up",
-      "description": "Stairway descending into earth, carved from living rock.",
       "adjectives": [],
       "synonyms": [],
       "properties": {

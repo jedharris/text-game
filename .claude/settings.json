@@ -1,15 +1,39 @@
 {
   "includeCoAuthoredBy": true,
   "permissions": {
-  "allow": [
-    "Bash",
-    "mcp__claude-context",
-    "Gh",
+    "allow": [
+      "Bash",
+      "mcp__claude-context",
+      "Gh :*",
+      "Bash(gh :*)"
     ],
-  "deny": [],
-  "ask": []
+    "deny": [],
+    "ask": []
   },
   "model": "opusplan",
-  "enableAllProjectMcpServers": true
+  "enableAllProjectMcpServers": true,
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/jed/Development/text-game/.claude/hooks/inject-context.sh"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/jed/Development/text-game/.claude/hooks/session-start.sh"
+          }
+        ]
+      }
+    ]
+  }
 }
-  

@@ -29,6 +29,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from src.game_engine import GameEngine
+from src.types import ActorId
 
 
 class FailureCategory(Enum):
@@ -162,25 +163,117 @@ def extract_vitals_info(engine: GameEngine) -> str:
     return "  " + "  |  ".join(parts)
 
 
+def parse_set_command(line: str) -> Optional[Tuple[str, str]]:
+    """Parse @set command to modify game state.
+
+    Args:
+        line: Set command like "@set player.properties.gold = 500"
+
+    Returns:
+        (field_path, value_str) or None if not a set command
+
+    Examples:
+        "@set player.properties.gold = 500" -> ("player.properties.gold", "500")
+        "@set npc.properties.trust_state.current = 3" -> (...)
+    """
+    line = line.strip()
+    if not line.startswith("@set "):
+        return None
+
+    # Remove @set prefix
+    set_expr = line[5:].strip()
+
+    # Split on '=' to get field_path and value
+    if '=' not in set_expr:
+        raise ValueError(f"Invalid @set syntax (missing '='): {line}")
+
+    parts = set_expr.split('=', 1)
+    field_path = parts[0].strip()
+    value_str = parts[1].strip()
+
+    return (field_path, value_str)
+
+
+def parse_expect_command(line: str) -> Optional[str]:
+    """Parse @expect command for output validation.
+
+    Args:
+        line: Expect command like '@expect "Maren shows you her wares"'
+
+    Returns:
+        Expected string or None if not an expect command
+
+    Examples:
+        '@expect "hello"' -> "hello"
+        "@expect 'goodbye'" -> "goodbye"
+    """
+    line = line.strip()
+    if not line.startswith("@expect "):
+        return None
+
+    # Remove @expect prefix
+    expected = line[8:].strip()
+
+    # Strip quotes if present
+    if (expected.startswith('"') and expected.endswith('"')) or \
+       (expected.startswith("'") and expected.endswith("'")):
+        expected = expected[1:-1]
+
+    return expected
+
+
+def parse_advance_command(line: str) -> Optional[int]:
+    """Parse @advance command to advance game turns.
+
+    Args:
+        line: Advance command like "@advance 10 turns" or "@advance 5"
+
+    Returns:
+        Number of turns to advance, or None if not an advance command
+
+    Examples:
+        "@advance 10 turns" -> 10
+        "@advance 5" -> 5
+        "@advance 1 turn" -> 1
+    """
+    line = line.strip()
+    if not line.startswith("@advance "):
+        return None
+
+    # Remove @advance prefix
+    advance_expr = line[9:].strip()
+
+    # Extract number (may have "turns" or "turn" suffix)
+    parts = advance_expr.split()
+    try:
+        num_turns = int(parts[0])
+        return num_turns
+    except (ValueError, IndexError):
+        raise ValueError(f"Invalid @advance syntax (expected number): {line}")
+
+
 def parse_assertion(line: str) -> Optional[Tuple[str, str, str]]:
     """Parse assertion line into components.
 
     Args:
-        line: Assertion line like "ASSERT player.hp >= 90"
+        line: Assertion line like "ASSERT player.hp >= 90" or "@assert ..."
 
     Returns:
         (field_path, operator, expected_value) or None if not an assertion
 
     Examples:
         "ASSERT player.hp == 100" -> ("player.hp", "==", "100")
-        "ASSERT player.conditions.fungal_infection.severity >= 20" -> (...)
+        "@assert player.conditions.fungal_infection.severity >= 20" -> (...)
     """
     line = line.strip()
-    if not line.startswith("ASSERT "):
+    if not (line.startswith("ASSERT ") or line.startswith("@assert ")):
         return None
 
-    # Remove ASSERT prefix
-    assertion = line[7:].strip()
+    # Remove ASSERT or @assert prefix
+    if line.startswith("@assert "):
+        assertion = line[8:].strip()
+    else:
+        assertion = line[7:].strip()
 
     # Find operator (longest match first to handle >=, <=, !=)
     operators = [">=", "<=", "==", "!=", ">", "<", " contains "]
@@ -236,6 +329,47 @@ def evaluate_field_path(obj: Any, path: str) -> Any:
                 raise AttributeError(f"Field '{part}' not found in path '{path}'")
 
     return current
+
+
+def set_field_path(obj: Any, path: str, value: Any) -> None:
+    """Set a value at a dotted field path.
+
+    Args:
+        obj: Object to set on (typically GameState)
+        path: Dotted path like "player.properties.gold"
+        value: Value to set
+
+    Raises:
+        AttributeError: If path doesn't exist
+    """
+    parts = path.split(".")
+    current = obj
+
+    # Navigate to parent
+    for part in parts[:-1]:
+        if isinstance(current, dict):
+            if part not in current:
+                raise AttributeError(f"Dict key '{part}' not found in path '{path}'")
+            current = current[part]
+        elif hasattr(current, part):
+            current = getattr(current, part)
+        else:
+            try:
+                current = current[part]
+            except (KeyError, TypeError):
+                raise AttributeError(f"Field '{part}' not found in path '{path}'")
+
+    # Set the final value
+    final_key = parts[-1]
+    if isinstance(current, dict):
+        current[final_key] = value
+    elif hasattr(current, final_key):
+        setattr(current, final_key, value)
+    else:
+        try:
+            current[final_key] = value
+        except (KeyError, TypeError):
+            raise AttributeError(f"Cannot set field '{final_key}' in path '{path}'")
 
 
 def evaluate_assertion(engine: GameEngine, field_path: str, operator: str, expected_str: str) -> Tuple[bool, str]:
@@ -336,18 +470,133 @@ def run_walkthrough(
     """Run a sequence of commands and return results.
 
     Returns:
-        (results, failure_counts)
+        (results, failure_counts, assertion_failures)
     """
     results = []
     parser = engine.create_parser()
     failure_counts: Dict[str, int] = {}
     unexpected_failures: List[Tuple[int, str, FailureCategory]] = []
     assertion_failures: List[Tuple[int, str, str]] = []
+    last_output: str = ""  # Track last command output for @expect
 
     for i, line in enumerate(commands, 1):
         line = line.strip()
         if not line or line.startswith("#"):
-            # Skip empty lines and comments
+            # Skip empty lines and comments (but not @commands)
+            continue
+
+        # Check if this is a @set command
+        set_cmd = parse_set_command(line)
+        if set_cmd:
+            field_path, value_str = set_cmd
+            print(f"\n{'='*60}")
+            print(f"@set {field_path} = {value_str}")
+            print("-" * 60)
+
+            try:
+                # Parse value
+                value: Any = value_str
+                try:
+                    # Try numeric conversion
+                    if "." in value_str:
+                        value = float(value_str)
+                    else:
+                        value = int(value_str)
+                except ValueError:
+                    # Check for JSON objects/arrays first (dicts and lists)
+                    if (value_str.startswith("{") and value_str.endswith("}")) or \
+                       (value_str.startswith("[") and value_str.endswith("]")):
+                        import json
+                        try:
+                            value = json.loads(value_str)
+                        except json.JSONDecodeError as e:
+                            raise ValueError(f"Invalid JSON: {e}")
+                    # Check for bool/None
+                    elif value_str.lower() == "true":
+                        value = True
+                    elif value_str.lower() == "false":
+                        value = False
+                    elif value_str.lower() == "none":
+                        value = None
+                    # Strip quotes if present
+                    elif value_str.startswith('"') and value_str.endswith('"'):
+                        value = value_str[1:-1]
+                    elif value_str.startswith("'") and value_str.endswith("'"):
+                        value = value_str[1:-1]
+
+                # Set the value
+                set_field_path(engine.game_state, field_path, value)
+                print(f"[✓] Set {field_path} = {value}")
+            except Exception as e:
+                print(f"[✗] Failed to set {field_path}: {e}")
+                if stop_on_error:
+                    print(f"\n⚠️  Stopped at line {i} due to @set failure")
+                    break
+
+            continue
+
+        # Check if this is an @advance command
+        advance_turns = parse_advance_command(line)
+        if advance_turns is not None:
+            print(f"\n{'='*60}")
+            print(f"@advance {advance_turns} turns")
+            print("-" * 60)
+
+            try:
+                # Import turn_executor and types
+                from src import turn_executor
+                from src.state_accessor import StateAccessor
+                from src.types import ActorId as ActorIdType
+
+                # Create accessor for turn processing
+                accessor = StateAccessor(
+                    game_state=engine.game_state,
+                    behavior_manager=engine.behavior_manager
+                )
+
+                # Advance turns and execute turn phases
+                for turn_num in range(advance_turns):
+                    # Execute turn phases (this also increments turn_count internally)
+                    # Pass empty action since this is just time passing
+                    turn_messages = turn_executor.execute_turn_phases(
+                        engine.game_state,
+                        engine.behavior_manager,
+                        accessor,
+                        {"verb": "wait", "actor_id": ActorIdType("player")}
+                    )
+
+                    # Print turn messages if any
+                    if turn_messages:
+                        for msg in turn_messages:
+                            print(f"  Turn {engine.game_state.turn_count}: {msg}")
+
+                print(f"[✓] Advanced to turn {engine.game_state.turn_count}")
+            except Exception as e:
+                print(f"[✗] Failed to advance turns: {e}")
+                if stop_on_error:
+                    print(f"\n⚠️  Stopped at line {i} due to @advance failure")
+                    break
+
+            continue
+
+        # Check if this is an @expect command
+        expect_cmd = parse_expect_command(line)
+        if expect_cmd:
+            print(f"\n{'='*60}")
+            print(f'@expect "{expect_cmd}"')
+            print("-" * 60)
+
+            if expect_cmd.lower() in last_output.lower():
+                print(f"[✓] Found expected text in output")
+            else:
+                print(f"[✗] Expected text not found in last output:")
+                print(f"    Expected: {expect_cmd}")
+                print(f"    Last output: {last_output[:200]}...")
+                assertion_failures.append((i, line, f"Expected text not found: {expect_cmd}"))
+                if stop_on_error:
+                    print(f"\n⚠️  Stopped at line {i} due to @expect failure")
+                    break
+
             continue
 
         # Check if this is an assertion
@@ -434,6 +683,7 @@ def run_walkthrough(
             print(json.dumps(result, indent=2, default=str))
         else:
             msg = extract_result_message(result)
+            last_output = msg  # Store for @expect commands
             status = "✓" if success else "✗"
 
             # Mark unexpected failures

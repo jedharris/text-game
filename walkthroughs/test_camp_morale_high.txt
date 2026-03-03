@@ -1,0 +1,29 @@
+# Camp Leader Mira - High Morale Dialog
+# Tests: High camp morale reflected in Mira's dialog
+# Scenario: camp_leader_mira.md scenario 8
+# Note: Narrative effect only (see issue #440 for mechanical effects)
+
+# Setup: Set camp morale to high
+@set extra.camp_morale = 80
+
+# Navigate to survivor_camp (Sunken District)
+go south
+go south
+go east
+go east
+
+# Verify we're at survivor camp
+look
+@expect "Mira"
+
+# Talk to Mira - should reflect high morale
+talk to mira
+@expect "thriving" or "hope" or "strong" or "good spirits" or "alive"
+
+# Ask about camp status
+ask mira about camp
+@expect "doing well" or "safe" or "better" or "smile"
+
+# Summary: High morale dialog verified
+# - Mira's dialog reflects optimistic camp state
+# - Narrative effect only (no mechanical service changes)

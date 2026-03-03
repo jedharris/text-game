@@ -311,10 +311,10 @@ def transition_state(config: StateMachineConfig, new_state: str) -> tuple[bool, 
 # =============================================================================
 
 
-def get_actor_conditions(actor: Actor) -> list[ConditionInstance]:
-    """Get an actor's conditions list, initializing if needed."""
+def get_actor_conditions(actor: Actor) -> dict[str, Any]:
+    """Get an actor's conditions dict, initializing if needed."""
     if "conditions" not in actor.properties:
-        actor.properties["conditions"] = []
+        actor.properties["conditions"] = {}
     return actor.properties["conditions"]
 
 

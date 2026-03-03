@@ -61,11 +61,13 @@ def _item_use_context(ctx: Dict[str, Any], cfg: Dict[str, Any]) -> Dict[str, Any
     """Enrich context for item_use reactions."""
     item = ctx.get("item") or ctx.get("entity")
     target = ctx.get("target")
-    return {
-        **ctx,
-        "item": item.id if item and hasattr(item, "id") else "",
-        "target": target.id if target and hasattr(target, "id") else "",
-    }
+    # IMPORTANT: Keep item and target objects, add IDs separately
+    result = {**ctx}
+    if item and hasattr(item, "id"):
+        result["item_id"] = item.id
+    if target and hasattr(target, "id"):
+        result["target_id"] = target.id
+    return result
 
 
 def _encounter_context(ctx: Dict[str, Any], cfg: Dict[str, Any]) -> Dict[str, Any]:

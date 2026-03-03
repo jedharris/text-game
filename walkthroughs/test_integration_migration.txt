@@ -1,0 +1,17 @@
+# Integration Test: Verify command_lib verbs are recognized
+# Goal: Prove ask/talk/use/attack/treat commands exist and fire hooks
+
+# Test 1: ask command recognized
+ask nobody about test
+
+# Test 2: talk command recognized
+talk to nobody
+
+# Test 3: use command recognized
+use nothing
+
+# Test 4: attack command recognized
+attack nobody
+
+# Test 5: treat command recognized
+treat nobody with nothing

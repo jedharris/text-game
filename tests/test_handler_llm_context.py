@@ -247,7 +247,7 @@ class TestInteractionHandlersLlmContext(unittest.TestCase):
 
     def test_handle_use_returns_llm_context(self):
         """Test handle_use returns item llm_context."""
-        from behaviors.core.interaction import handle_use
+        from behavior_libraries.command_lib.item_use import handle_use
 
         action = make_action(verb="use", object="sword", actor_id="player")
         result = handle_use(self.accessor, action)

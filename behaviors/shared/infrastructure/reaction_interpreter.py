@@ -6,7 +6,7 @@ Processes all reaction types through a single 3-phase execution model:
 3. Generate feedback - with template substitution
 """
 
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from src.behavior_manager import EventResult
 from .reaction_conditions import CONDITION_ORDER, CONDITION_REGISTRY
@@ -44,6 +44,9 @@ def process_reaction(
     # PHASE 0: Enrich context
     context = spec.context_enrichment(context, config)
 
+    # Add accessor to context so effect handlers can use it
+    context["accessor"] = accessor
+
     # PHASE 1: Evaluate all conditions
     for condition_key in CONDITION_ORDER:
         if condition_key not in config:
@@ -62,17 +65,26 @@ def process_reaction(
             )
 
     # PHASE 2: Apply all effects (in deterministic order)
+    effect_feedback: List[str] = []
     for effect_key in EFFECT_ORDER:
         if effect_key not in config:
             continue
 
         handler = EFFECT_REGISTRY.get(effect_key)
         if handler:
-            handler(config, state, entity, context)
+            feedback = handler(config, state, entity, context)
+            if feedback:  # Collect non-None feedback from effects
+                effect_feedback.append(feedback)
 
     # PHASE 3: Generate feedback
     message = get_message(config, spec)
     if message:
         message = substitute_templates(message, context)
+
+    # Combine main message with effect feedback (e.g., from condition_reactions handlers)
+    if effect_feedback:
+        all_feedback = [message] if message else []
+        all_feedback.extend(effect_feedback)
+        message = " ".join(all_feedback)
 
     return EventResult(allow=True, feedback=message)

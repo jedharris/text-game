@@ -1,0 +1,31 @@
+# The Echo Dialog and Gossip Walkthrough
+# Tests: Echo dialog reactions, gossip reactions, trust progression
+
+# Go to meridian nexus
+go north
+go east
+go south
+go east
+
+# Test 1: Initial dialog with Echo (dormant state)
+talk to echo
+@expect "shimmer" OR @expect "manifesting"
+
+# Test 2: Ask about specific topics
+talk to echo about nexus
+@expect "meridian" OR "knowledge"
+
+# Test 3: Echo should react to gossip
+# Note: Gossip must be triggered by other NPCs or events
+
+# Test 4: Trust progression through dialog
+@set the_echo.properties.trust_state.current = 2
+
+talk to echo
+@expect responsive OR expect "communicating"
+
+# Test 5: Higher trust unlocks more dialog
+@set the_echo.properties.trust_state.current = 4
+
+talk to echo about secrets
+@expect reveal OR expect knowledge

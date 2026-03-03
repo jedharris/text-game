@@ -1,0 +1,29 @@
+# Camp Leader Mira - Low Morale Dialog
+# Tests: Low camp morale reflected in Mira's dialog
+# Scenario: camp_leader_mira.md scenario 8
+# Note: Narrative effect only (see issue #440 for mechanical effects)
+
+# Setup: Set camp morale to low
+@set extra.camp_morale = 20
+
+# Navigate to survivor_camp (Sunken District)
+go south
+go south
+go east
+go east
+
+# Verify we're at survivor camp
+look
+@expect "Mira"
+
+# Talk to Mira - should reflect low morale
+talk to mira
+@expect "worried" or "struggling" or "desperate" or "difficult" or "losing"
+
+# Ask about camp status
+ask mira about camp
+@expect "hard" or "scarce" or "trouble" or "concern" or "leaving"
+
+# Summary: Low morale dialog verified
+# - Mira's dialog reflects struggling camp state
+# - May mention NPCs considering departure (narrative only)

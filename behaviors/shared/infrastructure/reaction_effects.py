@@ -4,11 +4,12 @@ Effects define WHAT a reaction does. They are applied in deterministic order
 after all conditions pass.
 """
 
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 
 # Type alias for effect handler functions
-EffectHandler = Callable[[Dict[str, Any], Any, Any, Dict[str, Any]], None]
+# Most return None, but some (like remove_condition) may return feedback
+EffectHandler = Callable[[Dict[str, Any], Any, Any, Dict[str, Any]], Optional[str]]
 
 
 def _unset_flags(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
@@ -43,7 +44,7 @@ def _set_flags(config: Dict[str, Any], state: Any, entity: Any, context: Dict[st
         extra[flag_name] = flag_value
 
 
-def _remove_condition(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
+def _remove_condition(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> Optional[str]:
     """Remove status effect from entity.
 
     Args:
@@ -51,13 +52,29 @@ def _remove_condition(config: Dict[str, Any], state: Any, entity: Any, context: 
         state: GameState instance
         entity: Entity being modified
         context: Event context
+
+    Returns:
+        Feedback from condition_reactions handler if provided, else None
     """
     condition_type = config.get("remove_condition")
     if not condition_type or not hasattr(entity, "properties"):
-        return
+        return None
 
-    active = entity.properties.get("active_conditions", {})
-    active.pop(condition_type, None)
+    # Use library function which fires hooks
+    from behavior_libraries.actor_lib.conditions import remove_condition
+
+    # Get accessor from context (added by reaction_interpreter)
+    accessor = context.get("accessor")
+    if not accessor:
+        raise ValueError("remove_condition effect requires accessor in context")
+
+    # This will fire entity_condition_change hook and return handler feedback
+    message = remove_condition(entity, condition_type, accessor)
+    # Return message only if it's from a handler (not default library message)
+    # Default messages like "X's bleeding has been removed" are redundant with item_use response
+    if message and not message.endswith("has been removed."):
+        return message
+    return None
 
 
 def _apply_condition(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:
@@ -69,22 +86,31 @@ def _apply_condition(config: Dict[str, Any], state: Any, entity: Any, context: D
         entity: Entity being modified
         context: Event context
     """
-    condition_spec = config.get("apply_condition")
-    if not condition_spec or not hasattr(entity, "properties"):
+    condition_config = config.get("apply_condition")
+    if not condition_config or not hasattr(entity, "properties"):
         return
 
-    # Ensure active_conditions exists
-    if "active_conditions" not in entity.properties:
-        entity.properties["active_conditions"] = {}
+    # Ensure conditions dict exists
+    if "conditions" not in entity.properties:
+        entity.properties["conditions"] = {}
 
-    active = entity.properties["active_conditions"]
-    condition_type = condition_spec.get("type")
+    conditions = entity.properties["conditions"]
 
-    if condition_type:
-        active[condition_type] = {
-            "severity": condition_spec.get("severity", 1),
-            "duration": condition_spec.get("duration", -1),
-        }
+    # condition_config can be string (name) or dict (name + details)
+    condition_name = None
+    if isinstance(condition_config, str):
+        condition_name = condition_config
+        conditions[condition_name] = {"severity": 50}  # Default severity
+    elif isinstance(condition_config, dict):
+        condition_name = condition_config.get("name") or condition_config.get("type")
+        if condition_name:
+            conditions[condition_name] = {
+                "severity": condition_config.get("severity", 50),
+                **{k: v for k, v in condition_config.items() if k not in ["name", "type"]}
+            }
+
+    # TODO: Hook firing should happen at engine level, not in effect handler
+    # The condition system should detect condition changes and fire hooks
 
 
 def _modify_property(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:

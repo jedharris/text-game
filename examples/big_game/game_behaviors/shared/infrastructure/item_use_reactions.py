@@ -88,6 +88,13 @@ def on_item_used(
             match = ITEM_USE_SPEC.match_strategy.find_match(target_config, context)
             if match:
                 reaction_name, reaction_config = match
+                # Check if this specific reaction has a handler
+                reaction_handler_path = reaction_config.get("handler")
+                if reaction_handler_path:
+                    handler = load_handler(reaction_handler_path)
+                    if handler:
+                        return handler(entity, accessor, context)
+                # Otherwise use data-driven interpreter
                 return process_reaction(target, reaction_config, accessor, context, ITEM_USE_SPEC)
 
     # Check item for self-reactions (e.g., using bucket to water)
@@ -106,6 +113,13 @@ def on_item_used(
             match = ITEM_USE_SPEC.match_strategy.find_match(item_config, context)
             if match:
                 reaction_name, reaction_config = match
+                # Check if this specific reaction has a handler
+                reaction_handler_path = reaction_config.get("handler")
+                if reaction_handler_path:
+                    handler = load_handler(reaction_handler_path)
+                    if handler:
+                        return handler(entity, accessor, context)
+                # Otherwise use data-driven interpreter
                 return process_reaction(entity, reaction_config, accessor, context, ITEM_USE_SPEC)
 
     return EventResult(allow=True, feedback=None)

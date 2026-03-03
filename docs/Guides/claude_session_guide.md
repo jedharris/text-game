@@ -157,6 +157,84 @@ return HandlerResult(
 )
 ```
 
+### 11. Exit Access - Locations Have NO .exits Dict ❌
+
+```python
+# WRONG - location.exits doesn't exist anymore
+exits = location.exits  # AttributeError!
+
+# RIGHT - exits are entities in the index
+exits_here = accessor.get_entities_at(location.id, entity_type="exit")
+for exit_entity in exits_here:
+    print(f"Can go {exit_entity.direction}: {exit_entity.name}")
+```
+
+**Background:** Exits were migrated from embedded dicts to first-class entities (see [exit_migration_implementation.md](../../docs/Archive/exit_migration_implementation.md)).
+
+**Exit Connections - Use `connections` field:**
+
+```python
+# Exit entities connect via the 'connections' field
+# Example exit from nexus going north:
+{
+  "id": "exit_nexus_chamber_north",
+  "location": "nexus_chamber",
+  "direction": "north",
+  "connections": ["exit_frozen_pass_south"]  # ✓ Links to paired exit
+}
+
+# The paired exit at the destination:
+{
+  "id": "exit_frozen_pass_south",
+  "location": "frozen_pass",
+  "direction": "south",
+  "connections": ["exit_nexus_chamber_north"]  # ✓ Links back
+}
+
+# Code retrieves destination like this:
+def _get_destination_from_exit(accessor, exit_entity):
+    connected_exit_id = exit_entity.connections[0]
+    connected_exit = accessor.game_state.get_exit(connected_exit_id)
+    return connected_exit.location  # Returns "frozen_pass"
+```
+
+**Finding navigation paths:** To find how to reach a location, trace `connections` backward through the exit graph from your target to accessible locations.
+
+### 12. Reaction Infrastructure - Must Be in entity.behaviors ❌
+
+```python
+# WRONG - infrastructure in extra.behaviors (O(n) scaling!)
+{
+  "extra": {
+    "behaviors": [
+      "behaviors.shared.infrastructure.dialog_reactions"  # ❌ Wrong!
+    ]
+  }
+}
+
+# RIGHT - infrastructure in entity.behaviors (O(1) dispatch)
+{
+  "actors": {
+    "herbalist_maren": {
+      "behaviors": [
+        "behaviors.shared.infrastructure.dialog_reactions",  # ✓ Correct!
+        "behaviors.regions.civilized_remnants.services"
+      ],
+      "properties": {
+        "dialog_reactions": {
+          "handler": "examples.big_game.behaviors.regions.civilized_remnants.services:on_service_request"
+        }
+      }
+    }
+  }
+}
+```
+
+**Why?**
+- `entity.behaviors`: O(1) - only target entity's behaviors invoked
+- `extra.behaviors`: O(n) - invoked for EVERY entity on EVERY event
+- Dialog/combat/item_use are entity-specific → MUST use entity.behaviors
+
 ---
 
 ## Standard Patterns (Copy-Paste Templates)
@@ -262,6 +340,52 @@ def on_take(entity, accessor, context):
 # Entity reference: ["behaviors.actor_lib.combat"] in behaviors list
 ```
 
+### Reaction System Architecture (NEW)
+
+**Three-Layer Architecture: Commands → Hooks → Reactions**
+
+```
+Layer 1: COMMANDS (behavior_libraries/command_lib/)
+  - Define verbs (ask, talk, attack, use)
+  - Parse user input
+  - Fire hooks on target entities
+  - NO business logic, ONLY dispatch
+
+Layer 2: HOOKS (engine infrastructure)
+  - Broadcast events to entity.behaviors
+  - O(1) dispatch - only target entity invoked
+  - invoke_behavior(entity, "on_dialog", context)
+
+Layer 3: REACTIONS (game/behaviors/shared/infrastructure/)
+  - Subscribe to hooks via vocabulary.events
+  - Check entity.properties for config
+  - Call handlers or unified interpreter
+```
+
+**Example Flow:** `ask maren about trade`
+1. Command handler (`command_lib/dialog.py`) fires `entity_dialog` hook on maren
+2. Hook system invokes `on_dialog` in maren's behaviors list
+3. Reaction infrastructure (`dialog_reactions.py`) checks maren's `dialog_reactions` property
+4. Calls handler or interpreter → returns response
+
+See [reaction_system_complete_architecture.md](../../docs/big_game_work/reaction_system_complete_architecture.md) for full spec.
+
+### entity.behaviors vs extra.behaviors
+
+**entity.behaviors** (e.g., `maren.behaviors`):
+- Modules that handle events for THIS specific entity
+- Invoked when `invoke_behavior(entity, event)` called with `entity != None`
+- Entity-specific events: dialog, combat, take, item_use, etc.
+- **O(1) complexity** - only target entity's behaviors invoked
+
+**extra.behaviors** (`game_state.extra.behaviors`):
+- Modules that handle GLOBAL events (`entity=None`)
+- Invoked when `invoke_behavior(None, event)` called
+- Global events: turn phases, scheduled events, gossip propagation
+- **O(n) complexity** - invoked once per turn, not per entity
+
+**Rule:** Entity-specific events MUST use entity.behaviors, NOT extra.behaviors.
+
 ---
 
 ## When You're Stuck - Decision Tree
@@ -341,6 +465,58 @@ from src.infrastructure_utils import (
 
 ---
 
+## Workflows (A, B, C)
+
+All work must follow one of three documented workflows. See ~/.claude/CLAUDE.md for full details.
+
+**Workflow A** - Small/moderate changes (single feature, bug fix):
+1. Create issue describing problem
+2. Add comment with design
+3. Implement using TDD
+4. Comment describing work done
+5. Close issue
+
+**Workflow B** - Large changes with phases (architecture changes, major features):
+1. Create parent issue
+2. Design with phasing
+3. Create sub-issue per phase
+4. Implement each phase with TDD
+5. Close phase sub-issues as completed
+6. Close parent when all phases done
+
+**Workflow C** - Systematic testing of multiple similar entities (NEW):
+1. Create parent issue with testing plan
+2. For EACH entity (one at a time):
+   - Create sub-issue
+   - Fix entity following guide
+   - Create walkthrough, run until 100% success
+   - Commit with sub-issue reference
+   - Close sub-issue
+   - Update current_focus.txt
+3. Close parent when all entities complete
+
+**When to use:**
+- Workflow A: Bug fixes, small features, single-entity changes
+- Workflow B: Architecture changes, multi-phase projects, design-heavy work
+- Workflow C: Systematic testing/fixing of multiple NPCs, items, or locations
+
+**GitHub Sub-Issues:**
+For Workflows B & C, link sub-issues to parent:
+```bash
+# Get internal ID (not issue number!)
+gh api /repos/jedharris/text-game/issues/ISSUE_NUM --jq .id
+
+# Link sub-issue to parent
+GH_TOKEN=$(gh auth token)
+curl -X POST \
+  -H "Authorization: token $GH_TOKEN" \
+  -H "Accept: application/vnd.github+json" \
+  https://api.github.com/repos/jedharris/text-game/issues/PARENT_NUM/sub_issues \
+  -d '{"sub_issue_id": CHILD_INTERNAL_ID}'
+```
+
+---
+
 ## Workflow Checklist
 
 ### Before Implementation
@@ -354,12 +530,62 @@ from src.infrastructure_utils import (
 - [ ] Extract WordEntry with helpers
 - [ ] Include serialized data in HandlerResult
 - [ ] Use invoke_behavior() for all behavior calls
+- [ ] Put reaction infrastructure in entity.behaviors (NOT extra.behaviors)
+- [ ] Access exits via `get_entities_at(location_id, entity_type="exit")` (NOT `location.exits`)
 
 ### Before Completion
 - [ ] Run walkthrough: `python tools/walkthrough.py examples/big_game --file walkthroughs/feature.txt`
 - [ ] Fix ALL failures until 100% success
 - [ ] Paste walkthrough results in issue comment
 - [ ] ONLY THEN close issue
+
+## Walkthrough Tool Usage
+
+The walkthrough tool is critical for testing. It supports:
+
+**Basic usage:**
+```bash
+# Run commands from file
+python tools/walkthrough.py examples/big_game --file walkthroughs/test.txt
+
+# Stop on first failure
+python tools/walkthrough.py examples/big_game --file test.txt --stop-on-error
+
+# Show detailed state after each command
+python tools/walkthrough.py examples/big_game --file test.txt --show-vitals
+```
+
+**Walkthrough file syntax:**
+```
+# Comments start with #
+look
+take sword
+
+# Expected failures are OK (guardians block exit)
+go south  # EXPECT_FAIL
+
+# State manipulation for testing
+@set player.properties.gold = 500
+@set player.properties.trust_state.current = 3
+
+# Assertions to verify state
+@assert player.properties.gold >= 500
+@assert player.location == "loc_forest"
+
+# Verify output contains text
+ask maren about trade
+@expect "shows you her wares"
+```
+
+**Annotations:**
+- `# EXPECT_FAIL` or `# EXPECTED_FAILURE` - marks command as expected to fail
+- `@set path = value` - modify game state (for testing scenarios)
+- `@assert path operator value` - verify game state (operators: `==`, `!=`, `>`, `<`, `>=`, `<=`, `contains`)
+- `@expect "text"` - verify last command output contains text
+
+**Exit codes:**
+- `0` - all commands behaved as expected (successes succeeded, expected failures failed)
+- `1` - unexpected failures or assertion failures occurred
 
 ---
 
@@ -372,6 +598,9 @@ from src.infrastructure_utils import (
 - Adding backward compatibility code
 - Using loose types or `Any` without justification
 - Calling behavior handlers directly instead of using dispatch
+- Infrastructure modules in `extra.behaviors` instead of `entity.behaviors` (O(n) scaling!)
+- Accessing `location.exits` dict (doesn't exist - exits are entities now)
+- Invoking hook names instead of event names (`entity_dialog` vs `on_dialog`)
 
 ---
 

@@ -1,0 +1,36 @@
+# Healer Elara - Aldric Rescue Trust Bonus
+# Tests: Dialog reaction recognizes Aldric was saved, grants trust bonus
+# Scenario: healer_elara.md scenario 12
+
+# Setup: Simulate Aldric being saved (flag normally set by Fungal Depths rescue)
+@set extra.aldric_saved = true
+
+# Navigate to healer_elara location
+go south
+go south
+go east
+go south
+
+# Verify we're at the right location
+look
+@expect "Elara"
+
+# Check initial trust (should be 0)
+@inspect actors.healer_elara.trust_state.current
+
+# Talk to Elara - should recognize Aldric was saved
+talk to elara
+@expect "Aldric"
+
+# The trust bonus should be applied
+# Either through automatic check on first interaction, or through specific dialog
+ask elara about aldric
+@expect "saved" or "rescued" or "alive"
+
+# Verify trust increased by +1
+@inspect actors.healer_elara.trust_state.current
+@expect 1
+
+# Summary: Aldric rescue trust bonus verified
+# - Dialog acknowledges rescue
+# - Trust +1 applied

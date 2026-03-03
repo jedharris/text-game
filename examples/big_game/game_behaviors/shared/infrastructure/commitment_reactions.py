@@ -38,15 +38,26 @@ def on_commitment_change(entity: Any, accessor: Any, context: dict[str, Any]) ->
     if not commitment_config:
         return EventResult(allow=True, feedback=None)
 
+    # First try to find a state-specific reaction
+    match = COMMITMENT_SPEC.match_strategy.find_match(commitment_config, context)
+    if match:
+        reaction_name, reaction_config = match
+
+        # Check if this reaction has a custom handler
+        handler_path = reaction_config.get("handler")
+        if handler_path:
+            handler = load_handler(handler_path)
+            if handler:
+                return handler(entity, accessor, context)
+
+        # Otherwise use data-driven interpreter
+        return process_reaction(entity, reaction_config, accessor, context, COMMITMENT_SPEC)
+
+    # Fallback: check for top-level handler (legacy pattern)
     handler_path = commitment_config.get("handler")
     if handler_path:
         handler = load_handler(handler_path)
         if handler:
             return handler(entity, accessor, context)
 
-    match = COMMITMENT_SPEC.match_strategy.find_match(commitment_config, context)
-    if not match:
-        return EventResult(allow=True, feedback=None)
-
-    reaction_name, reaction_config = match
-    return process_reaction(entity, reaction_config, accessor, context, COMMITMENT_SPEC)
+    return EventResult(allow=True, feedback=None)

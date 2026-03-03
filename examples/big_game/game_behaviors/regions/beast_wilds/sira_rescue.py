@@ -46,7 +46,7 @@ def on_sira_encounter(
     """
     # Check if this is Sira
     actor_id = entity.id if hasattr(entity, "id") else None
-    if actor_id != "npc_hunter_sira":
+    if actor_id != "hunter_sira":
         return EventResult(allow=True, feedback=None)
 
     state = accessor.game_state
@@ -96,7 +96,7 @@ def on_sira_death(
         EventResult allowing the death
     """
     actor_id = entity.id if hasattr(entity, "id") else None
-    if actor_id != "npc_hunter_sira":
+    if actor_id != "hunter_sira":
         return EventResult(allow=True, feedback=None)
 
     state = accessor.game_state
@@ -128,23 +128,25 @@ def on_sira_healed(
     accessor: Any,
     context: dict[str, Any],
 ) -> EventResult:
-    """Track Sira's healing progress.
+    """React to Sira's conditions being removed.
 
-    Stopping bleeding and healing leg are separate steps.
-    Both must be completed to fulfill the commitment.
+    Called by condition_reactions infrastructure when bleeding or
+    broken_leg is removed via item use.
 
     Args:
-        entity: The actor being healed (Sira)
+        entity: The actor (Sira) whose condition was removed
         accessor: StateAccessor instance
-        context: Context with condition_type, treatment
+        context: Context with condition_type from infrastructure
 
     Returns:
-        EventResult with healing result
+        EventResult with healing feedback
     """
+    # Check this is Sira
     actor_id = entity.id if hasattr(entity, "id") else None
-    if actor_id != "npc_hunter_sira":
+    if actor_id != "hunter_sira":
         return EventResult(allow=True, feedback=None)
 
+    # Get condition type from context (provided by infrastructure)
     condition_type = context.get("condition_type")
     state = accessor.game_state
 
@@ -155,13 +157,12 @@ def on_sira_healed(
             feedback="The bleeding stops. Sira's color improves slightly.",
         )
 
-    if condition_type == "leg_injury":
+    if condition_type == "broken_leg":
         state.extra["sira_leg_healed"] = True
 
-        # Check if fully healed
+        # Check if fully healed (both conditions removed)
         if state.extra.get("sira_bleeding_stopped"):
             state.extra["sira_healed"] = True
-            # Fulfill commitment will be handled by commitment system
             return EventResult(
                 allow=True,
                 feedback=(

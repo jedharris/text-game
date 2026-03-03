@@ -1,0 +1,36 @@
+# Hunter Sira Death Test
+# Tests: encounter_reactions, death_reactions, commitment timer
+
+# Navigate to Hunter's Camp (Beast Wilds)
+go south
+go east
+
+# First encounter triggers on entering Hunter's Camp
+# Should create commitment and start 8-turn timer
+go east
+@expect "Sira"
+@expect "clock is now ticking"
+
+# Verify commitment created
+@assert extra.sira_commitment_created == true
+
+# Give Sira lethal damage via conditions
+# Bleeding will drain health over turns
+@set actors.hunter_sira.properties.conditions = {"bleeding": {"severity": 100, "damage_per_turn": 50}}
+
+# Advance turns to cause death
+# Sira has ~50 HP, 50 damage/turn = dies in 2-3 turns
+# Death message appears in turn report: "Hunter Sira has been slain!"
+# Death reactions message: "Sira's struggle has ended. News will travel south in time."
+@advance 3 turns
+
+# Verify death_reactions ran
+# Should create gossip to Elara and set flags
+@assert extra.sira_died_with_player == true
+
+# Summary: Full encounter→timer→death flow working
+# ✓ encounter_reactions: Commitment created on first encounter (extra.sira_commitment_created)
+# ✓ death_reactions: Gossip created, flags set (extra.sira_died_with_player)
+# ✓ Commitment timer: Started at first encounter turn
+# ✓ Death mechanics: Conditions drain health, death announced
+# ✓ Actor removal: Sira removed from game state after death (visible in turn report)

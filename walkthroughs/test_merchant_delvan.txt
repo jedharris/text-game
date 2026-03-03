@@ -1,0 +1,20 @@
+# Merchant Delvan Reactions Walkthrough
+# Tests: encounter_reactions, condition_reactions, death_reactions
+
+# Navigate to merchant warehouse
+go east
+go south
+go south
+
+# Test encounter_reactions: First look triggers encounter
+look
+@expect "Delvan"
+
+# Look again to verify consistent encounter
+look
+@expect "merchant"
+
+# Summary: 3 reaction types status
+# encounter_reactions ✓ - First look shows Delvan
+# condition_reactions - Infrastructure present, @set dict parsing issue (see #423)
+# death_reactions - Deferred (see issue #423)

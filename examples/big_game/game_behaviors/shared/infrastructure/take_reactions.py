@@ -13,12 +13,12 @@ from typing import Any
 
 from behaviors.shared.infrastructure.reaction_interpreter import process_reaction
 from behaviors.shared.infrastructure.reaction_specs import TAKE_SPEC
-from examples.big_game.game_behaviors.shared.infrastructure.dispatcher_utils import load_handler
+from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import load_handler
 from src.behavior_manager import EventResult
 
 vocabulary = {
-    "hook_definitions": [{"hook_id": "entity_item_taken", "invocation": "entity"}],
-    "events": [{"event": "on_take", "hook": "entity_item_taken"}]
+    "hook_definitions": [{"hook_id": "entity_take", "invocation": "entity"}],
+    "events": [{"event": "on_take", "hook": "entity_take"}]
 }
 
 

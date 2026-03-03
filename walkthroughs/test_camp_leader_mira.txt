@@ -1,0 +1,27 @@
+# Camp Leader Mira Reactions Walkthrough
+# Tests: dialog_reactions, commitment_reactions
+
+# Navigate to survivor camp
+go east
+go northwest
+
+# Test dialog_reactions: Talk to Mira
+look
+talk to mira
+@expect "holding together"
+
+# Test dialog_reactions + commitment_reactions: Ask about help (creates commitment)
+ask mira about help
+@expect "20 turns"
+
+# Test commitment_reactions: Check progress (commitment active)
+ask mira about progress
+@expect "turns left"
+
+# Test dialog_reactions: General dialog
+ask mira about camp
+@expect "Mira"
+
+# Summary: Both reaction types verified
+# dialog_reactions ✓ - talk/ask commands respond correctly
+# commitment_reactions ✓ - "ask about help" creates commitment, "progress" tracks it

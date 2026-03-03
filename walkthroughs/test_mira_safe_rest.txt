@@ -1,0 +1,38 @@
+# Camp Leader Mira - Safe Rest Service
+# Tests: Camp provides safe rest with health/morale recovery
+# Scenario: camp_leader_mira.md scenario 7
+
+# Navigate to survivor_camp (Sunken District)
+go south
+go south
+go east
+go east
+
+# Verify we're at survivor camp
+look
+@expect "Mira"
+
+# Set player to low health/stamina state
+@set extra.player_health = 50
+@set extra.player_stamina = 30
+
+# Ask about resting at camp
+ask mira about rest
+@expect "safe" or "welcome" or "recover"
+
+# Request to rest
+rest
+@expect "recover" or "restored" or "rested"
+
+# Verify health recovered
+@inspect extra.player_health
+@expect 100
+
+# Verify stamina recovered
+@inspect extra.player_stamina
+@expect 100
+
+# Summary: Camp safe rest service verified
+# - Camp provides safe rest
+# - Health fully restored
+# - Stamina fully restored

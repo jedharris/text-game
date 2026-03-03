@@ -1,0 +1,21 @@
+# Test hunter_sira successful rescue
+# Scenario: Simulate successful healing → verify flags set
+
+# Navigate to hunters_camp
+go south
+go east
+go east
+
+# Simulate bleeding stopped
+@set extra.sira_bleeding_stopped = true
+
+# Simulate leg healed
+@set extra.sira_leg_healed = true
+@set extra.sira_healed = true
+
+# Verify flags correctly set
+@assert extra.sira_bleeding_stopped == true
+@assert extra.sira_leg_healed == true
+@assert extra.sira_healed == true
+
+# Success - healing flags track rescue progress

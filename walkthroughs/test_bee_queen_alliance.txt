@@ -1,0 +1,39 @@
+# Test bee_queen alliance through 3-flower trade
+# Scenario: Complete trade sequence → allied state → theft allowed
+# Success = 100% expected behaviors (including expected successes)
+
+# Navigate to bee_queen_clearing
+go south
+go south
+go east
+go west
+look
+
+# Verify bee_queen present
+@expect "Bee Queen"
+
+# Give first flower
+@set actors.player.inventory = ["moonpetal"]
+give moonpetal to queen
+@expect "accepts"
+@assert extra.bee_queen_flowers_traded contains "moonpetal"
+@assert actors.bee_queen.properties.trust_state.current == 1
+
+# Give second flower
+@set actors.player.inventory = ["frost_lily"]
+give frost lily to queen
+@expect "accepts"
+@assert extra.bee_queen_flowers_traded contains "frost_lily"
+@assert actors.bee_queen.properties.trust_state.current == 2
+
+# Give third flower - should transition to allied
+@set actors.player.inventory = ["water_bloom"]
+give water bloom to queen
+@expect "completes the exchange"
+@assert extra.bee_queen_flowers_traded contains "water_bloom"
+@assert actors.bee_queen.properties.trust_state.current == 3
+
+# Now verify honey is freely available (no hostile reaction)
+take honey
+
+# Success - allied state allows theft without hostility

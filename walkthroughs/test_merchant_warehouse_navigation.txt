@@ -1,0 +1,12 @@
+# Test navigation to merchant_warehouse
+# Expected path: nexus → east → south → south
+
+go east
+@expect "plaza"
+
+go south
+@expect "quarter"
+
+go south
+@expect "warehouse"
+@expect "Delvan"

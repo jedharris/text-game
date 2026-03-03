@@ -132,10 +132,11 @@ def on_spore_mother_heal(
     sm = mother.properties.get("state_machine", {})
     transition_state(sm, "allied")
 
-    # Clear her blight condition
+    # Clear her blight condition using library function (fires hook)
+    from behavior_libraries.actor_lib.conditions import remove_condition
     conditions = mother.properties.get("conditions", {})
     if "fungal_blight" in conditions:
-        del conditions["fungal_blight"]
+        remove_condition(mother, "fungal_blight", accessor)
 
     # Set flags
     state.extra["spore_mother_healed"] = True

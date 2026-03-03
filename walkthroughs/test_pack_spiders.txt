@@ -1,0 +1,23 @@
+# Spider Pack Mirroring Walkthrough
+# Tests: Pack behavior for spiders
+
+# Go to spider nest
+go north
+go west
+go south
+go west
+
+# Test 1: Check pack configuration
+@assert giant_spider_1.properties.pack_behavior.leader == "spider_matriarch"
+@assert giant_spider_2.properties.pack_behavior.leader == "spider_matriarch"
+
+# Test 2: Initial states should match
+@assert giant_spider_1.properties.state_machine.current == spider_matriarch.properties.state_machine.current
+@assert giant_spider_2.properties.state_machine.current == spider_matriarch.properties.state_machine.current
+
+# Test 3: Kill matriarch (triggers death reaction)
+# This would require combat, simulating with state change
+@set spider_matriarch.properties.state_machine.current = "dead"
+
+# Test 4: Verify spiders react to matriarch death
+# Death of leader should affect followers
