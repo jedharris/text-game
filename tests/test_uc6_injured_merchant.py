@@ -153,7 +153,7 @@ class TestUC6Escort(BaseTestCase):
 
     def test_start_escort(self):
         """Starting escort sets following property."""
-        from behaviors.uc6_merchant import start_escort, is_following
+        from game_behaviors.uc6_merchant import start_escort, is_following
 
         accessor = _create_accessor(self.engine)
 
@@ -164,7 +164,7 @@ class TestUC6Escort(BaseTestCase):
 
     def test_is_following(self):
         """is_following correctly identifies following state."""
-        from behaviors.uc6_merchant import is_following
+        from game_behaviors.uc6_merchant import is_following
 
         # Not following initially
         self.assertFalse(is_following(self.merchant, self.player.id))
@@ -176,7 +176,7 @@ class TestUC6Escort(BaseTestCase):
 
     def test_update_escort_location(self):
         """Escort NPC moves with player."""
-        from behaviors.uc6_merchant import start_escort, update_escort_location
+        from game_behaviors.uc6_merchant import start_escort, update_escort_location
 
         accessor = _create_accessor(self.engine)
 
@@ -191,7 +191,7 @@ class TestUC6Escort(BaseTestCase):
 
     def test_check_escort_arrival(self):
         """check_escort_arrival detects destination reached."""
-        from behaviors.uc6_merchant import check_escort_arrival
+        from game_behaviors.uc6_merchant import check_escort_arrival
 
         accessor = _create_accessor(self.engine)
 
@@ -231,7 +231,7 @@ class TestUC6Reward(BaseTestCase):
 
     def test_give_reward(self):
         """give_reward transfers item to player."""
-        from behaviors.uc6_merchant import give_reward
+        from game_behaviors.uc6_merchant import give_reward
 
         accessor = _create_accessor(self.engine)
 
@@ -246,7 +246,7 @@ class TestUC6Reward(BaseTestCase):
 
     def test_complete_escort_gives_reward(self):
         """Completing escort gives reward."""
-        from behaviors.uc6_merchant import start_escort, complete_escort
+        from game_behaviors.uc6_merchant import start_escort, complete_escort
 
         accessor = _create_accessor(self.engine)
 
@@ -261,7 +261,7 @@ class TestUC6Reward(BaseTestCase):
 
     def test_escort_clears_destination(self):
         """Completing escort clears escort_destination."""
-        from behaviors.uc6_merchant import start_escort, complete_escort
+        from game_behaviors.uc6_merchant import start_escort, complete_escort
 
         accessor = _create_accessor(self.engine)
 

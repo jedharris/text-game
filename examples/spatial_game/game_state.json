@@ -137,7 +137,7 @@
         }
       },
       "behaviors": [
-        "behaviors.magic_star"
+        "game_behaviors.magic_star"
       ]
     },
     {
@@ -164,7 +164,7 @@
         }
       },
       "behaviors": [
-        "behaviors.magic_star"
+        "game_behaviors.magic_star"
       ]
     },
     {
@@ -192,7 +192,7 @@
         }
       },
       "behaviors": [
-        "behaviors.magic_mat"
+        "game_behaviors.magic_mat"
       ]
     },
     {
@@ -342,7 +342,7 @@
         }
       },
       "behaviors": [
-        "behaviors.spellbook"
+        "game_behaviors.spellbook"
       ]
     },
     {
@@ -366,7 +366,7 @@
         }
       },
       "behaviors": [
-        "behaviors.spellbook"
+        "game_behaviors.spellbook"
       ]
     },
     {
@@ -415,7 +415,7 @@
         }
       },
       "behaviors": [
-        "behaviors.crystal_ball"
+        "game_behaviors.crystal_ball"
       ]
     },
     {
@@ -485,7 +485,7 @@
         }
       },
       "behaviors": [
-        "behaviors.magic_wand"
+        "game_behaviors.magic_wand"
       ]
     },
     {
@@ -622,7 +622,7 @@
         "type": "open"
       },
       "behaviors": [
-        "behaviors.magic_staircase"
+        "game_behaviors.magic_staircase"
       ],
       "traits": {}
     },

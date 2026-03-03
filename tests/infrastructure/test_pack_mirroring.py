@@ -5,8 +5,8 @@ import unittest
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
-from examples.big_game.behaviors.shared.infrastructure.pack_mirroring import on_leader_state_change
+from examples.big_game.game_behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
+from examples.big_game.game_behaviors.shared.infrastructure.pack_mirroring import on_leader_state_change
 from src.behavior_manager import EventResult
 
 
@@ -320,7 +320,7 @@ class TestPackMirroringHandlerEscapeHatch(unittest.TestCase):
             "npc_alpha_wolf",
             {
                 "pack_behavior": {
-                    "handler": "examples.big_game.behaviors.regions.beast_wilds.wolf_pack:on_alpha_state_change"
+                    "handler": "examples.big_game.game_behaviors.regions.beast_wilds.wolf_pack:on_alpha_state_change"
                 }
             },
         )
@@ -330,7 +330,7 @@ class TestPackMirroringHandlerEscapeHatch(unittest.TestCase):
         mock_handler = MagicMock(return_value=handler_result)
 
         with patch(
-            "examples.big_game.behaviors.shared.infrastructure.pack_mirroring.load_handler",
+            "examples.big_game.game_behaviors.shared.infrastructure.pack_mirroring.load_handler",
             return_value=mock_handler,
         ):
             result = on_leader_state_change(entity, self.accessor, context)

@@ -10,14 +10,14 @@ from src.types import ActorId
 import unittest
 from typing import Any
 
-from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
-from examples.big_game.behaviors.regions.frozen_reaches.hypothermia import (
+from examples.big_game.game_behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
+from examples.big_game.game_behaviors.regions.frozen_reaches.hypothermia import (
     COLD_RATES,
     GEAR_COLD_REDUCTION,
     on_cold_zone_turn,
     on_enter_hot_springs,
 )
-from examples.big_game.behaviors.regions.frozen_reaches.salamanders import on_receive_item as on_fire_gift
+from examples.big_game.game_behaviors.regions.frozen_reaches.salamanders import on_receive_item as on_fire_gift
 from src.behavior_manager import EventResult
 from src.infrastructure_utils import transition_state
 from tests.infrastructure.test_scenario_framework import (

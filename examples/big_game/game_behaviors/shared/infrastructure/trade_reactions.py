@@ -1,0 +1,49 @@
+"""Trade Reaction Infrastructure.
+
+Handles merchant trading reactions.
+
+Example data-driven config:
+    "trade_reactions": {
+        "healing_potion": {
+            "item": "healing_potion",
+            "cost": 50,
+            "message": "The merchant hands you a healing potion.",
+            "requires_property": {"path": "extra.gold", "min": 50}
+        }
+    }
+"""
+
+from typing import Any
+
+from behaviors.shared.infrastructure.reaction_interpreter import process_reaction
+from behaviors.shared.infrastructure.reaction_specs import TRADE_SPEC
+from examples.big_game.game_behaviors.shared.infrastructure.dispatcher_utils import load_handler
+from src.behavior_manager import EventResult
+
+vocabulary = {
+    "hook_definitions": [{"hook_id": "entity_trade_initiated", "invocation": "entity"}],
+    "events": [{"event": "on_trade", "hook": "entity_trade_initiated"}]
+}
+
+
+def on_trade(entity: Any, accessor: Any, context: dict[str, Any]) -> EventResult:
+    """Handle trade reactions."""
+    if not hasattr(entity, "properties"):
+        return EventResult(allow=True, feedback=None)
+
+    trade_config = entity.properties.get("trade_reactions", {})
+    if not trade_config:
+        return EventResult(allow=True, feedback=None)
+
+    handler_path = trade_config.get("handler")
+    if handler_path:
+        handler = load_handler(handler_path)
+        if handler:
+            return handler(entity, accessor, context)
+
+    match = TRADE_SPEC.match_strategy.find_match(trade_config, context)
+    if not match:
+        return EventResult(allow=True, feedback="That item is not for sale.")
+
+    reaction_name, reaction_config = match
+    return process_reaction(entity, reaction_config, accessor, context, TRADE_SPEC)

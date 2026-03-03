@@ -79,13 +79,13 @@ class TestUC8Repair(BaseTestCase):
 
     def test_can_repair(self):
         """can_repair correctly identifies chisel can repair statue."""
-        from behaviors.uc8_statue import can_repair
+        from game_behaviors.uc8_statue import can_repair
 
         self.assertTrue(can_repair(self.chisel, self.statue))
 
     def test_apply_repair(self):
         """apply_repair increases statue health."""
-        from behaviors.uc8_statue import apply_repair, get_repair_amount
+        from game_behaviors.uc8_statue import apply_repair, get_repair_amount
 
         accessor = _create_accessor(self.engine)
 
@@ -109,20 +109,20 @@ class TestUC8Functional(BaseTestCase):
 
     def test_statue_not_functional_initially(self):
         """Statue starts non-functional."""
-        from behaviors.uc8_statue import is_functional
+        from game_behaviors.uc8_statue import is_functional
 
         self.assertFalse(is_functional(self.statue))
 
     def test_functional_threshold_default(self):
         """Default functional threshold is 80."""
-        from behaviors.uc8_statue import get_functional_threshold
+        from game_behaviors.uc8_statue import get_functional_threshold
 
         threshold = get_functional_threshold(self.statue)
         self.assertEqual(threshold, 80)
 
     def test_check_threshold_below(self):
         """Below threshold remains non-functional."""
-        from behaviors.uc8_statue import check_functional_threshold, is_functional
+        from game_behaviors.uc8_statue import check_functional_threshold, is_functional
 
         self.statue.properties['health'] = 70  # Below 80
 
@@ -132,7 +132,7 @@ class TestUC8Functional(BaseTestCase):
 
     def test_check_threshold_at(self):
         """At threshold becomes functional."""
-        from behaviors.uc8_statue import check_functional_threshold, is_functional
+        from game_behaviors.uc8_statue import check_functional_threshold, is_functional
 
         self.statue.properties['health'] = 80  # At threshold
 
@@ -142,7 +142,7 @@ class TestUC8Functional(BaseTestCase):
 
     def test_check_threshold_above(self):
         """Above threshold is functional."""
-        from behaviors.uc8_statue import check_functional_threshold, is_functional
+        from game_behaviors.uc8_statue import check_functional_threshold, is_functional
 
         self.statue.properties['health'] = 100  # Above threshold
 
@@ -152,7 +152,7 @@ class TestUC8Functional(BaseTestCase):
 
     def test_repair_to_functional(self):
         """Repairing to threshold makes statue functional."""
-        from behaviors.uc8_statue import apply_repair, is_functional
+        from game_behaviors.uc8_statue import apply_repair, is_functional
 
         accessor = _create_accessor(self.engine)
 
@@ -186,21 +186,21 @@ class TestUC8GuardDuty(BaseTestCase):
 
     def test_statue_has_guarding_location(self):
         """Statue has guarding property."""
-        from behaviors.uc8_statue import get_guarded_location
+        from game_behaviors.uc8_statue import get_guarded_location
 
         guarded = get_guarded_location(self.statue)
         self.assertEqual(guarded, 'loc_main_hall')
 
     def test_is_guarding(self):
         """is_guarding correctly identifies guarded location."""
-        from behaviors.uc8_statue import is_guarding
+        from game_behaviors.uc8_statue import is_guarding
 
         self.assertTrue(is_guarding(self.statue, 'loc_main_hall'))
         self.assertFalse(is_guarding(self.statue, 'loc_central_hub'))
 
     def test_no_attack_when_non_functional(self):
         """Non-functional statue doesn't attack."""
-        from behaviors.uc8_statue import on_guard_duty, is_functional
+        from game_behaviors.uc8_statue import on_guard_duty, is_functional
 
         accessor = _create_accessor(self.engine)
 
@@ -217,7 +217,7 @@ class TestUC8GuardDuty(BaseTestCase):
 
     def test_attack_when_functional(self):
         """Functional statue attacks hostiles."""
-        from behaviors.uc8_statue import on_guard_duty, is_functional
+        from game_behaviors.uc8_statue import on_guard_duty, is_functional
 
         accessor = _create_accessor(self.engine)
 
@@ -240,7 +240,7 @@ class TestUC8GuardDuty(BaseTestCase):
 
     def test_get_hostiles_in_location(self):
         """get_hostiles_in_location finds hostile actors."""
-        from behaviors.uc8_statue import get_hostiles_in_location
+        from game_behaviors.uc8_statue import get_hostiles_in_location
 
         accessor = _create_accessor(self.engine)
 

@@ -109,7 +109,7 @@ class TestThermalShock(BaseTestCase):
                     }
                 ]
             },
-            behaviors=["behaviors.regions.frozen_reaches.thermal_shock"]
+            behaviors=["game_behaviors.regions.frozen_reaches.thermal_shock"]
         )
 
         self.game_state = GameState(
@@ -134,7 +134,7 @@ class TestThermalShock(BaseTestCase):
         self.behavior_manager = BehaviorManager()
 
         # Load thermal_shock module (big_game already in sys.path from _setup_paths)
-        self.behavior_manager.load_module("behaviors.regions.frozen_reaches.thermal_shock", tier=4)
+        self.behavior_manager.load_module("game_behaviors.regions.frozen_reaches.thermal_shock", tier=4)
 
         # Load combat module (PROJECT_ROOT already in sys.path from _setup_paths)
         self.behavior_manager.load_module("behavior_libraries.actor_lib.combat", tier=3)
@@ -163,7 +163,7 @@ class TestThermalShock(BaseTestCase):
                     }
                 ]
             },
-            behaviors=["behaviors.regions.frozen_reaches.thermal_shock"]
+            behaviors=["game_behaviors.regions.frozen_reaches.thermal_shock"]
         )
         self.game_state.actors[golem_id] = golem
         return golem

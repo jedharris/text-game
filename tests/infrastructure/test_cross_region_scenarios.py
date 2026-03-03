@@ -12,16 +12,16 @@ from src.types import ActorId
 import unittest
 from typing import Any
 
-from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
-from examples.big_game.behaviors.regions.beast_wilds.bee_queen import on_receive_item as on_flower_offer
-from examples.big_game.behaviors.regions.beast_wilds.sira_rescue import on_sira_death, on_sira_encounter
-from examples.big_game.behaviors.regions.fungal_depths.fungal_death_mark import (
+from examples.big_game.game_behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
+from examples.big_game.game_behaviors.regions.beast_wilds.bee_queen import on_receive_item as on_flower_offer
+from examples.big_game.game_behaviors.regions.beast_wilds.sira_rescue import on_sira_death, on_sira_encounter
+from examples.big_game.game_behaviors.regions.fungal_depths.fungal_death_mark import (
     on_fungal_kill,
     on_myconid_first_meeting,
 )
-from examples.big_game.behaviors.regions.fungal_depths.spore_mother import on_spore_mother_death
-from examples.big_game.behaviors.regions.meridian_nexus.echo import on_echo_dialog, on_echo_gossip
-from examples.big_game.behaviors.regions.sunken_district.dual_rescue import (
+from examples.big_game.game_behaviors.regions.fungal_depths.spore_mother import on_spore_mother_death
+from examples.big_game.game_behaviors.regions.meridian_nexus.echo import on_echo_dialog, on_echo_gossip
+from examples.big_game.game_behaviors.regions.sunken_district.dual_rescue import (
     on_delvan_encounter,
     on_npc_death,
 )

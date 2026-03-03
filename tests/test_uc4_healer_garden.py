@@ -63,13 +63,13 @@ class TestUC4ToxicPlant(BaseTestCase):
 
     def test_check_toxic_touch(self):
         """check_toxic_touch identifies toxic items."""
-        from behaviors.uc4_healer import check_toxic_touch
+        from game_behaviors.uc4_healer import check_toxic_touch
 
         self.assertTrue(check_toxic_touch(self.nightshade, self.player))
 
     def test_apply_toxic_effect(self):
         """apply_toxic_effect applies contact poison."""
-        from behaviors.uc4_healer import apply_toxic_effect
+        from game_behaviors.uc4_healer import apply_toxic_effect
         from behavior_libraries.actor_lib.conditions import has_condition
 
         # Player shouldn't have poison initially
@@ -85,7 +85,7 @@ class TestUC4ToxicPlant(BaseTestCase):
 
     def test_on_take_toxic_handler(self):
         """on_take_toxic event handler applies effect."""
-        from behaviors.uc4_healer import on_take_toxic
+        from game_behaviors.uc4_healer import on_take_toxic
         from behavior_libraries.actor_lib.conditions import has_condition
 
         accessor = _create_accessor(self.engine)
@@ -116,13 +116,13 @@ class TestUC4Knowledge(BaseTestCase):
 
     def test_no_herbalism_knowledge_initially(self):
         """Player doesn't know herbalism initially."""
-        from behaviors.uc4_healer import has_knowledge
+        from game_behaviors.uc4_healer import has_knowledge
 
         self.assertFalse(has_knowledge(self.player, 'herbalism'))
 
     def test_default_description_without_knowledge(self):
         """Without herbalism, get basic description."""
-        from behaviors.uc4_healer import get_knowledge_description
+        from game_behaviors.uc4_healer import get_knowledge_description
 
         desc = get_knowledge_description(self.nightshade, self.player)
 
@@ -132,7 +132,7 @@ class TestUC4Knowledge(BaseTestCase):
 
     def test_enhanced_description_with_knowledge(self):
         """With herbalism, get enhanced description."""
-        from behaviors.uc4_healer import get_knowledge_description, grant_knowledge
+        from game_behaviors.uc4_healer import get_knowledge_description, grant_knowledge
 
         # Grant herbalism knowledge
         grant_knowledge(self.player, 'herbalism')
@@ -145,7 +145,7 @@ class TestUC4Knowledge(BaseTestCase):
 
     def test_grant_knowledge(self):
         """grant_knowledge adds to knows array."""
-        from behaviors.uc4_healer import grant_knowledge, has_knowledge
+        from game_behaviors.uc4_healer import grant_knowledge, has_knowledge
 
         self.assertFalse(has_knowledge(self.player, 'herbalism'))
 
@@ -156,7 +156,7 @@ class TestUC4Knowledge(BaseTestCase):
 
     def test_grant_duplicate_knowledge(self):
         """Granting duplicate knowledge reports already known."""
-        from behaviors.uc4_healer import grant_knowledge
+        from game_behaviors.uc4_healer import grant_knowledge
 
         grant_knowledge(self.player, 'herbalism')
         message = grant_knowledge(self.player, 'herbalism')
@@ -253,7 +253,7 @@ class TestUC4TeachService(BaseTestCase):
     def test_execute_teach_service(self):
         """Execute teach grants herbalism knowledge."""
         from behavior_libraries.actor_lib.services import execute_service
-        from behaviors.uc4_healer import has_knowledge
+        from game_behaviors.uc4_healer import has_knowledge
 
         # Player shouldn't know herbalism
         self.assertFalse(has_knowledge(self.player, 'herbalism'))
@@ -327,7 +327,7 @@ class TestUC4TrustDiscount(BaseTestCase):
 
     def test_get_service_with_discount_info(self):
         """get_service_with_discount returns discount info."""
-        from behaviors.uc4_healer import get_service_with_discount
+        from game_behaviors.uc4_healer import get_service_with_discount
 
         # Without trust
         info = get_service_with_discount(self.healer, 'cure', self.player)

@@ -120,7 +120,7 @@ class TestUC2WeaponDamage(BaseTestCase):
 
     def test_calculate_weapon_damage(self):
         """Calculate damage from weapon."""
-        from behaviors.uc2_combat import calculate_weapon_damage
+        from game_behaviors.uc2_combat import calculate_weapon_damage
 
         accessor = _create_accessor(self.engine)
         damage = calculate_weapon_damage(accessor, self.player, self.sword)
@@ -128,7 +128,7 @@ class TestUC2WeaponDamage(BaseTestCase):
 
     def test_calculate_weapon_damage_no_weapon(self):
         """Calculate damage with no weapon returns 0."""
-        from behaviors.uc2_combat import calculate_weapon_damage
+        from game_behaviors.uc2_combat import calculate_weapon_damage
 
         accessor = _create_accessor(self.engine)
         damage = calculate_weapon_damage(accessor, self.player, None)
@@ -158,7 +158,7 @@ class TestUC2CoverMechanics(BaseTestCase):
 
     def test_take_cover(self):
         """Player can take cover behind pillar."""
-        from behaviors.uc2_combat import take_cover
+        from game_behaviors.uc2_combat import take_cover
 
         accessor = _create_accessor(self.engine)
         message = take_cover(accessor, self.player, self.pillar)
@@ -169,7 +169,7 @@ class TestUC2CoverMechanics(BaseTestCase):
 
     def test_leave_cover(self):
         """Player can leave cover."""
-        from behaviors.uc2_combat import take_cover, leave_cover
+        from game_behaviors.uc2_combat import take_cover, leave_cover
 
         accessor = _create_accessor(self.engine)
         take_cover(accessor, self.player, self.pillar)
@@ -181,7 +181,7 @@ class TestUC2CoverMechanics(BaseTestCase):
 
     def test_leave_cover_not_in_cover(self):
         """Leaving cover when not in cover returns appropriate message."""
-        from behaviors.uc2_combat import leave_cover
+        from game_behaviors.uc2_combat import leave_cover
 
         accessor = _create_accessor(self.engine)
         message = leave_cover(accessor, self.player)
@@ -191,7 +191,7 @@ class TestUC2CoverMechanics(BaseTestCase):
     def test_cover_reduces_damage(self):
         """Being in cover reduces incoming damage."""
         from behavior_libraries.actor_lib.combat import calculate_damage
-        from behaviors.uc2_combat import take_cover
+        from game_behaviors.uc2_combat import take_cover
 
         accessor = _create_accessor(self.engine)
 
@@ -230,7 +230,7 @@ class TestUC2Resistances(BaseTestCase):
 
     def test_apply_resistance(self):
         """Resistance reduces incoming damage."""
-        from behaviors.uc2_combat import apply_damage_resistance
+        from game_behaviors.uc2_combat import apply_damage_resistance
 
         # 100 damage with 30% physical resistance = 70 damage
         damage = apply_damage_resistance(100, self.stone_golem, 'physical')
@@ -238,7 +238,7 @@ class TestUC2Resistances(BaseTestCase):
 
     def test_apply_high_resistance(self):
         """High resistance significantly reduces damage."""
-        from behaviors.uc2_combat import apply_damage_resistance
+        from game_behaviors.uc2_combat import apply_damage_resistance
 
         # 100 fire damage with 50% fire resistance = 50 damage
         damage = apply_damage_resistance(100, self.stone_golem, 'fire')
@@ -246,7 +246,7 @@ class TestUC2Resistances(BaseTestCase):
 
     def test_no_resistance(self):
         """No resistance means full damage."""
-        from behaviors.uc2_combat import apply_damage_resistance
+        from game_behaviors.uc2_combat import apply_damage_resistance
 
         # Lightning damage with no resistance = full damage
         damage = apply_damage_resistance(100, self.stone_golem, 'ice')
@@ -274,7 +274,7 @@ class TestUC2Weaknesses(BaseTestCase):
 
     def test_apply_weakness(self):
         """Weakness increases incoming damage."""
-        from behaviors.uc2_combat import apply_damage_weakness
+        from game_behaviors.uc2_combat import apply_damage_weakness
 
         # 100 lightning damage with 50% weakness = 150 damage
         damage = apply_damage_weakness(100, self.stone_golem, 'lightning')
@@ -282,7 +282,7 @@ class TestUC2Weaknesses(BaseTestCase):
 
     def test_apply_high_weakness(self):
         """High weakness dramatically increases damage."""
-        from behaviors.uc2_combat import apply_damage_weakness
+        from game_behaviors.uc2_combat import apply_damage_weakness
 
         # 100 rust damage with 100% weakness = 200 damage
         damage = apply_damage_weakness(100, self.iron_golem, 'rust')
@@ -290,7 +290,7 @@ class TestUC2Weaknesses(BaseTestCase):
 
     def test_no_weakness(self):
         """No weakness means normal damage."""
-        from behaviors.uc2_combat import apply_damage_weakness
+        from game_behaviors.uc2_combat import apply_damage_weakness
 
         # Fire damage with no weakness = normal damage
         damage = apply_damage_weakness(100, self.iron_golem, 'fire')
@@ -310,7 +310,7 @@ class TestUC2Counterattack(BaseTestCase):
 
     def test_golem_counterattack(self):
         """Golem counterattacks when damaged."""
-        from behaviors.uc2_combat import golem_counterattack
+        from game_behaviors.uc2_combat import golem_counterattack
 
         accessor = _create_accessor(self.engine)
         initial_player_health = self.player.properties.get('health')
@@ -324,7 +324,7 @@ class TestUC2Counterattack(BaseTestCase):
 
     def test_dead_golem_no_counterattack(self):
         """Dead golem cannot counterattack."""
-        from behaviors.uc2_combat import golem_counterattack
+        from game_behaviors.uc2_combat import golem_counterattack
 
         accessor = _create_accessor(self.engine)
 
@@ -337,7 +337,7 @@ class TestUC2Counterattack(BaseTestCase):
 
     def test_golem_select_attack(self):
         """Golem selects appropriate attack."""
-        from behaviors.uc2_combat import golem_select_attack
+        from game_behaviors.uc2_combat import golem_select_attack
 
         attack = golem_select_attack(self.stone_golem, self.player)
 
@@ -347,7 +347,7 @@ class TestUC2Counterattack(BaseTestCase):
 
     def test_on_golem_damaged_handler(self):
         """on_golem_damaged triggers counterattack."""
-        from behaviors.uc2_combat import on_golem_damaged
+        from game_behaviors.uc2_combat import on_golem_damaged
 
         accessor = _create_accessor(self.engine)
         initial_player_health = self.player.properties.get('health')

@@ -85,7 +85,7 @@ class TestCommitmentTurnPhase(unittest.TestCase):
 
         # Set up behavior manager
         self.behavior_manager = BehaviorManager()
-        behaviors_dir = Path(__file__).parent.parent / "examples" / "big_game" / "behaviors"
+        behaviors_dir = Path(__file__).parent.parent / "examples" / "big_game" / "game_behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
 
@@ -95,13 +95,14 @@ class TestCommitmentTurnPhase(unittest.TestCase):
         import sys
         to_remove = [k for k in list(sys.modules.keys())
                      if k.startswith('behaviors.') or k == 'behaviors' or
-                        k.startswith('examples.big_game.behaviors')]
+                        k.startswith('game_behaviors') or
+                        k.startswith('examples.big_game.game_behaviors')]
         for key in to_remove:
             del sys.modules[key]
 
     def test_commitment_not_expired(self):
         """Commitment before deadline should return None feedback."""
-        from examples.big_game.behaviors.shared.infrastructure.commitments import (
+        from examples.big_game.game_behaviors.shared.infrastructure.commitments import (
             on_turn_commitments,
         )
 
@@ -119,7 +120,7 @@ class TestCommitmentTurnPhase(unittest.TestCase):
 
     def test_commitment_expired(self):
         """Commitment past deadline should transition to ABANDONED."""
-        from examples.big_game.behaviors.shared.infrastructure.commitments import (
+        from examples.big_game.game_behaviors.shared.infrastructure.commitments import (
             on_turn_commitments,
         )
 
@@ -138,7 +139,7 @@ class TestCommitmentTurnPhase(unittest.TestCase):
 
     def test_commitment_already_fulfilled(self):
         """Fulfilled commitment should not process expiration."""
-        from examples.big_game.behaviors.shared.infrastructure.commitments import (
+        from examples.big_game.game_behaviors.shared.infrastructure.commitments import (
             on_turn_commitments,
         )
 
@@ -226,7 +227,7 @@ class TestScheduledEventTurnPhase(unittest.TestCase):
 
         # Set up behavior manager
         self.behavior_manager = BehaviorManager()
-        behaviors_dir = Path(__file__).parent.parent / "examples" / "big_game" / "behaviors"
+        behaviors_dir = Path(__file__).parent.parent / "examples" / "big_game" / "game_behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
 
@@ -235,13 +236,14 @@ class TestScheduledEventTurnPhase(unittest.TestCase):
         import sys
         to_remove = [k for k in list(sys.modules.keys())
                      if k.startswith('behaviors.') or k == 'behaviors' or
-                        k.startswith('examples.big_game.behaviors')]
+                        k.startswith('game_behaviors') or
+                        k.startswith('examples.big_game.game_behaviors')]
         for key in to_remove:
             del sys.modules[key]
 
     def test_event_not_triggered(self):
         """Event before trigger turn should return None feedback."""
-        from examples.big_game.behaviors.shared.infrastructure.scheduled_events import (
+        from examples.big_game.game_behaviors.shared.infrastructure.scheduled_events import (
             on_turn_scheduled_events,
         )
 
@@ -257,7 +259,7 @@ class TestScheduledEventTurnPhase(unittest.TestCase):
 
     def test_one_time_event_triggered(self):
         """One-time event at trigger turn should fire."""
-        from examples.big_game.behaviors.shared.infrastructure.scheduled_events import (
+        from examples.big_game.game_behaviors.shared.infrastructure.scheduled_events import (
             on_turn_scheduled_events,
         )
 
@@ -274,7 +276,7 @@ class TestScheduledEventTurnPhase(unittest.TestCase):
 
     def test_repeating_event_updates_trigger(self):
         """Repeating event should update trigger_turn after firing."""
-        from examples.big_game.behaviors.shared.infrastructure.scheduled_events import (
+        from examples.big_game.game_behaviors.shared.infrastructure.scheduled_events import (
             on_turn_scheduled_events,
         )
 
@@ -341,7 +343,7 @@ class TestGossipTurnPhase(unittest.TestCase):
 
         # Set up behavior manager
         self.behavior_manager = BehaviorManager()
-        behaviors_dir = Path(__file__).parent.parent / "examples" / "big_game" / "behaviors"
+        behaviors_dir = Path(__file__).parent.parent / "examples" / "big_game" / "game_behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
 
@@ -350,13 +352,14 @@ class TestGossipTurnPhase(unittest.TestCase):
         import sys
         to_remove = [k for k in list(sys.modules.keys())
                      if k.startswith('behaviors.') or k == 'behaviors' or
-                        k.startswith('examples.big_game.behaviors')]
+                        k.startswith('game_behaviors') or
+                        k.startswith('examples.big_game.game_behaviors')]
         for key in to_remove:
             del sys.modules[key]
 
     def test_gossip_not_arrived(self):
         """Gossip before arrival should return None feedback."""
-        from examples.big_game.behaviors.shared.infrastructure.gossip import (
+        from examples.big_game.game_behaviors.shared.infrastructure.gossip import (
             on_turn_gossip_spread,
         )
 
@@ -372,7 +375,7 @@ class TestGossipTurnPhase(unittest.TestCase):
 
     def test_gossip_arrived(self):
         """Gossip at arrival turn should process delivery."""
-        from examples.big_game.behaviors.shared.infrastructure.gossip import (
+        from examples.big_game.game_behaviors.shared.infrastructure.gossip import (
             on_turn_gossip_spread,
         )
 
@@ -457,7 +460,7 @@ class TestSpreadTurnPhase(unittest.TestCase):
 
         # Set up behavior manager
         self.behavior_manager = BehaviorManager()
-        behaviors_dir = Path(__file__).parent.parent / "examples" / "big_game" / "behaviors"
+        behaviors_dir = Path(__file__).parent.parent / "examples" / "big_game" / "game_behaviors"
         modules = self.behavior_manager.discover_modules(str(behaviors_dir))
         self.behavior_manager.load_modules(modules)
 
@@ -466,13 +469,14 @@ class TestSpreadTurnPhase(unittest.TestCase):
         import sys
         to_remove = [k for k in list(sys.modules.keys())
                      if k.startswith('behaviors.') or k == 'behaviors' or
-                        k.startswith('examples.big_game.behaviors')]
+                        k.startswith('game_behaviors') or
+                        k.startswith('examples.big_game.game_behaviors')]
         for key in to_remove:
             del sys.modules[key]
 
     def test_spread_before_milestone(self):
         """Spread before milestone should return None feedback."""
-        from examples.big_game.behaviors.shared.infrastructure.spreads import (
+        from examples.big_game.game_behaviors.shared.infrastructure.spreads import (
             on_turn_condition_spread,
         )
 
@@ -488,7 +492,7 @@ class TestSpreadTurnPhase(unittest.TestCase):
 
     def test_spread_at_milestone(self):
         """Spread at milestone should apply effects and return feedback."""
-        from examples.big_game.behaviors.shared.infrastructure.spreads import (
+        from examples.big_game.game_behaviors.shared.infrastructure.spreads import (
             on_turn_condition_spread,
         )
 
@@ -511,7 +515,7 @@ class TestSpreadTurnPhase(unittest.TestCase):
 
     def test_spread_milestone_not_repeated(self):
         """Already-reached milestone should not fire again."""
-        from examples.big_game.behaviors.shared.infrastructure.spreads import (
+        from examples.big_game.game_behaviors.shared.infrastructure.spreads import (
             on_turn_condition_spread,
         )
 

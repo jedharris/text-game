@@ -95,7 +95,7 @@
         "portable": false
       },
       "behaviors": [
-        "behaviors.magic_mat"
+        "game_behaviors.magic_mat"
       ]
     },
     {
@@ -186,7 +186,7 @@
         "readable": true
       },
       "behaviors": [
-        "behaviors.spellbook"
+        "game_behaviors.spellbook"
       ]
     },
     {
@@ -216,7 +216,7 @@
         "magical": true
       },
       "behaviors": [
-        "behaviors.crystal_ball"
+        "game_behaviors.crystal_ball"
       ]
     },
     {
@@ -259,7 +259,7 @@
         "magical": true
       },
       "behaviors": [
-        "behaviors.magic_wand"
+        "game_behaviors.magic_wand"
       ]
     },
     {

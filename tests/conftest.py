@@ -15,6 +15,8 @@ from src.word_entry import WordEntry, WordType
 from src.types import ActorId, ItemId, LocationId
 
 
+
+
 # Automatic module cleanup for all test modules
 # This function will be injected into every test module's namespace
 def _cleanup_test_module():
@@ -23,6 +25,7 @@ def _cleanup_test_module():
     # This includes both successfully imported modules and failed import attempts
     to_remove = [k for k in list(sys.modules.keys())
                  if k.startswith('behaviors.') or k == 'behaviors' or
+                    k.startswith('game_behaviors.') or k == 'game_behaviors' or
                     k.startswith('behavior_libraries.') or k == 'behavior_libraries' or
                     k.startswith('examples.') or k == 'examples']
     for key in to_remove:
@@ -30,7 +33,8 @@ def _cleanup_test_module():
 
     # Remove game directories from sys.path
     project_root = Path(__file__).parent.parent
-    for game_name in ['big_game', 'spatial_game', 'extended_game', 'actor_interaction_test']:
+    for game_name in ['big_game', 'spatial_game', 'extended_game', 'actor_interaction_test',
+                       'simple_game', 'fancy_game', 'layered_game']:
         game_dir = str(project_root / "examples" / game_name)
         while game_dir in sys.path:
             sys.path.remove(game_dir)
@@ -346,17 +350,19 @@ class BaseTestCase(unittest.TestCase):
             if hasattr(self, attr):
                 delattr(self, attr)
 
-        # Remove all behaviors.* and examples.*.behaviors.* modules from sys.modules
+        # Remove all behaviors.* and game_behaviors.* modules from sys.modules
         import sys
         to_remove = [k for k in list(sys.modules.keys())
                      if k.startswith('behaviors.') or k == 'behaviors' or
+                        k.startswith('game_behaviors.') or k == 'game_behaviors' or
                         k.startswith('examples.') or k == 'examples']
         for key in to_remove:
             del sys.modules[key]
 
         # Remove game directories from sys.path
         project_root = Path(__file__).parent.parent
-        for game_name in ['big_game', 'spatial_game', 'extended_game', 'actor_interaction_test']:
+        for game_name in ['big_game', 'spatial_game', 'extended_game', 'actor_interaction_test',
+                           'simple_game', 'fancy_game', 'layered_game']:
             game_dir = str(project_root / "examples" / game_name)
             while game_dir in sys.path:
                 sys.path.remove(game_dir)

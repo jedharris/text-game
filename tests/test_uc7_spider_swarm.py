@@ -76,7 +76,7 @@ class TestUC7SpiderPack(BaseTestCase):
 
     def test_is_spider_pack_member(self):
         """is_spider_pack_member correctly identifies members."""
-        from behaviors.uc7_spiders import is_spider_pack_member
+        from game_behaviors.uc7_spiders import is_spider_pack_member
 
         self.assertTrue(is_spider_pack_member(self.queen))
         self.assertTrue(is_spider_pack_member(self.worker1))
@@ -164,7 +164,7 @@ class TestUC7WebBurning(BaseTestCase):
 
     def test_gallery_has_web_density(self):
         """Gallery parts have web_density."""
-        from behaviors.uc7_spiders import get_web_density
+        from game_behaviors.uc7_spiders import get_web_density
 
         accessor = _create_accessor(self.engine)
 
@@ -176,7 +176,7 @@ class TestUC7WebBurning(BaseTestCase):
 
     def test_reduce_web_density(self):
         """reduce_web_density lowers web amount."""
-        from behaviors.uc7_spiders import get_web_density, reduce_web_density
+        from game_behaviors.uc7_spiders import get_web_density, reduce_web_density
 
         accessor = _create_accessor(self.engine)
 
@@ -189,7 +189,7 @@ class TestUC7WebBurning(BaseTestCase):
 
     def test_burn_webs_with_torch(self):
         """burn_webs_with_torch reduces density."""
-        from behaviors.uc7_spiders import get_web_density, burn_webs_with_torch
+        from game_behaviors.uc7_spiders import get_web_density, burn_webs_with_torch
 
         accessor = _create_accessor(self.engine)
 
@@ -202,7 +202,7 @@ class TestUC7WebBurning(BaseTestCase):
 
     def test_cleared_webs_message(self):
         """Clearing all webs gives appropriate message."""
-        from behaviors.uc7_spiders import reduce_web_density, get_web_density
+        from game_behaviors.uc7_spiders import reduce_web_density, get_web_density
 
         accessor = _create_accessor(self.engine)
 
@@ -226,14 +226,14 @@ class TestUC7AlertPropagation(BaseTestCase):
 
     def test_spiders_not_alerted_initially(self):
         """Spiders start not alerted."""
-        from behaviors.uc7_spiders import is_alerted
+        from game_behaviors.uc7_spiders import is_alerted
 
         self.assertFalse(is_alerted(self.queen))
         self.assertFalse(is_alerted(self.worker1))
 
     def test_alert_single_spider(self):
         """alert_spider sets alerted flag."""
-        from behaviors.uc7_spiders import alert_spider, is_alerted
+        from game_behaviors.uc7_spiders import alert_spider, is_alerted
 
         msg = alert_spider(self.queen)
 
@@ -242,7 +242,7 @@ class TestUC7AlertPropagation(BaseTestCase):
 
     def test_alert_swarm(self):
         """alert_swarm alerts all spiders."""
-        from behaviors.uc7_spiders import alert_swarm, is_alerted
+        from game_behaviors.uc7_spiders import alert_swarm, is_alerted
 
         accessor = _create_accessor(self.engine)
         messages = alert_swarm(accessor)
@@ -254,7 +254,7 @@ class TestUC7AlertPropagation(BaseTestCase):
 
     def test_alert_swarm_no_double_alert(self):
         """alert_swarm doesn't re-alert already alerted spiders."""
-        from behaviors.uc7_spiders import alert_swarm, alert_spider
+        from game_behaviors.uc7_spiders import alert_swarm, alert_spider
 
         accessor = _create_accessor(self.engine)
 
@@ -269,7 +269,7 @@ class TestUC7AlertPropagation(BaseTestCase):
 
     def test_web_attack_bonus(self):
         """Spiders get attack bonus in heavy webs."""
-        from behaviors.uc7_spiders import get_web_attack_bonus
+        from game_behaviors.uc7_spiders import get_web_attack_bonus
 
         accessor = _create_accessor(self.engine)
 

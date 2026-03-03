@@ -54,7 +54,7 @@ def handle_attack(accessor, action):
 
     if target_actor:
         # Call combat system's on_attack handler
-        from behaviors.shared.lib.actor_lib import combat
+        from game_behaviors.shared.lib.actor_lib import combat
 
         # Build context with target_id
         context = {"target_id": target_actor.id}

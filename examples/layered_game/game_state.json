@@ -110,7 +110,7 @@
         "color": "blue"
       },
       "behaviors": [
-        "behaviors.mushroom_grotto"
+        "game_behaviors.mushroom_grotto"
       ],
       "states": {
         "watered": false
@@ -127,7 +127,7 @@
         "color": "red"
       },
       "behaviors": [
-        "behaviors.mushroom_grotto"
+        "game_behaviors.mushroom_grotto"
       ],
       "states": {
         "watered": false
@@ -144,7 +144,7 @@
         "color": "green"
       },
       "behaviors": [
-        "behaviors.mushroom_grotto"
+        "game_behaviors.mushroom_grotto"
       ],
       "states": {
         "watered": false
@@ -174,7 +174,7 @@
         "note": "do"
       },
       "behaviors": [
-        "behaviors.singing_stalactites"
+        "game_behaviors.singing_stalactites"
       ]
     },
     {
@@ -188,7 +188,7 @@
         "note": "re"
       },
       "behaviors": [
-        "behaviors.singing_stalactites"
+        "game_behaviors.singing_stalactites"
       ]
     },
     {
@@ -202,7 +202,7 @@
         "note": "mi"
       },
       "behaviors": [
-        "behaviors.singing_stalactites"
+        "game_behaviors.singing_stalactites"
       ]
     },
     {
@@ -216,7 +216,7 @@
         "note": "fa"
       },
       "behaviors": [
-        "behaviors.singing_stalactites"
+        "game_behaviors.singing_stalactites"
       ]
     },
     {
@@ -230,7 +230,7 @@
         "note": "sol"
       },
       "behaviors": [
-        "behaviors.singing_stalactites"
+        "game_behaviors.singing_stalactites"
       ]
     },
     {
@@ -256,7 +256,7 @@
         "portable": false
       },
       "behaviors": [
-        "behaviors.well_of_reflections"
+        "game_behaviors.well_of_reflections"
       ]
     },
     {
@@ -289,7 +289,7 @@
         "portable": false
       },
       "behaviors": [
-        "behaviors.household_shrine"
+        "game_behaviors.household_shrine"
       ]
     },
     {
@@ -317,7 +317,7 @@
         }
       },
       "behaviors": [
-        "behaviors.weighted_idol"
+        "game_behaviors.weighted_idol"
       ],
       "states": {
         "target_weight": 3.5,

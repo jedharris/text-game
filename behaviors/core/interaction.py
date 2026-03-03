@@ -306,7 +306,7 @@ def _handle_use_on_target(accessor, action) -> HandlerResult:
     Returns:
         HandlerResult with success flag and message
     """
-    from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import load_handler
+    from examples.big_game.game_behaviors.shared.infrastructure.dispatcher_utils import load_handler
 
     # Find the item being used
     item, error = find_action_target(accessor, action)

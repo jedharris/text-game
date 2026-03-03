@@ -1,0 +1,48 @@
+"""Examine Reaction Infrastructure.
+
+Handles progressive reveals when examining entities.
+
+Example data-driven config:
+    "examine_reactions": {
+        "progressive_reveals": [
+            {"message": "A strange telescope..."},
+            {"message": "It seems to be missing a lens..."},
+            {"message": "Ancient markings cover the mounting..."}
+        ]
+    }
+"""
+
+from typing import Any
+
+from behaviors.shared.infrastructure.reaction_interpreter import process_reaction
+from behaviors.shared.infrastructure.reaction_specs import EXAMINE_SPEC
+from examples.big_game.game_behaviors.shared.infrastructure.dispatcher_utils import load_handler
+from src.behavior_manager import EventResult
+
+vocabulary = {
+    "hook_definitions": [{"hook_id": "entity_examined", "invocation": "entity"}],
+    "events": [{"event": "on_examine", "hook": "entity_examined"}]
+}
+
+
+def on_examine(entity: Any, accessor: Any, context: dict[str, Any]) -> EventResult:
+    """Handle examine reactions with progressive reveals."""
+    if not hasattr(entity, "properties"):
+        return EventResult(allow=True, feedback=None)
+
+    examine_config = entity.properties.get("examine_reactions", {})
+    if not examine_config:
+        return EventResult(allow=True, feedback=None)
+
+    handler_path = examine_config.get("handler")
+    if handler_path:
+        handler = load_handler(handler_path)
+        if handler:
+            return handler(entity, accessor, context)
+
+    match = EXAMINE_SPEC.match_strategy.find_match(examine_config, context)
+    if not match:
+        return EventResult(allow=True, feedback=None)
+
+    reaction_name, reaction_config = match
+    return process_reaction(entity, reaction_config, accessor, context, EXAMINE_SPEC)

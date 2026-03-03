@@ -2106,8 +2106,8 @@ class TestTraitRandomization(unittest.TestCase):
         # Original traits should be unchanged
         self.assertEqual(loc.properties["llm_context"]["traits"], original_copy)
 
-    def test_state_variants_preserved(self):
-        """Verify state_variants are included unchanged."""
+    def test_state_variants_stripped_from_output(self):
+        """Verify state_variants are stripped after variant selection."""
         loc = self.game_state.get_location("loc_start")
         state_variants = {
             "first_visit": "Welcome to the room.",
@@ -2120,7 +2120,7 @@ class TestTraitRandomization(unittest.TestCase):
 
         result = self.handler._location_to_dict(loc)
 
-        self.assertEqual(result["llm_context"]["state_variants"], state_variants)
+        self.assertNotIn("state_variants", result["llm_context"])
 
     def test_no_llm_context_handled(self):
         """Verify entities without llm_context work correctly."""
@@ -2141,17 +2141,18 @@ class TestTraitRandomization(unittest.TestCase):
         self.assertEqual(result["llm_context"]["traits"], [])
 
     def test_llm_context_without_traits_preserved(self):
-        """Verify llm_context without traits key is preserved."""
+        """Verify llm_context without traits key is preserved, state_variants stripped."""
         loc = self.game_state.get_location("loc_start")
         loc.properties["llm_context"] = {
-            "state_variants": {"default": "A room."}
+            "state_variants": {"default": "A room."},
+            "custom_field": "custom_value"
         }
 
         result = self.handler._location_to_dict(loc)
 
         self.assertIn("llm_context", result)
-        self.assertIn("state_variants", result["llm_context"])
-        self.assertNotIn("traits", result["llm_context"])
+        self.assertNotIn("state_variants", result["llm_context"])
+        self.assertEqual(result["llm_context"]["custom_field"], "custom_value")
 
     def test_exit_traits_randomized(self):
         """Verify exit llm_context traits are also randomized."""

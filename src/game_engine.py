@@ -14,7 +14,7 @@ from src.behavior_manager import BehaviorManager
 from src.llm_protocol import LLMProtocolHandler
 from src.vocabulary_service import build_merged_vocabulary
 from src.parser import Parser
-from src.types import ActorId
+from src.types import ActorId, ItemId
 
 
 class GameEngine:
@@ -31,7 +31,7 @@ class GameEngine:
             game_dir: Path to game directory containing game_state.json
 
         Raises:
-            FileNotFoundError: If game directory, game_state.json, or behaviors/ doesn't exist
+            FileNotFoundError: If game directory, game_state.json, or game_behaviors/ doesn't exist
             ValueError: If game_dir is not a directory, or game_state.json is invalid
         """
         # Validate game directory
@@ -50,11 +50,11 @@ class GameEngine:
         # JSONDecodeError or ValueError here indicates invalid game_state.json (authoring error)
         self.game_state = load_game_state(str(game_state_path))
 
-        # Validate behaviors directory
-        behaviors_dir = self.game_dir / "behaviors"
+        # Validate game_behaviors directory
+        behaviors_dir = self.game_dir / "game_behaviors"
         if not behaviors_dir.exists() or not behaviors_dir.is_dir():
             raise FileNotFoundError(
-                f"Game must have a behaviors/ directory: {behaviors_dir}\n"
+                f"Game must have a game_behaviors/ directory: {behaviors_dir}\n"
                 "Create one with at least a symlink to the engine's core behaviors."
             )
 
@@ -233,7 +233,7 @@ class GameEngine:
             # BUT: Only if the door doesn't share a name with the exit
             # This prevents "up" -> "climb door" confusion
             if hasattr(exit_entity, 'door_id') and exit_entity.door_id:
-                door = accessor.get_item(exit_entity.door_id)
+                door = accessor.get_item(ItemId(exit_entity.door_id))
                 if door:
                     # Only include if door is physically at this location
                     door_at = getattr(exit_entity, 'door_at', None)

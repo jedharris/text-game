@@ -286,6 +286,33 @@ from src.state_manager import GameState
 
 **CRITICAL EXCEPTION**: Tests that manipulate sys.path AND use GameEngine with game-specific behaviors MUST use subprocess isolation (see [Integration Testing](#integration-testing) below).
 
+### 7a. Dual-Import Risk with game_behaviors
+
+Multiple example games each have a `game_behaviors/` directory. When GameEngine loads a game, it adds that game's directory to `sys.path`, making modules importable via the short path (`game_behaviors.shared.infrastructure...`). The same modules are also importable via the long path (`examples.big_game.game_behaviors.shared.infrastructure...`) from the project root.
+
+**This creates two module identities for the same `.py` file.** Python treats these as separate module objects.
+
+**Why long-path imports are correct in test files:**
+- Test files use module-level imports that run before any `setUp`/GameEngine
+- At import time, no game directory is on `sys.path`
+- Only the project root is on `sys.path`, so only the long path works
+- Long-path imports are therefore correct and necessary
+
+**The risk: `mock.patch()` targets must match the import path used by the code under test.**
+If production code imports via the short path (as GameEngine does), but a test patches via the long path, the patch applies to a different module object and has no effect.
+
+```python
+# BAD - patches wrong module object if GameEngine loaded via short path
+with patch("examples.big_game.game_behaviors.shared.infrastructure.gift_reactions.load_handler"):
+    ...
+
+# GOOD - patches the module as loaded by GameEngine
+with patch("game_behaviors.shared.infrastructure.gift_reactions.load_handler"):
+    ...
+```
+
+A CI check (`tools/check_mock_patch_paths.sh`) flags `mock.patch` targets using long-path game_behaviors imports.
+
 ### 8. Consistent Import Order
 
 **DO** follow this import order:

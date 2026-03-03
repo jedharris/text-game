@@ -381,7 +381,8 @@ class TestMaxTraits(unittest.TestCase):
         self.assertEqual(len(result["llm_context"]["traits"]), 0)
 
     def test_max_traits_preserves_other_llm_context_fields(self):
-        """Test that max_traits doesn't affect other llm_context fields."""
+        """Test that max_traits doesn't affect other llm_context fields.
+        state_variants are intentionally stripped after variant selection."""
         from utilities.entity_serializer import entity_to_dict
 
         item = Item(
@@ -401,7 +402,7 @@ class TestMaxTraits(unittest.TestCase):
         result = entity_to_dict(item, max_traits=2)
 
         self.assertEqual(len(result["llm_context"]["traits"]), 2)
-        self.assertEqual(result["llm_context"]["state_variants"]["broken"], "shattered")
+        self.assertNotIn("state_variants", result["llm_context"])
         self.assertEqual(result["llm_context"]["atmosphere"], "tense")
 
     def test_max_traits_with_no_llm_context(self):
@@ -475,7 +476,7 @@ class TestTraitRandomization(unittest.TestCase):
         self.assertEqual(item.properties["llm_context"]["traits"], original_traits)
 
     def test_non_trait_llm_context_preserved(self):
-        """Test that other llm_context fields are preserved."""
+        """Test that other llm_context fields are preserved, state_variants stripped."""
         from utilities.entity_serializer import entity_to_dict
 
         item = Item(
@@ -497,8 +498,7 @@ class TestTraitRandomization(unittest.TestCase):
 
         result = entity_to_dict(item)
 
-        self.assertIn("state_variants", result["llm_context"])
-        self.assertEqual(result["llm_context"]["state_variants"]["broken"], "shattered blade")
+        self.assertNotIn("state_variants", result["llm_context"])
         self.assertEqual(result["llm_context"]["custom_field"], "custom_value")
 
 

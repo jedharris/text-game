@@ -42,7 +42,7 @@ def setup_game(game_dir: Path):
     # Set up behavior manager and load behaviors from game's behaviors/ directory
     # (which typically includes a symlink to core behaviors)
     behavior_manager = BehaviorManager()
-    game_behaviors_dir = game_dir / "behaviors"
+    game_behaviors_dir = game_dir / "game_behaviors"
     if game_behaviors_dir.exists():
         modules = behavior_manager.discover_modules(str(game_behaviors_dir))
         behavior_manager.load_modules(modules)

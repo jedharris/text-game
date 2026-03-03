@@ -221,7 +221,7 @@ class TestUC5Rescue(BaseTestCase):
 
     def test_rescue_moves_to_surface(self):
         """Rescue moves actor to specified location."""
-        from behaviors.uc5_underwater import rescue_to_surface
+        from game_behaviors.uc5_underwater import rescue_to_surface
 
         accessor = _create_accessor(self.engine)
 
@@ -233,7 +233,7 @@ class TestUC5Rescue(BaseTestCase):
 
     def test_rescue_restores_breath(self):
         """Rescue restores breath to maximum."""
-        from behaviors.uc5_underwater import rescue_to_surface
+        from game_behaviors.uc5_underwater import rescue_to_surface
 
         accessor = _create_accessor(self.engine)
 
@@ -250,7 +250,7 @@ class TestUC5Rescue(BaseTestCase):
 
     def test_breath_warning_messages(self):
         """Custom breath warnings based on level."""
-        from behaviors.uc5_underwater import get_breath_warning
+        from game_behaviors.uc5_underwater import get_breath_warning
 
         # Set up sailor with different breath levels
         self.sailor.properties['max_breath'] = 100

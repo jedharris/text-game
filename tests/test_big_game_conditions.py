@@ -211,7 +211,7 @@ class TestRegionalBehaviorConditions(BaseTestCase):
 
     def test_fungal_infection_uses_dict_format(self):
         """spore_zones.py uses dict format for conditions."""
-        from behaviors.regions.fungal_depths import spore_zones
+        from game_behaviors.regions.fungal_depths import spore_zones
         from behavior_libraries.actor_lib.conditions import get_condition
 
         # Get player
@@ -245,7 +245,7 @@ class TestRegionalBehaviorConditions(BaseTestCase):
 
     def test_hypothermia_uses_dict_format(self):
         """hypothermia.py uses dict format for conditions."""
-        from behaviors.regions.frozen_reaches import hypothermia
+        from game_behaviors.regions.frozen_reaches import hypothermia
 
         player = self.engine.game_state.actors.get('player')
         player.location = LocationId('frozen_pass')

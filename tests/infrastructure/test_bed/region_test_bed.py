@@ -95,7 +95,7 @@ class RegionTestBed:
         # Load behaviors from game directory if available
         game_dir = self._get_game_dir()
         if game_dir:
-            behaviors_path = game_dir / "behaviors"
+            behaviors_path = game_dir / "game_behaviors"
             if behaviors_path.exists():
                 modules = self._behavior_manager.discover_modules(str(behaviors_path))
                 self._behavior_manager.load_modules(modules)

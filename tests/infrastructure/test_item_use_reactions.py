@@ -4,8 +4,8 @@ import unittest
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
-from examples.big_game.behaviors.shared.infrastructure.item_use_reactions import on_item_used
+from examples.big_game.game_behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
+from examples.big_game.game_behaviors.shared.infrastructure.item_use_reactions import on_item_used
 from src.behavior_manager import EventResult
 
 
@@ -319,7 +319,7 @@ class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
             "npc_aldric",
             {
                 "item_use_reactions": {
-                    "handler": "examples.big_game.behaviors.regions.fungal_depths.aldric_rescue:on_aldric_heal"
+                    "handler": "examples.big_game.game_behaviors.regions.fungal_depths.aldric_rescue:on_aldric_heal"
                 }
             },
         )
@@ -329,7 +329,7 @@ class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
         mock_handler = MagicMock(return_value=handler_result)
 
         with patch(
-            "examples.big_game.behaviors.shared.infrastructure.item_use_reactions.load_handler",
+            "examples.big_game.game_behaviors.shared.infrastructure.item_use_reactions.load_handler",
             return_value=mock_handler,
         ):
             result = on_item_used(item, self.accessor, context)
@@ -343,7 +343,7 @@ class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
             "item_magic_wand",
             {
                 "item_use_reactions": {
-                    "handler": "behaviors.magic:on_wand_use"
+                    "handler": "game_behaviors.magic:on_wand_use"
                 }
             },
         )
@@ -354,7 +354,7 @@ class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
         mock_handler = MagicMock(return_value=handler_result)
 
         with patch(
-            "examples.big_game.behaviors.shared.infrastructure.item_use_reactions.load_handler",
+            "examples.big_game.game_behaviors.shared.infrastructure.item_use_reactions.load_handler",
             return_value=mock_handler,
         ):
             result = on_item_used(item, self.accessor, context)
@@ -367,7 +367,7 @@ class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
             "item_silvermoss",
             {
                 "item_use_reactions": {
-                    "handler": "behaviors.item:on_item_use"
+                    "handler": "game_behaviors.item:on_item_use"
                 }
             },
         )
@@ -375,7 +375,7 @@ class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
             "npc_aldric",
             {
                 "item_use_reactions": {
-                    "handler": "behaviors.target:on_target_use"
+                    "handler": "game_behaviors.target:on_target_use"
                 }
             },
         )
@@ -385,7 +385,7 @@ class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
         mock_handler = MagicMock(return_value=target_result)
 
         with patch(
-            "examples.big_game.behaviors.shared.infrastructure.item_use_reactions.load_handler",
+            "examples.big_game.game_behaviors.shared.infrastructure.item_use_reactions.load_handler",
             return_value=mock_handler,
         ):
             result = on_item_used(item, self.accessor, context)

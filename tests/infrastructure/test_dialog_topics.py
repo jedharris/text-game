@@ -74,7 +74,7 @@ class TestDialogHandlerEscapeHatch(unittest.TestCase):
             "test_room",
             properties={
                 "dialog_topics": {
-                    "handler": "examples.big_game.behaviors.regions.meridian_nexus.echo:on_echo_dialog"
+                    "handler": "examples.big_game.game_behaviors.regions.meridian_nexus.echo:on_echo_dialog"
                 }
             },
         )

@@ -132,7 +132,7 @@ class TestUC1Resistance(BaseTestCase):
 
     def test_resistance_reduces_severity(self):
         """Resistance reduces incoming condition severity."""
-        from behaviors.uc1_infection import apply_condition_with_resistance
+        from game_behaviors.uc1_infection import apply_condition_with_resistance
 
         # Apply infection with resistance calculation
         msg = apply_condition_with_resistance(
@@ -149,7 +149,7 @@ class TestUC1Resistance(BaseTestCase):
 
     def test_resistance_calculation(self):
         """Test the resistance calculation function directly."""
-        from behaviors.uc1_infection import apply_resistance
+        from game_behaviors.uc1_infection import apply_resistance
 
         # 30% resistance on 100 severity = 70
         self.assertEqual(apply_resistance(100, 30), 70)
@@ -165,7 +165,7 @@ class TestUC1Resistance(BaseTestCase):
 
     def test_no_resistance_full_severity(self):
         """Actor without resistance gets full severity."""
-        from behaviors.uc1_infection import apply_condition_with_resistance
+        from game_behaviors.uc1_infection import apply_condition_with_resistance
 
         # Remove player's resistance
         self.player.properties['resistances'] = {}
@@ -272,7 +272,7 @@ class TestUC1Contagion(BaseTestCase):
 
     def test_contagion_requires_focus(self):
         """Contagion only spreads when focused on infected actor."""
-        from behaviors.uc1_infection import check_contagion
+        from game_behaviors.uc1_infection import check_contagion
 
         accessor = _create_accessor(self.engine)
 
@@ -288,7 +288,7 @@ class TestUC1Contagion(BaseTestCase):
 
     def test_contagion_spreads_with_focus(self):
         """Contagion spreads when player focused on infected NPC."""
-        from behaviors.uc1_infection import check_contagion
+        from game_behaviors.uc1_infection import check_contagion
 
         accessor = _create_accessor(self.engine)
 
@@ -305,7 +305,7 @@ class TestUC1Contagion(BaseTestCase):
 
     def test_contagion_severity_reduced(self):
         """Contagion spreads with reduced severity."""
-        from behaviors.uc1_infection import check_contagion
+        from game_behaviors.uc1_infection import check_contagion
 
         accessor = _create_accessor(self.engine)
 
@@ -322,7 +322,7 @@ class TestUC1Contagion(BaseTestCase):
 
     def test_contagion_affected_by_resistance(self):
         """Contagion severity is reduced by player resistance."""
-        from behaviors.uc1_infection import check_contagion
+        from game_behaviors.uc1_infection import check_contagion
 
         accessor = _create_accessor(self.engine)
 

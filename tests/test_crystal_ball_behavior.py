@@ -35,7 +35,7 @@ class TestCrystalBallRevealHiddenItem(unittest.TestCase):
                     description="A crystal ball. Mist swirls within its depths.",
                     location="library",
                     _properties={"magical": True},
-                    behaviors=["behaviors.crystal_ball"]
+                    behaviors=["examples.extended_game.game_behaviors.crystal_ball"]
                 ),
                 Item(
                     id="item_sanctum_key",
@@ -58,8 +58,8 @@ class TestCrystalBallRevealHiddenItem(unittest.TestCase):
 
         self.behavior_manager = BehaviorManager()
         # Load the crystal ball behavior module
-        import examples.extended_game.behaviors.crystal_ball
-        self.behavior_manager.load_module(examples.extended_game.behaviors.crystal_ball)
+        import examples.extended_game.game_behaviors.crystal_ball
+        self.behavior_manager.load_module(examples.extended_game.game_behaviors.crystal_ball)
         self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_hidden_key_not_visible_before_reveal(self):
@@ -73,7 +73,7 @@ class TestCrystalBallRevealHiddenItem(unittest.TestCase):
 
     def test_crystal_ball_reveals_hidden_key(self):
         """Peering into crystal ball sets key's hidden state to False."""
-        from examples.extended_game.behaviors.crystal_ball import on_peer
+        from examples.extended_game.game_behaviors.crystal_ball import on_peer
 
         crystal_ball = self.accessor.get_item("item_crystal_ball")
         sanctum_key = self.accessor.get_item("item_sanctum_key")
@@ -95,7 +95,7 @@ class TestCrystalBallRevealHiddenItem(unittest.TestCase):
 
     def test_second_peer_shows_already_claimed_message(self):
         """Peering again after reveal shows 'already claimed' message."""
-        from examples.extended_game.behaviors.crystal_ball import on_peer
+        from examples.extended_game.game_behaviors.crystal_ball import on_peer
 
         crystal_ball = self.accessor.get_item("item_crystal_ball")
         sanctum_key = self.accessor.get_item("item_sanctum_key")
@@ -114,7 +114,7 @@ class TestCrystalBallRevealHiddenItem(unittest.TestCase):
     def test_revealed_key_becomes_accessible(self):
         """After reveal, key can be found by find_accessible_item."""
         from utilities.utils import find_accessible_item
-        from examples.extended_game.behaviors.crystal_ball import on_peer
+        from examples.extended_game.game_behaviors.crystal_ball import on_peer
 
         crystal_ball = self.accessor.get_item("item_crystal_ball")
         context = {"actor_id": "player", "verb": "peer"}
@@ -130,7 +130,7 @@ class TestCrystalBallRevealHiddenItem(unittest.TestCase):
 
     def test_key_appears_in_same_location_as_crystal_ball(self):
         """Key appears in the same location as the crystal ball after reveal."""
-        from examples.extended_game.behaviors.crystal_ball import on_peer
+        from examples.extended_game.game_behaviors.crystal_ball import on_peer
 
         crystal_ball = self.accessor.get_item("item_crystal_ball")
         sanctum_key = self.accessor.get_item("item_sanctum_key")
@@ -199,7 +199,7 @@ class TestCrystalBallInContainers(unittest.TestCase):
                     description="A crystal ball. Mist swirls within its depths.",
                     location="library",
                     _properties={"magical": True, "portable": True},
-                    behaviors=["behaviors.crystal_ball"]
+                    behaviors=["examples.extended_game.game_behaviors.crystal_ball"]
                 ),
                 Item(
                     id="item_sanctum_key",
@@ -225,13 +225,13 @@ class TestCrystalBallInContainers(unittest.TestCase):
         )
 
         self.behavior_manager = BehaviorManager()
-        import examples.extended_game.behaviors.crystal_ball
-        self.behavior_manager.load_module(examples.extended_game.behaviors.crystal_ball)
+        import examples.extended_game.game_behaviors.crystal_ball
+        self.behavior_manager.load_module(examples.extended_game.game_behaviors.crystal_ball)
         self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_key_appears_on_surface_when_crystal_ball_on_surface(self):
         """When crystal ball is on a surface, key appears on same surface with 'on' preposition."""
-        from examples.extended_game.behaviors.crystal_ball import on_peer
+        from examples.extended_game.game_behaviors.crystal_ball import on_peer
 
         crystal_ball = self.accessor.get_item("item_crystal_ball")
         sanctum_key = self.accessor.get_item("item_sanctum_key")
@@ -253,7 +253,7 @@ class TestCrystalBallInContainers(unittest.TestCase):
 
     def test_key_appears_in_container_when_crystal_ball_in_container(self):
         """When crystal ball is in a non-surface container, key appears in same container with 'in' preposition."""
-        from examples.extended_game.behaviors.crystal_ball import on_peer
+        from examples.extended_game.game_behaviors.crystal_ball import on_peer
 
         crystal_ball = self.accessor.get_item("item_crystal_ball")
         sanctum_key = self.accessor.get_item("item_sanctum_key")
@@ -296,7 +296,7 @@ class TestCrystalBallMissingKey(unittest.TestCase):
                     description="A crystal ball. Mist swirls within its depths.",
                     location="library",
                     _properties={"magical": True},
-                    behaviors=["behaviors.crystal_ball"]
+                    behaviors=["examples.extended_game.game_behaviors.crystal_ball"]
                 )
                 # No sanctum key
             ],
@@ -312,13 +312,13 @@ class TestCrystalBallMissingKey(unittest.TestCase):
         )
 
         self.behavior_manager = BehaviorManager()
-        import examples.extended_game.behaviors.crystal_ball
-        self.behavior_manager.load_module(examples.extended_game.behaviors.crystal_ball)
+        import examples.extended_game.game_behaviors.crystal_ball
+        self.behavior_manager.load_module(examples.extended_game.game_behaviors.crystal_ball)
         self.accessor = StateAccessor(self.game_state, self.behavior_manager)
 
     def test_peer_without_key_shows_nothing_revealed(self):
         """Peering when key doesn't exist shows nothing revealed message."""
-        from examples.extended_game.behaviors.crystal_ball import on_peer
+        from examples.extended_game.game_behaviors.crystal_ball import on_peer
 
         crystal_ball = self.accessor.get_item("item_crystal_ball")
 

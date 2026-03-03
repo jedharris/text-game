@@ -3,6 +3,11 @@
 - BE EXTREMELY TERSE
 - DON'T NARRATE YOUR ACTIONS AS YOU WORK
 - ONLY DISCUSS WITH USER TO PROVIDE REQUESTED REPORTS OR DISCUSSION
+- Use context-mode MCP tools to keep large outputs out of the context window:
+  - Use `mcp__context-mode__execute` instead of Bash for any command that reads, queries, tests, diffs, logs, or inspects. Bash is ONLY for file mutations (mkdir/mv/rm/cp), git writes (add/commit/push/checkout), navigation (cd/pwd), package install, and echo.
+  - Use `mcp__context-mode__execute_file` instead of Read when analyzing files you don't intend to edit.
+  - For test runs, always use execute — never pipe test output through tail/head/grep to fit in Bash.
+  - Use Read only when you need the file content for a subsequent Edit.
 
 ## Design priorities
 - Always maximize author capability and player agency, especially when they don't conflict

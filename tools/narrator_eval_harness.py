@@ -221,7 +221,7 @@ class NarratorEvalHarness:
         # Set up behavior manager and load behaviors from game's behaviors/ directory
         # (which typically includes a symlink to core behaviors)
         self.behavior_manager = BehaviorManager()
-        game_behaviors_dir = self.game_dir / "behaviors"
+        game_behaviors_dir = self.game_dir / "game_behaviors"
         if game_behaviors_dir.exists():
             modules = self.behavior_manager.discover_modules(str(game_behaviors_dir))
             self.behavior_manager.load_modules(modules)

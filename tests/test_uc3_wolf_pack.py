@@ -135,7 +135,7 @@ class TestUC3Feeding(BaseTestCase):
 
     def test_feeding_removes_need(self):
         """Feeding wolf removes hunger from needs."""
-        from behaviors.uc3_wolf_pack import apply_feeding
+        from game_behaviors.uc3_wolf_pack import apply_feeding
 
         accessor = _create_accessor(self.engine)
 
@@ -147,7 +147,7 @@ class TestUC3Feeding(BaseTestCase):
 
     def test_feeding_alpha_changes_disposition(self):
         """Feeding alpha wolf changes disposition to neutral."""
-        from behaviors.uc3_wolf_pack import apply_feeding
+        from game_behaviors.uc3_wolf_pack import apply_feeding
 
         accessor = _create_accessor(self.engine)
 
@@ -159,7 +159,7 @@ class TestUC3Feeding(BaseTestCase):
 
     def test_feeding_alpha_syncs_pack(self):
         """Feeding alpha syncs pack disposition."""
-        from behaviors.uc3_wolf_pack import apply_feeding
+        from game_behaviors.uc3_wolf_pack import apply_feeding
 
         accessor = _create_accessor(self.engine)
 
@@ -224,7 +224,7 @@ class TestUC3MoraleFlee(BaseTestCase):
 
     def test_directed_flee(self):
         """Alpha flees to flee_destination when triggered."""
-        from behaviors.uc3_wolf_pack import directed_flee
+        from game_behaviors.uc3_wolf_pack import directed_flee
 
         accessor = _create_accessor(self.engine)
 
@@ -307,7 +307,7 @@ class TestUC3Domestication(BaseTestCase):
 
     def test_check_domestication(self):
         """check_domestication returns true when threshold met."""
-        from behaviors.uc3_wolf_pack import check_domestication
+        from game_behaviors.uc3_wolf_pack import check_domestication
         from behavior_libraries.actor_lib.relationships import modify_relationship
 
         accessor = _create_accessor(self.engine)
@@ -323,7 +323,7 @@ class TestUC3Domestication(BaseTestCase):
 
     def test_feeding_to_domestication(self):
         """Repeated feeding through apply_feeding leads to domestication."""
-        from behaviors.uc3_wolf_pack import apply_feeding, check_domestication
+        from game_behaviors.uc3_wolf_pack import apply_feeding, check_domestication
 
         accessor = _create_accessor(self.engine)
 

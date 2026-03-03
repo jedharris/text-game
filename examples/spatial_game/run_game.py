@@ -35,7 +35,7 @@ from src.validators import validate_game_state
 
 # Game-specific paths
 GAME_STATE_FILE = Path(__file__).parent / "game_state.json"
-CUSTOM_BEHAVIORS_DIR = Path(__file__).parent / "behaviors"
+CUSTOM_BEHAVIORS_DIR = Path(__file__).parent / "game_behaviors"
 
 
 def format_inventory_query(response: dict) -> str:

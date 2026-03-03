@@ -9,11 +9,11 @@ from typing import Any
 import unittest
 from unittest.mock import MagicMock, patch
 
-from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
-from examples.big_game.behaviors.shared.infrastructure.gift_reactions import on_gift_given
-from examples.big_game.behaviors.shared.infrastructure.item_use_reactions import on_item_used
-from examples.big_game.behaviors.shared.infrastructure.death_reactions import on_entity_death
-from examples.big_game.behaviors.shared.infrastructure.pack_mirroring import on_leader_state_change
+from examples.big_game.game_behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
+from examples.big_game.game_behaviors.shared.infrastructure.gift_reactions import on_gift_given
+from examples.big_game.game_behaviors.shared.infrastructure.item_use_reactions import on_item_used
+from examples.big_game.game_behaviors.shared.infrastructure.death_reactions import on_entity_death
+from examples.big_game.game_behaviors.shared.infrastructure.pack_mirroring import on_leader_state_change
 from src.behavior_manager import EventResult
 
 
@@ -61,7 +61,7 @@ class TestBeastWildsIntegration(unittest.TestCase):
                 },
                 "trust_state": {"current": 0, "floor": -3, "ceiling": 5},
                 "gift_reactions": {
-                    "handler": "examples.big_game.behaviors.regions.beast_wilds.bee_queen:on_flower_offer"
+                    "handler": "examples.big_game.game_behaviors.regions.beast_wilds.bee_queen:on_flower_offer"
                 },
             },
         )
@@ -214,7 +214,7 @@ class TestSunkenDistrictIntegration(unittest.TestCase):
                     "initial": "trapped",
                 },
                 "death_reactions": {
-                    "handler": "examples.big_game.behaviors.regions.sunken_district.dual_rescue:on_npc_death",
+                    "handler": "examples.big_game.game_behaviors.regions.sunken_district.dual_rescue:on_npc_death",
                     "set_flags": {"delvan_died": True},
                 },
             },
@@ -251,7 +251,7 @@ class TestFrozenReachesIntegration(unittest.TestCase):
                 },
                 "trust_state": {"current": 0, "floor": 0, "ceiling": 5},
                 "gift_reactions": {
-                    "handler": "examples.big_game.behaviors.regions.frozen_reaches.salamanders:on_fire_gift"
+                    "handler": "examples.big_game.game_behaviors.regions.frozen_reaches.salamanders:on_fire_gift"
                 },
             },
         )

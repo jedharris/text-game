@@ -110,10 +110,8 @@ def on_open(entity: Any, accessor: Any, context: Dict) -> EventResult:
     # Get treasure contents if container
     treasure_items = []
     if hasattr(entity, 'container') and entity.container:
-        for item_id in entity.container.items:
-            item = accessor.get_item(item_id)
-            if item:
-                treasure_items.append(serialize_for_handler_result(item, accessor, actor_id))
+        for item in accessor.get_entities_at(entity.id, entity_type="item"):
+            treasure_items.append(serialize_for_handler_result(item, accessor, actor_id))
 
     # Return structured data for narrator
     return EventResult(

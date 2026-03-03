@@ -415,7 +415,7 @@
         }
       },
       "behaviors": [
-        "behaviors.core.light_sources"
+        "game_behaviors.core.light_sources"
       ]
     },
     {
