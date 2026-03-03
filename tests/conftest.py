@@ -56,6 +56,19 @@ def _patched_load_tests_from_module(self, module, *args, **kwargs):
 unittest.TestLoader.loadTestsFromModule = _patched_load_tests_from_module  # type: ignore[method-assign]
 
 
+# Pytest hook: clean up after each test module completes.
+# The unittest TestLoader patch above doesn't work under pytest since pytest
+# uses its own collection mechanism. This hook ensures cleanup runs regardless
+# of test runner.
+import pytest
+
+@pytest.fixture(autouse=True, scope="module")
+def _module_cleanup():
+    """Run module cleanup after all tests in a module complete."""
+    yield
+    _cleanup_test_module()
+
+
 def create_test_state() -> GameState:
     """
     Create a minimal GameState for testing with common test entities.
