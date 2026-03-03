@@ -1,0 +1,47 @@
+#!/bin/bash
+# Pre-commit hook: run mypy on staged Python files in src/, behaviors/, utilities/
+#
+# Only reports errors in the staged files themselves, not in their transitive
+# imports. This avoids blocking commits due to pre-existing errors elsewhere.
+#
+# This hook is tracked in the repo under tools/hooks/. To activate:
+#   git config core.hooksPath tools/hooks
+
+# Get staged .py files in the directories we care about
+STAGED_PY_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^(src|behaviors|utilities)/' | grep '\.py$')
+
+if [ -z "$STAGED_PY_FILES" ]; then
+    # No typed source files staged — skip mypy, still run other checks
+    :
+else
+    echo "Running mypy on staged files..."
+
+    # Build a grep pattern that matches only error lines for staged files
+    FILTER_PATTERN=$(echo "$STAGED_PY_FILES" | sed 's|[./]|\\&|g' | paste -sd'|' -)
+
+    # Run mypy, filter to only errors in staged files
+    MYPY_OUTPUT=$(python -m mypy $STAGED_PY_FILES 2>&1)
+    FILTERED=$(echo "$MYPY_OUTPUT" | grep -E "^($FILTER_PATTERN):")
+
+    if [ -n "$FILTERED" ]; then
+        echo "$FILTERED"
+        NERRORS=$(echo "$FILTERED" | grep -c "error:")
+        echo ""
+        echo "mypy found $NERRORS error(s) in staged files. Fix before committing."
+        echo "To bypass (not recommended): git commit --no-verify"
+        exit 1
+    fi
+fi
+
+# Also run the mock.patch path check
+if [ -f tools/check_mock_patch_paths.sh ]; then
+    bash tools/check_mock_patch_paths.sh
+    if [ $? -ne 0 ]; then
+        echo ""
+        echo "mock.patch path check failed. Fix before committing."
+        exit 1
+    fi
+fi
+
+echo "Pre-commit checks passed."
+exit 0

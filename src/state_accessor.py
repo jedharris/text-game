@@ -252,7 +252,7 @@ class StateAccessor:
         if not exit_entity.door_id:
             return None
 
-        return self.get_door_item(exit_entity.door_id)
+        return self.get_door_item(ItemId(exit_entity.door_id))
 
     def get_part(self, part_id: PartId) -> Optional[Part]:
         """
@@ -441,8 +441,8 @@ class StateAccessor:
                 # Only hide if we're AT the door location and door is closed
                 if exit_entity.door_at == location_id:
                     try:
-                        door = self.get_door_item(exit_entity.door_id)
-                        if not door.door_open:
+                        door = self.get_door_item(ItemId(exit_entity.door_id))
+                        if door and not door.door_open:
                             # We're at the door location and it's closed - can't see passage beyond
                             continue
                     except KeyError:

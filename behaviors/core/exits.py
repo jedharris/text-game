@@ -10,7 +10,7 @@ from typing import Dict, Any, Optional, cast
 from src.action_types import ActionDict
 from src.behavior_manager import EventResult
 from src.state_accessor import HandlerResult
-from src.types import ActorId
+from src.types import ActorId, LocationId
 from utilities.utils import find_accessible_item, find_exit_by_name, describe_location
 from utilities.handler_utils import get_display_name, validate_actor_and_location
 from utilities.entity_serializer import serialize_for_handler_result
@@ -231,7 +231,7 @@ def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_entity, dire
                 )
         else:
             # Fall back to old-style Door entity during migration
-            door = accessor.get_door(door_id)
+            door = accessor.get_door(exit_entity.door_id)
             if door and not door.open:
                 return HandlerResult(
                     success=False,
@@ -326,7 +326,7 @@ def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_entity, dire
 
     # Track visit for location state narration (Context Builder)
     from utilities.state_variant_selector import track_location_visit
-    track_location_visit(accessor.game_state.extra, actor_id, destination_id)
+    track_location_visit(accessor.game_state.extra, actor_id, LocationId(destination_id))
 
     # Invoke entity_entered_location hook if destination location has behaviors
     on_enter_message = None

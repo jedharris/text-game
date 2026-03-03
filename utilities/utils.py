@@ -18,11 +18,11 @@ from utilities.entity_serializer import serialize_for_handler_result
 
 if TYPE_CHECKING:
     from src.state_accessor import StateAccessor
-    from src.state_manager import Actor, Item, Location, ExitDescriptor, Lock
+    from src.state_manager import Actor, Item, Location, ExitDescriptor, Exit, Lock
     from src.behavior_manager import BehaviorManager
 
 
-EntityLike = Union["Item", "Actor", "ExitDescriptor", "Lock"]
+EntityLike = Union["Item", "Actor", "ExitDescriptor", "Exit", "Lock"]
 
 
 def _extract_word(value: Optional[Union[str, WordEntry]]) -> Optional[str]:
@@ -1213,7 +1213,7 @@ DIRECTION_ABBREVIATIONS = {
 def find_exit_for_door(
     accessor: "StateAccessor",
     door_id: str,
-    location_id: str,
+    location_id: LocationId,
     actor_id: ActorId
 ) -> Optional["Exit"]:
     """

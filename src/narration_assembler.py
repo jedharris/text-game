@@ -26,7 +26,7 @@ from src.narration_types import (
     MustMention,
 )
 from src.state_accessor import HandlerResult
-from src.types import ActorId
+from src.types import ActorId, LocationId
 
 if TYPE_CHECKING:
     from src.state_accessor import StateAccessor
@@ -588,7 +588,7 @@ class NarrationAssembler:
         except (KeyError, AttributeError):
             return None
 
-        dest_location = self.accessor.get_location(dest_id)
+        dest_location = self.accessor.get_location(LocationId(dest_id))
         if dest_location:
             return dest_location.name
 

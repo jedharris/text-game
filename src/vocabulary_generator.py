@@ -4,7 +4,7 @@ Extracts nouns from game state entities and merges them with
 base vocabulary for parser initialization.
 """
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 from .state_manager import GameState
 
@@ -122,9 +122,9 @@ def extract_nouns_from_state(state: GameState) -> List[Dict[str, Any]]:
     # Extract exit names and synonyms
     # Exits are first-class entities like items and should be in vocabulary
     for exit_entity in state.exits:
-        name = getattr(exit_entity, 'name', None)
-        if name and name not in seen_words:
-            noun_entry = {"word": name}
+        exit_name: Optional[str] = getattr(exit_entity, 'name', None)
+        if exit_name and exit_name not in seen_words:
+            noun_entry = {"word": exit_name}
             # Add synonyms if present
             synonyms = getattr(exit_entity, 'synonyms', None)
             if synonyms:
@@ -136,9 +136,9 @@ def extract_nouns_from_state(state: GameState) -> List[Dict[str, Any]]:
                         if len(clean_word) >= 3:
                             component_words.add(clean_word)
             nouns.append(noun_entry)
-            seen_words.add(name)
+            seen_words.add(exit_name)
             # Collect individual words for plural expansion
-            for word in name.split():
+            for word in exit_name.split():
                 clean_word = word.lower().rstrip("'s").rstrip("'")
                 if len(clean_word) >= 3:
                     component_words.add(clean_word)

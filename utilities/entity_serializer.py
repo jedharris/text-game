@@ -302,7 +302,7 @@ def _select_exit_state_variant(
             door = accessor.get_door_item(exit_entity.door_id)
             state_key = "door_open" if door.door_open else "door_closed"
             if state_key in variants:
-                return variants[state_key]
+                return str(variants[state_key])
         except (KeyError, AttributeError):
             # Door doesn't exist or accessor missing method - fail gracefully
             pass

@@ -68,6 +68,8 @@ class EntityRef(TypedDict, total=False):
         traits: Sensory/descriptive phrases from llm_context (randomized, limited)
         spatial_relation: Position relative to player (for elevated/concealed viewpoints)
         state: Relevant state flags
+        state_note: State-dependent description (from state_variants selection)
+        passage: Physical passage description (for exits with traversal structures)
         salience: How prominently to mention in narration
     """
     name: str
@@ -75,6 +77,8 @@ class EntityRef(TypedDict, total=False):
     traits: list[str]
     spatial_relation: Literal["within_reach", "below", "above", "nearby"]
     state: EntityState
+    state_note: str
+    passage: str
     salience: Literal["high", "medium", "low"]
 
 
