@@ -81,7 +81,7 @@ class TestBigGameConditionIntegration(BaseTestCase):
         spore_mother.properties['regeneration'] = 10
 
         # Tick conditions
-        messages = tick_conditions(spore_mother)
+        messages = tick_conditions(spore_mother, self.accessor)
 
         # Should have healed
         self.assertEqual(spore_mother.properties['health'], 60)
@@ -96,7 +96,7 @@ class TestBigGameConditionIntegration(BaseTestCase):
         spore_mother.properties['max_health'] = 150
         spore_mother.properties['regeneration'] = 10
 
-        messages = tick_conditions(spore_mother)
+        messages = tick_conditions(spore_mother, self.accessor)
 
         # Should cap at max_health
         self.assertEqual(spore_mother.properties['health'], 150)
@@ -110,7 +110,7 @@ class TestBigGameConditionIntegration(BaseTestCase):
         spore_mother.properties['max_health'] = 150
         spore_mother.properties['regeneration'] = 10
 
-        messages = tick_conditions(spore_mother)
+        messages = tick_conditions(spore_mother, self.accessor)
 
         # No message about regeneration
         self.assertNotIn('regenerates', ' '.join(messages))
@@ -131,7 +131,7 @@ class TestBigGameConditionIntegration(BaseTestCase):
         if 'living' in aldric.properties.get('tags', []) and regen == 0:
             regen = 5  # Default living actor regen
 
-        messages = tick_conditions(aldric)
+        messages = tick_conditions(aldric, self.accessor)
 
         # Health should change by (regen - damage)
         expected_health_change = regen - damage_per_turn
@@ -164,11 +164,11 @@ class TestBigGameConditionIntegration(BaseTestCase):
         })
 
         # Tick once - duration goes to 1
-        messages = tick_conditions(player)
+        messages = tick_conditions(player, self.accessor)
         self.assertIn('test_condition', player.properties['conditions'])
 
         # Tick again - duration goes to 0, removed
-        messages = tick_conditions(player)
+        messages = tick_conditions(player, self.accessor)
         self.assertNotIn('test_condition', player.properties['conditions'])
         self.assertTrue(any('worn off' in m for m in messages))
 
@@ -189,7 +189,7 @@ class TestBigGameConditionIntegration(BaseTestCase):
             'damage_per_turn': 2
         })
 
-        messages = tick_conditions(player)
+        messages = tick_conditions(player, self.accessor)
 
         # Net effect: -3 (poison) -2 (bleeding) +5 (default regen) = 0
         self.assertEqual(player.properties['health'], 100)

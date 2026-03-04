@@ -6,6 +6,7 @@ Configurable test framework for region-based testing.
 
 from __future__ import annotations
 
+from collections import deque
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -19,6 +20,55 @@ if TYPE_CHECKING:
     from src.llm_protocol import LLMProtocolHandler
     from src.state_accessor import HandlerResult, StateAccessor
     from src.state_manager import GameState
+
+
+def find_path(game_state: "GameState", from_location: str, to_location: str) -> list[str]:
+    """Find shortest path between two locations using BFS on the exit graph.
+
+    Args:
+        game_state: The current game state containing exit entities
+        from_location: Starting location ID
+        to_location: Destination location ID
+
+    Returns:
+        List of direction strings to follow (e.g., ["north", "east", "down"])
+
+    Raises:
+        ValueError: If no path exists or locations are unknown
+    """
+    if from_location == to_location:
+        return []
+
+    # Build adjacency: location -> [(direction, destination_location)]
+    exit_by_id = {exit.id: exit for exit in game_state.exits}
+    adjacency: dict[str, list[tuple[str, str]]] = {}
+
+    for exit in game_state.exits:
+        if not exit.direction:
+            continue
+        for conn_id in exit.connections:
+            conn = exit_by_id.get(conn_id)
+            if conn:
+                adjacency.setdefault(exit.location, []).append(
+                    (exit.direction, conn.location)
+                )
+
+    # BFS
+    queue: deque[tuple[str, list[str]]] = deque([(from_location, [])])
+    visited: set[str] = {from_location}
+
+    while queue:
+        current, path = queue.popleft()
+        for direction, neighbor in adjacency.get(current, []):
+            if neighbor == to_location:
+                return path + [direction]
+            if neighbor not in visited:
+                visited.add(neighbor)
+                queue.append((neighbor, path + [direction]))
+
+    raise ValueError(
+        f"No path from '{from_location}' to '{to_location}'"
+    )
 
 
 class AssertionError(Exception):
@@ -184,6 +234,29 @@ class RegionTestBed:
             result = self.execute(verb, obj)
             results.append(result)
         return results
+
+    def navigate_to(self, location_id: str) -> None:
+        """Move player to a location, validating the path exists.
+
+        Uses BFS pathfinding to verify a valid path exists from the player's
+        current location to the target, then teleports the player there.
+
+        Args:
+            location_id: Target location ID
+
+        Raises:
+            ValueError: If no path exists to the target
+            AssertionError: If player actor not found
+        """
+        player = self.state.actors.get(ActorId("player"))
+        if not player:
+            raise AssertionError("Player actor not found")
+
+        # Validate path exists (raises ValueError if not)
+        find_path(self.state, player.location, location_id)
+
+        # Move player directly
+        player.location = location_id
 
     def advance_turns(self, count: int) -> list[dict[str, Any]]:
         """Advance game by executing 'wait' command multiple times.

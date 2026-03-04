@@ -89,7 +89,7 @@ class TestGameEngineInitialization(unittest.TestCase):
             with self.assertRaises(FileNotFoundError) as ctx:
                 GameEngine(tmppath)
 
-            self.assertIn("game_behaviors/", str(ctx.exception))
+            self.assertIn("behaviors/", str(ctx.exception))
 
     def test_vocabulary_merging(self):
         """Test that vocabulary is properly merged."""
@@ -137,8 +137,8 @@ class TestGameEngineNarrator(unittest.TestCase):
             import shutil
             shutil.copy(self.simple_game_dir / "game_state.json", tmppath / "game_state.json")
 
-            # Create game_behaviors directory with symlink to core
-            behaviors_dir = tmppath / "game_behaviors"
+            # Create behaviors directory with symlink to core
+            behaviors_dir = tmppath / "behaviors"
             behaviors_dir.mkdir()
             core_behaviors = Path(__file__).parent.parent / "behaviors" / "core"
             (behaviors_dir / "core").symlink_to(core_behaviors)
@@ -164,8 +164,8 @@ class TestGameEngineNarrator(unittest.TestCase):
             import shutil
             shutil.copy(self.simple_game_dir / "game_state.json", tmppath / "game_state.json")
 
-            # Create game_behaviors directory with symlink to core
-            behaviors_dir = tmppath / "game_behaviors"
+            # Create behaviors directory with symlink to core
+            behaviors_dir = tmppath / "behaviors"
             behaviors_dir.mkdir()
             core_behaviors = Path(__file__).parent.parent / "behaviors" / "core"
             (behaviors_dir / "core").symlink_to(core_behaviors)

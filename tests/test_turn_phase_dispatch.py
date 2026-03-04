@@ -67,7 +67,7 @@ class TestCommitmentTurnPhase(unittest.TestCase):
                         "deadline_turn": 15,
                         "config_id": "commit_test",
                     },
-                    behaviors=["behaviors.shared.infrastructure.commitments"],
+                    behaviors=["game_behaviors.shared.infrastructure.commitments"],
                 ),
                 Commitment(
                     id=CommitmentId("commit_fulfilled"),
@@ -78,7 +78,7 @@ class TestCommitmentTurnPhase(unittest.TestCase):
                         "made_at_turn": 5,
                         "config_id": "commit_done",
                     },
-                    behaviors=["behaviors.shared.infrastructure.commitments"],
+                    behaviors=["game_behaviors.shared.infrastructure.commitments"],
                 ),
             ],
         )
@@ -95,8 +95,7 @@ class TestCommitmentTurnPhase(unittest.TestCase):
         import sys
         to_remove = [k for k in list(sys.modules.keys())
                      if k.startswith('behaviors.') or k == 'behaviors' or
-                        k.startswith('game_behaviors') or
-                        k.startswith('examples.big_game.game_behaviors')]
+                        k.startswith('examples.big_game.behaviors') or k.startswith('game_behaviors.') or k == 'game_behaviors' or k.startswith('examples.big_game.game_behaviors')]
         for key in to_remove:
             del sys.modules[key]
 
@@ -208,7 +207,7 @@ class TestScheduledEventTurnPhase(unittest.TestCase):
                         "data": {"message": "Test"},
                         "repeating": False,
                     },
-                    behaviors=["behaviors.shared.infrastructure.scheduled_events"],
+                    behaviors=["game_behaviors.shared.infrastructure.scheduled_events"],
                 ),
                 ScheduledEvent(
                     id=ScheduledEventId("evt_repeating"),
@@ -220,7 +219,7 @@ class TestScheduledEventTurnPhase(unittest.TestCase):
                         "repeating": True,
                         "interval": 5,
                     },
-                    behaviors=["behaviors.shared.infrastructure.scheduled_events"],
+                    behaviors=["game_behaviors.shared.infrastructure.scheduled_events"],
                 ),
             ],
         )
@@ -236,8 +235,7 @@ class TestScheduledEventTurnPhase(unittest.TestCase):
         import sys
         to_remove = [k for k in list(sys.modules.keys())
                      if k.startswith('behaviors.') or k == 'behaviors' or
-                        k.startswith('game_behaviors') or
-                        k.startswith('examples.big_game.game_behaviors')]
+                        k.startswith('examples.big_game.behaviors') or k.startswith('game_behaviors.') or k == 'game_behaviors' or k.startswith('examples.big_game.game_behaviors')]
         for key in to_remove:
             del sys.modules[key]
 
@@ -336,7 +334,7 @@ class TestGossipTurnPhase(unittest.TestCase):
                         "arrives_turn": 17,
                         "gossip_type": "POINT_TO_POINT",
                     },
-                    behaviors=["behaviors.shared.infrastructure.gossip"],
+                    behaviors=["game_behaviors.shared.infrastructure.gossip"],
                 ),
             ],
         )
@@ -352,8 +350,7 @@ class TestGossipTurnPhase(unittest.TestCase):
         import sys
         to_remove = [k for k in list(sys.modules.keys())
                      if k.startswith('behaviors.') or k == 'behaviors' or
-                        k.startswith('game_behaviors') or
-                        k.startswith('examples.big_game.game_behaviors')]
+                        k.startswith('examples.big_game.behaviors') or k.startswith('game_behaviors.') or k == 'game_behaviors' or k.startswith('examples.big_game.game_behaviors')]
         for key in to_remove:
             del sys.modules[key]
 
@@ -453,7 +450,7 @@ class TestSpreadTurnPhase(unittest.TestCase):
                         ],
                         "reached_milestones": [],
                     },
-                    behaviors=["behaviors.shared.infrastructure.spreads"],
+                    behaviors=["game_behaviors.shared.infrastructure.spreads"],
                 ),
             ],
         )
@@ -469,8 +466,7 @@ class TestSpreadTurnPhase(unittest.TestCase):
         import sys
         to_remove = [k for k in list(sys.modules.keys())
                      if k.startswith('behaviors.') or k == 'behaviors' or
-                        k.startswith('game_behaviors') or
-                        k.startswith('examples.big_game.game_behaviors')]
+                        k.startswith('examples.big_game.behaviors') or k.startswith('game_behaviors.') or k == 'game_behaviors' or k.startswith('examples.big_game.game_behaviors')]
         for key in to_remove:
             del sys.modules[key]
 

@@ -18,6 +18,7 @@ from src.state_manager import load_game_state, GameState
 from src.types import ActorId, ItemId, LocationId
 from src.validators import validate_game_state
 from src.vocabulary_service import build_merged_vocabulary
+from tests.infrastructure.test_bed.region_test_bed import find_path
 
 
 # Path to big_game
@@ -142,6 +143,22 @@ class E2EScenarioTestCase(unittest.TestCase):
         action.update(kwargs)
 
         return self.handler.handle_message({"type": "command", "action": action})
+
+    def navigate_to(self, location_id: str) -> None:
+        """Move player to a location, validating the path exists.
+
+        Uses BFS pathfinding to verify a valid path exists from the player's
+        current location to the target, then teleports the player there.
+
+        Args:
+            location_id: Target location ID
+
+        Raises:
+            ValueError: If no path exists to the target
+        """
+        player = self.game_state.actors[ActorId("player")]
+        find_path(self.game_state, player.location, location_id)
+        player.location = location_id
 
     def query(self, query_type: str, **kwargs: Any) -> dict[str, Any]:
         """Execute a query.

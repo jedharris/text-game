@@ -110,6 +110,8 @@ class TestTickConditions(unittest.TestCase):
                 "conditions": {}
             }
         )
+        self.accessor = Mock()
+        self.accessor.behavior_manager.get_event_for_hook.return_value = None
 
     def test_tick_conditions_damage(self):
         """Damage per turn is applied to health, but regeneration also applies."""
@@ -120,7 +122,7 @@ class TestTickConditions(unittest.TestCase):
             "damage_per_turn": 5
         }
 
-        messages = tick_conditions(self.actor)
+        messages = tick_conditions(self.actor, self.accessor)
 
         # Net effect: -5 (poison) + 5 (default regen) = 0
         self.assertEqual(self.actor.properties["health"], 100)
@@ -137,7 +139,7 @@ class TestTickConditions(unittest.TestCase):
             "duration": 3
         }
 
-        tick_conditions(self.actor)
+        tick_conditions(self.actor, self.accessor)
 
         self.assertEqual(self.actor.properties["conditions"]["stun"]["duration"], 2)
 
@@ -150,7 +152,7 @@ class TestTickConditions(unittest.TestCase):
             "duration": 1
         }
 
-        messages = tick_conditions(self.actor)
+        messages = tick_conditions(self.actor, self.accessor)
 
         self.assertNotIn("stun", self.actor.properties["conditions"])
         # Should have message about condition ending
@@ -165,7 +167,7 @@ class TestTickConditions(unittest.TestCase):
             "progression_rate": 5
         }
 
-        tick_conditions(self.actor)
+        tick_conditions(self.actor, self.accessor)
 
         self.assertEqual(self.actor.properties["conditions"]["infection"]["severity"], 25)
 
@@ -175,7 +177,7 @@ class TestTickConditions(unittest.TestCase):
 
         self.actor.properties["conditions"] = {}
 
-        messages = tick_conditions(self.actor)
+        messages = tick_conditions(self.actor, self.accessor)
 
         self.assertEqual(messages, [])
 
@@ -188,7 +190,7 @@ class TestTickConditions(unittest.TestCase):
             "bleeding": {"severity": 30, "damage_per_turn": 3}
         }
 
-        tick_conditions(self.actor)
+        tick_conditions(self.actor, self.accessor)
 
         # Net effect: -2 (poison) -3 (bleeding) +5 (default regen) = 0
         self.assertEqual(self.actor.properties["health"], 100)
@@ -213,12 +215,14 @@ class TestTreatCondition(unittest.TestCase):
                 }
             }
         )
+        self.accessor = Mock()
+        self.accessor.behavior_manager.get_event_for_hook.return_value = None
 
     def test_treat_condition_reduce(self):
         """Treatment reduces severity."""
         from behavior_libraries.actor_lib.conditions import treat_condition
 
-        message = treat_condition(self.actor, "poison", 30)
+        message = treat_condition(self.actor, "poison", 30, self.accessor)
 
         self.assertEqual(self.actor.properties["conditions"]["poison"]["severity"], 20)
         self.assertIn("poison", message.lower())
@@ -227,7 +231,7 @@ class TestTreatCondition(unittest.TestCase):
         """Condition removed when severity drops to zero or below."""
         from behavior_libraries.actor_lib.conditions import treat_condition
 
-        message = treat_condition(self.actor, "poison", 60)
+        message = treat_condition(self.actor, "poison", 60, self.accessor)
 
         self.assertNotIn("poison", self.actor.properties["conditions"])
         self.assertIn("cured", message.lower())
@@ -236,7 +240,7 @@ class TestTreatCondition(unittest.TestCase):
         """Treating nonexistent condition returns appropriate message."""
         from behavior_libraries.actor_lib.conditions import treat_condition
 
-        message = treat_condition(self.actor, "bleeding", 30)
+        message = treat_condition(self.actor, "bleeding", 30, self.accessor)
 
         self.assertIn("not", message.lower())
 
@@ -258,12 +262,14 @@ class TestRemoveCondition(unittest.TestCase):
                 }
             }
         )
+        self.accessor = Mock()
+        self.accessor.behavior_manager.get_event_for_hook.return_value = None
 
     def test_remove_condition(self):
         """Condition is completely removed."""
         from behavior_libraries.actor_lib.conditions import remove_condition
 
-        message = remove_condition(self.actor, "poison")
+        message = remove_condition(self.actor, "poison", self.accessor)
 
         self.assertNotIn("poison", self.actor.properties["conditions"])
         self.assertIn("poison", message.lower())
@@ -272,7 +278,7 @@ class TestRemoveCondition(unittest.TestCase):
         """Removing nonexistent condition is safe."""
         from behavior_libraries.actor_lib.conditions import remove_condition
 
-        message = remove_condition(self.actor, "bleeding")
+        message = remove_condition(self.actor, "bleeding", self.accessor)
 
         # Should not raise, should return appropriate message
         self.assertIsNotNone(message)
@@ -513,7 +519,7 @@ class TestHealthRegeneration(unittest.TestCase):
             _properties={"health": 50, "max_health": 100, "regeneration": 5}
         )
 
-        messages = tick_conditions(actor)
+        messages = tick_conditions(actor, Mock())
 
         self.assertEqual(actor.properties["health"], 55)
         self.assertIn("regenerates 5 health", " ".join(messages))
@@ -532,7 +538,7 @@ class TestHealthRegeneration(unittest.TestCase):
             _properties={"health": 98, "max_health": 100, "regeneration": 5}
         )
 
-        messages = tick_conditions(actor)
+        messages = tick_conditions(actor, Mock())
 
         self.assertEqual(actor.properties["health"], 100)
         self.assertIn("regenerates", " ".join(messages))
@@ -551,7 +557,7 @@ class TestHealthRegeneration(unittest.TestCase):
             _properties={"health": 100, "max_health": 100, "regeneration": 5}
         )
 
-        messages = tick_conditions(actor)
+        messages = tick_conditions(actor, Mock())
 
         self.assertEqual(actor.properties["health"], 100)
         self.assertNotIn("regenerates", " ".join(messages))
@@ -570,7 +576,7 @@ class TestHealthRegeneration(unittest.TestCase):
             _properties={"health": 50, "regeneration": 5}  # No max_health
         )
 
-        messages = tick_conditions(actor)
+        messages = tick_conditions(actor, Mock())
 
         self.assertEqual(actor.properties["health"], 50)  # No change
         self.assertNotIn("regenerates", " ".join(messages))
@@ -595,7 +601,7 @@ class TestHealthRegeneration(unittest.TestCase):
             "damage_per_turn": 8
         })
 
-        messages = tick_conditions(actor)
+        messages = tick_conditions(actor, Mock())
 
         # Net change: -8 (poison) + 10 (regen) = +2
         self.assertEqual(actor.properties["health"], 102)

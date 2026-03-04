@@ -110,11 +110,17 @@ class TestHandleUse(unittest.TestCase):
         result = handle_use(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.primary.lower())
+        self.assertIn("don't have", result.primary.lower())
 
     def test_use_item_success(self):
         """Test using a usable item."""
         from behavior_libraries.command_lib.item_use import handle_use
+
+        # Key must be in player's inventory for handle_use to find it
+        player = self.game_state.actors["player"]
+        key = next(i for i in self.game_state.items if i.id == "item_key")
+        player.inventory.append(key.id)
+        key.location = None
 
         action = make_action(verb="use", object="key", actor_id="player")
         result = handle_use(self.accessor, action)
@@ -589,6 +595,12 @@ class TestUseWithAdjective(unittest.TestCase):
         )
         self.game_state.items.append(gold_key)
         self.game_state.items.append(silver_key)
+
+        # Keys must be in inventory for handle_use to find them
+        player = self.game_state.actors["player"]
+        player.inventory.extend(["key_gold", "key_silver"])
+        gold_key.location = None
+        silver_key.location = None
 
     def test_use_with_adjective_selects_correct_item(self):
         """Test that use with adjective selects correct item."""

@@ -7,6 +7,13 @@ from src.state_manager import Actor, Item, Location, GameState, Metadata
 from src.state_accessor import StateAccessor
 
 
+def _mock_behavior_manager() -> Mock:
+    """Create a mock behavior_manager that won't cascade through hook invocation."""
+    bm = Mock()
+    bm.get_event_for_hook.return_value = None
+    return bm
+
+
 class TestGetAvailableServices(unittest.TestCase):
     """Test get_available_services function."""
 
@@ -183,7 +190,7 @@ class TestCanAffordService(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, _mock_behavior_manager())
 
         can_afford, reason = can_afford_service(accessor, self.customer, "cure", self.npc)
 
@@ -204,7 +211,7 @@ class TestCanAffordService(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, _mock_behavior_manager())
 
         can_afford, reason = can_afford_service(accessor, self.customer, "cure", self.npc)
 
@@ -235,7 +242,7 @@ class TestCanAffordService(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, _mock_behavior_manager())
 
         can_afford, reason = can_afford_service(accessor, self.customer, "cure", self.npc)
 
@@ -304,7 +311,7 @@ class TestExecuteService(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, _mock_behavior_manager())
 
         result = execute_service(accessor, self.customer, self.npc, "cure", self.gold)
 
@@ -325,7 +332,7 @@ class TestExecuteService(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, _mock_behavior_manager())
 
         result = execute_service(accessor, self.customer, self.npc, "teach_herbalism", self.gold)
 
@@ -346,7 +353,7 @@ class TestExecuteService(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, _mock_behavior_manager())
 
         result = execute_service(accessor, self.customer, self.npc, "heal", self.gold)
 
@@ -369,7 +376,7 @@ class TestExecuteService(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, _mock_behavior_manager())
 
         result = execute_service(accessor, self.customer, self.npc, "heal", self.gold)
 
@@ -390,7 +397,7 @@ class TestExecuteService(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, _mock_behavior_manager())
 
         result = execute_service(accessor, self.customer, self.npc, "heal", self.gold)
 
@@ -420,7 +427,7 @@ class TestExecuteService(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, _mock_behavior_manager())
 
         result = execute_service(accessor, self.customer, self.npc, "heal", herb)
 
@@ -442,7 +449,7 @@ class TestExecuteService(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, _mock_behavior_manager())
 
         result = execute_service(accessor, self.customer, self.npc, "heal", self.gold)
 
@@ -462,7 +469,7 @@ class TestExecuteService(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, _mock_behavior_manager())
 
         result = execute_service(accessor, self.customer, self.npc, "unknown", self.gold)
 
@@ -482,7 +489,7 @@ class TestExecuteService(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, _mock_behavior_manager())
 
         result = execute_service(accessor, self.customer, self.npc, "heal", self.gold)
 

@@ -35,7 +35,7 @@ class TestCrystalBallRevealHiddenItem(unittest.TestCase):
                     description="A crystal ball. Mist swirls within its depths.",
                     location="library",
                     _properties={"magical": True},
-                    behaviors=["examples.extended_game.game_behaviors.crystal_ball"]
+                    behaviors=["game_behaviors.crystal_ball"]
                 ),
                 Item(
                     id="item_sanctum_key",
@@ -199,7 +199,7 @@ class TestCrystalBallInContainers(unittest.TestCase):
                     description="A crystal ball. Mist swirls within its depths.",
                     location="library",
                     _properties={"magical": True, "portable": True},
-                    behaviors=["examples.extended_game.game_behaviors.crystal_ball"]
+                    behaviors=["game_behaviors.crystal_ball"]
                 ),
                 Item(
                     id="item_sanctum_key",
@@ -296,7 +296,7 @@ class TestCrystalBallMissingKey(unittest.TestCase):
                     description="A crystal ball. Mist swirls within its depths.",
                     location="library",
                     _properties={"magical": True},
-                    behaviors=["examples.extended_game.game_behaviors.crystal_ball"]
+                    behaviors=["game_behaviors.crystal_ball"]
                 )
                 # No sanctum key
             ],

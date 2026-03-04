@@ -82,7 +82,7 @@ class TestCommitmentTurnPhase(unittest.TestCase):
                         "deadline_turn": 15,
                         "config_id": "commit_test",
                     },
-                    behaviors=["behaviors.shared.infrastructure.commitments"],
+                    behaviors=["game_behaviors.shared.infrastructure.commitments"],
                 ),
                 Commitment(
                     id=CommitmentId("commit_fulfilled"),
@@ -93,7 +93,7 @@ class TestCommitmentTurnPhase(unittest.TestCase):
                         "made_at_turn": 5,
                         "config_id": "commit_done",
                     },
-                    behaviors=["behaviors.shared.infrastructure.commitments"],
+                    behaviors=["game_behaviors.shared.infrastructure.commitments"],
                 ),
             ],
         )
@@ -208,7 +208,7 @@ class TestScheduledEventTurnPhase(unittest.TestCase):
                         "data": {"message": "Test"},
                         "repeating": False,
                     },
-                    behaviors=["behaviors.shared.infrastructure.scheduled_events"],
+                    behaviors=["game_behaviors.shared.infrastructure.scheduled_events"],
                 ),
                 ScheduledEvent(
                     id=ScheduledEventId("evt_repeating"),
@@ -220,7 +220,7 @@ class TestScheduledEventTurnPhase(unittest.TestCase):
                         "repeating": True,
                         "interval": 5,
                     },
-                    behaviors=["behaviors.shared.infrastructure.scheduled_events"],
+                    behaviors=["game_behaviors.shared.infrastructure.scheduled_events"],
                 ),
             ],
         )
@@ -322,7 +322,7 @@ class TestGossipTurnPhase(unittest.TestCase):
                         "arrives_turn": 17,
                         "gossip_type": "POINT_TO_POINT",
                     },
-                    behaviors=["behaviors.shared.infrastructure.gossip"],
+                    behaviors=["game_behaviors.shared.infrastructure.gossip"],
                 ),
             ],
         )
@@ -425,7 +425,7 @@ class TestSpreadTurnPhase(unittest.TestCase):
                         ],
                         "reached_milestones": [],
                     },
-                    behaviors=["behaviors.shared.infrastructure.spreads"],
+                    behaviors=["game_behaviors.shared.infrastructure.spreads"],
                 ),
             ],
         )

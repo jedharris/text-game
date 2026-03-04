@@ -5,7 +5,14 @@
       "Bash",
       "mcp__claude-context",
       "Gh :*",
-      "Bash(gh :*)"
+      "Bash(gh :*)",
+      "Bash(git checkout --theirs .claude/settings.local.json)",
+      "Bash(git add .claude/settings.local.json)",
+      "mcp__plugin_context-mode_context-mode__execute",
+      "mcp__plugin_context-mode_context-mode__search",
+      "mcp__plugin_context-mode_context-mode__batch_execute",
+      "mcp__plugin_context-mode_context-mode__stats",
+      "mcp__plugin_context-mode_context-mode__execute_file"
     ],
     "deny": [],
     "ask": []

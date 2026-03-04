@@ -8,6 +8,13 @@ from src.state_accessor import StateAccessor
 from src.state_accessor import IGNORE_EVENT
 
 
+def _mock_behavior_manager() -> Mock:
+    """Create a mock behavior_manager that won't cascade through hook invocation."""
+    bm = Mock()
+    bm.get_event_for_hook.return_value = None
+    return bm
+
+
 class TestGetTreatableConditions(unittest.TestCase):
     """Test get_treatable_conditions function."""
 
@@ -145,7 +152,7 @@ class TestTreatCondition(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, _mock_behavior_manager())
 
         result = apply_treatment(accessor, self.antidote, self.actor)
 
@@ -176,7 +183,7 @@ class TestTreatCondition(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, _mock_behavior_manager())
 
         result = apply_treatment(accessor, weak_antidote, self.actor)
 
@@ -201,7 +208,7 @@ class TestTreatCondition(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, _mock_behavior_manager())
 
         result = apply_treatment(accessor, self.antidote, self.actor)
 
@@ -233,7 +240,7 @@ class TestTreatCondition(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, _mock_behavior_manager())
 
         result = apply_treatment(accessor, healing_staff, self.actor)
 
@@ -260,7 +267,7 @@ class TestTreatCondition(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, _mock_behavior_manager())
 
         result = apply_treatment(accessor, self.antidote, self.actor)
 
@@ -298,7 +305,7 @@ class TestTreatCondition(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, _mock_behavior_manager())
 
         # Only treat poison
         result = apply_treatment(accessor, universal_cure, self.actor, "poison")
@@ -339,7 +346,7 @@ class TestTreatCondition(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, _mock_behavior_manager())
 
         result = apply_treatment(accessor, universal_cure, self.actor)
 
@@ -408,7 +415,7 @@ class TestOnReceiveTreatment(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, _mock_behavior_manager())
         context = {"item_id": "item_antifungal"}
 
         result = on_receive_treatment(actor, accessor, context)
@@ -449,7 +456,7 @@ class TestOnReceiveTreatment(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, _mock_behavior_manager())
         context = {"item_id": "item_antidote"}
 
         result = on_receive_treatment(actor, accessor, context)
@@ -491,7 +498,7 @@ class TestOnReceiveTreatment(unittest.TestCase):
             parts=[]
         )
 
-        accessor = StateAccessor(game_state, None)
+        accessor = StateAccessor(game_state, _mock_behavior_manager())
         context = {"item_id": "item_sword"}
 
         result = on_receive_treatment(actor, accessor, context)

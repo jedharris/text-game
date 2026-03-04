@@ -162,6 +162,8 @@ class ScenarioAccessor:
 
     def __init__(self, state: ScenarioState) -> None:
         self.game_state = state
+        self.behavior_manager = MagicMock()
+        self.behavior_manager.get_event_for_hook.return_value = None
 
 
 class ScenarioTestCase(unittest.TestCase):

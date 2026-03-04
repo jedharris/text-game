@@ -15,8 +15,6 @@ from src.word_entry import WordEntry, WordType
 from src.types import ActorId, ItemId, LocationId
 
 
-
-
 # Automatic module cleanup for all test modules
 # This function will be injected into every test module's namespace
 def _cleanup_test_module():
