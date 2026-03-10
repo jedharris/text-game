@@ -1,38 +1,36 @@
-# Delvan Rescue Success Walkthrough
-# Tests: encounter_reactions, condition_reactions (bleeding removal triggers rescue)
+# Delvan Rescue Success + Mira Quest Integration
+# Tests: encounter → commitment → rescue → Mira quest completion → friendly state
 
-# Navigate to Sunken District (flooded_plaza)
-go east
+# Grant swimming skill needed for submerged passages
+@set actors.player.properties.skills = {"basic_swimming": true}
 
-# Navigate south to merchant quarter
+# First activate Mira's quest so rescue triggers quest completion
+@set actors.player.location = "survivor_camp"
+ask mira about help
+@expect "trapped"
+@assert extra.mira_quest_active == true
+
+# Navigate to Sunken District
+@set actors.player.location = "flooded_plaza"
 go south
-
-# Navigate south to merchant warehouse (Delvan's location)
 go south
 
 # Give player bandages for rescue
 @set actors.player.inventory = ["bandages"]
 
 # Encounter Delvan (triggers commitment)
-# This should fire encounter_reactions → on_delvan_encounter
-# Creates commit_delvan_rescue with 10-turn deadline
 look
 @expect "Delvan"
-
-# Verify commitment created
 @assert extra.delvan_commitment_created == true
 
-# Test condition_reactions: Use bandages to stop bleeding
-# Flow: use bandages → remove_condition effect → entity_condition_change hook → on_rescue_success
+# Rescue: bandages remove bleeding → on_rescue_success → Mira quest completes
 use bandages on delvan
 @expect "stop Delvan's bleeding"
 @expect "You came"
 
-# Verify rescue success
+# Verify rescue
 @assert extra.delvan_rescued == true
-# Note: Condition is removed entirely, key no longer exists in dict
 
-# Summary: Delvan rescue mechanics working
-# ✓ encounter_reactions - First encounter creates commitment
-# ✓ condition_reactions - Bleeding removal triggers rescue handler
-# ✓ Rescue flag set correctly
+# Verify Mira quest completed (single rescue → friendly)
+@assert extra.mira_quest_completed == true
+@assert actors.camp_leader_mira.properties.state_machine.current == "friendly"

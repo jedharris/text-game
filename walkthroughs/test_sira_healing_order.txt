@@ -1,0 +1,26 @@
+# Hunter Sira Wrong Healing Order
+# Scenario 5: Heal leg before stopping bleeding
+# Verifies two-step healing works regardless of order
+
+# Navigate to Hunter's Camp
+go south
+go east
+go east
+
+@expect "clock is now ticking"
+
+# Give player healing items
+@set actors.player.inventory = ["healing_herbs", "bandages"]
+
+# Heal leg FIRST (before stopping bleeding)
+use herbs on sira
+@expect "splinted"
+@expect "bleeding must also be stopped"
+@assert extra.sira_leg_healed == true
+
+# Now stop bleeding (completes rescue in reverse order)
+use bandages on sira
+@expect "bleeding stops"
+@expect "saved my life"
+@assert extra.sira_bleeding_stopped == true
+@assert extra.sira_healed == true

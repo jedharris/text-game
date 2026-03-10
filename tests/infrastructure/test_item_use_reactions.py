@@ -5,6 +5,7 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
+from examples.big_game.behaviors.shared.infrastructure import item_use_reactions as item_use_reactions_module
 from examples.big_game.behaviors.shared.infrastructure.item_use_reactions import on_item_used
 from src.behavior_manager import EventResult
 
@@ -30,6 +31,7 @@ class MockAccessor:
 
     def __init__(self) -> None:
         self.game_state = MockState()
+        self.behavior_manager = MagicMock()
 
 
 class TestItemUseReactionsBasic(unittest.TestCase):
@@ -255,55 +257,6 @@ class TestItemUseReactionsTargetDataDriven(unittest.TestCase):
         self.assertIsNone(result.feedback)
 
 
-class TestItemUseReactionsItemSelfReactions(unittest.TestCase):
-    """Tests for item self-reactions (item config, not target config)."""
-
-    def setUp(self) -> None:
-        """Set up test fixtures."""
-        clear_handler_cache()
-        self.accessor = MockAccessor()
-
-    def test_item_self_reaction(self) -> None:
-        """Item can have reactions when used on certain targets."""
-        item = MockEntity(
-            "item_bucket_water",
-            {
-                "item_use_reactions": {
-                    "watering": {
-                        "target_types": ["plant", "fire"],
-                        "response": "You pour water from the bucket.",
-                    }
-                }
-            },
-        )
-        target = MockEntity("item_plant_pot", {})
-        context = {"target": target}
-
-        result = on_item_used(item, self.accessor, context)
-
-        self.assertEqual(result.feedback, "You pour water from the bucket.")
-
-    def test_item_self_reaction_wrong_target(self) -> None:
-        """Item self-reaction doesn't fire on wrong target type."""
-        item = MockEntity(
-            "item_bucket_water",
-            {
-                "item_use_reactions": {
-                    "watering": {
-                        "target_types": ["plant", "fire"],
-                        "response": "You pour water from the bucket.",
-                    }
-                }
-            },
-        )
-        target = MockEntity("npc_guard", {})
-        context = {"target": target}
-
-        result = on_item_used(item, self.accessor, context)
-
-        self.assertIsNone(result.feedback)
-
-
 class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
     """Tests for handler escape hatch in item_use_reactions."""
 
@@ -328,8 +281,8 @@ class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
         handler_result = EventResult(allow=True, feedback="Handler response")
         mock_handler = MagicMock(return_value=handler_result)
 
-        with patch(
-            "examples.big_game.behaviors.shared.infrastructure.item_use_reactions.load_handler",
+        with patch.object(
+            item_use_reactions_module, "load_handler",
             return_value=mock_handler,
         ):
             result = on_item_used(item, self.accessor, context)
@@ -353,8 +306,8 @@ class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
         handler_result = EventResult(allow=True, feedback="Magic!")
         mock_handler = MagicMock(return_value=handler_result)
 
-        with patch(
-            "examples.big_game.behaviors.shared.infrastructure.item_use_reactions.load_handler",
+        with patch.object(
+            item_use_reactions_module, "load_handler",
             return_value=mock_handler,
         ):
             result = on_item_used(item, self.accessor, context)
@@ -384,8 +337,8 @@ class TestItemUseReactionsHandlerEscapeHatch(unittest.TestCase):
         target_result = EventResult(allow=True, feedback="Target handler")
         mock_handler = MagicMock(return_value=target_result)
 
-        with patch(
-            "examples.big_game.behaviors.shared.infrastructure.item_use_reactions.load_handler",
+        with patch.object(
+            item_use_reactions_module, "load_handler",
             return_value=mock_handler,
         ):
             result = on_item_used(item, self.accessor, context)

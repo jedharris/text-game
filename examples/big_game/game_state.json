@@ -18,20 +18,32 @@
       "commit_mira_rescue": {
         "id": "commit_mira_rescue",
         "description": "Rescue trapped survivors from storage district",
-        "deadline_turns": 20,
+        "base_timer": 20,
         "target_actor": "camp_leader_mira"
       },
       "commit_sira_rescue": {
         "id": "commit_sira_rescue",
         "description": "Save Hunter Sira from her injuries",
-        "deadline_turns": 8,
+        "base_timer": 8,
         "target_actor": "hunter_sira"
       },
       "commit_delvan_rescue": {
         "id": "commit_delvan_rescue",
         "description": "Rescue Merchant Delvan from the warehouse",
-        "deadline_turns": 10,
+        "base_timer": 10,
         "target_actor": "merchant_delvan"
+      },
+      "commit_bear_cubs": {
+        "id": "commit_bear_cubs",
+        "description": "Heal the dire bear's sick cubs",
+        "base_timer": 30,
+        "target_actor": "dire_bear"
+      },
+      "commit_garrett_rescue": {
+        "id": "commit_garrett_rescue",
+        "description": "Save Sailor Garrett from drowning",
+        "base_timer": 5,
+        "target_actor": "sailor_garrett"
       }
     },
     "gossip_queue": [],
@@ -47,7 +59,9 @@
       "examples.big_game.behaviors.shared.infrastructure.take_reactions",
       "examples.big_game.behaviors.shared.infrastructure.gossip_delivery",
       "examples.big_game.behaviors.shared.infrastructure.commitments",
-      "examples.big_game.behaviors.shared.infrastructure.condition_reactions"
+      "examples.big_game.behaviors.shared.infrastructure.condition_reactions",
+      "examples.big_game.behaviors.regions.sunken_district.drowning",
+      "examples.big_game.behaviors.shared.infrastructure.turn_environmental"
     ]
   },
   "locations": [
@@ -782,7 +796,13 @@
         "water_level": "chest",
         "breathable": true,
         "lighting": "dim",
-        "region": "sunken_district"
+        "region": "sunken_district",
+        "turn_environmental": {
+          "fish_attack": {
+            "damage": 8,
+            "message": "The predatory fish snap at your legs as you wade through."
+          }
+        }
       },
       "llm_context": {
         "traits": [
@@ -917,7 +937,7 @@
         "breathable": true,
         "sealed_chamber": true,
         "lighting": "glowworm",
-        "requires_advanced_swimming": true,
+        "requires_swimming": true,
         "region": "sunken_district"
       },
       "llm_context": {
@@ -2442,10 +2462,19 @@
       "name": "air bladder",
       "description": "A preserved animal bladder that can hold air for underwater breathing. Three uses remain.",
       "location": "survivor_camp",
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ],
       "properties": {
         "portable": true,
         "breathing_item": true,
-        "uses": 3
+        "uses": 3,
+        "item_use_reactions": {
+          "breathe": {
+            "accepted_items": ["air_bladder"],
+            "handler": "behaviors.regions.sunken_district.drowning:on_breathe"
+          }
+        }
       },
       "llm_context": {
         "traits": [
@@ -3405,7 +3434,7 @@
           ]
         },
         "gift_reactions": {
-          "handler": "examples.big_game.behaviors.regions.beast_wilds.wolf_pack:on_receive_item"
+          "handler": "behaviors.regions.beast_wilds.wolf_pack:on_receive_item"
         },
         "llm_context": {
           "traits": [
@@ -3461,7 +3490,8 @@
         }
       },
       "behaviors": [
-        "behaviors.regions.beast_wilds.wolf_pack"
+        "behaviors.regions.beast_wilds.wolf_pack",
+        "behaviors.shared.infrastructure.gift_reactions"
       ]
     },
     "frost_wolf_1": {
@@ -4628,7 +4658,15 @@
         "commitment_target": true,
         "hunts_player": false,
         "encounter_reactions": {
-          "handler": "examples.big_game.behaviors.regions.beast_wilds.bear_cubs:on_bear_encounter"
+          "handler": "behaviors.regions.beast_wilds.bear_cubs:on_bear_encounter"
+        },
+        "dialog_reactions": {
+          "handler": "behaviors.regions.beast_wilds.bear_cubs:on_bear_commitment"
+        },
+        "commitment_reactions": {
+          "abandoned": {
+            "handler": "behaviors.regions.beast_wilds.bear_cubs:on_cubs_died"
+          }
         },
         "gift_reactions": {
           "healing_herbs": {
@@ -4702,7 +4740,10 @@
         }
       },
       "behaviors": [
-        "behaviors.regions.beast_wilds.bear_cubs"
+        "behaviors.regions.beast_wilds.bear_cubs",
+        "behaviors.shared.infrastructure.encounter_reactions",
+        "behaviors.shared.infrastructure.dialog_reactions",
+        "behaviors.shared.infrastructure.commitment_reactions"
       ]
     },
     "bear_cub_1": {
@@ -4785,7 +4826,9 @@
           }
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     },
     "bear_cub_2": {
       "id": "bear_cub_2",
@@ -4867,7 +4910,9 @@
           }
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     },
     "camp_leader_mira": {
       "id": "camp_leader_mira",
@@ -4940,6 +4985,9 @@
         "commitment_reactions": {
           "abandoned": {
             "handler": "examples.big_game.behaviors.regions.civilized_remnants.mira:on_quest_failed"
+          },
+          "fulfilled": {
+            "handler": "examples.big_game.behaviors.regions.civilized_remnants.mira:on_quest_complete"
           }
         }
       },
@@ -4957,7 +5005,9 @@
       "inventory": [],
       "properties": {
         "teaches": "basic_swimming",
-        "teaching_cost": 5,
+        "dialog_reactions": {
+          "handler": "behaviors.regions.sunken_district.swimming:on_jek_teach"
+        },
         "llm_context": {
           "traits": [
             "ancient weathered face like driftwood",
@@ -4969,7 +5019,9 @@
           ]
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.shared.infrastructure.dialog_reactions"
+      ]
     },
     "sailor_garrett": {
       "id": "sailor_garrett",
@@ -4999,15 +5051,25 @@
         "trigger_type": "on_room_entry",
         "base_timer": 5,
         "hope_extends": false,
+        "encounter_reactions": {
+          "handler": "behaviors.regions.sunken_district.dual_rescue:on_garrett_encounter"
+        },
         "death_reactions": {
-          "handler": "examples.big_game.behaviors.regions.sunken_district.dual_rescue:on_npc_death",
+          "handler": "behaviors.regions.sunken_district.dual_rescue:on_npc_death",
           "set_flags": {
             "garrett_died": true
           }
         },
         "condition_reactions": {
-          "drowning_stopped": {
+          "drowning": {
             "handler": "behaviors.regions.sunken_district.dual_rescue:on_rescue_success"
+          }
+        },
+        "item_use_reactions": {
+          "rescue": {
+            "accepted_items": ["air_bladder"],
+            "remove_condition": "drowning",
+            "response": "You force the air bladder to Garrett's face. He gasps, breathing deeply."
           }
         },
         "llm_context": {
@@ -5055,7 +5117,12 @@
           }
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.shared.infrastructure.encounter_reactions",
+        "behaviors.shared.infrastructure.death_reactions",
+        "behaviors.shared.infrastructure.condition_reactions",
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     },
     "merchant_delvan": {
       "id": "merchant_delvan",
@@ -7550,6 +7617,23 @@
       "traits": {}
     },
     {
+      "id": "exit_tangled_path_northeast",
+      "name": "",
+      "location": "tangled_path",
+      "connections": [
+        "exit_wolf_clearing_southwest"
+      ],
+      "direction": "northeast",
+      "description": "A narrow trail leading to a rocky clearing. Claw marks score the trees - wolf territory.",
+      "adjectives": [],
+      "synonyms": [],
+      "properties": {
+        "type": "open"
+      },
+      "behaviors": [],
+      "traits": {}
+    },
+    {
       "id": "exit_southern_trail_west",
       "name": "",
       "location": "southern_trail",
@@ -7584,13 +7668,13 @@
       "traits": {}
     },
     {
-      "id": "exit_wolf_clearing_west",
+      "id": "exit_wolf_clearing_southwest",
       "name": "",
       "location": "wolf_clearing",
       "connections": [
-        "exit_tangled_path_east"
+        "exit_tangled_path_northeast"
       ],
-      "direction": "west",
+      "direction": "southwest",
       "description": "Undergrowth encroaching on trail, roots and vines creating obstacles.",
       "adjectives": [],
       "synonyms": [],

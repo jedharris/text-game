@@ -74,14 +74,14 @@ def on_spider_respawn_check(
 
     # Respawn spiders
     respawned = 0
-    for i in range(1, 10):  # Support up to spider_9
+    for i in range(1, 3):  # giant_spider_1 and giant_spider_2
         spider_id = f"giant_spider_{i}"
         spider = state.actors.get(spider_id)
         if spider:
             spider_sm = spider.properties.get("state_machine", {})
             if spider_sm.get("current") == "dead":
                 spider_sm["current"] = "hostile"
-                spider.properties["location"] = "spider_thicket"
+                spider.location = "spider_thicket"
                 respawned += 1
                 if living_spiders + respawned >= 2:
                     break
@@ -117,7 +117,7 @@ def on_web_movement(
     destination = context.get("destination")
     dest_id = destination.id if destination and hasattr(destination, "id") else str(destination) if destination else ""
 
-    if "spider_nest" not in dest_id.lower():
+    if dest_id not in ("spider_thicket", "spider_matriarch_lair"):
         return EventResult(allow=True, feedback=None)
 
     state = accessor.game_state

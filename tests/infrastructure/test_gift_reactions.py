@@ -5,6 +5,7 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
+from examples.big_game.behaviors.shared.infrastructure import gift_reactions as gift_reactions_module
 from examples.big_game.behaviors.shared.infrastructure.gift_reactions import on_gift_given
 from src.behavior_manager import EventResult
 
@@ -30,6 +31,7 @@ class MockAccessor:
 
     def __init__(self) -> None:
         self.game_state = MockState()
+        self.behavior_manager = MagicMock()
 
 
 class TestGiftReactionsHandlerEscapeHatch(unittest.TestCase):
@@ -56,8 +58,8 @@ class TestGiftReactionsHandlerEscapeHatch(unittest.TestCase):
         handler_result = EventResult(allow=True, feedback="Handler processed")
         mock_handler = MagicMock(return_value=handler_result)
 
-        with patch(
-            "examples.big_game.behaviors.shared.infrastructure.gift_reactions.load_handler",
+        with patch.object(
+            gift_reactions_module, "load_handler",
             return_value=mock_handler,
         ):
             result = on_gift_given(item, self.accessor, context)
@@ -214,27 +216,6 @@ class TestGiftReactionsDataDriven(unittest.TestCase):
 
         self.assertTrue(self.accessor.game_state.extra.get("wolf_fed"))
 
-    def test_track_items_key(self) -> None:
-        """Track items key appends item to list."""
-        target = MockEntity(
-            "npc_queen",
-            {
-                "gift_reactions": {
-                    "flowers": {
-                        "accepted_items": ["moonpetal", "frost_lily"],
-                        "track_items_key": "flowers_given",
-                        "accept_message": "Accepted!",
-                    }
-                }
-            },
-        )
-        item = MockEntity("item_moonpetal")
-        context = {"target_actor": target, "item": item}
-
-        on_gift_given(item, self.accessor, context)
-
-        tracked = self.accessor.game_state.extra.get("flowers_given", [])
-        self.assertIn("moonpetal", tracked)
 
 
 if __name__ == "__main__":

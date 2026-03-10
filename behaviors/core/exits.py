@@ -309,6 +309,15 @@ def _perform_exit_movement(accessor, actor, actor_id: ActorId, exit_entity, dire
             primary=f"INCONSISTENT STATE: Destination {destination_id} not found"
         )
 
+    # Check skill requirements on destination
+    if destination.properties.get("requires_swimming"):
+        player_skills = actor.properties.get("skills", {})
+        if not player_skills.get("basic_swimming"):
+            return HandlerResult(
+                success=False,
+                primary="The passage is completely submerged. You'll drown without knowing how to swim."
+            )
+
     # Update actor location
     result = accessor.update(actor, {"location": destination_id})
 

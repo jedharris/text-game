@@ -1,53 +1,32 @@
-"""Tests for Beast Wilds region behaviors."""
-from src.types import ActorId
+"""Tests for Beast Wilds region behaviors using real game state.
+
+Tests load big_game via GameEngine to use actual actor IDs, state machines,
+and property structures. Each test gets a fresh engine instance.
+"""
 
 import unittest
+from pathlib import Path
 from typing import Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
-from examples.big_game.behaviors.regions.beast_wilds.wolf_pack import on_receive_item as on_wolf_feed
-from examples.big_game.behaviors.regions.beast_wilds.sira_rescue import (
-    on_sira_death,
-    on_sira_encounter,
-    on_sira_healed,
-)
-from examples.big_game.behaviors.regions.beast_wilds.bear_cubs import (
-    on_bear_commitment,
-    on_cubs_died,
-    on_cubs_healed,
-)
-from examples.big_game.behaviors.regions.beast_wilds.bee_queen import on_receive_item as on_flower_offer, on_honey_theft
+from tests.conftest import BaseTestCase
+from src.game_engine import GameEngine
+from src.state_accessor import StateAccessor
+from src.infrastructure_utils import get_current_state, transition_state
+
+GAME_DIR = (Path(__file__).parent.parent.parent.parent / 'examples' / 'big_game').resolve()
 
 
-class MockActor:
-    """Mock actor for testing."""
+class BeastWildsTestCase(BaseTestCase):
+    """Base class for beast wilds tests with real game state."""
 
-    def __init__(self, actor_id: str, properties: dict | None = None) -> None:
-        self.id = actor_id
-        self.properties: dict = properties or {}
-
-
-class MockItem:
-    """Mock item for testing."""
-
-    def __init__(self, item_id: str) -> None:
-        self.id = item_id
-
-
-class MockState:
-    """Mock game state for testing."""
-
-    def __init__(self) -> None:
-        self.extra: dict = {}
-        self.actors: dict = {}
-        self.locations: list = []
-
-
-class MockAccessor:
-    """Mock state accessor for testing."""
-
-    def __init__(self, state: MockState) -> None:
-        self.game_state = state
+    def setUp(self):
+        self.engine = GameEngine(GAME_DIR)
+        self.state = self.engine.game_state
+        self.accessor = StateAccessor(
+            self.state,
+            self.engine.behavior_manager
+        )
 
 
 # =============================================================================
@@ -55,69 +34,66 @@ class MockAccessor:
 # =============================================================================
 
 
-class TestWolfFeed(unittest.TestCase):
+class TestWolfFeed(BeastWildsTestCase):
     """Tests for wolf feeding mechanics."""
+
+    def setUp(self):
+        super().setUp()
+        from examples.big_game.behaviors.regions.beast_wilds.wolf_pack import on_receive_item
+        self.on_wolf_feed = on_receive_item
+        self.alpha = self.state.actors.get("alpha_wolf")
+        # Reset trust to 0 for clean test
+        self.alpha.properties["trust_state"]["current"] = 0
+        # Ensure state machine has current state
+        sm = self.alpha.properties["state_machine"]
+        sm["current"] = sm.get("current", sm["initial"])
+
+    def _feed_wolf(self):
+        """Feed venison to the alpha wolf.
+
+        on_receive_item is invoked via invoke_behavior(recipient, ...),
+        so entity is the wolf (recipient), not the item.
+        """
+        venison = None
+        for item in self.state.items:
+            if item.id == "venison":
+                venison = item
+                break
+        self.assertIsNotNone(venison, "venison item should exist in game state")
+        context = {"item": venison, "item_id": venison.id, "giver_id": "player"}
+        return self.on_wolf_feed(self.alpha, self.accessor, context)
 
     def test_feeding_wolf_increases_trust(self) -> None:
         """Feeding the alpha wolf increases trust."""
-        state = MockState()
-        alpha = MockActor(
-            "npc_alpha_wolf",
-            {
-                "trust_state": {"current": 0, "floor": -3, "ceiling": 6},
-                "state_machine": {"states": ["hostile", "wary"], "initial": "hostile"},
-            },
-        )
-        state.actors[ActorId("npc_alpha_wolf")] = alpha
-        accessor = MockAccessor(state)
-
-        item = MockItem("item_venison")
-        target = MockActor("npc_alpha_wolf", {})
-        context = {"target_actor": target, "item": item}
-
-        result = on_wolf_feed(item, accessor, context)
+        result = self._feed_wolf()
 
         self.assertTrue(result.allow)
-        self.assertEqual(alpha.properties["trust_state"]["current"], 1)
+        self.assertEqual(self.alpha.properties["trust_state"]["current"], 1)
 
     def test_feeding_non_wolf_does_nothing(self) -> None:
         """Feeding non-wolf actor has no effect."""
-        state = MockState()
-        accessor = MockAccessor(state)
+        sira = self.state.actors.get("hunter_sira")
+        venison = None
+        for item in self.state.items:
+            if item.id == "venison":
+                venison = item
+                break
+        context = {"item": venison, "item_id": venison.id, "giver_id": "player"}
 
-        item = MockItem("item_venison")
-        target = MockActor("npc_sira", {})
-        context = {"target_actor": target, "item": item}
-
-        result = on_wolf_feed(item, accessor, context)
+        result = self.on_wolf_feed(sira, self.accessor, context)
 
         self.assertTrue(result.allow)
         self.assertIsNone(result.feedback)
 
     def test_feeding_hostile_wolf_transitions_to_wary(self) -> None:
         """First feeding transitions hostile wolf to wary."""
-        state = MockState()
-        alpha = MockActor(
-            "npc_alpha_wolf",
-            {
-                "trust_state": {"current": 0, "floor": -3, "ceiling": 6},
-                "state_machine": {
-                    "states": ["hostile", "wary", "neutral", "friendly"],
-                    "initial": "hostile",
-                },
-            },
-        )
-        state.actors[ActorId("npc_alpha_wolf")] = alpha
-        accessor = MockAccessor(state)
+        sm = self.alpha.properties["state_machine"]
+        sm["current"] = "hostile"
 
-        item = MockItem("item_venison")
-        target = alpha
-        context = {"target_actor": target, "item": item}
+        result = self._feed_wolf()
 
-        on_wolf_feed(item, accessor, context)
-
-        self.assertEqual(alpha.properties["trust_state"]["current"], 1)
-        self.assertEqual(alpha.properties["state_machine"]["current"], "wary")
+        self.assertEqual(self.alpha.properties["trust_state"]["current"], 1)
+        self.assertEqual(sm["current"], "wary")
 
 
 # =============================================================================
@@ -125,67 +101,56 @@ class TestWolfFeed(unittest.TestCase):
 # =============================================================================
 
 
-class TestSiraEncounter(unittest.TestCase):
+class TestSiraEncounter(BeastWildsTestCase):
     """Tests for Sira first encounter mechanics."""
+
+    def setUp(self):
+        super().setUp()
+        from examples.big_game.behaviors.regions.beast_wilds.sira_rescue import (
+            on_sira_encounter,
+            on_sira_death,
+        )
+        self.on_sira_encounter = on_sira_encounter
+        self.on_sira_death = on_sira_death
+        self.sira = self.state.actors.get("hunter_sira")
 
     def test_first_encounter_creates_commitment(self) -> None:
         """First encounter with Sira creates rescue commitment."""
-        state = MockState()
-        state.extra["turn_count"] = 5
-        # Setup commitment config (normally in game_state.json)
-        state.extra["commitment_configs"] = {
-            "commit_sira_rescue": {
-                "id": "commit_sira_rescue",
-                "target_npc": "npc_hunter_sira",
-                "goal": "Stop Sira's bleeding and heal her leg",
-                "base_timer": 8,
-                "hope_bonus": 4,
-            }
-        }
-        state.extra["active_commitments"] = []
-        accessor = MockAccessor(state)
-
-        sira = MockActor("npc_hunter_sira", {})
         context: dict[str, Any] = {}
 
-        result = on_sira_encounter(sira, accessor, context)
+        result = self.on_sira_encounter(self.sira, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertTrue(state.extra.get("sira_commitment_created"))
+        self.assertTrue(self.state.extra.get("sira_commitment_created"))
         self.assertIsNotNone(result.feedback)
 
     def test_second_encounter_does_not_duplicate(self) -> None:
         """Second encounter doesn't create duplicate commitment."""
-        state = MockState()
-        state.extra["sira_commitment_created"] = True
-        accessor = MockAccessor(state)
-
-        sira = MockActor("npc_hunter_sira", {})
+        self.state.extra["sira_commitment_created"] = True
         context: dict[str, Any] = {}
 
-        result = on_sira_encounter(sira, accessor, context)
+        result = self.on_sira_encounter(self.sira, self.accessor, context)
 
         self.assertTrue(result.allow)
         self.assertIsNone(result.feedback)
 
 
-class TestSiraDeath(unittest.TestCase):
+class TestSiraDeath(BeastWildsTestCase):
     """Tests for Sira death mechanics."""
 
     def test_sira_death_creates_gossip(self) -> None:
-        """Sira's death creates gossip to Elara."""
-        state = MockState()
-        state.extra["turn_count"] = 10
-        state.extra["sira_commitment_created"] = True
-        accessor = MockAccessor(state)
+        """Sira's death creates gossip when commitment exists."""
+        from examples.big_game.behaviors.regions.beast_wilds.sira_rescue import on_sira_death
 
-        sira = MockActor("npc_hunter_sira", {})
+        sira = self.state.actors.get("hunter_sira")
+        self.state.extra["turn_count"] = 10
+        self.state.extra["sira_commitment_created"] = True
         context: dict[str, Any] = {}
 
-        result = on_sira_death(sira, accessor, context)
+        result = on_sira_death(sira, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertTrue(state.extra.get("sira_died_with_player"))
+        self.assertTrue(self.state.extra.get("sira_died_with_player"))
         self.assertIsNotNone(result.feedback)
 
 
@@ -194,110 +159,97 @@ class TestSiraDeath(unittest.TestCase):
 # =============================================================================
 
 
-class TestBearCommitment(unittest.TestCase):
+class TestBearCommitment(BeastWildsTestCase):
     """Tests for bear cubs commitment mechanics."""
+
+    def setUp(self):
+        super().setUp()
+        from examples.big_game.behaviors.regions.beast_wilds.bear_cubs import on_bear_commitment
+        self.on_bear_commitment = on_bear_commitment
+        self.bear = self.state.actors.get("dire_bear")
+        # Add commitment config if not present (handler expects it)
+        if "commitment_configs" not in self.state.extra:
+            self.state.extra["commitment_configs"] = {}
+        if "commit_bear_cubs" not in self.state.extra["commitment_configs"]:
+            self.state.extra["commitment_configs"]["commit_bear_cubs"] = {
+                "id": "commit_bear_cubs",
+                "target_npc": "dire_bear",
+                "goal": "Give healing_herbs to bear cubs",
+                "deadline_turns": 30,
+            }
+        if "active_commitments" not in self.state.extra:
+            self.state.extra["active_commitments"] = []
 
     def test_commitment_keywords_create_commitment(self) -> None:
         """Commitment keywords create the cubs commitment."""
-        state = MockState()
-        state.extra["turn_count"] = 0
-        # Setup commitment config (normally in game_state.json)
-        state.extra["commitment_configs"] = {
-            "commit_bear_cubs": {
-                "id": "commit_bear_cubs",
-                "target_npc": "npc_dire_bear",
-                "goal": "Give healing_herbs to bear cubs",
-                "base_timer": 30,
-                "hope_bonus": 5,
-            }
-        }
-        state.extra["active_commitments"] = []
-        accessor = MockAccessor(state)
-
-        bear = MockActor("npc_dire_bear", {})
-        state.actors[ActorId("npc_dire_bear")] = bear
         context = {"keyword": "I'll find medicine for them"}
 
-        result = on_bear_commitment(bear, accessor, context)
+        result = self.on_bear_commitment(self.bear, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertTrue(state.extra.get("bear_cubs_commitment_created"))
+        self.assertTrue(self.state.extra.get("bear_cubs_commitment_created"))
 
     def test_non_commitment_keyword_ignored(self) -> None:
         """Non-commitment keywords don't create commitment."""
-        state = MockState()
-        accessor = MockAccessor(state)
-
-        bear = MockActor("npc_dire_bear", {})
         context = {"keyword": "hello there"}
 
-        result = on_bear_commitment(bear, accessor, context)
+        result = self.on_bear_commitment(self.bear, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertFalse(state.extra.get("bear_cubs_commitment_created", False))
+        self.assertFalse(self.state.extra.get("bear_cubs_commitment_created", False))
 
 
-class TestCubsHealed(unittest.TestCase):
+class TestCubsHealed(BeastWildsTestCase):
     """Tests for cubs healing mechanics."""
 
     def test_healing_herbs_heals_cubs(self) -> None:
         """Using healing herbs on cubs heals them."""
-        state = MockState()
-        bear = MockActor(
-            "npc_dire_bear",
-            {
-                "state_machine": {"states": ["hostile", "grateful"], "initial": "hostile"},
-                "trust_state": {"current": 0, "floor": -5, "ceiling": 5},
-            },
-        )
-        cub1 = MockActor("npc_bear_cub_1", {"sick": True})
-        cub2 = MockActor("npc_bear_cub_2", {"sick": True})
-        state.actors[ActorId("npc_dire_bear")] = bear
-        state.actors[ActorId("npc_bear_cub_1")] = cub1
-        state.actors[ActorId("npc_bear_cub_2")] = cub2
-        accessor = MockAccessor(state)
+        from examples.big_game.behaviors.regions.beast_wilds.bear_cubs import on_cubs_healed
 
-        item = MockItem("item_healing_herbs")
+        bear = self.state.actors.get("dire_bear")
+        cub1 = self.state.actors.get("bear_cub_1")
+        self.assertIsNotNone(cub1, "bear_cub_1 should exist in game state")
+
+        # Find healing herbs
+        herbs = None
+        for item in self.state.items:
+            if item.id == "healing_herbs":
+                herbs = item
+                break
+        self.assertIsNotNone(herbs, "healing_herbs should exist in game state")
+
         context = {"target": cub1}
-
-        result = on_cubs_healed(item, accessor, context)
+        result = on_cubs_healed(herbs, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertTrue(state.extra.get("cubs_healed"))
-        self.assertEqual(bear.properties["state_machine"]["current"], "grateful")
+        self.assertTrue(self.state.extra.get("cubs_healed"))
+        # Bear should transition to grateful
+        sm = bear.properties.get("state_machine", {})
+        current = sm.get("current", sm.get("initial"))
+        self.assertEqual(current, "grateful")
         self.assertFalse(cub1.properties.get("sick", True))
 
 
-class TestCubsDied(unittest.TestCase):
+class TestCubsDied(BeastWildsTestCase):
     """Tests for cubs death mechanics."""
 
     def test_cubs_death_makes_bear_vengeful(self) -> None:
         """Cubs dying makes bear vengeful."""
-        state = MockState()
-        bear = MockActor(
-            "npc_dire_bear",
-            {
-                "state_machine": {
-                    "states": ["hostile", "vengeful"],
-                    "initial": "hostile",
-                },
-                "trust_state": {"current": 0, "floor": -5, "ceiling": 5},
-            },
-        )
-        cub1 = MockActor("npc_bear_cub_1", {})
-        cub2 = MockActor("npc_bear_cub_2", {})
-        state.actors[ActorId("npc_dire_bear")] = bear
-        state.actors[ActorId("npc_bear_cub_1")] = cub1
-        state.actors[ActorId("npc_bear_cub_2")] = cub2
-        accessor = MockAccessor(state)
+        from examples.big_game.behaviors.regions.beast_wilds.bear_cubs import on_cubs_died
+
+        bear = self.state.actors.get("dire_bear")
+        cub1 = self.state.actors.get("bear_cub_1")
+        self.assertIsNotNone(cub1)
 
         entity = MagicMock()
         context = {"commitment_id": "commit_bear_cubs"}
 
-        result = on_cubs_died(entity, accessor, context)
+        result = on_cubs_died(entity, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertEqual(bear.properties["state_machine"]["current"], "vengeful")
+        sm = bear.properties.get("state_machine", {})
+        current = sm.get("current", sm.get("initial"))
+        self.assertEqual(current, "vengeful")
         self.assertTrue(bear.properties.get("hunts_player"))
         self.assertTrue(cub1.properties.get("dead"))
 
@@ -307,129 +259,103 @@ class TestCubsDied(unittest.TestCase):
 # =============================================================================
 
 
-class TestFlowerOffer(unittest.TestCase):
+class TestFlowerOffer(BeastWildsTestCase):
     """Tests for bee queen flower trade mechanics."""
+
+    def setUp(self):
+        super().setUp()
+        from examples.big_game.behaviors.regions.beast_wilds.bee_queen import (
+            on_receive_item as on_flower_offer,
+        )
+        self.on_flower_offer = on_flower_offer
+        self.queen = self.state.actors.get("bee_queen")
+        # Set queen to neutral for trading tests
+        sm = self.queen.properties["state_machine"]
+        sm["current"] = "neutral"
+
+    def _find_item(self, item_id: str):
+        for item in self.state.items:
+            if item.id == item_id:
+                return item
+        self.fail(f"Item {item_id} not found in game state")
 
     def test_valid_flower_accepted(self) -> None:
         """Valid flower type is accepted by queen."""
-        state = MockState()
-        queen = MockActor(
-            "bee_queen",
-            {
-                "state_machine": {
-                    "states": ["neutral", "trading", "allied"],
-                    "initial": "neutral",
-                },
-                "trust_state": {"current": 0},
-            },
-        )
-        state.actors[ActorId("bee_queen")] = queen
-        accessor = MockAccessor(state)
+        moonpetal = self._find_item("moonpetal")
+        context = {"item": moonpetal, "item_id": moonpetal.id, "giver_id": "player"}
 
-        item = MockItem("item_moonpetal")
-        target = queen
-        context = {"target_actor": target, "item": item}
-
-        result = on_flower_offer(item, accessor, context)
+        result = self.on_flower_offer(self.queen, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertIn("moonpetal", state.extra.get("bee_queen_flowers_traded", []))
-        self.assertEqual(queen.properties["state_machine"]["current"], "trading")
+        self.assertIn("moonpetal", self.state.extra.get("bee_queen_flowers_traded", []))
+        sm = self.queen.properties["state_machine"]
+        self.assertEqual(sm["current"], "trading")
 
     def test_invalid_item_rejected(self) -> None:
         """Non-flower items are rejected."""
-        state = MockState()
-        queen = MockActor("bee_queen", {})
-        state.actors[ActorId("bee_queen")] = queen
-        accessor = MockAccessor(state)
+        venison = self._find_item("venison")
+        context = {"item": venison, "item_id": venison.id, "giver_id": "player"}
 
-        item = MockItem("item_rock")
-        context = {"target_actor": queen, "item": item}
-
-        result = on_flower_offer(item, accessor, context)
+        result = self.on_flower_offer(self.queen, self.accessor, context)
 
         self.assertTrue(result.allow)
         self.assertIn("not what she seeks", result.feedback or "")
 
     def test_three_flowers_unlock_allied(self) -> None:
         """Trading three unique flowers unlocks allied state."""
-        state = MockState()
-        state.extra["bee_queen_flowers_traded"] = ["moonpetal", "frost_lily"]
-        queen = MockActor(
-            "bee_queen",
-            {
-                "state_machine": {
-                    "states": ["neutral", "trading", "allied"],
-                    "initial": "neutral",
-                    "current": "trading",
-                },
-                "trust_state": {"current": 2},
-            },
-        )
-        state.actors[ActorId("bee_queen")] = queen
-        accessor = MockAccessor(state)
+        self.state.extra["bee_queen_flowers_traded"] = ["moonpetal", "frost_lily"]
+        sm = self.queen.properties["state_machine"]
+        sm["current"] = "trading"
+        self.queen.properties["trust_state"]["current"] = 2
 
-        item = MockItem("item_water_bloom")
-        context = {"target_actor": queen, "item": item}
+        water_bloom = self._find_item("water_bloom")
+        context = {"item": water_bloom, "item_id": water_bloom.id, "giver_id": "player"}
 
-        result = on_flower_offer(item, accessor, context)
+        result = self.on_flower_offer(self.queen, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertEqual(queen.properties["state_machine"]["current"], "allied")
+        self.assertEqual(sm["current"], "allied")
 
 
-class TestHoneyTheft(unittest.TestCase):
+class TestHoneyTheft(BeastWildsTestCase):
     """Tests for honey theft mechanics."""
+
+    def setUp(self):
+        super().setUp()
+        from examples.big_game.behaviors.regions.beast_wilds.bee_queen import on_honey_theft
+        self.on_honey_theft = on_honey_theft
+        self.queen = self.state.actors.get("bee_queen")
+
+    def _find_honey(self):
+        for item in self.state.items:
+            if item.id == "royal_honey":
+                return item
+        self.fail("royal_honey not found in game state")
 
     def test_theft_makes_queen_hostile(self) -> None:
         """Taking honey without permission makes queen hostile."""
-        state = MockState()
-        queen = MockActor(
-            "bee_queen",
-            {
-                "state_machine": {
-                    "states": ["neutral", "hostile"],
-                    "initial": "neutral",
-                },
-            },
-        )
-        state.actors[ActorId("bee_queen")] = queen
-        accessor = MockAccessor(state)
+        sm = self.queen.properties["state_machine"]
+        sm["current"] = "neutral"
+        honey = self._find_honey()
+        context = {"location": MagicMock()}
 
-        item = MockItem("item_royal_honey")
-        location = MockActor("loc_beehive_grove", {})  # Using MockActor for location
-        context = {"location": location}
-
-        result = on_honey_theft(item, accessor, context)
+        result = self.on_honey_theft(honey, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertEqual(queen.properties["state_machine"]["current"], "hostile")
-        self.assertTrue(state.extra.get("bee_trade_destroyed"))
+        self.assertEqual(sm["current"], "hostile")
+        self.assertTrue(self.state.extra.get("bee_trade_destroyed"))
 
     def test_allied_queen_allows_honey(self) -> None:
         """Allied queen allows taking honey."""
-        state = MockState()
-        queen = MockActor(
-            "bee_queen",
-            {
-                "state_machine": {
-                    "states": ["neutral", "allied"],
-                    "initial": "neutral",
-                    "current": "allied",
-                },
-            },
-        )
-        state.actors[ActorId("bee_queen")] = queen
-        accessor = MockAccessor(state)
+        sm = self.queen.properties["state_machine"]
+        sm["current"] = "allied"
+        honey = self._find_honey()
+        context = {"location": MagicMock()}
 
-        item = MockItem("item_royal_honey")
-        location = MockActor("loc_beehive_grove", {})
-        context = {"location": location}
-
-        result = on_honey_theft(item, accessor, context)
+        result = self.on_honey_theft(honey, self.accessor, context)
 
         self.assertTrue(result.allow)
-        self.assertFalse(state.extra.get("bee_trade_destroyed", False))
+        self.assertFalse(self.state.extra.get("bee_trade_destroyed", False))
 
 
 if __name__ == "__main__":

@@ -97,11 +97,10 @@
   - Confession mechanics in services.py
 
 ## Walkthrough Files
-- `test_sira_death.txt` (scenarios 2, 7) - ✅ EXISTS, PASSING (death + gossip)
-- `test_sira_rescue.txt` (scenario 1) - ✅ EXISTS, PASSING (success path)
-- `test_sira_rescue_success.txt` (scenario 1) - ✅ EXISTS, PASSING (alternate success)
-- `test_sira_partial_bleeding.txt` (scenario 4) - NEEDS CREATION (partial healing edge case)
-- `test_sira_healing_order.txt` (scenario 5) - NEEDS CREATION (wrong order edge case)
+- `test_sira_rescue.txt` (scenario 1) - ✅ PASSING (full success path with assertions)
+- `test_sira_death.txt` (scenarios 2) - ✅ PASSING (death + gossip)
+- `test_sira_partial_healing.txt` (scenario 4) - ✅ PASSING (bleeding stopped, leg not healed)
+- `test_sira_healing_order.txt` (scenario 5) - ✅ PASSING (leg first, then bleeding — both orders work)
 
 ## Implementation Status
 - [x] Encounter creates commitment (sira_rescue.py:28-77)
@@ -114,7 +113,9 @@
 - [x] item_use_reactions → remove_condition → entity_condition_change → condition_reactions flow working
 - [x] Success walkthrough created and passing (test_sira_rescue.txt)
 - [x] Death + gossip walkthrough passing (test_sira_death.txt)
-- [ ] Partial healing walkthroughs (edge cases not critical for template)
+- [x] Partial healing walkthrough (test_sira_partial_healing.txt)
+- [x] Reverse healing order walkthrough (test_sira_healing_order.txt)
+- [x] Bug fix: bleeding handler now checks for leg completion (both orders work)
 
 ## Reference Implementation
 

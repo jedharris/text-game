@@ -1,0 +1,42 @@
+# Delvan vs Garrett: Impossible Choice
+# Tests: Dual rescue mechanic - save Delvan, Garrett dies
+# Note: Garrett rescue uses @set because item_use_reactions not yet wired (#388)
+
+# Grant swimming skill for submerged passages
+@set actors.player.properties.skills = {"basic_swimming": true}
+
+# Activate Mira quest first
+@set actors.player.location = "survivor_camp"
+ask mira about help
+@expect "trapped"
+@assert extra.mira_quest_active == true
+
+# Navigate to Delvan
+@set actors.player.location = "flooded_plaza"
+go south
+go south
+
+# Encounter Delvan (starts 10-turn commitment)
+look
+@expect "Delvan"
+@assert extra.delvan_commitment_created == true
+
+# Give player bandages and rescue Delvan
+@set actors.player.inventory = ["bandages"]
+use bandages on delvan
+@expect "stop Delvan's bleeding"
+@assert extra.delvan_rescued == true
+
+# Mira quest completes with single rescue → friendly
+@assert extra.mira_quest_completed == true
+@assert actors.camp_leader_mira.properties.state_machine.current == "friendly"
+
+# Simulate Garrett's death (timer expired while rescuing Delvan)
+# Garrett's item_use_reactions not wired yet (#388)
+@set extra.garrett_died = true
+
+# Verify the choice outcome
+@assert extra.delvan_rescued == true
+@assert extra.garrett_died == true
+# Mira stays friendly (not allied) because only one rescued
+@assert actors.camp_leader_mira.properties.state_machine.current == "friendly"

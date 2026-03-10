@@ -1,5 +1,5 @@
 # Wolf Pack Feeding System Test
-# Tests giving venison to alpha wolf to build trust
+# Tests: giving venison to alpha wolf builds trust
 
 # Navigate to forest edge where venison is
 go south
@@ -7,13 +7,15 @@ go south
 # Take venison
 take venison
 
-# Navigate to wolf clearing
+# Navigate to wolf clearing: south to tangled_path, northeast to wolf_clearing
 go south
-go east
+go northeast
 
-# Give venison to alpha wolf - should get reaction and trust +1
-give venison to alpha wolf
+# Verify we're at wolf clearing with the pack
+look
+@expect "Wolf"
 
-# SUCCESS: Wolf feeding system validated!
-# Note: Full companion activation requires 5 feedings (trust 0→5 for allied state)
-# This test validates the feeding mechanism is working
+# Give venison to alpha wolf - handler responds
+# Trust starts at -2, +1 = -1 (no state change yet, need more feedings)
+give venison to wolf
+@expect "wolf accepts the venison"

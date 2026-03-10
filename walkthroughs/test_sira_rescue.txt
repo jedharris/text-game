@@ -1,41 +1,41 @@
 # Hunter Sira Rescue Walkthrough
 # Tests: encounter_reactions, item_use_reactions, condition_reactions, dialog_reactions
+# Covers scenario 1 from npc_hunter_sira.md: Encounter + Quick Rescue
 
 # Navigate to Hunter's Camp (Beast Wilds)
 go south
 go east
 go east
 
-# Test encounter_reactions: First look triggers encounter with Sira
-look
+# Encounter triggers automatically on entering Hunter's Camp
 @expect "Sira"
-# Note: encounter_reactions handler not yet implemented for Sira
+@expect "clock is now ticking"
+
+# Verify commitment created
+@assert extra.sira_commitment_created == true
+@assert extra.sira_first_encounter_turn != null
 
 # Give player healing items
 @set actors.player.inventory = ["bandages", "healing_herbs"]
 
-# Test item_use_reactions + condition_reactions: Use bandages to stop bleeding
+# Use bandages to stop bleeding
 use bandages on sira
 @expect "bleeding slows, then stops"
-# Condition removed successfully (checked by absence of key)
+@assert extra.sira_bleeding_stopped == true
 
-# Test item_use_reactions + condition_reactions: Use herbs to heal leg
+# Use herbs to heal leg (bleeding already stopped, so this completes rescue)
 @set actors.player.inventory = ["healing_herbs"]
 use herbs on sira
 @expect "set and splint the broken leg"
-# Condition removed successfully (checked by absence of key)
+@expect "saved my life"
+@assert extra.sira_leg_healed == true
+@assert extra.sira_healed == true
 
-# Test dialog_reactions: Ask Sira about help
+# No death gossip generated (sira_died_with_player key absent from extra)
+
+# Dialog still works after rescue
 ask sira about help
 @expect "Elara"
 
-# Test dialog_reactions: Ask about wolves
 ask sira about wolves
 @expect "pack"
-
-# Summary: All reaction types tested successfully
-# encounter_reactions - Tested separately (on_sira_encounter exists but not triggered by look)
-# item_use_reactions ✓ - Bandages and herbs removed conditions correctly
-# condition_reactions ✓ - Handlers fire and set extra flags (feedback doesn't appear due to architecture)
-# dialog_reactions ✓ - Asked about help and wolves
-# death_reactions - Tested separately in test_sira_death.txt

@@ -1,17 +1,17 @@
 """Turn Environmental Reaction Infrastructure.
 
-Handles per-turn environmental effects (cold, spores, water, etc.).
+Handles per-turn environmental effects (cold, spores, predatory fish, etc.).
+Checks the player's current location each turn for turn_environmental config.
 
 Supports two modes:
-1. Data-driven: Location properties define environmental conditions
+1. Data-driven: Location properties define environmental effects
 2. Handler escape hatch: Location properties specify a Python function to call
 
-Example data-driven config:
+Example data-driven config (on a location):
     "turn_environmental": {
-        "cold_damage": {
-            "condition_check": "cold",
-            "damage": 5,
-            "message": "The freezing air saps your strength."
+        "fish_attack": {
+            "damage": 8,
+            "message": "The predatory fish snap at your legs."
         }
     }
 
@@ -23,8 +23,6 @@ Example handler escape hatch:
 
 from typing import Any
 
-from behaviors.shared.infrastructure.reaction_interpreter import process_reaction
-from behaviors.shared.infrastructure.reaction_specs import TURN_ENV_SPEC
 from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import load_handler
 from src.behavior_manager import EventResult
 
@@ -33,53 +31,94 @@ vocabulary = {
         {
             "hook_id": "turn_environmental",
             "invocation": "turn_phase",
-            "description": "Called each turn for environmental effects"
+            "description": "Called each turn for location-based environmental effects"
         }
     ],
     "events": [
         {
             "event": "on_turn_environmental",
             "hook": "turn_environmental",
-            "description": "Handle per-turn environmental effects"
+            "description": "Handle per-turn environmental effects at player's location"
         }
     ]
 }
 
 
 def on_turn_environmental(
-    entity: Any,
+    entity: None,
     accessor: Any,
     context: dict[str, Any],
 ) -> EventResult:
-    """Handle per-turn environmental effects.
+    """Handle per-turn environmental effects at player's current location.
 
-    Checks location for turn_environmental configuration.
-    If config has "handler" key, calls that Python function.
-    Otherwise, processes the data-driven config using unified interpreter.
+    Looks up the player's location, checks for turn_environmental config,
+    and applies effects (damage, messages).
 
     Args:
-        entity: The location with environmental effects
+        entity: None (turn phase hook)
         accessor: StateAccessor instance
         context: Context with actor_id, turn info
 
     Returns:
         EventResult with environmental effect messages
     """
-    if not hasattr(entity, "properties"):
+    state = accessor.game_state
+    player = state.actors.get("player")
+    if not player:
+        return EventResult(allow=True, feedback=None)
+
+    # Find player's current location
+    location = next(
+        (loc for loc in state.locations if loc.id == player.location), None
+    )
+    if not location:
         return EventResult(allow=True, feedback=None)
 
     # Check for turn_environmental configuration
-    env_config = entity.properties.get("turn_environmental", {})
+    env_config = location.properties.get("turn_environmental")
     if not env_config:
         return EventResult(allow=True, feedback=None)
 
-    # Check for handler escape hatch first
+    # Check for top-level handler escape hatch
     handler_path = env_config.get("handler")
     if handler_path:
         handler = load_handler(handler_path)
         if handler:
-            return handler(entity, accessor, context)
-        # Handler failed to load - fall through to data-driven
+            return handler(location, accessor, context)
 
-    # Use unified interpreter for data-driven processing
-    return process_reaction(entity, env_config, accessor, context, TURN_ENV_SPEC)
+    # Process each named environmental effect
+    messages = []
+    for effect_name, effect_config in env_config.items():
+        if effect_name == "handler":
+            continue
+        if not isinstance(effect_config, dict):
+            continue
+
+        # Per-effect handler escape hatch
+        effect_handler_path = effect_config.get("handler")
+        if effect_handler_path:
+            handler = load_handler(effect_handler_path)
+            if handler:
+                result = handler(location, accessor, context)
+                if result and result.feedback:
+                    messages.append(result.feedback)
+                continue
+
+        # Data-driven: apply damage and collect message
+        damage = effect_config.get("damage", 0)
+        message = effect_config.get("message", "")
+
+        if damage > 0:
+            health = player.properties.get("health", 100)
+            player.properties["health"] = max(0, health - damage)
+            if message:
+                messages.append(f"{message} [{damage} damage]")
+            else:
+                messages.append(f"The environment damages you. [{damage} damage]")
+        elif message:
+            messages.append(message)
+
+    if messages:
+        return EventResult(allow=True, feedback="\n".join(messages))
+
+    return EventResult(allow=True, feedback=None)

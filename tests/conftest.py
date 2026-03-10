@@ -37,6 +37,7 @@ def _cleanup_test_module():
 
 
 # Hook into unittest's module loading to inject tearDownModule
+# (Retained for running tests via unittest directly; pytest uses the fixture below)
 _original_load_tests_from_module = unittest.TestLoader.loadTestsFromModule
 
 def _patched_load_tests_from_module(self, module, *args, **kwargs):
@@ -50,6 +51,28 @@ def _patched_load_tests_from_module(self, module, *args, **kwargs):
 
 # Apply the patch
 unittest.TestLoader.loadTestsFromModule = _patched_load_tests_from_module  # type: ignore[method-assign]
+
+
+# --- Pytest-native cleanup ---
+# The unittest loader patch above does NOT fire under pytest (pytest has its own
+# collection mechanism). This autouse fixture ensures cleanup runs after every
+# test, regardless of whether the test class extends BaseTestCase.
+
+import pytest  # noqa: E402
+
+@pytest.fixture(autouse=True)
+def _cleanup_after_test():
+    """Run module/path cleanup before and after every test to prevent contamination.
+
+    Before: clears stale behaviors.* entries left by collection-time imports
+    (e.g. test_cross_region_integration imports gift_reactions at module level,
+    which caches the project-root behaviors package before any test runs).
+
+    After: clears entries added during the test itself.
+    """
+    _cleanup_test_module()
+    yield
+    _cleanup_test_module()
 
 
 def create_test_state() -> GameState:

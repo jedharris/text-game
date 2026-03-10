@@ -151,20 +151,21 @@ class TestGetActorConditions(unittest.TestCase):
 
         actor = MockActor()
         conditions = get_actor_conditions(actor)  # type: ignore[arg-type]
-        self.assertEqual(conditions, [])
+        self.assertEqual(conditions, {})
         self.assertIn("conditions", actor.properties)
 
     def test_get_conditions_returns_existing(self) -> None:
-        """Getting conditions returns existing list."""
+        """Getting conditions returns existing dict."""
         class MockActor:
             properties = {
-                "conditions": [{"type": "injured", "severity": 20}]
+                "conditions": {"injured": {"severity": 20}}
             }
 
         actor = MockActor()
         conditions = get_actor_conditions(actor)  # type: ignore[arg-type]
         self.assertEqual(len(conditions), 1)
-        self.assertEqual(conditions[0]["type"], "injured")
+        self.assertIn("injured", conditions)
+        self.assertEqual(conditions["injured"]["severity"], 20)
 
 
 if __name__ == "__main__":

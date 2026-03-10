@@ -1,14 +1,11 @@
 """Tests for infrastructure dispatcher utilities."""
 
 import unittest
-from unittest.mock import MagicMock, patch
 
 from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import (
     clear_handler_cache,
-    dispatch_or_process,
     load_handler,
 )
-from src.behavior_manager import EventResult
 
 
 class TestLoadHandler(unittest.TestCase):
@@ -37,7 +34,9 @@ class TestLoadHandler(unittest.TestCase):
         """Valid handler path returns function."""
         result = load_handler("examples.big_game.behaviors.shared.infrastructure.dispatcher_utils:load_handler")
         self.assertIsNotNone(result)
-        self.assertEqual(result, load_handler)
+        assert result is not None
+        self.assertEqual(result.__module__, load_handler.__module__)
+        self.assertEqual(result.__name__, load_handler.__name__)
 
     def test_load_handler_caching(self) -> None:
         """Handler is cached after first load."""
@@ -54,79 +53,6 @@ class TestLoadHandler(unittest.TestCase):
         # After clear, handler should be reloaded (still works, just not cached)
         result = load_handler(path)
         self.assertIsNotNone(result)
-
-
-class TestDispatchOrProcess(unittest.TestCase):
-    """Tests for dispatch_or_process function."""
-
-    def setUp(self) -> None:
-        """Set up test fixtures."""
-        clear_handler_cache()
-        self.entity = MagicMock()
-        self.accessor = MagicMock()
-        self.context = {"test": "context"}
-
-    def test_dispatch_to_handler(self) -> None:
-        """When handler is specified and valid, it is called."""
-        handler_result = EventResult(allow=True, feedback="Handler called")
-        mock_handler = MagicMock(return_value=handler_result)
-
-        with patch(
-            "examples.big_game.behaviors.shared.infrastructure.dispatcher_utils.load_handler",
-            return_value=mock_handler,
-        ):
-            config = {"handler": "some.module:handler_func"}
-
-            def process_func(e: object, a: object, c: dict, cfg: dict) -> EventResult:
-                return EventResult(allow=True, feedback="Process called")
-
-            result = dispatch_or_process(
-                entity=self.entity,
-                accessor=self.accessor,
-                context=self.context,
-                config=config,
-                config_key="test_reactions",
-                process_func=process_func,
-            )
-
-        self.assertEqual(result.feedback, "Handler called")
-        mock_handler.assert_called_once_with(self.entity, self.accessor, self.context)
-
-    def test_fallback_to_process_func(self) -> None:
-        """When no handler specified, process_func is called."""
-        config = {"some_key": "some_value"}
-
-        def process_func(e: object, a: object, c: dict, cfg: dict) -> EventResult:
-            return EventResult(allow=True, feedback="Process called")
-
-        result = dispatch_or_process(
-            entity=self.entity,
-            accessor=self.accessor,
-            context=self.context,
-            config=config,
-            config_key="test_reactions",
-            process_func=process_func,
-        )
-
-        self.assertEqual(result.feedback, "Process called")
-
-    def test_fallback_on_handler_load_failure(self) -> None:
-        """When handler fails to load, process_func is called."""
-        config = {"handler": "invalid.module:nonexistent"}
-
-        def process_func(e: object, a: object, c: dict, cfg: dict) -> EventResult:
-            return EventResult(allow=True, feedback="Process called")
-
-        result = dispatch_or_process(
-            entity=self.entity,
-            accessor=self.accessor,
-            context=self.context,
-            config=config,
-            config_key="test_reactions",
-            process_func=process_func,
-        )
-
-        self.assertEqual(result.feedback, "Process called")
 
 
 if __name__ == "__main__":

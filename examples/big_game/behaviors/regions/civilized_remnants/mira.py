@@ -246,21 +246,44 @@ def on_quest_complete(
     extra["mira_quest_active"] = False
     extra["mira_quest_completed"] = True
 
-    # Update Mira's state and trust
+    # Check how many survivors rescued
+    both_rescued = extra.get("delvan_rescued") and extra.get("garrett_rescued")
+
+    # Update Mira's state and trust based on rescue count
     mira = state.actors.get("camp_leader_mira")
     if mira:
-        transition_state(mira, "allied")
-        apply_trust_change(entity=mira, delta=2)
+        sm = mira.properties.get("state_machine")
+        if sm:
+            if both_rescued:
+                transition_state(sm, "allied")
+            else:
+                transition_state(sm, "friendly")
+        if both_rescued:
+            apply_trust_change(entity=mira, delta=4)
+        else:
+            apply_trust_change(entity=mira, delta=2)
 
-    # Unlock camp services
-    extra["camp_services_unlocked"] = True
+    # Unlock camp services on dual rescue
+    if both_rescued:
+        extra["camp_services_unlocked"] = True
+
+    if both_rescued:
+        return EventResult(
+            allow=True,
+            feedback=(
+                "Mira's exhausted face breaks into a genuine smile as the survivors "
+                "stumble into camp. 'You did it. You actually did it.' She clasps "
+                "your hand firmly. 'This camp is your home now, if you want it. "
+                "You've earned that and more.'"
+            )
+        )
 
     return EventResult(
         allow=True,
         feedback=(
-            "Mira's exhausted face breaks into a genuine smile as the survivors "
-            "stumble into camp. 'You did it. You actually did it.' She clasps your hand firmly. "
-            "'This camp is your home now, if you want it. You've earned that and more.'"
+            "Mira watches the rescued survivor stumble into camp. Her expression "
+            "softens. 'You brought one back. That matters.' She pauses. 'But there "
+            "are still others out there. I won't forget what you did today.'"
         )
     )
 
@@ -299,7 +322,9 @@ def on_quest_failed(
     # Update Mira's state and trust
     mira = state.actors.get("camp_leader_mira")
     if mira:
-        transition_state(mira, "disappointed")
+        sm = mira.properties.get("state_machine")
+        if sm:
+            transition_state(sm, "disappointed")
         apply_trust_change(entity=mira, delta=-3)
 
     return EventResult(

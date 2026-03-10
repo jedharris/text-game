@@ -1,371 +1,353 @@
-"""Scenario tests for Frozen Reaches region.
+"""Scenario tests for Frozen Reaches region using real game state.
 
 Tests multi-step gameplay scenarios including:
-- Salamander befriending
-- Hypothermia system
-- Cold gear and companions
+- Salamander befriending via fire gifts
+- Hypothermia system with temperature zones
+- Cold gear and companion mitigation
+- Hot springs healing
+
+Tests load big_game via GameEngine to use actual actor IDs, state machines,
+and property structures. Each test gets a fresh engine instance.
 """
-from src.types import ActorId
 
 import unittest
+from pathlib import Path
 from typing import Any
 
-from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
-from examples.big_game.behaviors.regions.frozen_reaches.hypothermia import (
-    COLD_RATES,
-    GEAR_COLD_REDUCTION,
-    on_cold_zone_turn,
-    on_enter_hot_springs,
-)
-from examples.big_game.behaviors.regions.frozen_reaches.salamanders import on_receive_item as on_fire_gift
-from src.behavior_manager import EventResult
-from src.infrastructure_utils import transition_state
-from tests.infrastructure.test_scenario_framework import (
-    MockEntity,
-    MockItem,
-    ScenarioAccessor,
-    ScenarioState,
-    ScenarioTestCase,
-)
+from tests.conftest import BaseTestCase
+from src.game_engine import GameEngine
+from src.state_accessor import StateAccessor
+
+GAME_DIR = (Path(__file__).parent.parent.parent / 'examples' / 'big_game').resolve()
 
 
-class TestSalamanderScenarios(ScenarioTestCase):
+class FrozenReachesTestCase(BaseTestCase):
+    """Base class for Frozen Reaches tests with real game state."""
+
+    def setUp(self) -> None:
+        self.engine = GameEngine(GAME_DIR)
+        self.state = self.engine.game_state
+        self.accessor = StateAccessor(
+            self.state,
+            self.engine.behavior_manager
+        )
+
+    def _find_item(self, item_id: str) -> Any:
+        """Find an item by ID in the game state items list."""
+        for item in self.state.items:
+            if item.id == item_id:
+                return item
+        self.fail(f"Item '{item_id}' not found in game state")
+
+    def _get_hypothermia(self, player: Any) -> Any:
+        """Get the hypothermia condition from the player, or None."""
+        from behavior_libraries.actor_lib.conditions import get_condition
+        return get_condition(player, "hypothermia")
+
+
+# =============================================================================
+# Salamander Tests
+# =============================================================================
+
+
+class TestSalamanderScenarios(FrozenReachesTestCase):
     """Tests for salamander befriending scenarios."""
 
     def setUp(self) -> None:
-        """Set up salamander test fixtures."""
         super().setUp()
-        self.setup_player(location="loc_frozen_caves")
-
-        # Create lead salamander
-        self.salamander = self.game_state.add_actor(
-            "salamander",
-            name="Fire Salamander",
-            properties={
-                "state_machine": {
-                    "states": ["neutral", "friendly", "companion"],
-                    "initial": "neutral",
-                    "current": "neutral",
-                },
-                "trust_state": {"current": 0, "floor": 0, "ceiling": 5},
-            },
-            location="loc_frozen_caves",
+        from examples.big_game.behaviors.regions.frozen_reaches.salamanders import (
+            on_receive_item,
         )
+        self.on_fire_gift = on_receive_item
+        self.salamander = self.state.actors.get("salamander")
+        self.assertIsNotNone(self.salamander, "salamander actor must exist")
 
-        # Create fire items
-        self.torch = self.game_state.add_item("item_torch", name="Torch")
-        self.fire_crystal = self.game_state.add_item("item_fire_crystal", name="Fire Crystal")
+        # Reset trust to 0 and state to neutral for clean tests
+        self.salamander.properties["trust_state"]["current"] = 0
+        sm = self.salamander.properties["state_machine"]
+        sm["current"] = "neutral"
+
+    def _give_fire_item(self, item: Any = None) -> Any:
+        """Give a fire item to the salamander. Defaults to fire_wand."""
+        if item is None:
+            item = self._find_item("fire_wand")
+        context = {"item": item, "item_id": item.id, "giver_id": "player"}
+        return self.on_fire_gift(self.salamander, self.accessor, context)
 
     def test_fire_gift_increases_trust(self) -> None:
-        """Giving fire items increases salamander trust."""
-        initial_trust = self.get_actor_trust("salamander")
+        """Giving a fire item increases salamander trust."""
+        initial_trust = self.salamander.properties["trust_state"]["current"]
 
-        result = on_fire_gift(
-            self.torch,
-            self.accessor,
-            {"target_actor": self.salamander, "item": self.torch},
-        )
+        result = self._give_fire_item()
 
         self.assertTrue(result.allow)
-        self.assertIn("brightens", (result.feedback or "").lower())
-        self.assertGreater(self.get_actor_trust("salamander"), initial_trust)
+        self.assertGreater(
+            self.salamander.properties["trust_state"]["current"],
+            initial_trust,
+        )
 
     def test_first_fire_gift_transitions_to_friendly(self) -> None:
-        """First fire gift transitions salamander to friendly."""
-        result = on_fire_gift(
-            self.torch,
-            self.accessor,
-            {"target_actor": self.salamander, "item": self.torch},
-        )
+        """First fire gift transitions salamander to friendly state."""
+        result = self._give_fire_item()
 
         self.assertTrue(result.allow)
-        self.assertIn("approaches cautiously", (result.feedback or "").lower())
-        self.assert_actor_state("salamander", "friendly")
+        sm = self.salamander.properties["state_machine"]
+        self.assertEqual(sm["current"], "friendly")
+        # Trust should now be 1 (triggers friendly transition)
+        self.assertEqual(self.salamander.properties["trust_state"]["current"], 1)
 
     def test_non_fire_gift_rejected(self) -> None:
         """Non-fire items are rejected by salamander."""
-        stone = self.game_state.add_item("item_stone", name="Stone")
+        # Use cold_weather_gear as a non-fire item
+        gear = self._find_item("cold_weather_gear")
+        context = {"item": gear, "item_id": gear.id, "giver_id": "player"}
 
-        result = on_fire_gift(
-            stone, self.accessor, {"target_actor": self.salamander, "item": stone}
-        )
+        result = self.on_fire_gift(self.salamander, self.accessor, context)
 
         self.assertTrue(result.allow)
         self.assertIn("shaking its head", (result.feedback or "").lower())
-        self.assert_actor_state("salamander", "neutral")  # No change
+        # State should remain neutral
+        sm = self.salamander.properties["state_machine"]
+        self.assertEqual(sm["current"], "neutral")
+        # Trust should remain at 0
+        self.assertEqual(self.salamander.properties["trust_state"]["current"], 0)
 
     def test_high_trust_indicates_companion_ready(self) -> None:
-        """High trust salamander indicates willingness to follow."""
-        # Set up high trust
+        """High trust salamander transitions to companion at trust 3."""
+        # Set trust to 2 and state to friendly (pre-condition for companion)
         self.salamander.properties["trust_state"]["current"] = 2
         self.salamander.properties["state_machine"]["current"] = "friendly"
 
-        result = on_fire_gift(
-            self.fire_crystal,
-            self.accessor,
-            {"target_actor": self.salamander, "item": self.fire_crystal},
-        )
+        result = self._give_fire_item()
 
         self.assertTrue(result.allow)
-        self.assertIn("willing to follow", (result.feedback or "").lower())
-        self.assertEqual(self.get_actor_trust("salamander"), 3)
+        self.assertEqual(self.salamander.properties["trust_state"]["current"], 3)
+        # Should transition to companion state
+        sm = self.salamander.properties["state_machine"]
+        self.assertEqual(sm["current"], "companion")
 
 
-class TestHypothermiaScenarios(ScenarioTestCase):
+# =============================================================================
+# Hypothermia Tests
+# =============================================================================
+
+
+class TestHypothermiaScenarios(FrozenReachesTestCase):
     """Tests for hypothermia environmental hazard."""
 
     def setUp(self) -> None:
-        """Set up hypothermia test fixtures."""
         super().setUp()
-        player = self.setup_player(location="loc_frozen_entrance")
-        player.properties["conditions"] = []
+        from examples.big_game.behaviors.regions.frozen_reaches.hypothermia import (
+            on_cold_zone_turn,
+        )
+        self.on_cold_zone_turn = on_cold_zone_turn
+        self.player = self.state.actors.get("player")
+        self.assertIsNotNone(self.player, "player actor must exist")
 
-        # Create locations with different temperatures
-        self.warm = self.game_state.add_location(
-            "loc_frozen_entrance",
-            name="Frozen Reaches Entrance",
-            properties={"temperature": "warm"},
-        )
-        self.cold = self.game_state.add_location(
-            "loc_frozen_path",
-            name="Frozen Path",
-            properties={"temperature": "cold"},
-        )
-        self.freezing = self.game_state.add_location(
-            "loc_frozen_depths",
-            name="Frozen Depths",
-            properties={"temperature": "freezing"},
-        )
-        self.extreme = self.game_state.add_location(
-            "loc_frozen_observatory",
-            name="Ruined Observatory",
-            properties={"temperature": "extreme"},
-        )
-        self.hot_springs = self.game_state.add_location(
-            "loc_hot_springs",
-            name="Hot Springs",
-            properties={"temperature": "warm"},
-        )
+        # Ensure player has clean conditions (dict format per conditions library)
+        self.player.properties["conditions"] = {}
 
     def test_warm_zone_no_hypothermia(self) -> None:
         """Warm zones don't cause hypothermia."""
-        player = self.game_state.get_actor(ActorId("player"))
-        player.properties["location"] = "loc_frozen_entrance"
+        # hot_springs has temperature "warm"
+        self.player.location = "hot_springs"
 
-        result = on_cold_zone_turn(None, self.accessor, {})
+        result = self.on_cold_zone_turn(None, self.accessor, {})
 
         self.assertTrue(result.allow)
-        self.assertIsNone(result.feedback)
+        self.assertIsNone(self._get_hypothermia(self.player))
 
     def test_cold_zone_causes_hypothermia(self) -> None:
         """Cold zones cause gradual hypothermia."""
-        player = self.game_state.get_actor(ActorId("player"))
-        player.properties["location"] = "loc_frozen_path"
+        # frozen_pass has temperature "cold" (rate 5)
+        self.player.location = "frozen_pass"
 
-        # Run multiple turns to accumulate hypothermia
         for _ in range(5):
-            on_cold_zone_turn(None, self.accessor, {})
+            self.on_cold_zone_turn(None, self.accessor, {})
 
-        # Check hypothermia severity
-        conditions = player.properties.get("conditions", [])
-        hypothermia = None
-        for cond in conditions:
-            if cond.get("type") == "hypothermia":
-                hypothermia = cond
-                break
-
+        hypothermia = self._get_hypothermia(self.player)
         self.assertIsNotNone(hypothermia)
-        assert hypothermia is not None
         self.assertGreater(hypothermia["severity"], 0)
 
     def test_cold_gear_reduces_hypothermia(self) -> None:
-        """Cold weather gear reduces hypothermia rate."""
-        player = self.game_state.get_actor(ActorId("player"))
-        player.properties["location"] = "loc_frozen_depths"
-        player.properties["equipment"] = {"body": "cold_weather_gear"}
+        """Cold weather gear reduces hypothermia rate by 50%."""
+        # ice_caves has temperature "freezing" (rate 10)
+        self.player.location = "ice_caves"
+        self.player.properties["equipment"] = {"body": "cold_weather_gear"}
 
-        # Run turns
         for _ in range(4):
-            on_cold_zone_turn(None, self.accessor, {})
+            self.on_cold_zone_turn(None, self.accessor, {})
 
-        # Check severity - should be lower than without gear
-        conditions = player.properties.get("conditions", [])
-        hypothermia = None
-        for cond in conditions:
-            if cond.get("type") == "hypothermia":
-                hypothermia = cond
-                break
-
-        # With 50% reduction, 4 turns * 10 * 0.5 = 20
+        hypothermia = self._get_hypothermia(self.player)
         self.assertIsNotNone(hypothermia)
-        assert hypothermia is not None
+        # 4 turns * 10 * 0.5 = 20 max
         self.assertLessEqual(hypothermia["severity"], 20)
 
     def test_cloak_grants_cold_immunity(self) -> None:
-        """Cold resistance cloak grants immunity in cold zones."""
-        player = self.game_state.get_actor(ActorId("player"))
-        player.properties["location"] = "loc_frozen_path"
-        player.properties["equipment"] = {"cloak": "cold_resistance_cloak"}
+        """Cold resistance cloak grants full immunity in cold zones."""
+        # frozen_pass has temperature "cold"
+        self.player.location = "frozen_pass"
+        self.player.properties["equipment"] = {"cloak": "cold_resistance_cloak"}
 
-        # Run turns
         for _ in range(3):
-            result = on_cold_zone_turn(None, self.accessor, {})
+            self.on_cold_zone_turn(None, self.accessor, {})
 
-        # Should have no hypothermia
-        conditions = player.properties.get("conditions", [])
-        hypothermia = None
-        for cond in conditions:
-            if cond.get("type") == "hypothermia":
-                hypothermia = cond
-                break
-
+        # Should have no hypothermia (cloak gives full immunity in cold)
+        hypothermia = self._get_hypothermia(self.player)
         self.assertIsNone(hypothermia)
 
     def test_salamander_companion_grants_immunity(self) -> None:
         """Salamander companion grants full hypothermia immunity."""
-        player = self.game_state.get_actor(ActorId("player"))
-        player.properties["location"] = "loc_frozen_observatory"  # Extreme cold
-        player.properties["companions"] = [{"id": "salamander", "state": "following"}]
+        # frozen_observatory has temperature "extreme" (rate 20)
+        self.player.location = "frozen_observatory"
 
-        # Run turns in extreme cold
+        # Make salamander a companion at same location
+        salamander = self.state.actors.get("salamander")
+        salamander.location = "frozen_observatory"
+        salamander.properties["is_companion"] = True
+
         for _ in range(3):
-            result = on_cold_zone_turn(None, self.accessor, {})
-            self.assertIsNone(result.feedback)  # No warnings
+            result = self.on_cold_zone_turn(None, self.accessor, {})
+            self.assertIsNone(result.feedback)
+
+        hypothermia = self._get_hypothermia(self.player)
+        self.assertIsNone(hypothermia)
 
     def test_hypothermia_severity_warnings(self) -> None:
-        """Different severity levels show different warnings."""
-        player = self.game_state.get_actor(ActorId("player"))
-        player.properties["location"] = "loc_frozen_observatory"  # 20 per turn
+        """Different severity levels produce different warning feedback."""
+        # frozen_observatory has temperature "extreme" (rate 20 per turn)
+        self.player.location = "frozen_observatory"
 
-        # First turn - severity 20
-        result = on_cold_zone_turn(None, self.accessor, {})
-        self.assertIn("getting cold", (result.feedback or "").lower())
+        # First turn - severity 20 -> "getting cold"
+        result = self.on_cold_zone_turn(None, self.accessor, {})
+        self.assertIsNotNone(result.feedback)
+        self.assertIn("getting cold", result.feedback.lower())
 
-        # After more turns - severity increases
-        on_cold_zone_turn(None, self.accessor, {})  # 40
-        result = on_cold_zone_turn(None, self.accessor, {})  # 60
-        self.assertIn("shivers", (result.feedback or "").lower())
+        # Turn 2 -> severity 40 -> "seeps into your bones"
+        result = self.on_cold_zone_turn(None, self.accessor, {})
+        self.assertIn("bones", result.feedback.lower())
 
-        result = on_cold_zone_turn(None, self.accessor, {})  # 80
-        self.assertIn("freezing to death", (result.feedback or "").lower())
+        # Turn 3 -> severity 60 -> "shivers"
+        result = self.on_cold_zone_turn(None, self.accessor, {})
+        self.assertIn("shivers", result.feedback.lower())
+
+        # Turn 4 -> severity 80 -> "freezing to death"
+        result = self.on_cold_zone_turn(None, self.accessor, {})
+        self.assertIn("freezing to death", result.feedback.lower())
 
 
-class TestHotSpringsScenarios(ScenarioTestCase):
+# =============================================================================
+# Hot Springs Tests
+# =============================================================================
+
+
+class TestHotSpringsScenarios(FrozenReachesTestCase):
     """Tests for hot springs healing."""
 
     def setUp(self) -> None:
-        """Set up hot springs test fixtures."""
         super().setUp()
-        player = self.setup_player(location="loc_frozen_path")
-        player.properties["conditions"] = []
-
-        self.hot_springs = self.game_state.add_location(
-            "loc_hot_springs",
-            name="Hot Springs",
-            properties={"temperature": "warm"},
+        from examples.big_game.behaviors.regions.frozen_reaches.hypothermia import (
+            on_enter_hot_springs,
         )
+        self.on_enter_hot_springs = on_enter_hot_springs
+        self.player = self.state.actors.get("player")
+        self.assertIsNotNone(self.player, "player actor must exist")
+
+        # Ensure clean conditions (dict format per conditions library)
+        self.player.properties["conditions"] = {}
+
+    def _get_hot_springs_location(self) -> Any:
+        """Find the hot_springs location object."""
+        for loc in self.state.locations:
+            if loc.id == "hot_springs":
+                return loc
+        self.fail("hot_springs location not found in game state")
 
     def test_hot_springs_cures_hypothermia(self) -> None:
         """Hot springs instantly cure hypothermia."""
-        player = self.game_state.get_actor(ActorId("player"))
+        from behavior_libraries.actor_lib.conditions import apply_condition
+        apply_condition(self.player, "hypothermia", {"severity": 60})
 
-        # Give player hypothermia
-        player.properties["conditions"] = [
-            {"type": "hypothermia", "severity": 60}
-        ]
-
-        result = on_enter_hot_springs(
-            player, self.accessor, {"destination": self.hot_springs}
+        hot_springs = self._get_hot_springs_location()
+        result = self.on_enter_hot_springs(
+            self.player, self.accessor, {"destination": hot_springs}
         )
 
         self.assertTrue(result.allow)
         self.assertIn("fully restored", (result.feedback or "").lower())
 
-        # Check hypothermia cured
-        conditions = player.properties["conditions"]
-        hypothermia = None
-        for cond in conditions:
-            if cond.get("type") == "hypothermia":
-                hypothermia = cond
-                break
-
-        assert hypothermia is not None
+        hypothermia = self._get_hypothermia(self.player)
+        self.assertIsNotNone(hypothermia)
         self.assertEqual(hypothermia["severity"], 0)
 
     def test_hot_springs_without_hypothermia(self) -> None:
         """Hot springs still give warmth message without hypothermia."""
-        player = self.game_state.get_actor(ActorId("player"))
-
-        result = on_enter_hot_springs(
-            player, self.accessor, {"destination": self.hot_springs}
+        hot_springs = self._get_hot_springs_location()
+        result = self.on_enter_hot_springs(
+            self.player, self.accessor, {"destination": hot_springs}
         )
 
         self.assertTrue(result.allow)
         self.assertIn("warmth envelops", (result.feedback or "").lower())
 
 
-class TestCombinedFrozenScenarios(ScenarioTestCase):
+# =============================================================================
+# Combined Scenario Tests
+# =============================================================================
+
+
+class TestCombinedFrozenScenarios(FrozenReachesTestCase):
     """Tests combining salamander and hypothermia mechanics."""
 
     def setUp(self) -> None:
-        """Set up combined scenario fixtures."""
         super().setUp()
-        player = self.setup_player(location="loc_frozen_entrance")
-        player.properties["conditions"] = []
-
-        # Create salamander
-        self.salamander = self.game_state.add_actor(
-            "salamander",
-            name="Fire Salamander",
-            properties={
-                "state_machine": {
-                    "states": ["neutral", "friendly", "companion"],
-                    "initial": "neutral",
-                    "current": "neutral",
-                },
-                "trust_state": {"current": 0, "floor": 0, "ceiling": 5},
-            },
+        from examples.big_game.behaviors.regions.frozen_reaches.salamanders import (
+            on_receive_item,
         )
-
-        # Create extreme cold location
-        self.game_state.add_location(
-            "loc_frozen_observatory",
-            name="Observatory",
-            properties={"temperature": "extreme"},
+        from examples.big_game.behaviors.regions.frozen_reaches.hypothermia import (
+            on_cold_zone_turn,
         )
+        self.on_fire_gift = on_receive_item
+        self.on_cold_zone_turn = on_cold_zone_turn
+
+        self.player = self.state.actors.get("player")
+        self.assertIsNotNone(self.player, "player actor must exist")
+        self.player.properties["conditions"] = {}
+
+        self.salamander = self.state.actors.get("salamander")
+        self.assertIsNotNone(self.salamander, "salamander actor must exist")
+        # Reset salamander state
+        self.salamander.properties["trust_state"]["current"] = 0
+        self.salamander.properties["state_machine"]["current"] = "neutral"
 
     def test_befriend_salamander_then_survive_extreme(self) -> None:
         """Befriending salamander allows survival in extreme cold."""
-        player = self.game_state.get_actor(ActorId("player"))
-        torch = self.game_state.add_item("item_torch", name="Torch")
+        fire_wand = self._find_item("fire_wand")
 
-        # Befriend salamander (3 gifts for high trust)
+        # Give 3 fire gifts to reach companion trust
         for _ in range(3):
-            on_fire_gift(
-                torch,
+            self.on_fire_gift(
+                self.salamander,
                 self.accessor,
-                {"target_actor": self.salamander, "item": torch},
+                {"item": fire_wand, "item_id": fire_wand.id, "giver_id": "player"},
             )
 
-        # Add salamander as companion
-        player.properties["companions"] = [{"id": "salamander", "state": "following"}]
+        # Verify salamander reached companion state
+        sm = self.salamander.properties["state_machine"]
+        self.assertEqual(sm["current"], "companion")
 
-        # Enter extreme cold
-        player.properties["location"] = "loc_frozen_observatory"
+        # Move both player and salamander to extreme cold location
+        self.player.location = "frozen_observatory"
+        self.salamander.location = "frozen_observatory"
+        self.salamander.properties["is_companion"] = True
 
         # Should survive without hypothermia
         for _ in range(5):
-            result = on_cold_zone_turn(None, self.accessor, {})
+            result = self.on_cold_zone_turn(None, self.accessor, {})
             self.assertIsNone(result.feedback)
 
         # No hypothermia condition
-        conditions = player.properties.get("conditions", [])
-        hypothermia = None
-        for cond in conditions:
-            if cond.get("type") == "hypothermia":
-                hypothermia = cond
-                break
-
+        hypothermia = self._get_hypothermia(self.player)
         self.assertIsNone(hypothermia)
 
 

@@ -39,6 +39,7 @@ class MockAccessor:
 
     def __init__(self) -> None:
         self.game_state = MockState()
+        self.behavior_manager = MagicMock()
 
 
 class TestBeastWildsIntegration(unittest.TestCase):
@@ -61,7 +62,7 @@ class TestBeastWildsIntegration(unittest.TestCase):
                 },
                 "trust_state": {"current": 0, "floor": -3, "ceiling": 5},
                 "gift_reactions": {
-                    "handler": "examples.big_game.behaviors.regions.beast_wilds.bee_queen:on_flower_offer"
+                    "handler": "examples.big_game.behaviors.regions.beast_wilds.bee_queen:on_receive_item"
                 },
             },
         )
@@ -73,7 +74,9 @@ class TestBeastWildsIntegration(unittest.TestCase):
         context = {"target_actor": bee_queen, "item": flower}
 
         # Call dispatcher - handler should be invoked
-        result = on_gift_given(flower, self.accessor, context)
+        # Note: dispatcher passes entity arg through to handler, and handler
+        # expects the receiving actor as entity (on_receive_item pattern)
+        result = on_gift_given(bee_queen, self.accessor, context)
 
         # Verify handler was called and returned a message
         self.assertTrue(result.allow)
@@ -251,7 +254,7 @@ class TestFrozenReachesIntegration(unittest.TestCase):
                 },
                 "trust_state": {"current": 0, "floor": 0, "ceiling": 5},
                 "gift_reactions": {
-                    "handler": "examples.big_game.behaviors.regions.frozen_reaches.salamanders:on_fire_gift"
+                    "handler": "examples.big_game.behaviors.regions.frozen_reaches.salamanders:on_receive_item"
                 },
             },
         )
@@ -262,8 +265,9 @@ class TestFrozenReachesIntegration(unittest.TestCase):
 
         context = {"target_actor": salamander, "item": fire_item}
 
-        # Call gift dispatcher
-        result = on_gift_given(fire_item, self.accessor, context)
+        # Call gift dispatcher - pass target actor as entity since handler
+        # expects the receiving actor (on_receive_item pattern)
+        result = on_gift_given(salamander, self.accessor, context)
 
         self.assertTrue(result.allow)
         # Handler should return a message about fire gift

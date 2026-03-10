@@ -1,0 +1,20 @@
+# Garrett Rescue - Success Path
+# Tests: encounter → commitment → air_bladder rescue → Mira quest integration
+
+# Give player the air bladder, swimming skill, and navigate to sea_caves
+@set actors.player.inventory = ["air_bladder"]
+@set actors.player.properties.skills = {"basic_swimming": true}
+@set actors.player.location = "flooded_plaza"
+go east
+go east
+go east
+
+# Encounter Garrett (triggers encounter_reactions → commitment)
+look
+@expect "Garrett"
+@assert extra.garrett_commitment_created == true
+
+# Rescue: air_bladder removes drowning → on_rescue_success
+use bladder on garrett
+@expect "bladder"
+@assert extra.garrett_rescued == true

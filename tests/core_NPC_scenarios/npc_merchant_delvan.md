@@ -113,9 +113,9 @@
 
 ## Walkthrough Files
 - `test_merchant_delvan.txt` (scenario 2) - ✅ EXISTS, PASSING (death path)
-- `test_delvan_rescue_success.txt` (scenario 1) - ✅ EXISTS, PASSING (success path)
+- `test_delvan_rescue_success.txt` (scenario 1) - ✅ EXISTS, PASSING (success + Mira quest integration)
 - `test_delvan_infection.txt` - ✅ EXISTS, PASSING (infection mechanic)
-- `test_delvan_garrett_choice.txt` (scenarios 3-4) - NEEDS CREATION (dual rescue impossible choice)
+- `test_delvan_garrett_choice.txt` (scenarios 3-4) - ✅ EXISTS, PASSING (impossible choice: save Delvan, Garrett dies)
 - `test_delvan_partial_timer.txt` (scenario 6) - COULD ADD (timing edge case, not critical)
 
 ## Implementation Status
@@ -127,8 +127,8 @@
 - [x] Death walkthrough exists and passing
 - [x] Condition removal triggers rescue success correctly (Issue #437 - VERIFIED)
 - [x] Commitment completion on rescue (extra.delvan_rescued flag set)
-- [x] Success walkthrough created and passing
-- [ ] Dual rescue walkthrough (impossible choice mechanic not yet tested)
+- [x] Success walkthrough created and passing (with Mira quest integration)
+- [x] Dual rescue walkthrough (impossible choice: save Delvan, Garrett dies)
 - [ ] delvan_contacts knowledge fragment
 - [ ] Post-rescue trade services
 

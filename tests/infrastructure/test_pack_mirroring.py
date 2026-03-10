@@ -6,6 +6,7 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 from examples.big_game.behaviors.shared.infrastructure.dispatcher_utils import clear_handler_cache
+from examples.big_game.behaviors.shared.infrastructure import pack_mirroring as pack_mirroring_module
 from examples.big_game.behaviors.shared.infrastructure.pack_mirroring import on_leader_state_change
 from src.behavior_manager import EventResult
 
@@ -31,6 +32,7 @@ class MockAccessor:
 
     def __init__(self) -> None:
         self.game_state = MockState()
+        self.behavior_manager = MagicMock()
 
 
 class TestPackMirroringBasic(unittest.TestCase):
@@ -329,8 +331,8 @@ class TestPackMirroringHandlerEscapeHatch(unittest.TestCase):
         handler_result = EventResult(allow=True, feedback="Handler response")
         mock_handler = MagicMock(return_value=handler_result)
 
-        with patch(
-            "examples.big_game.behaviors.shared.infrastructure.pack_mirroring.load_handler",
+        with patch.object(
+            pack_mirroring_module, "load_handler",
             return_value=mock_handler,
         ):
             result = on_leader_state_change(entity, self.accessor, context)

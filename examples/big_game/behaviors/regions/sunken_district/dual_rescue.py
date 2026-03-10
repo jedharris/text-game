@@ -7,7 +7,7 @@ This creates the designed impossible choice.
 from typing import Any, Dict
 
 from src.behavior_manager import EventResult
-from src.infrastructure_types import GossipId
+from src.infrastructure_types import CommitmentState, GossipId
 from src.types import ActorId
 from src.infrastructure_utils import (
     create_commitment,
@@ -144,26 +144,52 @@ def on_rescue_success(
 
     if actor_id == "merchant_delvan" and condition_type == "bleeding":
         state.extra["delvan_rescued"] = True
-        return EventResult(
-            allow=True,
-            feedback=(
-                "You stop Delvan's bleeding. He grasps your hand. "
-                "'You came. I wasn't sure anyone would.' His tapping stops - "
-                "he doesn't need to signal anymore."
-            ),
+        feedback = (
+            "You stop Delvan's bleeding. He grasps your hand. "
+            "'You came. I wasn't sure anyone would.' His tapping stops - "
+            "he doesn't need to signal anymore."
         )
+        _check_mira_quest_completion(state, accessor)
+        return EventResult(allow=True, feedback=feedback)
 
     if actor_id == "sailor_garrett" and condition_type == "drowning":
         state.extra["garrett_rescued"] = True
-        return EventResult(
-            allow=True,
-            feedback=(
-                "You pull Garrett from the rising water. He coughs, sputters, "
-                "then laughs with relief. 'I thought I was dead. Thank you.'"
-            ),
+        feedback = (
+            "You pull Garrett from the rising water. He coughs, sputters, "
+            "then laughs with relief. 'I thought I was dead. Thank you.'"
         )
+        _check_mira_quest_completion(state, accessor)
+        return EventResult(allow=True, feedback=feedback)
 
     return EventResult(allow=True, feedback=None)
+
+
+def _check_mira_quest_completion(state: Any, accessor: Any) -> None:
+    """Check if Mira's rescue quest should be completed.
+
+    Called after each successful rescue. If Mira's quest is active and
+    at least one survivor has been rescued, invokes on_quest_complete
+    and fulfills the commitment so it doesn't expire.
+    """
+    if not state.extra.get("mira_quest_active"):
+        return
+
+    if not (state.extra.get("delvan_rescued") or state.extra.get("garrett_rescued")):
+        return
+
+    # Fulfill the commitment to prevent timeout
+    for commitment in getattr(state, "commitments", []):
+        if commitment.id == "commit_mira_rescue":
+            if commitment.properties.get("state") == CommitmentState.ACTIVE:
+                commitment.properties["state"] = CommitmentState.FULFILLED
+            break
+
+    # Invoke Mira's success handler
+    from examples.big_game.behaviors.regions.civilized_remnants.mira import on_quest_complete
+
+    mira = state.actors.get("camp_leader_mira")
+    if mira:
+        on_quest_complete(mira, accessor, {})
 
 
 def on_npc_death(

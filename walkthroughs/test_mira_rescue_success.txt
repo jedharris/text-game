@@ -1,0 +1,33 @@
+# Mira Rescue Quest - Single Rescue Success Path
+# Tests: Quest offer via dialog, rescue completion triggers quest success
+# Note: Sunken District locations not yet connected, using @set for navigation
+
+# Move player to survivor camp
+@set actors.player.location = "survivor_camp"
+
+# Talk to Mira about quest
+ask mira about help
+@expect "trapped"
+@expect "20 turns"
+
+# Verify quest activated
+@assert extra.mira_quest_active == true
+
+# Give player bandages and move to Delvan
+@set actors.player.inventory = ["bandages"]
+@set actors.player.location = "merchant_warehouse"
+
+# Rescue Delvan by using bandages (triggers condition_reactions → on_rescue_success)
+use bandages on delvan
+@expect "You stop Delvan's bleeding"
+@assert extra.delvan_rescued == true
+
+# Verify Mira's quest completed (triggered by _check_mira_quest_completion)
+@assert extra.mira_quest_completed == true
+@assert extra.mira_quest_active != true
+
+# Verify single rescue: Mira transitions to friendly (not allied)
+@assert actors.camp_leader_mira.properties.state_machine.current == "friendly"
+
+# Camp services NOT unlocked (requires both rescues)
+# extra.camp_services_unlocked key absent

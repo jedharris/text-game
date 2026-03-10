@@ -1,0 +1,29 @@
+# Swimming Skill Gate Test
+# Tests: skill gate blocks entry, Jek teaches swimming, gate opens after learning
+
+# Setup: player at flooded_plaza, no skills
+@set actors.player.location = "flooded_plaza"
+
+# Try to enter tidal_passage (requires swimming) — should be blocked
+go east
+go east # EXPECTED_FAILURE: skill gate blocks without swimming
+@expect "drown"
+@expect "swim"
+
+# Go to survivor_camp to learn swimming from Jek
+@set actors.player.location = "survivor_camp"
+
+# Ask Jek about swimming
+ask jek about swimming
+@expect "teaching"
+@assert actors.player.properties.skills.basic_swimming == true
+
+# Ask again — should say already learned
+ask jek about swimming
+@expect "already know"
+
+# Now try entering tidal_passage — should work
+@set actors.player.location = "flooded_plaza"
+go east
+go east
+@expect "Tidal Passage"

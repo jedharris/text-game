@@ -152,6 +152,18 @@ def on_sira_healed(
 
     if condition_type == "bleeding":
         state.extra["sira_bleeding_stopped"] = True
+
+        # Check if fully healed (both conditions removed)
+        if state.extra.get("sira_leg_healed"):
+            state.extra["sira_healed"] = True
+            return EventResult(
+                allow=True,
+                feedback=(
+                    "The bleeding stops. Sira's color returns fully. She looks "
+                    "at you with gratitude. 'You saved my life. I won't forget this.'"
+                ),
+            )
+
         return EventResult(
             allow=True,
             feedback="The bleeding stops. Sira's color improves slightly.",

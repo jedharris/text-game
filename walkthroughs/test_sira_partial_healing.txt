@@ -1,0 +1,22 @@
+# Hunter Sira Partial Healing
+# Scenario 4: Stop bleeding but don't heal leg
+# Verifies partial rescue state tracking
+
+# Navigate to Hunter's Camp
+go south
+go east
+go east
+
+@expect "clock is now ticking"
+@assert extra.sira_commitment_created == true
+
+# Give player only bandages (no herbs)
+@set actors.player.inventory = ["bandages"]
+
+# Stop bleeding
+use bandages on sira
+@expect "bleeding slows, then stops"
+@assert extra.sira_bleeding_stopped == true
+
+# Sira is NOT fully healed (leg still broken)
+# extra.sira_healed key absent - only set when BOTH conditions cleared

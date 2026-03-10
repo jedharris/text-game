@@ -1,0 +1,52 @@
+# Drowning System Test
+# Tests: breath timer in non-breathable locations, surfacing reset, air bladder self-use
+
+# Setup: player at flooded_plaza (breathable) with air bladder and swimming skill
+@set actors.player.properties.skills = {"basic_swimming": true}
+@set actors.player.location = "flooded_plaza"
+@set actors.player.inventory = ["air_bladder"]
+
+# Move to tidal_passage (non-breathable) — should trigger water entry
+go east
+go east
+@expect "Hold your breath"
+@expect "12 turns"
+
+# Verify underwater flag set
+@assert actors.player.properties.underwater == true
+
+# Use air bladder on self to reset breath
+use bladder on self
+@expect "Fresh air"
+@expect "2 uses remaining"
+
+# Move back to breathable location — should trigger surface message
+go west
+@expect "surface"
+@assert actors.player.properties.underwater == false
+
+# Go back underwater without air bladder to test breath ticking
+# First remove air bladder so we're not immune
+@set actors.player.inventory = []
+go east
+@expect "Hold your breath"
+
+# Tick several turns underwater (use wait/look to pass turns)
+look
+look
+look
+look
+look
+look
+look
+look
+
+# After 8 turns, should get warning
+@expect "burning"
+
+# Two more turns
+look
+look
+
+# After 10, should get critical
+@expect "suffocating"

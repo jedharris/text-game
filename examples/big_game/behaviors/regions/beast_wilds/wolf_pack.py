@@ -14,10 +14,11 @@ from src.infrastructure_utils import (
 from src.narrator_helpers import select_state_fragments
 from behavior_libraries.companion_lib.activation import make_companion
 
-# Vocabulary removed - reactions now handled via gift_reactions property config
-# Alpha wolf has gift_reactions.handler pointing to on_receive_item below
+# Wire on_receive_item so give handler's invoke_behavior can find it
 vocabulary: Dict[str, Any] = {
-    "events": []
+    "events": [
+        {"event": "on_receive_item"}
+    ]
 }
 
 

@@ -114,6 +114,13 @@ class ScenarioState:
         self.actors[actor_id] = actor
         return actor
 
+    def get_item(self, item_id: str) -> MockItem | None:
+        """Get item by ID."""
+        for item in self.items:
+            if item.id == item_id:
+                return item
+        return None
+
     def add_item(
         self,
         item_id: str,
@@ -162,6 +169,7 @@ class ScenarioAccessor:
 
     def __init__(self, state: ScenarioState) -> None:
         self.game_state = state
+        self.behavior_manager = MagicMock()
 
 
 class ScenarioTestCase(unittest.TestCase):
