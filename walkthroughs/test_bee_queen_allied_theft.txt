@@ -18,10 +18,13 @@ give water bloom to queen
 
 # Verify allied state
 @assert actors.bee_queen.properties.trust_state.current == 3
+@assert actors.bee_queen.properties.state_machine.current == "allied"
 
-# Take honey multiple times - should succeed without hostility
+# Take honey - should succeed without hostility when allied
 take honey
-take honey  # EXPECTED_FAILURE - already taken
-take honey  # EXPECTED_FAILURE - already taken
+@expect "honey"
 
-# Success - allied state allows honey access without hostile reaction
+# Verify queen still allied (hostile reaction did NOT fire)
+@assert actors.bee_queen.properties.state_machine.current == "allied"
+
+# Summary: Allied state allows honey access without hostile reaction

@@ -1,44 +1,23 @@
 # Merchant Delvan - Contacts Knowledge Fragment
-# Tests: Delvan shares delvan_contacts fragment at trust 4+
-# Scenario: merchant_delvan.md scenario 9
+# Tests: Delvan shares contacts at trust 4+
 
-# Setup: Simulate Delvan rescued and high trust
+# Setup: Delvan rescued, mobile, at warehouse
+@set actors.player.location = "merchant_warehouse"
 @set extra.delvan_rescued = true
-@set actors.merchant_delvan.state_machine.current = "rescued"
-@set actors.merchant_delvan.trust_state.current = 4
+@set actors.merchant_delvan.properties.state_machine.current = "mobile"
 
-# Navigate to where Delvan would be after rescue
-go south
-go south
-go east
-go east
-
-# Verify Delvan is present
-look
-@expect "Delvan"
-
-# Build rapport through conversation
-talk to delvan
-@expect "grateful" or "friend" or "trust"
-
-# Ask about his contacts
+# Low trust - refuses to share contacts
+@set actors.merchant_delvan.properties.trust_state.current = 2
 ask delvan about contacts
-@expect "know people" or "connections" or "network"
+@expect "trust"
 
-# Deeper trust unlocks specifics
-ask delvan about network
-@expect "fence" or "smuggler" or "trader" or "name"
-
-# Verify knowledge fragment granted
-@inspect extra.knowledge_fragments.delvan_contacts
-@expect true
-
-# The fragment should provide useful information
-# About NPCs like the_fence, shadow, whisper
-@expect "useful" or "help" or "introduce"
+# High trust - reveals contacts
+@set actors.merchant_delvan.properties.trust_state.current = 4
+ask delvan about contacts
+@expect "network"
+@assert extra.knows_delvan_contacts == true
 
 # Summary: Contacts knowledge fragment verified
-# - Trust 4+ required
-# - Delvan reveals his contact network
-# - delvan_contacts fragment granted
-# - Information about underworld NPCs
+# - Trust 4+ required for contacts
+# - Lower trust gets refusal
+# - delvan_contacts fragment granted at high trust

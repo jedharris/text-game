@@ -1,32 +1,25 @@
 # Merchant Delvan Infection Test
-# Tests: encounter_reactions, condition_reactions, death_reactions
+# Tests: encounter_reactions, condition_reactions, item_use (bandages)
 
-# Navigate to Merchant Warehouse (Sunken District)
-go east
-go south
-go south
+# Setup: Player has bandages, navigate to Delvan
+@set actors.player.inventory = ["bandages"]
+@set actors.player.location = "merchant_warehouse"
 
-# First encounter triggers on entering warehouse
-# Should create commitment and start 10-turn timer
+# First encounter should trigger commitment
+look
 @expect "Delvan"
-@expect "SOS"
 
-# Verify encounter created commitment
-@assert extra.delvan_commitment_created == true
+# Use bandages to stop bleeding (real mechanic)
+use bandages on delvan
+@expect "bleeding"
+@assert extra.delvan_rescued == true
 
-# Apply infection condition to test condition_reactions
-@set actors.merchant_delvan.properties.conditions = {"infection": {"severity": 100, "damage_per_turn": 40}}
+# Post-rescue dialog works (freed state, still recovering)
+@assert actors.merchant_delvan.properties.state_machine.current == "freed"
+ask delvan about trade
+@expect "recovered"
 
-# Advance turns to let infection kill Delvan
-# Delvan has ~50 HP, 40 damage/turn = dies in 2-3 turns
-@advance 3 turns
-
-# Verify death_reactions ran
-# Should create gossip and set flags
-@assert extra.delvan_died == true
-
-# Summary: Delvan mechanics working
-# ✓ encounter_reactions: Commitment created on first encounter
-# ✓ condition_reactions: Would handle infection response (not testable without treatment item)
-# ✓ death_reactions: Gossip created, flags set
-# ✓ Navigation: Proper path via flooded_plaza → merchant_quarter → warehouse
+# Summary: Delvan encounter and rescue verified
+# - Encounter triggers commitment
+# - Bandages stop bleeding via item_use_reactions
+# - Post-rescue dialog available

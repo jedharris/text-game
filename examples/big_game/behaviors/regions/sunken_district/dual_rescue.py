@@ -13,6 +13,7 @@ from src.infrastructure_utils import (
     create_commitment,
     create_gossip,
     get_current_turn,
+    transition_state,
 )
 
 # Vocabulary: wire hooks to events
@@ -22,7 +23,10 @@ from src.infrastructure_utils import (
 # Note: Condition removal is handled by infrastructure/condition_reactions.py
 # NPCs must have appropriate reaction configurations
 vocabulary: Dict[str, Any] = {
-    "events": []
+    "events": [],
+    "adjectives": [
+        {"word": "air", "synonyms": []}
+    ]
 }
 
 
@@ -144,6 +148,10 @@ def on_rescue_success(
 
     if actor_id == "merchant_delvan" and condition_type == "bleeding":
         state.extra["delvan_rescued"] = True
+        # Transition from trapped to freed
+        sm = entity.properties.get("state_machine")
+        if sm:
+            transition_state(sm, "freed")
         feedback = (
             "You stop Delvan's bleeding. He grasps your hand. "
             "'You came. I wasn't sure anyone would.' His tapping stops - "
@@ -154,6 +162,11 @@ def on_rescue_success(
 
     if actor_id == "sailor_garrett" and condition_type == "drowning":
         state.extra["garrett_rescued"] = True
+        state.extra["garrett_rescue_turn"] = get_current_turn(state)
+        # Transition from drowning to rescued
+        sm = entity.properties.get("state_machine")
+        if sm:
+            transition_state(sm, "rescued")
         feedback = (
             "You pull Garrett from the rising water. He coughs, sputters, "
             "then laughs with relief. 'I thought I was dead. Thank you.'"
@@ -165,31 +178,41 @@ def on_rescue_success(
 
 
 def _check_mira_quest_completion(state: Any, accessor: Any) -> None:
-    """Check if Mira's rescue quest should be completed.
+    """Check if Mira's rescue quest should be completed or upgraded.
 
-    Called after each successful rescue. If Mira's quest is active and
-    at least one survivor has been rescued, invokes on_quest_complete
-    and fulfills the commitment so it doesn't expire.
+    Called after each successful rescue. Handles three scenarios:
+    1. First rescue with quest active: complete quest, transition to friendly
+    2. Second rescue after first: upgrade to allied, unlock camp services
+    3. No quest active and no prior completion: no-op
     """
-    if not state.extra.get("mira_quest_active"):
-        return
-
     if not (state.extra.get("delvan_rescued") or state.extra.get("garrett_rescued")):
         return
 
-    # Fulfill the commitment to prevent timeout
-    for commitment in getattr(state, "commitments", []):
-        if commitment.id == "commit_mira_rescue":
-            if commitment.properties.get("state") == CommitmentState.ACTIVE:
-                commitment.properties["state"] = CommitmentState.FULFILLED
-            break
+    both_rescued = state.extra.get("delvan_rescued") and state.extra.get("garrett_rescued")
 
-    # Invoke Mira's success handler
-    from examples.big_game.behaviors.regions.civilized_remnants.mira import on_quest_complete
+    # First rescue: complete the quest
+    if state.extra.get("mira_quest_active"):
+        # Fulfill the commitment to prevent timeout
+        for commitment in getattr(state, "commitments", []):
+            if commitment.id == "commit_mira_rescue":
+                if commitment.properties.get("state") == CommitmentState.ACTIVE:
+                    commitment.properties["state"] = CommitmentState.FULFILLED
+                break
 
-    mira = state.actors.get("camp_leader_mira")
-    if mira:
-        on_quest_complete(mira, accessor, {})
+        from examples.big_game.behaviors.regions.civilized_remnants.mira import on_quest_complete
+
+        mira = state.actors.get("camp_leader_mira")
+        if mira:
+            on_quest_complete(mira, accessor, {})
+        return
+
+    # Second rescue: upgrade from friendly to allied
+    if state.extra.get("mira_quest_completed") and both_rescued:
+        from examples.big_game.behaviors.regions.civilized_remnants.mira import on_dual_rescue_upgrade
+
+        mira = state.actors.get("camp_leader_mira")
+        if mira:
+            on_dual_rescue_upgrade(mira, accessor, {})
 
 
 def on_npc_death(

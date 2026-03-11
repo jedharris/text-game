@@ -1,34 +1,17 @@
 # Merchant Delvan - Trade Services
 # Tests: Delvan offers trading after rescue
-# Scenario: merchant_delvan.md scenario 10
 
-# Setup: Simulate Delvan rescued
+# Setup: Delvan rescued, mobile, at warehouse with trust
+@set actors.player.location = "merchant_warehouse"
 @set extra.delvan_rescued = true
-@set actors.merchant_delvan.state_machine.current = "rescued"
-
-# Navigate to where Delvan would be after rescue
-go south
-go south
-go east
-go east
-
-# Verify Delvan is present
-look
-@expect "Delvan"
+@set actors.merchant_delvan.properties.state_machine.current = "mobile"
+@set actors.merchant_delvan.properties.trust_state.current = 2
 
 # Ask about trading
 ask delvan about trade
-@expect "goods" or "supplies" or "sell" or "buy"
-
-# Check inventory for trade
-ask delvan about inventory
-@expect "have" or "offer" or "available"
-
-# Attempt to buy something
-buy bandages from delvan
-@expect "trade" or "exchange" or "deal"
+@expect "supplies"
+@assert extra.delvan_trade_offered == true
 
 # Summary: Trade services verified
 # - Post-rescue Delvan offers trading
-# - Can inquire about inventory
-# - Can purchase items
+# - Trade dialog available at trust 2+

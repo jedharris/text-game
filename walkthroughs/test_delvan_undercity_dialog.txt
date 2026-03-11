@@ -1,38 +1,18 @@
 # Merchant Delvan - Undercity Access Dialog
-# Tests: Post-rescue dialog reveals undercity entrance as alternative to Vex
-# Scenario: merchant_delvan.md scenario 8
+# Tests: Post-rescue dialog reveals undercity entrance
 
-# Setup: Simulate Delvan rescued
+# Setup: Delvan rescued, mobile, at merchant_warehouse with trust
+@set actors.player.location = "merchant_warehouse"
 @set extra.delvan_rescued = true
-@set actors.merchant_delvan.state_machine.current = "rescued"
+@set actors.merchant_delvan.properties.state_machine.current = "mobile"
+@set actors.merchant_delvan.properties.trust_state.current = 2
 
-# Navigate to where Delvan would be after rescue (survivor_camp or his location)
-go south
-go south
-go east
-go east
-
-# Look for Delvan
-look
-@expect "Delvan"
-
-# Build rapport first
-talk to delvan
-@expect "grateful" or "thank" or "saved"
-
-# Ask about connections/black market
-ask delvan about connections
-@expect "undercity" or "underground" or "market"
-
-# Alternative keywords
-ask delvan about black market
-@expect "entrance" or "way in" or "access"
-
-# Verify flag is set
-@inspect extra.knows_undercity_entrance
-@expect true
+# Ask about undercity
+ask delvan about undercity
+@expect "entrance"
+@assert extra.knows_undercity_entrance == true
 
 # Summary: Undercity access dialog verified
 # - Post-rescue Delvan reveals undercity entrance
-# - Alternative path to undercity (vs Vex trust 3)
+# - Alternative path to undercity (vs Vex)
 # - knows_undercity_entrance flag set

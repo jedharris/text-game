@@ -5230,6 +5230,11 @@
         "base_timer": 10,
         "hope_extends": true,
         "hope_bonus": 3,
+        "trust_state": {
+          "current": 0,
+          "floor": -3,
+          "ceiling": 5
+        },
         "encounter_reactions": {
           "handler": "behaviors.regions.sunken_district.dual_rescue:on_delvan_encounter"
         },
@@ -5252,6 +5257,9 @@
             "remove_condition": "bleeding",
             "response": "You apply pressure with the bandages. Delvan's bleeding slows, then stops."
           }
+        },
+        "dialog_reactions": {
+          "handler": "behaviors.regions.sunken_district.delvan_dialog:on_delvan_dialog"
         },
         "llm_context": {
           "traits": [
@@ -5302,7 +5310,8 @@
         "behaviors.shared.infrastructure.encounter_reactions",
         "behaviors.shared.infrastructure.death_reactions",
         "behaviors.shared.infrastructure.condition_reactions",
-        "behaviors.shared.infrastructure.item_use_reactions"
+        "behaviors.shared.infrastructure.item_use_reactions",
+        "behaviors.shared.infrastructure.dialog_reactions"
       ]
     },
     "the_archivist": {

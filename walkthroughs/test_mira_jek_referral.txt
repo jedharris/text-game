@@ -1,27 +1,17 @@
 # Camp Leader Mira - Jek Swimming Referral
 # Tests: Dialog reaction refers player to old_swimmer_jek for swimming lessons
-# Scenario: camp_leader_mira.md scenario 9
 
-# Navigate to survivor_camp (Sunken District)
-go south
-go south
-go east
-go east
-
-# Verify we're at survivor camp
-look
-@expect "Mira"
+# Setup: Player at survivor_camp
+@set actors.player.location = "survivor_camp"
 
 # Ask Mira about swimming
 ask mira about swimming
 @expect "Jek"
+@expect "teach"
 
-# Should mention Jek can teach swimming
-@expect "teach" or "lessons" or "best swimmer"
-
-# Alternative phrasing
+# Alternative phrasing - "water" also triggers swimming referral
 ask mira about water
-@expect "Jek" or "swimmer"
+@expect "Jek"
 
 # Summary: Jek referral dialog verified
 # - Mira refers player to Jek for swimming lessons
