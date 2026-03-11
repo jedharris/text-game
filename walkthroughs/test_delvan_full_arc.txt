@@ -1,0 +1,130 @@
+# Merchant Delvan - Full Arc (Long-Form Walkthrough)
+# Tests the complete Delvan rescue and trust progression WITHOUT @set shortcuts
+# Only @set used: none! This is a pure gameplay walkthrough.
+#
+# Arc: Get bandages → learn swimming → reach Delvan → rescue → build trust → trade → contacts
+# Systems exercised: spatial navigation, item pickup, swimming skill gate,
+#   encounter_reactions, item_use_reactions, state_machine transitions,
+#   trust progression, dialog routing, knowledge fragments
+
+# === Phase 1: Navigate to Market Square and get bandages ===
+
+# Player starts at nexus_chamber
+look
+@expect "Nexus"
+
+go south
+@expect "Forest"
+
+go east
+@expect "Trail"
+
+go south
+@expect "Gate"
+
+go south
+@expect "Market"
+
+take bandages
+@expect "bandages"
+@assert actors.player.inventory contains "bandages"
+
+# === Phase 2: Return to Nexus ===
+
+go north
+@expect "Gate"
+
+go north
+@expect "Trail"
+
+go west
+@expect "Forest"
+
+go north
+@expect "Nexus"
+
+# === Phase 3: Learn Swimming from Jek ===
+
+go east
+@expect "Flooded"
+
+go northwest
+@expect "Survivor"
+
+# Ask Jek about swimming to learn the skill
+ask jek about swimming
+@expect "swimming"
+@assert actors.player.properties.skills.basic_swimming == true
+
+# === Phase 4: Navigate to Merchant Warehouse ===
+
+go southeast
+@expect "Flooded"
+
+# This passage requires swimming - should work now
+go south
+@expect "Merchant"
+
+go south
+@expect "Warehouse"
+
+# === Phase 5: Encounter and Rescue Delvan ===
+
+look
+@expect "Delvan"
+@assert extra.delvan_commitment_created == true
+
+# Use bandages to stop bleeding - this is the rescue
+use bandages on delvan
+@expect "bleeding"
+@assert extra.delvan_rescued == true
+@assert actors.merchant_delvan.properties.state_machine.current == "freed"
+
+# === Phase 6: Post-Rescue Dialog - Build Trust ===
+
+# Delvan starts at trust 0 after rescue, in "freed" state
+# Default dialog in freed state mentions recovering
+ask delvan about help
+@expect "recovering"
+
+# Express gratitude to build trust (+1 each time, need 4 for contacts)
+ask delvan about rescue
+@expect "owe"
+@assert actors.merchant_delvan.properties.trust_state.current == 1
+
+ask delvan about saved
+@expect "owe"
+@assert actors.merchant_delvan.properties.trust_state.current == 2
+
+# === Phase 7: Trade Dialog (trust 2+ required for full response) ===
+
+ask delvan about trade
+@expect "supplies"
+@assert extra.delvan_trade_offered == true
+
+# === Phase 8: Continue Building Trust for Contacts ===
+
+ask delvan about grateful
+@expect "owe"
+@assert actors.merchant_delvan.properties.trust_state.current == 3
+
+ask delvan about thank
+@expect "owe"
+@assert actors.merchant_delvan.properties.trust_state.current == 4
+
+# === Phase 9: Contacts (trust 4+ required) ===
+
+ask delvan about contacts
+@expect "network"
+@assert extra.knows_delvan_contacts == true
+
+# === Summary ===
+# Full arc verified without any @set shortcuts:
+# - Spatial navigation through 12 locations
+# - Item pickup (bandages from market_square)
+# - Swimming skill gate (learn from Jek, then pass submerged exit)
+# - Encounter triggers commitment on look
+# - Bandages rescue via item_use_reactions + state machine transition
+# - Trust builds through repeated gratitude dialog (+1 each)
+# - Trade dialog available at trust 2+
+# - Contacts knowledge fragment granted at trust 4+

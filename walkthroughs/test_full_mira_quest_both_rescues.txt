@@ -1,0 +1,136 @@
+# Full Mira Quest - Both Rescues - Cross-Region Arc
+# Tests: Complete Mira quest by rescuing BOTH Delvan and Garrett,
+#   verifying quest completion and dual rescue upgrade
+# Systems: full cross-region navigation, swimming gate, dual_rescue,
+#   commitment system, state_machine, trust, quest completion/upgrade
+# No @set shortcuts - longest walkthrough, exercises most of the game
+
+# === Phase 1: Get Bandages from Market Square ===
+
+look
+@expect "Nexus"
+
+go south
+@expect "Forest"
+
+go east
+@expect "Trail"
+
+go south
+@expect "Gate"
+
+go south
+@expect "Market"
+
+take bandages
+@expect "bandages"
+@assert actors.player.inventory contains "bandages"
+
+# === Phase 2: Return to Nexus ===
+
+go north
+@expect "Gate"
+
+go north
+@expect "Trail"
+
+go west
+@expect "Forest"
+
+go north
+@expect "Nexus"
+
+# === Phase 3: Go to Survivor Camp, Get Quest + Swimming + Air Bladder ===
+
+go east
+@expect "Flooded"
+
+go northwest
+@expect "Survivor"
+
+# Get quest from Mira
+ask mira about help
+@expect "Mira"
+
+# Learn swimming from Jek
+ask jek about swimming
+@expect "swimming"
+@assert actors.player.properties.skills.basic_swimming == true
+
+# Pick up air bladder for Garrett rescue
+take air bladder
+@expect "bladder"
+@assert actors.player.inventory contains "air_bladder"
+
+# === Phase 4: Rescue Delvan (First Rescue) ===
+
+go southeast
+@expect "Flooded"
+
+go south
+@expect "Merchant"
+
+go south
+@expect "Warehouse"
+
+look
+@expect "Delvan"
+@assert extra.delvan_commitment_created == true
+
+# Use bandages to rescue Delvan
+use bandages on delvan
+@expect "bleeding"
+@assert extra.delvan_rescued == true
+@assert actors.merchant_delvan.properties.state_machine.current == "freed"
+
+# === Phase 5: Rescue Garrett (Second Rescue) ===
+
+go north
+@expect "Merchant"
+
+go north
+@expect "Flooded"
+
+go east
+@expect "Flooded"
+
+go east
+@expect "Tidal"
+
+go east
+@expect "Sea"
+
+look
+@expect "Garrett"
+
+# Use air bladder to rescue Garrett
+use air bladder on garrett
+@expect "bladder"
+@assert extra.garrett_rescued == true
+
+# === Phase 6: Return to Camp to Check Quest Status ===
+
+go west
+@expect "Tidal"
+
+go west
+@expect "Flooded"
+
+go west
+@expect "Flooded"
+
+go northwest
+@expect "Survivor"
+
+# Ask Mira about progress - both rescued
+ask mira about progress
+@expect "Mira"
+
+# === Summary ===
+# Full cross-region Mira quest arc (longest walkthrough):
+# - Get bandages from market_square (Civilized Remnants)
+# - Get quest from Mira, swimming from Jek, air_bladder (Sunken District)
+# - Rescue Delvan with bandages (merchant_warehouse)
+# - Rescue Garrett with air_bladder (sea_caves)
+# - Return to Mira - both rescues complete
+# - Tests: swimming gate, dual rescue mechanics, quest completion chain

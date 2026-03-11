@@ -1,0 +1,91 @@
+# Hunter Sira - Full Rescue Arc
+# Tests: Navigate to Sira, encounter, two-phase healing (bandages + herbs), post-rescue dialog
+# Systems: spatial navigation, encounter_reactions, item_use_reactions,
+#   condition removal chain, state_machine transitions, dialog
+# No @set shortcuts
+
+# === Phase 1: Gather supplies ===
+
+# Start at nexus_chamber
+look
+@expect "Nexus"
+
+# South to forest_edge
+go south
+@expect "Forest"
+
+# East to southern_trail
+go east
+@expect "Trail"
+
+# South to town_gate
+go south
+@expect "Gate"
+
+# South to market_square - pick up bandages
+go south
+@expect "Market"
+
+take bandages
+@expect "bandages"
+@assert actors.player.inventory contains "bandages"
+
+# East to healers_sanctuary
+go east
+@expect "Healer"
+
+# Back to healers_garden for healing_herbs
+go back
+@expect "Garden"
+
+take herbs
+@expect "herbs"
+@assert actors.player.inventory contains "healing_herbs"
+
+# === Phase 2: Navigate to Hunter Sira ===
+
+# Return to healers_sanctuary
+go front
+@expect "Healer"
+
+# West to market_square
+go west
+@expect "Market"
+
+# North to town_gate
+go north
+@expect "Gate"
+
+# North to southern_trail
+go north
+@expect "Trail"
+
+# East to hunters_camp where Sira is
+go east
+@expect "Hunter"
+
+# === Phase 3: Encounter and Rescue Sira ===
+
+# Looking should trigger encounter
+look
+@expect "Sira"
+
+# Phase 1: Use bandages to stop bleeding
+use bandages on sira
+@expect "bleeding"
+
+# Phase 2: Use healing herbs for broken leg
+use herbs on sira
+@expect "leg"
+
+# === Phase 4: Post-rescue dialog ===
+
+ask sira about help
+@expect "Elara"
+
+# === Summary ===
+# Full Sira rescue arc:
+# - Navigate market_square for bandages, healers_garden for herbs
+# - Navigate to hunters_camp
+# - Two-phase rescue: bandages (bleeding) then herbs (broken_leg)
+# - Post-rescue dialog available

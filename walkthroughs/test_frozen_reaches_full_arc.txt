@@ -1,0 +1,117 @@
+# Frozen Reaches - Salamanders + Golem Puzzle - Full Arc
+# Tests: Navigate frozen reaches, befriend salamanders with warm_coal,
+#   chip command_orb free from ice, solve golem puzzle with orb
+# Systems: spatial navigation, gift_reactions, trust, dialog,
+#   ice_extraction (multi-attempt), golem puzzle (command_orb), state_machine
+# No @set shortcuts
+#
+# NOTE: Golem password puzzle is BROKEN - parser can't pass multi-phrase
+#   keywords. "ask guardian about fire-that-gives-life" only sends one phrase
+#   but handler needs 2+ of 3 key phrases. Filed as design bug.
+#   Workaround: use command_orb approach instead.
+
+# === Phase 1: Enter Frozen Reaches ===
+
+look
+@expect "Nexus"
+
+go north
+@expect "Frozen Pass"
+
+# Pick up cold weather gear
+take gear
+@expect "gear"
+
+# === Phase 2: Navigate to Hot Springs for Salamanders ===
+
+go west
+@expect "Ice Field"
+
+go north
+@expect "Hot Springs"
+
+# === Phase 3: Befriend Salamanders ===
+
+look
+@expect "Salamander"
+
+# Pick up warm coal as gift
+take coal
+@expect "coal"
+
+# Give warm coal to salamander
+give coal to salamander
+@expect "coal"
+
+# Talk to salamander
+ask salamander about help
+@expect "salamander"
+
+# === Phase 4: Get Command Orb from Ice Caves ===
+
+go south
+@expect "Ice Field"
+
+go east
+@expect "Frozen Pass"
+
+go east
+@expect "Ice Caves"
+
+# Command orb is frozen in ice - takes 3 attempts to chip free
+take orb # EXPECTED_FAILURE: first attempt fails (frozen solid)
+@expect "frozen"
+
+take orb # EXPECTED_FAILURE: second attempt makes progress
+@expect "chip"
+
+take orb
+@expect "free"
+@assert actors.player.inventory contains "command_orb"
+
+# Also get ice wand
+take ice wand
+@expect "wand"
+
+# === Phase 5: Navigate to Temple Sanctum ===
+
+go west
+@expect "Frozen Pass"
+
+go north
+@expect "Temple"
+
+# === Phase 6: Golem Puzzle - Command Orb Solution ===
+
+look
+@expect "Guardian"
+
+# Use command orb to take control of golems
+use orb on guardian
+@expect "orb"
+
+# === Phase 7: Explore Observatory ===
+
+go up
+@expect "Observatory"
+
+look
+@expect "Observatory"
+
+# Pick up fire_wand from temple (now accessible)
+go down
+@expect "Temple"
+
+take fire wand
+@expect "wand"
+
+# === Summary ===
+# Full Frozen Reaches arc:
+# - Navigate through frozen_pass to hot_springs
+# - Befriend salamanders with warm_coal gift
+# - Chip command_orb free from ice (3 attempts, no heat needed)
+# - Solve golem puzzle at temple with command_orb
+# - Explore observatory above temple
+# - Collect fire_wand from temple (was behind golems)
+# - BUG FOUND: Golem password puzzle broken (parser limitation)
+# - BUG FOUND: warm_coal doesn't work to free frozen items (not in HEAT_SOURCES)

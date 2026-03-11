@@ -1,0 +1,73 @@
+# Beast Wilds - Wolf Pack + Spider Matriarch - Full Arc
+# Tests: Feed wolves to build trust, navigate spider nest, combat spiders
+# Systems: spatial navigation, gift_reactions, trust progression,
+#   pack_mirroring, combat, spider respawn, death_reactions
+# No @set shortcuts
+
+# === Phase 1: Get venison for wolves ===
+
+look
+@expect "Nexus"
+
+go south
+@expect "Forest"
+
+# Venison is at forest_edge
+take venison
+@expect "venison"
+@assert actors.player.inventory contains "venison"
+
+# === Phase 2: Navigate to Wolf Clearing ===
+
+go south
+@expect "Tangled"
+
+go northeast
+@expect "Wolf"
+
+# === Phase 3: Feed Alpha Wolf ===
+
+look
+@expect "Alpha Wolf"
+
+# Give venison to build trust (starts at -2)
+give venison to wolf
+@expect "venison"
+
+# === Phase 4: Navigate to Spider Thicket ===
+
+go southwest
+@expect "Tangled"
+
+go west
+@expect "Spider Thicket"
+
+# === Phase 5: Spider Combat ===
+
+look
+@expect "spider"
+
+# Attack spider
+attack spider
+@expect "damage"
+
+# === Phase 6: Enter Spider Matriarch Lair ===
+
+go west
+@expect "Matriarch"
+
+look
+@expect "Spider Matriarch"
+
+# Attack matriarch
+attack matriarch
+@expect "damage"
+
+# === Summary ===
+# Full Beast Wilds combat/diplomacy arc:
+# - Pick up venison at forest_edge
+# - Navigate to wolf_clearing via tangled_path
+# - Gift food to alpha wolf (trust system)
+# - Navigate to spider_thicket
+# - Combat with giant spiders
+# - Enter matriarch lair and engage

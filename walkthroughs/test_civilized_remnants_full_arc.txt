@@ -1,0 +1,117 @@
+# Civilized Remnants - Gate Guard + Market + Healer + Council - Full Arc
+# Tests: Enter town through gate guard, interact with market NPCs,
+#   visit healer, attend council, explore political system
+# Systems: spatial navigation, encounter_reactions, dialog_reactions,
+#   multiple NPC dialog systems, trust, services
+# No @set shortcuts
+
+# === Phase 1: Approach Town Gate ===
+
+look
+@expect "Nexus"
+
+go south
+@expect "Forest"
+
+go east
+@expect "Trail"
+
+go south
+@expect "Gate"
+
+# Gate guard encounter should fire
+look
+@expect "Guard"
+
+# Ask guard about entry
+ask guard about town
+@expect "guard"
+
+# === Phase 2: Enter Market Square ===
+
+go south
+@expect "Market"
+
+look
+@expect "Market"
+
+# === Phase 3: Talk to Weaponsmith Toran ===
+
+ask toran about trade
+@expect "toran"
+
+# === Phase 4: Talk to Curiosity Dealer Vex ===
+
+ask vex about trade
+@expect "vex"
+
+# === Phase 5: Visit Healer Elara ===
+
+go east
+@expect "Healer"
+
+look
+@expect "Elara"
+
+ask elara about help
+@expect "elara"
+
+# === Phase 6: Visit Healers Garden ===
+
+go back
+@expect "Garden"
+
+look
+@expect "Garden"
+
+# === Phase 7: Return to Market and Visit Council ===
+
+go front
+@expect "Healer"
+
+go west
+@expect "Market"
+
+go west
+@expect "Council"
+
+look
+@expect "Council"
+
+# === Phase 8: Talk to Councilors ===
+
+# Ask Asha about refugees
+ask asha about refugees
+@expect "asha"
+
+# Ask Hurst about refugees
+ask hurst about refugees
+@expect "hurst"
+
+# Ask Varn about trade
+ask varn about trade
+@expect "varn"
+
+# === Phase 9: Explore Broken Statue Hall ===
+
+go east
+@expect "Market"
+
+go south
+@expect "Statue"
+
+look
+@expect "Statue"
+
+# Take stone chisel
+take chisel
+@expect "chisel"
+
+# === Summary ===
+# Full Civilized Remnants arc:
+# - Enter through gate guard checkpoint
+# - Visit all market NPCs (Toran, Vex)
+# - Healer Elara and garden
+# - Council hall with all three councilors
+# - Political dialog (refugees, trade)
+# - Broken statue hall exploration

@@ -1371,7 +1371,10 @@
           "examined": "awakening magic for dormant constructs, life given to stone",
           "in_use": "pouring life-energy forth, animation magic cascading out"
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     },
     {
       "id": "frozen_crystal",
@@ -1525,7 +1528,8 @@
         }
       },
       "behaviors": [
-        "behaviors.regions.frozen_reaches.telescope_repair"
+        "behaviors.regions.frozen_reaches.telescope_repair",
+        "behaviors.shared.infrastructure.item_use_reactions"
       ],
       "llm_context": {
         "traits": [
@@ -1760,7 +1764,10 @@
           "in_inventory": "warm container of sacred spring water",
           "examined": "spring water, warm and pure from geothermal source"
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     },
     {
       "id": "warm_coal",
@@ -1895,7 +1902,8 @@
         }
       },
       "behaviors": [
-        "behaviors.regions.frozen_reaches.ice_extraction"
+        "behaviors.regions.frozen_reaches.ice_extraction",
+        "behaviors.shared.infrastructure.item_use_reactions"
       ],
       "llm_context": {
         "traits": [
@@ -1939,7 +1947,8 @@
         }
       },
       "behaviors": [
-        "behaviors.regions.frozen_reaches.ice_extraction"
+        "behaviors.regions.frozen_reaches.ice_extraction",
+        "behaviors.shared.infrastructure.item_use_reactions"
       ],
       "llm_context": {
         "traits": [
@@ -2039,7 +2048,8 @@
         ]
       },
       "behaviors": [
-        "behaviors.regions.frozen_reaches.ice_extraction"
+        "behaviors.regions.frozen_reaches.ice_extraction",
+        "behaviors.shared.infrastructure.item_use_reactions"
       ],
       "llm_context": {
         "traits": [
@@ -2204,7 +2214,8 @@
         ]
       },
       "behaviors": [
-        "behaviors.regions.frozen_reaches.ice_extraction"
+        "behaviors.regions.frozen_reaches.ice_extraction",
+        "behaviors.shared.infrastructure.item_use_reactions"
       ],
       "llm_context": {
         "traits": [
@@ -2476,7 +2487,9 @@
         "uses": 3,
         "item_use_reactions": {
           "breathe": {
-            "accepted_items": ["air_bladder"],
+            "accepted_items": [
+              "air_bladder"
+            ],
             "handler": "behaviors.regions.sunken_district.drowning:on_breathe"
           }
         }
@@ -2624,7 +2637,10 @@
           "in_inventory": "delicate organic material requiring care",
           "examined": "rare silvermoss, magical resonance evident"
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     },
     {
       "id": "silvermoss_2",
@@ -2635,7 +2651,10 @@
         "portable": true,
         "curative": true,
         "infection_reduction": 40
-      }
+      },
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     },
     {
       "id": "heartmoss",
@@ -2831,7 +2850,10 @@
           "in_inventory": "fragile fungus wrapped carefully",
           "examined": "blue mushroom, safe for consumption"
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     },
     {
       "id": "mushroom_gold",
@@ -2860,7 +2882,10 @@
           "in_inventory": "golden glow visible through wrapping",
           "examined": "gold mushroom, prized for many properties"
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     },
     {
       "id": "mushroom_violet",
@@ -2889,7 +2914,10 @@
           "in_inventory": "vibration subtle through pack fabric",
           "examined": "violet mushroom, magic-infused and potent"
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     },
     {
       "id": "mushroom_black",
@@ -2918,7 +2946,10 @@
           "in_inventory": "dark cap wrapped against crushing",
           "examined": "black mushroom, intimidating but harmless"
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     },
     {
       "id": "dead_explorer",
@@ -3099,7 +3130,10 @@
           "in_inventory": "tool weight familiar and purposeful",
           "examined": "magical chisel for repairing stone constructs, enchanted for guardians"
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     },
     {
       "id": "town_seal",
@@ -3323,7 +3357,8 @@
       "location": "keepers_quarters",
       "inventory": [],
       "behaviors": [
-        "behaviors.regions.meridian_nexus.echo"
+        "behaviors.regions.meridian_nexus.echo",
+        "behaviors.shared.infrastructure.dialog_reactions"
       ],
       "properties": {
         "state_machine": {
@@ -3796,7 +3831,9 @@
         }
       },
       "behaviors": [
-        "behaviors.regions.frozen_reaches.salamanders"
+        "behaviors.regions.frozen_reaches.salamanders",
+        "behaviors.shared.infrastructure.dialog_reactions",
+        "behaviors.shared.infrastructure.gift_reactions"
       ]
     },
     "steam_salamander_2": {
@@ -3889,7 +3926,8 @@
         }
       },
       "behaviors": [
-        "behaviors.regions.frozen_reaches.salamanders"
+        "behaviors.regions.frozen_reaches.salamanders",
+        "behaviors.shared.infrastructure.dialog_reactions"
       ]
     },
     "steam_salamander_3": {
@@ -3982,7 +4020,8 @@
         }
       },
       "behaviors": [
-        "behaviors.regions.frozen_reaches.salamanders"
+        "behaviors.regions.frozen_reaches.salamanders",
+        "behaviors.shared.infrastructure.dialog_reactions"
       ]
     },
     "stone_golem_1": {
@@ -3993,7 +4032,10 @@
       "inventory": [],
       "behaviors": [
         "behaviors.regions.frozen_reaches.golem_puzzle",
-        "behaviors.regions.frozen_reaches.thermal_shock"
+        "behaviors.regions.frozen_reaches.thermal_shock",
+        "behaviors.shared.infrastructure.item_use_reactions",
+        "behaviors.shared.infrastructure.dialog_reactions",
+        "behaviors.shared.infrastructure.death_reactions"
       ],
       "properties": {
         "state_machine": {
@@ -4132,7 +4174,10 @@
       "inventory": [],
       "behaviors": [
         "behaviors.regions.frozen_reaches.golem_puzzle",
-        "behaviors.regions.frozen_reaches.thermal_shock"
+        "behaviors.regions.frozen_reaches.thermal_shock",
+        "behaviors.shared.infrastructure.item_use_reactions",
+        "behaviors.shared.infrastructure.dialog_reactions",
+        "behaviors.shared.infrastructure.death_reactions"
       ],
       "properties": {
         "state_machine": {
@@ -4820,7 +4865,8 @@
         "behaviors.regions.beast_wilds.bear_cubs",
         "behaviors.shared.infrastructure.encounter_reactions",
         "behaviors.shared.infrastructure.dialog_reactions",
-        "behaviors.shared.infrastructure.commitment_reactions"
+        "behaviors.shared.infrastructure.commitment_reactions",
+        "behaviors.shared.infrastructure.gift_reactions"
       ]
     },
     "bear_cub_1": {
@@ -5144,7 +5190,9 @@
         },
         "item_use_reactions": {
           "rescue": {
-            "accepted_items": ["air_bladder"],
+            "accepted_items": [
+              "air_bladder"
+            ],
             "remove_condition": "drowning",
             "response": "You force the air bladder to Garrett's face. He gasps, breathing deeply."
           }
@@ -5379,7 +5427,9 @@
         }
       },
       "behaviors": [
-        "behaviors.regions.civilized_remnants.archivist"
+        "behaviors.regions.civilized_remnants.archivist",
+        "behaviors.shared.infrastructure.dialog_reactions",
+        "behaviors.shared.infrastructure.gift_reactions"
       ]
     },
     "predatory_fish": {
@@ -5550,7 +5600,9 @@
         }
       },
       "behaviors": [
-        "behaviors.regions.fungal_depths.aldric_rescue"
+        "behaviors.regions.fungal_depths.aldric_rescue",
+        "behaviors.shared.infrastructure.item_use_reactions",
+        "behaviors.shared.infrastructure.dialog_reactions"
       ]
     },
     "npc_spore_mother": {
@@ -6047,7 +6099,8 @@
         }
       },
       "behaviors": [
-        "behaviors.shared.infrastructure.dialog_reactions"
+        "behaviors.shared.infrastructure.dialog_reactions",
+        "behaviors.shared.infrastructure.encounter_reactions"
       ]
     },
     "herbalist_maren": {
@@ -6168,7 +6221,9 @@
         }
       },
       "behaviors": [
-        "behaviors.regions.civilized_remnants.vex"
+        "behaviors.regions.civilized_remnants.vex",
+        "behaviors.shared.infrastructure.dialog_reactions",
+        "behaviors.shared.infrastructure.gift_reactions"
       ]
     },
     "healer_elara": {

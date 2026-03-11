@@ -1,0 +1,131 @@
+# Meridian Nexus - Echo + Waystone Fragments - Full Arc
+# Tests: Talk to Echo, get hints, place ice_shard and water_pearl fragments
+#   on waystone, check progress
+# Systems: dialog_reactions (Echo), item_use_reactions (waystone),
+#   fragment tracking, spatial navigation
+# No @set shortcuts (except for fragments that require quest completion)
+
+# === Phase 1: Talk to Echo at Nexus ===
+
+look
+@expect "Nexus"
+
+# Go up to observatory to reach keeper's quarters
+go up
+@expect "Observatory"
+
+go east
+@expect "Keeper"
+
+# Talk to the Echo
+ask echo about help
+@expect "hunter"
+
+ask echo about waystone
+@expect "fragment"
+
+ask echo about status
+@expect "souls"
+
+# === Phase 2: Get Ice Shard from Frozen Reaches ===
+
+go down
+@expect "Crystal"
+
+go west
+@expect "Nexus"
+
+go north
+@expect "Frozen Pass"
+
+go east
+@expect "Ice Caves"
+
+# Ice shard is frozen - needs 3 attempts to chip free
+take ice shard # EXPECTED_FAILURE: first attempt
+@expect "frozen"
+
+take ice shard # EXPECTED_FAILURE: second attempt
+@expect "chip"
+
+take ice shard
+@expect "free"
+@assert actors.player.inventory contains "ice_shard"
+
+# === Phase 3: Get Water Pearl from Sunken District ===
+
+go west
+@expect "Frozen Pass"
+
+go south
+@expect "Nexus"
+
+# Need swimming to reach deep_archive via merchant_warehouse
+# Learn swimming first
+go east
+@expect "Flooded"
+
+go northwest
+@expect "Survivor"
+
+ask jek about swimming
+@expect "swimming"
+@assert actors.player.properties.skills.basic_swimming == true
+
+go southeast
+@expect "Flooded"
+
+go south
+@expect "Merchant"
+
+go south
+@expect "Warehouse"
+
+go down
+@expect "Archive"
+
+take pearl
+@expect "pearl"
+@assert actors.player.inventory contains "water_pearl"
+
+# === Phase 4: Return to Nexus and Place Fragments ===
+
+go up
+@expect "Warehouse"
+
+go north
+@expect "Merchant"
+
+go north
+@expect "Flooded"
+
+go west
+@expect "Nexus"
+
+# Place ice shard on waystone
+use ice shard on waystone
+@expect "shard"
+
+# Place water pearl on waystone
+use pearl on waystone
+@expect "pearl"
+
+# === Phase 5: Check Progress with Echo ===
+
+go up
+@expect "Observatory"
+
+go east
+@expect "Keeper"
+
+ask echo about waystone
+@expect "fragment"
+
+# === Summary ===
+# Full Nexus arc:
+# - Talk to Echo for hints and status
+# - Collect ice_shard from ice_caves (Frozen Reaches)
+# - Learn swimming, collect water_pearl from deep_archive (Sunken District)
+# - Place both fragments on waystone at nexus_chamber
+# - Verify progress with Echo
+# - Integration: swimming gate needed for water_pearl path

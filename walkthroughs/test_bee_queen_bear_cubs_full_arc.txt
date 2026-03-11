@@ -1,0 +1,104 @@
+# Bee Queen Diplomacy + Bear Cubs Healing - Full Arc
+# Tests: Navigate through Beast Wilds, gift moonpetal to bee queen,
+#   collect healing herbs, heal sick bear cubs
+# Systems: spatial navigation, gift_reactions, item_use_reactions,
+#   trust changes, condition removal, encounter_reactions
+# No @set shortcuts
+
+# === Phase 1: Get moonpetal from healers_garden ===
+
+look
+@expect "Nexus"
+
+go south
+@expect "Forest"
+
+go east
+@expect "Trail"
+
+go south
+@expect "Gate"
+
+go south
+@expect "Market"
+
+go east
+@expect "Healer"
+
+go back
+@expect "Garden"
+
+take moonpetal
+@expect "moonpetal"
+@assert actors.player.inventory contains "moonpetal"
+
+# Also grab healing herbs for the bear cubs
+take herbs
+@expect "herbs"
+@assert actors.player.inventory contains "healing_herbs"
+
+# === Phase 2: Navigate to Bee Queen ===
+
+go front
+@expect "Healer"
+
+go west
+@expect "Market"
+
+go north
+@expect "Gate"
+
+go north
+@expect "Trail"
+
+go west
+@expect "Forest"
+
+go south
+@expect "Tangled"
+
+go east
+@expect "Grove"
+
+go west
+@expect "Bee"
+
+# === Phase 3: Bee Queen Diplomacy ===
+
+look
+@expect "Bee Queen"
+
+# Gift moonpetal to bee queen
+give moonpetal to bee queen
+@expect "moonpetal"
+
+# === Phase 4: Navigate to Bear Cubs ===
+
+# Back to ancient_grove
+go east
+@expect "Grove"
+
+# Back to tangled_path
+go east
+@expect "Tangled"
+
+# South to predators_den
+go south
+@expect "Predator"
+
+# === Phase 5: Bear Cubs Healing ===
+
+look
+@expect "bear"
+
+# Use healing herbs on sick cubs
+use herbs on cub
+@expect "herb"
+
+# === Summary ===
+# Full Beast Wilds diplomacy/healing arc:
+# - Navigate to healers_garden for moonpetal + herbs
+# - Navigate through Beast Wilds to bee_queen_clearing
+# - Gift moonpetal to Bee Queen (diplomacy)
+# - Navigate to predators_den
+# - Heal sick bear cubs with herbs

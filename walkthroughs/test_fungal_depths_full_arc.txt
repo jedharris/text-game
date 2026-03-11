@@ -1,0 +1,63 @@
+# Fungal Depths - Aldric Rescue + Myconid Elder - Full Arc
+# Tests: Navigate to cavern_entrance, find silvermoss, heal Aldric,
+#   continue deeper to myconid_sanctuary for diplomacy
+# Systems: spatial navigation, item pickup, item_use_reactions with handler,
+#   fungal_infection condition, dialog_reactions, state_machine
+# No @set shortcuts
+
+# === Phase 1: Enter Fungal Depths ===
+
+look
+@expect "Nexus"
+
+# West to cavern_entrance
+go west
+@expect "Cavern"
+
+# === Phase 2: Encounter Aldric ===
+
+look
+@expect "Aldric"
+
+# === Phase 3: Go deeper to find silvermoss ===
+
+# Down to luminous_grotto
+go down
+@expect "Grotto"
+
+take silvermoss
+@expect "silvermoss"
+@assert actors.player.inventory contains "silvermoss"
+
+# === Phase 4: Return to heal Aldric ===
+
+go up
+@expect "Cavern"
+
+use silvermoss on aldric
+@expect "silvermoss"
+
+# === Phase 5: Continue to Myconid Sanctuary ===
+
+go down
+@expect "Grotto"
+
+go east
+@expect "Myconid"
+
+# === Phase 6: Myconid Elder Diplomacy ===
+
+look
+@expect "Myconid"
+
+ask elder about help
+@expect "elder"
+
+# === Summary ===
+# Full Fungal Depths arc:
+# - Navigate nexus → cavern_entrance
+# - Encounter infected Aldric
+# - Descend to luminous_grotto for silvermoss
+# - Return to heal Aldric with silvermoss
+# - Continue deeper to myconid_sanctuary
+# - Dialog with Myconid Elder

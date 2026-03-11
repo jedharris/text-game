@@ -1,0 +1,92 @@
+# Garrett Rescue + Mira Quest - Full Arc
+# Tests: Get Mira quest, learn swimming, rescue Garrett with air_bladder,
+#   verify Mira quest completion
+# Systems: spatial navigation, swimming gate, dialog_reactions,
+#   encounter_reactions, item_use_reactions, commitment system,
+#   state_machine transitions, quest completion
+# No @set shortcuts
+
+# === Phase 1: Start at Nexus, go to Survivor Camp ===
+
+look
+@expect "Nexus"
+
+go east
+@expect "Flooded"
+
+go northwest
+@expect "Survivor"
+
+# === Phase 2: Get Mira Quest ===
+
+look
+@expect "Mira"
+
+ask mira about help
+@expect "Mira"
+
+# === Phase 3: Learn Swimming from Jek ===
+
+ask jek about swimming
+@expect "swimming"
+@assert actors.player.properties.skills.basic_swimming == true
+
+# === Phase 4: Pick up Air Bladder ===
+
+take air bladder
+@expect "bladder"
+@assert actors.player.inventory contains "air_bladder"
+
+# === Phase 5: Navigate to Sea Caves (where Garrett is) ===
+
+go southeast
+@expect "Flooded"
+
+# Go east to flooded_chambers
+go east
+@expect "Flooded"
+
+# East to tidal_passage
+go east
+@expect "Tidal"
+
+# East to sea_caves
+go east
+@expect "Sea"
+
+# === Phase 6: Encounter and Rescue Garrett ===
+
+look
+@expect "Garrett"
+
+# Use air bladder to save drowning Garrett
+use air bladder on garrett
+@expect "bladder"
+@assert extra.garrett_rescued == true
+
+# === Phase 7: Return to Mira ===
+
+go west
+@expect "Tidal"
+
+go west
+@expect "Flooded"
+
+go west
+@expect "Flooded"
+
+go northwest
+@expect "Survivor"
+
+# Check that Mira acknowledges rescue
+ask mira about progress
+@expect "Mira"
+
+# === Summary ===
+# Full Garrett rescue + Mira quest arc:
+# - Get quest from Mira at survivor_camp
+# - Learn swimming from Jek (required for submerged passages)
+# - Pick up air_bladder at survivor_camp
+# - Navigate through flooded_chambers → tidal_passage → sea_caves
+# - Rescue Garrett with air_bladder
+# - Return to report to Mira
