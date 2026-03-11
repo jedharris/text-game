@@ -330,8 +330,11 @@ def _consume_item(config: Dict[str, Any], state: Any, entity: Any, context: Dict
         if item_id in player.inventory:
             player.inventory.remove(item_id)
 
-    # Also update item location
-    if hasattr(item, "location"):
+    # Also update item location via whereabouts index
+    accessor = context.get("accessor")
+    if accessor:
+        accessor.set_entity_where(item_id, "__consumed_by_player__")
+    elif hasattr(item, "location"):
         item.location = None
 
 
@@ -356,10 +359,14 @@ def _grant_items(config: Dict[str, Any], state: Any, entity: Any, context: Dict[
         if item_id not in player.inventory:
             player.inventory.append(item_id)
 
-        # Update item location
-        item = state.get_item(item_id) if hasattr(state, "get_item") else None
-        if item and hasattr(item, "location"):
-            item.location = "player"
+        # Update item location via whereabouts index
+        accessor = context.get("accessor")
+        if accessor:
+            accessor.set_entity_where(item_id, "player")
+        else:
+            item = state.get_item(item_id) if hasattr(state, "get_item") else None
+            if item and hasattr(item, "location"):
+                item.location = "player"
 
 
 def _spawn_items(config: Dict[str, Any], state: Any, entity: Any, context: Dict[str, Any]) -> None:

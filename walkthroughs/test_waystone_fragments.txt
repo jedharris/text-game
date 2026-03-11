@@ -1,0 +1,59 @@
+# Waystone Fragment Integration Test
+# Tests: picking up fragments, using them on the waystone, tracking placement
+
+# Setup: player starts at nexus_chamber (default start location)
+# Waystone spirit is at nexus_chamber
+
+# ============================================================
+# Test 1: Look around to verify waystone is visible
+# ============================================================
+look
+@expect "Waystone"
+
+# ============================================================
+# Test 2: Use ice shard on waystone (first fragment)
+# ============================================================
+@set actors.player.inventory = ["ice_shard"]
+
+inventory
+@expect "ice shard"
+
+use ice shard on waystone
+@expect "fragment"
+@assert extra.waystone_fragments contains "ice_shard"
+
+# ============================================================
+# Test 3: Place second fragment (alpha fang)
+# ============================================================
+@set actors.player.inventory = ["alpha_fang_fragment"]
+
+use alpha fang fragment on waystone
+@expect "fragment"
+@assert extra.waystone_fragments contains "alpha_fang_fragment"
+
+# ============================================================
+# Test 4: Place third fragment (water pearl)
+# ============================================================
+@set actors.player.inventory = ["water_pearl"]
+
+use water pearl on waystone
+@expect "fragment"
+@assert extra.waystone_fragments contains "water_pearl"
+
+# ============================================================
+# Test 5: Place fourth fragment (spore heart fragment)
+# ============================================================
+@set actors.player.inventory = ["spore_heart_fragment"]
+
+use spore heart fragment on waystone
+@expect "fragment"
+@assert extra.waystone_fragments contains "spore_heart_fragment"
+
+# ============================================================
+# Test 6: Place fifth and final fragment (town seal) - completes waystone
+# ============================================================
+@set actors.player.inventory = ["town_seal"]
+
+use town seal on waystone
+@expect "restored"
+@assert extra.waystone_complete == true

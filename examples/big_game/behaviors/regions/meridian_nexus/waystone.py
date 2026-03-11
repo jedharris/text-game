@@ -25,16 +25,22 @@ vocabulary: Dict[str, Any] = {
             "description": "Check game ending conditions each turn"
         }
     ],
-    "events": []
+    "events": [],
+    "adjectives": [
+        {"word": "alpha", "synonyms": []},
+        {"word": "fang", "synonyms": []},
+        {"word": "heart", "synonyms": []},
+        {"word": "town", "synonyms": []},
+    ]
 }
 
-# Required waystone fragments
+# Required waystone fragments (must match actual item IDs in game_state.json)
 WAYSTONE_FRAGMENTS = [
     "alpha_fang_fragment",      # Beast Wilds - wolf trust
     "spore_heart_fragment",     # Fungal Depths - heal Spore Mother
-    "ice_shard_fragment",       # Frozen Reaches - ice caves
-    "water_bloom_fragment",     # Sunken District - flooded areas
-    "echo_essence_fragment",    # Meridian Nexus - Echo's gift
+    "ice_shard",                # Frozen Reaches - ice caves
+    "water_pearl",              # Sunken District - flooded areas
+    "town_seal",                # Civilized Remnants - council authority
 ]
 
 

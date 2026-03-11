@@ -426,6 +426,7 @@
           "surface scored by wind and time",
           "blue ice visible in cracks",
           "standing atop frozen ages",
+          "to the north the glacier ends in a sheer cliff dropping into a frozen abyss",
           "sense of geological time",
           "cold's monument to persistence"
         ],
@@ -1850,7 +1851,8 @@
         }
       },
       "behaviors": [
-        "behaviors.regions.frozen_reaches.ice_extraction"
+        "behaviors.regions.frozen_reaches.ice_extraction",
+        "behaviors.shared.infrastructure.item_use_reactions"
       ],
       "llm_context": {
         "traits": [
@@ -2418,7 +2420,10 @@
           "in_inventory": "weight of earned respect among pack",
           "examined": "alpha wolf's fang, proof of combat prowess or friendship"
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     },
     {
       "id": "royal_honey",
@@ -2541,7 +2546,10 @@
           "in_inventory": "coolness seeping through pack, tidal pull felt",
           "examined": "water magic essence, key to flooded realm healing"
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     },
     {
       "id": "lever",
@@ -2634,6 +2642,9 @@
       "name": "heartmoss",
       "description": "An ancient moss that grows only in the deep roots. It can cure the Spore Mother's blight.",
       "location": "deep_root_caverns",
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ],
       "properties": {
         "portable": true,
         "quest_item": true
@@ -2682,7 +2693,10 @@
           "in_inventory": "warmth unsettling through pack, life too alien",
           "examined": "fragment of spore heart corruption, needed for healing paradoxically"
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     },
     {
       "id": "aldric_journal",
@@ -3111,7 +3125,10 @@
           "in_inventory": "weight of responsibility literally carried",
           "examined": "official seal of town council, commands obedience from citizens"
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     },
     {
       "id": "bandages",
@@ -3140,6 +3157,60 @@
       "behaviors": [
         "behaviors.shared.infrastructure.item_use_reactions"
       ]
+    },
+    {
+      "id": "silk_armor",
+      "name": "silk armor",
+      "description": "Light armor woven from spider silk by Weaponsmith Toran. Surprisingly strong for its weight.",
+      "location": null,
+      "properties": {
+        "portable": true,
+        "equippable": true,
+        "armor_value": 3
+      },
+      "llm_context": {
+        "traits": [
+          "shimmering spider silk weave",
+          "light as cloth, strong as steel",
+          "masterwork of Toran's forge"
+        ]
+      }
+    },
+    {
+      "id": "venom_blade",
+      "name": "venom blade",
+      "description": "A dagger coated with spider venom by Weaponsmith Toran. The blade gleams with a sickly sheen.",
+      "location": null,
+      "properties": {
+        "portable": true,
+        "equippable": true,
+        "damage_bonus": 5
+      },
+      "llm_context": {
+        "traits": [
+          "sickly green sheen on edge",
+          "venom coating still potent",
+          "deadly craftsmanship"
+        ]
+      }
+    },
+    {
+      "id": "crystal_shield",
+      "name": "crystal shield",
+      "description": "A shield with a crystal lens mounted in its frame by Weaponsmith Toran. Light refracts through it in dazzling patterns.",
+      "location": null,
+      "properties": {
+        "portable": true,
+        "equippable": true,
+        "armor_value": 2
+      },
+      "llm_context": {
+        "traits": [
+          "refracted light dancing across surface",
+          "crystal lens set in sturdy frame",
+          "both beautiful and functional"
+        ]
+      }
     }
   ],
   "parts": [
@@ -3355,11 +3426,11 @@
             "accepted_items": [
               "alpha_fang_fragment",
               "spore_heart_fragment",
-              "ice_shard_fragment",
-              "water_bloom_fragment",
-              "echo_essence_fragment"
+              "ice_shard",
+              "water_pearl",
+              "town_seal"
             ],
-            "handler": "behaviors.regions.meridian_nexus.waystone:on_fragment_place"
+            "handler": "examples.big_game.behaviors.regions.meridian_nexus.waystone:on_fragment_place"
           }
         },
         "llm_context": {
@@ -3399,7 +3470,9 @@
           }
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     },
     "alpha_wolf": {
       "id": "alpha_wolf",
@@ -4384,6 +4457,7 @@
         "pack_behavior": {
           "pack_id": "spider_pack",
           "role": "leader",
+          "pack_follows_leader_state": true,
           "followers": [
             "giant_spider_1",
             "giant_spider_2"
@@ -4439,7 +4513,10 @@
           }
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.shared.infrastructure.pack_mirroring",
+        "behaviors.shared.infrastructure.death_reactions"
+      ]
     },
     "giant_spider_1": {
       "id": "giant_spider_1",
@@ -5544,6 +5621,7 @@
         "pack_behavior": {
           "pack_id": "sporeling_pack",
           "role": "leader",
+          "pack_follows_leader_state": true,
           "followers": [
             "npc_sporeling_1",
             "npc_sporeling_2",
@@ -5555,7 +5633,7 @@
             "accepted_items": [
               "heartmoss"
             ],
-            "handler": "behaviors.regions.fungal_depths.spore_mother:on_spore_mother_heal"
+            "handler": "examples.big_game.behaviors.regions.fungal_depths.spore_mother:on_spore_mother_heal"
           }
         },
         "death_reactions": {
@@ -5569,7 +5647,12 @@
           "handler": "examples.big_game.behaviors.regions.fungal_depths.spore_mother:on_spore_mother_talk"
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.shared.infrastructure.pack_mirroring",
+        "behaviors.shared.infrastructure.death_reactions",
+        "behaviors.shared.infrastructure.dialog_reactions",
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     },
     "npc_sporeling_1": {
       "id": "npc_sporeling_1",
@@ -5860,60 +5943,13 @@
           }
         },
         "dialog_reactions": {
-          "greeting": {
-            "keywords": [
-              "hello",
-              "greetings",
-              "speak",
-              "talk"
-            ],
-            "summary": "A cloud of blue spores drifts from the Elder's cap. Somehow, you understand: 'Soft-flesh comes to the Still Place. Why?'"
-          },
-          "cure": {
-            "keywords": [
-              "cure",
-              "infection",
-              "heal",
-              "sickness",
-              "fungal"
-            ],
-            "trust_delta": 1,
-            "summary": "Green spores pulse gently. 'The rot-within can be cleansed. But the cleansing costs. Ice-crystal from the frozen places, or metal-that-gleams. An exchange.'"
-          },
-          "resistance": {
-            "keywords": [
-              "resistance",
-              "spores",
-              "protect",
-              "immunity"
-            ],
-            "requires_trust": 2,
-            "summary": "Purple spores swirl thoughtfully. 'To walk among spores without harm... this can be taught. But teaching requires trust. Trust requires time.'"
-          },
-          "spore_mother": {
-            "keywords": [
-              "spore mother",
-              "mother",
-              "heart",
-              "great one"
-            ],
-            "sets_flags": {
-              "knows_spore_mother_sick": true
-            },
-            "summary": "The spores turn a deep, sorrowful amber. 'The Mother suffers. The corruption spreads from her wound. If she falls... we all fall.'"
-          },
-          "cold": {
-            "keywords": [
-              "cold",
-              "ice",
-              "crystal",
-              "frozen"
-            ],
-            "summary": "Silver spores glitter. 'Ice-crystal cools the cure-making. Without cold, the cleansing burns too fierce. Bring ice from the frozen heights.'"
-          }
+          "handler": "behaviors.regions.fungal_depths.myconid_elder:on_elder_dialog"
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.shared.infrastructure.dialog_reactions",
+        "behaviors.shared.infrastructure.encounter_reactions"
+      ]
     },
     "gate_guard": {
       "id": "gate_guard",
@@ -5961,6 +5997,9 @@
           },
           "default_response": "The guard watches the horizon, alert."
         },
+        "encounter_reactions": {
+          "handler": "behaviors.regions.civilized_remnants.gate_guard:on_gate_encounter"
+        },
         "llm_context": {
           "traits": [
             "young face trying to look stern",
@@ -5998,7 +6037,9 @@
           }
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.shared.infrastructure.dialog_reactions"
+      ]
     },
     "herbalist_maren": {
       "id": "herbalist_maren",
@@ -6033,11 +6074,9 @@
       "location": "market_square",
       "inventory": [],
       "properties": {
-        "services": [
-          "sell_weapons",
-          "sell_armor",
-          "repair_weapons"
-        ],
+        "dialog_reactions": {
+          "handler": "behaviors.regions.civilized_remnants.weaponsmith:on_toran_dialog"
+        },
         "llm_context": {
           "traits": [
             "massive shoulders from hammer work",
@@ -6049,7 +6088,9 @@
           ]
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.shared.infrastructure.dialog_reactions"
+      ]
     },
     "curiosity_dealer_vex": {
       "id": "curiosity_dealer_vex",
@@ -6268,9 +6309,14 @@
             "voice gruff but measured",
             "assessing threats constantly"
           ]
+        },
+        "dialog_reactions": {
+          "handler": "behaviors.regions.civilized_remnants.councilors:on_hurst_dialog"
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.shared.infrastructure.dialog_reactions"
+      ]
     },
     "councilor_asha": {
       "id": "councilor_asha",
@@ -6286,6 +6332,9 @@
           "ceiling": 5
         },
         "can_perform_unbranding": true,
+        "dialog_reactions": {
+          "handler": "behaviors.regions.civilized_remnants.councilors:on_asha_dialog"
+        },
         "llm_context": {
           "traits": [
             "regal bearing despite refugee status",
@@ -6297,7 +6346,9 @@
           ]
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.shared.infrastructure.dialog_reactions"
+      ]
     },
     "councilor_varn": {
       "id": "councilor_varn",
@@ -6321,9 +6372,14 @@
             "speaking in numbered points",
             "logic prized above emotion"
           ]
+        },
+        "dialog_reactions": {
+          "handler": "behaviors.regions.civilized_remnants.councilors:on_varn_dialog"
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.shared.infrastructure.dialog_reactions"
+      ]
     },
     "damaged_guardian": {
       "id": "damaged_guardian",
@@ -6442,7 +6498,10 @@
           }
         }
       },
-      "behaviors": []
+      "behaviors": [
+        "behaviors.shared.infrastructure.dialog_reactions",
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ]
     }
   },
   "locks": [],
@@ -6740,9 +6799,11 @@
       "id": "exit_ice_field_west",
       "name": "",
       "location": "ice_field",
-      "connections": [],
+      "connections": [
+        "exit_snow_forest_west"
+      ],
       "direction": "west",
-      "description": "",
+      "description": "Skeletal trees emerge from deep snowdrifts, offering some shelter from the biting wind.",
       "adjectives": [],
       "synonyms": [],
       "properties": {
@@ -6756,7 +6817,7 @@
       "name": "",
       "location": "snow_forest",
       "connections": [
-        "exit_ice_field_east"
+        "exit_ice_field_west"
       ],
       "direction": "west",
       "description": "Vast expanse of glacial ice, crevasses threatening unwary travelers.",
@@ -6777,21 +6838,6 @@
       ],
       "direction": "north",
       "description": "Cave mouth dark and foreboding, bones scattered around entrance.",
-      "adjectives": [],
-      "synonyms": [],
-      "properties": {
-        "type": "open"
-      },
-      "behaviors": [],
-      "traits": {}
-    },
-    {
-      "id": "exit_glacier_surface_north",
-      "name": "",
-      "location": "glacier_surface",
-      "connections": [],
-      "direction": "north",
-      "description": "",
       "adjectives": [],
       "synonyms": [],
       "properties": {

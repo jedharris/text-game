@@ -1,0 +1,41 @@
+# Myconid Elder Services Test
+# Tests: greeting, cure topic (no infection), cure with payment, spore mother info, resistance
+
+# Setup: player at myconid_sanctuary with frost_lily and fungal infection
+@set actors.player.location = "myconid_sanctuary"
+
+# Test 1: Greeting
+ask elder about hello
+@expect "Soft-flesh"
+@expect "Still Place"
+
+# Test 2: Ask about cure without infection
+ask elder about cure
+@expect "not upon you"
+
+# Test 3: Get infected, then ask about cure without payment
+@set actors.player.properties.conditions = {"fungal_infection": {"severity": 30}}
+ask elder about cure
+@expect "cleansing costs"
+@expect "frost-flower"
+
+# Test 4: Give player payment item, ask about cure again — should cure
+@set actors.player.inventory = ["frost_lily"]
+ask elder about cure
+@expect "cleansed"
+@assert extra.elder_cured_player == true
+
+# Test 5: Ask about Spore Mother
+ask elder about mother
+@expect "Mother suffers"
+@assert extra.knows_spore_mother_sick == true
+
+# Test 6: Ask about resistance without enough trust
+ask elder about resistance
+@expect "trust"
+
+# Test 7: Set trust high enough, ask about resistance
+@set actors.npc_myconid_elder.properties.trust_state = {"current": 2, "floor": -3, "ceiling": 5}
+ask elder about resistance
+@expect "spores will know you"
+@assert actors.player.properties.skills.spore_resistance == true
