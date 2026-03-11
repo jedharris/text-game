@@ -7,118 +7,118 @@
 
 # === Phase 1: Talk to Echo at Nexus ===
 
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Nexus"
 
 # Go up to observatory to reach keeper's quarters
-go up
+{"type":"command","action":{"verb":"go","object":"up"}}
 @expect "Observatory"
 
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Keeper"
 
 # Talk to the Echo
-ask echo about help
+{"type":"command","action":{"verb":"ask","object":"echo","indirect_object":"help"}}
 @expect "hunter"
 
-ask echo about waystone
+{"type":"command","action":{"verb":"ask","object":"echo","indirect_object":"waystone"}}
 @expect "fragment"
 
-ask echo about status
+{"type":"command","action":{"verb":"ask","object":"echo","indirect_object":"status"}}
 @expect "souls"
 
 # === Phase 2: Get Ice Shard from Frozen Reaches ===
 
-go down
+{"type":"command","action":{"verb":"go","object":"down"}}
 @expect "Crystal"
 
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 @expect "Nexus"
 
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
 @expect "Frozen Pass"
 
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Ice Caves"
 
 # Ice shard is frozen - needs 3 attempts to chip free
-take ice shard # EXPECTED_FAILURE: first attempt
+{"type":"command","action":{"verb":"take","object":"ice shard"}} # EXPECTED_FAILURE: first attempt
 @expect "frozen"
 
-take ice shard # EXPECTED_FAILURE: second attempt
+{"type":"command","action":{"verb":"take","object":"ice shard"}} # EXPECTED_FAILURE: second attempt
 @expect "chip"
 
-take ice shard
+{"type":"command","action":{"verb":"take","object":"ice shard"}}
 @expect "free"
 @assert actors.player.inventory contains "ice_shard"
 
 # === Phase 3: Get Water Pearl from Sunken District ===
 
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 @expect "Frozen Pass"
 
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Nexus"
 
 # Need swimming to reach deep_archive via merchant_warehouse
 # Learn swimming first
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Flooded"
 
-go northwest
+{"type":"command","action":{"verb":"go","object":"northwest"}}
 @expect "Survivor"
 
-ask jek about swimming
+{"type":"command","action":{"verb":"ask","object":"jek","indirect_object":"swimming"}}
 @expect "swimming"
 @assert actors.player.properties.skills.basic_swimming == true
 
-go southeast
+{"type":"command","action":{"verb":"go","object":"southeast"}}
 @expect "Flooded"
 
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Merchant"
 
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Warehouse"
 
-go down
+{"type":"command","action":{"verb":"go","object":"down"}}
 @expect "Archive"
 
-take pearl
+{"type":"command","action":{"verb":"take","object":"pearl"}}
 @expect "pearl"
 @assert actors.player.inventory contains "water_pearl"
 
 # === Phase 4: Return to Nexus and Place Fragments ===
 
-go up
+{"type":"command","action":{"verb":"go","object":"up"}}
 @expect "Warehouse"
 
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
 @expect "Merchant"
 
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
 @expect "Flooded"
 
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 @expect "Nexus"
 
 # Place ice shard on waystone
-use ice shard on waystone
+{"type":"command","action":{"verb":"use","object":"ice shard","indirect_object":"waystone"}}
 @expect "shard"
 
 # Place water pearl on waystone
-use pearl on waystone
+{"type":"command","action":{"verb":"use","object":"pearl","indirect_object":"waystone"}}
 @expect "pearl"
 
 # === Phase 5: Check Progress with Echo ===
 
-go up
+{"type":"command","action":{"verb":"go","object":"up"}}
 @expect "Observatory"
 
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Keeper"
 
-ask echo about waystone
+{"type":"command","action":{"verb":"ask","object":"echo","indirect_object":"waystone"}}
 @expect "fragment"
 
 # === Summary ===

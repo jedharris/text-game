@@ -1,12 +1,12 @@
 # Test navigation to merchant_warehouse
 # Expected path: nexus → east → south → south
 
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "plaza"
 
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "quarter"
 
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "warehouse"
 @expect "Delvan"

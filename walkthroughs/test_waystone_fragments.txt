@@ -7,7 +7,7 @@
 # ============================================================
 # Test 1: Look around to verify waystone is visible
 # ============================================================
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Waystone"
 
 # ============================================================
@@ -15,10 +15,10 @@ look
 # ============================================================
 @set actors.player.inventory = ["ice_shard"]
 
-inventory
+{"type":"command","action":{"verb":"inventory"}}
 @expect "ice shard"
 
-use ice shard on waystone
+{"type":"command","action":{"verb":"use","object":"ice shard","indirect_object":"waystone"}}
 @expect "fragment"
 @assert extra.waystone_fragments contains "ice_shard"
 
@@ -27,7 +27,7 @@ use ice shard on waystone
 # ============================================================
 @set actors.player.inventory = ["alpha_fang_fragment"]
 
-use alpha fang fragment on waystone
+{"type":"command","action":{"verb":"use","object":"alpha fang fragment","indirect_object":"waystone"}}
 @expect "fragment"
 @assert extra.waystone_fragments contains "alpha_fang_fragment"
 
@@ -36,7 +36,7 @@ use alpha fang fragment on waystone
 # ============================================================
 @set actors.player.inventory = ["water_pearl"]
 
-use water pearl on waystone
+{"type":"command","action":{"verb":"use","object":"water pearl","indirect_object":"waystone"}}
 @expect "fragment"
 @assert extra.waystone_fragments contains "water_pearl"
 
@@ -45,7 +45,7 @@ use water pearl on waystone
 # ============================================================
 @set actors.player.inventory = ["spore_heart_fragment"]
 
-use spore heart fragment on waystone
+{"type":"command","action":{"verb":"use","object":"spore heart fragment","indirect_object":"waystone"}}
 @expect "fragment"
 @assert extra.waystone_fragments contains "spore_heart_fragment"
 
@@ -54,6 +54,6 @@ use spore heart fragment on waystone
 # ============================================================
 @set actors.player.inventory = ["town_seal"]
 
-use town seal on waystone
+{"type":"command","action":{"verb":"use","object":"town seal","indirect_object":"waystone"}}
 @expect "restored"
 @assert extra.waystone_complete == true

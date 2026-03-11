@@ -7,14 +7,14 @@
 @set extra.garrett_rescue_turn = 1
 
 # Ask about Garrett - should still be recovering (current turn is ~1)
-ask mira about garrett
+{"type":"command","action":{"verb":"ask","object":"mira","indirect_object":"garrett"}}
 @expect "recovering"
 
 # Simulate enough time passing (set rescue far in the past)
 @set extra.garrett_rescue_turn = -10
 
 # Now ask again - Garrett should be recovered (5+ turns since rescue)
-ask mira about garrett
+{"type":"command","action":{"verb":"ask","object":"mira","indirect_object":"garrett"}}
 @expect "recovered"
 
 # Summary: Garrett recovery tracking verified

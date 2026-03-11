@@ -5,12 +5,12 @@
 @set actors.player.location = "survivor_camp"
 
 # Ask Mira about swimming
-ask mira about swimming
+{"type":"command","action":{"verb":"ask","object":"mira","indirect_object":"swimming"}}
 @expect "Jek"
 @expect "teach"
 
 # Alternative phrasing - "water" also triggers swimming referral
-ask mira about water
+{"type":"command","action":{"verb":"ask","object":"mira","indirect_object":"water"}}
 @expect "Jek"
 
 # Summary: Jek referral dialog verified

@@ -6,58 +6,58 @@
 # Non-equippable item: key
 
 # Start location has sword on ground
-look
+{"type":"command","action":{"verb":"look"}}
 
 # Test 1: Take the sword (should not auto-equip)
-take sword
-inventory
+{"type":"command","action":{"verb":"take","object":"sword"}}
+{"type":"command","action":{"verb":"inventory"}}
 
 # Test 2: Use the sword to equip it
 # Expected: "You equip the sword."
-use sword
+{"type":"command","action":{"verb":"use","object":"sword"}}
 
 # Test 3: Try to use the sword again (already equipped)
 # Expected: Falls through to on_use behavior (if any), or "You use the sword."
-use sword
+{"type":"command","action":{"verb":"use","object":"sword"}}
 
 # Test 4: Remove the sword
 # Expected: "You unequip the sword."
-remove sword
+{"type":"command","action":{"verb":"remove","object":"sword"}}
 
 # Test 5: Try to remove when not equipped
 # Expected: "The sword is not currently equipped."
-remove sword
+{"type":"command","action":{"verb":"remove","object":"sword"}}
 
 # Test 6: Test natural language synonym "wield" to equip
 # Expected: Should map to "use" and equip the sword
-wield sword
+{"type":"command","action":{"verb":"wield","object":"sword"}}
 
 # Unequip for next test
-remove sword
+{"type":"command","action":{"verb":"remove","object":"sword"}}
 
 # Test 7: Test natural language synonym "take off" to unequip
 # First equip again
-use sword
+{"type":"command","action":{"verb":"use","object":"sword"}}
 # Then test "take off"
 # Expected: Should map to "remove" and unequip
-take off sword
+{"type":"command","action":{"verb":"remove","object":"sword"}}
 
 # Test 8: Test non-equippable item (key)
 # Navigate to hallway to get key
-north
-take key
+{"type":"command","action":{"verb":"go","object":"north"}}
+{"type":"command","action":{"verb":"take","object":"key"}}
 
 # Test 9: Try to use (equip) non-equippable item
 # Expected: Should just trigger on_use behavior (if any), not try to equip
-use key
+{"type":"command","action":{"verb":"use","object":"key"}}
 
 # Test 10: Try to remove non-equippable item
 # Expected: "The key is not something you can unequip."
-remove key
+{"type":"command","action":{"verb":"remove","object":"key"}}
 
 # Test 11: Verify sword can be re-equipped
-south
-use sword
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"use","object":"sword"}}
 
 # Final inventory check
-inventory
+{"type":"command","action":{"verb":"inventory"}}

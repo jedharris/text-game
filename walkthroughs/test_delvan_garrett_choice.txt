@@ -7,23 +7,23 @@
 
 # Activate Mira quest first
 @set actors.player.location = "survivor_camp"
-ask mira about help
+{"type":"command","action":{"verb":"ask","object":"mira","indirect_object":"help"}}
 @expect "trapped"
 @assert extra.mira_quest_active == true
 
 # Navigate to Delvan
 @set actors.player.location = "flooded_plaza"
-go south
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
 
 # Encounter Delvan (starts 10-turn commitment)
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Delvan"
 @assert extra.delvan_commitment_created == true
 
 # Give player bandages and rescue Delvan
 @set actors.player.inventory = ["bandages"]
-use bandages on delvan
+{"type":"command","action":{"verb":"use","object":"bandages","indirect_object":"delvan"}}
 @expect "stop Delvan's bleeding"
 @assert extra.delvan_rescued == true
 

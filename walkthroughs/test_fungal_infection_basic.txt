@@ -7,10 +7,10 @@
 # ============================================================
 
 # Navigate to Cavern Entrance (safe zone, no spores)
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 
 # Check location
-look
+{"type":"command","action":{"verb":"look"}}
 # Expected: Cavern entrance description, no infection message
 
 # ============================================================
@@ -18,10 +18,10 @@ look
 # ============================================================
 
 # Enter luminous grotto (medium spores, rate 5/turn)
-go down
+{"type":"command","action":{"verb":"go","object":"down"}}
 
 # Check location
-look
+{"type":"command","action":{"verb":"look"}}
 # Expected: Luminous grotto description, spore warnings
 
 # ============================================================
@@ -29,16 +29,16 @@ look
 # ============================================================
 
 # Do simple actions to advance turns (4 turns × 5/turn = 20 severity)
-look
+{"type":"command","action":{"verb":"look"}}
 # Expected after turn 1: No message yet (severity 5)
 
-look
+{"type":"command","action":{"verb":"look"}}
 # Expected after turn 2: No message yet (severity 10)
 
-look
+{"type":"command","action":{"verb":"look"}}
 # Expected after turn 3: No message yet (severity 15)
 
-look
+{"type":"command","action":{"verb":"look"}}
 # Expected after turn 4: "You cough as spores irritate your lungs." (severity 20)
 
 # ============================================================
@@ -46,13 +46,13 @@ look
 # ============================================================
 
 # Continue 4 more turns (8 total × 5 = 40)
-look
+{"type":"command","action":{"verb":"look"}}
 
-look
+{"type":"command","action":{"verb":"look"}}
 
-look
+{"type":"command","action":{"verb":"look"}}
 
-look
+{"type":"command","action":{"verb":"look"}}
 # Expected after turn 8: "Fungal patches spread across your skin." (severity 40)
 
 # ============================================================
@@ -60,11 +60,11 @@ look
 # ============================================================
 
 # Go deeper into high spore zone (rate 10/turn)
-go down
+{"type":"command","action":{"verb":"go","object":"down"}}
 # Expected: Spore heart description, heavy spore warnings
 
 # Check location
-look
+{"type":"command","action":{"verb":"look"}}
 # Expected: High spore warnings visible
 
 # ============================================================
@@ -72,10 +72,10 @@ look
 # ============================================================
 
 # 2 turns in high spores (40 + 20 = 60)
-look
+{"type":"command","action":{"verb":"look"}}
 # Expected after turn 1 in high: severity 50
 
-look
+{"type":"command","action":{"verb":"look"}}
 # Expected after turn 2 in high: "Every breath is a struggle against the spores." (severity 60)
 
 # ============================================================
@@ -83,9 +83,9 @@ look
 # ============================================================
 
 # 2 more turns in high spores (60 + 20 = 80)
-look
+{"type":"command","action":{"verb":"look"}}
 
-look
+{"type":"command","action":{"verb":"look"}}
 # Expected: "The infection is critical. You can barely move." (severity 80)
 
 # ============================================================
@@ -93,13 +93,13 @@ look
 # ============================================================
 
 # Leave spore zones
-go up
+{"type":"command","action":{"verb":"go","object":"up"}}
 # Expected: Move successful, infection still present
 
-go up
+{"type":"command","action":{"verb":"go","object":"up"}}
 # Expected: Back at cavern entrance
 
-look
+{"type":"command","action":{"verb":"look"}}
 # Expected: No NEW infection (safe zone), but existing infection persists
 
 # ============================================================

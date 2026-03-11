@@ -8,78 +8,78 @@
 
 # === Phase 1: Start at Nexus, go to Survivor Camp ===
 
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Nexus"
 
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Flooded"
 
-go northwest
+{"type":"command","action":{"verb":"go","object":"northwest"}}
 @expect "Survivor"
 
 # === Phase 2: Get Mira Quest ===
 
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Mira"
 
-ask mira about help
+{"type":"command","action":{"verb":"ask","object":"mira","indirect_object":"help"}}
 @expect "Mira"
 
 # === Phase 3: Learn Swimming from Jek ===
 
-ask jek about swimming
+{"type":"command","action":{"verb":"ask","object":"jek","indirect_object":"swimming"}}
 @expect "swimming"
 @assert actors.player.properties.skills.basic_swimming == true
 
 # === Phase 4: Pick up Air Bladder ===
 
-take air bladder
+{"type":"command","action":{"verb":"take","object":"air bladder"}}
 @expect "bladder"
 @assert actors.player.inventory contains "air_bladder"
 
 # === Phase 5: Navigate to Sea Caves (where Garrett is) ===
 
-go southeast
+{"type":"command","action":{"verb":"go","object":"southeast"}}
 @expect "Flooded"
 
 # Go east to flooded_chambers
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Flooded"
 
 # East to tidal_passage
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Tidal"
 
 # East to sea_caves
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Sea"
 
 # === Phase 6: Encounter and Rescue Garrett ===
 
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Garrett"
 
 # Use air bladder to save drowning Garrett
-use air bladder on garrett
+{"type":"command","action":{"verb":"use","object":"air bladder","indirect_object":"garrett"}}
 @expect "bladder"
 @assert extra.garrett_rescued == true
 
 # === Phase 7: Return to Mira ===
 
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 @expect "Tidal"
 
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 @expect "Flooded"
 
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 @expect "Flooded"
 
-go northwest
+{"type":"command","action":{"verb":"go","object":"northwest"}}
 @expect "Survivor"
 
 # Check that Mira acknowledges rescue
-ask mira about progress
+{"type":"command","action":{"verb":"ask","object":"mira","indirect_object":"progress"}}
 @expect "Mira"
 
 # === Summary ===

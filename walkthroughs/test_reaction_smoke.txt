@@ -3,28 +3,28 @@
 
 # === Test 1: Dialog Reactions (herbalist_maren) ===
 # Path: nexus -> south -> east -> south -> south
-go south
-go east
-go south
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
 
-ask maren about trade
+{"type":"command","action":{"verb":"ask","object":"maren","indirect_object":"trade"}}
 @expect "wares"
 
 # === Test 2: Dialog Reactions (healer_elara) ===
 # From market_square, go east to healers_sanctuary
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 
-ask elara about healing
+{"type":"command","action":{"verb":"ask","object":"elara","indirect_object":"healing"}}
 @expect "heal" OR "wounds" OR "sanctuary"
 
 # === Test 3: Dialog Reactions (camp_leader_mira) ===
 # From healers_sanctuary, need to navigate to survivor_camp
 # Go back to market_square, then find path to survivor_camp
-go west
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"west"}}
 
-ask mira about camp
+{"type":"command","action":{"verb":"ask","object":"mira","indirect_object":"camp"}}
 @expect "survivors" OR "camp" OR "holding"
 
 # === SUCCESS ===

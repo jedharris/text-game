@@ -7,60 +7,60 @@ ASSERT actors.player.properties.health == 100
 
 # Part 1: Navigate to Sunken District
 
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 # Part 2: Enter fully submerged area (tidal_passage)
 # This should start the breath counter
 
 # From flooded_plaza, navigate to flooded_chambers
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 # Enter tidal_passage (submerged - triggers breath counter)
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 # Part 3: Hold breath and observe warnings
 # Turn 1-7: No warnings
-look
-look
-look
-look
-look
-look
-look
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
 
 # Turn 8: Warning message "lungs burning"
-look
+{"type":"command","action":{"verb":"look"}}
 
 # Turn 9: Still warning
-look
+{"type":"command","action":{"verb":"look"}}
 
 # Turn 10: Critical message "suffocating"
-look
+{"type":"command","action":{"verb":"look"}}
 
 # Turn 11: Still critical
-look
+{"type":"command","action":{"verb":"look"}}
 
 # Turn 12: DROWNING DAMAGE (20 HP)
 # Should see damage message
-look
+{"type":"command","action":{"verb":"look"}}
 
 # Part 4: Surface to reset breath
 # Exit tidal_passage back to flooded_chambers
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 
 # Breath should reset
 # Re-enter to verify reset worked
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 # A few more turns underwater
-look
-look
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
 
 # Part 5: Return to safety
 
-go west
-go west
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"west"}}
 
 # SUCCESS: Drowning mechanics validated!
 # - Breath counter increments in submerged areas

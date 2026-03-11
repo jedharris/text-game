@@ -10,68 +10,68 @@
 # 5. Access observatory (guardians no longer blocking)
 
 # Navigate to temple sanctum (from nexus_chamber)
-go north
-go north
-look
+{"type":"command","action":{"verb":"go","object":"north"}}
+{"type":"command","action":{"verb":"go","object":"north"}}
+{"type":"command","action":{"verb":"look"}}
 
 # Take fire wand - guardians should allow this (non-hostile)
-take fire wand
+{"type":"command","action":{"verb":"take","object":"fire wand"}}
 
 # Test that guardians block "up" but allow "south" in guarding state
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 
 # Navigate to ice caves to get ice wand
-go east
-look
+{"type":"command","action":{"verb":"go","object":"east"}}
+{"type":"command","action":{"verb":"look"}}
 
 # Use fire wand to melt ice wand (optional flavor interaction)
-use fire wand on ice wand
-take ice wand
-inventory
+{"type":"command","action":{"verb":"use","object":"fire wand","indirect_object":"ice wand"}}
+{"type":"command","action":{"verb":"take","object":"ice wand"}}
+{"type":"command","action":{"verb":"inventory"}}
 
 # Return to temple sanctum with both wands
-go west
-go north
-look
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"north"}}
+{"type":"command","action":{"verb":"look"}}
 
 # Take cover behind stone pillar before combat
-cover behind pillar
+{"type":"command","action":{"verb":"cover","object":"pillar","preposition":"behind"}}
 
 # Attack golem to initiate combat (both golems become hostile)
-attack guardian
+{"type":"command","action":{"verb":"attack","object":"guardian"}}
 
 # Thermal shock sequence - defeat first guardian
 # Fire vs neutral = 10 damage, golem becomes HOT
-attack guardian with fire wand
+{"type":"command","action":{"verb":"attack","object":"guardian","indirect_object":"fire wand"}}
 
 # Ice vs hot = THERMAL SHOCK! 30 damage, golem becomes COLD
-attack guardian with ice wand
+{"type":"command","action":{"verb":"attack","object":"guardian","indirect_object":"ice wand"}}
 
 # Continue alternating for thermal shock
-attack guardian with fire wand
-attack guardian with ice wand
-attack guardian with fire wand
-attack guardian with ice wand
+{"type":"command","action":{"verb":"attack","object":"guardian","indirect_object":"fire wand"}}
+{"type":"command","action":{"verb":"attack","object":"guardian","indirect_object":"ice wand"}}
+{"type":"command","action":{"verb":"attack","object":"guardian","indirect_object":"fire wand"}}
+{"type":"command","action":{"verb":"attack","object":"guardian","indirect_object":"ice wand"}}
 
 # First golem destroyed (150 HP / 30 damage per thermal shock = 5-6 hits)
 # Second golem now becomes target
 
 # Attack second golem (starts at neutral temperature)
 # Fire vs neutral = 10 damage (no thermal shock on first hit)
-attack guardian with fire wand
+{"type":"command","action":{"verb":"attack","object":"guardian","indirect_object":"fire wand"}}
 
 # Now alternate for thermal shock (30 damage each)
 # Need 140 more damage (150 - 10) = minimum 5 thermal shock hits
-attack guardian with ice wand
-attack guardian with fire wand
-attack guardian with ice wand
-attack guardian with fire wand
-attack guardian with ice wand
+{"type":"command","action":{"verb":"attack","object":"guardian","indirect_object":"ice wand"}}
+{"type":"command","action":{"verb":"attack","object":"guardian","indirect_object":"fire wand"}}
+{"type":"command","action":{"verb":"attack","object":"guardian","indirect_object":"ice wand"}}
+{"type":"command","action":{"verb":"attack","object":"guardian","indirect_object":"fire wand"}}
+{"type":"command","action":{"verb":"attack","object":"guardian","indirect_object":"ice wand"}}
 
 # Second golem destroyed (10 + 30*5 = 160 damage > 150 HP)
 # Both golems should be destroyed
-look
+{"type":"command","action":{"verb":"look"}}
 
 # Verify path is clear - can now access observatory
-go up
-look
+{"type":"command","action":{"verb":"go","object":"up"}}
+{"type":"command","action":{"verb":"look"}}

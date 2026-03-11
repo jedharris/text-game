@@ -10,72 +10,72 @@
 # === Phase 1: Navigate to Market Square and get bandages ===
 
 # Player starts at nexus_chamber
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Nexus"
 
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Forest"
 
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Trail"
 
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Gate"
 
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Market"
 
-take bandages
+{"type":"command","action":{"verb":"take","object":"bandages"}}
 @expect "bandages"
 @assert actors.player.inventory contains "bandages"
 
 # === Phase 2: Return to Nexus ===
 
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
 @expect "Gate"
 
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
 @expect "Trail"
 
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 @expect "Forest"
 
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
 @expect "Nexus"
 
 # === Phase 3: Learn Swimming from Jek ===
 
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Flooded"
 
-go northwest
+{"type":"command","action":{"verb":"go","object":"northwest"}}
 @expect "Survivor"
 
 # Ask Jek about swimming to learn the skill
-ask jek about swimming
+{"type":"command","action":{"verb":"ask","object":"jek","indirect_object":"swimming"}}
 @expect "swimming"
 @assert actors.player.properties.skills.basic_swimming == true
 
 # === Phase 4: Navigate to Merchant Warehouse ===
 
-go southeast
+{"type":"command","action":{"verb":"go","object":"southeast"}}
 @expect "Flooded"
 
 # This passage requires swimming - should work now
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Merchant"
 
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Warehouse"
 
 # === Phase 5: Encounter and Rescue Delvan ===
 
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Delvan"
 @assert extra.delvan_commitment_created == true
 
 # Use bandages to stop bleeding - this is the rescue
-use bandages on delvan
+{"type":"command","action":{"verb":"use","object":"bandages","indirect_object":"delvan"}}
 @expect "bleeding"
 @assert extra.delvan_rescued == true
 @assert actors.merchant_delvan.properties.state_machine.current == "freed"
@@ -84,37 +84,37 @@ use bandages on delvan
 
 # Delvan starts at trust 0 after rescue, in "freed" state
 # Default dialog in freed state mentions recovering
-ask delvan about help
+{"type":"command","action":{"verb":"ask","object":"delvan","indirect_object":"help"}}
 @expect "recovering"
 
 # Express gratitude to build trust (+1 each time, need 4 for contacts)
-ask delvan about rescue
+{"type":"command","action":{"verb":"ask","object":"delvan","indirect_object":"rescue"}}
 @expect "owe"
 @assert actors.merchant_delvan.properties.trust_state.current == 1
 
-ask delvan about saved
+{"type":"command","action":{"verb":"ask","object":"delvan","indirect_object":"saved"}}
 @expect "owe"
 @assert actors.merchant_delvan.properties.trust_state.current == 2
 
 # === Phase 7: Trade Dialog (trust 2+ required for full response) ===
 
-ask delvan about trade
+{"type":"command","action":{"verb":"ask","object":"delvan","indirect_object":"trade"}}
 @expect "supplies"
 @assert extra.delvan_trade_offered == true
 
 # === Phase 8: Continue Building Trust for Contacts ===
 
-ask delvan about grateful
+{"type":"command","action":{"verb":"ask","object":"delvan","indirect_object":"grateful"}}
 @expect "owe"
 @assert actors.merchant_delvan.properties.trust_state.current == 3
 
-ask delvan about thank
+{"type":"command","action":{"verb":"ask","object":"delvan","indirect_object":"thank"}}
 @expect "owe"
 @assert actors.merchant_delvan.properties.trust_state.current == 4
 
 # === Phase 9: Contacts (trust 4+ required) ===
 
-ask delvan about contacts
+{"type":"command","action":{"verb":"ask","object":"delvan","indirect_object":"contacts"}}
 @expect "network"
 @assert extra.knows_delvan_contacts == true
 

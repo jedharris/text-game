@@ -3,9 +3,9 @@
 # Covers scenario 1 from npc_hunter_sira.md: Encounter + Quick Rescue
 
 # Navigate to Hunter's Camp (Beast Wilds)
-go south
-go east
-go east
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 # Encounter triggers automatically on entering Hunter's Camp
 @expect "Sira"
@@ -19,13 +19,13 @@ go east
 @set actors.player.inventory = ["bandages", "healing_herbs"]
 
 # Use bandages to stop bleeding
-use bandages on sira
+{"type":"command","action":{"verb":"use","object":"bandages","indirect_object":"sira"}}
 @expect "bleeding slows, then stops"
 @assert extra.sira_bleeding_stopped == true
 
 # Use herbs to heal leg (bleeding already stopped, so this completes rescue)
 @set actors.player.inventory = ["healing_herbs"]
-use herbs on sira
+{"type":"command","action":{"verb":"use","object":"herbs","indirect_object":"sira"}}
 @expect "set and splint the broken leg"
 @expect "saved my life"
 @assert extra.sira_leg_healed == true
@@ -34,8 +34,8 @@ use herbs on sira
 # No death gossip generated (sira_died_with_player key absent from extra)
 
 # Dialog still works after rescue
-ask sira about help
+{"type":"command","action":{"verb":"ask","object":"sira","indirect_object":"help"}}
 @expect "Elara"
 
-ask sira about wolves
+{"type":"command","action":{"verb":"ask","object":"sira","indirect_object":"wolves"}}
 @expect "pack"

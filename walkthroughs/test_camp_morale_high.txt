@@ -7,21 +7,21 @@
 @set extra.camp_morale = 80
 
 # Navigate to survivor_camp (Sunken District)
-go south
-go south
-go east
-go east
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 # Verify we're at survivor camp
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Mira"
 
 # Talk to Mira - should reflect high morale
-talk to mira
+{"type":"command","action":{"verb":"talk","indirect_object":"mira"}}
 @expect "thriving" or "hope" or "strong" or "good spirits" or "alive"
 
 # Ask about camp status
-ask mira about camp
+{"type":"command","action":{"verb":"ask","object":"mira","indirect_object":"camp"}}
 @expect "doing well" or "safe" or "better" or "smile"
 
 # Summary: High morale dialog verified

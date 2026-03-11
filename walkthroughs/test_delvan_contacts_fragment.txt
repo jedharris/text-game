@@ -8,12 +8,12 @@
 
 # Low trust - refuses to share contacts
 @set actors.merchant_delvan.properties.trust_state.current = 2
-ask delvan about contacts
+{"type":"command","action":{"verb":"ask","object":"delvan","indirect_object":"contacts"}}
 @expect "trust"
 
 # High trust - reveals contacts
 @set actors.merchant_delvan.properties.trust_state.current = 4
-ask delvan about contacts
+{"type":"command","action":{"verb":"ask","object":"delvan","indirect_object":"contacts"}}
 @expect "network"
 @assert extra.knows_delvan_contacts == true
 

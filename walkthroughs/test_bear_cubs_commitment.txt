@@ -2,9 +2,9 @@
 # Tests: Encounter reactions, commitment creation, item_use reactions, state transitions
 
 # Go to bear den
-go north
-go west
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"north"}}
 
 # Test 1: First encounter with dire bear
 # Should trigger encounter reaction
@@ -13,7 +13,7 @@ go north
 @expect "sick"
 
 # Test 2: Promise to help (creates commitment)
-talk to bear about help cubs
+{"type":"command","action":{"verb":"talk","indirect_object":"bear about help cubs"}}
 @expect "promised" OR "commitment"
 
 # Test 3: Check commitment created
@@ -22,16 +22,16 @@ talk to bear about help cubs
 # Test 4: Use healing_herbs on cubs
 @set player.inventory += ["healing_herbs"]
 
-use healing_herbs on bear_cub_1
+{"type":"command","action":{"verb":"use","object":"healing_herbs","indirect_object":"bear_cub_1"}}
 @expect "breathing eases" OR "heals"
 
 # Test 5: Heal second cub
-use healing_herbs on bear_cub_2
+{"type":"command","action":{"verb":"use","object":"healing_herbs","indirect_object":"bear_cub_2"}}
 @expect "breathing eases" OR "heals"
 
 # Test 6: Verify bear state changed to grateful
 @assert dire_bear.properties.state_machine.current == "grateful"
 
 # Test 7: Talk to bear after healing
-talk to bear
+{"type":"command","action":{"verb":"talk","indirect_object":"bear"}}
 @expect "gratitude" OR "alliance" OR "grateful"

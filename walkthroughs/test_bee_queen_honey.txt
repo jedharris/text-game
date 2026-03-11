@@ -2,25 +2,25 @@
 # Tests: dialog_reactions, gift_reactions, take_reactions
 
 # Navigate to bee queen clearing
-go south
-go south
-go east
-go west
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
+{"type":"command","action":{"verb":"go","object":"west"}}
 
 # Set up inventory before interactions
 @set actors.player.inventory = ["frost_lily"]
 
 # Test dialog_reactions: Ask queen about honey
-look
-ask queen about honey
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"ask","object":"queen","indirect_object":"honey"}}
 @expect "Queen"
 
 # Test gift_reactions: Give flower to build trust
-give frost lily to queen
+{"type":"command","action":{"verb":"give","object":"frost lily","indirect_object":"queen"}}
 @expect "accepts"
 
 # Test dialog after gift
-ask queen about help
+{"type":"command","action":{"verb":"ask","object":"queen","indirect_object":"help"}}
 @expect "Queen"
 
 # Summary: All 3 reaction types verified

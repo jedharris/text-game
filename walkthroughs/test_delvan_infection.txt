@@ -6,17 +6,17 @@
 @set actors.player.location = "merchant_warehouse"
 
 # First encounter should trigger commitment
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Delvan"
 
 # Use bandages to stop bleeding (real mechanic)
-use bandages on delvan
+{"type":"command","action":{"verb":"use","object":"bandages","indirect_object":"delvan"}}
 @expect "bleeding"
 @assert extra.delvan_rescued == true
 
 # Post-rescue dialog works (freed state, still recovering)
 @assert actors.merchant_delvan.properties.state_machine.current == "freed"
-ask delvan about trade
+{"type":"command","action":{"verb":"ask","object":"delvan","indirect_object":"trade"}}
 @expect "recovered"
 
 # Summary: Delvan encounter and rescue verified

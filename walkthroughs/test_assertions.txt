@@ -5,7 +5,7 @@
 ASSERT actors.player.properties.health == 100
 
 # Move and check location changed
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 ASSERT actors.player.location == cavern_entrance
 
 # Test comparison operators
@@ -15,4 +15,4 @@ ASSERT actors.player.properties.health > 50
 ASSERT actors.player.properties.health < 150
 
 # Check inventory
-look
+{"type":"command","action":{"verb":"look"}}

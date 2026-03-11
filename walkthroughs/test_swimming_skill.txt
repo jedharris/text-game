@@ -5,8 +5,8 @@
 @set actors.player.location = "flooded_plaza"
 
 # Try to enter tidal_passage (requires swimming) — should be blocked
-go east
-go east # EXPECTED_FAILURE: skill gate blocks without swimming
+{"type":"command","action":{"verb":"go","object":"east"}}
+{"type":"command","action":{"verb":"go","object":"east"}} # EXPECTED_FAILURE: skill gate blocks without swimming
 @expect "drown"
 @expect "swim"
 
@@ -14,16 +14,16 @@ go east # EXPECTED_FAILURE: skill gate blocks without swimming
 @set actors.player.location = "survivor_camp"
 
 # Ask Jek about swimming
-ask jek about swimming
+{"type":"command","action":{"verb":"ask","object":"jek","indirect_object":"swimming"}}
 @expect "teaching"
 @assert actors.player.properties.skills.basic_swimming == true
 
 # Ask again — should say already learned
-ask jek about swimming
+{"type":"command","action":{"verb":"ask","object":"jek","indirect_object":"swimming"}}
 @expect "already know"
 
 # Now try entering tidal_passage — should work
 @set actors.player.location = "flooded_plaza"
-go east
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Tidal Passage"

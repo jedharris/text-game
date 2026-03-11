@@ -3,9 +3,9 @@
 # Verifies partial rescue state tracking
 
 # Navigate to Hunter's Camp
-go south
-go east
-go east
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 @expect "clock is now ticking"
 @assert extra.sira_commitment_created == true
@@ -14,7 +14,7 @@ go east
 @set actors.player.inventory = ["bandages"]
 
 # Stop bleeding
-use bandages on sira
+{"type":"command","action":{"verb":"use","object":"bandages","indirect_object":"sira"}}
 @expect "bleeding slows, then stops"
 @assert extra.sira_bleeding_stopped == true
 

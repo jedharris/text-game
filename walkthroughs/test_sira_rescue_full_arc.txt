@@ -7,80 +7,80 @@
 # === Phase 1: Gather supplies ===
 
 # Start at nexus_chamber
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Nexus"
 
 # South to forest_edge
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Forest"
 
 # East to southern_trail
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Trail"
 
 # South to town_gate
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Gate"
 
 # South to market_square - pick up bandages
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Market"
 
-take bandages
+{"type":"command","action":{"verb":"take","object":"bandages"}}
 @expect "bandages"
 @assert actors.player.inventory contains "bandages"
 
 # East to healers_sanctuary
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Healer"
 
 # Back to healers_garden for healing_herbs
-go back
+{"type":"command","action":{"verb":"go","object":"back"}}
 @expect "Garden"
 
-take herbs
+{"type":"command","action":{"verb":"take","object":"herbs"}}
 @expect "herbs"
 @assert actors.player.inventory contains "healing_herbs"
 
 # === Phase 2: Navigate to Hunter Sira ===
 
 # Return to healers_sanctuary
-go front
+{"type":"command","action":{"verb":"go","object":"front"}}
 @expect "Healer"
 
 # West to market_square
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 @expect "Market"
 
 # North to town_gate
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
 @expect "Gate"
 
 # North to southern_trail
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
 @expect "Trail"
 
 # East to hunters_camp where Sira is
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Hunter"
 
 # === Phase 3: Encounter and Rescue Sira ===
 
 # Looking should trigger encounter
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Sira"
 
 # Phase 1: Use bandages to stop bleeding
-use bandages on sira
+{"type":"command","action":{"verb":"use","object":"bandages","indirect_object":"sira"}}
 @expect "bleeding"
 
 # Phase 2: Use healing herbs for broken leg
-use herbs on sira
+{"type":"command","action":{"verb":"use","object":"herbs","indirect_object":"sira"}}
 @expect "leg"
 
 # === Phase 4: Post-rescue dialog ===
 
-ask sira about help
+{"type":"command","action":{"verb":"ask","object":"sira","indirect_object":"help"}}
 @expect "Elara"
 
 # === Summary ===

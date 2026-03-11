@@ -6,61 +6,61 @@
 
 # === Phase 1: Get venison for wolves ===
 
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Nexus"
 
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Forest"
 
 # Venison is at forest_edge
-take venison
+{"type":"command","action":{"verb":"take","object":"venison"}}
 @expect "venison"
 @assert actors.player.inventory contains "venison"
 
 # === Phase 2: Navigate to Wolf Clearing ===
 
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Tangled"
 
-go northeast
+{"type":"command","action":{"verb":"go","object":"northeast"}}
 @expect "Wolf"
 
 # === Phase 3: Feed Alpha Wolf ===
 
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Alpha Wolf"
 
 # Give venison to build trust (starts at -2)
-give venison to wolf
+{"type":"command","action":{"verb":"give","object":"venison","indirect_object":"wolf"}}
 @expect "venison"
 
 # === Phase 4: Navigate to Spider Thicket ===
 
-go southwest
+{"type":"command","action":{"verb":"go","object":"southwest"}}
 @expect "Tangled"
 
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 @expect "Spider Thicket"
 
 # === Phase 5: Spider Combat ===
 
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "spider"
 
 # Attack spider
-attack spider
+{"type":"command","action":{"verb":"attack","object":"spider"}}
 @expect "damage"
 
 # === Phase 6: Enter Spider Matriarch Lair ===
 
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 @expect "Matriarch"
 
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Spider Matriarch"
 
 # Attack matriarch
-attack matriarch
+{"type":"command","action":{"verb":"attack","object":"matriarch"}}
 @expect "damage"
 
 # === Summary ===

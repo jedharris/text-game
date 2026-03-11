@@ -2,16 +2,16 @@
 # Tests: encounter_reactions, condition_reactions, death_reactions
 
 # Navigate to merchant warehouse
-go east
-go south
-go south
+{"type":"command","action":{"verb":"go","object":"east"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
 
 # Test encounter_reactions: First look triggers encounter
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Delvan"
 
 # Look again to verify consistent encounter
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "merchant"
 
 # Summary: 3 reaction types status

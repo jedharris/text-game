@@ -3,11 +3,11 @@
 
 # Navigate to Healer's Sanctuary (Civilized Remnants)
 # Path: nexus → south → east → south → south → east
-go south
-go east
-go south
-go south
-go east
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 # Verify location and Elara present
 @expect "Sanctuary"

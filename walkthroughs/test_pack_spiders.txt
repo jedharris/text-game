@@ -2,10 +2,10 @@
 # Tests: Pack behavior for spiders
 
 # Go to spider nest
-go north
-go west
-go south
-go west
+{"type":"command","action":{"verb":"go","object":"north"}}
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"west"}}
 
 # Test 1: Check pack configuration
 @assert giant_spider_1.properties.pack_behavior.leader == "spider_matriarch"

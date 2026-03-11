@@ -2,9 +2,9 @@
 # Tests: Pack behavior, state mirroring, trust mirroring
 
 # Go to wolf clearing
-go north
-go west
-go east
+{"type":"command","action":{"verb":"go","object":"north"}}
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 # Test 1: Check initial pack states match
 @assert frost_wolf_1.properties.state_machine.current == alpha_wolf.properties.state_machine.current
@@ -13,7 +13,7 @@ go east
 # Test 2: Give food to alpha wolf (increases trust)
 @set player.inventory += ["venison"]
 
-give venison to alpha_wolf
+{"type":"command","action":{"verb":"give","object":"venison","indirect_object":"alpha_wolf"}}
 @expect "takes the" OR "devours"
 
 # Test 3: Verify alpha trust increased

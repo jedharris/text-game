@@ -2,9 +2,9 @@
 # Tests: Encounter reactions, dialog
 
 # Go to fungal depths
-go south
-go west
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
 
 # Test 1: First encounter with myconid elder
 @expect "myconid" OR "elder" OR "fungal"
@@ -13,7 +13,7 @@ go south
 @assert extra.myconid_encountered == true OR extra.elder_encountered == true
 
 # Test 3: Try to communicate with elder
-talk to elder
+{"type":"command","action":{"verb":"talk","indirect_object":"elder"}}
 @expect response
 
 # Test 4: Elder may have specific requirements or warnings

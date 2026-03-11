@@ -7,123 +7,123 @@
 
 # === Phase 1: Get Bandages from Market Square ===
 
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Nexus"
 
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Forest"
 
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Trail"
 
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Gate"
 
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Market"
 
-take bandages
+{"type":"command","action":{"verb":"take","object":"bandages"}}
 @expect "bandages"
 @assert actors.player.inventory contains "bandages"
 
 # === Phase 2: Return to Nexus ===
 
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
 @expect "Gate"
 
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
 @expect "Trail"
 
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 @expect "Forest"
 
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
 @expect "Nexus"
 
 # === Phase 3: Go to Survivor Camp, Get Quest + Swimming + Air Bladder ===
 
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Flooded"
 
-go northwest
+{"type":"command","action":{"verb":"go","object":"northwest"}}
 @expect "Survivor"
 
 # Get quest from Mira
-ask mira about help
+{"type":"command","action":{"verb":"ask","object":"mira","indirect_object":"help"}}
 @expect "Mira"
 
 # Learn swimming from Jek
-ask jek about swimming
+{"type":"command","action":{"verb":"ask","object":"jek","indirect_object":"swimming"}}
 @expect "swimming"
 @assert actors.player.properties.skills.basic_swimming == true
 
 # Pick up air bladder for Garrett rescue
-take air bladder
+{"type":"command","action":{"verb":"take","object":"air bladder"}}
 @expect "bladder"
 @assert actors.player.inventory contains "air_bladder"
 
 # === Phase 4: Rescue Delvan (First Rescue) ===
 
-go southeast
+{"type":"command","action":{"verb":"go","object":"southeast"}}
 @expect "Flooded"
 
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Merchant"
 
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Warehouse"
 
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Delvan"
 @assert extra.delvan_commitment_created == true
 
 # Use bandages to rescue Delvan
-use bandages on delvan
+{"type":"command","action":{"verb":"use","object":"bandages","indirect_object":"delvan"}}
 @expect "bleeding"
 @assert extra.delvan_rescued == true
 @assert actors.merchant_delvan.properties.state_machine.current == "freed"
 
 # === Phase 5: Rescue Garrett (Second Rescue) ===
 
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
 @expect "Merchant"
 
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
 @expect "Flooded"
 
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Flooded"
 
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Tidal"
 
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Sea"
 
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Garrett"
 
 # Use air bladder to rescue Garrett
-use air bladder on garrett
+{"type":"command","action":{"verb":"use","object":"air bladder","indirect_object":"garrett"}}
 @expect "bladder"
 @assert extra.garrett_rescued == true
 
 # === Phase 6: Return to Camp to Check Quest Status ===
 
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 @expect "Tidal"
 
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 @expect "Flooded"
 
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 @expect "Flooded"
 
-go northwest
+{"type":"command","action":{"verb":"go","object":"northwest"}}
 @expect "Survivor"
 
 # Ask Mira about progress - both rescued
-ask mira about progress
+{"type":"command","action":{"verb":"ask","object":"mira","indirect_object":"progress"}}
 @expect "Mira"
 
 # === Summary ===

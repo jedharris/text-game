@@ -2,21 +2,21 @@
 # Scenario: Give 1-2 flowers, check trading state dialog
 
 # Navigate to bee_queen_clearing
-go south
-go south
-go east
-go west
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
+{"type":"command","action":{"verb":"go","object":"west"}}
 
 # Give first flower
 @set actors.player.inventory = ["moonpetal"]
-give moonpetal to queen
+{"type":"command","action":{"verb":"give","object":"moonpetal","indirect_object":"queen"}}
 @expect "2 more flower type(s)"
 @assert extra.bee_queen_flowers_traded contains "moonpetal"
 @assert actors.bee_queen.properties.trust_state.current == 1
 
 # Give second flower
 @set actors.player.inventory = ["frost_lily"]
-give frost lily to queen
+{"type":"command","action":{"verb":"give","object":"frost lily","indirect_object":"queen"}}
 @expect "1 more flower type(s)"
 @assert extra.bee_queen_flowers_traded contains "frost_lily"
 @assert actors.bee_queen.properties.trust_state.current == 2

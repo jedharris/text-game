@@ -8,17 +8,17 @@ ASSERT actors.player.properties.health == 100
 
 # Part 1: Navigate to Luminous Grotto
 
-go west
-go down
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"down"}}
 
 # Part 2: Test Violet Mushroom (dangerous - adds infection)
 
 # Get bucket and fill it
-take bucket
-fill bucket from pool
+{"type":"command","action":{"verb":"take","object":"bucket"}}
+{"type":"command","action":{"verb":"fill","object":"bucket","indirect_object":"pool"}}
 
 # Water violet mushroom - should cause infection spike
-pour water on violet mushroom
+{"type":"command","action":{"verb":"pour","object":"water","indirect_object":"violet mushroom"}}
 
 # Check that infection increased
 # Should have gained ~15 severity from violet mushroom
@@ -28,42 +28,42 @@ pour water on violet mushroom
 # Part 3: Test Black Mushroom (reduces light)
 
 # Water black mushroom - should reduce light level
-pour water on black mushroom
+{"type":"command","action":{"verb":"pour","object":"water","indirect_object":"black mushroom"}}
 
 # Light should have decreased by 2 (from base 2 to 0)
 # This makes ceiling unreadable
 # Try to examine ceiling - should say too dim
-examine ceiling
+{"type":"command","action":{"verb":"examine","object":"ceiling"}}
 
 # Part 4: Recover with safe mushrooms
 
 # Refill bucket if needed
-fill bucket from pool
+{"type":"command","action":{"verb":"fill","object":"bucket","indirect_object":"pool"}}
 
 # Water blue mushroom to restore some light (0 → 1)
-pour water on blue mushroom
+{"type":"command","action":{"verb":"pour","object":"water","indirect_object":"blue mushroom"}}
 
 # Water gold mushroom (1 → 3)
-pour water on gold mushroom
+{"type":"command","action":{"verb":"pour","object":"water","indirect_object":"gold mushroom"}}
 
 # Still not enough for ceiling (need 6)
 # Refill and water gold again (3 → 5)
-fill bucket from pool
-pour water on gold mushroom
+{"type":"command","action":{"verb":"fill","object":"bucket","indirect_object":"pool"}}
+{"type":"command","action":{"verb":"pour","object":"water","indirect_object":"gold mushroom"}}
 
 # One more to reach 6
-pour water on blue mushroom
+{"type":"command","action":{"verb":"pour","object":"water","indirect_object":"blue mushroom"}}
 
 # Now ceiling should be readable
-examine ceiling
+{"type":"command","action":{"verb":"examine","object":"ceiling"}}
 
 # Verify safe path granted
 ASSERT extra.safe_path_known == true
 
 # Part 5: Return to nexus
 
-go up
-go east
+{"type":"command","action":{"verb":"go","object":"up"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 # SUCCESS: Dangerous mushroom paths validated!
 # - Violet mushroom adds infection (dangerous)

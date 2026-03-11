@@ -8,31 +8,31 @@ ASSERT actors.player.properties.health == 100
 # Part 1: Navigate to Hot Springs and meet salamanders
 
 # Go to frozen_pass
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
 
 # Navigate to hot springs (west from frozen_pass)
-go west
-go north
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"north"}}
 
 # Verify salamanders present and initial state
-examine salamander
+{"type":"command","action":{"verb":"examine","object":"salamander"}}
 
 # Part 2: Collect fire gift #1 (ancient torch from preserved_supplies)
 
 # Return to frozen_pass
-go south
-go east
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 # Get ancient torch from preserved supplies container
-take torch from supplies
+{"type":"command","action":{"verb":"take","object":"torch","indirect_object":"supplies"}}
 
 # Return to hot springs
-go west
-go north
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"north"}}
 
 # Part 3: Give first fire gift (trust 0 → 1, neutral → friendly)
 
-give torch to salamander
+{"type":"command","action":{"verb":"give","object":"torch","indirect_object":"salamander"}}
 
 # Verify trust increased and state changed
 ASSERT actors.salamander.properties.trust_state.current == 1
@@ -40,11 +40,11 @@ ASSERT actors.salamander.properties.trust_state.current == 1
 # Part 4: Collect fire gift #2 (warm coal from hot springs)
 
 # Warm coal is right here at hot springs
-take coal
+{"type":"command","action":{"verb":"take","object":"coal"}}
 
 # Part 5: Give second fire gift (trust 1 → 2, friendly state persists)
 
-give coal to salamander
+{"type":"command","action":{"verb":"give","object":"coal","indirect_object":"salamander"}}
 
 # Verify trust increased
 ASSERT actors.salamander.properties.trust_state.current == 2
@@ -52,21 +52,21 @@ ASSERT actors.salamander.properties.trust_state.current == 2
 # Part 6: Collect fire gift #3 (fire wand from temple sanctum)
 
 # Navigate to temple sanctum
-go south
-go east
-go north
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
+{"type":"command","action":{"verb":"go","object":"north"}}
 
 # Get fire wand
-take wand
+{"type":"command","action":{"verb":"take","object":"wand"}}
 
 # Return to hot springs
-go south
-go west
-go north
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"north"}}
 
 # Part 7: Give third fire gift (trust 2 → 3, friendly → companion)
 
-give wand to salamander
+{"type":"command","action":{"verb":"give","object":"wand","indirect_object":"salamander"}}
 
 # Verify trust reached companion threshold
 ASSERT actors.salamander.properties.trust_state.current == 3
@@ -77,42 +77,42 @@ ASSERT actors.salamander.properties.is_companion == true
 # Part 8: Test companion following behavior
 
 # Leave hot springs - salamander should follow
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 
 # Check if salamander followed
-look
+{"type":"command","action":{"verb":"look"}}
 
 # Continue moving - companion should stay with player
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 # Verify salamander still present
-look
+{"type":"command","action":{"verb":"look"}}
 
 # Part 9: Test hypothermia immunity from salamander companion
 
 # Navigate to temple sanctum to access observatory (extreme cold zone)
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
 
 # First deactivate golems with password
-examine lore tablets
-read lore tablets
+{"type":"command","action":{"verb":"examine","object":"lore tablets"}}
+{"type":"command","action":{"verb":"read","object":"lore tablets"}}
 
 # Speak password to guardians
-ask guardian about "fire-that-gives-life and water-that-cleanses"
+{"type":"command","action":{"verb":"ask","object":"guardian","indirect_object":"fire-that-gives-life and water-that-cleanses"}}
 
 # Access frozen observatory (extreme cold +20/turn without protection)
-go up
+{"type":"command","action":{"verb":"go","object":"up"}}
 
 # Verify salamander followed into extreme cold
-look
+{"type":"command","action":{"verb":"look"}}
 
 # Spend multiple turns in extreme cold zone
 # With salamander companion, hypothermia should NOT accumulate
-look
-look
-look
-look
-look
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
 
 # Verify no hypothermia accumulated despite extreme cold
 # The salamander companion provides full immunity via companion_lib.check_companion_benefit
@@ -122,12 +122,12 @@ look
 # Part 10: Test companion restrictions (optional future enhancement)
 
 # Return to warmer area
-go down
+{"type":"command","action":{"verb":"go","object":"down"}}
 
 # Navigate back to hot springs
-go south
-go west
-go north
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"north"}}
 
 # SUCCESS: Full companion system validated!
 # Infrastructure validated:

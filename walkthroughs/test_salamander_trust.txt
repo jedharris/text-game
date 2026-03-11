@@ -2,55 +2,55 @@
 # Tests gesture communication, fire gifts, trust progression, and state transitions
 
 # Part 1: Navigate to hot springs and test gesture communication
-go north
-go west
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"north"}}
 
 # Talk to lead salamander - should get gestures (neutral state)
-talk to salamander
+{"type":"command","action":{"verb":"talk","indirect_object":"salamander"}}
 
 # Part 2: Get fire items for trust building
-go south
-go east
-go north
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
+{"type":"command","action":{"verb":"go","object":"north"}}
 
 # Deactivate golems to access temple treasures
-ask guardian about "fire-that-gives-life and water-that-cleanses"
+{"type":"command","action":{"verb":"ask","object":"guardian","indirect_object":"fire-that-gives-life and water-that-cleanses"}}
 
 # Take fire wand (fire-aspected item)
-take fire wand
+{"type":"command","action":{"verb":"take","object":"fire wand"}}
 
 # Part 3: First gift - neutral to friendly transition
-go south
-go west
-go north
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"north"}}
 
 # Give fire wand to salamander (should trigger trust increase and friendly transition)
-give fire wand to salamander
+{"type":"command","action":{"verb":"give","object":"fire wand","indirect_object":"salamander"}}
 
 # Talk again - should show friendly state gestures
-talk to salamander
+{"type":"command","action":{"verb":"talk","indirect_object":"salamander"}}
 
 # Talk to follower - should also show friendly (pack mirroring)
-talk to steam salamander
+{"type":"command","action":{"verb":"talk","indirect_object":"steam salamander"}}
 
 # Part 4: Test non-fire item rejection
 
 # Go to temple to get non-fire item
-go south
-go east
-go north
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
+{"type":"command","action":{"verb":"go","object":"north"}}
 
 # Take non-fire item
-take cloak
+{"type":"command","action":{"verb":"take","object":"cloak"}}
 
 # Go back to hot springs
-go south
-go west
-go north
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"north"}}
 
 # Try giving non-fire item - should be rejected
-give cloak to salamander
+{"type":"command","action":{"verb":"give","object":"cloak","indirect_object":"salamander"}}
 
 # SUCCESS: Salamander trust system validated!
 # - Gesture-based dialogue works (no words)

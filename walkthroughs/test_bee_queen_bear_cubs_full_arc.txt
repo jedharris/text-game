@@ -7,92 +7,92 @@
 
 # === Phase 1: Get moonpetal from healers_garden ===
 
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Nexus"
 
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Forest"
 
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Trail"
 
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Gate"
 
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Market"
 
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Healer"
 
-go back
+{"type":"command","action":{"verb":"go","object":"back"}}
 @expect "Garden"
 
-take moonpetal
+{"type":"command","action":{"verb":"take","object":"moonpetal"}}
 @expect "moonpetal"
 @assert actors.player.inventory contains "moonpetal"
 
 # Also grab healing herbs for the bear cubs
-take herbs
+{"type":"command","action":{"verb":"take","object":"herbs"}}
 @expect "herbs"
 @assert actors.player.inventory contains "healing_herbs"
 
 # === Phase 2: Navigate to Bee Queen ===
 
-go front
+{"type":"command","action":{"verb":"go","object":"front"}}
 @expect "Healer"
 
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 @expect "Market"
 
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
 @expect "Gate"
 
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
 @expect "Trail"
 
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 @expect "Forest"
 
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Tangled"
 
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Grove"
 
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 @expect "Bee"
 
 # === Phase 3: Bee Queen Diplomacy ===
 
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Bee Queen"
 
 # Gift moonpetal to bee queen
-give moonpetal to bee queen
+{"type":"command","action":{"verb":"give","object":"moonpetal","indirect_object":"bee queen"}}
 @expect "moonpetal"
 
 # === Phase 4: Navigate to Bear Cubs ===
 
 # Back to ancient_grove
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Grove"
 
 # Back to tangled_path
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Tangled"
 
 # South to predators_den
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Predator"
 
 # === Phase 5: Bear Cubs Healing ===
 
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "bear"
 
 # Use healing herbs on sick cubs
-use herbs on cub
+{"type":"command","action":{"verb":"use","object":"herbs","indirect_object":"cub"}}
 @expect "herb"
 
 # === Summary ===

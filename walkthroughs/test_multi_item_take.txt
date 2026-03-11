@@ -4,57 +4,57 @@
 # Path: nexus_chamber -> cavern_entrance -> luminous_grotto
 
 # Navigate to luminous grotto
-go west
-go down
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"down"}}
 
 # Look to confirm we're in the right place
-look
+{"type":"command","action":{"verb":"look"}}
 
 # Test single item takes (should work)
-take notebook
-take silvermoss
+{"type":"command","action":{"verb":"take","object":"notebook"}}
+{"type":"command","action":{"verb":"take","object":"silvermoss"}}
 
 # Check inventory
-inventory
+{"type":"command","action":{"verb":"inventory"}}
 
 # Drop items to test again
-drop notebook
-drop silvermoss
+{"type":"command","action":{"verb":"drop","object":"notebook"}}
+{"type":"command","action":{"verb":"drop","object":"silvermoss"}}
 
 # Test multi-item take using JSON list format (the main feature being tested)
 # This should execute multiple separate take commands and combine results
 {"type": "command", "action": {"verb": "take", "object": ["notebook", "silvermoss"]}}
 
 # Verify both items are in inventory
-inventory
+{"type":"command","action":{"verb":"inventory"}}
 
 # Drop both items
-drop notebook
-drop silvermoss
+{"type":"command","action":{"verb":"drop","object":"notebook"}}
+{"type":"command","action":{"verb":"drop","object":"silvermoss"}}
 
 # Test with three items
 {"type": "command", "action": {"verb": "take", "object": ["notebook", "silvermoss", "bucket"]}}
 
 # Check inventory
-inventory
+{"type":"command","action":{"verb":"inventory"}}
 
 # Drop all three
-drop notebook
-drop silvermoss
-drop bucket
+{"type":"command","action":{"verb":"drop","object":"notebook"}}
+{"type":"command","action":{"verb":"drop","object":"silvermoss"}}
+{"type":"command","action":{"verb":"drop","object":"bucket"}}
 
 # Test with get synonym
 {"type": "command", "action": {"verb": "get", "object": ["notebook", "silvermoss"]}}
 
 # Check inventory
-inventory
+{"type":"command","action":{"verb":"inventory"}}
 
 # Drop both again
-drop notebook
-drop silvermoss
+{"type":"command","action":{"verb":"drop","object":"notebook"}}
+{"type":"command","action":{"verb":"drop","object":"silvermoss"}}
 
 # Test with grab synonym
 {"type": "command", "action": {"verb": "grab", "object": ["notebook", "silvermoss"]}}
 
 # Verify success
-inventory
+{"type":"command","action":{"verb":"inventory"}}

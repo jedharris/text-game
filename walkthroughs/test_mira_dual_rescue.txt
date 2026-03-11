@@ -5,7 +5,7 @@
 # Move player to survivor camp and accept quest
 @set actors.player.location = "survivor_camp"
 
-ask mira about help
+{"type":"command","action":{"verb":"ask","object":"mira","indirect_object":"help"}}
 @expect "trapped"
 @assert extra.mira_quest_active == true
 
@@ -13,7 +13,7 @@ ask mira about help
 @set actors.player.inventory = ["bandages"]
 @set actors.player.location = "merchant_warehouse"
 
-use bandages on delvan
+{"type":"command","action":{"verb":"use","object":"bandages","indirect_object":"delvan"}}
 @expect "bleeding"
 @assert extra.delvan_rescued == true
 
@@ -25,7 +25,7 @@ use bandages on delvan
 @set actors.player.inventory = ["air_bladder"]
 @set actors.player.location = "sea_caves"
 
-use air bladder on garrett
+{"type":"command","action":{"verb":"use","object":"air bladder","indirect_object":"garrett"}}
 @expect "air bladder"
 @assert extra.garrett_rescued == true
 

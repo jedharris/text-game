@@ -9,23 +9,23 @@ ASSERT actors.player.properties.health == 100
 # Part 1: Navigate to Luminous Grotto
 
 # Go west to Cavern Entrance
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 
 # Go down to Luminous Grotto
-go down
+{"type":"command","action":{"verb":"go","object":"down"}}
 
 # Examine the surroundings
-look
+{"type":"command","action":{"verb":"look"}}
 
 # Part 2: Get bucket (it's in the grotto, not sanctuary)
 
 # Get bucket
-take bucket
+{"type":"command","action":{"verb":"take","object":"bucket"}}
 
 # Part 3: Fill bucket from pool
 
 # Fill bucket from the pool (pool is not an item, but fill command works)
-fill bucket from pool
+{"type":"command","action":{"verb":"fill","object":"bucket","indirect_object":"pool"}}
 
 # Verify bucket has water charges
 # ASSERT extra.bucket_water_charges == 3
@@ -38,18 +38,18 @@ fill bucket from pool
 # Need one more... can rewater or use third charge wisely
 
 # Examine mushrooms to see all options
-examine mushrooms
+{"type":"command","action":{"verb":"examine","object":"mushrooms"}}
 
 # Water blue mushroom first (2 → 3 light)
-pour water on blue mushroom
+{"type":"command","action":{"verb":"pour","object":"water","indirect_object":"blue mushroom"}}
 
 # Water gold mushroom (3 → 5 light)
-pour water on gold mushroom
+{"type":"command","action":{"verb":"pour","object":"water","indirect_object":"gold mushroom"}}
 
 # Need one more light point to reach 6
 # Rewater gold for +2 more (5 → 7 light) if bucket refill mechanics allow
 # Or water blue again for +1 (5 → 6 light)
-pour water on blue mushroom
+{"type":"command","action":{"verb":"pour","object":"water","indirect_object":"blue mushroom"}}
 
 # Verify light level reached 6+
 # ASSERT locations[luminous_grotto].properties.light_level >= 6
@@ -57,7 +57,7 @@ pour water on blue mushroom
 # Part 5: Read ceiling inscription
 
 # Examine ceiling - this grants the safe path knowledge
-examine ceiling
+{"type":"command","action":{"verb":"examine","object":"ceiling"}}
 
 # Verify safe path knowledge granted
 ASSERT extra.safe_path_known == true
@@ -65,12 +65,12 @@ ASSERT extra.safe_path_known == true
 # Part 6: Test safe path benefit in high spore zone
 
 # Navigate to Spore Heart (high spore level)
-go down
+{"type":"command","action":{"verb":"go","object":"down"}}
 
 # Before safe path: high spore = 10 infection/turn
 # After safe path: high spore = 3 infection/turn
 # Spend a turn here to verify reduced infection
-look
+{"type":"command","action":{"verb":"look"}}
 
 # Check that infection accumulation is reduced
 # This will still add some infection, but at reduced rate
@@ -80,11 +80,11 @@ look
 # Part 7: Return safely
 
 # Go back to grotto
-go up
+{"type":"command","action":{"verb":"go","object":"up"}}
 
 # Return to nexus
-go up
-go east
+{"type":"command","action":{"verb":"go","object":"up"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 # SUCCESS: Light puzzle complete!
 # - Bucket mechanics validated

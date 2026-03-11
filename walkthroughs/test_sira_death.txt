@@ -2,12 +2,12 @@
 # Tests: encounter_reactions, death_reactions, commitment timer
 
 # Navigate to Hunter's Camp (Beast Wilds)
-go south
-go east
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 # First encounter triggers on entering Hunter's Camp
 # Should create commitment and start 8-turn timer
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Sira"
 @expect "clock is now ticking"
 

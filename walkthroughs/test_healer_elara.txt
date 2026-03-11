@@ -3,14 +3,14 @@
 # NOTE: Limited test due to game crash on turn processing (see issue #423)
 
 # Navigate to healers sanctuary
-go south
-go east
-go south
-go south
-go east
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 # Test dialog_reactions: Look at Elara
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Elara"
 
 # Summary: Reaction types status

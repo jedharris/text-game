@@ -7,50 +7,50 @@
 
 # === Phase 1: Enter Fungal Depths ===
 
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Nexus"
 
 # West to cavern_entrance
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 @expect "Cavern"
 
 # === Phase 2: Encounter Aldric ===
 
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Aldric"
 
 # === Phase 3: Go deeper to find silvermoss ===
 
 # Down to luminous_grotto
-go down
+{"type":"command","action":{"verb":"go","object":"down"}}
 @expect "Grotto"
 
-take silvermoss
+{"type":"command","action":{"verb":"take","object":"silvermoss"}}
 @expect "silvermoss"
 @assert actors.player.inventory contains "silvermoss"
 
 # === Phase 4: Return to heal Aldric ===
 
-go up
+{"type":"command","action":{"verb":"go","object":"up"}}
 @expect "Cavern"
 
-use silvermoss on aldric
+{"type":"command","action":{"verb":"use","object":"silvermoss","indirect_object":"aldric"}}
 @expect "silvermoss"
 
 # === Phase 5: Continue to Myconid Sanctuary ===
 
-go down
+{"type":"command","action":{"verb":"go","object":"down"}}
 @expect "Grotto"
 
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Myconid"
 
 # === Phase 6: Myconid Elder Diplomacy ===
 
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Myconid"
 
-ask elder about help
+{"type":"command","action":{"verb":"ask","object":"elder","indirect_object":"help"}}
 @expect "elder"
 
 # === Summary ===

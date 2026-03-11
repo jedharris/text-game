@@ -6,14 +6,14 @@
 @set extra.current_turn = 5
 
 # Navigate to Elara in healers_sanctuary
-go south
-go east
-go south
-go south
-go east
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 # Confess to Elara BEFORE gossip arrives
-ask elara about confess
+{"type":"command","action":{"verb":"ask","object":"elara","indirect_object":"confess"}}
 @expect "telling me yourself"
 @expect "takes courage"
 @assert extra.player_confessed_sira == true

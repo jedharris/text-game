@@ -2,20 +2,20 @@
 # Tests: giving venison to alpha wolf builds trust
 
 # Navigate to forest edge where venison is
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 
 # Take venison
-take venison
+{"type":"command","action":{"verb":"take","object":"venison"}}
 
 # Navigate to wolf clearing: south to tangled_path, northeast to wolf_clearing
-go south
-go northeast
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"northeast"}}
 
 # Verify we're at wolf clearing with the pack
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Wolf"
 
 # Give venison to alpha wolf - handler responds
 # Trust starts at -2, +1 = -1 (no state change yet, need more feedings)
-give venison to wolf
+{"type":"command","action":{"verb":"give","object":"venison","indirect_object":"wolf"}}
 @expect "wolf accepts the venison"

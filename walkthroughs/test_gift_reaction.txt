@@ -2,26 +2,26 @@
 # Focused test to verify salamander gift reactions work
 
 # Navigate to hot springs
-go north
-go west
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"north"}}
 
 # Get fire wand from temple first
-go south
-go east
-go north
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
+{"type":"command","action":{"verb":"go","object":"north"}}
 
 # Deactivate golems
-ask guardian about "fire-that-gives-life and water-that-cleanses"
+{"type":"command","action":{"verb":"ask","object":"guardian","indirect_object":"fire-that-gives-life and water-that-cleanses"}}
 
 # Take fire wand (fire item)
-take fire wand
+{"type":"command","action":{"verb":"take","object":"fire wand"}}
 
 # Go to hot springs
-go south
-go west
-go north
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"north"}}
 
 # Give fire wand to salamander - should get reaction message
-give fire wand to salamander
+{"type":"command","action":{"verb":"give","object":"fire wand","indirect_object":"salamander"}}
 # EXPECT: output should contain "flame" or "brightens" or "accepts"

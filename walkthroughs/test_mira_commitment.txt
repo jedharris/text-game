@@ -3,15 +3,15 @@
 
 # Navigate to Survivor Camp (Sunken District)
 # Path: nexus → east → northwest
-go east
-go northwest
+{"type":"command","action":{"verb":"go","object":"east"}}
+{"type":"command","action":{"verb":"go","object":"northwest"}}
 
 # Verify location and Mira present
 @expect "Survivor Camp"
 @expect "Mira"
 
 # Trigger quest offer via dialog
-ask mira about help
+{"type":"command","action":{"verb":"ask","object":"mira","indirect_object":"help"}}
 
 # Verify commitment created
 @expect "20 turns"

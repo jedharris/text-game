@@ -6,7 +6,7 @@
 @set actors.player.location = "survivor_camp"
 
 # Talk to Mira about quest
-ask mira about help
+{"type":"command","action":{"verb":"ask","object":"mira","indirect_object":"help"}}
 @expect "trapped"
 @expect "20 turns"
 
@@ -18,7 +18,7 @@ ask mira about help
 @set actors.player.location = "merchant_warehouse"
 
 # Rescue Delvan by using bandages (triggers condition_reactions → on_rescue_success)
-use bandages on delvan
+{"type":"command","action":{"verb":"use","object":"bandages","indirect_object":"delvan"}}
 @expect "You stop Delvan's bleeding"
 @assert extra.delvan_rescued == true
 

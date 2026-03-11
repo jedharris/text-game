@@ -12,97 +12,97 @@
 
 # === Phase 1: Enter Frozen Reaches ===
 
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Nexus"
 
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
 @expect "Frozen Pass"
 
 # Pick up cold weather gear
-take gear
+{"type":"command","action":{"verb":"take","object":"gear"}}
 @expect "gear"
 
 # === Phase 2: Navigate to Hot Springs for Salamanders ===
 
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 @expect "Ice Field"
 
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
 @expect "Hot Springs"
 
 # === Phase 3: Befriend Salamanders ===
 
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Salamander"
 
 # Pick up warm coal as gift
-take coal
+{"type":"command","action":{"verb":"take","object":"coal"}}
 @expect "coal"
 
 # Give warm coal to salamander
-give coal to salamander
+{"type":"command","action":{"verb":"give","object":"coal","indirect_object":"salamander"}}
 @expect "coal"
 
 # Talk to salamander
-ask salamander about help
+{"type":"command","action":{"verb":"ask","object":"salamander","indirect_object":"help"}}
 @expect "salamander"
 
 # === Phase 4: Get Command Orb from Ice Caves ===
 
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
 @expect "Ice Field"
 
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Frozen Pass"
 
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Ice Caves"
 
 # Command orb is frozen in ice - takes 3 attempts to chip free
-take orb # EXPECTED_FAILURE: first attempt fails (frozen solid)
+{"type":"command","action":{"verb":"take","object":"orb"}} # EXPECTED_FAILURE: first attempt fails (frozen solid)
 @expect "frozen"
 
-take orb # EXPECTED_FAILURE: second attempt makes progress
+{"type":"command","action":{"verb":"take","object":"orb"}} # EXPECTED_FAILURE: second attempt makes progress
 @expect "chip"
 
-take orb
+{"type":"command","action":{"verb":"take","object":"orb"}}
 @expect "free"
 @assert actors.player.inventory contains "command_orb"
 
 # Also get ice wand
-take ice wand
+{"type":"command","action":{"verb":"take","object":"ice wand"}}
 @expect "wand"
 
 # === Phase 5: Navigate to Temple Sanctum ===
 
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 @expect "Frozen Pass"
 
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
 @expect "Temple"
 
 # === Phase 6: Golem Puzzle - Command Orb Solution ===
 
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Guardian"
 
 # Use command orb to take control of golems
-use orb on guardian
+{"type":"command","action":{"verb":"use","object":"orb","indirect_object":"guardian"}}
 @expect "orb"
 
 # === Phase 7: Explore Observatory ===
 
-go up
+{"type":"command","action":{"verb":"go","object":"up"}}
 @expect "Observatory"
 
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Observatory"
 
 # Pick up fire_wand from temple (now accessible)
-go down
+{"type":"command","action":{"verb":"go","object":"down"}}
 @expect "Temple"
 
-take fire wand
+{"type":"command","action":{"verb":"take","object":"fire wand"}}
 @expect "wand"
 
 # === Summary ===

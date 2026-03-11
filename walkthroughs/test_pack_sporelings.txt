@@ -2,8 +2,8 @@
 # Tests: Pack behavior for sporelings and spore mother
 
 # Go to spore grotto
-go south
-go west
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"west"}}
 
 # Test 1: Check pack exists
 @assert npc_sporeling_1.properties.pack_behavior.leader == "npc_spore_mother"
@@ -13,7 +13,7 @@ go west
 # Test 2: Use item on spore mother
 @set player.inventory += ["living_creature"]
 
-use living_creature on npc_spore_mother
+{"type":"command","action":{"verb":"use","object":"living_creature","indirect_object":"npc_spore_mother"}}
 @expect "spore" OR "mother"
 
 # Test 3: Check state change on leader

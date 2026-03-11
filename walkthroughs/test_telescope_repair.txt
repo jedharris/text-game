@@ -4,81 +4,81 @@
 # Part 1: Access observatory and examine telescope
 
 # Navigate to frozen_pass
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
 
 # Navigate to temple_sanctum
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
 
 # Deactivate golems with password
-ask guardian about "fire-that-gives-life and water-that-cleanses"
+{"type":"command","action":{"verb":"ask","object":"guardian","indirect_object":"fire-that-gives-life and water-that-cleanses"}}
 
 # Go to observatory
-go up
+{"type":"command","action":{"verb":"go","object":"up"}}
 
 # Examine telescope to see repair requirements
-examine telescope
+{"type":"command","action":{"verb":"examine","object":"telescope"}}
 
 # Part 2: Collect fire wand and mounting bracket from temple
 
 # Return to temple
-go down
+{"type":"command","action":{"verb":"go","object":"down"}}
 
 # Take fire wand (needed to extract lens from ice)
-take fire wand
+{"type":"command","action":{"verb":"take","object":"fire wand"}}
 
 # Take mounting bracket from altar
-take mounting bracket
+{"type":"command","action":{"verb":"take","object":"mounting bracket"}}
 
 # Verify we have them
-inventory
+{"type":"command","action":{"verb":"inventory"}}
 
 # Part 3: Collect components from ice_caves
 
 # Navigate to ice_caves
-go south
-go east
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 # Use fire wand to melt lens free from ice
-use fire wand on lens
+{"type":"command","action":{"verb":"use","object":"fire wand","indirect_object":"lens"}}
 
 # Take crystal lens (now free from ice)
-take lens
+{"type":"command","action":{"verb":"take","object":"lens"}}
 
 # Take command orb (command orb) - this one can be picked up directly
-take command orb
+{"type":"command","action":{"verb":"take","object":"command orb"}}
 
 # Verify we have all three components
-inventory
+{"type":"command","action":{"verb":"inventory"}}
 
 # Part 4: Return to observatory and install components
 
 # Navigate back to observatory
-go west
-go north
-go up
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"north"}}
+{"type":"command","action":{"verb":"go","object":"up"}}
 
 # Install component 1: mounting bracket
-use mounting bracket on telescope
+{"type":"command","action":{"verb":"use","object":"mounting bracket","indirect_object":"telescope"}}
 
 # Examine telescope to see progress
-examine telescope
+{"type":"command","action":{"verb":"examine","object":"telescope"}}
 
 # Install component 2: crystal lens
-use lens on telescope
+{"type":"command","action":{"verb":"use","object":"lens","indirect_object":"telescope"}}
 
 # Examine telescope to see progress
-examine telescope
+{"type":"command","action":{"verb":"examine","object":"telescope"}}
 
 # Install component 3: command orb
-use command orb on telescope
+{"type":"command","action":{"verb":"use","object":"command orb","indirect_object":"telescope"}}
 
 # Examine telescope - should now be fully repaired
-examine telescope
+{"type":"command","action":{"verb":"examine","object":"telescope"}}
 
 # Part 5: Use the repaired telescope
 
 # Use telescope to observe the world
-use telescope
+{"type":"command","action":{"verb":"use","object":"telescope"}}
 
 # SUCCESS: Telescope repair complete!
 # - All three components collected

@@ -2,21 +2,21 @@
 # This demonstrates annotations and error categorization
 
 # Normal commands that should succeed
-go north
-go north
-look
+{"type":"command","action":{"verb":"go","object":"north"}}
+{"type":"command","action":{"verb":"go","object":"north"}}
+{"type":"command","action":{"verb":"look"}}
 
 # Taking an item
-take fire wand
+{"type":"command","action":{"verb":"take","object":"fire wand"}}
 
 # This command is expected to fail (guardians block exit)
-go south  # EXPECT_FAIL
+{"type":"command","action":{"verb":"go","object":"south"}}  # EXPECT_FAIL
 
 # Try to go east (no such exit - also expected to fail)
-go east  # EXPECT_FAIL
+{"type":"command","action":{"verb":"go","object":"east"}}  # EXPECT_FAIL
 
 # Try to use non-existent item
-use ice wand on fire wand  # EXPECT_FAIL
+{"type":"command","action":{"verb":"use","object":"ice wand","indirect_object":"fire wand"}}  # EXPECT_FAIL
 
 # Valid command
-inventory
+{"type":"command","action":{"verb":"inventory"}}

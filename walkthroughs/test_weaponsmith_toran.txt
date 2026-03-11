@@ -5,24 +5,24 @@
 @set actors.player.location = "market_square"
 
 # Test 1: General greeting — no trade goods
-ask toran about hello
+{"type":"command","action":{"verb":"ask","object":"toran","indirect_object":"hello"}}
 @expect "materials"
 
 # Test 2: Ask about trade with no materials
-ask toran about trade
+{"type":"command","action":{"verb":"ask","object":"toran","indirect_object":"trade"}}
 @expect "nothing"
 
 # Test 3: Get spider silk, talk — should mention it
 @set actors.player.inventory = ["spider_silk"]
-ask toran about hello
+{"type":"command","action":{"verb":"ask","object":"toran","indirect_object":"hello"}}
 @expect "spider silk"
 
 # Test 4: Execute trade
-ask toran about trade
+{"type":"command","action":{"verb":"ask","object":"toran","indirect_object":"trade"}}
 @expect "spider silk"
 @expect "armor"
 @assert extra.toran_traded_silk_armor == true
 
 # Test 5: Ask about town gossip
-ask toran about town
+{"type":"command","action":{"verb":"ask","object":"toran","indirect_object":"town"}}
 @expect "Council"

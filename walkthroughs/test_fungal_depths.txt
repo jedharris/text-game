@@ -7,133 +7,133 @@
 # ============================================================
 
 # Navigate to Cavern Entrance
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 
 # Check we're in the right place
-look
+{"type":"command","action":{"verb":"look"}}
 
 # Talk to Aldric (has dialog_topics)
-talk to aldric
+{"type":"command","action":{"verb":"talk","indirect_object":"aldric"}}
 
 # Ask about various topics
-ask aldric about infection
-ask aldric about research
-ask aldric about myconids
+{"type":"command","action":{"verb":"ask","object":"aldric","indirect_object":"infection"}}
+{"type":"command","action":{"verb":"ask","object":"aldric","indirect_object":"research"}}
+{"type":"command","action":{"verb":"ask","object":"aldric","indirect_object":"myconids"}}
 
 # ============================================================
 # Part 2: Luminous Grotto - Items and Light Puzzle
 # ============================================================
 
 # Go down to Luminous Grotto
-go down
+{"type":"command","action":{"verb":"go","object":"down"}}
 
 # Verify items are present
-look
+{"type":"command","action":{"verb":"look"}}
 
 # Examine the dead explorer
-examine dead explorer
+{"type":"command","action":{"verb":"examine","object":"dead explorer"}}
 
 # Take the notebook (use simple name to avoid parser bug #255)
-take notebook
+{"type":"command","action":{"verb":"take","object":"notebook"}}
 
 # Take silvermoss to heal Aldric
-take silvermoss
+{"type":"command","action":{"verb":"take","object":"silvermoss"}}
 
 # Check inventory
-inventory
+{"type":"command","action":{"verb":"inventory"}}
 
 # ============================================================
 # Part 2b: Heal Aldric with Silvermoss
 # ============================================================
 
 # Return to heal Aldric early (prevents death from infection)
-go up
+{"type":"command","action":{"verb":"go","object":"up"}}
 
 # Give silvermoss to stabilize him
-give silvermoss to aldric
+{"type":"command","action":{"verb":"give","object":"silvermoss","indirect_object":"aldric"}}
 
 # Return to grotto to continue exploration
-go down
+{"type":"command","action":{"verb":"go","object":"down"}}
 
 # ============================================================
 # Part 3: Light Puzzle
 # ============================================================
 
 # Take the bucket
-take bucket
+{"type":"command","action":{"verb":"take","object":"bucket"}}
 
 # Fill from pool
-fill bucket
+{"type":"command","action":{"verb":"fill","object":"bucket"}}
 
 # Water the gold mushroom (+2 light)
-pour water on gold mushroom
+{"type":"command","action":{"verb":"pour","object":"water","indirect_object":"gold mushroom"}}
 
 # Fill again
-fill bucket
+{"type":"command","action":{"verb":"fill","object":"bucket"}}
 
 # Water the blue mushroom (+1 light)
-pour water on blue mushroom
+{"type":"command","action":{"verb":"pour","object":"water","indirect_object":"blue mushroom"}}
 
 # Fill again
-fill bucket
+{"type":"command","action":{"verb":"fill","object":"bucket"}}
 
 # Water the gold mushroom again (+2 light = total 6)
-pour water on gold mushroom
+{"type":"command","action":{"verb":"pour","object":"water","indirect_object":"gold mushroom"}}
 
 # Verify light level increased (ceiling should be readable)
-look
+{"type":"command","action":{"verb":"look"}}
 
 # ============================================================
 # Part 4: Myconid Sanctuary
 # ============================================================
 
 # Go to Myconid Sanctuary
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 # Check the location
-look
+{"type":"command","action":{"verb":"look"}}
 
 # Talk to Myconid Elder (has dialog_topics)
-talk to myconid elder
+{"type":"command","action":{"verb":"talk","indirect_object":"myconid elder"}}
 
 # Ask about various topics
-ask elder about cure
-ask elder about resistance
-ask elder about spore mother
-ask elder about cold
+{"type":"command","action":{"verb":"ask","object":"elder","indirect_object":"cure"}}
+{"type":"command","action":{"verb":"ask","object":"elder","indirect_object":"resistance"}}
+{"type":"command","action":{"verb":"ask","object":"elder","indirect_object":"spore mother"}}
+{"type":"command","action":{"verb":"ask","object":"elder","indirect_object":"cold"}}
 
 # Take equipment (requires trust >= 0)
 # Note: "take spore lantern" and "take breathing mask" trigger parser bug #255
 # Use simple nouns instead
-take lantern
-take mask
+{"type":"command","action":{"verb":"take","object":"lantern"}}
+{"type":"command","action":{"verb":"take","object":"mask"}}
 
 # ============================================================
 # Part 5: Spore Heart - Spore Mother Dialog
 # ============================================================
 
 # Return to Luminous Grotto
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 
 # Go to Spore Heart
-go down
+{"type":"command","action":{"verb":"go","object":"down"}}
 
 # Check the location
-look
+{"type":"command","action":{"verb":"look"}}
 
 # Talk to Spore Mother (empathic handler)
-talk to spore mother
+{"type":"command","action":{"verb":"talk","indirect_object":"spore mother"}}
 
 # ============================================================
 # Part 6: Return and Give Gift to Aldric
 # ============================================================
 
 # Go back to Cavern Entrance
-go up
-go up
+{"type":"command","action":{"verb":"go","object":"up"}}
+{"type":"command","action":{"verb":"go","object":"up"}}
 
 # Give notebook to Aldric
-give notebook to aldric
+{"type":"command","action":{"verb":"give","object":"notebook","indirect_object":"aldric"}}
 
 # Final check
-inventory
+{"type":"command","action":{"verb":"inventory"}}

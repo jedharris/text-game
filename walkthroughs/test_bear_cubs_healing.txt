@@ -2,17 +2,17 @@
 # Tests: encounter → dialog commitment → heal cubs → grateful bear
 
 # Navigate to Beast Wilds → predators_den
-go south
-go south
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
 
 # Encounter dire bear (triggers encounter_reactions)
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Bear"
 @assert extra.bear_encountered == true
 
 # Talk to bear about helping cubs (triggers dialog_reactions → commitment)
-ask bear about help
+{"type":"command","action":{"verb":"ask","object":"bear","indirect_object":"help"}}
 @expect "lessens"
 @assert extra.bear_cubs_commitment_created == true
 
@@ -20,7 +20,7 @@ ask bear about help
 @set actors.player.inventory = ["healing_herbs"]
 
 # Use herbs on cub to heal (triggers item_use_reactions → on_cubs_healed)
-use herbs on cub
+{"type":"command","action":{"verb":"use","object":"herbs","indirect_object":"cub"}}
 @expect "eagerly consume"
 @expect "gratitude"
 @assert extra.cubs_healed == true

@@ -7,7 +7,7 @@
 @set actors.camp_leader_mira.properties.state_machine.current = "friendly"
 
 # Ask about resting at camp - friendly state grants rest
-ask mira about rest
+{"type":"command","action":{"verb":"ask","object":"mira","indirect_object":"rest"}}
 @expect "welcome"
 @assert extra.camp_rest_granted == true
 
@@ -15,7 +15,7 @@ ask mira about rest
 @set actors.camp_leader_mira.properties.state_machine.current = "neutral"
 @set extra.camp_rest_granted = false
 
-ask mira about rest
+{"type":"command","action":{"verb":"ask","object":"mira","indirect_object":"rest"}}
 @expect "Prove yourself"
 
 # Summary: Camp safe rest service verified

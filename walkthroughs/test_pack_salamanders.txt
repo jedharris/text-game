@@ -2,22 +2,22 @@
 # Tests: Pack behavior for salamanders
 
 # Go to hot springs
-go north
-go north
-go east
+{"type":"command","action":{"verb":"go","object":"north"}}
+{"type":"command","action":{"verb":"go","object":"north"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 # Test 1: Check pack configuration
 @assert steam_salamander_2.properties.pack_behavior.leader == "salamander"
 @assert steam_salamander_3.properties.pack_behavior.leader == "salamander"
 
 # Test 2: Interact with leader salamander
-talk to salamander
+{"type":"command","action":{"verb":"talk","indirect_object":"salamander"}}
 @expect "salamander" OR "gesture"
 
 # Test 3: Give gift to leader
 @set player.inventory += ["warm_coal"]
 
-give warm_coal to salamander
+{"type":"command","action":{"verb":"give","object":"warm_coal","indirect_object":"salamander"}}
 @expect "coal" OR "warmth"
 
 # Test 4: Verify trust change

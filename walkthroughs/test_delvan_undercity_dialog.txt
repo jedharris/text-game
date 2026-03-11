@@ -8,7 +8,7 @@
 @set actors.merchant_delvan.properties.trust_state.current = 2
 
 # Ask about undercity
-ask delvan about undercity
+{"type":"command","action":{"verb":"ask","object":"delvan","indirect_object":"undercity"}}
 @expect "entrance"
 @assert extra.knows_undercity_entrance == true
 

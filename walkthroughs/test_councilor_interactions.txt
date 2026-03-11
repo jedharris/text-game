@@ -5,40 +5,40 @@
 @set actors.player.location = "council_hall"
 
 # Test 1: Ask Asha about refugees first
-ask asha about refugees
+{"type":"command","action":{"verb":"ask","object":"asha","indirect_object":"refugees"}}
 @expect "sick, not dangerous"
 @assert extra.asha_position_refugees == "accept"
 
 # Test 2: Ask Hurst about refugees — should react to Asha's position
-ask hurst about refugees
+{"type":"command","action":{"verb":"ask","object":"hurst","indirect_object":"refugees"}}
 @expect "survival"
 @expect "Asha"
 @assert extra.hurst_position_refugees == "reject"
 
 # Test 3: Ask Varn — should see both positions and offer compromise
-ask varn about refugees
+{"type":"command","action":{"verb":"ask","object":"varn","indirect_object":"refugees"}}
 @expect "quarantined"
 @expect "Asha"
 @expect "Hurst"
 @assert extra.varn_position_refugees == "conditional"
 
 # Test 4: Ask Hurst about beasts
-ask hurst about beasts
+{"type":"command","action":{"verb":"ask","object":"hurst","indirect_object":"beasts"}}
 @expect "safe"
 @assert extra.hurst_position_beasts == "eliminate"
 
 # Test 5: Ask Varn about undercity
-ask varn about undercity
+{"type":"command","action":{"verb":"ask","object":"varn","indirect_object":"undercity"}}
 @expect "tunnels"
 @assert extra.varn_mentioned_undercity == true
 
 # Test 6: Ask Asha about un-branding without a mark
-ask asha about unbrand
+{"type":"command","action":{"verb":"ask","object":"asha","indirect_object":"unbrand"}}
 @expect "no mark"
 
 # Test 7: Set death mark, then ask about un-branding
 @set extra.has_killed_fungi = true
-ask asha about unbrand
+{"type":"command","action":{"verb":"ask","object":"asha","indirect_object":"unbrand"}}
 @expect "mark is removed"
 @assert extra.has_killed_fungi == false
 @assert extra.asha_unbranded_player == true

@@ -12,37 +12,37 @@ ASSERT actors.player.properties.health == 100
 # Wait ~10 turns to let his health drop significantly
 
 # Navigate to cavern_entrance where Aldric is
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 
 # Check Aldric's initial state
-examine aldric
+{"type":"command","action":{"verb":"examine","object":"aldric"}}
 
 # Wait several turns to let him deteriorate
-look
-look
-look
-look
-look
-look
-look
-look
-look
-look
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
 
 # Check his health - should be lower but not dead
-examine aldric
+{"type":"command","action":{"verb":"examine","object":"aldric"}}
 
 # Part 2: Stabilize Aldric with first silvermoss
 
 # Go to grotto to get silvermoss (there are 2 there)
-go down
-take silvermoss
+{"type":"command","action":{"verb":"go","object":"down"}}
+{"type":"command","action":{"verb":"take","object":"silvermoss"}}
 
 # Return to cavern entrance
-go up
+{"type":"command","action":{"verb":"go","object":"up"}}
 
 # Give first silvermoss to Aldric
-give silvermoss to aldric
+{"type":"command","action":{"verb":"give","object":"silvermoss","indirect_object":"aldric"}}
 
 # Verify he's now stabilized (infection reduced from 80→40)
 # ASSERT actors.npc_aldric.properties.state_machine.current == "stabilized"
@@ -52,16 +52,16 @@ give silvermoss to aldric
 # His health should slowly increase
 
 # Wait several turns and check health progression
-look
-examine aldric
-look
-examine aldric
-look
-examine aldric
-look
-examine aldric
-look
-examine aldric
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"examine","object":"aldric"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"examine","object":"aldric"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"examine","object":"aldric"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"examine","object":"aldric"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"examine","object":"aldric"}}
 
 # His health should be increasing each turn (net +1 HP)
 # This proves he survives indefinitely after stabilization
@@ -69,21 +69,21 @@ examine aldric
 # Part 4: Fully cure Aldric with second silvermoss
 
 # Go to grotto for second silvermoss
-go down
-take silvermoss
+{"type":"command","action":{"verb":"go","object":"down"}}
+{"type":"command","action":{"verb":"take","object":"silvermoss"}}
 
 # Return to cavern entrance
-go up
+{"type":"command","action":{"verb":"go","object":"up"}}
 
 # Give second dose
-give silvermoss to aldric
+{"type":"command","action":{"verb":"give","object":"silvermoss","indirect_object":"aldric"}}
 
 # Verify full recovery
 # ASSERT actors.npc_aldric.properties.state_machine.current == "recovering"
 
 # Part 5: Return to nexus
 
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 # SUCCESS: Aldric health progression validated!
 # - Critical state causes health loss (-3 HP/turn)

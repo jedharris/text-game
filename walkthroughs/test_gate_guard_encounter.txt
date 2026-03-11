@@ -5,22 +5,22 @@
 @set actors.player.location = "town_gate"
 
 # Test 1: Guard is present
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Gate Guard"
 
 # Test 2: Ask for help while suspicious — should be dismissed
-ask guard about help
+{"type":"command","action":{"verb":"ask","object":"guard","indirect_object":"help"}}
 @expect "Move along"
 
 # Test 3: Transition guard to neutral and ask about warnings
 @set actors.gate_guard.properties.state_machine.current = "neutral"
-ask guard about warn
+{"type":"command","action":{"verb":"ask","object":"guard","indirect_object":"warn"}}
 @expect "dangerous"
 
 # Test 4: Ask about beasts
-ask guard about beast
+{"type":"command","action":{"verb":"ask","object":"guard","indirect_object":"beast"}}
 @expect "dangerous"
 
 # Test 5: Ask about frozen reaches
-ask guard about frozen
+{"type":"command","action":{"verb":"ask","object":"guard","indirect_object":"frozen"}}
 @expect "dangerous"

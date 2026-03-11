@@ -6,13 +6,13 @@
 @set actors.healer_elara.trust_state.current = 2
 
 # Navigate to healer_elara location
-go south
-go south
-go east
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
 
 # Verify we're at the right location
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Elara"
 
 # Check we don't have herbalism skill
@@ -20,11 +20,11 @@ look
 @expect null
 
 # Ask about learning herbalism
-ask elara about herbalism
+{"type":"command","action":{"verb":"ask","object":"elara","indirect_object":"herbalism"}}
 @expect "teach" or "learn" or "plants"
 
 # Request teaching
-ask elara to teach herbalism
+{"type":"command","action":{"verb":"ask","object":"elara","indirect_object":"teach herbalism","preposition":"to"}}
 @expect "basic" or "fundamentals" or "identify"
 
 # Verify skill granted

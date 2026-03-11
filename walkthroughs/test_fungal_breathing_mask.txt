@@ -7,20 +7,20 @@ ASSERT actors.player.properties.health == 100
 
 # Part 1: Navigate to Myconid Sanctuary
 
-go west
-go down
-go east
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"down"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 # Part 2: Get breathing mask
 
-take mask
+{"type":"command","action":{"verb":"take","object":"mask"}}
 
 # Verify mask in inventory
-inventory
+{"type":"command","action":{"verb":"inventory"}}
 
 # Part 3: Equip breathing mask
 
-use mask
+{"type":"command","action":{"verb":"use","object":"mask"}}
 
 # Verify mask is equipped
 # ASSERT actors.player.properties.equipment.breathing_mask == true
@@ -28,13 +28,13 @@ use mask
 # Part 4: Test protection in medium spore zone (Cavern Entrance)
 
 # Navigate to cavern entrance (medium spores = 5/turn normally)
-go west
-go up
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"up"}}
 
 # Spend several turns - should accumulate NO infection
-look
-look
-look
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
 
 # Verify no infection accumulated (or very minimal from before equipping)
 # With mask, should have 0 infection gain from these turns
@@ -43,23 +43,23 @@ look
 # Part 5: Test protection in high spore zone (Spore Heart)
 
 # Navigate through grotto to spore heart
-go down
-go down
+{"type":"command","action":{"verb":"go","object":"down"}}
+{"type":"command","action":{"verb":"go","object":"down"}}
 
 # High spores = 10/turn normally
 # With mask, should be 0/turn
-look
-look
-look
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
 
 # Should still have minimal infection
 # ASSERT actors.player.properties.conditions.fungal_infection.severity < 20
 
 # Part 6: Return to safe area
 
-go up
-go up
-go east
+{"type":"command","action":{"verb":"go","object":"up"}}
+{"type":"command","action":{"verb":"go","object":"up"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 # SUCCESS: Breathing mask protection validated!
 # - Mask equips correctly

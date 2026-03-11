@@ -2,16 +2,16 @@
 # Goal: Prove ask/talk/use/attack/treat commands exist and fire hooks
 
 # Test 1: ask command recognized
-ask nobody about test
+{"type":"command","action":{"verb":"ask","object":"nobody","indirect_object":"test"}}
 
 # Test 2: talk command recognized
-talk to nobody
+{"type":"command","action":{"verb":"talk","indirect_object":"nobody"}}
 
 # Test 3: use command recognized
-use nothing
+{"type":"command","action":{"verb":"use","object":"nothing"}}
 
 # Test 4: attack command recognized
-attack nobody
+{"type":"command","action":{"verb":"attack","object":"nobody"}}
 
 # Test 5: treat command recognized
-treat nobody with nothing
+{"type":"command","action":{"verb":"treat","object":"nobody with nothing"}}

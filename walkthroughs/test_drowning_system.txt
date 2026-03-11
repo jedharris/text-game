@@ -7,8 +7,8 @@
 @set actors.player.inventory = ["air_bladder"]
 
 # Move to tidal_passage (non-breathable) — should trigger water entry
-go east
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Hold your breath"
 @expect "12 turns"
 
@@ -16,37 +16,37 @@ go east
 @assert actors.player.properties.underwater == true
 
 # Use air bladder on self to reset breath
-use bladder on self
+{"type":"command","action":{"verb":"use","object":"bladder","indirect_object":"self"}}
 @expect "Fresh air"
 @expect "2 uses remaining"
 
 # Move back to breathable location — should trigger surface message
-go west
+{"type":"command","action":{"verb":"go","object":"west"}}
 @expect "surface"
 @assert actors.player.properties.underwater == false
 
 # Go back underwater without air bladder to test breath ticking
 # First remove air bladder so we're not immune
 @set actors.player.inventory = []
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "Hold your breath"
 
 # Tick several turns underwater (use wait/look to pass turns)
-look
-look
-look
-look
-look
-look
-look
-look
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
 
 # After 8 turns, should get warning
 @expect "burning"
 
 # Two more turns
-look
-look
+{"type":"command","action":{"verb":"look"}}
+{"type":"command","action":{"verb":"look"}}
 
 # After 10, should get critical
 @expect "suffocating"

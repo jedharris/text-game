@@ -6,25 +6,25 @@
 
 # First activate Mira's quest so rescue triggers quest completion
 @set actors.player.location = "survivor_camp"
-ask mira about help
+{"type":"command","action":{"verb":"ask","object":"mira","indirect_object":"help"}}
 @expect "trapped"
 @assert extra.mira_quest_active == true
 
 # Navigate to Sunken District
 @set actors.player.location = "flooded_plaza"
-go south
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
 
 # Give player bandages for rescue
 @set actors.player.inventory = ["bandages"]
 
 # Encounter Delvan (triggers commitment)
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Delvan"
 @assert extra.delvan_commitment_created == true
 
 # Rescue: bandages remove bleeding → on_rescue_success → Mira quest completes
-use bandages on delvan
+{"type":"command","action":{"verb":"use","object":"bandages","indirect_object":"delvan"}}
 @expect "stop Delvan's bleeding"
 @expect "You came"
 

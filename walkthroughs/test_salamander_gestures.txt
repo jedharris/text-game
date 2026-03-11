@@ -4,22 +4,22 @@
 # Part 1: Navigate to hot springs and meet salamanders
 
 # Go to hot springs
-go north
-go west
-go north
+{"type":"command","action":{"verb":"go","object":"north"}}
+{"type":"command","action":{"verb":"go","object":"west"}}
+{"type":"command","action":{"verb":"go","object":"north"}}
 
 # Part 2: Test gesture-based dialogue (salamanders don't speak words)
 
 # Talk to lead salamander - should get gestures, not words
-talk to fire salamander
+{"type":"command","action":{"verb":"talk","indirect_object":"fire salamander"}}
 
 # Talk to follower salamander - should also get gestures
-talk to steam salamander
+{"type":"command","action":{"verb":"talk","indirect_object":"steam salamander"}}
 
 # Part 3: Try different communication attempts
 
 # Ask salamander about something - should still get gestures
-ask salamander about fire
+{"type":"command","action":{"verb":"ask","object":"salamander","indirect_object":"fire"}}
 
 # SUCCESS: Salamander gesture system validated!
 # - Salamanders communicate through gestures, flames, and sounds

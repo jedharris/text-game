@@ -3,32 +3,32 @@
 # Scenario: healer_elara.md scenario 9
 
 # Navigate to healer_elara location
-go south
-go south
-go east
-go south
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
 
 # Verify we're at the right location
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "Elara"
 
 # Try to access garden without trust (should be denied)
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "private" or "not allowed" or "permission"
 
 # Build trust to level 3
 @set actors.healer_elara.trust_state.current = 3
 
 # Ask about the garden
-ask elara about garden
+{"type":"command","action":{"verb":"ask","object":"elara","indirect_object":"garden"}}
 @expect "herbs" or "plants" or "welcome"
 
 # Now try to access garden with sufficient trust
-go east
+{"type":"command","action":{"verb":"go","object":"east"}}
 @expect "garden" or "herbs" or "plants"
 
 # Verify we're in the garden
-look
+{"type":"command","action":{"verb":"look"}}
 @expect "garden"
 
 # Verify flag is set

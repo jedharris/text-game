@@ -3,10 +3,10 @@
 
 # Navigate to Bee Queen's Clearing (Beast Wilds)
 # Path: nexus → south (forest_edge) → south (tangled_path) → east (ancient_grove) → west (bee_queen_clearing)
-go south
-go south
-go east
-go west
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"south"}}
+{"type":"command","action":{"verb":"go","object":"east"}}
+{"type":"command","action":{"verb":"go","object":"west"}}
 
 # Verify location and bee_queen present
 @expect "Bee Queen"
@@ -15,7 +15,7 @@ go west
 # TEST 1: gift_reactions - Invalid gift (non-flower)
 # Give invalid item to test rejection
 @set actors.player.inventory = ["venison"]
-give venison to queen
+{"type":"command","action":{"verb":"give","object":"venison","indirect_object":"queen"}}
 
 # Verify rejection message
 @expect "not what she seeks"
@@ -23,7 +23,7 @@ give venison to queen
 # TEST 2: gift_reactions - Valid gift (flower)
 # Give moonpetal flower
 @set actors.player.inventory = ["moonpetal"]
-give moonpetal to queen
+{"type":"command","action":{"verb":"give","object":"moonpetal","indirect_object":"queen"}}
 
 # Verify acceptance
 @expect "accepts"
@@ -33,14 +33,14 @@ give moonpetal to queen
 # TEST 3: gift_reactions - Duplicate flower rejected
 # Try to give moonpetal again
 @set actors.player.inventory = ["moonpetal"]
-give moonpetal to queen
+{"type":"command","action":{"verb":"give","object":"moonpetal","indirect_object":"queen"}}
 
 # Verify duplicate rejection
 @expect "already received"
 
 # TEST 4: take_reactions - Theft attempt (not allied)
 # royal_honey is already in clearing
-take honey
+{"type":"command","action":{"verb":"take","object":"honey"}}
 
 # Verify hostile reaction
 @expect "furious buzzing"
