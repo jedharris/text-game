@@ -110,16 +110,29 @@ class TestHandleUse(unittest.TestCase):
         result = handle_use(self.accessor, action)
 
         self.assertFalse(result.success)
-        self.assertIn("don't see", result.primary.lower())
+        self.assertIn("don't have", result.primary.lower())
 
     def test_use_item_success(self):
-        """Test using a usable item."""
+        """Test using an item with a registered on_item_used handler."""
         from behavior_libraries.command_lib.item_use import handle_use
+        from src.state_accessor import EventResult
+        from types import SimpleNamespace
+
+        # Register a behavior that responds to on_item_used
+        def on_item_used(entity, accessor, context):
+            return EventResult(allow=True, feedback="You use the key.")
+
+        self.behavior_manager._modules["test_use"] = SimpleNamespace(on_item_used=on_item_used)
+
+        # Put key in inventory and give it the behavior
+        key = next(i for i in self.game_state.items if i.id == "item_key")
+        key.behaviors = ["test_use"]
+        self.game_state.actors["player"].inventory.append("item_key")
 
         action = make_action(verb="use", object="key", actor_id="player")
         result = handle_use(self.accessor, action)
 
-        self.assertTrue(result.success)
+        self.assertTrue(result.success, f"Expected success, got: {result.primary}")
         self.assertIn("use", result.primary.lower())
 
 
@@ -593,6 +606,20 @@ class TestUseWithAdjective(unittest.TestCase):
     def test_use_with_adjective_selects_correct_item(self):
         """Test that use with adjective selects correct item."""
         from behavior_libraries.command_lib.item_use import handle_use
+        from src.state_accessor import EventResult
+        from types import SimpleNamespace
+
+        # Register a behavior that responds to on_item_used
+        def on_item_used(entity, accessor, context):
+            return EventResult(allow=True, feedback=f"You use the {entity.id}.")
+
+        self.behavior_manager._modules["test_use"] = SimpleNamespace(on_item_used=on_item_used)
+
+        # Give both keys the behavior and put in inventory
+        for item in self.game_state.items:
+            if item.id in ("key_gold", "key_silver"):
+                item.behaviors = ["test_use"]
+        self.game_state.actors["player"].inventory.extend(["key_gold", "key_silver"])
 
         action = make_action(verb="use", object="key", adjective="gold", actor_id="player")
         result = handle_use(self.accessor, action)
@@ -605,6 +632,20 @@ class TestUseWithAdjective(unittest.TestCase):
     def test_use_with_different_adjective_selects_other_item(self):
         """Test that use with different adjective selects other item."""
         from behavior_libraries.command_lib.item_use import handle_use
+        from src.state_accessor import EventResult
+        from types import SimpleNamespace
+
+        # Register a behavior that responds to on_item_used
+        def on_item_used(entity, accessor, context):
+            return EventResult(allow=True, feedback=f"You use the {entity.id}.")
+
+        self.behavior_manager._modules["test_use"] = SimpleNamespace(on_item_used=on_item_used)
+
+        # Give both keys the behavior and put in inventory
+        for item in self.game_state.items:
+            if item.id in ("key_gold", "key_silver"):
+                item.behaviors = ["test_use"]
+        self.game_state.actors["player"].inventory.extend(["key_gold", "key_silver"])
 
         action = make_action(verb="use", object="key", adjective="silver", actor_id="player")
         result = handle_use(self.accessor, action)

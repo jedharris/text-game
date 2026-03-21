@@ -29,6 +29,7 @@ HEAT_SOURCES = [
     "fire_wand",
     "salamander_heated_stone",
     "lit_torch",  # In case torch becomes lit_torch when lit
+    "warm_coal",
 ]
 
 # Fire-aspected items that provide heat

@@ -50,7 +50,8 @@ def handle_use(accessor, action: Dict) -> HandlerResult:
     if not isinstance(item_name, WordEntry):
         return HandlerResult(success=False, primary="Use what?")
 
-    item = find_item_in_inventory(accessor, item_name, actor_id)
+    adjective = action.get('adjective')
+    item = find_item_in_inventory(accessor, item_name, actor_id, adjective)
     if not item:
         return HandlerResult(
             success=False,

@@ -393,7 +393,12 @@ def find_accessible_item(
     return None
 
 
-def find_item_in_inventory(accessor: "StateAccessor", name: WordEntry, actor_id: ActorId) -> Optional["Item"]:
+def find_item_in_inventory(
+    accessor: "StateAccessor",
+    name: WordEntry,
+    actor_id: ActorId,
+    adjective: Optional[Union[str, "WordEntry"]] = None
+) -> Optional["Item"]:
     """
     Find an item in the actor's inventory.
 
@@ -403,18 +408,32 @@ def find_item_in_inventory(accessor: "StateAccessor", name: WordEntry, actor_id:
         accessor: StateAccessor instance
         name: Item name to search for (WordEntry with synonyms or plain string)
         actor_id: ID of the actor whose inventory to search
+        adjective: Optional adjective to disambiguate items with the same name
 
     Returns:
         Item if found in inventory, None otherwise
     """
     actor = accessor.get_actor(actor_id)  # Raises KeyError if not found
 
+    adjective_str = adjective.word if hasattr(adjective, 'word') else adjective
+
+    matches = []
     for item_id in actor.inventory:
         item = accessor.get_item(item_id)
         if item and name_matches(name, item.name):
-            return item
+            matches.append(item)
 
-    return None
+    if not matches:
+        return None
+
+    # If adjective provided, filter by it
+    if adjective_str:
+        for item in matches:
+            if _matches_adjective(adjective_str, item):
+                return item
+        # No adjective match — fall through to first name match
+
+    return matches[0]
 
 
 def find_container_by_name(accessor: "StateAccessor", name: WordEntry, location_id: str) -> Optional["Item"]:
@@ -1169,12 +1188,15 @@ def find_lock_by_context(
         # Expand abbreviation if needed
         dir_expanded = DIRECTION_ABBREVIATIONS.get(direction.lower(), direction.lower())
 
-        # Check if there's an exit in that direction
-        if dir_expanded not in location.exits:
-            return None
+        # Find exit in that direction from this location
+        exits_here = accessor.get_exits_from_location(location_id)
+        exit_desc = None
+        for ex in exits_here:
+            if ex.direction == dir_expanded:
+                exit_desc = ex
+                break
 
-        exit_desc = location.exits[dir_expanded]
-        if not exit_desc.door_id:
+        if not exit_desc or not exit_desc.door_id:
             return None
 
         door = accessor.get_door_item(exit_desc.door_id)

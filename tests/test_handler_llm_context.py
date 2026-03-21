@@ -248,6 +248,23 @@ class TestInteractionHandlersLlmContext(unittest.TestCase):
     def test_handle_use_returns_llm_context(self):
         """Test handle_use returns item llm_context."""
         from behavior_libraries.command_lib.item_use import handle_use
+        from src.state_accessor import EventResult
+        from types import SimpleNamespace
+        from src.behavior_manager import BehaviorManager
+
+        # Need a real behavior_manager to register handlers
+        bm = BehaviorManager()
+
+        def on_item_used(entity, accessor, context):
+            return EventResult(allow=True, feedback="You swing the sword.")
+
+        bm._modules["test_use"] = SimpleNamespace(on_item_used=on_item_used)
+        self.accessor = StateAccessor(self.game_state, bm)
+
+        # Give sword the behavior and put in inventory
+        sword = self.accessor.get_item("item_sword")
+        sword.behaviors = ["test_use"]
+        self.game_state.actors["player"].inventory.append("item_sword")
 
         action = make_action(verb="use", object="sword", actor_id="player")
         result = handle_use(self.accessor, action)

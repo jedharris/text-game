@@ -545,22 +545,27 @@ class TestProtocolBehaviorCommands(unittest.TestCase):
         self.assertTrue(result.get("success"))
 
     def test_use_command_invokes_on_use(self):
-        """Test use command invokes on_use behavior."""
+        """Test use command invokes on_item_used behavior."""
         behavior_called = []
 
-        def on_use(entity, state, context):
+        def on_item_used(entity, state, context):
             behavior_called.append(True)
             return EventResult(allow=True, feedback="You use the item!")
 
-        self.manager._modules["test"] = SimpleNamespace(on_use=on_use)
+        # Load the use command handler module so "use" verb is registered
+        import behavior_libraries.command_lib.item_use
+        self.manager.load_module(behavior_libraries.command_lib.item_use)
+
+        self.manager._modules["test"] = SimpleNamespace(on_item_used=on_item_used)
         self.game_state.items[0].behaviors = ["test"]
+        # Item must be in inventory to use it
+        self.game_state.actors["player"].inventory.append("item1")
 
         result = self.handler.handle_command({
             "type": "command",
             "action": {"verb": "use", "object": "potion"}
         })
 
-        # use is a stub command
         self.assertTrue(result.get("success"))
 
     def test_examine_command_returns_description(self):
