@@ -1,10 +1,11 @@
 # Merchant Delvan Reactions Walkthrough
 # Tests: encounter_reactions, condition_reactions, death_reactions
 
+# Setup: Need swimming to reach merchant warehouse via submerged passages
+@set actors.player.properties.skills = {"basic_swimming": true}
+
 # Navigate to merchant warehouse
-{"type":"command","action":{"verb":"go","object":"east"}}
-{"type":"command","action":{"verb":"go","object":"south"}}
-{"type":"command","action":{"verb":"go","object":"south"}}
+@goto merchant_warehouse
 
 # Test encounter_reactions: First look triggers encounter
 {"type":"command","action":{"verb":"look"}}

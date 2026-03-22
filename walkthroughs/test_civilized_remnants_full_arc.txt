@@ -7,17 +7,7 @@
 
 # === Phase 1: Approach Town Gate ===
 
-{"type":"command","action":{"verb":"look"}}
-@expect "Nexus"
-
-{"type":"command","action":{"verb":"go","object":"south"}}
-@expect "Forest"
-
-{"type":"command","action":{"verb":"go","object":"east"}}
-@expect "Trail"
-
-{"type":"command","action":{"verb":"go","object":"south"}}
-@expect "Gate"
+@goto town_gate
 
 # Gate guard encounter should fire
 {"type":"command","action":{"verb":"look"}}

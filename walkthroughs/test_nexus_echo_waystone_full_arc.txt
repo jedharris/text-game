@@ -29,17 +29,7 @@
 
 # === Phase 2: Get Ice Shard from Frozen Reaches ===
 
-{"type":"command","action":{"verb":"go","object":"down"}}
-@expect "Crystal"
-
-{"type":"command","action":{"verb":"go","object":"west"}}
-@expect "Nexus"
-
-{"type":"command","action":{"verb":"go","object":"north"}}
-@expect "Frozen Pass"
-
-{"type":"command","action":{"verb":"go","object":"east"}}
-@expect "Ice Caves"
+@goto ice_caves
 
 # Ice shard is frozen - needs 3 attempts to chip free
 {"type":"command","action":{"verb":"take","object":"ice shard"}} # EXPECTED_FAILURE: first attempt
@@ -54,35 +44,15 @@
 
 # === Phase 3: Get Water Pearl from Sunken District ===
 
-{"type":"command","action":{"verb":"go","object":"west"}}
-@expect "Frozen Pass"
-
-{"type":"command","action":{"verb":"go","object":"south"}}
-@expect "Nexus"
-
 # Need swimming to reach deep_archive via merchant_warehouse
 # Learn swimming first
-{"type":"command","action":{"verb":"go","object":"east"}}
-@expect "Flooded"
-
-{"type":"command","action":{"verb":"go","object":"northwest"}}
-@expect "Survivor"
+@goto survivor_camp
 
 {"type":"command","action":{"verb":"ask","object":"jek","indirect_object":"swimming"}}
 @expect "swimming"
 @assert actors.player.properties.skills.basic_swimming == true
 
-{"type":"command","action":{"verb":"go","object":"southeast"}}
-@expect "Flooded"
-
-{"type":"command","action":{"verb":"go","object":"south"}}
-@expect "Merchant"
-
-{"type":"command","action":{"verb":"go","object":"south"}}
-@expect "Warehouse"
-
-{"type":"command","action":{"verb":"go","object":"down"}}
-@expect "Archive"
+@goto deep_archive
 
 {"type":"command","action":{"verb":"take","object":"pearl"}}
 @expect "pearl"
@@ -90,17 +60,7 @@
 
 # === Phase 4: Return to Nexus and Place Fragments ===
 
-{"type":"command","action":{"verb":"go","object":"up"}}
-@expect "Warehouse"
-
-{"type":"command","action":{"verb":"go","object":"north"}}
-@expect "Merchant"
-
-{"type":"command","action":{"verb":"go","object":"north"}}
-@expect "Flooded"
-
-{"type":"command","action":{"verb":"go","object":"west"}}
-@expect "Nexus"
+@goto nexus_chamber
 
 # Place ice shard on waystone
 {"type":"command","action":{"verb":"use","object":"ice shard","indirect_object":"waystone"}}

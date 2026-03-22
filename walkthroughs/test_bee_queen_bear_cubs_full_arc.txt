@@ -7,26 +7,7 @@
 
 # === Phase 1: Get moonpetal from healers_garden ===
 
-{"type":"command","action":{"verb":"look"}}
-@expect "Nexus"
-
-{"type":"command","action":{"verb":"go","object":"south"}}
-@expect "Forest"
-
-{"type":"command","action":{"verb":"go","object":"east"}}
-@expect "Trail"
-
-{"type":"command","action":{"verb":"go","object":"south"}}
-@expect "Gate"
-
-{"type":"command","action":{"verb":"go","object":"south"}}
-@expect "Market"
-
-{"type":"command","action":{"verb":"go","object":"east"}}
-@expect "Healer"
-
-{"type":"command","action":{"verb":"go","object":"back"}}
-@expect "Garden"
+@goto healers_garden
 
 {"type":"command","action":{"verb":"take","object":"moonpetal"}}
 @expect "moonpetal"
@@ -39,29 +20,7 @@
 
 # === Phase 2: Navigate to Bee Queen ===
 
-{"type":"command","action":{"verb":"go","object":"front"}}
-@expect "Healer"
-
-{"type":"command","action":{"verb":"go","object":"west"}}
-@expect "Market"
-
-{"type":"command","action":{"verb":"go","object":"north"}}
-@expect "Gate"
-
-{"type":"command","action":{"verb":"go","object":"north"}}
-@expect "Trail"
-
-{"type":"command","action":{"verb":"go","object":"west"}}
-@expect "Forest"
-
-{"type":"command","action":{"verb":"go","object":"south"}}
-@expect "Tangled"
-
-{"type":"command","action":{"verb":"go","object":"east"}}
-@expect "Grove"
-
-{"type":"command","action":{"verb":"go","object":"west"}}
-@expect "Bee"
+@goto bee_queen_clearing
 
 # === Phase 3: Bee Queen Diplomacy ===
 
@@ -74,17 +33,7 @@
 
 # === Phase 4: Navigate to Bear Cubs ===
 
-# Back to ancient_grove
-{"type":"command","action":{"verb":"go","object":"east"}}
-@expect "Grove"
-
-# Back to tangled_path
-{"type":"command","action":{"verb":"go","object":"east"}}
-@expect "Tangled"
-
-# South to predators_den
-{"type":"command","action":{"verb":"go","object":"south"}}
-@expect "Predator"
+@goto predators_den
 
 # === Phase 5: Bear Cubs Healing ===
 

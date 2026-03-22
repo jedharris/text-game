@@ -49,14 +49,7 @@
 
 # === Phase 4: Get Command Orb from Ice Caves ===
 
-{"type":"command","action":{"verb":"go","object":"south"}}
-@expect "Ice Field"
-
-{"type":"command","action":{"verb":"go","object":"east"}}
-@expect "Frozen Pass"
-
-{"type":"command","action":{"verb":"go","object":"east"}}
-@expect "Ice Caves"
+@goto ice_caves
 
 # Command orb is frozen in ice - takes 3 attempts to chip free
 {"type":"command","action":{"verb":"take","object":"orb"}} # EXPECTED_FAILURE: first attempt fails (frozen solid)
@@ -75,11 +68,7 @@
 
 # === Phase 5: Navigate to Temple Sanctum ===
 
-{"type":"command","action":{"verb":"go","object":"west"}}
-@expect "Frozen Pass"
-
-{"type":"command","action":{"verb":"go","object":"north"}}
-@expect "Temple"
+@goto temple_sanctum
 
 # === Phase 6: Golem Puzzle - Command Orb Solution ===
 

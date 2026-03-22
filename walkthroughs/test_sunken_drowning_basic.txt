@@ -2,6 +2,12 @@
 # Tests breath counter, warnings, damage, and surfacing
 # MAX_BREATH = 12 turns, warnings at 8 and 10, damage at 12+
 
+# Grant swimming skill so player can enter submerged areas
+@set actors.player.properties.skills = {"basic_swimming": true}
+
+# Stabilize Aldric so he doesn't die during the long test
+@set actors.npc_aldric.properties.health = 100
+
 # Initial state check
 ASSERT actors.player.properties.health == 100
 

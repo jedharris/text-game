@@ -9,11 +9,11 @@
 # Taking an item
 {"type":"command","action":{"verb":"take","object":"fire wand"}}
 
-# This command is expected to fail (guardians block exit)
-{"type":"command","action":{"verb":"go","object":"south"}}  # EXPECT_FAIL
+# Go south (guardians allow leaving the temple)
+{"type":"command","action":{"verb":"go","object":"south"}}
 
-# Try to go east (no such exit - also expected to fail)
-{"type":"command","action":{"verb":"go","object":"east"}}  # EXPECT_FAIL
+# Go east to ice caves
+{"type":"command","action":{"verb":"go","object":"east"}}
 
 # Try to use non-existent item
 {"type":"command","action":{"verb":"use","object":"ice wand","indirect_object":"fire wand"}}  # EXPECT_FAIL

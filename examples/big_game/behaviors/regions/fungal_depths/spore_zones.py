@@ -23,7 +23,13 @@ vocabulary: Dict[str, Any] = {
             "description": "Apply spore infection progression based on location"
         }
     ],
-    "events": []
+    "events": [
+        {
+            "event": "on_spore_zone_turn",
+            "hook": "turn_spore_infection",
+            "description": "Apply spore infection progression based on location",
+        }
+    ]
 }
 
 # Spore levels and their infection rates

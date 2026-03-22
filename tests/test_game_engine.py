@@ -137,11 +137,13 @@ class TestGameEngineNarrator(unittest.TestCase):
             import shutil
             shutil.copy(self.simple_game_dir / "game_state.json", tmppath / "game_state.json")
 
-            # Create behaviors directory with symlink to core
+            # Create behaviors directory with symlinks to core, shared, and lib
             behaviors_dir = tmppath / "behaviors"
             behaviors_dir.mkdir()
-            core_behaviors = Path(__file__).parent.parent / "behaviors" / "core"
-            (behaviors_dir / "core").symlink_to(core_behaviors)
+            project_root = Path(__file__).parent.parent
+            (behaviors_dir / "core").symlink_to(project_root / "behaviors" / "core")
+            (behaviors_dir / "shared").symlink_to(project_root / "behaviors" / "shared")
+            (behaviors_dir / "lib").symlink_to(project_root / "behavior_libraries")
 
             engine = GameEngine(tmppath)
 
@@ -164,11 +166,13 @@ class TestGameEngineNarrator(unittest.TestCase):
             import shutil
             shutil.copy(self.simple_game_dir / "game_state.json", tmppath / "game_state.json")
 
-            # Create behaviors directory with symlink to core
+            # Create behaviors directory with symlinks to core, shared, and lib
             behaviors_dir = tmppath / "behaviors"
             behaviors_dir.mkdir()
-            core_behaviors = Path(__file__).parent.parent / "behaviors" / "core"
-            (behaviors_dir / "core").symlink_to(core_behaviors)
+            project_root = Path(__file__).parent.parent
+            (behaviors_dir / "core").symlink_to(project_root / "behaviors" / "core")
+            (behaviors_dir / "shared").symlink_to(project_root / "behaviors" / "shared")
+            (behaviors_dir / "lib").symlink_to(project_root / "behavior_libraries")
 
             # Create a narrator_style.txt file
             (tmppath / "narrator_style.txt").write_text("Test style guidance")

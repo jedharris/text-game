@@ -39,20 +39,7 @@
 
 # === Phase 5: Navigate to Sea Caves (where Garrett is) ===
 
-{"type":"command","action":{"verb":"go","object":"southeast"}}
-@expect "Flooded"
-
-# Go east to flooded_chambers
-{"type":"command","action":{"verb":"go","object":"east"}}
-@expect "Flooded"
-
-# East to tidal_passage
-{"type":"command","action":{"verb":"go","object":"east"}}
-@expect "Tidal"
-
-# East to sea_caves
-{"type":"command","action":{"verb":"go","object":"east"}}
-@expect "Sea"
+@goto sea_caves
 
 # === Phase 6: Encounter and Rescue Garrett ===
 
@@ -66,17 +53,7 @@
 
 # === Phase 7: Return to Mira ===
 
-{"type":"command","action":{"verb":"go","object":"west"}}
-@expect "Tidal"
-
-{"type":"command","action":{"verb":"go","object":"west"}}
-@expect "Flooded"
-
-{"type":"command","action":{"verb":"go","object":"west"}}
-@expect "Flooded"
-
-{"type":"command","action":{"verb":"go","object":"northwest"}}
-@expect "Survivor"
+@goto survivor_camp
 
 # Check that Mira acknowledges rescue
 {"type":"command","action":{"verb":"ask","object":"mira","indirect_object":"progress"}}

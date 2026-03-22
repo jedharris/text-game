@@ -28,6 +28,8 @@ from enum import Enum
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
+from collections import deque
+
 from src.game_engine import GameEngine
 from src.types import ActorId
 
@@ -67,6 +69,64 @@ def categorize_failure(result: Dict[str, Any], cmd: str) -> FailureCategory:
             return FailureCategory.COMBAT_FAILURE
 
     return FailureCategory.UNKNOWN
+
+
+def build_exit_graph(game_state: Any) -> Dict[str, Dict[str, str]]:
+    """Build location adjacency graph from exit entities.
+
+    Returns:
+        Dict mapping location_id -> {direction: destination_location_id}
+    """
+    graph: Dict[str, Dict[str, str]] = {}
+    # Build a lookup from exit_id to its location
+    exit_location: Dict[str, str] = {}
+    for ex in game_state.exits:
+        exit_location[ex.id] = ex.location
+
+    for ex in game_state.exits:
+        if not ex.connections:
+            continue
+        # Destination is the location of the connected exit
+        dest_exit_id = ex.connections[0]
+        dest_location = exit_location.get(dest_exit_id)
+        if not dest_location:
+            continue
+        if ex.location not in graph:
+            graph[ex.location] = {}
+        graph[ex.location][ex.direction] = dest_location
+
+    return graph
+
+
+def find_path(graph: Dict[str, Dict[str, str]], start: str, goal: str) -> Optional[List[str]]:
+    """BFS shortest path returning list of directions to walk.
+
+    Args:
+        graph: Output of build_exit_graph
+        start: Starting location_id
+        goal: Target location_id
+
+    Returns:
+        List of direction strings, or None if no path exists
+    """
+    if start == goal:
+        return []
+
+    queue: deque[Tuple[str, List[str]]] = deque([(start, [])])
+    visited = {start}
+
+    while queue:
+        current, path = queue.popleft()
+        for direction, dest in graph.get(current, {}).items():
+            if dest in visited:
+                continue
+            new_path = path + [direction]
+            if dest == goal:
+                return new_path
+            visited.add(dest)
+            queue.append((dest, new_path))
+
+    return None
 
 
 def extract_result_message(result: Dict[str, Any]) -> str:
@@ -535,6 +595,55 @@ def run_walkthrough(
 
             continue
 
+        # Check if this is a @goto command
+        if line.startswith("@goto "):
+            target_location = line[6:].strip()
+            print(f"\n{'='*60}")
+            print(f"@goto {target_location}")
+            print("-" * 60)
+
+            try:
+                # Build graph and find path
+                graph = build_exit_graph(engine.game_state)
+                current_loc = engine.game_state.actors["player"].location
+                path = find_path(graph, current_loc, target_location)
+
+                if path is None:
+                    print(f"[✗] No path from {current_loc} to {target_location}")
+                    if stop_on_error:
+                        print(f"\n⚠️  Stopped at line {i} due to @goto failure")
+                        break
+                elif len(path) == 0:
+                    print(f"[✓] Already at {target_location}")
+                else:
+                    # Execute each go command along the path
+                    print(f"    Path: {' → '.join(path)} ({len(path)} steps)")
+                    goto_failed = False
+                    for direction in path:
+                        go_result = engine.json_handler.handle_message({
+                            "type": "command",
+                            "action": {"verb": "go", "object": direction}
+                        })
+                        go_success = bool(go_result.get("success", False))
+                        if not go_success:
+                            msg = extract_result_message(go_result)
+                            print(f"[✗] go {direction}: {msg}")
+                            goto_failed = True
+                            break
+                    if goto_failed:
+                        if stop_on_error:
+                            print(f"\n⚠️  Stopped at line {i} due to @goto navigation failure")
+                            break
+                    else:
+                        print(f"[✓] Arrived at {target_location}")
+            except Exception as e:
+                print(f"[✗] @goto failed: {e}")
+                if stop_on_error:
+                    print(f"\n⚠️  Stopped at line {i} due to @goto failure")
+                    break
+
+            continue
+
         # Check if this is an @advance command
         advance_turns = parse_advance_command(line)
         if advance_turns is not None:
@@ -673,10 +782,10 @@ def run_walkthrough(
         # Categorize failure if command failed
         if not success:
             category = categorize_failure(result, cmd)
-            failure_counts[category.value] = failure_counts.get(category.value, 0) + 1
 
-            # Track unexpected failures
+            # Only count unexpected failures
             if expect_success:
+                failure_counts[category.value] = failure_counts.get(category.value, 0) + 1
                 unexpected_failures.append((i, cmd, category))
 
         if verbose:

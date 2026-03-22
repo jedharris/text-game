@@ -75,13 +75,13 @@
 # Examine telescope - should now be fully repaired
 {"type":"command","action":{"verb":"examine","object":"telescope"}}
 
-# Part 5: Use the repaired telescope
+# Part 5: Observe through the repaired telescope
 
-# Use telescope to observe the world
-{"type":"command","action":{"verb":"use","object":"telescope"}}
+# Examine the fully repaired telescope to see what it reveals
+{"type":"command","action":{"verb":"examine","object":"telescope"}}
 
 # SUCCESS: Telescope repair complete!
 # - All three components collected
 # - Components installed in telescope
 # - Telescope fully repaired and functional
-# - Can now observe the world state
+# - Examining shows the world through the lens

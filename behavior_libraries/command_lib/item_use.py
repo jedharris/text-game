@@ -16,10 +16,17 @@ from utilities.handler_utils import get_display_name, find_action_target
 from utilities.entity_serializer import serialize_for_handler_result
 
 vocabulary = {
+    "hook_definitions": [
+        {
+            "hook_id": "entity_item_used",
+            "invocation": "entity",
+            "description": "Called when an item is used"
+        }
+    ],
     "verbs": [
         {
             "word": "use",
-            "synonyms": ["apply", "employ"],
+            "synonyms": ["apply", "employ", "wield"],
             "object_required": True,
             "preposition": "on"
         }

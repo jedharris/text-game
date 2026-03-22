@@ -1658,6 +1658,9 @@
           "clothing"
         ]
       },
+      "behaviors": [
+        "behaviors.shared.infrastructure.equip"
+      ],
       "llm_context": {
         "traits": [
           "multiple layers of insulation",
@@ -1979,6 +1982,9 @@
           "bracket"
         ]
       },
+      "behaviors": [
+        "behaviors.shared.infrastructure.item_use_reactions"
+      ],
       "llm_context": {
         "traits": [
           "brass framework precision-machined",
@@ -2010,6 +2016,9 @@
           "frostcloak"
         ]
       },
+      "behaviors": [
+        "behaviors.shared.infrastructure.equip"
+      ],
       "llm_context": {
         "traits": [
           "cloak shimmering with frost enchantment",
@@ -2782,6 +2791,9 @@
         "filters_toxic_air": true,
         "requires_trust": 0
       },
+      "behaviors": [
+        "behaviors.shared.infrastructure.equip"
+      ],
       "llm_context": {
         "traits": [
           "leather mask with glass eye-pieces",

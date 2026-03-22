@@ -25,7 +25,7 @@
 {"type":"command","action":{"verb":"look"}}
 
 # Use fire wand to melt ice wand (optional flavor interaction)
-{"type":"command","action":{"verb":"use","object":"fire wand","indirect_object":"ice wand"}}
+{"type":"command","action":{"verb":"use","object":"fire wand","indirect_object":"ice wand"}}  # EXPECTED_FAILURE: no item_use_reaction for wand-on-wand
 {"type":"command","action":{"verb":"take","object":"ice wand"}}
 {"type":"command","action":{"verb":"inventory"}}
 

@@ -136,7 +136,10 @@
           "in_inventory": "a reassuring weight at your side",
           "examined": "despite the rust, still deadly"
         }
-      }
+      },
+      "behaviors": [
+        "behaviors.shared.infrastructure.equip"
+      ]
     },
     {
       "id": "item_key",

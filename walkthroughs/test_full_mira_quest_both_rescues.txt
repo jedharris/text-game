@@ -7,46 +7,15 @@
 
 # === Phase 1: Get Bandages from Market Square ===
 
-{"type":"command","action":{"verb":"look"}}
-@expect "Nexus"
-
-{"type":"command","action":{"verb":"go","object":"south"}}
-@expect "Forest"
-
-{"type":"command","action":{"verb":"go","object":"east"}}
-@expect "Trail"
-
-{"type":"command","action":{"verb":"go","object":"south"}}
-@expect "Gate"
-
-{"type":"command","action":{"verb":"go","object":"south"}}
-@expect "Market"
+@goto market_square
 
 {"type":"command","action":{"verb":"take","object":"bandages"}}
 @expect "bandages"
 @assert actors.player.inventory contains "bandages"
 
-# === Phase 2: Return to Nexus ===
+# === Phase 2: Go to Survivor Camp, Get Quest + Swimming + Air Bladder ===
 
-{"type":"command","action":{"verb":"go","object":"north"}}
-@expect "Gate"
-
-{"type":"command","action":{"verb":"go","object":"north"}}
-@expect "Trail"
-
-{"type":"command","action":{"verb":"go","object":"west"}}
-@expect "Forest"
-
-{"type":"command","action":{"verb":"go","object":"north"}}
-@expect "Nexus"
-
-# === Phase 3: Go to Survivor Camp, Get Quest + Swimming + Air Bladder ===
-
-{"type":"command","action":{"verb":"go","object":"east"}}
-@expect "Flooded"
-
-{"type":"command","action":{"verb":"go","object":"northwest"}}
-@expect "Survivor"
+@goto survivor_camp
 
 # Get quest from Mira
 {"type":"command","action":{"verb":"ask","object":"mira","indirect_object":"help"}}
@@ -62,16 +31,9 @@
 @expect "bladder"
 @assert actors.player.inventory contains "air_bladder"
 
-# === Phase 4: Rescue Delvan (First Rescue) ===
+# === Phase 3: Rescue Delvan (First Rescue) ===
 
-{"type":"command","action":{"verb":"go","object":"southeast"}}
-@expect "Flooded"
-
-{"type":"command","action":{"verb":"go","object":"south"}}
-@expect "Merchant"
-
-{"type":"command","action":{"verb":"go","object":"south"}}
-@expect "Warehouse"
+@goto merchant_warehouse
 
 {"type":"command","action":{"verb":"look"}}
 @expect "Delvan"
@@ -83,22 +45,9 @@
 @assert extra.delvan_rescued == true
 @assert actors.merchant_delvan.properties.state_machine.current == "freed"
 
-# === Phase 5: Rescue Garrett (Second Rescue) ===
+# === Phase 4: Rescue Garrett (Second Rescue) ===
 
-{"type":"command","action":{"verb":"go","object":"north"}}
-@expect "Merchant"
-
-{"type":"command","action":{"verb":"go","object":"north"}}
-@expect "Flooded"
-
-{"type":"command","action":{"verb":"go","object":"east"}}
-@expect "Flooded"
-
-{"type":"command","action":{"verb":"go","object":"east"}}
-@expect "Tidal"
-
-{"type":"command","action":{"verb":"go","object":"east"}}
-@expect "Sea"
+@goto sea_caves
 
 {"type":"command","action":{"verb":"look"}}
 @expect "Garrett"
@@ -108,19 +57,9 @@
 @expect "bladder"
 @assert extra.garrett_rescued == true
 
-# === Phase 6: Return to Camp to Check Quest Status ===
+# === Phase 5: Return to Camp to Check Quest Status ===
 
-{"type":"command","action":{"verb":"go","object":"west"}}
-@expect "Tidal"
-
-{"type":"command","action":{"verb":"go","object":"west"}}
-@expect "Flooded"
-
-{"type":"command","action":{"verb":"go","object":"west"}}
-@expect "Flooded"
-
-{"type":"command","action":{"verb":"go","object":"northwest"}}
-@expect "Survivor"
+@goto survivor_camp
 
 # Ask Mira about progress - both rescued
 {"type":"command","action":{"verb":"ask","object":"mira","indirect_object":"progress"}}

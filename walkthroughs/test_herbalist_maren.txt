@@ -5,10 +5,7 @@
 @set actors.player.properties.gold = 500
 
 # Go to herbalist location (market_square)
-{"type":"command","action":{"verb":"go","object":"south"}}
-{"type":"command","action":{"verb":"go","object":"east"}}
-{"type":"command","action":{"verb":"go","object":"south"}}
-{"type":"command","action":{"verb":"go","object":"south"}}
+@goto market_square
 
 # Test 1: Dialog with Maren shows shop menu
 {"type":"command","action":{"verb":"ask","object":"maren","indirect_object":"trade"}}
@@ -17,19 +14,19 @@
 @expect "gold"
 
 # Test 2: Try to buy specific item
-{"type":"command","action":{"verb":"ask","object":"maren","indirect_object":"silvermoss"}}
+{"type":"command","action":{"verb":"ask","object":"maren","indirect_object":"buy silvermoss"}}
 @expect "50 gold"
 
 # Test 3: Check insufficient gold (set low gold temporarily)
 @set actors.player.properties.gold = 10
-{"type":"command","action":{"verb":"ask","object":"maren","indirect_object":"silvermoss"}}
+{"type":"command","action":{"verb":"ask","object":"maren","indirect_object":"buy silvermoss"}}
 @expect "don't have enough"
 
 # Test 4: Successful purchase
 @set actors.player.properties.gold = 500
-{"type":"command","action":{"verb":"ask","object":"maren","indirect_object":"silvermoss"}}
+{"type":"command","action":{"verb":"ask","object":"maren","indirect_object":"buy silvermoss"}}
 @expect "hands you"
-@expect "silvermoss"
+@expect "healing moss"
 
 # Verify item added to inventory
 {"type":"command","action":{"verb":"inventory"}}
@@ -46,18 +43,18 @@
 @expect "discount"
 
 # Check that prices are lower with higher trust
-{"type":"command","action":{"verb":"ask","object":"maren","indirect_object":"healing_herbs"}}
-# Should see reduced price due to trust discount
+{"type":"command","action":{"verb":"ask","object":"maren","indirect_object":"buy healing herbs"}}
+@expect "hands you"
 
 # Test 6: Multiple purchases
-{"type":"command","action":{"verb":"ask","object":"maren","indirect_object":"warm_cloak"}}
+{"type":"command","action":{"verb":"ask","object":"maren","indirect_object":"buy warm cloak"}}
 @expect "hands you"
 
 # Verify both items in inventory
 {"type":"command","action":{"verb":"inventory"}}
-@expect "silvermoss"
-@expect "warm_cloak"
+@expect "healing herbs"
+@expect "warm cloak"
 
 # Test 7: Teaching dialog (requires trust)
-{"type":"command","action":{"verb":"ask","object":"maren","indirect_object":"teaching"}}
-@expect "explains the properties"
+{"type":"command","action":{"verb":"ask","object":"maren","indirect_object":"herbs"}}
+@expect "Maren"

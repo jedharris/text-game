@@ -2,30 +2,22 @@
 # Tests that infrastructure modules load and dispatch correctly for all 9 reaction types
 
 # === Test 1: Dialog Reactions (herbalist_maren) ===
-# Path: nexus -> south -> east -> south -> south
-{"type":"command","action":{"verb":"go","object":"south"}}
-{"type":"command","action":{"verb":"go","object":"east"}}
-{"type":"command","action":{"verb":"go","object":"south"}}
-{"type":"command","action":{"verb":"go","object":"south"}}
+@goto market_square
 
 {"type":"command","action":{"verb":"ask","object":"maren","indirect_object":"trade"}}
 @expect "wares"
 
 # === Test 2: Dialog Reactions (healer_elara) ===
-# From market_square, go east to healers_sanctuary
-{"type":"command","action":{"verb":"go","object":"east"}}
+@goto healers_sanctuary
 
 {"type":"command","action":{"verb":"ask","object":"elara","indirect_object":"healing"}}
-@expect "heal" OR "wounds" OR "sanctuary"
+@expect "healing"
 
 # === Test 3: Dialog Reactions (camp_leader_mira) ===
-# From healers_sanctuary, need to navigate to survivor_camp
-# Go back to market_square, then find path to survivor_camp
-{"type":"command","action":{"verb":"go","object":"west"}}
-{"type":"command","action":{"verb":"go","object":"west"}}
+@goto survivor_camp
 
 {"type":"command","action":{"verb":"ask","object":"mira","indirect_object":"camp"}}
-@expect "survivors" OR "camp" OR "holding"
+@expect "spare"
 
 # === SUCCESS ===
 # If above 3 NPCs respond to dialog, dialog_reactions infrastructure works

@@ -2,22 +2,22 @@
 # Tests: Pack behavior for spiders
 
 # Go to spider nest
-{"type":"command","action":{"verb":"go","object":"north"}}
-{"type":"command","action":{"verb":"go","object":"west"}}
-{"type":"command","action":{"verb":"go","object":"south"}}
-{"type":"command","action":{"verb":"go","object":"west"}}
+@goto spider_gallery
 
 # Test 1: Check pack configuration
-@assert giant_spider_1.properties.pack_behavior.leader == "spider_matriarch"
-@assert giant_spider_2.properties.pack_behavior.leader == "spider_matriarch"
+@assert actors.giant_spider_1.properties.pack_behavior.leader == "spider_matriarch"
+@assert actors.giant_spider_2.properties.pack_behavior.leader == "spider_matriarch"
 
-# Test 2: Initial states should match
-@assert giant_spider_1.properties.state_machine.current == spider_matriarch.properties.state_machine.current
-@assert giant_spider_2.properties.state_machine.current == spider_matriarch.properties.state_machine.current
+# Test 2: Initial states should match (all start at "hostile")
+@assert actors.spider_matriarch.properties.state_machine.initial == "hostile"
+@assert actors.giant_spider_1.properties.state_machine.initial == "hostile"
+@assert actors.giant_spider_2.properties.state_machine.initial == "hostile"
 
 # Test 3: Kill matriarch (triggers death reaction)
 # This would require combat, simulating with state change
-@set spider_matriarch.properties.state_machine.current = "dead"
+@set actors.spider_matriarch.properties.state_machine.current = "dead"
+@assert actors.spider_matriarch.properties.state_machine.current == "dead"
 
 # Test 4: Verify spiders react to matriarch death
-# Death of leader should affect followers
+# Note: @set bypasses behavior code so death reaction won't trigger here
+# Death of leader should affect followers when triggered via game actions

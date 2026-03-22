@@ -31,13 +31,6 @@ from src.behavior_manager import EventResult
 
 # Vocabulary: wire hooks to events
 vocabulary = {
-    "hook_definitions": [
-        {
-            "hook_id": "entity_item_used",
-            "invocation": "entity",
-            "description": "Called when an item is used"
-        }
-    ],
     "events": [
         {
             "event": "on_item_used",

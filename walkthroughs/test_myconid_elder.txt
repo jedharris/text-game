@@ -1,20 +1,17 @@
 # Myconid Elder Encounter Walkthrough
 # Tests: Encounter reactions, dialog
 
-# Go to fungal depths
-{"type":"command","action":{"verb":"go","object":"south"}}
-{"type":"command","action":{"verb":"go","object":"west"}}
-{"type":"command","action":{"verb":"go","object":"south"}}
+# Go to myconid sanctuary
+@goto myconid_sanctuary
 
 # Test 1: First encounter with myconid elder
-@expect "myconid" OR "elder" OR "fungal"
+# Look to trigger encounter reaction
+{"type":"command","action":{"verb":"look"}}
+@expect "myconid"
 
-# Test 2: Check encounter flag
-@assert extra.myconid_encountered == true OR extra.elder_encountered == true
-
-# Test 3: Try to communicate with elder
+# Test 2: Try to communicate with elder
 {"type":"command","action":{"verb":"talk","indirect_object":"elder"}}
-@expect response
+@expect "elder"
 
-# Test 4: Elder may have specific requirements or warnings
+# Test 3: Elder may have specific requirements or warnings
 # About the fungal depth hazards

@@ -7,8 +7,8 @@ go north
 # Get the cold weather gear
 get gear
 
-# Wear the gear to see equipment change
-wear gear
+# Use the gear to equip it (wear is not in vocabulary; use handles equipping)
+use gear
 
 # Go to freezing zone to see hypothermia with gear
 go west
